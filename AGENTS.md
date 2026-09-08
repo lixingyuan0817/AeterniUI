@@ -1,5 +1,17 @@
 # AeterniUI Agent Instructions
 
+## 0. 开工前置与提交自检（跨 agent 协作约定）
+
+开始任何任务前，先按 `docs/agent-development.zh-CN.md` 阅读以下文档：
+
+1. `docs/component-design-guidelines.zh-CN.md`（组件契约）
+2. `docs/component-roadmap.zh-CN.md`（任务/验收/状态）
+3. `docs/current-features.zh-CN.md`（公共表面事实源）
+
+禁止事项：不得在 `wwwroot/css/aeterni_ui.css` 写入组件样式（CI 会拦截）；不得用 `::deep`/全局规则在示例页覆盖组件原生样式；不得新建第二套尺寸/颜色/圆角体系；不得绕过 `ThemeProvider` 自行改 `data-theme`。
+
+提交前自检：`dotnet build aeterni_ui.slnx` 通过、`.razor.js` 变更过则 `node --check`、同步 `current-features` 与 roadmap 状态、示例页有可交互演示；不提交 `bin/ obj/ target/ dist/ .sample-publish/` 及 IDE/OS 文件。
+
 ## Project Scope
 
 AeterniUI is a Blazor component library with three supported hosts:

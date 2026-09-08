@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore & build
+        run: dotnet build aeterni_ui.slnx -c Debug --nologo
+
+      - name: JS syntax check (.razor.js)
+        shell: bash
+        run: |
+          mapfile -t files < <(find src -name "*.razor.js" -not -path "*/bin/*" -not -path "*/obj/*")
+          if [ "${#files[@]}" -gt 0 ]; then
+            for file in "${files[@]}"; do
+              echo "node --check $file"
+              node --check "$file"
+            done
+          fi
+
+      - name: Token file must not contain component rules
+        shell: bash
+        run: |
+          CSS=src/AeterniUI/wwwroot/css/aeterni_ui.css
+          # Only the Token-level theme alias .aeterni-dark is allowed; every other
+          # top-level ".aeterni-…" selector means component styling leaked into the
+          # token file. Component styles belong in their own *.razor.css files.
+          offenders=$(grep -E '^\.aeterni-' "$CSS" | grep -v '^\.aeterni-dark' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::aeterni_ui.css contains component selectors (must be Tokens only):"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "aeterni_ui.css is Token-only."
