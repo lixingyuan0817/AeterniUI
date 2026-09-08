@@ -727,13 +727,15 @@ Sample/
 
 ```text
 Button
-IconButton
 ButtonGroup
 Surface
+Input
 Stack
 Flex
 FormField
 ```
+
+`IconButton` 暂不纳入当前阶段。Button 已通过 `Icon`、`StartIcon` 和 `EndIcon` 支持带图标操作；只有在独立图标操作的 API 需求明确后，再单独设计 IconButton。
 
 其中 `Button` 作为第一份参考实现，重点验证：
 

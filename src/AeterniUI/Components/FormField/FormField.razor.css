@@ -1,0 +1,18 @@
+.aeterni-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-gap-xs);
+    min-width: 0;
+}
+
+.aeterni-form-field__label {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-form-field__required { color: var(--aeterni-danger); margin-inline-start: var(--aeterni-spacing-1); }
+.aeterni-form-field__description { color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); }
+.aeterni-form-field__error { color: var(--aeterni-danger); font-size: var(--aeterni-font-size-xs); }
+.aeterni-form-field.is-disabled { opacity: var(--aeterni-opacity-disabled); }

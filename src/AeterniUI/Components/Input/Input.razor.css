@@ -1,0 +1,85 @@
+.aeterni-input {
+    display: block;
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-width-input-md));
+    max-width: 100%;
+    min-width: 0;
+    height: var(--aeterni-control-height-md);
+    padding: 0 var(--aeterni-control-padding-x-md);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-input);
+    outline: none;
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color), var(--aeterni-transition-shadow);
+}
+
+.aeterni-input::placeholder {
+    color: var(--aeterni-field-placeholder);
+    opacity: 1;
+}
+
+.aeterni-input:hover:not(:disabled):not([readonly]) {
+    border-color: var(--aeterni-border-strong);
+}
+
+.aeterni-input:focus {
+    border-color: var(--aeterni-brand-500);
+    box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color);
+}
+
+.aeterni-input:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-input:disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+    background: var(--aeterni-bg-disabled);
+}
+
+.aeterni-input[readonly],
+.aeterni-input.is-readonly {
+    cursor: default;
+    background: var(--aeterni-bg-secondary);
+}
+
+.aeterni-input.is-invalid:not(:disabled),
+.aeterni-input[aria-invalid="true"]:not(:disabled) {
+    border-color: var(--aeterni-danger);
+}
+
+.aeterni-input.is-invalid:not(:disabled):focus,
+.aeterni-input[aria-invalid="true"]:not(:disabled):focus {
+    border-color: var(--aeterni-danger);
+    box-shadow: 0 0 0 var(--aeterni-focus-width) color-mix(in srgb, var(--aeterni-danger) 24%, transparent);
+}
+
+.aeterni-input--sm {
+    width: min(100%, var(--aeterni-width-input-sm));
+    height: var(--aeterni-control-height-sm);
+    padding-inline: var(--aeterni-control-padding-x-sm);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-input--lg {
+    width: min(100%, var(--aeterni-width-input-lg));
+    height: var(--aeterni-control-height-lg);
+    padding-inline: var(--aeterni-control-padding-x-lg);
+    font-size: var(--aeterni-font-size-base);
+}
+
+.aeterni-input.is-full-width {
+    width: 100%;
+    max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-input {
+        transition: none;
+    }
+}

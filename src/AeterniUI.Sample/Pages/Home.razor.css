@@ -19,21 +19,20 @@ main,
     top: 16px;
     left: 50%;
     z-index: var(--aeterni-z-sticky);
-    box-sizing: border-box;
-    min-height: 64px;
+    transform: translateX(-50%);
+}
+
+/* The glass look comes from the library's Surface Glass variant, not bespoke CSS.
+   The header stays an outer semantic shell that only positions the bar. */
+.sample-header__surface {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 64px;
     padding: 0 18px;
-    border: 1px solid var(--aeterni-border-strong);
-    border-radius: var(--aeterni-radius-2xl);
-    background-color: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-md), 0 0 0 1px rgba(139, 77, 246, .04);
-    backdrop-filter: var(--aeterni-blur-md);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    transform: translateX(-50%);
-    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-shadow), var(--aeterni-transition-transform);
 }
 
 .brand {
@@ -765,6 +764,36 @@ code {
     border-top: 1px solid var(--aeterni-border-subtle);
 }
 
+.input-demo {
+    display: grid;
+    gap: 14px;
+    padding-top: 18px;
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.input-demo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.input-demo-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.input-demo-field ::deep .aeterni-input {
+    width: 100%;
+}
+
+.input-demo-field small {
+    color: var(--aeterni-danger);
+    font-size: 11px;
+}
+
 .sample-footer {
     display: flex;
     justify-content: space-between;
@@ -916,6 +945,10 @@ code {
         min-width: 0;
     }
 
+    .input-demo-grid {
+        grid-template-columns: 1fr;
+    }
+
     .sample-footer {
         display: grid;
         gap: 8px;
@@ -928,3 +961,7 @@ code {
         animation: none;
     }
 }
+
+.form-field-demo { display: grid; gap: var(--aeterni-gap-lg); }
+
+.standalone-label-demo { display: grid; gap: var(--aeterni-gap-xs); }

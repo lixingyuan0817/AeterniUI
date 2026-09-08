@@ -93,7 +93,37 @@
 - 当前已封装常用的新增、方向、确认、关闭、展开收起、主题、设置、搜索、首页、菜单和加载图标。
 - 图标库通过 RenderFragment 与 Button、Dialog、Toast 等组件组合使用。
 
-## 8. ThemeProvider 和 ThemeSwitch 使用方式
+## 8. Input
+
+`Input` 当前支持单行文本输入：
+
+- `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准绑定方式。
+- `InputType`：`Text`、`Password`、`Email`、`Search`、`Tel`、`Url`。
+- `Size`：`Small`、`Default/Medium`、`Large`。
+- `Placeholder`、`Name`、`AutoComplete`、`InputMode`、`Pattern`、`MinLength` 和 `MaxLength`。
+- `Disabled`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`。
+- `OnInput`、`OnChange`、`OnFocus`、`OnBlur` 和 `OnKeyDown` 事件回调。
+- `AriaLabel` 和 `AriaDescribedBy` 无障碍属性。
+- 在 `EditForm` 中通过 `ValueExpression` 读取 `EditContext` 的验证消息，并同步 `aria-invalid`。
+- 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
+
+`Input` 是单行原生 `<input>` 封装；标签、帮助文本、错误文本布局和复合表单字段暂不由该组件负责，后续由 `FormField` 统一组合。
+
+```razor
+<Input @bind-Value="UserName"
+       Type="InputType.Email"
+       Required
+       Placeholder="name@example.com"
+       AriaLabel="Email address" />
+```
+
+## 9. FormField
+
+`FormField` 提供表单控件的统一标签、描述和错误信息布局，支持 `Label`、`Description`、`Error`、`ChildContent`、`Required`、`Invalid` 和 `For`。它会通过级联上下文将稳定的输入 ID、`aria-describedby` 和验证状态传递给内部 `Input`。
+
+`Label` 提供独立的原生 `<label>` 组件，支持 `For` 参数和 `ChildContent`，可用于将自定义标签与输入控件关联。
+
+## 10. ThemeProvider 和 ThemeSwitch 使用方式
 
 ```razor
 <ThemeProvider />
@@ -102,7 +132,7 @@
 
 `ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService` 或使用 `ThemeSwitch` 修改主题模式。
 
-## 9. Dialog、Confirm、Alert 和 Toast
+## 11. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -180,7 +210,7 @@ builder.Services.AddAeterniUI(options =>
 - `TimeSpan.Zero`：不自动关闭，只能手动关闭。
 - 大于零：按指定时长自动关闭。
 
-## 10. 服务注册
+## 12. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -196,9 +226,11 @@ builder.Services.AddAeterniUI();
 - `DialogService`。
 - `IDialogService`。
 
-## 11. 当前边界
+## 13. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
+- `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
+- `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
 - Tauri 与 Blazor 热重载同时启动时必须避免多个进程占用同一个开发端口。

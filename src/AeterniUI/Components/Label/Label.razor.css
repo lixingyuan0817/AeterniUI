@@ -1,0 +1,6 @@
+.aeterni-label {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-normal);
+}

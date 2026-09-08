@@ -1,0 +1,28 @@
+@inherits AeterniComponent
+
+<div @attributes="BuildAttributes()">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="aeterni-form-field__label" for="@InputId">
+            @Label
+            @if (Required)
+            {
+                <span class="aeterni-form-field__required" aria-hidden="true">*</span>
+            }
+        </label>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <div class="aeterni-form-field__description" id="@DescriptionId">@Description</div>
+    }
+
+    <CascadingValue Value="Context">
+        @ChildContent
+    </CascadingValue>
+
+    @if (ErrorMessage is not null)
+    {
+        <div class="aeterni-form-field__error" id="@ErrorId" role="alert">@ErrorMessage</div>
+    }
+</div>

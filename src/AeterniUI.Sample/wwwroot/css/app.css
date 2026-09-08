@@ -74,26 +74,14 @@ html[data-tauri-host="true"] #app {
 
 html[data-tauri-host="true"] #app {
     position: relative;
-    isolation: isolate;
+    /* Do not create an isolated opaque stacking context over the native Tauri backdrop. */
+    isolation: auto;
     border-radius: 14px;
     background: transparent;
 }
 
 html[data-tauri-host="true"] #app::before {
-    position: fixed;
-    z-index: 0;
-    inset: 0;
-    content: "";
-    pointer-events: none;
-    background: color-mix(in srgb, var(--aeterni-bg-primary) 34%, transparent);
-}
-
-html[data-tauri-host="true"][data-theme="light"] #app::before {
-    background: rgba(244, 241, 248, .42);
-}
-
-html[data-tauri-host="true"][data-theme="dark"] #app::before {
-    background: rgba(13, 11, 18, .82);
+    display: none;
 }
 
 html[data-tauri-host="true"] body .sample-page {

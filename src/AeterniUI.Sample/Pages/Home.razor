@@ -9,18 +9,23 @@
 
 <div class="sample-page">
     <header class="sample-header">
-        <a class="brand" href="/" aria-label="Aeterni UI home">
-            <span class="brand-mark">A</span>
-            <span class="brand-name">Aeterni<span>UI</span></span>
-        </a>
+        <Surface Variant="SurfaceVariant.Glass"
+                 Padding="SurfacePadding.None"
+                 Radius="SurfaceRadius.ExtraLarge"
+                 Class="sample-header__surface">
+            <a class="brand" href="/" aria-label="Aeterni UI home">
+                <span class="brand-mark">A</span>
+                <span class="brand-name">Aeterni<span>UI</span></span>
+            </a>
 
-        <nav class="sample-nav" aria-label="Primary navigation">
-            <a class="nav-link is-current" href="#overview">Overview</a>
-            <a class="nav-link" href="#tokens">Tokens</a>
-            <a class="nav-link" href="#states">States</a>
-        </nav>
+            <nav class="sample-nav" aria-label="Primary navigation">
+                <a class="nav-link is-current" href="#overview">Overview</a>
+                <a class="nav-link" href="#tokens">Tokens</a>
+                <a class="nav-link" href="#states">States</a>
+            </nav>
 
-        <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="Theme mode" />
+            <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="Theme mode" />
+        </Surface>
     </header>
 
     <main>
@@ -246,6 +251,72 @@
                         </ButtonGroup>
                     </div>
 
+                    <div class="input-demo">
+                        <div class="full-width-demo-heading">
+                            <span class="panel-label">Input</span>
+                            <span class="full-width-demo-note">value / states / sizes</span>
+                        </div>
+                        <div class="input-demo-grid">
+                            <label class="input-demo-field">
+                                <span>Text value</span>
+                                <Input @bind-Value="_inputValue"
+                                       Placeholder="Type something"
+                                       AriaLabel="Text value" />
+                            </label>
+                            <label class="input-demo-field">
+                                <span>Password</span>
+                                <Input Type="InputType.Password"
+                                       Placeholder="Password"
+                                       AutoComplete="current-password"
+                                       AriaLabel="Password" />
+                            </label>
+                            <label class="input-demo-field">
+                                <span>Small</span>
+                                <Input Size="Size.Small"
+                                       Placeholder="Compact input"
+                                       AriaLabel="Small input" />
+                            </label>
+                            <label class="input-demo-field">
+                                <span>Large / full width</span>
+                                <Input Size="Size.Large"
+                                       FullWidth
+                                       Placeholder="Large input"
+                                       AriaLabel="Large input" />
+                            </label>
+                            <label class="input-demo-field">
+                                <span>Read-only</span>
+                                <Input Value="Read-only value"
+                                       ReadOnly
+                                       AriaLabel="Read-only value" />
+                            </label>
+                            <label class="input-demo-field">
+                                <span>Invalid</span>
+                                <Input Invalid
+                                       Value="Needs attention"
+                                       AriaLabel="Invalid input"
+                                       AriaDescribedBy="sample-input-error" />
+                                <small id="sample-input-error">Example invalid state.</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-field-demo">
+                        <div class="full-width-demo-heading">
+                            <span class="panel-label">FormField + Label</span>
+                            <span class="full-width-demo-note">label / description / error</span>
+                        </div>
+                        <div class="standalone-label-demo">
+                            <Label For="sample-label-input">Standalone Label</Label>
+                            <Input Id="sample-label-input" Placeholder="Label uses the For parameter" AriaLabel="Standalone Label" />
+                        </div>
+                        <FormField Id="sample-profile-field" Label="Display name" Description="This name is shown to other members." Required>
+                            <Input Placeholder="Your name" AriaLabel="Display name" />
+                        </FormField>
+                        <FormField Id="sample-invalid-field" Label="Invalid field" Error="Please provide a valid value." Invalid>
+                            <Input Value="Needs attention" AriaLabel="Invalid field" />
+                        </FormField>
+                    </div>
+
                     <div class="dialog-demo">
                         <div class="full-width-demo-heading">
                             <span class="panel-label">Dialog service</span>
@@ -276,6 +347,7 @@
 
 @code {
     private string _interactionNote = "Hover or press an action to inspect its state.";
+    private string? _inputValue;
 
     protected override void OnInitialized()
     {
