@@ -1,0 +1,349 @@
+@page "/"
+@using AeterniUI.Enums
+@using AeterniUI.Services.Impl
+@inject ThemeService ThemeService
+@inject IDialogService DialogService
+@implements IDisposable
+
+<PageTitle>Aeterni UI / Foundations</PageTitle>
+
+<div class="sample-page">
+    <header class="sample-header">
+        <a class="brand" href="/" aria-label="Aeterni UI home">
+            <span class="brand-mark">A</span>
+            <span class="brand-name">Aeterni<span>UI</span></span>
+        </a>
+
+        <nav class="sample-nav" aria-label="Primary navigation">
+            <a class="nav-link is-current" href="#overview">Overview</a>
+            <a class="nav-link" href="#tokens">Tokens</a>
+            <a class="nav-link" href="#states">States</a>
+        </nav>
+
+        <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="Theme mode" />
+    </header>
+
+    <main>
+        <section class="hero-section" id="overview">
+            <div class="hero-copy">
+                <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>FOUNDATION / 01</p>
+                <h1>Aeterni UI<br /><em>foundations.</em></h1>
+                <p class="hero-lead">
+                    A quiet, precise surface for building interfaces with clear tokens,
+                    intentional motion and a theme that follows the system.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="action-button action-button-primary" href="#tokens">
+                        Inspect tokens <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+
+                <div class="hero-meta" aria-label="Current theme state">
+                    <div><span class="meta-label">Current theme</span><strong>@(ThemeService.IsDark ? "Dark" : "Light")</strong></div>
+                    <div><span class="meta-label">Mode</span><strong>@ThemeService.Mode</strong></div>
+                    <div><span class="meta-label">Status</span><strong class="meta-live">Ready</strong></div>
+                </div>
+            </div>
+
+            <div class="hero-canvas" aria-label="Live component preview">
+                <div class="canvas-toolbar">
+                    <span class="canvas-kicker">LIVE PREVIEW</span>
+                    <span class="canvas-id">surface.01</span>
+                </div>
+                <div class="canvas-body">
+                    <div class="canvas-heading">
+                        <span class="canvas-overline">Aeterni / Surface</span>
+                        <span class="canvas-pulse"></span>
+                    </div>
+                    <div class="preview-panel">
+                        <div class="preview-panel-top">
+                            <div><span class="preview-label">Theme signal</span><strong>@(ThemeService.IsDark ? "Night mode" : "Day mode")</strong></div>
+                            <span class="preview-value">@((ThemeService.IsDark ? "04" : "01"))</span>
+                        </div>
+                        <div class="preview-bars" aria-hidden="true">
+                            <span class="preview-bar preview-bar-wide"></span>
+                            <span class="preview-bar preview-bar-mid"></span>
+                            <span class="preview-bar preview-bar-short"></span>
+                        </div>
+                        <div class="preview-footer">
+                            <span class="preview-chip">semantic tokens</span>
+                            <span class="preview-arrow" aria-hidden="true">&nearr;</span>
+                        </div>
+                    </div>
+                    <div class="canvas-grid" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="overview-section section-block">
+            <div class="section-heading">
+                <div><p class="section-index">01 / SYSTEM OVERVIEW</p><h2>Built to stay coherent.</h2></div>
+                <p class="section-description">A small set of primitives keeps every surface related without making every component look the same.</p>
+            </div>
+
+            <div class="overview-grid">
+                <article class="overview-card overview-card-featured">
+                    <div class="card-number">01</div>
+                    <div class="card-icon card-icon-spectrum" aria-hidden="true"><span></span><span></span><span></span></div>
+                    <h3>Semantic color</h3>
+                    <p>Roles adapt with the active theme so components speak the same visual language.</p>
+                    <a href="#tokens" class="card-link">View palette <span aria-hidden="true">&rarr;</span></a>
+                </article>
+                <article class="overview-card">
+                    <div class="card-number">02</div>
+                    <div class="card-icon card-icon-rhythm" aria-hidden="true"><span></span><span></span><span></span></div>
+                    <h3>Measured rhythm</h3>
+                    <p>Spacing, type and control sizes follow a compact scale made for repeated use.</p>
+                    <a href="#tokens" class="card-link">See scale <span aria-hidden="true">&rarr;</span></a>
+                </article>
+                <article class="overview-card">
+                    <div class="card-number">03</div>
+                    <div class="card-icon card-icon-motion" aria-hidden="true"><span></span><span></span></div>
+                    <h3>Useful motion</h3>
+                    <p>Transitions communicate state changes without competing with the work on screen.</p>
+                    <a href="#states" class="card-link">Try states <span aria-hidden="true">&rarr;</span></a>
+                </article>
+            </div>
+        </section>
+
+        <section class="token-section section-block" id="tokens">
+            <div class="section-heading">
+                <div><p class="section-index">02 / DESIGN TOKENS</p><h2>One source of truth.</h2></div>
+                <span class="section-badge">--aeterni-*</span>
+            </div>
+
+            <div class="token-grid">
+                <article class="token-panel">
+                    <div class="panel-heading"><div><span class="panel-label">Color roles</span><h3>Surface and signal</h3></div><span class="panel-count">06</span></div>
+                    <div class="swatch-list">
+                        <div class="swatch-row"><span class="swatch swatch-surface"></span><span>bg-surface</span><code>--aeterni-bg-surface</code></div>
+                        <div class="swatch-row"><span class="swatch swatch-brand"></span><span>brand-500</span><code>--aeterni-brand-500</code></div>
+                        <div class="swatch-row"><span class="swatch swatch-info"></span><span>info</span><code>--aeterni-info</code></div>
+                        <div class="swatch-row"><span class="swatch swatch-success"></span><span>success</span><code>--aeterni-success</code></div>
+                        <div class="swatch-row"><span class="swatch swatch-warning"></span><span>warning</span><code>--aeterni-warning</code></div>
+                        <div class="swatch-row"><span class="swatch swatch-danger"></span><span>danger</span><code>--aeterni-danger</code></div>
+                    </div>
+                </article>
+
+                <article class="token-panel token-panel-spacing">
+                    <div class="panel-heading"><div><span class="panel-label">Spacing rhythm</span><h3>Consistent by default</h3></div><span class="panel-count">08</span></div>
+                    <div class="spacing-list">
+                        <div class="spacing-row"><span>space-1</span><span class="spacing-line" style="--line-size: 12px"></span><code>4px</code></div>
+                        <div class="spacing-row"><span>space-2</span><span class="spacing-line" style="--line-size: 24px"></span><code>8px</code></div>
+                        <div class="spacing-row"><span>space-3</span><span class="spacing-line" style="--line-size: 36px"></span><code>12px</code></div>
+                        <div class="spacing-row"><span>space-4</span><span class="spacing-line" style="--line-size: 48px"></span><code>16px</code></div>
+                        <div class="spacing-row"><span>space-6</span><span class="spacing-line" style="--line-size: 72px"></span><code>24px</code></div>
+                        <div class="spacing-row"><span>space-8</span><span class="spacing-line" style="--line-size: 96px"></span><code>32px</code></div>
+                    </div>
+                </article>
+            </div>
+
+            <div class="surface-demo-grid">
+                <Surface Variant="SurfaceVariant.Glass" Elevation="SurfaceElevation.Medium" Padding="SurfacePadding.Large" Bordered FullWidth>
+                    <div class="surface-demo-content">
+                        <span class="panel-label">Surface / glass</span>
+                        <h3>A calm layer for content.</h3>
+                        <p>Surface owns the background, border, blur and elevation relationship without imposing a content structure.</p>
+                    </div>
+                </Surface>
+
+                <Card Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small">
+                    <Header>
+                        <div class="card-demo-heading">
+                            <span class="panel-label">Card / structured</span>
+                            <span class="panel-count">03</span>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <h3>Card with regions.</h3>
+                        <p>Header, body and footer stay consistent while the content remains composable.</p>
+                    </ChildContent>
+                    <Footer>
+                        <Button Variant="ButtonVariant.Text" Color="Color.Primary" EndIcon="@ArrowIcon" OnClick="MarkInteraction">
+                            Open details
+                        </Button>
+                    </Footer>
+                </Card>
+            </div>
+
+            <div class="interactive-card-demo">
+                <Card Interactive AriaLabel="Open the interactive card" OnClick="OpenInteractionCard">
+                    <ChildContent>
+                        <div class="interactive-card-content">
+                            <div>
+                                <span class="panel-label">Card / interactive</span>
+                                <h3>Use the whole surface as an action.</h3>
+                                <p>Click the card or focus it and press Enter or Space to trigger the same callback.</p>
+                            </div>
+                            <span class="interactive-card-arrow" aria-hidden="true">&nearr;</span>
+                        </div>
+                    </ChildContent>
+                </Card>
+            </div>
+        </section>
+
+        <section class="states-section section-block" id="states">
+            <div class="section-heading">
+                <div><p class="section-index">03 / INTERACTION STATES</p><h2>Designed to respond.</h2></div>
+                <p class="section-description">The controls below are real Button components using the same token language as the rest of the library.</p>
+            </div>
+
+            <div class="state-board">
+                <div class="state-copy">
+                    <span class="panel-label">Button states</span>
+                    <h3>Designed to respond.</h3>
+                    <p>Hover and press the controls to inspect the interaction states built from the current token system.</p>
+                </div>
+                <div class="state-controls">
+                    <div class="button-state-row">
+                        <Button OnClick="MarkInteraction">Default</Button>
+                        <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="MarkInteraction">Outline</Button>
+                        <Button Variant="ButtonVariant.Ghost" Color="Color.Primary" OnClick="MarkInteraction">Ghost</Button>
+                        <Button Variant="ButtonVariant.Text" Color="Color.Primary" OnClick="MarkInteraction">Text</Button>
+                        <Button Variant="ButtonVariant.Link" Color="Color.Primary" OnClick="MarkInteraction">Link</Button>
+                        <Button Size="Size.Small" StartIcon="@PlusIcon" OnClick="MarkInteraction">Small + icon</Button>
+                        <Button Size="Size.Small" Icon="@PlusIcon" AriaLabel="Add item" OnClick="MarkInteraction" />
+                        <Button StartIcon="@PlusIcon" EndIcon="@ArrowIcon" OnClick="MarkInteraction">Both sides</Button>
+                        <Button Size="Size.Large" Color="Color.Success" OnClick="MarkInteraction">Large success</Button>
+                        <Button Color="Color.Warning" OnClick="MarkInteraction">Warning</Button>
+                        <Button Color="Color.Danger" OnClick="MarkInteraction">Danger</Button>
+                        <Button Color="Color.Info" OnClick="MarkInteraction">Info</Button>
+                        <Button Loading>Loading</Button>
+                        <Button Disabled>Disabled</Button>
+                    </div>
+                    <span class="interaction-note">@_interactionNote</span>
+
+                    <div class="full-width-demo">
+                        <div class="full-width-demo-heading">
+                            <span class="panel-label">Layout behavior</span>
+                            <span class="full-width-demo-note">100% of parent</span>
+                        </div>
+                        <Button FullWidth Variant="ButtonVariant.Outline" Color="Color.Primary" OnClick="MarkInteraction">
+                            Full width action
+                        </Button>
+                    </div>
+
+                    <div class="button-group-demo">
+                        <div class="full-width-demo-heading">
+                            <span class="panel-label">Button group</span>
+                            <span class="full-width-demo-note">connected / full width</span>
+                        </div>
+                        <ButtonGroup Connected FullWidth AriaLabel="Page navigation">
+                            <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">
+                                Previous
+                            </Button>
+                            <Button OnClick="MarkInteraction">
+                                1
+                            </Button>
+                            <Button EndIcon="@ArrowIcon" OnClick="MarkInteraction">
+                                Next
+                            </Button>
+                        </ButtonGroup>
+                    </div>
+
+                    <div class="dialog-demo">
+                        <div class="full-width-demo-heading">
+                            <span class="panel-label">Dialog service</span>
+                            <span class="full-width-demo-note">provider / service</span>
+                        </div>
+                        <div class="dialog-demo-actions">
+                            <Button Color="Color.Success" StartIcon="@CheckIcon" OnClick="ShowAlertAsync">
+                                Alert
+                            </Button>
+                            <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="ShowConfirmAsync">
+                                Confirm
+                            </Button>
+                            <Button Variant="ButtonVariant.Ghost" Color="Color.Primary" OnClick="ShowToast">
+                                Toast
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="sample-footer">
+        <span>Aeterni UI / sample workspace</span>
+        <span>Built on tokens, not decoration.</span>
+    </footer>
+</div>
+
+@code {
+    private string _interactionNote = "Hover or press an action to inspect its state.";
+
+    protected override void OnInitialized()
+    {
+        ThemeService.ThemeChanged += HandleThemeChanged;
+    }
+
+    private void HandleThemeChanged(object? sender, EventArgs args)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment PlusIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Plus" />;
+
+    private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
+
+    private RenderFragment ArrowIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" />;
+
+    private RenderFragment CheckIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Check" />;
+
+    private void MarkInteraction(MouseEventArgs _)
+    {
+        _interactionNote = $"Interaction captured at {DateTime.Now:HH:mm:ss}.";
+    }
+
+    private void OpenInteractionCard()
+    {
+        _interactionNote = $"Interactive card opened at {DateTime.Now:HH:mm:ss}.";
+    }
+
+    private async Task ShowAlertAsync(MouseEventArgs _)
+    {
+        await DialogService.AlertAsync(
+            "Your changes have been saved.",
+            new AlertOptions
+            {
+                Title = "Saved",
+                Severity = Severity.Success,
+                Icon = CheckIcon
+            });
+    }
+
+    private async Task ShowConfirmAsync(MouseEventArgs _)
+    {
+        var confirmed = await DialogService.ConfirmAsync(
+            "This action cannot be undone. Continue?",
+            new ConfirmOptions
+            {
+                Title = "Delete item",
+                Severity = Severity.Danger
+            });
+
+        _interactionNote = confirmed ? "Confirm accepted." : "Confirm dismissed.";
+    }
+
+    private void ShowToast(MouseEventArgs _)
+    {
+        DialogService.ShowToast(
+            "A new notification is ready.",
+            new ToastOptions
+            {
+                Title = "Notification",
+                Severity = Severity.Info,
+                Icon = ArrowIcon
+            });
+    }
+
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= HandleThemeChanged;
+    }
+}

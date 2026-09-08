@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AeterniUI.Sample</title>
+    <base href="/" />
+    <script>
+        if (window.__TAURI__ || window.__TAURI_INTERNALS__) {
+            const root = document.documentElement;
+            const initialTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+            root.dataset.tauriHost = "true";
+            root.dataset.theme = initialTheme;
+            root.dataset.aeterniMode = initialTheme;
+            root.style.colorScheme = initialTheme;
+
+            const tauri = window.__TAURI__;
+            const tauriWindow = tauri?.window?.getCurrentWindow?.();
+            const nativeThemeTask = tauri?.app?.setTheme
+                ? tauri.app.setTheme(null)
+                : tauriWindow?.setTheme
+                    ? tauriWindow.setTheme(null)
+                    : window.__TAURI_INTERNALS__?.invoke?.('plugin:app|set_app_theme', { theme: null });
+            nativeThemeTask?.catch(() => undefined);
+        }
+    </script>
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" />
+    <link rel="stylesheet" href="_content/AeterniUI/AeterniUI.styles.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link href="AeterniUI.Sample.styles.css" rel="stylesheet" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

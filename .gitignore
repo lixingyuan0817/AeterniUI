@@ -1,0 +1,20 @@
+# .NET generated output
+**/bin/
+**/obj/
+
+# Rust generated output
+tauri/target/
+tauri/src-tauri/target/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+.reasonix/
+*.user
+*.suo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example

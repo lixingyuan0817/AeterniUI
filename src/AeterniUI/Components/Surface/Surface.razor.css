@@ -1,0 +1,94 @@
+.aeterni-surface {
+    --aeterni-surface-radius: var(--aeterni-radius-lg);
+
+    display: block;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: var(--aeterni-spacing-4);
+    overflow: hidden;
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-surface-radius);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-surface--subtle {
+    background: var(--aeterni-surface-soft);
+}
+
+.aeterni-surface--elevated {
+    background: var(--aeterni-bg-elevated);
+}
+
+.aeterni-surface--glass {
+    border-color: color-mix(in srgb, var(--aeterni-text-inverse) var(--aeterni-glass-border-alpha), transparent);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-glass-shadow);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+}
+
+.aeterni-surface.is-bordered {
+    border-color: var(--aeterni-border-default);
+}
+
+.aeterni-surface.is-full-width {
+    width: 100%;
+    max-width: 100%;
+}
+
+.aeterni-surface--elevation-small {
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.aeterni-surface--elevation-medium {
+    box-shadow: var(--aeterni-shadow-md);
+}
+
+.aeterni-surface--elevation-large {
+    box-shadow: var(--aeterni-shadow-lg);
+}
+
+.aeterni-surface--padding-none {
+    padding: 0;
+}
+
+.aeterni-surface--padding-small {
+    padding: var(--aeterni-spacing-2);
+}
+
+.aeterni-surface--padding-medium {
+    padding: var(--aeterni-spacing-4);
+}
+
+.aeterni-surface--padding-large {
+    padding: var(--aeterni-spacing-6);
+}
+
+.aeterni-surface--padding-extra-large {
+    padding: var(--aeterni-spacing-8);
+}
+
+.aeterni-surface--radius-none {
+    --aeterni-surface-radius: var(--aeterni-radius-none);
+}
+
+.aeterni-surface--radius-small {
+    --aeterni-surface-radius: var(--aeterni-radius-sm);
+}
+
+.aeterni-surface--radius-medium {
+    --aeterni-surface-radius: var(--aeterni-radius-md);
+}
+
+.aeterni-surface--radius-large {
+    --aeterni-surface-radius: var(--aeterni-radius-lg);
+}
+
+.aeterni-surface--radius-extra-large {
+    --aeterni-surface-radius: var(--aeterni-radius-xl);
+}
+
+.aeterni-surface--radius-round {
+    --aeterni-surface-radius: var(--aeterni-radius-full);
+}

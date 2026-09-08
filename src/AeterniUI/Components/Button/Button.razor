@@ -1,0 +1,26 @@
+@inherits AeterniComponent
+
+<button @ref="RootElement" @attributes="BuildAttributes()" @onclick="HandleClickAsync">
+    <span class="aeterni-button__content">
+        @if (EffectiveStartIcon is not null)
+        {
+            <span class="aeterni-button__icon" aria-hidden="true">
+                @EffectiveStartIcon
+            </span>
+        }
+
+        @ChildContent
+
+        @if (EndIcon is not null)
+        {
+            <span class="aeterni-button__icon" aria-hidden="true">
+                @EndIcon
+            </span>
+        }
+    </span>
+
+    @if (Loading)
+    {
+        <span class="aeterni-button__spinner" aria-hidden="true"></span>
+    }
+</button>

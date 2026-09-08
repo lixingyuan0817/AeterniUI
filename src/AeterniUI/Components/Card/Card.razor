@@ -1,0 +1,27 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onclick="HandleClickAsync"
+     @onkeydown="HandleKeyDownAsync">
+    @if (Header is not null)
+    {
+        <div class="aeterni-card__header">
+            @Header
+        </div>
+    }
+
+    @if (ChildContent is not null)
+    {
+        <div class="aeterni-card__body">
+            @ChildContent
+        </div>
+    }
+
+    @if (Footer is not null)
+    {
+        <div class="aeterni-card__footer">
+            @Footer
+        </div>
+    }
+</div>

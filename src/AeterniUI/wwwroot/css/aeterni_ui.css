@@ -1,0 +1,605 @@
+/* ==========================================================================
+   Aeterni UI · Primitive design tokens
+   All non-theme primitives are maintained in one readable root scope.
+   ========================================================================== */
+:root {
+    --aeterni-font-family-base: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+    --aeterni-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace;
+    --aeterni-font-family-display: 'Inter', 'Segoe UI', sans-serif;
+    --aeterni-font-size-xs: 12px;
+    --aeterni-font-size-sm: 14px;
+    --aeterni-font-size-base: 16px;
+    --aeterni-font-size-md: 16px;
+    --aeterni-font-size-lg: 18px;
+    --aeterni-font-size-xl: 20px;
+    --aeterni-font-size-2xl: 24px;
+    --aeterni-font-size-3xl: 30px;
+    --aeterni-font-size-4xl: 36px;
+    --aeterni-font-size-5xl: 48px;
+    --aeterni-font-size-6xl: 60px;
+    --aeterni-font-weight-regular: 400;
+    --aeterni-font-weight-medium: 500;
+    --aeterni-font-weight-semibold: 600;
+    --aeterni-font-weight-bold: 700;
+    --aeterni-line-height-tight: 1.25;
+    --aeterni-line-height-normal: 1.5;
+    --aeterni-line-height-relaxed: 1.75;
+    --aeterni-line-height-loose: 2;
+    --aeterni-letter-spacing-tight: -0.02em;
+    --aeterni-letter-spacing-normal: 0em;
+    --aeterni-letter-spacing-wide: 0.02em;
+    --aeterni-letter-spacing-wider: 0.05em;
+    --aeterni-typography-h1-size: var(--aeterni-font-size-4xl);
+    --aeterni-typography-h1-weight: var(--aeterni-font-weight-bold);
+    --aeterni-typography-h1-line-height: var(--aeterni-line-height-tight);
+    --aeterni-typography-h1-letter-spacing: var(--aeterni-letter-spacing-tight);
+    --aeterni-typography-h2-size: var(--aeterni-font-size-3xl);
+    --aeterni-typography-h2-weight: var(--aeterni-font-weight-semibold);
+    --aeterni-typography-h2-line-height: var(--aeterni-line-height-tight);
+    --aeterni-typography-h2-letter-spacing: var(--aeterni-letter-spacing-normal);
+    --aeterni-typography-h3-size: var(--aeterni-font-size-2xl);
+    --aeterni-typography-h3-weight: var(--aeterni-font-weight-semibold);
+    --aeterni-typography-h3-line-height: var(--aeterni-line-height-tight);
+    --aeterni-typography-h3-letter-spacing: var(--aeterni-letter-spacing-normal);
+    --aeterni-typography-h4-size: var(--aeterni-font-size-xl);
+    --aeterni-typography-h4-weight: var(--aeterni-font-weight-semibold);
+    --aeterni-typography-h4-line-height: var(--aeterni-line-height-normal);
+    --aeterni-typography-h4-letter-spacing: var(--aeterni-letter-spacing-normal);
+    --aeterni-typography-body-size: var(--aeterni-font-size-base);
+    --aeterni-typography-body-weight: var(--aeterni-font-weight-regular);
+    --aeterni-typography-body-line-height: var(--aeterni-line-height-normal);
+    --aeterni-typography-body-letter-spacing: var(--aeterni-letter-spacing-normal);
+    --aeterni-typography-body-emphasis-size: var(--aeterni-font-size-base);
+    --aeterni-typography-body-emphasis-weight: var(--aeterni-font-weight-medium);
+    --aeterni-typography-body-emphasis-line-height: var(--aeterni-line-height-normal);
+    --aeterni-typography-caption-size: var(--aeterni-font-size-sm);
+    --aeterni-typography-caption-weight: var(--aeterni-font-weight-regular);
+    --aeterni-typography-caption-line-height: var(--aeterni-line-height-normal);
+    --aeterni-typography-small-size: var(--aeterni-font-size-xs);
+    --aeterni-typography-small-weight: var(--aeterni-font-weight-regular);
+    --aeterni-typography-small-line-height: var(--aeterni-line-height-normal);
+    --aeterni-spacing-0: 0px;
+    --aeterni-spacing-1: 4px;
+    --aeterni-spacing-2: 8px;
+    --aeterni-spacing-3: 12px;
+    --aeterni-spacing-4: 16px;
+    --aeterni-spacing-5: 20px;
+    --aeterni-spacing-6: 24px;
+    --aeterni-spacing-8: 32px;
+    --aeterni-spacing-10: 40px;
+    --aeterni-spacing-12: 48px;
+    --aeterni-spacing-16: 64px;
+    --aeterni-spacing-20: 80px;
+    --aeterni-spacing-24: 96px;
+    --aeterni-spacing-32: 128px;
+    --aeterni-padding-xs: var(--aeterni-spacing-1);
+    --aeterni-padding-sm: var(--aeterni-spacing-2);
+    --aeterni-padding-md: var(--aeterni-spacing-3);
+    --aeterni-padding-lg: var(--aeterni-spacing-4);
+    --aeterni-padding-xl: var(--aeterni-spacing-6);
+    --aeterni-padding-2xl: var(--aeterni-spacing-8);
+    --aeterni-gap-xs: var(--aeterni-spacing-1);
+    --aeterni-gap-sm: var(--aeterni-spacing-2);
+    --aeterni-gap-md: var(--aeterni-spacing-3);
+    --aeterni-gap-lg: var(--aeterni-spacing-4);
+    --aeterni-gap-xl: var(--aeterni-spacing-6);
+    --aeterni-margin-xs: var(--aeterni-spacing-1);
+    --aeterni-margin-sm: var(--aeterni-spacing-2);
+    --aeterni-margin-md: var(--aeterni-spacing-3);
+    --aeterni-margin-lg: var(--aeterni-spacing-4);
+    --aeterni-margin-xl: var(--aeterni-spacing-6);
+    --aeterni-radius-none: 0px;
+    --aeterni-radius-xs: 2px;
+    --aeterni-radius-sm: 4px;
+    --aeterni-radius-md: 6px;
+    --aeterni-radius-lg: 8px;
+    --aeterni-radius-xl: 12px;
+    --aeterni-radius-2xl: 16px;
+    --aeterni-radius-3xl: 24px;
+    --aeterni-radius-full: 9999px;
+    --aeterni-radius-round: 50%;
+    --aeterni-radius-button: var(--aeterni-radius-md);
+    --aeterni-radius-button-sm: var(--aeterni-radius-sm);
+    --aeterni-radius-button-lg: var(--aeterni-radius-lg);
+    --aeterni-radius-input: var(--aeterni-radius-md);
+    --aeterni-radius-card: var(--aeterni-radius-xl);
+    --aeterni-radius-modal: var(--aeterni-radius-2xl);
+    --aeterni-radius-badge: var(--aeterni-radius-full);
+    --aeterni-radius-tooltip: var(--aeterni-radius-sm);
+    --aeterni-radius-dropdown: var(--aeterni-radius-lg);
+    --aeterni-duration-instant: 0ms;
+    --aeterni-duration-fast: 100ms;
+    --aeterni-duration-normal: 200ms;
+    --aeterni-duration-slow: 300ms;
+    --aeterni-duration-slower: 500ms;
+    --aeterni-ease-linear: cubic-bezier(0, 0, 1, 1);
+    --aeterni-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --aeterni-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --aeterni-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --aeterni-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --aeterni-transition-color: color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-background: background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-border: border-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-opacity: opacity var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-transform: transform var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-shadow: box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-all: all var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-button: background-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), border-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
+    --aeterni-ease-standard: var(--aeterni-ease-in-out);
+    --aeterni-ease-emphasized: var(--aeterni-ease-out);
+    /* Blur and glass surface primitives; components may consume these later. */
+    --aeterni-blur-sm: blur(8px) saturate(120%);
+    --aeterni-blur-md: blur(16px) saturate(135%);
+    --aeterni-blur-lg: blur(24px) saturate(150%);
+    --aeterni-blur: var(--aeterni-blur-lg);
+    --aeterni-backdrop-saturate: 145%;
+    --aeterni-glass-border-alpha: .12;
+    --aeterni-glass-highlight: rgba(255, 255, 255, .16);
+    --aeterni-glass-shadow: var(--aeterni-shadow-md);
+    --aeterni-z-base: 0;
+    --aeterni-z-raised: 10;
+    --aeterni-z-dropdown: 1000;
+    --aeterni-z-sticky: 1020;
+    --aeterni-z-fixed: 1030;
+    --aeterni-z-overlay: 1040;
+    --aeterni-z-modal-backdrop: 1040;
+    --aeterni-z-modal: 1050;
+    --aeterni-z-popover: 1060;
+    --aeterni-z-tooltip: 1070;
+    --aeterni-z-toast: 1080;
+    --aeterni-height-xs: 24px;
+    --aeterni-height-sm: 32px;
+    --aeterni-height-md: 40px;
+    --aeterni-height-lg: 48px;
+    --aeterni-height-xl: 56px;
+    --aeterni-width-input-xs: 160px;
+    --aeterni-width-input-sm: 200px;
+    --aeterni-width-input-md: 240px;
+    --aeterni-width-input-lg: 320px;
+    --aeterni-width-input-xl: 400px;
+    --aeterni-icon-size-xs: 12px;
+    --aeterni-icon-size-sm: 14px;
+    --aeterni-icon-size-md: 16px;
+    --aeterni-icon-size-lg: 20px;
+    --aeterni-icon-size-xl: 24px;
+    --aeterni-icon-size-2xl: 32px;
+    --aeterni-breakpoint-xs: 480px;
+    --aeterni-breakpoint-sm: 640px;
+    --aeterni-breakpoint-md: 768px;
+    --aeterni-breakpoint-lg: 1024px;
+    --aeterni-breakpoint-xl: 1280px;
+    --aeterni-breakpoint-2xl: 1536px;
+    --aeterni-container-sm: 640px;
+    --aeterni-container-md: 768px;
+    --aeterni-container-lg: 1024px;
+    --aeterni-container-xl: 1180px;
+    --aeterni-content-measure: 68ch;
+    --aeterni-page-gutter: clamp(16px, 4vw, 40px);
+    --aeterni-grid-gap: var(--aeterni-spacing-5);
+    --aeterni-section-space: clamp(56px, 8vw, 96px);
+    --aeterni-border-width-none: 0px;
+    --aeterni-border-width-thin: 1px;
+    --aeterni-border-width-medium: 2px;
+    --aeterni-border-width-thick: 3px;
+    --aeterni-border-style-solid: solid;
+    --aeterni-border-style-dashed: dashed;
+    --aeterni-border-style-dotted: dotted;
+    --aeterni-gray-0: #FFFFFF;
+    --aeterni-gray-50: #F9FAFB;
+    --aeterni-gray-100: #F3F4F6;
+    --aeterni-gray-200: #E5E7EB;
+    --aeterni-gray-300: #D1D5DB;
+    --aeterni-gray-400: #9CA3AF;
+    --aeterni-gray-500: #6B7280;
+    --aeterni-gray-600: #4B5563;
+    --aeterni-gray-700: #374151;
+    --aeterni-gray-800: #1F2937;
+    --aeterni-gray-900: #111827;
+    --aeterni-gray-950: #0B0F19;
+    --aeterni-gray-dark-800: #1A1D27;
+    --aeterni-gray-dark-700: #242835;
+    --aeterni-gray-dark-600: #303646;
+    --aeterni-success-50: #F0FDF4;
+    --aeterni-success-100: #DCFCE7;
+    --aeterni-success-200: #BBF7D0;
+    --aeterni-success-300: #86EFAC;
+    --aeterni-success-400: #4ADE80;
+    --aeterni-success-500: #34C759;
+    --aeterni-success-600: #16A34A;
+    --aeterni-success-700: #15803D;
+    --aeterni-success-800: #166534;
+    --aeterni-success-900: #14532D;
+    --aeterni-warning-50: #FFFBEB;
+    --aeterni-warning-100: #FEF3C7;
+    --aeterni-warning-200: #FDE68A;
+    --aeterni-warning-300: #FCD34D;
+    --aeterni-warning-400: #FBBF24;
+    --aeterni-warning-500: #FF9500;
+    --aeterni-warning-600: #D97706;
+    --aeterni-warning-700: #B45309;
+    --aeterni-warning-800: #92400E;
+    --aeterni-warning-900: #78350F;
+    --aeterni-danger-50: #FEF2F2;
+    --aeterni-danger-100: #FEE2E2;
+    --aeterni-danger-200: #FECACA;
+    --aeterni-danger-300: #FCA5A5;
+    --aeterni-danger-400: #F87171;
+    --aeterni-danger-500: #FF3B30;
+    --aeterni-danger-600: #DC2626;
+    --aeterni-danger-700: #B91C1C;
+    --aeterni-danger-800: #991B1B;
+    --aeterni-danger-900: #7F1D1D;
+    --aeterni-info-50: #EFF6FF;
+    --aeterni-info-100: #DBEAFE;
+    --aeterni-info-200: #BFDBFE;
+    --aeterni-info-300: #93C5FD;
+    --aeterni-info-400: #60A5FA;
+    --aeterni-info-500: #007AFF;
+    --aeterni-info-600: #2563EB;
+    --aeterni-info-700: #1D4ED8;
+    --aeterni-info-800: #1E40AF;
+    --aeterni-info-900: #1E3A8A;
+    --aeterni-neutral-0: #FFFFFF;
+    --aeterni-neutral-50: #F9FAFB;
+    --aeterni-neutral-100: #F3F4F6;
+    --aeterni-neutral-200: #E5E7EB;
+    --aeterni-neutral-300: #D1D5DB;
+    --aeterni-neutral-400: #9CA3AF;
+    --aeterni-neutral-500: #8E8E93;
+    --aeterni-neutral-600: #4B5563;
+    --aeterni-neutral-700: #374151;
+    --aeterni-neutral-800: #1F2937;
+    --aeterni-neutral-900: #111827;
+    --aeterni-neutral-950: #0B0F19;
+}
+
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases
+   Keep the public foundation names stable while primitive names remain internal.
+   Component styles should use the documented aliases below; no component-specific
+   tokens are defined in this foundation stylesheet.
+   -------------------------------------------------------------------------- */
+:root {
+    --aeterni-space-1: var(--aeterni-spacing-1);
+    --aeterni-space-2: var(--aeterni-spacing-2);
+    --aeterni-space-3: var(--aeterni-spacing-3);
+    --aeterni-space-4: var(--aeterni-spacing-4);
+    --aeterni-space-5: var(--aeterni-spacing-5);
+    --aeterni-space-6: var(--aeterni-spacing-6);
+    --aeterni-space-8: var(--aeterni-spacing-8);
+    --aeterni-font-sans: var(--aeterni-font-family-base);
+    --aeterni-font-display: var(--aeterni-font-family-display);
+    --aeterni-font-mono: var(--aeterni-font-family-mono);
+    --aeterni-font-weight-normal: var(--aeterni-font-weight-regular);
+    --aeterni-leading-tight: var(--aeterni-line-height-tight);
+    --aeterni-leading-normal: var(--aeterni-line-height-normal);
+    --aeterni-leading-relaxed: var(--aeterni-line-height-relaxed);
+    --aeterni-tracking-tight: var(--aeterni-letter-spacing-tight);
+    --aeterni-tracking-normal: var(--aeterni-letter-spacing-normal);
+    --aeterni-border-width: var(--aeterni-border-width-thin);
+    --aeterni-border-width-strong: var(--aeterni-border-width-medium);
+    --aeterni-control-height-sm: var(--aeterni-height-sm);
+    --aeterni-control-height-md: var(--aeterni-height-md);
+    --aeterni-control-height-lg: var(--aeterni-height-lg);
+    --aeterni-control-padding-x-sm: var(--aeterni-spacing-3);
+    --aeterni-control-padding-x-md: var(--aeterni-spacing-4);
+    --aeterni-control-padding-x-lg: var(--aeterni-spacing-5);
+    --aeterni-touch-target: var(--aeterni-height-lg);
+    --aeterni-opacity-disabled: .45;
+    --aeterni-opacity-muted: .68;
+    --aeterni-focus-width: 3px;
+    --aeterni-focus-offset: 2px;
+    --aeterni-focus-color: rgba(139, 77, 246, .24);
+    --aeterni-text-xs: var(--aeterni-font-size-xs);
+    --aeterni-text-sm: var(--aeterni-font-size-sm);
+    --aeterni-text-md: var(--aeterni-font-size-md);
+    --aeterni-text-lg: var(--aeterni-font-size-lg);
+    --aeterni-text-xl: var(--aeterni-font-size-xl);
+    --aeterni-leading-none: 1;
+    --aeterni-ease: var(--aeterni-ease-standard, var(--aeterni-ease-in-out));
+    --aeterni-space-12: var(--aeterni-spacing-12);
+    --aeterni-field-label-gap: 8px;
+    --aeterni-field-help-gap: 6px;
+    --aeterni-field-placeholder: var(--aeterni-text-muted, var(--aeterni-text-tertiary));
+    --aeterni-field-invalid: var(--aeterni-danger);
+    --aeterni-preview-size: var(--aeterni-spacing-4);
+    --aeterni-token-color: transparent;
+    --aeterni-icon-size-sm: 14px;
+    --aeterni-icon-size-md: 16px;
+    --aeterni-icon-size-lg: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   Theme primitives and semantic foundation
+   Brand primitives are global; light and dark themes use the same token order.
+   -------------------------------------------------------------------------- */
+
+/* 01. Brand primitives — unchanged across color modes */
+:root {
+    --aeterni-brand-50: #F7F3FF;
+    --aeterni-brand-100: #EEE6FF;
+    --aeterni-brand-200: #DECEFF;
+    --aeterni-brand-300: #C6A7FF;
+    --aeterni-brand-400: #AA78FF;
+    --aeterni-brand-500: #8B4DF6;
+    --aeterni-brand-600: #7431DF;
+    --aeterni-brand-700: #6126BD;
+    --aeterni-brand-800: #51239A;
+    --aeterni-brand-900: #441F7C;
+}
+
+/* 02. Light semantic theme */
+:root,
+[data-theme="light"],
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+
+    /* Surface, content and border semantics */
+    --aeterni-bg: #F4F1F8;
+    --aeterni-bg-primary: var(--aeterni-bg);
+    --aeterni-bg-secondary: #EDE8F2;
+    --aeterni-bg-tertiary: #E4DDEA;
+    --aeterni-bg-surface: #FFFFFF;
+    --aeterni-bg-elevated: rgba(255, 255, 255, .72);
+    --aeterni-bg-solid: #FFFFFF;
+    --aeterni-bg-hover: var(--aeterni-surface-hover);
+    --aeterni-bg-active: var(--aeterni-surface-active);
+    --aeterni-bg-disabled: var(--aeterni-surface-soft);
+    --aeterni-surface-soft: rgba(71, 44, 99, .055);
+    --aeterni-surface-hover: rgba(116, 49, 223, .09);
+    --aeterni-surface-active: rgba(116, 49, 223, .15);
+    --aeterni-surface-selected: rgba(139, 77, 246, .13);
+    --aeterni-overlay: rgba(22, 16, 30, .42);
+    --aeterni-text: #201B29;
+    --aeterni-text-primary: var(--aeterni-text);
+    --aeterni-text-secondary: #696171;
+    --aeterni-text-tertiary: #756D7E;
+    --aeterni-text-muted: var(--aeterni-text-tertiary);
+    --aeterni-text-disabled: #A69EAD;
+    --aeterni-text-inverse: #FFFFFF;
+    --aeterni-text-placeholder: var(--aeterni-text-muted);
+    --aeterni-text-link: var(--aeterni-brand-600);
+    --aeterni-border: rgba(63, 45, 80, .11);
+    --aeterni-border-strong: rgba(63, 45, 80, .18);
+    --aeterni-border-default: var(--aeterni-border);
+    --aeterni-border-subtle: rgba(63, 45, 80, .07);
+    --aeterni-border-disabled: var(--aeterni-border-subtle);
+
+    /* Semantic state aliases: current Aeterni values */
+    --aeterni-sem-success: #34C759;
+    --aeterni-sem-warning: #FF9500;
+    --aeterni-sem-danger: #FF3B30;
+    --aeterni-sem-info: #007AFF;
+    --aeterni-sem-neutral: #8E8E93;
+    --aeterni-color-success: var(--aeterni-sem-success);
+    --aeterni-color-warning: var(--aeterni-sem-warning);
+    --aeterni-color-danger: var(--aeterni-sem-danger);
+    --aeterni-color-info: var(--aeterni-sem-info);
+    --aeterni-color-neutral: var(--aeterni-sem-neutral);
+    --aeterni-success: var(--aeterni-sem-success);
+    --aeterni-warning: var(--aeterni-sem-warning);
+    --aeterni-danger: var(--aeterni-sem-danger);
+    --aeterni-info: var(--aeterni-sem-info);
+    --aeterni-neutral: var(--aeterni-sem-neutral);
+    --aeterni-success-soft: rgba(52, 199, 89, .11);
+    --aeterni-warning-soft: rgba(255, 149, 0, .12);
+    --aeterni-danger-soft: rgba(255, 59, 48, .11);
+    --aeterni-info-soft: rgba(0, 122, 255, .11);
+    --aeterni-neutral-soft: rgba(142, 142, 147, .11);
+
+    /* Elevation, blur and motion */
+    --aeterni-shadow-xs: 0 1px 2px rgba(32, 27, 41, .05);
+    --aeterni-shadow-sm: 0 1px 3px rgba(32, 27, 41, .08), 0 1px 2px rgba(32, 27, 41, .05);
+    --aeterni-shadow-md: 0 4px 8px -2px rgba(32, 27, 41, .09), 0 2px 4px -2px rgba(32, 27, 41, .06);
+    --aeterni-shadow-lg: 0 12px 20px -6px rgba(32, 27, 41, .12), 0 4px 8px -4px rgba(32, 27, 41, .07);
+    --aeterni-shadow-xl: 0 24px 36px -12px rgba(32, 27, 41, .16), 0 8px 16px -8px rgba(32, 27, 41, .08);
+    --aeterni-shadow-card: var(--aeterni-shadow-md);
+    --aeterni-shadow-dropdown: var(--aeterni-shadow-lg);
+    --aeterni-shadow-modal: var(--aeterni-shadow-xl);
+    --aeterni-shadow: var(--aeterni-shadow-lg);
+    --aeterni-blur-sm: blur(8px) saturate(120%);
+    --aeterni-blur-md: blur(16px) saturate(135%);
+    --aeterni-blur-lg: blur(24px) saturate(150%);
+    --aeterni-blur: var(--aeterni-blur-lg);
+    --aeterni-ease-standard: cubic-bezier(.2, .8, .2, 1);
+    --aeterni-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* 03. Dark semantic theme — same declaration order as light */
+[data-theme="dark"],
+[data-aeterni-mode="dark"],
+.aeterni-dark {
+    color-scheme: dark;
+    --aeterni-bg: #0D0B12;
+    --aeterni-bg-primary: var(--aeterni-bg);
+    --aeterni-bg-secondary: #14111A;
+    --aeterni-bg-tertiary: #1E1925;
+    --aeterni-bg-surface: #18151E;
+    --aeterni-bg-elevated: rgba(25, 21, 32, .72);
+    --aeterni-bg-solid: #18151E;
+    --aeterni-surface-soft: rgba(255, 255, 255, .045);
+    --aeterni-surface-hover: rgba(170, 120, 255, .12);
+    --aeterni-surface-active: rgba(170, 120, 255, .19);
+    --aeterni-surface-selected: rgba(139, 77, 246, .18);
+    --aeterni-overlay: rgba(0, 0, 0, .64);
+    --aeterni-text: #F4F0FA;
+    --aeterni-text-primary: var(--aeterni-text);
+    --aeterni-text-secondary: #B5ADBF;
+    --aeterni-text-tertiary: #AAA1B4;
+    --aeterni-text-muted: var(--aeterni-text-tertiary);
+    --aeterni-text-disabled: #71697A;
+    --aeterni-text-inverse: #18151E;
+    --aeterni-text-placeholder: var(--aeterni-text-muted);
+    --aeterni-text-link: #AA78FF;
+    --aeterni-border: rgba(255, 255, 255, .09);
+    --aeterni-border-strong: rgba(255, 255, 255, .16);
+    --aeterni-border-default: var(--aeterni-border);
+    --aeterni-border-subtle: rgba(255, 255, 255, .06);
+    --aeterni-border-disabled: var(--aeterni-border-subtle);
+    --aeterni-sem-success: #30D158;
+    --aeterni-sem-warning: #FF9F0A;
+    --aeterni-sem-danger: #FF453A;
+    --aeterni-sem-info: #0A84FF;
+    --aeterni-sem-neutral: #8E8E93;
+    --aeterni-color-success: var(--aeterni-sem-success);
+    --aeterni-color-warning: var(--aeterni-sem-warning);
+    --aeterni-color-danger: var(--aeterni-sem-danger);
+    --aeterni-color-info: var(--aeterni-sem-info);
+    --aeterni-color-neutral: var(--aeterni-sem-neutral);
+    --aeterni-success: var(--aeterni-sem-success);
+    --aeterni-warning: var(--aeterni-sem-warning);
+    --aeterni-danger: var(--aeterni-sem-danger);
+    --aeterni-info: var(--aeterni-sem-info);
+    --aeterni-neutral: var(--aeterni-sem-neutral);
+    --aeterni-success-soft: rgba(48, 209, 88, .11);
+    --aeterni-warning-soft: rgba(255, 159, 10, .12);
+    --aeterni-danger-soft: rgba(255, 69, 58, .11);
+    --aeterni-info-soft: rgba(10, 132, 255, .11);
+    --aeterni-neutral-soft: rgba(142, 142, 147, .12);
+    --aeterni-shadow-xs: 0 1px 2px rgba(0, 0, 0, .18);
+    --aeterni-shadow-sm: 0 1px 3px rgba(0, 0, 0, .24), 0 1px 2px rgba(0, 0, 0, .16);
+    --aeterni-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, .28), 0 2px 4px -2px rgba(0, 0, 0, .18);
+    --aeterni-shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, .34), 0 4px 8px -4px rgba(0, 0, 0, .22);
+    --aeterni-shadow-xl: 0 24px 36px -12px rgba(0, 0, 0, .42), 0 8px 16px -8px rgba(0, 0, 0, .28);
+}
+
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --aeterni-duration-fast: 0ms;
+        --aeterni-duration-normal: 0ms;
+        --aeterni-duration-slow: 0ms;
+        --aeterni-duration-slower: 0ms;
+    }
+}
+
+/* Keep system UI controls aligned with the active Aeterni theme. */
+:root,
+[data-theme="light"],
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"],
+[data-aeterni-mode="dark"],
+.aeterni-dark {
+    color-scheme: dark;
+}
+
+/* ThemeSwitch ------------------------------------------------------------ */
+.aeterni-theme-switch {
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(100%, 360px);
+    min-height: 48px;
+    padding: 4px;
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-secondary);
+}
+
+.aeterni-theme-switch__slider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    z-index: 0;
+    box-sizing: border-box;
+    width: calc((100% - 8px) / 3);
+    pointer-events: none;
+    border: 1px solid var(--aeterni-brand-400);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-brand-500);
+    box-shadow: 0 4px 12px rgba(116, 49, 223, .28);
+    transform: translate3d(0, 0, 0);
+    transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    will-change: transform;
+}
+
+.aeterni-theme-switch[data-mode="light"] .aeterni-theme-switch__slider {
+    transform: translate3d(100%, 0, 0);
+}
+
+.aeterni-theme-switch[data-mode="dark"] .aeterni-theme-switch__slider {
+    transform: translate3d(200%, 0, 0);
+}
+
+.aeterni-theme-switch__option {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 var(--aeterni-spacing-3);
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--aeterni-radius-full);
+    background: transparent;
+    color: var(--aeterni-text-tertiary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+}
+
+.aeterni-theme-switch__option:hover {
+    background: var(--aeterni-surface-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-theme-switch__option.is-selected,
+.aeterni-theme-switch__option.is-selected:hover {
+    background: transparent;
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-theme-switch__option:focus-visible {
+    z-index: 2;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(var(--aeterni-focus-offset) * -1);
+}
+
+.aeterni-theme-switch__option:disabled,
+.aeterni-theme-switch__option:disabled:hover {
+    background: transparent;
+    color: var(--aeterni-text-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-theme-switch--sm {
+    min-height: 40px;
+}
+
+.aeterni-theme-switch--sm .aeterni-theme-switch__option {
+    min-height: 30px;
+    padding: 0 var(--aeterni-spacing-2);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-theme-switch--sm .aeterni-theme-switch__slider {
+    top: 4px;
+    bottom: 4px;
+}
+
+.aeterni-theme-switch--lg {
+    min-height: 56px;
+}
+
+.aeterni-theme-switch--lg .aeterni-theme-switch__option {
+    min-height: 46px;
+    font-size: var(--aeterni-font-size-base);
+}
+
+.aeterni-theme-switch.is-disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+}

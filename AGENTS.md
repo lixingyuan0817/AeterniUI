@@ -1,0 +1,86 @@
+# AeterniUI Agent Instructions
+
+## Project Scope
+
+AeterniUI is a Blazor component library with three supported hosts:
+
+- Blazor Server applications.
+- Blazor WebAssembly applications.
+- Tauri desktop applications hosting the Blazor WebAssembly sample.
+
+The sample project is `src/AeterniUI.Sample`. The Tauri development host is under `tauri/src-tauri`.
+
+## Before Editing
+
+1. Read `docs/component-design-guidelines.zh-CN.md` for the component contract.
+2. Read `docs/current-features.zh-CN.md` to understand the implemented public surface.
+3. Inspect the existing component and token patterns before introducing an abstraction.
+4. Preserve unrelated user changes in the working tree.
+
+## Architecture Rules
+
+- All components inherit directly or indirectly from `AeterniComponent`.
+- Use the base class for generated IDs, `ClassBuilder`, `StyleBuilder`, common attributes, and optional JS module lifecycle.
+- JS is optional. A component without a `.razor.js` file must not require JS initialization.
+- Keep one primary JS module per component. Keep browser behavior in that module and business state in C#.
+- Service interfaces belong in `Services`; implementations belong in `Services/Impl`.
+- Do not create an `Ixxx` interface for every component.
+- Use existing semantic tokens. Do not create a second color, spacing, radius, or motion system inside a component.
+- Keep component markup in `.razor`, behavior and parameters in `.razor.cs`, and isolated styles in `.razor.css`.
+- Avoid modifying `src/AeterniUI/wwwroot/css/aeterni_ui.css` unless the shared token system itself must change.
+- Match existing public naming: `Button`, `Surface`, `Card`, `ThemeProvider`, `ThemeSwitch`, and `DialogProvider` have no `Au` prefix.
+
+## Component API
+
+- Expose common behavior through typed parameters and `EventCallback`.
+- Preserve accessibility attributes such as `aria-label`, `aria-live`, `aria-modal`, `aria-busy`, and keyboard behavior.
+- Validate enum and numeric configuration at the service boundary.
+- Use `TimeSpan.Zero` for an explicitly persistent timed notification; use `null` when an option should inherit a global default.
+- Dispose event subscriptions, timers, cancellation tokens, and JS resources.
+
+## Dialog and Notification Rules
+
+- `DialogProvider` is self-closing and should be placed once in the app layout or root.
+- Use `IDialogService` from application components; do not access Provider internals.
+- `Confirm` and custom `Dialog` are modal and manage overlay, focus, and body scrolling.
+- `Alert` is top-center, non-modal, semantic, single-line, and supports automatic dismissal.
+- `Toast` is non-blocking and supports all eight `ToastPosition` values.
+- Alert and Toast use Button semantic color mappings, optional blur, a four-edge progress border, and exit motion.
+
+## Tauri Development
+
+Run only one development host:
+
+```bash
+cd tauri/src-tauri
+cargo tauri dev
+```
+
+The Tauri `beforeDevCommand` starts `dotnet watch` for the sample at `http://localhost:5178`. Do not start a second `dotnet watch` manually. If the port is occupied, stop the old Tauri or dotnet process first.
+
+The Tauri configuration is `tauri/src-tauri/tauri.conf.json`. Keep `devUrl` and the URL in `beforeDevCommand` synchronized.
+
+## Verification
+
+The user may be running Tauri hot reload. Do not kill their processes or run destructive cleanup without explicit approval.
+
+For a narrow change, perform static checks first. The project currently does not have automated tests. When a build is requested, use:
+
+```bash
+dotnet build aeterni_ui.slnx
+```
+
+For JS-only changes:
+
+```bash
+node --check path/to/module.razor.js
+```
+
+When static web asset errors mention `obj\\Debug`, stop the running watchers before cleaning generated `obj` directories, then restart only through Tauri.
+
+## Change Discipline
+
+- Keep edits focused on the requested behavior.
+- Do not replace working project architecture with a new framework or dependency without a concrete need.
+- Do not commit generated `bin`, `obj`, `target`, IDE, or machine-local files.
+- Update the relevant Chinese documentation when a public API or component capability changes.

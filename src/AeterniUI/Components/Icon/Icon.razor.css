@@ -1,0 +1,45 @@
+.aeterni-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--aeterni-icon-render-size, 1em);
+    height: var(--aeterni-icon-render-size, 1em);
+    overflow: visible;
+    vertical-align: -0.125em;
+    color: currentColor;
+}
+
+.aeterni-icon--sm {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+}
+
+.aeterni-icon--md {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+}
+
+.aeterni-icon--lg {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
+}
+
+.aeterni-icon--primary {
+    color: var(--aeterni-brand-500);
+}
+
+.aeterni-icon--neutral {
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-icon--success {
+    color: var(--aeterni-success-500);
+}
+
+.aeterni-icon--warning {
+    color: var(--aeterni-warning-500);
+}
+
+.aeterni-icon--danger {
+    color: var(--aeterni-danger-500);
+}
+
+.aeterni-icon--info {
+    color: var(--aeterni-info-500);
+}

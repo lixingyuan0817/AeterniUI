@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AeterniUI.Sample/AeterniUI.Sample.csproj" />
+    <Project Path="src/AeterniUI/AeterniUI.csproj" />
+    <Project Path="src/AeterniUI.Icons.FontAwesome/AeterniUI.Icons.FontAwesome.csproj" />
+  </Folder>
+</Solution>

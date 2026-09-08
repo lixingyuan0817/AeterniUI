@@ -1,0 +1,7 @@
+@inherits AeterniComponent
+
+<CascadingValue Value="@CurrentContext" IsFixed="false">
+    <div @ref="RootElement" @attributes="BuildAttributes()">
+        @ChildContent
+    </div>
+</CascadingValue>

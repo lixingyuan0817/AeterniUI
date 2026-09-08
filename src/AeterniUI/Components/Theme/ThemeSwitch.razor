@@ -1,0 +1,30 @@
+@inherits AeterniComponent
+
+<div @attributes="BuildAttributes()"
+     role="group"
+     aria-label="@AriaLabel"
+     data-mode="@ThemeService.Mode.ToString().ToLowerInvariant()">
+    <span class="aeterni-theme-switch__slider" aria-hidden="true"></span>
+
+    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.System ? "is-selected" : string.Empty)"
+            type="button"
+            aria-pressed="@(ThemeService.Mode == ThemeMode.System)"
+            disabled="@Disabled"
+            @onclick="() => SelectModeAsync(ThemeMode.System)">
+        System
+    </button>
+    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Light ? "is-selected" : string.Empty)"
+            type="button"
+            aria-pressed="@(ThemeService.Mode == ThemeMode.Light)"
+            disabled="@Disabled"
+            @onclick="() => SelectModeAsync(ThemeMode.Light)">
+        Light
+    </button>
+    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Dark ? "is-selected" : string.Empty)"
+            type="button"
+            aria-pressed="@(ThemeService.Mode == ThemeMode.Dark)"
+            disabled="@Disabled"
+            @onclick="() => SelectModeAsync(ThemeMode.Dark)">
+        Dark
+    </button>
+</div>
