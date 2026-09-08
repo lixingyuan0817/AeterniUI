@@ -1,0 +1,54 @@
+@inherits AeterniComponent
+
+<div class="@BuildCardClass()"
+     role="@Role"
+     aria-live="@Live"
+     data-aeterni-notice-card="true">
+    <span class="aeterni-dialog-provider__notice-icon @(Icon is null ? "is-default" : string.Empty)"
+          aria-hidden="true">
+        @(Icon ?? NoticeGlyph(Severity))
+    </span>
+
+    <div class="aeterni-dialog-provider__notice-content">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <strong>@Title</strong>
+            <span class="aeterni-dialog-provider__separator" aria-hidden="true">/</span>
+        }
+
+        @if (Message is not null)
+        {
+            <span class="aeterni-dialog-provider__message">@Message</span>
+        }
+        else
+        {
+            @Content
+        }
+    </div>
+
+    @if (ShowCloseButton)
+    {
+        <div class="aeterni-dialog-provider__notice-close">
+            <Button Variant="ButtonVariant.Ghost"
+                    Color="Color.Neutral"
+                    Size="Size.Small"
+                    AriaLabel="@(CloseLabel ?? DefaultCloseLabel)"
+                    OnClick="HandleCloseAsync">
+                <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true">&times;</span>
+            </Button>
+        </div>
+    }
+
+    @if (Duration > TimeSpan.Zero)
+    {
+        <div class="aeterni-dialog-provider__progress"
+             style="@ProgressStyle(Duration)"
+             data-aeterni-notice-progress="true"
+             aria-hidden="true">
+            <svg class="aeterni-progress-svg" focusable="false">
+                <rect class="aeterni-progress-ring aeterni-progress-ring--base"></rect>
+                <rect class="aeterni-progress-ring aeterni-progress-ring--accent"></rect>
+            </svg>
+        </div>
+    }
+</div>

@@ -1,0 +1,119 @@
+/* ThemeSwitch ------------------------------------------------------------ */
+.aeterni-theme-switch {
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(100%, 360px);
+    min-height: 48px;
+    padding: 4px;
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-secondary);
+}
+
+.aeterni-theme-switch__slider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    z-index: 0;
+    box-sizing: border-box;
+    width: calc((100% - 8px) / 3);
+    pointer-events: none;
+    border: 1px solid var(--aeterni-brand-400);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-brand-500);
+    box-shadow: 0 4px 12px rgba(116, 49, 223, .28);
+    transform: translate3d(0, 0, 0);
+    transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    will-change: transform;
+}
+
+.aeterni-theme-switch[data-mode="light"] .aeterni-theme-switch__slider {
+    transform: translate3d(100%, 0, 0);
+}
+
+.aeterni-theme-switch[data-mode="dark"] .aeterni-theme-switch__slider {
+    transform: translate3d(200%, 0, 0);
+}
+
+.aeterni-theme-switch__option {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 var(--aeterni-spacing-3);
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--aeterni-radius-full);
+    background: transparent;
+    color: var(--aeterni-text-tertiary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+}
+
+.aeterni-theme-switch__option:hover {
+    background: var(--aeterni-surface-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-theme-switch__option.is-selected,
+.aeterni-theme-switch__option.is-selected:hover {
+    background: transparent;
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-theme-switch__option:focus-visible {
+    z-index: 2;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(var(--aeterni-focus-offset) * -1);
+}
+
+.aeterni-theme-switch__option:disabled,
+.aeterni-theme-switch__option:disabled:hover {
+    background: transparent;
+    color: var(--aeterni-text-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-theme-switch--sm {
+    min-height: 40px;
+}
+
+.aeterni-theme-switch--sm .aeterni-theme-switch__option {
+    min-height: 30px;
+    padding: 0 var(--aeterni-spacing-2);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-theme-switch--sm .aeterni-theme-switch__slider {
+    top: 4px;
+    bottom: 4px;
+}
+
+.aeterni-theme-switch--lg {
+    min-height: 56px;
+}
+
+.aeterni-theme-switch--lg .aeterni-theme-switch__option {
+    min-height: 46px;
+    font-size: var(--aeterni-font-size-base);
+}
+
+.aeterni-theme-switch.is-disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-theme-switch__slider {
+        transition: none;
+    }
+}

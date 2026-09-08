@@ -1,0 +1,69 @@
+.aeterni-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-rating__item {
+    --aeterni-rating-star: var(--aeterni-text-disabled);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-rating-star);
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-transform);
+}
+
+.aeterni-rating__item.is-filled {
+    --aeterni-rating-star: var(--aeterni-warning-500);
+}
+
+.aeterni-rating__item:hover:not(:disabled) {
+    background: var(--aeterni-surface-hover);
+    transform: translateY(-1px);
+}
+
+.aeterni-rating__item:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-rating__glyph {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.aeterni-rating.is-readonly .aeterni-rating__item,
+.aeterni-rating.is-disabled .aeterni-rating__item {
+    cursor: default;
+}
+
+.aeterni-rating.is-readonly .aeterni-rating__item:hover,
+.aeterni-rating.is-disabled .aeterni-rating__item:hover {
+    background: transparent;
+    transform: none;
+}
+
+.aeterni-rating.is-disabled {
+    opacity: var(--aeterni-opacity-disabled);
+}
+
+.aeterni-rating__item > svg {
+    width: var(--aeterni-icon-size-md);
+    height: var(--aeterni-icon-size-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-rating__item {
+        transition: none;
+    }
+}

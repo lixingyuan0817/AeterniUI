@@ -21,7 +21,7 @@
 }
 
 .aeterni-surface--glass {
-    border-color: color-mix(in srgb, var(--aeterni-text-inverse) var(--aeterni-glass-border-alpha), transparent);
+    border-color: var(--aeterni-border-default);
     background: var(--aeterni-bg-elevated);
     box-shadow: var(--aeterni-glass-shadow);
     -webkit-backdrop-filter: var(--aeterni-blur-md);

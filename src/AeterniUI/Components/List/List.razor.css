@@ -1,0 +1,17 @@
+.aeterni-list {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    gap: var(--aeterni-spacing-1);
+    padding: var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-list--select:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}

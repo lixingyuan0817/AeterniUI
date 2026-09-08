@@ -1,0 +1,39 @@
+@inherits AeterniComponent
+
+@if (Interactive)
+{
+    <button type="button"
+            @ref="_rootElement"
+            id="@OptionId"
+            class="@BuildItemClass()"
+            disabled="@EffectiveDisabled"
+            tabindex="-1"
+            aria-selected="@Selected"
+            aria-disabled="@EffectiveDisabled"
+            @onclick="HandleClickAsync"
+            @onfocus="HandleFocus">
+        @if (LeadingContent is not null)
+        {
+            <span class="aeterni-list-item__leading">@LeadingContent</span>
+        }
+        <span class="aeterni-list-item__content">@ChildContent</span>
+        @if (TrailingContent is not null)
+        {
+            <span class="aeterni-list-item__trailing">@TrailingContent</span>
+        }
+    </button>
+}
+else
+{
+    <div class="@BuildItemClass()">
+        @if (LeadingContent is not null)
+        {
+            <span class="aeterni-list-item__leading">@LeadingContent</span>
+        }
+        <span class="aeterni-list-item__content">@ChildContent</span>
+        @if (TrailingContent is not null)
+        {
+            <span class="aeterni-list-item__trailing">@TrailingContent</span>
+        }
+    </div>
+}

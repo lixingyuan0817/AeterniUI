@@ -12,7 +12,9 @@
 - 支持 Blazor WebAssembly 使用组件库。
 - 示例项目 `AeterniUI.Sample` 为 Blazor WebAssembly 项目。
 - 已配置 Tauri + Blazor WebAssembly 开发模式。
-- Tauri 开发模式通过 `dotnet watch` 提供热重载，并使用透明窗口、原生窗口阴影和 macOS Vibrancy 配置。
+- Tauri 开发模式直接加载发布到仓库根目录 `dist/` 的静态站点（`scripts/sample-publish.sh` 负责发布），不再是 `dotnet watch` 热重载；使用透明窗口、原生窗口阴影和 macOS Vibrancy 配置。
+- 在 Tauri 宿主中，原生窗口背景（macOS vibrancy / Windows acrylic-blur）会随页面明暗主题切换色调；该能力由示例宿主层（`index.html` + `js/host-backdrop.js` + Tauri 命令 `apply_window_backdrop`）实现，组件库保持宿主无关。
+- 示例项目首页为组件展示页，使用真实组件展示按钮、分组、表面、输入、选择、通知与主题切换。
 - 组件 API 不依赖具体宿主，浏览器能力通过 JS isolation 提供。
 
 ## 2. 设计基础
@@ -35,6 +37,7 @@
 - 主题切换由 `ThemeService` 管理。
 - `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
 - `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题和 Tauri titlebar 主题。
+- 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
 - 主题切换包含过渡动画，并适配 reduced-motion 场景。
 
@@ -106,6 +109,7 @@
 - `AriaLabel` 和 `AriaDescribedBy` 无障碍属性。
 - 在 `EditForm` 中通过 `ValueExpression` 读取 `EditContext` 的验证消息，并同步 `aria-invalid`。
 - 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
+- 悬浮与聚焦均使用主题色（`--aeterni-brand-500`）边框，无外圈辉光/阴影；无效状态在悬浮、聚焦下始终保留危险色边框。
 
 `Input` 是单行原生 `<input>` 封装；标签、帮助文本、错误文本布局和复合表单字段暂不由该组件负责，后续由 `FormField` 统一组合。
 
@@ -123,7 +127,68 @@
 
 `Label` 提供独立的原生 `<label>` 组件，支持 `For` 参数和 `ChildContent`，可用于将自定义标签与输入控件关联。
 
-## 10. ThemeProvider 和 ThemeSwitch 使用方式
+## 10. Checkbox
+
+`Checkbox` 提供原生复选框语义和稳定的布尔值绑定，使用 `<label>` 包裹原生 `<input type="checkbox">`，可被辅助技术直接识别。该组件会通过 `FormField` 级联上下文同步稳定的输入 ID、`aria-describedby` 和验证状态。
+
+- `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准 `@bind-Value`。
+- `Indeterminate` 仅作为显示状态；用户交互后组件落定到明确的 `true`/`false` 值，不保留不确定状态。
+- `ChildContent` 作为标签文本，点击整行即可切换。
+- `Name`、`AriaLabel`、`AriaDescribedBy`。
+- `Size`：`Small`、`Default`、`Large`，默认 20px、Small 16px、Large 26px 的紧凑盒体，标签与复选框间距为 4px。
+- `Required`、`Invalid`、`Disabled`。
+- `OnChange` 回调，并在 `EditForm`/`EditContext` 中通过 `ValueExpression` 校验，同步 `aria-invalid`。
+- 支持默认、悬浮、聚焦、禁用和无效状态；三态显示通过原生 `:indeterminate` 呈现。
+- `indeterminate` 是 DOM 属性而非 HTML 属性，组件使用一个最小 JS module 将其设置到输入框；不设置 `Indeterminate` 时不产生任何浏览器副作用。
+
+```razor
+<Checkbox @bind-Value="Subscribe">Subscribe to updates</Checkbox>
+<Checkbox Indeterminate>Select all</Checkbox>
+```
+
+## 11. Switch
+
+`Switch` 提供适合即时开关设置的二态控件：
+
+- `Value` / `ValueChanged` / `ValueExpression`，支持 `@bind-Value`，内部使用可聚焦的原生 checkbox，并输出 `role="switch"` 与 `aria-checked`。
+- 支持 `Label`/`ChildContent`、`Required`、`Invalid`、`Disabled`、`AriaLabel` 与 `OnChange`。
+- 可从 `FormField` 级联获取标签关联、禁用与校验状态。
+- 空格/原生 checkbox 行为可切换；reduced-motion 下关闭滑块过渡动画。
+
+## 12. Tag
+
+`Tag` 提供分类、状态与筛选的紧凑标签：
+
+- `ChildContent`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`Default` / `Soft` / `Outline`）。
+- 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
+- 可关闭 Tag 的关闭按钮带有可访问名称且只触发一次事件。
+
+## 13. List + ListItem
+
+- `List` 提供 `SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues`、对应变更事件、`AllowClear` 与 `AriaLabel`。
+- 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；`ListItem` 输出 `role="option"` 与同步的 `aria-selected`。
+- `ListItem` 支持 `Value`、`ChildContent`、`Disabled`、`LeadingContent` / `TrailingContent`。
+- 支持鼠标、方向键、Home/End 与空格/回车选择；禁用项不可选择。
+- 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id 且移出 Tab 序列，由容器键盘统一驱动。
+- 无选择模式渲染为普通列表结构，不输出按钮语义。
+
+## 14. Rating
+
+- 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
+- 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用星号字形）。
+- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`aria-label` 可自定义。
+- 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
+
+## 15. ComboBox
+
+- 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
+- `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
+- `Placeholder`、`Required`、`Invalid`、`Disabled`、`AriaLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
+- `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
+- 弹层由最小 JS module（`ComboBox.razor.js`）按触发按钮锚定为 fixed 定位并自动上下翻转/贴边，避免被卡片/容器裁剪遮挡。
+
+## 16. ThemeProvider 和 ThemeSwitch 使用方式
 
 ```razor
 <ThemeProvider />
@@ -132,7 +197,9 @@
 
 `ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService` 或使用 `ThemeSwitch` 修改主题模式。
 
-## 11. Dialog、Confirm、Alert 和 Toast
+主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
+
+## 17. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -172,10 +239,11 @@ DialogService.ShowToast("Completed", new ToastOptions
 
 ### Alert
 
-- 顶部居中显示，不阻塞页面，不显示模态遮罩。
+- 非模态、不阻塞页面、不显示模态遮罩的单行提示，默认底部居中。
+- 支持 Toast 的八个位置，可通过 `AlertOptions.Position` 或 Service 的位置重载覆盖，也可在全局配置中修改默认位置，便于避开顶部页面元素。
 - 使用 Button 相同的 `Info`、`Success`、`Warning`、`Danger` 语意色映射。
 - 语意背景使用浅色混合，去除左侧语意边框。
-- 支持图标、标题、手动关闭和单行省略显示。
+- 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 自动生成默认图标，关闭按钮只占自身内容宽度并上下居中。
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
@@ -184,9 +252,9 @@ DialogService.ShowToast("Completed", new ToastOptions
 ### Toast
 
 - 非阻塞通知。
-- 支持 TopStart、TopCenter、TopEnd、CenterStart、CenterEnd、BottomStart、BottomCenter、BottomEnd 八个位置。
+- 支持 TopStart、TopCenter、TopEnd、CenterStart、CenterEnd、BottomStart、BottomCenter、BottomEnd 八个位置，默认右上角（TopEnd）。
 - 支持全局默认位置、单条通知位置和最大显示数量。
-- 支持图标、标题、手动关闭和复杂 RenderFragment 内容。
+- 支持图标、标题、手动关闭和复杂 RenderFragment 内容；未传 `Icon` 时按 Severity 自动生成默认图标。
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
@@ -197,7 +265,8 @@ DialogService.ShowToast("Completed", new ToastOptions
 ```csharp
 builder.Services.AddAeterniUI(options =>
 {
-    options.DefaultToastPosition = ToastPosition.BottomEnd;
+    options.DefaultToastPosition = ToastPosition.TopEnd;
+    options.DefaultAlertPosition = ToastPosition.BottomCenter;
     options.MaxToastCount = 5;
     options.DefaultAlertDuration = TimeSpan.FromSeconds(5);
     options.DefaultToastDuration = TimeSpan.FromSeconds(5);
@@ -210,7 +279,7 @@ builder.Services.AddAeterniUI(options =>
 - `TimeSpan.Zero`：不自动关闭，只能手动关闭。
 - 大于零：按指定时长自动关闭。
 
-## 12. 服务注册
+## 18. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -226,7 +295,7 @@ builder.Services.AddAeterniUI();
 - `DialogService`。
 - `IDialogService`。
 
-## 13. 当前边界
+## 19. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

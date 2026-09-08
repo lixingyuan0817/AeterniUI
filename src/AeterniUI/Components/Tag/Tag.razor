@@ -1,0 +1,26 @@
+@inherits AeterniComponent
+
+<span @ref="RootElement" @attributes="BuildAttributes()">
+    @if (StartIcon is not null)
+    {
+        <span class="aeterni-tag__icon" aria-hidden="true">@StartIcon</span>
+    }
+
+    <span class="aeterni-tag__content">@ChildContent</span>
+
+    @if (EndIcon is not null)
+    {
+        <span class="aeterni-tag__icon" aria-hidden="true">@EndIcon</span>
+    }
+
+    @if (Dismissible)
+    {
+        <Button Variant="ButtonVariant.Ghost"
+                Color="Color.Neutral"
+                AriaLabel="@DismissLabel"
+                Class="aeterni-tag__dismiss"
+                OnClick="@(args => OnDismiss.InvokeAsync())">
+            <span class="aeterni-tag__dismiss-glyph" aria-hidden="true">&times;</span>
+        </Button>
+    }
+</span>

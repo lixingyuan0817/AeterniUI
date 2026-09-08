@@ -1,0 +1,34 @@
+@inherits AeterniComponent
+@using System.Globalization
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     role="radiogroup"
+     aria-label="@AriaLabel"
+     aria-invalid="@(IsInvalid ? "true" : null)"
+     @onkeydown="HandleKeyDownAsync">
+    @for (var index = 1; index <= Max; index++)
+    {
+        // Local copy: Razor @for captures a single shared variable, so lambdas
+        // must not close over `index` directly or every click would report the
+        // final loop value (Max + 1) instead of the clicked star.
+        var rating = index;
+        <button type="button"
+                class="aeterni-rating__item @(rating <= Value ? "is-filled" : string.Empty)"
+                role="radio"
+                aria-checked="@(rating <= Value)"
+                aria-label="@(rating.ToString(CultureInfo.InvariantCulture))"
+                title="@(rating.ToString(CultureInfo.InvariantCulture)) / @(Max.ToString(CultureInfo.InvariantCulture))"
+                disabled="@(Disabled ? "true" : null)"
+                @onclick="@(args => HandleClickAsync(rating))">
+            @if (Icon is not null)
+            {
+                @Icon
+            }
+            else
+            {
+                <span class="aeterni-rating__glyph" aria-hidden="true">★</span>
+            }
+        </button>
+    }
+</div>

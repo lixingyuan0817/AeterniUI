@@ -2,6 +2,10 @@
 **/bin/
 **/obj/
 
+# Published sample site (built by scripts/sample-publish.sh)
+/dist/
+/.sample-publish/
+
 # Rust generated output
 tauri/target/
 tauri/src-tauri/target/

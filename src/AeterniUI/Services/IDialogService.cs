@@ -8,6 +8,8 @@ public interface IDialogService
 {
     ToastPosition DefaultToastPosition { get; set; }
 
+    ToastPosition DefaultAlertPosition { get; set; }
+
     int MaxToastCount { get; set; }
 
     TimeSpan DefaultAlertDuration { get; set; }
@@ -19,6 +21,8 @@ public interface IDialogService
     Task<DialogResult> ShowAsync(RenderFragment content, DialogOptions? options = null);
 
     Task<DialogResult> AlertAsync(string message, AlertOptions? options = null);
+
+    Task<DialogResult> AlertAsync(string message, ToastPosition position, AlertOptions? options = null);
 
     Task<bool> ConfirmAsync(string message, ConfirmOptions? options = null);
 

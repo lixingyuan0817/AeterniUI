@@ -25,12 +25,21 @@ public sealed class ThemeService
         }
 
         Mode = mode;
+
+        // Explicit Light/Dark modes always pin the effective theme. System mode
+        // keeps the current value until the OS preference is re-resolved.
         if (mode != ThemeMode.System)
         {
-            SetCurrentTheme(mode == ThemeMode.Dark ? ThemeKind.Dark : ThemeKind.Light);
-            return;
+            var next = mode == ThemeMode.Dark ? ThemeKind.Dark : ThemeKind.Light;
+            if (CurrentTheme != next)
+            {
+                CurrentTheme = next;
+            }
         }
 
+        // Broadcast on every mode change — even when the resolved theme colour
+        // did not change (e.g. picking Light while the system is already light).
+        // Consumers rely on this event to persist the mode and re-apply state.
         RaiseThemeChanged();
     }
 

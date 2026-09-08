@@ -4,10 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "frontendDist": "../../src/AeterniUI.Sample/bin/Release/net10.0/publish/wwwroot",
-    "devUrl": "http://localhost:5178",
-    "beforeDevCommand": "dotnet watch --project ../src/AeterniUI.Sample/AeterniUI.Sample.csproj run --no-launch-profile --urls http://localhost:5178",
-    "beforeBuildCommand": "dotnet publish ../src/AeterniUI.Sample/AeterniUI.Sample.csproj -c Release"
+    "frontendDist": "../../dist",
+    "beforeDevCommand": "../scripts/sample-publish.sh Debug",
+    "beforeBuildCommand": "../scripts/sample-publish.sh Release"
   },
   "app": {
     "windows": [

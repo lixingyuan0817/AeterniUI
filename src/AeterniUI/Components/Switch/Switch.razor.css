@@ -1,0 +1,95 @@
+.aeterni-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-gap-sm);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Visually hide the native checkbox while keeping it focusable. The switch
+   track is a styled mirror of the native checked state, so keyboard toggling
+   (Space) and assistive technology keep working without extra JS. */
+.aeterni-switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.aeterni-switch__track {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 22px;
+    padding: 2px;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-tertiary);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border);
+}
+
+.aeterni-switch__knob {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-text-inverse);
+    box-shadow: var(--aeterni-shadow-sm);
+    transition: var(--aeterni-transition-transform), var(--aeterni-transition-background);
+}
+
+.aeterni-switch__input:checked + .aeterni-switch__track {
+    border-color: var(--aeterni-brand-500);
+    background: var(--aeterni-brand-500);
+}
+
+.aeterni-switch__input:checked + .aeterni-switch__track .aeterni-switch__knob {
+    transform: translateX(16px);
+}
+
+.aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-brand-400, var(--aeterni-brand-500));
+}
+
+.aeterni-switch__input:focus-visible + .aeterni-switch__track {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-switch.is-invalid .aeterni-switch__track {
+    border-color: var(--aeterni-danger);
+}
+
+.aeterni-switch__input:disabled + .aeterni-switch__track {
+    border-color: var(--aeterni-border-disabled);
+    background: var(--aeterni-bg-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-switch.is-disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+}
+
+.aeterni-switch__label {
+    min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-switch__track,
+    .aeterni-switch__knob {
+        transition: none;
+    }
+}

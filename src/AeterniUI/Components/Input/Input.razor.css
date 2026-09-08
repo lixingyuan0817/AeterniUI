@@ -23,17 +23,14 @@
 }
 
 .aeterni-input:hover:not(:disabled):not([readonly]) {
-    border-color: var(--aeterni-border-strong);
-}
-
-.aeterni-input:focus {
     border-color: var(--aeterni-brand-500);
-    box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color);
 }
 
+.aeterni-input:focus,
 .aeterni-input:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: var(--aeterni-focus-offset);
+    border-color: var(--aeterni-brand-500);
+    box-shadow: none;
+    outline: none;
 }
 
 .aeterni-input:disabled {
@@ -53,10 +50,16 @@
     border-color: var(--aeterni-danger);
 }
 
+/* Invalid inputs keep their danger border on hover and focus — the state cue
+   must not be replaced by the neutral/theme hover treatment. */
+.aeterni-input.is-invalid:not(:disabled):not([readonly]):hover,
+.aeterni-input[aria-invalid="true"]:not(:disabled):not([readonly]):hover {
+    border-color: var(--aeterni-danger);
+}
+
 .aeterni-input.is-invalid:not(:disabled):focus,
 .aeterni-input[aria-invalid="true"]:not(:disabled):focus {
     border-color: var(--aeterni-danger);
-    box-shadow: 0 0 0 var(--aeterni-focus-width) color-mix(in srgb, var(--aeterni-danger) 24%, transparent);
 }
 
 .aeterni-input--sm {

@@ -27,6 +27,8 @@ public partial class ThemeProvider : AeterniComponent
             _jsReady = true;
             try
             {
+                await RestoreStoredModeAsync();
+
                 if (ThemeService.Mode == ThemeMode.System)
                 {
                     await RefreshSystemThemeAsync();
@@ -77,6 +79,7 @@ public partial class ThemeProvider : AeterniComponent
             }
 
             await ApplyThemeAsync();
+            await PersistModeAsync();
         }
         catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException)
         {
@@ -96,6 +99,51 @@ public partial class ThemeProvider : AeterniComponent
         if (isDark.HasValue)
         {
             ThemeService.ApplySystemTheme(isDark.Value);
+        }
+    }
+
+    /// <summary>
+    /// Restores a previously stored theme mode (localStorage works both in a
+    /// regular browser and inside the Tauri webview, where the storage is
+    /// persisted for the app identifier). Invalid/absent values fall back to
+    /// the configured default, i.e. System.
+    /// </summary>
+    private async Task RestoreStoredModeAsync()
+    {
+        var stored = await JsModuleManager.InvokeModuleAsync<string?>(
+            "theme-provider",
+            "getStoredMode");
+
+        var mode = (stored?.ToLowerInvariant()) switch
+        {
+            "light" => ThemeMode.Light,
+            "dark" => ThemeMode.Dark,
+            "system" => ThemeMode.System,
+            _ => (ThemeMode?)null
+        };
+
+        if (mode.HasValue && mode.Value != ThemeService.Mode)
+        {
+            ThemeService.SetMode(mode.Value);
+        }
+    }
+
+    private async Task PersistModeAsync()
+    {
+        if (!_jsReady)
+        {
+            return;
+        }
+
+        try
+        {
+            await JsModuleManager.InvokeModuleVoidAsync(
+                "theme-provider",
+                "persistMode",
+                ThemeService.Mode.ToString().ToLowerInvariant());
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException)
+        {
         }
     }
 

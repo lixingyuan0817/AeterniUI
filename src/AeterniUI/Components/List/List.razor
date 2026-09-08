@@ -1,0 +1,9 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onkeydown="HandleKeyDownAsync">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</div>

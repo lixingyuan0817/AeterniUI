@@ -4,7 +4,9 @@ namespace AeterniUI.Services;
 
 public sealed class AeterniUIOptions
 {
-    public ToastPosition DefaultToastPosition { get; set; } = ToastPosition.BottomEnd;
+    public ToastPosition DefaultToastPosition { get; set; } = ToastPosition.TopEnd;
+
+    public ToastPosition DefaultAlertPosition { get; set; } = ToastPosition.BottomCenter;
 
     public int MaxToastCount { get; set; } = 5;
 

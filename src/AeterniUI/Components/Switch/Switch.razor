@@ -1,0 +1,22 @@
+@inherits AeterniComponent
+
+<label @ref="RootElement" @attributes="BuildAttributes()">
+    <input @ref="_inputElement"
+           @attributes="BuildInputAttributes()"
+           id="@_effectiveId"
+           type="checkbox"
+           role="switch"
+           aria-checked="@_currentValue"
+           checked="@_currentValue"
+           class="aeterni-switch__input"
+           @onchange="HandleChangeAsync" />
+
+    <span class="aeterni-switch__track" aria-hidden="true">
+        <span class="aeterni-switch__knob"></span>
+    </span>
+
+    @if (ChildContent is not null)
+    {
+        <span class="aeterni-switch__label">@ChildContent</span>
+    }
+</label>

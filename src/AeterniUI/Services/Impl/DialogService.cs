@@ -12,7 +12,8 @@ public sealed class DialogService : IDialogService, IDisposable
     private readonly List<DialogEntry> _dialogs = [];
     private readonly List<DialogEntry> _alerts = [];
     private readonly List<ToastEntry> _toasts = [];
-    private ToastPosition _defaultToastPosition = ToastPosition.BottomEnd;
+    private ToastPosition _defaultToastPosition = ToastPosition.TopEnd;
+    private ToastPosition _defaultAlertPosition = ToastPosition.BottomCenter;
     private TimeSpan _defaultAlertDuration = TimeSpan.FromSeconds(5);
     private TimeSpan _defaultToastDuration = TimeSpan.FromSeconds(5);
     private int _maxToastCount = 5;
@@ -22,6 +23,7 @@ public sealed class DialogService : IDialogService, IDisposable
     {
         ArgumentNullException.ThrowIfNull(options);
         ValidateToastPosition(options.DefaultToastPosition);
+        ValidateToastPosition(options.DefaultAlertPosition);
 
         if (options.MaxToastCount <= 0)
         {
@@ -32,6 +34,7 @@ public sealed class DialogService : IDialogService, IDisposable
         ValidateDuration(options.DefaultToastDuration, nameof(options.DefaultToastDuration));
 
         _defaultToastPosition = options.DefaultToastPosition;
+        _defaultAlertPosition = options.DefaultAlertPosition;
         _defaultAlertDuration = options.DefaultAlertDuration;
         _defaultToastDuration = options.DefaultToastDuration;
         _maxToastCount = options.MaxToastCount;
@@ -46,6 +49,16 @@ public sealed class DialogService : IDialogService, IDisposable
         {
             ValidateToastPosition(value);
             _defaultToastPosition = value;
+        }
+    }
+
+    public ToastPosition DefaultAlertPosition
+    {
+        get => _defaultAlertPosition;
+        set
+        {
+            ValidateToastPosition(value);
+            _defaultAlertPosition = value;
         }
     }
 
@@ -160,12 +173,32 @@ public sealed class DialogService : IDialogService, IDisposable
     public Task<DialogResult> ShowAsync(RenderFragment content, DialogOptions? options = null) =>
         Show(content, options).Result;
 
-    public Task<DialogResult> AlertAsync(string message, AlertOptions? options = null)
+    public Task<DialogResult> AlertAsync(string message, AlertOptions? options = null) =>
+        AlertAsyncCore(message, position: null, options);
+
+    public Task<DialogResult> AlertAsync(
+        string message,
+        ToastPosition position,
+        AlertOptions? options = null) =>
+        AlertAsyncCore(message, position, options);
+
+    private Task<DialogResult> AlertAsyncCore(
+        string message,
+        ToastPosition? position,
+        AlertOptions? options = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         var alertOptions = options ?? new AlertOptions();
+        var resolvedPosition = position ?? alertOptions.Position ?? DefaultAlertPosition;
+        ValidateToastPosition(resolvedPosition);
         var duration = ResolveDuration(alertOptions.Duration, DefaultAlertDuration);
-        var entry = CreateMessageDialog(message, alertOptions, DialogContentKind.Alert, _alerts, duration);
+        var entry = CreateMessageDialog(
+            message,
+            alertOptions,
+            DialogContentKind.Alert,
+            _alerts,
+            duration,
+            resolvedPosition);
         if (duration > TimeSpan.Zero)
         {
             _ = RunAlertTimerAsync(entry, duration);
@@ -243,12 +276,21 @@ public sealed class DialogService : IDialogService, IDisposable
         }
     }
 
+    internal IReadOnlyList<DialogEntry> GetAlerts(ToastPosition position)
+    {
+        lock (_sync)
+        {
+            return _alerts.Where(alert => alert.Position == position).ToArray();
+        }
+    }
+
     private DialogEntry CreateMessageDialog(
         string message,
         DialogOptions options,
         DialogContentKind kind,
         List<DialogEntry> target,
-        TimeSpan duration)
+        TimeSpan duration,
+        ToastPosition? position = null)
     {
         var entry = new DialogEntry(
             CreateId("dialog"),
@@ -256,7 +298,8 @@ public sealed class DialogService : IDialogService, IDisposable
             message,
             kind,
             options,
-            duration);
+            duration,
+            position);
 
         entry.Reference = new DialogReference(entry.Id, result => CloseDialogAsync(entry.Id, result));
 
@@ -317,24 +360,19 @@ public sealed class DialogService : IDialogService, IDisposable
 
     private async Task RunAlertTimerAsync(DialogEntry entry, TimeSpan duration)
     {
+        // The card border progress is driven entirely by CSS for the full
+        // duration, so the timer never re-renders the provider while it runs —
+        // it only closes the alert once the time has elapsed. This keeps the
+        // ring smooth and prevents stacking re-renders when several notices
+        // are visible at once.
         var stopwatch = Stopwatch.StartNew();
-        var lastRemainingSeconds = entry.RemainingSeconds;
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
 
         try
         {
             while (await timer.WaitForNextTickAsync(entry.CancellationTokenSource.Token))
             {
-                var remaining = duration - stopwatch.Elapsed;
-                entry.SetRemainingDuration(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero);
-
-                if (entry.RemainingSeconds != lastRemainingSeconds)
-                {
-                    lastRemainingSeconds = entry.RemainingSeconds;
-                    NotifyChanged();
-                }
-
-                if (remaining <= TimeSpan.Zero)
+                if (duration - stopwatch.Elapsed <= TimeSpan.Zero)
                 {
                     await CloseDialogAsync(entry.Id, DialogResult.Dismiss(), suppressCallbackErrors: true);
                     return;
@@ -348,24 +386,15 @@ public sealed class DialogService : IDialogService, IDisposable
 
     private async Task RunToastTimerAsync(ToastEntry entry, TimeSpan duration)
     {
+        // See RunAlertTimerAsync: no per-tick renders, CSS owns the ring.
         var stopwatch = Stopwatch.StartNew();
-        var lastRemainingSeconds = entry.RemainingSeconds;
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
 
         try
         {
             while (await timer.WaitForNextTickAsync(entry.CancellationTokenSource.Token))
             {
-                var remaining = duration - stopwatch.Elapsed;
-                entry.SetRemainingDuration(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero);
-
-                if (entry.RemainingSeconds != lastRemainingSeconds)
-                {
-                    lastRemainingSeconds = entry.RemainingSeconds;
-                    NotifyChanged();
-                }
-
-                if (remaining <= TimeSpan.Zero)
+                if (duration - stopwatch.Elapsed <= TimeSpan.Zero)
                 {
                     await CloseToastAsync(entry.Id, suppressCallbackErrors: true);
                     return;
@@ -577,7 +606,8 @@ internal sealed class DialogEntry(
     string? message,
     DialogContentKind kind,
     DialogOptions options,
-    TimeSpan duration)
+    TimeSpan duration,
+    ToastPosition? position = null)
 {
     public string Id { get; } = id;
 
@@ -589,23 +619,15 @@ internal sealed class DialogEntry(
 
     public DialogOptions Options { get; } = options;
 
+    public ToastPosition? Position { get; } = position;
+
     public DialogReference Reference { get; set; } = null!;
 
     public TimeSpan Duration { get; } = duration;
 
-    public TimeSpan RemainingDuration { get; private set; } = duration;
-
     public bool IsClosing { get; private set; }
 
-    public int RemainingSeconds => Math.Max(0, (int)Math.Ceiling(RemainingDuration.TotalSeconds));
-
-    public double ProgressPercent => Duration <= TimeSpan.Zero
-        ? 0
-        : Math.Clamp(RemainingDuration.TotalMilliseconds / Duration.TotalMilliseconds * 100, 0, 100);
-
     public CancellationTokenSource CancellationTokenSource { get; } = new();
-
-    internal void SetRemainingDuration(TimeSpan remaining) => RemainingDuration = remaining;
 
     internal void MarkClosing() => IsClosing = true;
 }
@@ -634,17 +656,7 @@ internal sealed class ToastEntry(
 
     public TimeSpan Duration { get; } = duration;
 
-    public TimeSpan RemainingDuration { get; private set; } = duration;
-
     public bool IsClosing { get; private set; }
-
-    public int RemainingSeconds => Math.Max(0, (int)Math.Ceiling(RemainingDuration.TotalSeconds));
-
-    public double ProgressPercent => Duration <= TimeSpan.Zero
-        ? 0
-        : Math.Clamp(RemainingDuration.TotalMilliseconds / Duration.TotalMilliseconds * 100, 0, 100);
-
-    internal void SetRemainingDuration(TimeSpan remaining) => RemainingDuration = remaining;
 
     internal void MarkClosing() => IsClosing = true;
 }

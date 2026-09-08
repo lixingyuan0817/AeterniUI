@@ -1,4 +1,3 @@
-using System.Globalization;
 using AeterniUI.Attributes;
 using AeterniUI.Enums;
 using AeterniUI.Models.Dialog;
@@ -12,7 +11,7 @@ namespace AeterniUI.Components.Dialog;
 [JsModule("Components/Dialog/DialogProvider.razor.js", Name = "dialog-provider", Interactive = true)]
 public partial class DialogProvider : AeterniComponent
 {
-    private static readonly ToastPosition[] ToastPositions = Enum.GetValues<ToastPosition>();
+    private static readonly ToastPosition[] NoticePositions = Enum.GetValues<ToastPosition>();
     private readonly HashSet<string> _shakingDialogs = [];
 
     [Inject]
@@ -53,6 +52,12 @@ public partial class DialogProvider : AeterniComponent
                 RootElement,
                 topDialogId,
                 topDialogId is not null);
+
+            // Re-measure the SVG border progress rings after every render.
+            await JsModuleManager.InvokeModuleVoidAsync(
+                "dialog-provider",
+                "initProgress",
+                RootElement);
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException or TaskCanceledException)
         {
@@ -113,8 +118,6 @@ public partial class DialogProvider : AeterniComponent
     private Task CloseDialogAsync(DialogEntry dialog, DialogResult result) =>
         dialog.Reference.CloseAsync(result);
 
-    private Task HandleToastCloseAsync(ToastEntry toast) => toast.Reference.CloseAsync();
-
     private static string PositionClass(ToastPosition position) => position switch
     {
         ToastPosition.TopStart => "top-start",
@@ -143,9 +146,6 @@ public partial class DialogProvider : AeterniComponent
         Severity.Danger => Color.Danger,
         _ => Color.Primary
     };
-
-    private static string ProgressStyle(TimeSpan duration) =>
-        $"--aeterni-dialog-duration: {duration.TotalMilliseconds.ToString("0.##", CultureInfo.InvariantCulture)}ms;";
 
     private bool IsDialogShaking(string id) => _shakingDialogs.Contains(id);
 

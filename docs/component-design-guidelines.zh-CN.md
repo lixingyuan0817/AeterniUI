@@ -601,28 +601,32 @@ DialogService.ShowToast("Completed");
 builder.Services.AddAeterniUI(options =>
 {
     options.DefaultToastPosition = ToastPosition.TopEnd;
+    options.DefaultAlertPosition = ToastPosition.BottomCenter;
     options.MaxToastCount = 5;
     options.DefaultAlertDuration = TimeSpan.FromSeconds(5);
     options.DefaultToastDuration = TimeSpan.FromSeconds(5);
 });
 ```
 
-指定单条 Toast 的位置可以使用 `ToastOptions.Position`，或者直接使用 Service 的位置重载：
+指定单条 Toast 或 Alert 的位置可以使用对应 options 的 `Position` 属性，或者直接使用 Service 的位置重载：
 
 ```csharp
 DialogService.ShowToast("Completed", ToastPosition.BottomCenter);
+await DialogService.AlertAsync("Saved", ToastPosition.TopCenter);
 ```
 
 三种弹出内容的职责必须区分：
 
 - `Show` / `ConfirmAsync` 是模态内容，显示遮罩、锁定背景滚动并管理焦点；默认只有最顶层 Dialog 响应 Escape。
-- `AlertAsync` 是顶部居中的单行语义化提示，不显示模态遮罩，不阻塞页面；支持 `Severity`、`Icon` 和手动关闭。过长内容必须省略，不能通过增加第二行撑高提示。
-- `AlertAsync` 和 `ShowToast` 默认自动关闭并显示剩余秒数和四边环绕进度边框；将对应 options 的 `Duration` 设置为 `TimeSpan.Zero` 可改为仅手动关闭，设置为 `null` 时使用 `AddAeterniUI` 的全局默认值。
+- `AlertAsync` 是非模态、不阻塞页面的单行语义化提示，默认底部居中，可指定任意 `ToastPosition` 位置以避开页面顶部元素；支持 `Severity`、`Icon` 和手动关闭。过长内容必须省略，不能通过增加第二行撑高提示。
+- `AlertAsync` 和 `ShowToast` 默认自动关闭，四边环绕的边框进度条由 CSS 线性动画驱动（不显示倒计时文本，渲染过程不触发中间态重绘，多消息同时显示时也不会抖动）；将对应 options 的 `Duration` 设置为 `TimeSpan.Zero` 可改为仅手动关闭，设置为 `null` 时使用 `AddAeterniUI` 的全局默认值。
+- Alert 与 Toast 的卡片采用类似 iOS 通知中心的展示方式：磨砂圆角卡片、左侧图标徽标、标题与两行内内容、右侧顶部的轻量关闭按钮。
 - Alert 和 Toast 的语意背景沿用 Button 的 `Info`、`Success`、`Warning`、`Danger` 色值映射；`Blur = false` 可以关闭通知自身的背景模糊。
+- Alert 与 Toast 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 `Severity` 自动生成默认图标，关闭按钮只占自身内容宽度并保持上下居中。
 - 需要在关闭后执行逻辑时使用 `AlertOptions.OnClosedAsync` 或 `ToastOptions.OnClosedAsync`。
 - `ShowToast` 是非阻塞通知，支持 `Info`、`Success`、`Warning`、`Danger`、手动关闭、自动关闭以及八个位置。
 
-Toast 的全局默认位置由 `IDialogService.DefaultToastPosition` 提供，单条 Toast 可以通过 `ToastOptions.Position` 覆盖。默认位置使用 `BottomEnd`；需要 RTL 兼容时优先使用 `Start` / `End`，不要在业务层重新实现定位 CSS。
+Toast 的全局默认位置由 `IDialogService.DefaultToastPosition` 提供（默认 `TopEnd`，右上角），单条 Toast 可以通过 `ToastOptions.Position` 覆盖。Alert 的全局默认位置由 `IDialogService.DefaultAlertPosition` 提供（默认 `BottomCenter`，底部居中），单条 Alert 可以通过 `AlertOptions.Position` 覆盖；两者都可在 `AddAeterniUI` 的 `AeterniUIOptions` 中设置默认值。需要 RTL 兼容时优先使用 `Start` / `End`，不要在业务层重新实现定位 CSS。
 
 Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内嵌套另一个模态入口。
 

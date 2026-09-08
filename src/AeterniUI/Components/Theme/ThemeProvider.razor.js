@@ -2,6 +2,27 @@ const instances = new Map();
 let transitionTimer;
 const transitionClass = 'aeterni-theme-transitioning';
 
+// Theme-mode persistence. localStorage is available in the browser and inside
+// the Tauri webview (persisted per app identifier); failures fall back to no
+// persistence instead of breaking theme handling.
+const storageKey = 'aeterni.theme.mode';
+
+export function getStoredMode() {
+    try {
+        return window.localStorage?.getItem(storageKey) ?? null;
+    } catch {
+        return null;
+    }
+}
+
+export function persistMode(mode) {
+    try {
+        window.localStorage?.setItem(storageKey, mode ?? '');
+    } catch {
+        // Storage unavailable (private browsing, restricted context) — ignore.
+    }
+}
+
 export function init(reference, key) {
     dispose(key);
 

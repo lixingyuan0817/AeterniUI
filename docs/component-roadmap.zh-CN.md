@@ -10,12 +10,12 @@
 
 - [x] 记录组件路线图和验收规则
 - [x] 1. `FormField` + `Label`
-- [ ] 2. `Checkbox`
-- [ ] 3. `Switch`
-- [ ] 4. `Tag`
-- [ ] 5. `List` + `ListItem`
-- [ ] 6. `Rating`
-- [ ] 7. `ComboBox`
+- [x] 2. `Checkbox`
+- [x] 3. `Switch`
+- [x] 4. `Tag`
+- [x] 5. `List` + `ListItem`
+- [x] 6. `Rating`
+- [x] 7. `ComboBox`
 
 完成某一项后，只勾选对应条目，并在本文档的任务记录中填写构建结果；不要提前勾选依赖它的任务。
 
@@ -150,10 +150,90 @@ Input
 | 任务 | 状态 | 构建 | 备注 |
 | --- | --- | --- | --- |
 | 路线图文档 | 已完成 | 未涉及 | 仅记录计划，未修改组件代码 |
-| FormField + Label | 已完成 | 未验证 | 当前环境的 NuGet fallback package folder 配置阻塞构建 |
-| Checkbox | 未开始 | - | 依赖 FormField |
-| Switch | 未开始 | - | 依赖 FormField |
-| Tag | 未开始 | - | 可在 FormField 后独立实现 |
-| List + ListItem | 未开始 | - | ComboBox 的选项基础 |
-| Rating | 未开始 | - | 依赖基础交互和无障碍约定 |
-| ComboBox | 未开始 | - | 依赖 Input、List + ListItem |
+| FormField + Label | 已完成 | 通过 | 已随 `dotnet build aeterni_ui.slnx` 验证 |
+| Checkbox | 已完成 | 通过 | 原生 `<input type="checkbox">` + 最小 JS 处理 indeterminate；已在示例与文档同步 |
+| Switch | 已完成 | 通过 | 原生 checkbox + `role="switch"`，无 JS；示例与文档已同步 |
+| Tag | 已完成 | 通过 | 三种变体 + 语意色 + 尺寸 + 可关闭（复用 Button 图标能力） |
+| List + ListItem | 已完成 | 通过 | `listbox`/`option` 语义、单选/多选、方向键与空格回车选择；示例与文档已同步 |
+| Rating | 已完成 | 通过 | 整数评分、radiogroup 语义、方向键与 Home/End、AllowClear/ReadOnly |
+| ComboBox | 已完成 | 通过 | 交付为纯下拉选择（点击弹出、无输入搜索，方向键/Enter/Esc/外部点击/滚动关闭）；原计划中的输入筛选不适用 |
+
+## 第二阶段（v0.2）计划
+
+状态：规划中。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐高频基础控件与浮层能力。
+
+### TODO 总览
+
+- [ ] 8. `Textarea`
+- [ ] 9. `Radio` + `RadioGroup`
+- [ ] 10. `Progress`（Linear / Ring）
+- [ ] 11. `Tooltip`
+- [ ] 12. `PopupHost` + `Popover`
+- [ ] 13.（可延后）`Tabs`、`Drawer`、`Empty`、`Divider`
+
+### 依赖顺序
+
+```text
+Input/Input 样式族
+  +--> Textarea
+  +--> Radio + RadioGroup      （radiogroup 语义，类似 List 的键盘约定）
+  |      |
+  |      +--> Progress          （纯展示，可被 Loading/上传复用）
+  |
+  +--> PopupHost               （全局挂载层 + 锚定/翻转/点击外部/滚动关闭的通用能力）
+          |
+          +--> Tooltip
+          +--> Popover
+          +--> ComboBox 弹层迁移（替换内置 fixed 定位）
+```
+
+### 8. Textarea
+
+- 多行文本控件，`Value` / `ValueChanged` / `ValueExpression`，`Placeholder`、`Rows`、`Resize`（none/vertical）、`Disabled`、`ReadOnly`、`Required`、`Invalid`、`FullWidth`。
+- 复用 Input 的边框/状态视觉与 `EditContext` 校验、`FormField` 级联约定。
+- 验收：默认、只读、禁用、无效、尺寸与窄屏换行稳定；键盘与表单校验同步 `aria-invalid`。
+
+### 9. Radio + RadioGroup
+
+- `RadioGroup<TItem>`：`Items` + `Value`/`ValueChanged` + `ItemTemplate`/`Radio` 子项两种用法；`Orientation`（Horizontal/Vertical）、`Name`、`Disabled`、`AriaLabel`。
+- 容器输出 `role="radiogroup"`；`Radio` 输出原生 `<input type="radio">` 语义，选中态同步 `aria-checked`。
+- 键盘：方向键在同组内移动焦点并选中，Tab 单点进出组（roving focus）。
+- 接入 `EditContext` 校验与 `FormField` 级联。
+
+### 10. Progress
+
+- `Value`/`Max`（默认 100 且支持百分比显示）、`Variant`（Linear/Ring）、`Indeterminate`、`Color`（沿用语意色）、`Size`。
+- 输出 `role="progressbar"` 与 `aria-valuenow/min/max`；纯 CSS 动画 + reduced-motion 降级；可被 Button Loading 的环形指示复用。
+
+### 11. Tooltip
+
+- 文本/内容触发器 + `Placement`（上下左右 + 起止），hover/focus-visible 触发，Esc/点击外部关闭可选；使用 `PopupHost` 定位。
+- 保持键盘可聚焦目标可见焦点；不阻塞页面交互。
+
+### 12. PopupHost + Popover
+
+- `PopupHost`：应用根部挂载一次，提供“相对锚点元素定位、视口贴边/翻转、点击外部与滚动关闭、多实例”的基础能力（把 ComboBox 现役 JS 逻辑提升为通用层）。
+- `Popover`：基于 PopupHost 的浮层表面（关闭按钮、标题可选、语义 `role="dialog"` 或非模态）。
+- 迁移后 ComboBox/后续 Tooltip 不再依赖组件内 fixed 定位，能放进带 `backdrop-filter`/`overflow` 的容器内使用。
+
+### 13.（可延后）Tabs、Drawer、Empty、Divider
+
+- `Tabs`/`TabList`/`Tab`/`TabPanel`：tablist 语义与方向键切换。
+- `Drawer`：左侧/右侧滑入的模态面板（沿用 Dialog 的焦点/滚动锁定约定）。
+- `Empty`：空状态占位。`Divider`：分割线（水平/垂直）。
+
+### 第二阶段固定交付物与验收
+
+沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/current-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
+
+### 第二阶段任务记录
+
+| 任务 | 状态 | 构建 | 备注 |
+| --- | --- | --- | --- |
+| v0.2 计划 | 规划中 | 未涉及 | 仅记录计划，未修改组件代码 |
+| Textarea | 未开始 | - | - |
+| Radio + RadioGroup | 未开始 | - | - |
+| Progress | 未开始 | - | - |
+| Tooltip | 未开始 | - | 依赖 PopupHost |
+| PopupHost + Popover | 未开始 | - | 需先确认挂载层设计 |
+| Tabs / Drawer / Empty / Divider | 未开始 | - | 可延后 |

@@ -52,8 +52,7 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
-.aeterni-button:disabled,
-.aeterni-button.is-loading {
+.aeterni-button:disabled {
     cursor: not-allowed;
     opacity: var(--aeterni-opacity-disabled);
     transform: none;
@@ -68,8 +67,27 @@
     transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
 }
 
+/* Loading veil --------------------------------------------------------------
+   The original content (text and icons) stays fully visible; a translucent
+   sheet with a centred ring indicator is layered on top instead of replacing
+   the label. The button keeps its colours so the veil reads as “busy”, not
+   “disabled”. */
+.aeterni-button.is-loading {
+    cursor: progress;
+}
+
 .aeterni-button.is-loading .aeterni-button__content {
-    opacity: 0;
+    opacity: .88;
+}
+
+.aeterni-button__loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--aeterni-bg-elevated) 54%, transparent);
+    pointer-events: none;
 }
 
 .aeterni-button__icon {
@@ -90,12 +108,12 @@
 }
 
 .aeterni-button__spinner {
-    position: absolute;
     width: var(--aeterni-icon-size-md);
     height: var(--aeterni-icon-size-md);
     border: 2px solid currentColor;
     border-right-color: transparent;
     border-radius: var(--aeterni-radius-round);
+    opacity: .92;
     animation: aeterni-button-spin 700ms linear infinite;
 }
 

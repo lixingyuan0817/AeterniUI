@@ -12,6 +12,12 @@ public sealed class AlertOptions : DialogOptions
     public string CloseText { get; set; } = "Close";
 
     /// <summary>
+    /// The placement of the alert. A null value uses the service default
+    /// (configured through <see cref="IDialogService.DefaultAlertPosition"/>).
+    /// </summary>
+    public ToastPosition? Position { get; set; }
+
+    /// <summary>
     /// The duration of the alert. A null value uses the global service default;
     /// TimeSpan.Zero keeps the alert visible until it is closed manually.
     /// </summary>

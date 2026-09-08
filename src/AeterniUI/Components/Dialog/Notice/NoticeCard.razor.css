@@ -1,0 +1,229 @@
+/* Notification card ----------------------------------------------------------
+   iOS Notification Center look: a frosted, softly rounded sheet with a tinted
+   leading badge, two-line text column and a quiet trailing close control. */
+
+.aeterni-dialog-provider__alert,
+.aeterni-dialog-provider__toast {
+    --aeterni-dialog-accent: var(--aeterni-brand-500);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--aeterni-spacing-3);
+    box-sizing: border-box;
+    min-width: 0;
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-dialog-accent) 20%, var(--aeterni-border-default));
+    border-radius: var(--aeterni-radius-2xl);
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-bg-elevated));
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-lg);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+    pointer-events: auto;
+    will-change: transform, opacity;
+    animation: aeterni-notice-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized) both;
+}
+
+.aeterni-dialog-provider__alert--info,
+.aeterni-dialog-provider__toast--info {
+    --aeterni-dialog-accent: var(--aeterni-info-500);
+}
+
+.aeterni-dialog-provider__alert--success,
+.aeterni-dialog-provider__toast--success {
+    --aeterni-dialog-accent: var(--aeterni-success-500);
+}
+
+.aeterni-dialog-provider__alert--warning,
+.aeterni-dialog-provider__toast--warning {
+    --aeterni-dialog-accent: var(--aeterni-warning-500);
+}
+
+.aeterni-dialog-provider__alert--danger,
+.aeterni-dialog-provider__toast--danger {
+    --aeterni-dialog-accent: var(--aeterni-danger-500);
+}
+
+.aeterni-dialog-provider__alert.is-no-blur,
+.aeterni-dialog-provider__toast.is-no-blur {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* Leading icon badge: custom icons and the auto-generated severity glyph both
+   sit inside a tinted circular badge, keeping rows aligned and quiet. */
+.aeterni-dialog-provider__notice-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--aeterni-radius-round);
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, transparent);
+    color: var(--aeterni-dialog-accent);
+}
+
+.aeterni-dialog-provider__notice-icon ::deep svg {
+    width: 16px;
+    height: 16px;
+}
+
+.aeterni-dialog-provider__notice-glyph {
+    color: var(--aeterni-dialog-accent);
+    font-family: var(--aeterni-font-family-base);
+    font-size: 13px;
+    font-weight: var(--aeterni-font-weight-bold);
+    line-height: 1;
+}
+
+/* Fluid content column: title on one line, message below, clamped to two
+   lines like the notification stack on iOS. */
+.aeterni-dialog-provider__notice-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 2px 0;
+}
+
+.aeterni-dialog-provider__notice-content strong {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.aeterni-dialog-provider__notice-content .aeterni-dialog-provider__message {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--aeterni-text-secondary);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.aeterni-dialog-provider__notice-content .aeterni-dialog-provider__separator {
+    display: none;
+}
+
+/* Trailing close control: only as wide as its glyph, vertically centred with
+   clear breathing room from the right border. */
+.aeterni-dialog-provider__notice-close {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    margin: 0;
+}
+
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    justify-content: center;
+}
+
+.aeterni-dialog-provider__close-glyph {
+    color: var(--aeterni-text-tertiary);
+    font-size: 16px;
+    font-weight: var(--aeterni-font-weight-regular);
+    line-height: 1;
+    transition: var(--aeterni-transition-color);
+}
+
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button:hover .aeterni-dialog-provider__close-glyph,
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button:focus-visible .aeterni-dialog-provider__close-glyph {
+    color: var(--aeterni-text-primary);
+}
+
+/* Auto-dismiss progress ring traced on the four card edges -------------------
+   SVG stroke-dash animation over a pathLength-normalized rounded-rect path.
+   The progress tip advances at a constant rate along the real perimeter
+   (unlike a conic-gradient sweep, whose angular speed is not uniform on a
+   rounded rectangle). Runs purely in CSS for the full duration and never
+   re-renders Blazor state. */
+.aeterni-dialog-provider__progress {
+    position: absolute;
+    inset: 1px;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.aeterni-progress-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.aeterni-progress-ring {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: butt;
+    stroke-linejoin: round;
+}
+
+.aeterni-progress-ring--base {
+    stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 22%, transparent);
+    stroke-dasharray: 1;
+}
+
+.aeterni-progress-ring--accent {
+    stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 80%, var(--aeterni-bg-elevated));
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: aeterni-progress-drain var(--aeterni-dialog-duration, 5s) linear forwards;
+}
+
+@keyframes aeterni-progress-drain {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 1; }
+}
+
+/* Closing states ------------------------------------------------------------ */
+
+.aeterni-dialog-provider__alert.is-closing,
+.aeterni-dialog-provider__toast.is-closing {
+    pointer-events: none;
+    animation: aeterni-notice-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
+}
+
+@keyframes aeterni-notice-enter {
+    from {
+        opacity: 0;
+        transform: translate3d(var(--aeterni-notice-in-x, 0px), var(--aeterni-notice-in-y, 12px), 0) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes aeterni-notice-exit {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate3d(var(--aeterni-notice-out-x, 0px), var(--aeterni-notice-out-y, 12px), 0) scale(.96);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-dialog-provider__toast,
+    .aeterni-dialog-provider__alert,
+    .aeterni-dialog-provider__progress,
+    .aeterni-progress-ring--accent,
+    .aeterni-dialog-provider__alert.is-closing,
+    .aeterni-dialog-provider__toast.is-closing {
+        animation: none;
+    }
+}

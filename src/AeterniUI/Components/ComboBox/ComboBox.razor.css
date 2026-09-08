@@ -1,0 +1,173 @@
+.aeterni-combobox {
+    position: relative;
+    box-sizing: border-box;
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+}
+
+/* Read-only select-style trigger -------------------------------------------- */
+
+.aeterni-combobox__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--aeterni-control-height-md);
+    padding: 0 var(--aeterni-control-padding-x-md);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-input);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color);
+}
+
+.aeterni-combobox__trigger:hover:not(:disabled) {
+    border-color: var(--aeterni-border-strong);
+}
+
+.aeterni-combobox__trigger:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-combobox__trigger:disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+    background: var(--aeterni-bg-disabled);
+}
+
+.aeterni-combobox.is-invalid .aeterni-combobox__trigger {
+    border-color: var(--aeterni-danger);
+}
+
+.aeterni-combobox.is-invalid .aeterni-combobox__trigger:hover:not(:disabled) {
+    border-color: var(--aeterni-danger);
+}
+
+.aeterni-combobox.is-open .aeterni-combobox__trigger {
+    border-color: var(--aeterni-brand-500);
+}
+
+.aeterni-combobox__value {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-combobox__value.is-placeholder {
+    color: var(--aeterni-text-muted);
+}
+
+.aeterni-combobox__chevron {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: var(--aeterni-text-tertiary);
+    transition: var(--aeterni-transition-transform);
+}
+
+.aeterni-combobox.is-open .aeterni-combobox__chevron {
+    transform: rotate(180deg);
+}
+
+/* Dropdown popover -----------------------------------------------------------
+   Positioned fixed by the JS module relative to the trigger, so ancestor
+   cards/surfaces with overflow:hidden cannot clip or cover the layer. */
+.aeterni-combobox__popover {
+    position: fixed;
+    z-index: var(--aeterni-z-dropdown);
+    box-sizing: border-box;
+    max-height: min(320px, 45vh);
+    overflow-y: auto;
+    /* Isolate the option-list scroller: reaching its edge must not chain a
+       page scroll (which would otherwise read as “page scrolled → close”). */
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    padding: var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-elevated);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-dropdown);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+    animation: aeterni-combobox-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+.aeterni-combobox__popover::-webkit-scrollbar {
+    display: none;
+}
+
+.aeterni-combobox__option {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--aeterni-control-height-sm);
+    padding: var(--aeterni-spacing-1) var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-background);
+}
+
+.aeterni-combobox__option:hover,
+.aeterni-combobox__option.is-active {
+    background: var(--aeterni-surface-hover);
+}
+
+.aeterni-combobox__option.is-selected {
+    background: var(--aeterni-surface-selected);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+.aeterni-combobox__option:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: -1px;
+}
+
+.aeterni-combobox__option-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-combobox__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--aeterni-control-height-lg);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+@keyframes aeterni-combobox-pop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-combobox__popover,
+    .aeterni-combobox__chevron {
+        transition: none;
+        animation: none;
+    }
+}

@@ -1,0 +1,133 @@
+.aeterni-checkbox {
+    /* Compact control: the default box is smaller than the old control-height
+       tokens (which were sized for buttons/inputs). */
+    --aeterni-checkbox-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-gap-xs);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Visually hide the native input while keeping it focusable and exposed to
+   assistive technology. The custom control renders the visual state. */
+.aeterni-checkbox__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.aeterni-checkbox__control {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-checkbox-size);
+    height: var(--aeterni-checkbox-size);
+    flex-shrink: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-sm);
+    background: var(--aeterni-bg-surface);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color);
+}
+
+.aeterni-checkbox__check {
+    width: 68%;
+    height: 68%;
+    color: var(--aeterni-text-inverse);
+    opacity: 0;
+    transform: scale(.5);
+    transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform);
+}
+
+.aeterni-checkbox__input:checked + .aeterni-checkbox__control {
+    border-color: var(--aeterni-brand-500);
+    background: var(--aeterni-brand-500);
+}
+
+.aeterni-checkbox__input:checked + .aeterni-checkbox__control .aeterni-checkbox__check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Tri-state indicator: a short bar is drawn in place of the check mark. */
+.aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control {
+    border-color: var(--aeterni-brand-500);
+    background: var(--aeterni-brand-500);
+}
+
+.aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control .aeterni-checkbox__check {
+    opacity: 0;
+    transform: scale(.5);
+}
+
+.aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control::after {
+    content: "";
+    width: 50%;
+    height: 2px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-text-inverse);
+}
+
+.aeterni-checkbox__input:hover:not(:disabled) + .aeterni-checkbox__control {
+    border-color: var(--aeterni-brand-500);
+}
+
+.aeterni-checkbox__input:focus-visible + .aeterni-checkbox__control {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-checkbox__input:disabled + .aeterni-checkbox__control {
+    cursor: not-allowed;
+    border-color: var(--aeterni-border-disabled);
+    background: var(--aeterni-bg-disabled);
+}
+
+.aeterni-checkbox.is-disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+}
+
+.aeterni-checkbox.is-invalid .aeterni-checkbox__control {
+    border-color: var(--aeterni-danger);
+}
+
+.aeterni-checkbox.is-invalid .aeterni-checkbox__input:checked + .aeterni-checkbox__control,
+.aeterni-checkbox.is-invalid .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control {
+    border-color: var(--aeterni-danger);
+    background: var(--aeterni-danger);
+}
+
+.aeterni-checkbox__label {
+    min-width: 0;
+}
+
+.aeterni-checkbox--sm {
+    --aeterni-checkbox-size: 16px;
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-checkbox--lg {
+    --aeterni-checkbox-size: 26px;
+    font-size: var(--aeterni-font-size-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-checkbox__control,
+    .aeterni-checkbox__check {
+        transition: none;
+    }
+}

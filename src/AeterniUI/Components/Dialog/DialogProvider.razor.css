@@ -48,144 +48,142 @@
     animation: aeterni-dialog-slide-in var(--aeterni-duration-normal) var(--aeterni-ease-emphasized);
 }
 
-.aeterni-dialog-provider__alert-region {
+.aeterni-dialog-provider__dialog--info {
+    --aeterni-dialog-accent: var(--aeterni-info);
+}
+
+.aeterni-dialog-provider__dialog--success {
+    --aeterni-dialog-accent: var(--aeterni-success);
+}
+
+.aeterni-dialog-provider__dialog--warning {
+    --aeterni-dialog-accent: var(--aeterni-warning);
+}
+
+.aeterni-dialog-provider__dialog--danger {
+    --aeterni-dialog-accent: var(--aeterni-danger);
+}
+
+/* Notice regions ------------------------------------------------------------
+   The provider is a pure placement layer for Alert/Toast cards (the card
+   markup and styles live in NoticeCard). Each region declares where cards
+   come from and leave towards. */
+.aeterni-dialog-provider__notice-region {
+    --aeterni-notice-in-x: 0px;
+    --aeterni-notice-in-y: 12px;
+    --aeterni-notice-out-x: 0px;
+    --aeterni-notice-out-y: 12px;
+
     position: fixed;
-    top: var(--aeterni-spacing-4);
-    left: 50%;
     z-index: var(--aeterni-z-toast);
     display: flex;
-    width: min(560px, calc(100vw - var(--aeterni-spacing-8)));
-    max-height: calc(100vh - var(--aeterni-spacing-8));
-    flex-direction: column;
+    align-items: center;
     gap: var(--aeterni-spacing-3);
-    overflow: auto;
+    width: min(420px, calc(100vw - var(--aeterni-spacing-8)));
+    max-height: calc(100vh - var(--aeterni-spacing-8));
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
     pointer-events: none;
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar {
+    display: none;
+}
+
+.aeterni-dialog-provider__notice-region--top-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: var(--aeterni-spacing-4);
+    left: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.aeterni-dialog-provider__notice-region--top-center {
+    --aeterni-notice-in-y: -14px;
+    --aeterni-notice-out-y: -14px;
+
+    top: var(--aeterni-spacing-4);
+    left: 50%;
+    flex-direction: column;
+    align-items: stretch;
     transform: translateX(-50%);
 }
 
-.aeterni-dialog-provider__alert {
-    --aeterni-dialog-accent: var(--aeterni-brand-500);
+.aeterni-dialog-provider__notice-region--top-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
 
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: var(--aeterni-spacing-3);
-    position: relative;
-    box-sizing: border-box;
-    min-width: 0;
-    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
-    border-radius: var(--aeterni-radius-lg);
-    background: color-mix(in srgb, var(--aeterni-dialog-accent) 12%, var(--aeterni-bg-elevated));
-    color: var(--aeterni-text-primary);
-    box-shadow: var(--aeterni-shadow-modal);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-    pointer-events: auto;
-    animation: aeterni-alert-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized);
+    top: var(--aeterni-spacing-4);
+    right: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
 }
 
-.aeterni-dialog-provider__alert--info {
-    --aeterni-dialog-accent: var(--aeterni-info-500);
+.aeterni-dialog-provider__notice-region--center-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: 50%;
+    left: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+    transform: translateY(-50%);
 }
 
-.aeterni-dialog-provider__alert--success {
-    --aeterni-dialog-accent: var(--aeterni-success-500);
+.aeterni-dialog-provider__notice-region--center-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: 50%;
+    right: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+    transform: translateY(-50%);
 }
 
-.aeterni-dialog-provider__alert--warning {
-    --aeterni-dialog-accent: var(--aeterni-warning-500);
+.aeterni-dialog-provider__notice-region--bottom-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+
+    bottom: var(--aeterni-spacing-4);
+    left: var(--aeterni-spacing-4);
+    flex-direction: column-reverse;
+    align-items: stretch;
 }
 
-.aeterni-dialog-provider__alert--danger {
-    --aeterni-dialog-accent: var(--aeterni-danger-500);
+.aeterni-dialog-provider__notice-region--bottom-center {
+    --aeterni-notice-in-y: 14px;
+    --aeterni-notice-out-y: 14px;
+
+    bottom: var(--aeterni-spacing-4);
+    left: 50%;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    transform: translateX(-50%);
 }
 
-.aeterni-dialog-provider__alert-icon {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: var(--aeterni-icon-size-lg);
-    height: var(--aeterni-icon-size-lg);
-    color: var(--aeterni-dialog-accent);
+.aeterni-dialog-provider__notice-region--bottom-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+
+    right: var(--aeterni-spacing-4);
+    bottom: var(--aeterni-spacing-4);
+    flex-direction: column-reverse;
+    align-items: stretch;
 }
 
-.aeterni-dialog-provider__alert-content {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: baseline;
-    min-width: 0;
-    gap: var(--aeterni-spacing-2);
-    overflow: hidden;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-}
-
-.aeterni-dialog-provider__alert-content strong {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-sm);
-    font-weight: var(--aeterni-font-weight-semibold);
-}
-
-.aeterni-dialog-provider__alert-content span {
-    color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-normal);
-}
-
-.aeterni-dialog-provider__alert-content .aeterni-dialog-provider__message {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.aeterni-dialog-provider__separator {
-    color: var(--aeterni-text-muted);
-}
-
-.aeterni-dialog-provider__timer {
-    flex: 0 0 auto;
-    color: var(--aeterni-text-muted) !important;
-    font-family: var(--aeterni-font-family-mono);
-    font-size: var(--aeterni-font-size-xs) !important;
-    white-space: nowrap;
-}
-
-.aeterni-dialog-provider__progress {
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    border-radius: inherit;
-    padding: var(--aeterni-border-width-strong);
-    --aeterni-dialog-progress: 100%;
-    animation: aeterni-dialog-progress var(--aeterni-dialog-duration, 5s) linear forwards;
-    background:
-        conic-gradient(
-            from -90deg,
-            color-mix(in srgb, var(--aeterni-dialog-accent) 72%, var(--aeterni-bg-elevated))
-                var(--aeterni-dialog-progress, 100%),
-            transparent 0
-        ),
-        var(--aeterni-border-subtle);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-}
-
-@property --aeterni-dialog-progress {
-    syntax: '<percentage>';
-    inherits: false;
-    initial-value: 100%;
-}
+/* Modal dialog chrome ------------------------------------------------------- */
 
 .aeterni-dialog-provider__header,
 .aeterni-dialog-provider__footer {
@@ -215,18 +213,24 @@
     font-weight: var(--aeterni-font-weight-semibold);
 }
 
-.aeterni-dialog-provider__icon,
-.aeterni-dialog-provider__toast-icon {
+.aeterni-dialog-provider__icon {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
+    width: var(--aeterni-icon-size-lg);
+    height: var(--aeterni-icon-size-lg);
     color: var(--aeterni-dialog-accent);
 }
 
-.aeterni-dialog-provider__icon {
-    width: var(--aeterni-icon-size-lg);
-    height: var(--aeterni-icon-size-lg);
+/* Modal header close glyph (the NoticeCard stylesheet owns the same glyph for
+   Alert/Toast cards). */
+.aeterni-dialog-provider__close-glyph {
+    color: var(--aeterni-text-tertiary);
+    font-size: 16px;
+    font-weight: var(--aeterni-font-weight-regular);
+    line-height: 1;
+    transition: var(--aeterni-transition-color);
 }
 
 .aeterni-dialog-provider__body {
@@ -246,196 +250,7 @@
     border-top: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
 }
 
-.aeterni-dialog-provider__toast-region {
-    --aeterni-toast-exit-x: 0px;
-    --aeterni-toast-exit-y: 10px;
-
-    position: fixed;
-    z-index: var(--aeterni-z-toast);
-    display: flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-3);
-    width: min(420px, calc(100vw - var(--aeterni-spacing-8)));
-    max-height: calc(100vh - var(--aeterni-spacing-8));
-    overflow: auto;
-    pointer-events: none;
-}
-
-.aeterni-dialog-provider__toast-region--top-start {
-    --aeterni-toast-exit-x: -24px;
-    --aeterni-toast-exit-y: -4px;
-
-    top: var(--aeterni-spacing-4);
-    left: var(--aeterni-spacing-4);
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.aeterni-dialog-provider__toast-region--top-center {
-    --aeterni-toast-exit-y: -12px;
-
-    top: var(--aeterni-spacing-4);
-    left: 50%;
-    flex-direction: column;
-    align-items: stretch;
-    transform: translateX(-50%);
-}
-
-.aeterni-dialog-provider__toast-region--top-end {
-    --aeterni-toast-exit-x: 24px;
-    --aeterni-toast-exit-y: -4px;
-
-    top: var(--aeterni-spacing-4);
-    right: var(--aeterni-spacing-4);
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.aeterni-dialog-provider__toast-region--center-start {
-    --aeterni-toast-exit-x: -24px;
-    --aeterni-toast-exit-y: 0px;
-
-    top: 50%;
-    left: var(--aeterni-spacing-4);
-    flex-direction: column;
-    align-items: stretch;
-    transform: translateY(-50%);
-}
-
-.aeterni-dialog-provider__toast-region--center-end {
-    --aeterni-toast-exit-x: 24px;
-    --aeterni-toast-exit-y: 0px;
-
-    top: 50%;
-    right: var(--aeterni-spacing-4);
-    flex-direction: column;
-    align-items: stretch;
-    transform: translateY(-50%);
-}
-
-.aeterni-dialog-provider__toast-region--bottom-start {
-    --aeterni-toast-exit-x: -24px;
-
-    bottom: var(--aeterni-spacing-4);
-    left: var(--aeterni-spacing-4);
-    flex-direction: column-reverse;
-    align-items: stretch;
-}
-
-.aeterni-dialog-provider__toast-region--bottom-center {
-    --aeterni-toast-exit-y: 14px;
-
-    bottom: var(--aeterni-spacing-4);
-    left: 50%;
-    flex-direction: column-reverse;
-    align-items: stretch;
-    transform: translateX(-50%);
-}
-
-.aeterni-dialog-provider__toast-region--bottom-end {
-    --aeterni-toast-exit-x: 24px;
-
-    right: var(--aeterni-spacing-4);
-    bottom: var(--aeterni-spacing-4);
-    flex-direction: column-reverse;
-    align-items: stretch;
-}
-
-.aeterni-dialog-provider__toast {
-    --aeterni-dialog-accent: var(--aeterni-brand-500);
-
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: var(--aeterni-spacing-3);
-    position: relative;
-    box-sizing: border-box;
-    min-width: 0;
-    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
-    border-radius: var(--aeterni-radius-lg);
-    background: color-mix(in srgb, var(--aeterni-dialog-accent) 12%, var(--aeterni-bg-elevated));
-    color: var(--aeterni-text-primary);
-    box-shadow: var(--aeterni-shadow-lg);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-    pointer-events: auto;
-    animation: aeterni-toast-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized);
-}
-
-.aeterni-dialog-provider__toast--info {
-    --aeterni-dialog-accent: var(--aeterni-info-500);
-}
-
-.aeterni-dialog-provider__dialog--info {
-    --aeterni-dialog-accent: var(--aeterni-info);
-}
-
-.aeterni-dialog-provider__toast--success {
-    --aeterni-dialog-accent: var(--aeterni-success-500);
-}
-
-.aeterni-dialog-provider__dialog--success {
-    --aeterni-dialog-accent: var(--aeterni-success);
-}
-
-.aeterni-dialog-provider__toast--warning {
-    --aeterni-dialog-accent: var(--aeterni-warning-500);
-}
-
-.aeterni-dialog-provider__dialog--warning {
-    --aeterni-dialog-accent: var(--aeterni-warning);
-}
-
-.aeterni-dialog-provider__toast--danger {
-    --aeterni-dialog-accent: var(--aeterni-danger-500);
-}
-
-.aeterni-dialog-provider__dialog--danger {
-    --aeterni-dialog-accent: var(--aeterni-danger);
-}
-
-.aeterni-dialog-provider__alert.is-no-blur,
-.aeterni-dialog-provider__toast.is-no-blur {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
-.aeterni-dialog-provider__toast-content {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: baseline;
-    min-width: 0;
-    gap: var(--aeterni-spacing-2);
-    flex-wrap: wrap;
-}
-
-.aeterni-dialog-provider__toast-content strong {
-    color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-sm);
-    font-weight: var(--aeterni-font-weight-semibold);
-}
-
-.aeterni-dialog-provider__toast-content span {
-    overflow-wrap: anywhere;
-    color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-relaxed);
-}
-
-.aeterni-dialog-provider__toast-content .aeterni-dialog-provider__timer {
-    flex: 0 0 auto;
-}
-
-.aeterni-dialog-provider__alert.is-closing {
-    pointer-events: none;
-    animation: aeterni-alert-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
-}
-
-.aeterni-dialog-provider__toast.is-closing {
-    pointer-events: none;
-    animation: aeterni-toast-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
-}
+/* Closing states ------------------------------------------------------------ */
 
 .aeterni-dialog-provider__dialog.is-closing {
     animation: aeterni-dialog-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
@@ -455,39 +270,11 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes aeterni-toast-enter {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes aeterni-alert-enter {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes aeterni-alert-exit {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translate3d(0, -18px, 0) scale(.98); }
-}
-
-@keyframes aeterni-dialog-progress {
-    from { --aeterni-dialog-progress: 100%; }
-    to { --aeterni-dialog-progress: 0%; }
-}
-
 @keyframes aeterni-dialog-shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-4px); }
     50% { transform: translateX(4px); }
     75% { transform: translateX(-3px); }
-}
-
-@keyframes aeterni-toast-exit {
-    from { opacity: 1; transform: translateY(0) scale(1); }
-    to {
-        opacity: 0;
-        transform: translate3d(var(--aeterni-toast-exit-x), var(--aeterni-toast-exit-y), 0) scale(.96);
-    }
 }
 
 @keyframes aeterni-dialog-exit {
@@ -504,19 +291,19 @@
         max-height: calc(100vh - var(--aeterni-spacing-8));
     }
 
-    .aeterni-dialog-provider__toast-region {
+    .aeterni-dialog-provider__notice-region {
         right: var(--aeterni-spacing-4);
         left: var(--aeterni-spacing-4);
         width: auto;
     }
 
-    .aeterni-dialog-provider__toast-region--top-center,
-    .aeterni-dialog-provider__toast-region--bottom-center {
+    .aeterni-dialog-provider__notice-region--top-center,
+    .aeterni-dialog-provider__notice-region--bottom-center {
         transform: none;
     }
 
-    .aeterni-dialog-provider__toast-region--center-start,
-    .aeterni-dialog-provider__toast-region--center-end {
+    .aeterni-dialog-provider__notice-region--center-start,
+    .aeterni-dialog-provider__notice-region--center-end {
         transform: translateY(-50%);
     }
 }
@@ -524,11 +311,6 @@
 @media (prefers-reduced-motion: reduce) {
     .aeterni-dialog-provider__backdrop,
     .aeterni-dialog-provider__dialog,
-    .aeterni-dialog-provider__toast,
-    .aeterni-dialog-provider__alert,
-    .aeterni-dialog-provider__progress,
-    .aeterni-dialog-provider__alert.is-closing,
-    .aeterni-dialog-provider__toast.is-closing,
     .aeterni-dialog-provider__dialog.is-closing {
         animation: none;
     }

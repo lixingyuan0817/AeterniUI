@@ -1,0 +1,62 @@
+@inherits AeterniComponent
+@typeparam TItem
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <button type="button"
+            class="aeterni-combobox__trigger"
+            @ref="_triggerElement"
+            role="combobox"
+            aria-expanded="@_open"
+            aria-controls="@ListboxId"
+            aria-haspopup="listbox"
+            aria-invalid="@(IsInvalid ? "true" : null)"
+            aria-activedescendant="@(_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
+            disabled="@Disabled"
+            @onclick="HandleTriggerClickAsync"
+            @onkeydown="HandleTriggerKeyDownAsync">
+        <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
+            @(Value is null ? (Placeholder ?? "请选择") : DisplayText(Value))
+        </span>
+        <svg class="aeterni-combobox__chevron" viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+            <path d="M4.2 6 8 9.8 11.8 6l.9.9L8 11.6 3.3 6.9z" />
+        </svg>
+    </button>
+
+    @if (_open)
+    {
+        <div class="aeterni-combobox__popover"
+             id="@ListboxId"
+             role="listbox"
+             aria-label="@(AriaLabel ?? "Options")">
+            @if (_visibleItems.Count == 0)
+            {
+                <div class="aeterni-combobox__empty">
+                    @EmptyContent
+                </div>
+            }
+            else
+            {
+                @for (var index = 0; index < _visibleItems.Count; index++)
+                {
+                    var item = _visibleItems[index];
+                    var selected = ValuesEqual(item, Value);
+                    <button type="button"
+                            id="@($"{ListboxId}-option-{index}")"
+                            role="option"
+                            aria-selected="@selected"
+                            class="aeterni-combobox__option @(index == _activeIndex ? "is-active" : string.Empty) @(selected ? "is-selected" : string.Empty)"
+                            @onclick="@(args => ChooseAsync(item))">
+                        @if (ItemTemplate is not null)
+                        {
+                            @ItemTemplate(item)
+                        }
+                        else
+                        {
+                            <span class="aeterni-combobox__option-text">@DisplayText(item)</span>
+                        }
+                    </button>
+                }
+            }
+        </div>
+    }
+</div>

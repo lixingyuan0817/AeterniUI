@@ -10,14 +10,14 @@ body {
 
 /* Keep the compact theme control balanced with the floating header. */
 .header-theme-switch {
-    width: 248px;
-    flex: 0 1 248px;
+    width: 232px;
+    flex: 0 1 232px;
 }
 
 @media (max-width: 640px) {
     .header-theme-switch {
-        width: 198px;
-        flex-basis: 198px;
+        width: 200px;
+        flex-basis: 200px;
     }
 }
 
@@ -88,7 +88,11 @@ html[data-tauri-host="true"] body .sample-page {
     position: relative;
     z-index: 1;
     border-radius: 14px;
-    background: transparent;
+    /* Frosted acrylic sheet: a translucent, theme-aware veil sits over the
+       native window blur instead of a fully clear glass. The veil colour
+       comes from the semantic background token, so it follows Light/Dark
+       without any host-specific logic. */
+    background: color-mix(in srgb, var(--aeterni-bg-primary) 76%, transparent);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
@@ -114,6 +118,12 @@ html.aeterni-theme-transitioning body *::after {
 
 .validation-message {
     color: red;
+}
+
+/* Remove the focus ring Blazor's FocusOnNavigate paints on the page H1. */
+h1:focus,
+h1:focus-visible {
+    outline: none;
 }
 
 #blazor-error-ui {

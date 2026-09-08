@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Card\" />
+    <Folder Include="Components\Checkbox\" />
     <Folder Include="Components\Input\" />
     <Folder Include="Enums\" />
   </ItemGroup>

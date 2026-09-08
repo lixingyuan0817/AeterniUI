@@ -1,189 +1,286 @@
 @page "/"
 @using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
 @using AeterniUI.Services.Impl
 @inject ThemeService ThemeService
 @inject IDialogService DialogService
 @implements IDisposable
 
-<PageTitle>Aeterni UI / Foundations</PageTitle>
+<PageTitle>Aeterni UI · 组件画廊</PageTitle>
 
 <div class="sample-page">
     <header class="sample-header">
         <Surface Variant="SurfaceVariant.Glass"
                  Padding="SurfacePadding.None"
-                 Radius="SurfaceRadius.ExtraLarge"
-                 Class="sample-header__surface">
-            <a class="brand" href="/" aria-label="Aeterni UI home">
-                <span class="brand-mark">A</span>
-                <span class="brand-name">Aeterni<span>UI</span></span>
-            </a>
+                 Radius="SurfaceRadius.ExtraLarge">
+            <div class="sample-header__bar">
+                <a class="brand" href="#overview" aria-label="Aeterni UI 首页">
+                    <span class="brand-mark" aria-hidden="true">A</span>
+                    <span class="brand-name">Aeterni<span>UI</span></span>
+                </a>
 
-            <nav class="sample-nav" aria-label="Primary navigation">
-                <a class="nav-link is-current" href="#overview">Overview</a>
-                <a class="nav-link" href="#tokens">Tokens</a>
-                <a class="nav-link" href="#states">States</a>
-            </nav>
-
-            <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="Theme mode" />
+                <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="主题模式" />
+            </div>
         </Surface>
     </header>
 
     <main>
         <section class="hero-section" id="overview">
             <div class="hero-copy">
-                <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>FOUNDATION / 01</p>
-                <h1>Aeterni UI<br /><em>foundations.</em></h1>
+                <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>组件画廊</p>
+                <h1>每一个组件，<br /><em>开箱即用。</em></h1>
                 <p class="hero-lead">
-                    A quiet, precise surface for building interfaces with clear tokens,
-                    intentional motion and a theme that follows the system.
+                    这里是 AeterniUI 真实组件的在线演示——按钮、输入框、表面、
+                    选择与反馈。下方每个区块都可以直接交互。
                 </p>
 
                 <div class="hero-actions">
-                    <a class="action-button action-button-primary" href="#tokens">
-                        Inspect tokens <span aria-hidden="true">&rarr;</span>
-                    </a>
+                    <Button Color="Color.Primary" StartIcon="@SunIcon" OnClick="@(() => ShowAlertAsync(Severity.Success))">
+                        弹一条成功提示
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="@(() => ShowToast(Severity.Info))">
+                        发一条信息通知
+                    </Button>
                 </div>
 
-                <div class="hero-meta" aria-label="Current theme state">
-                    <div><span class="meta-label">Current theme</span><strong>@(ThemeService.IsDark ? "Dark" : "Light")</strong></div>
-                    <div><span class="meta-label">Mode</span><strong>@ThemeService.Mode</strong></div>
-                    <div><span class="meta-label">Status</span><strong class="meta-live">Ready</strong></div>
+                <div class="hero-meta" aria-label="当前主题状态">
+                    <div><span class="meta-label">主题</span><strong>@(ThemeService.IsDark ? "深色" : "浅色")</strong></div>
+                    <div><span class="meta-label">模式</span><strong>@ModeText(ThemeService.Mode)</strong></div>
+                    <div>
+                        <span class="meta-label">窗口背景</span>
+                        <strong class="meta-live"><span class="meta-dot" aria-hidden="true"></span>@(ThemeService.IsDark ? "深色磨砂" : "浅色磨砂")</strong>
+                    </div>
                 </div>
             </div>
 
-            <div class="hero-canvas" aria-label="Live component preview">
-                <div class="canvas-toolbar">
-                    <span class="canvas-kicker">LIVE PREVIEW</span>
-                    <span class="canvas-id">surface.01</span>
+            <Surface Variant="SurfaceVariant.Glass"
+                     Elevation="SurfaceElevation.Large"
+                     Padding="SurfacePadding.None"
+                     Radius="SurfaceRadius.ExtraLarge">
+                <div class="window-shot">
+                    <div class="window-shot__bar" aria-hidden="true">
+                        <span class="window-shot__dots"><i></i><i></i><i></i></span>
+                        <span class="window-shot__title">Aeterni UI · 桌面窗口</span>
+                    </div>
+                    <div class="window-shot__body">
+                        <div class="window-shot__content">
+                            <span class="panel-label">原生窗口背景</span>
+                            <h3>磨砂底色跟随主题。</h3>
+                            <p>
+                                在 Tauri 示例中，窗口背后的桌面由系统负责模糊，上面再覆一层
+                                随主题切换的磨砂面纱；Light / Dark 切换时整扇「亚克力玻璃」一起变色。
+                            </p>
+                        </div>
+                        <div class="window-shot__footer">
+                            <span class="chip chip-theme">当前 · @(ThemeService.IsDark ? "深色" : "浅色")</span>
+                            <span class="window-shot__status" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                    <span class="window-shot__glow" aria-hidden="true"></span>
                 </div>
-                <div class="canvas-body">
-                    <div class="canvas-heading">
-                        <span class="canvas-overline">Aeterni / Surface</span>
-                        <span class="canvas-pulse"></span>
-                    </div>
-                    <div class="preview-panel">
-                        <div class="preview-panel-top">
-                            <div><span class="preview-label">Theme signal</span><strong>@(ThemeService.IsDark ? "Night mode" : "Day mode")</strong></div>
-                            <span class="preview-value">@((ThemeService.IsDark ? "04" : "01"))</span>
-                        </div>
-                        <div class="preview-bars" aria-hidden="true">
-                            <span class="preview-bar preview-bar-wide"></span>
-                            <span class="preview-bar preview-bar-mid"></span>
-                            <span class="preview-bar preview-bar-short"></span>
-                        </div>
-                        <div class="preview-footer">
-                            <span class="preview-chip">semantic tokens</span>
-                            <span class="preview-arrow" aria-hidden="true">&nearr;</span>
-                        </div>
-                    </div>
-                    <div class="canvas-grid" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                </div>
-            </div>
+            </Surface>
         </section>
 
-        <section class="overview-section section-block">
+        <!-- 按钮与按钮组 -->
+        <section class="component-section" id="buttons">
             <div class="section-heading">
-                <div><p class="section-index">01 / SYSTEM OVERVIEW</p><h2>Built to stay coherent.</h2></div>
-                <p class="section-description">A small set of primitives keeps every surface related without making every component look the same.</p>
+                <div>
+                    <p class="section-index">01 / 操作</p>
+                    <h2>Button 与 ButtonGroup</h2>
+                </div>
+                <p class="section-description">
+                    实心、描边、幽灵、文字与链接动作共用同一套语义语言。
+                    按下任意控件即可查看其实时状态。
+                </p>
             </div>
 
-            <div class="overview-grid">
-                <article class="overview-card overview-card-featured">
-                    <div class="card-number">01</div>
-                    <div class="card-icon card-icon-spectrum" aria-hidden="true"><span></span><span></span><span></span></div>
-                    <h3>Semantic color</h3>
-                    <p>Roles adapt with the active theme so components speak the same visual language.</p>
-                    <a href="#tokens" class="card-link">View palette <span aria-hidden="true">&rarr;</span></a>
-                </article>
-                <article class="overview-card">
-                    <div class="card-number">02</div>
-                    <div class="card-icon card-icon-rhythm" aria-hidden="true"><span></span><span></span><span></span></div>
-                    <h3>Measured rhythm</h3>
-                    <p>Spacing, type and control sizes follow a compact scale made for repeated use.</p>
-                    <a href="#tokens" class="card-link">See scale <span aria-hidden="true">&rarr;</span></a>
-                </article>
-                <article class="overview-card">
-                    <div class="card-number">03</div>
-                    <div class="card-icon card-icon-motion" aria-hidden="true"><span></span><span></span></div>
-                    <h3>Useful motion</h3>
-                    <p>Transitions communicate state changes without competing with the work on screen.</p>
-                    <a href="#states" class="card-link">Try states <span aria-hidden="true">&rarr;</span></a>
-                </article>
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>颜色</h3>
+                    <span class="demo-panel__api">Button · Color</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <div class="demo-row">
+                            @foreach (var item in SemanticColors)
+                            {
+                                <Button Color="@item.Color" OnClick="MarkInteraction">@item.Label</Button>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>变体</h3>
+                    <span class="demo-panel__api">Button · Variant</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">主色调</span>
+                        <div class="demo-row">
+                            @foreach (var item in ButtonVariants)
+                            {
+                                <Button Variant="@item.Variant" Color="Color.Primary" OnClick="MarkInteraction">@item.Label</Button>
+                            }
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">中性色</span>
+                        <div class="demo-row">
+                            @foreach (var item in ButtonVariants)
+                            {
+                                <Button Variant="@item.Variant" Color="Color.Neutral" OnClick="MarkInteraction">@item.Label</Button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>尺寸与内容</h3>
+                    <span class="demo-panel__api">Button · Size · StartIcon · EndIcon</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">小</span>
+                        <div class="demo-row">
+                            <Button Size="Size.Small" StartIcon="@PlusIcon" OnClick="MarkInteraction">添加条目</Button>
+                            <Button Size="Size.Small" Icon="@PlusIcon" AriaLabel="添加条目" OnClick="MarkInteraction" />
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">中</span>
+                        <div class="demo-row">
+                            <Button OnClick="MarkInteraction">默认</Button>
+                            <Button StartIcon="@GearIcon" OnClick="MarkInteraction">设置</Button>
+                            <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">继续</Button>
+                            <Button StartIcon="@PlusIcon" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">两侧图标</Button>
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">大</span>
+                        <div class="demo-row">
+                            <Button Size="Size.Large" Color="Color.Success" StartIcon="@CheckIcon" OnClick="MarkInteraction">保存更改</Button>
+                            <Button Size="Size.Large" Variant="ButtonVariant.Outline" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一步</Button>
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">状态</span>
+                        <div class="demo-row">
+                            <Button Loading="@_working" StartIcon="@CheckIcon" OnClick="SimulateWorkAsync">保存更改</Button>
+                            <Button Disabled>已禁用</Button>
+                            <Button Variant="ButtonVariant.Outline" Disabled>已禁用</Button>
+                            <Button Color="Color.Danger" Variant="ButtonVariant.Ghost" Disabled>已禁用</Button>
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">通栏</span>
+                        <Button FullWidth Variant="ButtonVariant.Outline" Color="Color.Primary" OnClick="MarkInteraction">
+                            通栏操作按钮
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>按钮组</h3>
+                    <span class="demo-panel__api">ButtonGroup · Connected · FullWidth</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">连接式 · 通栏</span>
+                        <ButtonGroup Connected FullWidth AriaLabel="分页">
+                            <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
+                            <Button OnClick="MarkInteraction">1</Button>
+                            <Button OnClick="MarkInteraction">2</Button>
+                            <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
+                        </ButtonGroup>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">分离式</span>
+                        <ButtonGroup Connected="false" AriaLabel="文档操作">
+                            <Button Color="Color.Primary" StartIcon="@CheckIcon" OnClick="MarkInteraction">通过</Button>
+                            <Button Variant="ButtonVariant.Outline" Color="Color.Danger" OnClick="MarkInteraction">驳回</Button>
+                            <Button Variant="ButtonVariant.Ghost" Color="Color.Neutral" OnClick="MarkInteraction">稍后</Button>
+                        </ButtonGroup>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">纵向 · 通栏</span>
+                        <ButtonGroup Orientation="Orientation.Vertical" Connected FullWidth AriaLabel="纵向菜单操作">
+                            <Button StartIcon="@HouseIcon" OnClick="MarkInteraction">总览</Button>
+                            <Button StartIcon="@GearIcon" OnClick="MarkInteraction">设置</Button>
+                            <Button StartIcon="@MagnifyingGlassIcon" OnClick="MarkInteraction">搜索</Button>
+                        </ButtonGroup>
+                    </div>
+                </div>
+            </div>
+
+            <span class="interaction-note" role="status">@_interactionNote</span>
         </section>
 
-        <section class="token-section section-block" id="tokens">
+        <!-- 表面 -->
+        <section class="component-section" id="surfaces">
             <div class="section-heading">
-                <div><p class="section-index">02 / DESIGN TOKENS</p><h2>One source of truth.</h2></div>
-                <span class="section-badge">--aeterni-*</span>
+                <div>
+                    <p class="section-index">02 / 表面</p>
+                    <h2>Surface 与 Card</h2>
+                </div>
+                <p class="section-description">
+                    不夹带内容结构的视觉容器。Surface 负责外观，
+                    Card 提供头部、主体与底部区域。
+                </p>
             </div>
 
-            <div class="token-grid">
-                <article class="token-panel">
-                    <div class="panel-heading"><div><span class="panel-label">Color roles</span><h3>Surface and signal</h3></div><span class="panel-count">06</span></div>
-                    <div class="swatch-list">
-                        <div class="swatch-row"><span class="swatch swatch-surface"></span><span>bg-surface</span><code>--aeterni-bg-surface</code></div>
-                        <div class="swatch-row"><span class="swatch swatch-brand"></span><span>brand-500</span><code>--aeterni-brand-500</code></div>
-                        <div class="swatch-row"><span class="swatch swatch-info"></span><span>info</span><code>--aeterni-info</code></div>
-                        <div class="swatch-row"><span class="swatch swatch-success"></span><span>success</span><code>--aeterni-success</code></div>
-                        <div class="swatch-row"><span class="swatch swatch-warning"></span><span>warning</span><code>--aeterni-warning</code></div>
-                        <div class="swatch-row"><span class="swatch swatch-danger"></span><span>danger</span><code>--aeterni-danger</code></div>
-                    </div>
-                </article>
-
-                <article class="token-panel token-panel-spacing">
-                    <div class="panel-heading"><div><span class="panel-label">Spacing rhythm</span><h3>Consistent by default</h3></div><span class="panel-count">08</span></div>
-                    <div class="spacing-list">
-                        <div class="spacing-row"><span>space-1</span><span class="spacing-line" style="--line-size: 12px"></span><code>4px</code></div>
-                        <div class="spacing-row"><span>space-2</span><span class="spacing-line" style="--line-size: 24px"></span><code>8px</code></div>
-                        <div class="spacing-row"><span>space-3</span><span class="spacing-line" style="--line-size: 36px"></span><code>12px</code></div>
-                        <div class="spacing-row"><span>space-4</span><span class="spacing-line" style="--line-size: 48px"></span><code>16px</code></div>
-                        <div class="spacing-row"><span>space-6</span><span class="spacing-line" style="--line-size: 72px"></span><code>24px</code></div>
-                        <div class="spacing-row"><span>space-8</span><span class="spacing-line" style="--line-size: 96px"></span><code>32px</code></div>
-                    </div>
-                </article>
+            <div class="variant-grid">
+                @foreach (var item in SurfaceVariants)
+                {
+                    <Surface Variant="@item.Variant"
+                             Elevation="SurfaceElevation.Small"
+                             Padding="SurfacePadding.Large"
+                             Radius="SurfaceRadius.Large"
+                             Bordered>
+                        <span class="panel-label">Surface</span>
+                        <h3>@item.Label</h3>
+                        <p>@item.Note</p>
+                    </Surface>
+                }
             </div>
 
-            <div class="surface-demo-grid">
-                <Surface Variant="SurfaceVariant.Glass" Elevation="SurfaceElevation.Medium" Padding="SurfacePadding.Large" Bordered FullWidth>
-                    <div class="surface-demo-content">
-                        <span class="panel-label">Surface / glass</span>
-                        <h3>A calm layer for content.</h3>
-                        <p>Surface owns the background, border, blur and elevation relationship without imposing a content structure.</p>
-                    </div>
-                </Surface>
-
+            <div class="card-demos">
                 <Card Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small">
                     <Header>
-                        <div class="card-demo-heading">
-                            <span class="panel-label">Card / structured</span>
-                            <span class="panel-count">03</span>
+                        <div class="card-head">
+                            <span class="panel-label">Card / 区域结构</span>
+                            <span class="card-head__badge">头部 · 主体 · 底部</span>
                         </div>
                     </Header>
                     <ChildContent>
-                        <h3>Card with regions.</h3>
-                        <p>Header, body and footer stay consistent while the content remains composable.</p>
+                        <h3>结构化的卡片。</h3>
+                        <p>
+                            头部、主体与底部保持一致的视觉间距，卡片内部的内容
+                            仍然完全自由组合。
+                        </p>
                     </ChildContent>
                     <Footer>
-                        <Button Variant="ButtonVariant.Text" Color="Color.Primary" EndIcon="@ArrowIcon" OnClick="MarkInteraction">
-                            Open details
-                        </Button>
+                        <div class="card-actions">
+                            <Button Variant="ButtonVariant.Text" Color="Color.Primary" OnClick="MarkInteraction">了解详情</Button>
+                            <Button Color="Color.Primary" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">打开卡片</Button>
+                        </div>
                     </Footer>
                 </Card>
-            </div>
 
-            <div class="interactive-card-demo">
-                <Card Interactive AriaLabel="Open the interactive card" OnClick="OpenInteractionCard">
+                <Card Interactive AriaLabel="打开交互卡片" OnClick="OpenInteractionCard">
                     <ChildContent>
                         <div class="interactive-card-content">
                             <div>
-                                <span class="panel-label">Card / interactive</span>
-                                <h3>Use the whole surface as an action.</h3>
-                                <p>Click the card or focus it and press Enter or Space to trigger the same callback.</p>
+                                <span class="panel-label">Card / 可交互</span>
+                                <h3>整张卡片就是一个动作。</h3>
+                                <p>点击，或用 Tab 聚焦后按 Enter / 空格即可触发回调。</p>
                             </div>
                             <span class="interactive-card-arrow" aria-hidden="true">&nearr;</span>
                         </div>
@@ -192,147 +289,420 @@
             </div>
         </section>
 
-        <section class="states-section section-block" id="states">
+        <!-- 输入 -->
+        <section class="component-section" id="inputs">
             <div class="section-heading">
-                <div><p class="section-index">03 / INTERACTION STATES</p><h2>Designed to respond.</h2></div>
-                <p class="section-description">The controls below are real Button components using the same token language as the rest of the library.</p>
+                <div>
+                    <p class="section-index">03 / 输入</p>
+                    <h2>Input、Label 与 FormField</h2>
+                </div>
+                <p class="section-description">
+                    单行输入框支持尺寸与状态，并通过可访问的标签、
+                    说明与错误信息组合成表单。
+                </p>
             </div>
 
-            <div class="state-board">
-                <div class="state-copy">
-                    <span class="panel-label">Button states</span>
-                    <h3>Designed to respond.</h3>
-                    <p>Hover and press the controls to inspect the interaction states built from the current token system.</p>
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>输入框</h3>
+                    <span class="demo-panel__api">Input · Type · Size · States</span>
                 </div>
-                <div class="state-controls">
-                    <div class="button-state-row">
-                        <Button OnClick="MarkInteraction">Default</Button>
-                        <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="MarkInteraction">Outline</Button>
-                        <Button Variant="ButtonVariant.Ghost" Color="Color.Primary" OnClick="MarkInteraction">Ghost</Button>
-                        <Button Variant="ButtonVariant.Text" Color="Color.Primary" OnClick="MarkInteraction">Text</Button>
-                        <Button Variant="ButtonVariant.Link" Color="Color.Primary" OnClick="MarkInteraction">Link</Button>
-                        <Button Size="Size.Small" StartIcon="@PlusIcon" OnClick="MarkInteraction">Small + icon</Button>
-                        <Button Size="Size.Small" Icon="@PlusIcon" AriaLabel="Add item" OnClick="MarkInteraction" />
-                        <Button StartIcon="@PlusIcon" EndIcon="@ArrowIcon" OnClick="MarkInteraction">Both sides</Button>
-                        <Button Size="Size.Large" Color="Color.Success" OnClick="MarkInteraction">Large success</Button>
-                        <Button Color="Color.Warning" OnClick="MarkInteraction">Warning</Button>
-                        <Button Color="Color.Danger" OnClick="MarkInteraction">Danger</Button>
-                        <Button Color="Color.Info" OnClick="MarkInteraction">Info</Button>
-                        <Button Loading>Loading</Button>
-                        <Button Disabled>Disabled</Button>
-                    </div>
-                    <span class="interaction-note">@_interactionNote</span>
-
-                    <div class="full-width-demo">
-                        <div class="full-width-demo-heading">
-                            <span class="panel-label">Layout behavior</span>
-                            <span class="full-width-demo-note">100% of parent</span>
+                <div class="demo-panel__body">
+                    <div class="form-grid">
+                        <div class="demo-field">
+                            <span class="demo-caption">文本 · 双向绑定</span>
+                            <Input @bind-Value="_inputValue" Placeholder="在这里输入" AriaLabel="绑定的文本输入" />
+                            <code class="field-echo">value: "@_inputValue"</code>
                         </div>
-                        <Button FullWidth Variant="ButtonVariant.Outline" Color="Color.Primary" OnClick="MarkInteraction">
-                            Full width action
-                        </Button>
-                    </div>
-
-                    <div class="button-group-demo">
-                        <div class="full-width-demo-heading">
-                            <span class="panel-label">Button group</span>
-                            <span class="full-width-demo-note">connected / full width</span>
+                        <div class="demo-field">
+                            <span class="demo-caption">密码</span>
+                            <Input Type="InputType.Password" Placeholder="请输入密码" AutoComplete="current-password" AriaLabel="密码" />
                         </div>
-                        <ButtonGroup Connected FullWidth AriaLabel="Page navigation">
-                            <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">
-                                Previous
-                            </Button>
-                            <Button OnClick="MarkInteraction">
-                                1
-                            </Button>
-                            <Button EndIcon="@ArrowIcon" OnClick="MarkInteraction">
-                                Next
-                            </Button>
-                        </ButtonGroup>
-                    </div>
-
-                    <div class="input-demo">
-                        <div class="full-width-demo-heading">
-                            <span class="panel-label">Input</span>
-                            <span class="full-width-demo-note">value / states / sizes</span>
+                        <div class="demo-field">
+                            <span class="demo-caption">搜索</span>
+                            <Input Type="InputType.Search" Placeholder="搜索组件" AriaLabel="搜索" />
                         </div>
-                        <div class="input-demo-grid">
-                            <label class="input-demo-field">
-                                <span>Text value</span>
-                                <Input @bind-Value="_inputValue"
-                                       Placeholder="Type something"
-                                       AriaLabel="Text value" />
-                            </label>
-                            <label class="input-demo-field">
-                                <span>Password</span>
-                                <Input Type="InputType.Password"
-                                       Placeholder="Password"
-                                       AutoComplete="current-password"
-                                       AriaLabel="Password" />
-                            </label>
-                            <label class="input-demo-field">
-                                <span>Small</span>
-                                <Input Size="Size.Small"
-                                       Placeholder="Compact input"
-                                       AriaLabel="Small input" />
-                            </label>
-                            <label class="input-demo-field">
-                                <span>Large / full width</span>
-                                <Input Size="Size.Large"
-                                       FullWidth
-                                       Placeholder="Large input"
-                                       AriaLabel="Large input" />
-                            </label>
-                            <label class="input-demo-field">
-                                <span>Read-only</span>
-                                <Input Value="Read-only value"
-                                       ReadOnly
-                                       AriaLabel="Read-only value" />
-                            </label>
-                            <label class="input-demo-field">
-                                <span>Invalid</span>
-                                <Input Invalid
-                                       Value="Needs attention"
-                                       AriaLabel="Invalid input"
-                                       AriaDescribedBy="sample-input-error" />
-                                <small id="sample-input-error">Example invalid state.</small>
-                            </label>
+                        <div class="demo-field">
+                            <span class="demo-caption">邮箱</span>
+                            <Input Type="InputType.Email" Placeholder="name@example.com" AriaLabel="邮箱" />
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">小尺寸</span>
+                            <Input Size="Size.Small" Placeholder="紧凑输入框" AriaLabel="小尺寸输入框" />
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">大尺寸</span>
+                            <Input Size="Size.Large" Placeholder="醒目输入框" AriaLabel="大尺寸输入框" />
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">只读</span>
+                            <Input Value="只读内容" ReadOnly AriaLabel="只读输入框" />
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">无效状态</span>
+                            <Input Invalid Value="需要检查" AriaLabel="无效输入框" AriaDescribedBy="sample-input-error" />
+                            <small class="field-error" id="sample-input-error">这是无效状态的示例。</small>
                         </div>
                     </div>
-
-                    <div class="form-field-demo">
-                        <div class="full-width-demo-heading">
-                            <span class="panel-label">FormField + Label</span>
-                            <span class="full-width-demo-note">label / description / error</span>
-                        </div>
-                        <div class="standalone-label-demo">
-                            <Label For="sample-label-input">Standalone Label</Label>
-                            <Input Id="sample-label-input" Placeholder="Label uses the For parameter" AriaLabel="Standalone Label" />
-                        </div>
-                        <FormField Id="sample-profile-field" Label="Display name" Description="This name is shown to other members." Required>
-                            <Input Placeholder="Your name" AriaLabel="Display name" />
-                        </FormField>
-                        <FormField Id="sample-invalid-field" Label="Invalid field" Error="Please provide a valid value." Invalid>
-                            <Input Value="Needs attention" AriaLabel="Invalid field" />
-                        </FormField>
+                    <div class="demo-group">
+                        <span class="demo-caption">大尺寸 · 通栏</span>
+                        <Input Size="Size.Large" FullWidth Placeholder="用于命令栏的宽输入框" AriaLabel="通栏输入框" />
                     </div>
+                </div>
+            </div>
 
-                    <div class="dialog-demo">
-                        <div class="full-width-demo-heading">
-                            <span class="panel-label">Dialog service</span>
-                            <span class="full-width-demo-note">provider / service</span>
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>FormField 与 Label</h3>
+                    <span class="demo-panel__api">FormField · Label · Description · Error</span>
+                </div>
+                <div class="demo-panel__body formfield-stack">
+                    <FormField Id="sample-label-input-field" Label="显示名称" Description="该名称会展示给其他成员。" Required>
+                        <Input Placeholder="你的显示名称" AriaLabel="显示名称" />
+                    </FormField>
+
+                    <FormField Id="sample-invalid-field" Label="无效字段" Error="请提供有效值。" Invalid>
+                        <Input Value="需要检查" AriaLabel="无效字段" />
+                    </FormField>
+
+                    <div class="standalone-label-demo">
+                        <Label For="sample-label-input">独立 Label</Label>
+                        <Input Id="sample-label-input" Placeholder="Label 通过 For 指向该输入框" AriaLabel="独立标签输入框" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 选择 -->
+        <section class="component-section" id="selection">
+            <div class="section-heading">
+                <div>
+                    <p class="section-index">04 / 选择</p>
+                    <h2>Checkbox</h2>
+                </div>
+                <p class="section-description">
+                    单项勾选控件，支持双向绑定、半选展示以及完整的组件状态。
+                </p>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>状态</h3>
+                    <span class="demo-panel__api">Checkbox · Value · Indeterminate · Size</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="selection-grid">
+                        <div class="demo-field">
+                            <span class="demo-caption">双向绑定</span>
+                            <Checkbox @bind-Value="_checkboxValue" OnChange="HandleCheckboxChange">
+                                订阅更新
+                            </Checkbox>
                         </div>
-                        <div class="dialog-demo-actions">
-                            <Button Color="Color.Success" StartIcon="@CheckIcon" OnClick="ShowAlertAsync">
-                                Alert
+                        <div class="demo-field">
+                            <span class="demo-caption">已勾选</span>
+                            <Checkbox Value="true">始终启用</Checkbox>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">禁用</span>
+                            <Checkbox Value="true" Disabled>锁定选项</Checkbox>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">无效</span>
+                            <Checkbox Invalid>必须同意</Checkbox>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">半选</span>
+                            <Checkbox Indeterminate>全选</Checkbox>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">小</span>
+                            <Checkbox Size="Size.Small">紧凑开关</Checkbox>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">大</span>
+                            <Checkbox Size="Size.Large">醒目开关</Checkbox>
+                        </div>
+                    </div>
+                    <span class="interaction-note" role="status">@_checkboxNote</span>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Switch</h3>
+                    <span class="demo-panel__api">Switch · Value · 状态</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="selection-grid">
+                        <div class="demo-field">
+                            <span class="demo-caption">双向绑定</span>
+                            <Switch @bind-Value="_switchValue">推送通知</Switch>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">默认开启</span>
+                            <Switch Value="true">自动保存</Switch>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">禁用</span>
+                            <Switch Disabled>锁定的设置</Switch>
+                        </div>
+                        <div class="demo-field">
+                            <span class="demo-caption">无效</span>
+                            <Switch Invalid>必须接受条款</Switch>
+                        </div>
+                    </div>
+                    <span class="interaction-note" role="status">推送通知当前：@(_switchValue ? "开启" : "关闭") · 点击轨道或按空格切换。</span>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Tag</h3>
+                    <span class="demo-panel__api">Tag · Color · Variant · Size · Dismissible</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">语意色（默认变体）</span>
+                        <div class="demo-row">
+                            @foreach (var item in SemanticColors)
+                            {
+                                <Tag Color="@item.Color">@item.Label</Tag>
+                            }
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">变体与尺寸</span>
+                        <div class="demo-row">
+                            <Tag Variant="TagVariant.Soft" Color="Color.Primary">草稿</Tag>
+                            <Tag Variant="TagVariant.Outline" Color="Color.Warning">待审核</Tag>
+                            <Tag Color="Color.Danger">已过期</Tag>
+                            <Tag Size="Size.Small" Color="Color.Neutral">小尺寸</Tag>
+                            <Tag Size="Size.Large" StartIcon="@CheckIcon" Color="Color.Success">已发布</Tag>
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">可关闭</span>
+                        <div class="demo-row">
+                            @foreach (var tag in _sampleTags)
+                            {
+                                <Tag Color="@tag.Color" Dismissible DismissLabel="@($"移除 {tag.Label}")" OnDismiss="@(() => RemoveSampleTag(tag))">
+                                    @tag.Label
+                                </Tag>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>List</h3>
+                    <span class="demo-panel__api">List · ListItem · 单选 / 多选</span>
+                </div>
+                <div class="demo-panel__body list-demos">
+                    <div class="demo-group">
+                        <span class="demo-caption">单选（↑↓ 移动 · Enter 选中）</span>
+                        <List SelectionMode="SelectionMode.Single"
+                              AllowClear
+                              SelectedValue="@_colorChoice"
+                              SelectedValueChanged="@OnColorSelected"
+                              AriaLabel="选择颜色">
+                            <ListItem Value="@ColorOption("红色")">红色</ListItem>
+                            <ListItem Value="@ColorOption("橙色")">橙色</ListItem>
+                            <ListItem Value="@ColorOption("绿色")">绿色</ListItem>
+                            <ListItem Value="@ColorOption("蓝色")">蓝色</ListItem>
+                            <ListItem Value="@ColorOption("紫色")" Disabled>紫色（已禁用）</ListItem>
+                        </List>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">多选（空格切换）</span>
+                        <List SelectionMode="SelectionMode.Multiple"
+                              SelectedValues="@_fruits"
+                              SelectedValuesChanged="@OnFruitsChanged"
+                              AriaLabel="选择水果">
+                            <ListItem Value="@FruitOption("苹果")">苹果</ListItem>
+                            <ListItem Value="@FruitOption("香蕉")">香蕉</ListItem>
+                            <ListItem Value="@FruitOption("草莓")">草莓</ListItem>
+                            <ListItem Value="@FruitOption("西瓜")">西瓜</ListItem>
+                        </List>
+                    </div>
+                    <span class="interaction-note" role="status">@_selectionNote</span>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Rating</h3>
+                    <span class="demo-panel__api">Rating · Value · ReadOnly · AllowClear</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">可评分（方向键 / Home / End）</span>
+                        <div class="demo-row">
+                            <Rating @bind-Value="_ratingValue" AllowClear AriaLabel="体验评分" />
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">只读展示</span>
+                        <div class="demo-row">
+                            <Rating Value="4" ReadOnly AriaLabel="他人评分" />
+                        </div>
+                    </div>
+                    <span class="interaction-note" role="status">当前评分：@_ratingValue / 5</span>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>ComboBox</h3>
+                    <span class="demo-panel__api">ComboBox&lt;TItem&gt; · 输入筛选 · 键盘导航</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-field">
+                        <span class="demo-caption">点击展开选项（默认下拉选择，无搜索）</span>
+                        <ComboBox Items="_cities"
+                                  Placeholder="选择城市…"
+                                  @bind-Value="_cityValue"
+                                  AriaLabel="选择城市">
+                            <EmptyContent><span>暂无可选项</span></EmptyContent>
+                        </ComboBox>
+                    </div>
+                    <span class="interaction-note" role="status">当前选择：@(_cityValue ?? "（空）")</span>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>图标</h3>
+                    <span class="demo-panel__api">Icon · IconDefinition</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="icon-grid">
+                        @foreach (var item in SampleIcons)
+                        {
+                            <div class="icon-tile">
+                                <span class="icon-tile__glyph"><Icon Definition="@item.Icon" /></span>
+                                <code>@item.Name</code>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 反馈 -->
+        <section class="component-section" id="feedback">
+            <div class="section-heading">
+                <div>
+                    <p class="section-index">05 / 反馈</p>
+                    <h2>Alert、Confirm 与 Toast</h2>
+                </div>
+                <p class="section-description">
+                    Alert 与 Toast 为非阻塞通知，可手动指定位置，默认分别显示在
+                    底部居中与右上角；Confirm 为模态确认。所有消息由 IDialogService 发出。
+                </p>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Alert</h3>
+                    <span class="demo-panel__api">AlertAsync · Severity · 自动关闭 · 默认底部居中</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">默认图标（未传 Icon 时自动生成）</span>
+                        <div class="demo-row">
+                            @foreach (var item in Severities)
+                            {
+                                <Button Color="@item.Color" OnClick="@(() => ShowAlertAsync(item.Severity))">@item.Label</Button>
+                            }
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">自定义图标 / 指定位置</span>
+                        <div class="demo-row">
+                            <Button Variant="ButtonVariant.Ghost" Color="Color.Danger" StartIcon="@XmarkIcon" OnClick="@(() => ShowAlertAt(ToastPosition.TopCenter))">
+                                顶部居中 · 自定义图标
                             </Button>
-                            <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="ShowConfirmAsync">
-                                Confirm
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowAlertAt(ToastPosition.BottomStart))">
+                                左下角
                             </Button>
-                            <Button Variant="ButtonVariant.Ghost" Color="Color.Primary" OnClick="ShowToast">
-                                Toast
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowAlertAt(ToastPosition.BottomEnd))">
+                                右下角
                             </Button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Confirm</h3>
+                    <span class="demo-panel__api">ConfirmAsync · 模态 · 返回结果</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-row">
+                        <Button Color="Color.Danger" StartIcon="@XmarkIcon" OnClick="ShowConfirmAsync">删除条目…</Button>
+                        <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="ShowConfirmAsync">存在未保存的更改…</Button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-panel">
+                <div class="demo-panel__head">
+                    <h3>Toast</h3>
+                    <span class="demo-panel__api">ShowToast · Severity · Position · 默认右上角</span>
+                </div>
+                <div class="demo-panel__body">
+                    <div class="demo-group">
+                        <span class="demo-caption">默认位置（右上角）</span>
+                        <div class="demo-row">
+                            @foreach (var item in Severities)
+                            {
+                                <Button Variant="ButtonVariant.Ghost" Color="@item.Color" OnClick="@(() => ShowToast(item.Severity))">@item.Label</Button>
+                            }
+                        </div>
+                    </div>
+                    <div class="demo-group">
+                        <span class="demo-caption">指定位置</span>
+                        <div class="demo-row">
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.TopStart))">左上角</Button>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.BottomEnd))">右下角</Button>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.CenterEnd))">右侧居中</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主题 -->
+        <section class="component-section" id="theme">
+            <div class="section-heading">
+                <div>
+                    <p class="section-index">06 / 主题</p>
+                    <h2>主题切换</h2>
+                </div>
+                <p class="section-description">
+                    跟随系统、浅色与深色三种模式由 ThemeProvider 解析，
+                    通过语义 Token 驱动。上方的每个区块都会实时换肤。
+                </p>
+            </div>
+
+            <div class="theme-panel">
+                <div class="theme-panel__copy">
+                    <span class="panel-label">ThemeSwitch</span>
+                    <h3>选择画廊的外观。</h3>
+                    <p>
+                        <strong>跟随系统</strong> 随操作系统变化，<strong>浅色</strong> 与
+                        <strong>深色</strong> 则固定选择。在 Tauri 示例宿主中，窗口原生的
+                        磨砂背景与桌面模糊会随同一份状态一起切换。
+                    </p>
+                </div>
+                <div class="theme-panel__control">
+                    <ThemeSwitch Size="Size.Large" AriaLabel="画廊主题模式" />
+                    <div class="theme-readout">
+                        <span>实际生效：<strong>@(ThemeService.IsDark ? "深色" : "浅色")</strong></span>
+                        <span>模式：<strong>@ModeText(ThemeService.Mode)</strong></span>
                     </div>
                 </div>
             </div>
@@ -340,14 +710,16 @@
     </main>
 
     <footer class="sample-footer">
-        <span>Aeterni UI / sample workspace</span>
-        <span>Built on tokens, not decoration.</span>
+        <span>Aeterni UI / 组件画廊</span>
+        <span>真实组件 · 实时换肤 · 兼容 Tauri</span>
     </footer>
 </div>
 
 @code {
-    private string _interactionNote = "Hover or press an action to inspect its state.";
+    private string _interactionNote = "将鼠标悬停或点击上方任一操作，即可查看其实时状态。";
     private string? _inputValue;
+    private bool _checkboxValue;
+    private string _checkboxNote = "切换上面的绑定勾选框，可查看其值。";
 
     protected override void OnInitialized()
     {
@@ -359,60 +731,244 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
+    private void HandleCheckboxChange(ChangeEventArgs _)
+    {
+        _checkboxNote = $"勾选框当前值为 {_checkboxValue}。";
+    }
+
+    private static string ModeText(ThemeMode mode) => mode switch
+    {
+        ThemeMode.System => "跟随系统",
+        ThemeMode.Light => "浅色",
+        _ => "深色"
+    };
+
+    // ---- Switch / Tag / List / Rating / ComboBox demo state -----------------
+
+    private bool _switchValue;
+    private int _ratingValue = 3;
+    private string? _cityValue;
+    private object? _colorChoice;
+    private List<object?> _fruits = new() { FruitOption("苹果") };
+    private string _selectionNote = "选中上方列表或评分控件，即可查看状态。";
+    private static readonly string[] _cities =
+        ["北京", "上海", "广州", "深圳", "杭州", "成都", "武汉", "南京", "西安", "苏州"];
+    private List<SampleTag> _sampleTags =
+    [
+        new("生产环境", Color.Danger),
+        new("灰度发布", Color.Warning),
+        new("内部测试", Color.Success)
+    ];
+
+    private static string ColorOption(string name) => name;
+
+    private static string FruitOption(string name) => name;
+
+    private Task OnColorSelected(object? value)
+    {
+        _colorChoice = value;
+        _selectionNote = value is null ? "已清除选择。" : $"已选择颜色：{value}。";
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnFruitsChanged(IReadOnlyList<object?> values)
+    {
+        _fruits = values.ToList();
+        _selectionNote = _fruits.Count == 0
+            ? "未选择任何水果。"
+            : $"已选择：{string.Join("、", _fruits)}。";
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void RemoveSampleTag(SampleTag tag)
+    {
+        _sampleTags.Remove(tag);
+        _selectionNote = $"已移除标签「{tag.Label}」。";
+    }
+
+    private sealed record SampleTag(string Label, Color Color);
+
+    // ---- 演示数据 ------------------------------------------------------------
+
+    private static readonly (Color Color, string Label)[] SemanticColors =
+    {
+        (Color.Primary, "主要"),
+        (Color.Neutral, "中性"),
+        (Color.Success, "成功"),
+        (Color.Warning, "警告"),
+        (Color.Danger, "危险"),
+        (Color.Info, "信息")
+    };
+
+    private static readonly (ButtonVariant Variant, string Label)[] ButtonVariants =
+    {
+        (ButtonVariant.Default, "默认"),
+        (ButtonVariant.Outline, "描边"),
+        (ButtonVariant.Ghost, "幽灵"),
+        (ButtonVariant.Text, "文字"),
+        (ButtonVariant.Link, "链接")
+    };
+
+    private static readonly (SurfaceVariant Variant, string Label, string Note)[] SurfaceVariants =
+    {
+        (SurfaceVariant.Default, "默认", "不透明、安静，可直接承载内容。"),
+        (SurfaceVariant.Subtle, "柔和", "轻染色层，安静地衬在内容之后。"),
+        (SurfaceVariant.Elevated, "浮起", "半透明并带有抬升阴影。"),
+        (SurfaceVariant.Glass, "玻璃", "带磨砂模糊的悬浮质感。")
+    };
+
+    private static readonly (Severity Severity, Color Color, string Label)[] Severities =
+    {
+        (Severity.Info, Color.Info, "信息"),
+        (Severity.Success, Color.Success, "成功"),
+        (Severity.Warning, Color.Warning, "警告"),
+        (Severity.Danger, Color.Danger, "危险")
+    };
+
+    private static readonly (string Name, IconDefinition Icon)[] SampleIcons =
+    {
+        ("Plus", FontAwesomeIcons.Solid.Plus),
+        ("Check", FontAwesomeIcons.Solid.Check),
+        ("Xmark", FontAwesomeIcons.Solid.Xmark),
+        ("ArrowRight", FontAwesomeIcons.Solid.ArrowRight),
+        ("ChevronDown", FontAwesomeIcons.Solid.ChevronDown),
+        ("Gear", FontAwesomeIcons.Solid.Gear),
+        ("MagnifyingGlass", FontAwesomeIcons.Solid.MagnifyingGlass),
+        ("House", FontAwesomeIcons.Solid.House),
+        ("Bars", FontAwesomeIcons.Solid.Bars),
+        ("Sun", FontAwesomeIcons.Solid.Sun),
+        ("Moon", FontAwesomeIcons.Solid.Moon),
+        ("Spinner", FontAwesomeIcons.Solid.Spinner)
+    };
+
+    // ---- 控件内使用的图标 ------------------------------------------------------
+
     private RenderFragment PlusIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Plus" />;
-
-    private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
-
-    private RenderFragment ArrowIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" />;
 
     private RenderFragment CheckIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Check" />;
 
+    private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
+
+    private RenderFragment ArrowRightIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" />;
+
+    private RenderFragment GearIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;
+
+    private RenderFragment HouseIcon => @<Icon Definition="@FontAwesomeIcons.Solid.House" />;
+
+    private RenderFragment MagnifyingGlassIcon => @<Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />;
+
+    private RenderFragment SunIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Sun" />;
+
+    private RenderFragment XmarkIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Xmark" />;
+
+    // ---- 交互与反馈 --------------------------------------------------------------
+
     private void MarkInteraction(MouseEventArgs _)
     {
-        _interactionNote = $"Interaction captured at {DateTime.Now:HH:mm:ss}.";
+        _interactionNote = $"已捕获一次交互：{DateTime.Now:HH:mm:ss}。";
     }
 
     private void OpenInteractionCard()
     {
-        _interactionNote = $"Interactive card opened at {DateTime.Now:HH:mm:ss}.";
+        _interactionNote = $"交互卡片已打开：{DateTime.Now:HH:mm:ss}。";
     }
 
-    private async Task ShowAlertAsync(MouseEventArgs _)
+    private bool _working;
+
+    private async Task SimulateWorkAsync(MouseEventArgs args)
+    {
+        if (_working)
+        {
+            return;
+        }
+
+        _working = true;
+        _interactionNote = "正在保存…（按钮文字与图标保持可见，仅叠加加载遮罩）";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1800);
+        _working = false;
+        _interactionNote = $"模拟保存完成：{DateTime.Now:HH:mm:ss}。";
+    }
+
+    private async Task ShowAlertAsync(Severity severity)
     {
         await DialogService.AlertAsync(
-            "Your changes have been saved.",
+            severity switch
+            {
+                Severity.Success => "更改已保存。",
+                Severity.Warning => "该操作会覆盖之前的草稿。",
+                Severity.Danger => "操作失败，请重试。",
+                _ => "后台刷新已完成。"
+            },
             new AlertOptions
             {
-                Title = "Saved",
-                Severity = Severity.Success,
-                Icon = CheckIcon
+                Title = SeverityText(severity),
+                Severity = severity
+            });
+    }
+
+    private async Task ShowAlertAt(ToastPosition position)
+    {
+        await DialogService.AlertAsync(
+            "Alert 支持像 Toast 一样指定任意位置，避免遮挡页面顶部。",
+            position,
+            new AlertOptions
+            {
+                Title = "位置示例",
+                Severity = Severity.Danger,
+                Icon = XmarkIcon
             });
     }
 
     private async Task ShowConfirmAsync(MouseEventArgs _)
     {
         var confirmed = await DialogService.ConfirmAsync(
-            "This action cannot be undone. Continue?",
+            "该操作无法撤销，确定继续吗？",
             new ConfirmOptions
             {
-                Title = "Delete item",
+                Title = "删除条目",
                 Severity = Severity.Danger
             });
 
-        _interactionNote = confirmed ? "Confirm accepted." : "Confirm dismissed.";
+        _interactionNote = confirmed ? "已确认删除。" : "已取消操作。";
     }
 
-    private void ShowToast(MouseEventArgs _)
+    private void ShowToast(Severity severity)
     {
         DialogService.ShowToast(
-            "A new notification is ready.",
+            severity switch
+            {
+                Severity.Success => "保存成功。",
+                Severity.Warning => "提交前请检查你的输入。",
+                Severity.Danger => "出错了。",
+                _ => "收到一条新的通知。"
+            },
             new ToastOptions
             {
-                Title = "Notification",
-                Severity = Severity.Info,
-                Icon = ArrowIcon
+                Title = SeverityText(severity),
+                Severity = severity
             });
     }
+
+    private void ShowToastAt(ToastPosition position)
+    {
+        DialogService.ShowToast(
+            "Toast 可以停靠在窗口的任意边缘。",
+            position,
+            new ToastOptions
+            {
+                Title = "位置示例",
+                Severity = Severity.Info
+            });
+    }
+
+    private static string SeverityText(Severity severity) => severity switch
+    {
+        Severity.Success => "成功",
+        Severity.Warning => "警告",
+        Severity.Danger => "危险",
+        _ => "信息"
+    };
 
     public void Dispose()
     {
