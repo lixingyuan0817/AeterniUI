@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`0.1.0`
+文档版本：`10.0.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 JS 语法检查 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `0.1.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.0.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 

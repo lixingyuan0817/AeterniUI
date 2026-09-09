@@ -23,16 +23,16 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     private EditContext? CascadedEditContext { get; set; }
 
     [Parameter]
-    public Expression<Func<TItem?>>? ValueExpression { get; set; }
-
-    [Parameter]
-    public IReadOnlyList<TItem>? Items { get; set; }
-
-    [Parameter]
     public TItem? Value { get; set; }
 
     [Parameter]
     public EventCallback<TItem?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<TItem?>>? ValueExpression { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<TItem>? Items { get; set; }
 
     [Parameter]
     public Func<TItem, string>? TextSelector { get; set; }

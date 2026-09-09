@@ -31,6 +31,9 @@ jobs:
             done
           fi
 
+      - name: Documentation consistency check
+        run: bash scripts/check-docs.sh
+
       - name: Token file must not contain component rules
         shell: bash
         run: |
