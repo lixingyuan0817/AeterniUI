@@ -23,11 +23,11 @@
 }
 
 .aeterni-list--select .aeterni-list-item:hover:not(.is-disabled) {
-    background: var(--aeterni-surface-hover);
+    background: var(--aeterni-state-background-hover);
 }
 
 .aeterni-list--select .aeterni-list-item.is-selected {
-    background: var(--aeterni-surface-selected);
+    background: var(--aeterni-state-background-selected);
     color: var(--aeterni-text-primary);
     font-weight: var(--aeterni-font-weight-medium);
 }
@@ -38,7 +38,7 @@
 }
 
 .aeterni-list-item.is-disabled {
-    color: var(--aeterni-text-disabled);
+    color: var(--aeterni-state-color-disabled);
     cursor: not-allowed;
 }
 

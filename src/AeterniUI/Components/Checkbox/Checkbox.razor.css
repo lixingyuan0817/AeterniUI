@@ -53,8 +53,8 @@
 }
 
 .aeterni-checkbox__input:checked + .aeterni-checkbox__control {
-    border-color: var(--aeterni-brand-500);
-    background: var(--aeterni-brand-500);
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-color-brand-default);
 }
 
 .aeterni-checkbox__input:checked + .aeterni-checkbox__control .aeterni-checkbox__check {
@@ -64,8 +64,8 @@
 
 /* Tri-state indicator: a short bar is drawn in place of the check mark. */
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control {
-    border-color: var(--aeterni-brand-500);
-    background: var(--aeterni-brand-500);
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-color-brand-default);
 }
 
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control .aeterni-checkbox__check {
@@ -82,7 +82,7 @@
 }
 
 .aeterni-checkbox__input:hover:not(:disabled) + .aeterni-checkbox__control {
-    border-color: var(--aeterni-brand-500);
+    border-color: var(--aeterni-color-brand-hover);
 }
 
 .aeterni-checkbox__input:focus-visible + .aeterni-checkbox__control {
@@ -92,23 +92,39 @@
 
 .aeterni-checkbox__input:disabled + .aeterni-checkbox__control {
     cursor: not-allowed;
-    border-color: var(--aeterni-border-disabled);
-    background: var(--aeterni-bg-disabled);
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
 }
 
 .aeterni-checkbox.is-disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-checkbox__input:disabled:checked + .aeterni-checkbox__control,
+.aeterni-checkbox__input:disabled:indeterminate + .aeterni-checkbox__control,
+.aeterni-checkbox.is-disabled.is-checked .aeterni-checkbox__control,
+.aeterni-checkbox.is-disabled.is-indeterminate .aeterni-checkbox__control {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-checkbox.is-disabled.is-checked .aeterni-checkbox__check {
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-checkbox.is-disabled.is-indeterminate .aeterni-checkbox__control::after {
+    background: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-checkbox.is-invalid .aeterni-checkbox__control {
-    border-color: var(--aeterni-danger);
+    border-color: var(--aeterni-color-danger-default);
 }
 
 .aeterni-checkbox.is-invalid .aeterni-checkbox__input:checked + .aeterni-checkbox__control,
 .aeterni-checkbox.is-invalid .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control {
-    border-color: var(--aeterni-danger);
-    background: var(--aeterni-danger);
+    border-color: var(--aeterni-color-danger-default);
+    background: var(--aeterni-color-danger-default);
 }
 
 .aeterni-checkbox__label {

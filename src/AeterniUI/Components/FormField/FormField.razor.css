@@ -12,7 +12,14 @@
     line-height: var(--aeterni-line-height-normal);
 }
 
-.aeterni-form-field__required { color: var(--aeterni-danger); margin-inline-start: var(--aeterni-spacing-1); }
+.aeterni-form-field__required { color: var(--aeterni-color-danger-default); margin-inline-start: var(--aeterni-spacing-1); }
 .aeterni-form-field__description { color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); }
-.aeterni-form-field__error { color: var(--aeterni-danger); font-size: var(--aeterni-font-size-xs); }
-.aeterni-form-field.is-disabled { opacity: var(--aeterni-opacity-disabled); }
+.aeterni-form-field__error { color: var(--aeterni-color-danger-default); font-size: var(--aeterni-font-size-xs); }
+.aeterni-form-field.is-disabled {
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-form-field.is-disabled .aeterni-form-field__label,
+.aeterni-form-field.is-disabled .aeterni-form-field__description {
+    color: var(--aeterni-state-color-disabled);
+}

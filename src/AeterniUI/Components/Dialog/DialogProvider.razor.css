@@ -30,7 +30,7 @@
 }
 
 .aeterni-dialog-provider__dialog {
-    --aeterni-dialog-accent: var(--aeterni-brand-500);
+    --aeterni-dialog-accent: var(--aeterni-color-brand-default);
 
     display: flex;
     flex-direction: column;
@@ -49,19 +49,19 @@
 }
 
 .aeterni-dialog-provider__dialog--info {
-    --aeterni-dialog-accent: var(--aeterni-info);
+    --aeterni-dialog-accent: var(--aeterni-color-info-default);
 }
 
 .aeterni-dialog-provider__dialog--success {
-    --aeterni-dialog-accent: var(--aeterni-success);
+    --aeterni-dialog-accent: var(--aeterni-color-success-default);
 }
 
 .aeterni-dialog-provider__dialog--warning {
-    --aeterni-dialog-accent: var(--aeterni-warning);
+    --aeterni-dialog-accent: var(--aeterni-color-warning-default);
 }
 
 .aeterni-dialog-provider__dialog--danger {
-    --aeterni-dialog-accent: var(--aeterni-danger);
+    --aeterni-dialog-accent: var(--aeterni-color-danger-default);
 }
 
 /* Notice regions ------------------------------------------------------------

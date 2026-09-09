@@ -23,10 +23,10 @@
     box-sizing: border-box;
     width: calc((100% - 8px) / 3);
     pointer-events: none;
-    border: 1px solid var(--aeterni-brand-400);
+    border: var(--aeterni-border-width) solid var(--aeterni-color-brand-hover);
     border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-brand-500);
-    box-shadow: 0 4px 12px rgba(116, 49, 223, .28);
+    background: var(--aeterni-color-brand-default);
+    box-shadow: var(--aeterni-shadow-sm);
     transform: translate3d(0, 0, 0);
     transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
     will-change: transform;
@@ -60,7 +60,7 @@
 }
 
 .aeterni-theme-switch__option:hover {
-    background: var(--aeterni-surface-hover);
+    background: var(--aeterni-state-background-hover);
     color: var(--aeterni-text-primary);
 }
 
@@ -79,7 +79,7 @@
 .aeterni-theme-switch__option:disabled,
 .aeterni-theme-switch__option:disabled:hover {
     background: transparent;
-    color: var(--aeterni-text-disabled);
+    color: var(--aeterni-state-color-disabled);
     cursor: not-allowed;
 }
 
@@ -109,7 +109,8 @@
 
 .aeterni-theme-switch.is-disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -21,7 +21,7 @@
 }
 
 .aeterni-icon--primary {
-    color: var(--aeterni-brand-500);
+    color: var(--aeterni-color-brand-default);
 }
 
 .aeterni-icon--neutral {
@@ -29,17 +29,17 @@
 }
 
 .aeterni-icon--success {
-    color: var(--aeterni-success-500);
+    color: var(--aeterni-color-success-default);
 }
 
 .aeterni-icon--warning {
-    color: var(--aeterni-warning-500);
+    color: var(--aeterni-color-warning-default);
 }
 
 .aeterni-icon--danger {
-    color: var(--aeterni-danger-500);
+    color: var(--aeterni-color-danger-default);
 }
 
 .aeterni-icon--info {
-    color: var(--aeterni-info-500);
+    color: var(--aeterni-color-info-default);
 }

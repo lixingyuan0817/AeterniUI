@@ -35,7 +35,6 @@
 
 .aeterni-card.is-interactive.is-disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
 }
 
 .aeterni-card--subtle {
@@ -93,6 +92,13 @@
 
 .aeterni-card--padding-extra-large {
     --aeterni-card-padding: var(--aeterni-spacing-8);
+}
+
+.aeterni-card.is-interactive.is-disabled {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    color: var(--aeterni-state-color-disabled);
+    box-shadow: none;
 }
 
 .aeterni-card__header,

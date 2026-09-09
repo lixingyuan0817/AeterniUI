@@ -1,0 +1,11 @@
+@namespace AeterniUI.Sample.Components.Showcase
+@typeparam TValue
+
+<ComboBox TItem="ShowcaseSelectOption<TValue>"
+          Id="@Id"
+          Items="@_options"
+          Value="@_selectedOption"
+          ValueChanged="@HandleValueChanged"
+          TextSelector="@GetOptionText"
+          AriaLabel="@AriaLabel"
+          Disabled="@Disabled" />

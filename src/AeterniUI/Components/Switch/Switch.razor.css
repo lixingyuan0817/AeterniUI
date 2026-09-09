@@ -51,8 +51,8 @@
 }
 
 .aeterni-switch__input:checked + .aeterni-switch__track {
-    border-color: var(--aeterni-brand-500);
-    background: var(--aeterni-brand-500);
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-color-brand-default);
 }
 
 .aeterni-switch__input:checked + .aeterni-switch__track .aeterni-switch__knob {
@@ -60,7 +60,7 @@
 }
 
 .aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
-    border-color: var(--aeterni-brand-400, var(--aeterni-brand-500));
+    border-color: var(--aeterni-color-brand-hover);
 }
 
 .aeterni-switch__input:focus-visible + .aeterni-switch__track {
@@ -69,18 +69,28 @@
 }
 
 .aeterni-switch.is-invalid .aeterni-switch__track {
-    border-color: var(--aeterni-danger);
+    border-color: var(--aeterni-color-danger-default);
 }
 
 .aeterni-switch__input:disabled + .aeterni-switch__track {
-    border-color: var(--aeterni-border-disabled);
-    background: var(--aeterni-bg-disabled);
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
     cursor: not-allowed;
+}
+
+.aeterni-switch__input:disabled:checked + .aeterni-switch__track,
+.aeterni-switch.is-disabled.is-checked .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-switch.is-disabled.is-checked .aeterni-switch__knob {
+    background: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-switch.is-disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
+    color: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-switch__label {

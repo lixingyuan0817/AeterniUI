@@ -1,0 +1,126 @@
+@namespace AeterniUI.Sample.Components.Showcase
+
+<section class="component-preview" id="@AnchorId">
+    <header class="component-preview__header">
+        <div>
+            <p class="component-preview__eyebrow">@Category</p>
+            <h2>@Title</h2>
+            <p class="component-preview__description">@Description</p>
+        </div>
+        <code class="component-preview__name">@ComponentName</code>
+    </header>
+
+    <div class="component-preview__demo-grid">
+        <section class="component-preview__stage" aria-labelledby="@($"{AnchorId}-stage-title")">
+            <div class="component-preview__section-heading">
+                <div>
+                    <span class="component-preview__section-kicker">01</span>
+                    <h3 id="@($"{AnchorId}-stage-title")">外观预览</h3>
+                </div>
+                <span class="component-preview__hint">实时渲染</span>
+            </div>
+            <div class="component-preview__canvas">
+                @Preview
+            </div>
+        </section>
+
+        @if (Controls is not null)
+        {
+            <aside class="component-preview__controls" aria-labelledby="@($"{AnchorId}-controls-title")">
+                <div class="component-preview__section-heading">
+                    <div>
+                        <span class="component-preview__section-kicker">02</span>
+                        <h3 id="@($"{AnchorId}-controls-title")">调整属性</h3>
+                    </div>
+                    <span class="component-preview__hint">即时生效</span>
+                </div>
+                <div class="component-preview__control-body">
+                    @Controls
+                </div>
+            </aside>
+        }
+    </div>
+
+    <section class="component-preview__api" aria-labelledby="@($"{AnchorId}-api-title")">
+        <div class="component-preview__section-heading">
+            <div>
+                <span class="component-preview__section-kicker">03</span>
+                <h3 id="@($"{AnchorId}-api-title")">参数、事件与接口</h3>
+            </div>
+            <span class="component-preview__hint">公共 API</span>
+        </div>
+
+        <div class="component-preview__api-grid">
+            <div class="component-preview__api-group">
+                <h4>参数</h4>
+                <div class="component-preview__api-table" role="table">
+                    <div class="component-preview__api-row component-preview__api-row--header" role="row">
+                        <span role="columnheader">名称</span>
+                        <span role="columnheader">类型 / 默认值</span>
+                        <span role="columnheader">说明</span>
+                    </div>
+                    @foreach (var parameter in EffectiveParameters)
+                    {
+                        <div class="component-preview__api-row" role="row">
+                            <code role="cell">@parameter.Name</code>
+                            <span role="cell">
+                                <code>@parameter.Type</code>
+                                @if (!string.IsNullOrWhiteSpace(parameter.DefaultValue))
+                                {
+                                    <small>默认 @parameter.DefaultValue</small>
+                                }
+                            </span>
+                            <span role="cell">@parameter.Description</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (Events is { Count: > 0 })
+            {
+                <div class="component-preview__api-group">
+                    <h4>事件回调</h4>
+                    <div class="component-preview__api-table" role="table">
+                        <div class="component-preview__api-row component-preview__api-row--header" role="row">
+                            <span role="columnheader">名称</span>
+                            <span role="columnheader">签名</span>
+                            <span role="columnheader">说明</span>
+                        </div>
+                        @foreach (var callback in Events)
+                        {
+                            <div class="component-preview__api-row" role="row">
+                                <code role="cell">@callback.Name</code>
+                                <code role="cell">@callback.Signature</code>
+                                <span role="cell">@callback.Description</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Contracts is { Count: > 0 })
+            {
+                <div class="component-preview__api-group">
+                    <h4>接口 / 服务</h4>
+                    <div class="component-preview__contract-list">
+                        @foreach (var contract in Contracts)
+                        {
+                            <div class="component-preview__contract">
+                                <code>@contract.Name</code>
+                                <span><code>@contract.Type</code> · @contract.Description</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Notes is not null)
+        {
+            <div class="component-preview__notes">
+                <span class="component-preview__notes-mark" aria-hidden="true">i</span>
+                <div>@Notes</div>
+            </div>
+        }
+    </section>
+</section>

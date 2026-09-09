@@ -1,5 +1,5 @@
 .aeterni-tag {
-    --aeterni-tag-color: var(--aeterni-brand-500);
+    --aeterni-tag-color: var(--aeterni-color-brand-default);
     --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 14%, transparent);
     --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 78%, var(--aeterni-text-primary));
     --aeterni-tag-border: transparent;
@@ -24,27 +24,33 @@
 }
 
 .aeterni-tag--primary {
-    --aeterni-tag-color: var(--aeterni-brand-500);
+    --aeterni-tag-color: var(--aeterni-color-brand-default);
+}
+
+.aeterni-tag--default {
+    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
+    --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
+    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 86%, var(--aeterni-text-primary));
 }
 
 .aeterni-tag--neutral {
-    --aeterni-tag-color: var(--aeterni-neutral, var(--aeterni-text-tertiary));
+    --aeterni-tag-color: var(--aeterni-color-neutral-default);
 }
 
 .aeterni-tag--success {
-    --aeterni-tag-color: var(--aeterni-success-500);
+    --aeterni-tag-color: var(--aeterni-color-success-default);
 }
 
 .aeterni-tag--warning {
-    --aeterni-tag-color: var(--aeterni-warning-500);
+    --aeterni-tag-color: var(--aeterni-color-warning-default);
 }
 
 .aeterni-tag--danger {
-    --aeterni-tag-color: var(--aeterni-danger-500);
+    --aeterni-tag-color: var(--aeterni-color-danger-default);
 }
 
 .aeterni-tag--info {
-    --aeterni-tag-color: var(--aeterni-info-500);
+    --aeterni-tag-color: var(--aeterni-color-info-default);
 }
 
 .aeterni-tag--soft {

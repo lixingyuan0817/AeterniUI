@@ -6,7 +6,7 @@
 }
 
 .aeterni-rating__item {
-    --aeterni-rating-star: var(--aeterni-text-disabled);
+    --aeterni-rating-star: var(--aeterni-state-color-disabled);
 
     display: inline-flex;
     align-items: center;
@@ -24,11 +24,11 @@
 }
 
 .aeterni-rating__item.is-filled {
-    --aeterni-rating-star: var(--aeterni-warning-500);
+    --aeterni-rating-star: var(--aeterni-color-warning-default);
 }
 
 .aeterni-rating__item:hover:not(:disabled) {
-    background: var(--aeterni-surface-hover);
+    background: var(--aeterni-state-background-hover);
     transform: translateY(-1px);
 }
 
@@ -54,7 +54,7 @@
 }
 
 .aeterni-rating.is-disabled {
-    opacity: var(--aeterni-opacity-disabled);
+    color: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-rating__item > svg {

@@ -7,7 +7,7 @@
 @inject IDialogService DialogService
 @implements IDisposable
 
-<PageTitle>Aeterni UI · 组件画廊</PageTitle>
+<PageTitle>Aeterni UI · 组件展示库</PageTitle>
 
 <div class="sample-page">
     <header class="sample-header">
@@ -15,7 +15,7 @@
                  Padding="SurfacePadding.None"
                  Radius="SurfaceRadius.ExtraLarge">
             <div class="sample-header__bar">
-                <a class="brand" href="#overview" aria-label="Aeterni UI 首页">
+                <a class="brand" href="#showcase" aria-label="Aeterni UI 首页">
                     <span class="brand-mark" aria-hidden="true">A</span>
                     <span class="brand-name">Aeterni<span>UI</span></span>
                 </a>
@@ -25,715 +25,1104 @@
         </Surface>
     </header>
 
-    <main>
-        <section class="hero-section" id="overview">
-            <div class="hero-copy">
-                <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>组件画廊</p>
-                <h1>每一个组件，<br /><em>开箱即用。</em></h1>
-                <p class="hero-lead">
-                    这里是 AeterniUI 真实组件的在线演示——按钮、输入框、表面、
-                    选择与反馈。下方每个区块都可以直接交互。
-                </p>
-
-                <div class="hero-actions">
-                    <Button Color="Color.Primary" StartIcon="@SunIcon" OnClick="@(() => ShowAlertAsync(Severity.Success))">
-                        弹一条成功提示
-                    </Button>
-                    <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="@(() => ShowToast(Severity.Info))">
-                        发一条信息通知
-                    </Button>
-                </div>
-
-                <div class="hero-meta" aria-label="当前主题状态">
-                    <div><span class="meta-label">主题</span><strong>@(ThemeService.IsDark ? "深色" : "浅色")</strong></div>
-                    <div><span class="meta-label">模式</span><strong>@ModeText(ThemeService.Mode)</strong></div>
-                    <div>
-                        <span class="meta-label">窗口背景</span>
-                        <strong class="meta-live"><span class="meta-dot" aria-hidden="true"></span>@(ThemeService.IsDark ? "深色磨砂" : "浅色磨砂")</strong>
-                    </div>
-                </div>
-            </div>
-
-            <Surface Variant="SurfaceVariant.Glass"
-                     Elevation="SurfaceElevation.Large"
-                     Padding="SurfacePadding.None"
-                     Radius="SurfaceRadius.ExtraLarge">
-                <div class="window-shot">
-                    <div class="window-shot__bar" aria-hidden="true">
-                        <span class="window-shot__dots"><i></i><i></i><i></i></span>
-                        <span class="window-shot__title">Aeterni UI · 桌面窗口</span>
-                    </div>
-                    <div class="window-shot__body">
-                        <div class="window-shot__content">
-                            <span class="panel-label">原生窗口背景</span>
-                            <h3>磨砂底色跟随主题。</h3>
-                            <p>
-                                在 Tauri 示例中，窗口背后的桌面由系统负责模糊，上面再覆一层
-                                随主题切换的磨砂面纱；Light / Dark 切换时整扇「亚克力玻璃」一起变色。
-                            </p>
-                        </div>
-                        <div class="window-shot__footer">
-                            <span class="chip chip-theme">当前 · @(ThemeService.IsDark ? "深色" : "浅色")</span>
-                            <span class="window-shot__status" aria-hidden="true"></span>
-                        </div>
-                    </div>
-                    <span class="window-shot__glow" aria-hidden="true"></span>
-                </div>
-            </Surface>
-        </section>
-
-        <!-- 按钮与按钮组 -->
-        <section class="component-section" id="buttons">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">01 / 操作</p>
-                    <h2>Button 与 ButtonGroup</h2>
-                </div>
-                <p class="section-description">
-                    实心、描边、幽灵、文字与链接动作共用同一套语义语言。
-                    按下任意控件即可查看其实时状态。
-                </p>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>颜色</h3>
-                    <span class="demo-panel__api">Button · Color</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <div class="demo-row">
-                            @foreach (var item in SemanticColors)
-                            {
-                                <Button Color="@item.Color" OnClick="MarkInteraction">@item.Label</Button>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>变体</h3>
-                    <span class="demo-panel__api">Button · Variant</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">主色调</span>
-                        <div class="demo-row">
-                            @foreach (var item in ButtonVariants)
-                            {
-                                <Button Variant="@item.Variant" Color="Color.Primary" OnClick="MarkInteraction">@item.Label</Button>
-                            }
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">中性色</span>
-                        <div class="demo-row">
-                            @foreach (var item in ButtonVariants)
-                            {
-                                <Button Variant="@item.Variant" Color="Color.Neutral" OnClick="MarkInteraction">@item.Label</Button>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>尺寸与内容</h3>
-                    <span class="demo-panel__api">Button · Size · StartIcon · EndIcon</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">小</span>
-                        <div class="demo-row">
-                            <Button Size="Size.Small" StartIcon="@PlusIcon" OnClick="MarkInteraction">添加条目</Button>
-                            <Button Size="Size.Small" Icon="@PlusIcon" AriaLabel="添加条目" OnClick="MarkInteraction" />
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">中</span>
-                        <div class="demo-row">
-                            <Button OnClick="MarkInteraction">默认</Button>
-                            <Button StartIcon="@GearIcon" OnClick="MarkInteraction">设置</Button>
-                            <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">继续</Button>
-                            <Button StartIcon="@PlusIcon" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">两侧图标</Button>
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">大</span>
-                        <div class="demo-row">
-                            <Button Size="Size.Large" Color="Color.Success" StartIcon="@CheckIcon" OnClick="MarkInteraction">保存更改</Button>
-                            <Button Size="Size.Large" Variant="ButtonVariant.Outline" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一步</Button>
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">状态</span>
-                        <div class="demo-row">
-                            <Button Loading="@_working" StartIcon="@CheckIcon" OnClick="SimulateWorkAsync">保存更改</Button>
-                            <Button Disabled>已禁用</Button>
-                            <Button Variant="ButtonVariant.Outline" Disabled>已禁用</Button>
-                            <Button Color="Color.Danger" Variant="ButtonVariant.Ghost" Disabled>已禁用</Button>
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">通栏</span>
-                        <Button FullWidth Variant="ButtonVariant.Outline" Color="Color.Primary" OnClick="MarkInteraction">
-                            通栏操作按钮
-                        </Button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>按钮组</h3>
-                    <span class="demo-panel__api">ButtonGroup · Connected · FullWidth</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">连接式 · 通栏</span>
-                        <ButtonGroup Connected FullWidth AriaLabel="分页">
-                            <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
-                            <Button OnClick="MarkInteraction">1</Button>
-                            <Button OnClick="MarkInteraction">2</Button>
-                            <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
-                        </ButtonGroup>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">分离式</span>
-                        <ButtonGroup Connected="false" AriaLabel="文档操作">
-                            <Button Color="Color.Primary" StartIcon="@CheckIcon" OnClick="MarkInteraction">通过</Button>
-                            <Button Variant="ButtonVariant.Outline" Color="Color.Danger" OnClick="MarkInteraction">驳回</Button>
-                            <Button Variant="ButtonVariant.Ghost" Color="Color.Neutral" OnClick="MarkInteraction">稍后</Button>
-                        </ButtonGroup>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">纵向 · 通栏</span>
-                        <ButtonGroup Orientation="Orientation.Vertical" Connected FullWidth AriaLabel="纵向菜单操作">
-                            <Button StartIcon="@HouseIcon" OnClick="MarkInteraction">总览</Button>
-                            <Button StartIcon="@GearIcon" OnClick="MarkInteraction">设置</Button>
-                            <Button StartIcon="@MagnifyingGlassIcon" OnClick="MarkInteraction">搜索</Button>
-                        </ButtonGroup>
-                    </div>
-                </div>
-            </div>
-
-            <span class="interaction-note" role="status">@_interactionNote</span>
-        </section>
-
-        <!-- 表面 -->
-        <section class="component-section" id="surfaces">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">02 / 表面</p>
-                    <h2>Surface 与 Card</h2>
-                </div>
-                <p class="section-description">
-                    不夹带内容结构的视觉容器。Surface 负责外观，
-                    Card 提供头部、主体与底部区域。
-                </p>
-            </div>
-
-            <div class="variant-grid">
-                @foreach (var item in SurfaceVariants)
+    <div class="showcase-layout" id="showcase">
+        <aside class="showcase-sidebar" aria-label="组件导航">
+            <nav class="showcase-nav">
+                @foreach (var group in NavigationGroups)
                 {
-                    <Surface Variant="@item.Variant"
-                             Elevation="SurfaceElevation.Small"
-                             Padding="SurfacePadding.Large"
-                             Radius="SurfaceRadius.Large"
-                             Bordered>
-                        <span class="panel-label">Surface</span>
-                        <h3>@item.Label</h3>
-                        <p>@item.Note</p>
-                    </Surface>
-                }
-            </div>
-
-            <div class="card-demos">
-                <Card Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small">
-                    <Header>
-                        <div class="card-head">
-                            <span class="panel-label">Card / 区域结构</span>
-                            <span class="card-head__badge">头部 · 主体 · 底部</span>
-                        </div>
-                    </Header>
-                    <ChildContent>
-                        <h3>结构化的卡片。</h3>
-                        <p>
-                            头部、主体与底部保持一致的视觉间距，卡片内部的内容
-                            仍然完全自由组合。
-                        </p>
-                    </ChildContent>
-                    <Footer>
-                        <div class="card-actions">
-                            <Button Variant="ButtonVariant.Text" Color="Color.Primary" OnClick="MarkInteraction">了解详情</Button>
-                            <Button Color="Color.Primary" EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">打开卡片</Button>
-                        </div>
-                    </Footer>
-                </Card>
-
-                <Card Interactive AriaLabel="打开交互卡片" OnClick="OpenInteractionCard">
-                    <ChildContent>
-                        <div class="interactive-card-content">
-                            <div>
-                                <span class="panel-label">Card / 可交互</span>
-                                <h3>整张卡片就是一个动作。</h3>
-                                <p>点击，或用 Tab 聚焦后按 Enter / 空格即可触发回调。</p>
-                            </div>
-                            <span class="interactive-card-arrow" aria-hidden="true">&nearr;</span>
-                        </div>
-                    </ChildContent>
-                </Card>
-            </div>
-        </section>
-
-        <!-- 输入 -->
-        <section class="component-section" id="inputs">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">03 / 输入</p>
-                    <h2>Input、Label 与 FormField</h2>
-                </div>
-                <p class="section-description">
-                    单行输入框支持尺寸与状态，并通过可访问的标签、
-                    说明与错误信息组合成表单。
-                </p>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>输入框</h3>
-                    <span class="demo-panel__api">Input · Type · Size · States</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="form-grid">
-                        <div class="demo-field">
-                            <span class="demo-caption">文本 · 双向绑定</span>
-                            <Input @bind-Value="_inputValue" Placeholder="在这里输入" AriaLabel="绑定的文本输入" />
-                            <code class="field-echo">value: "@_inputValue"</code>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">密码</span>
-                            <Input Type="InputType.Password" Placeholder="请输入密码" AutoComplete="current-password" AriaLabel="密码" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">搜索</span>
-                            <Input Type="InputType.Search" Placeholder="搜索组件" AriaLabel="搜索" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">邮箱</span>
-                            <Input Type="InputType.Email" Placeholder="name@example.com" AriaLabel="邮箱" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">小尺寸</span>
-                            <Input Size="Size.Small" Placeholder="紧凑输入框" AriaLabel="小尺寸输入框" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">大尺寸</span>
-                            <Input Size="Size.Large" Placeholder="醒目输入框" AriaLabel="大尺寸输入框" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">只读</span>
-                            <Input Value="只读内容" ReadOnly AriaLabel="只读输入框" />
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">无效状态</span>
-                            <Input Invalid Value="需要检查" AriaLabel="无效输入框" AriaDescribedBy="sample-input-error" />
-                            <small class="field-error" id="sample-input-error">这是无效状态的示例。</small>
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">大尺寸 · 通栏</span>
-                        <Input Size="Size.Large" FullWidth Placeholder="用于命令栏的宽输入框" AriaLabel="通栏输入框" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>FormField 与 Label</h3>
-                    <span class="demo-panel__api">FormField · Label · Description · Error</span>
-                </div>
-                <div class="demo-panel__body formfield-stack">
-                    <FormField Id="sample-label-input-field" Label="显示名称" Description="该名称会展示给其他成员。" Required>
-                        <Input Placeholder="你的显示名称" AriaLabel="显示名称" />
-                    </FormField>
-
-                    <FormField Id="sample-invalid-field" Label="无效字段" Error="请提供有效值。" Invalid>
-                        <Input Value="需要检查" AriaLabel="无效字段" />
-                    </FormField>
-
-                    <div class="standalone-label-demo">
-                        <Label For="sample-label-input">独立 Label</Label>
-                        <Input Id="sample-label-input" Placeholder="Label 通过 For 指向该输入框" AriaLabel="独立标签输入框" />
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 选择 -->
-        <section class="component-section" id="selection">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">04 / 选择</p>
-                    <h2>Checkbox</h2>
-                </div>
-                <p class="section-description">
-                    单项勾选控件，支持双向绑定、半选展示以及完整的组件状态。
-                </p>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>状态</h3>
-                    <span class="demo-panel__api">Checkbox · Value · Indeterminate · Size</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="selection-grid">
-                        <div class="demo-field">
-                            <span class="demo-caption">双向绑定</span>
-                            <Checkbox @bind-Value="_checkboxValue" OnChange="HandleCheckboxChange">
-                                订阅更新
-                            </Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">已勾选</span>
-                            <Checkbox Value="true">始终启用</Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">禁用</span>
-                            <Checkbox Value="true" Disabled>锁定选项</Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">无效</span>
-                            <Checkbox Invalid>必须同意</Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">半选</span>
-                            <Checkbox Indeterminate>全选</Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">小</span>
-                            <Checkbox Size="Size.Small">紧凑开关</Checkbox>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">大</span>
-                            <Checkbox Size="Size.Large">醒目开关</Checkbox>
-                        </div>
-                    </div>
-                    <span class="interaction-note" role="status">@_checkboxNote</span>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Switch</h3>
-                    <span class="demo-panel__api">Switch · Value · 状态</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="selection-grid">
-                        <div class="demo-field">
-                            <span class="demo-caption">双向绑定</span>
-                            <Switch @bind-Value="_switchValue">推送通知</Switch>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">默认开启</span>
-                            <Switch Value="true">自动保存</Switch>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">禁用</span>
-                            <Switch Disabled>锁定的设置</Switch>
-                        </div>
-                        <div class="demo-field">
-                            <span class="demo-caption">无效</span>
-                            <Switch Invalid>必须接受条款</Switch>
-                        </div>
-                    </div>
-                    <span class="interaction-note" role="status">推送通知当前：@(_switchValue ? "开启" : "关闭") · 点击轨道或按空格切换。</span>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Tag</h3>
-                    <span class="demo-panel__api">Tag · Color · Variant · Size · Dismissible</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">语意色（默认变体）</span>
-                        <div class="demo-row">
-                            @foreach (var item in SemanticColors)
-                            {
-                                <Tag Color="@item.Color">@item.Label</Tag>
-                            }
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">变体与尺寸</span>
-                        <div class="demo-row">
-                            <Tag Variant="TagVariant.Soft" Color="Color.Primary">草稿</Tag>
-                            <Tag Variant="TagVariant.Outline" Color="Color.Warning">待审核</Tag>
-                            <Tag Color="Color.Danger">已过期</Tag>
-                            <Tag Size="Size.Small" Color="Color.Neutral">小尺寸</Tag>
-                            <Tag Size="Size.Large" StartIcon="@CheckIcon" Color="Color.Success">已发布</Tag>
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">可关闭</span>
-                        <div class="demo-row">
-                            @foreach (var tag in _sampleTags)
-                            {
-                                <Tag Color="@tag.Color" Dismissible DismissLabel="@($"移除 {tag.Label}")" OnDismiss="@(() => RemoveSampleTag(tag))">
-                                    @tag.Label
-                                </Tag>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>List</h3>
-                    <span class="demo-panel__api">List · ListItem · 单选 / 多选</span>
-                </div>
-                <div class="demo-panel__body list-demos">
-                    <div class="demo-group">
-                        <span class="demo-caption">单选（↑↓ 移动 · Enter 选中）</span>
-                        <List SelectionMode="SelectionMode.Single"
-                              AllowClear
-                              SelectedValue="@_colorChoice"
-                              SelectedValueChanged="@OnColorSelected"
-                              AriaLabel="选择颜色">
-                            <ListItem Value="@ColorOption("红色")">红色</ListItem>
-                            <ListItem Value="@ColorOption("橙色")">橙色</ListItem>
-                            <ListItem Value="@ColorOption("绿色")">绿色</ListItem>
-                            <ListItem Value="@ColorOption("蓝色")">蓝色</ListItem>
-                            <ListItem Value="@ColorOption("紫色")" Disabled>紫色（已禁用）</ListItem>
-                        </List>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">多选（空格切换）</span>
-                        <List SelectionMode="SelectionMode.Multiple"
-                              SelectedValues="@_fruits"
-                              SelectedValuesChanged="@OnFruitsChanged"
-                              AriaLabel="选择水果">
-                            <ListItem Value="@FruitOption("苹果")">苹果</ListItem>
-                            <ListItem Value="@FruitOption("香蕉")">香蕉</ListItem>
-                            <ListItem Value="@FruitOption("草莓")">草莓</ListItem>
-                            <ListItem Value="@FruitOption("西瓜")">西瓜</ListItem>
-                        </List>
-                    </div>
-                    <span class="interaction-note" role="status">@_selectionNote</span>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Rating</h3>
-                    <span class="demo-panel__api">Rating · Value · ReadOnly · AllowClear</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">可评分（方向键 / Home / End）</span>
-                        <div class="demo-row">
-                            <Rating @bind-Value="_ratingValue" AllowClear AriaLabel="体验评分" />
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">只读展示</span>
-                        <div class="demo-row">
-                            <Rating Value="4" ReadOnly AriaLabel="他人评分" />
-                        </div>
-                    </div>
-                    <span class="interaction-note" role="status">当前评分：@_ratingValue / 5</span>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>ComboBox</h3>
-                    <span class="demo-panel__api">ComboBox&lt;TItem&gt; · 输入筛选 · 键盘导航</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-field">
-                        <span class="demo-caption">点击展开选项（默认下拉选择，无搜索）</span>
-                        <ComboBox Items="_cities"
-                                  Placeholder="选择城市…"
-                                  @bind-Value="_cityValue"
-                                  AriaLabel="选择城市">
-                            <EmptyContent><span>暂无可选项</span></EmptyContent>
-                        </ComboBox>
-                    </div>
-                    <span class="interaction-note" role="status">当前选择：@(_cityValue ?? "（空）")</span>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>图标</h3>
-                    <span class="demo-panel__api">Icon · IconDefinition</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="icon-grid">
-                        @foreach (var item in SampleIcons)
+                    <div class="showcase-nav__group">
+                        <span class="showcase-nav__label">@group.Label</span>
+                        @foreach (var item in group.Items)
                         {
-                            <div class="icon-tile">
-                                <span class="icon-tile__glyph"><Icon Definition="@item.Icon" /></span>
-                                <code>@item.Name</code>
-                            </div>
+                            <button type="button"
+                                    class="showcase-nav__item @(IsSelected(item.Id) ? "is-selected" : string.Empty)"
+                                    aria-current="@(IsSelected(item.Id) ? "page" : null)"
+                                    @onclick="@(() => SelectComponent(item.Id))">
+                                <span class="showcase-nav__item-name">@item.Label</span>
+                                <span class="showcase-nav__item-summary">@item.Summary</span>
+                            </button>
                         }
                     </div>
-                </div>
-            </div>
-        </section>
+                }
+            </nav>
+        </aside>
 
-        <!-- 反馈 -->
-        <section class="component-section" id="feedback">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">05 / 反馈</p>
-                    <h2>Alert、Confirm 与 Toast</h2>
-                </div>
-                <p class="section-description">
-                    Alert 与 Toast 为非阻塞通知，可手动指定位置，默认分别显示在
-                    底部居中与右上角；Confirm 为模态确认。所有消息由 IDialogService 发出。
-                </p>
-            </div>
+        <main class="showcase-main">
+            <div class="showcase-preview-host" @key="_selectedComponent">
+                @switch (_selectedComponent)
+                {
+                case "button":
+                    <ComponentPreview AnchorId="button"
+                                      Category="基础 / 操作"
+                                      Title="Button"
+                                      ComponentName="Button"
+                                      Description="用于触发动作的原生按钮，统一承载变体、语义色、尺寸、图标、加载和禁用状态。"
+                                      Parameters="@ButtonParameters"
+                                      Events="@ButtonEvents">
+                        <Preview>
+                            <div class="preview-stack">
+                                <Button Variant="@_buttonVariant"
+                                        Color="@_buttonColor"
+                                        Size="@_buttonSize"
+                                        Type="@_buttonType"
+                                        Loading="@_buttonLoading"
+                                        Disabled="@_buttonDisabled"
+                                        FullWidth="@_buttonFullWidth"
+                                        StartIcon="@ButtonIcon"
+                                        OnClick="MarkInteraction">
+                                    @_buttonText
+                                </Button>
+                                <span class="preview-feedback" role="status">@_interactionNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="button-text">按钮文本</label>
+                                <input id="button-text" @bind="_buttonText" />
+                            </div>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Variant</span>
+                                    <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_buttonVariant" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Color</span>
+                                    <ShowcaseSelect TValue="Color" Id="button-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_buttonColor" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Size</span>
+                                    <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_buttonSize" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Type</span>
+                                    <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="Type" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_buttonType" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonLoading">Loading</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonDisabled">Disabled</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonFullWidth">FullWidth</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonHasIcon">显示起始图标</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span>点击预览按钮会触发 <code>OnClick</code>，加载状态会同时输出 <code>aria-busy</code> 并阻止交互。</span>
+                            <span>禁用状态会随 <code>Variant</code> 和 <code>Color</code> 保留层级与语意底色，不使用透明背景。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
 
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Alert</h3>
-                    <span class="demo-panel__api">AlertAsync · Severity · 自动关闭 · 默认底部居中</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">默认图标（未传 Icon 时自动生成）</span>
-                        <div class="demo-row">
-                            @foreach (var item in Severities)
+                case "button-group":
+                    <ComponentPreview AnchorId="button-group"
+                                      Category="基础 / 操作"
+                                      Title="ButtonGroup"
+                                      ComponentName="ButtonGroup"
+                                      Description="将多个 Button 组合为水平或垂直的操作组，并通过级联上下文传递禁用状态。"
+                                      Parameters="@ButtonGroupParameters">
+                        <Preview>
+            <ButtonGroup Orientation="@_buttonGroupOrientation"
+                         Connected="@_buttonGroupConnected"
+                         FullWidth="@_buttonGroupFullWidth"
+                         Disabled="@_buttonGroupDisabled"
+                         AriaLabel="按钮组预览">
+                                <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
+                                <Button OnClick="MarkInteraction">当前页</Button>
+                                <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
+                            </ButtonGroup>
+                        </Preview>
+                        <Controls>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Orientation</span>
+                                    <ShowcaseSelect TValue="Orientation" Id="group-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_buttonGroupOrientation" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Connected</span>
+                                    <ShowcaseSelect TValue="bool" Id="group-connected" AriaLabel="Connected" Options="@BooleanOptions" @bind-Value="_buttonGroupConnected" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonGroupFullWidth">FullWidth</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_buttonGroupDisabled">禁用整个组</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span>按钮组的 <code>Disabled</code> 会通过级联上下文作用到内部 Button。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
+                case "surface":
+                    <ComponentPreview AnchorId="surface"
+                                      Category="基础 / 容器"
+                                      Title="Surface"
+                                      ComponentName="Surface"
+                                      Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。"
+                                      Parameters="@SurfaceParameters">
+                        <Preview>
+                            <Surface Variant="@_surfaceVariant"
+                                     Elevation="@_surfaceElevation"
+                                     Padding="@_surfacePadding"
+                                     Radius="@_surfaceRadius"
+                                     Bordered="@_surfaceBordered"
+                                     FullWidth="@_surfaceFullWidth">
+                                <div class="preview-surface-content">
+                                    <span class="preview-label">Surface preview</span>
+                                    <strong>统一的表面容器</strong>
+                                    <span>调整右侧属性查看视觉变化。</span>
+                                </div>
+                            </Surface>
+                        </Preview>
+                        <Controls>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Variant</span>
+                                    <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_surfaceVariant" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Elevation</span>
+                                    <ShowcaseSelect TValue="SurfaceElevation" Id="surface-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_surfaceElevation" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Padding</span>
+                                    <ShowcaseSelect TValue="SurfacePadding" Id="surface-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_surfacePadding" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Radius</span>
+                                    <ShowcaseSelect TValue="SurfaceRadius" Id="surface-radius" AriaLabel="Radius" Options="@(Enum.GetValues<SurfaceRadius>())" @bind-Value="_surfaceRadius" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_surfaceBordered">Bordered</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_surfaceFullWidth">FullWidth</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "card":
+                    <ComponentPreview AnchorId="card"
+                                      Category="基础 / 容器"
+                                      Title="Card"
+                                      ComponentName="Card"
+                                      Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。"
+                                      Parameters="@CardParameters"
+                                      Events="@CardEvents">
+                        <Preview>
+                            <Card Variant="@_cardVariant"
+                                  Elevation="@_cardElevation"
+                                  Padding="@_cardPadding"
+                                  Bordered="@_cardBordered"
+                                  Interactive="@_cardInteractive"
+                                  AriaLabel="预览卡片"
+                                  OnClick="MarkCardInteraction">
+                                <Header><span class="preview-label">Card / Header</span></Header>
+                                <ChildContent>
+                                    <h3 class="preview-card-title">一张可组合的卡片</h3>
+                                    <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+                                </ChildContent>
+                                <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+                            </Card>
+                        </Preview>
+                        <Controls>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Variant</span>
+                                    <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_cardVariant" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Elevation</span>
+                                    <ShowcaseSelect TValue="SurfaceElevation" Id="card-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_cardElevation" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Padding</span>
+                                    <ShowcaseSelect TValue="SurfacePadding" Id="card-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_cardPadding" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_cardBordered">Bordered</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_cardInteractive">Interactive</Checkbox>
+                            <span class="control-status" role="status">@_cardNote</span>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "icon":
+                    <ComponentPreview AnchorId="icon"
+                                      Category="基础 / 图标"
+                                      Title="Icon"
+                                      ComponentName="Icon"
+                                      Description="渲染供应商无关的 SVG 图标定义，并通过语义颜色、尺寸和无障碍名称接入其他组件。"
+                                      Parameters="@IconParameters">
+                        <Preview>
+                            <div class="preview-icon-wrap">
+                                <Icon Definition="@FontAwesomeIcons.Solid.Sun"
+                                      Size="@_iconSize"
+                                      Color="@_iconColor"
+                                      AriaLabel="@(_iconAccessible ? "装饰图标" : null)"
+                                      Title="@(_iconTitle ? "Icon title" : null)" />
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Size</span>
+                                    <ShowcaseSelect TValue="Size" Id="icon-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_iconSize" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Color</span>
+                                    <ShowcaseSelect TValue="Color" Id="icon-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_iconColor" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_iconAccessible">提供 AriaLabel</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_iconTitle">提供 Title</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span>没有 <code>AriaLabel</code> 时，Icon 会输出 <code>aria-hidden="true"</code>；核心库只接收 <code>IconDefinition</code>。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
+                case "input":
+                    <ComponentPreview AnchorId="input"
+                                      Category="表单"
+                                      Title="Input"
+                                      ComponentName="Input"
+                                      Description="单行原生输入控件，支持标准绑定、HTML 输入语义、校验状态、事件和 FormField 级联。"
+                                      Parameters="@InputParameters"
+                                      Events="@InputEvents">
+                        <Preview>
+                            <div class="preview-form-control">
+                                <Input @bind-Value="_inputValue"
+                                       Type="@_inputType"
+                                       Size="@_inputSize"
+                                       Placeholder="@_inputPlaceholder"
+                                       ReadOnly="@_inputReadOnly"
+                                       Required="@_inputRequired"
+                                       Invalid="@_inputInvalid"
+                                       Disabled="@_inputDisabled"
+                                       FullWidth="@_inputFullWidth"
+                                       AriaLabel="预览输入框" />
+                                <code class="preview-value">Value: @_inputValue</code>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="input-placeholder">Placeholder</label>
+                                <input id="input-placeholder" @bind="_inputPlaceholder" />
+                            </div>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Type</span>
+                                    <ShowcaseSelect TValue="InputType" Id="input-type" AriaLabel="Type" Options="@(Enum.GetValues<InputType>())" @bind-Value="_inputType" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Size</span>
+                                    <ShowcaseSelect TValue="Size" Id="input-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_inputSize" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_inputReadOnly">ReadOnly</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_inputRequired">Required</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_inputInvalid">Invalid</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_inputDisabled">Disabled</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_inputFullWidth">FullWidth</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "form-field":
+                    <ComponentPreview AnchorId="form-field"
+                                      Category="表单"
+                                      Title="FormField"
+                                      ComponentName="FormField"
+                                      Description="将标签、描述、错误信息和内部控件组合为一个可访问的表单字段。"
+                                      Parameters="@FormFieldParameters"
+                                      Contracts="@FormFieldContracts">
+                        <Preview>
+                            <div class="preview-form-control">
+                                <FormField Label="@_formLabel"
+                                           Description="@(_formDescription ? "辅助说明会通过 aria-describedby 关联。" : null)"
+                                           Error="@(_formInvalid ? "请检查此字段。" : null)"
+                                           Required="@_formRequired"
+                                           Invalid="@_formInvalid">
+                                    <Input @bind-Value="_formValue" Placeholder="填写字段内容" AriaLabel="@_formLabel" />
+                                </FormField>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="field-label">Label</label>
+                                <input id="field-label" @bind="_formLabel" />
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_formDescription">显示 Description</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid / Error</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span><code>FormField</code> 通过级联上下文把输入 ID、描述 ID、禁用和校验状态传给内部控件。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
+                case "label":
+                    <ComponentPreview AnchorId="label"
+                                      Category="表单"
+                                      Title="Label"
+                                      ComponentName="Label"
+                                      Description="独立的原生 label 元素，用 For 将说明文字关联到指定输入控件。"
+                                      Parameters="@LabelParameters">
+                        <Preview>
+                            <div class="preview-form-control">
+                                <Label For="label-preview-input">独立 Label</Label>
+                                <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="独立 Label 示例" />
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="label-text">标签文字</label>
+                                <input id="label-text" @bind="_labelText" />
+                            </div>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "checkbox":
+                    <ComponentPreview AnchorId="checkbox"
+                                      Category="表单"
+                                      Title="Checkbox"
+                                      ComponentName="Checkbox"
+                                      Description="保留原生复选框语义，支持稳定布尔绑定、三态初始显示和 EditContext 校验。"
+                                      Parameters="@CheckboxParameters"
+                                      Events="@CheckboxEvents">
+                        <Preview>
+                            <div class="preview-stack">
+                                <Checkbox @bind-Value="_checkboxValue"
+                                          Indeterminate="@_checkboxIndeterminate"
+                                          Size="@_checkboxSize"
+                                          Required="@_checkboxRequired"
+                                          Invalid="@_checkboxInvalid"
+                                          Disabled="@_checkboxDisabled"
+                                          OnChange="HandleCheckboxChange">
+                                    同意服务条款
+                                </Checkbox>
+                                <span class="preview-feedback" role="status">Value: @_checkboxValue · @_checkboxNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>Size</span>
+                                <ShowcaseSelect TValue="Size" Id="checkbox-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_checkboxSize" />
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_checkboxIndeterminate">Indeterminate</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_checkboxRequired">Required</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_checkboxInvalid">Invalid</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_checkboxDisabled">Disabled</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "switch":
+                    <ComponentPreview AnchorId="switch"
+                                      Category="表单"
+                                      Title="Switch"
+                                      ComponentName="Switch"
+                                      Description="适用于即时设置的二态控件，内部使用原生 checkbox 并输出 switch 语义。"
+                                      Parameters="@SwitchParameters"
+                                      Events="@SwitchEvents">
+                        <Preview>
+                            <div class="preview-stack">
+                                <Switch @bind-Value="_switchValue"
+                                        Required="@_switchRequired"
+                                        Invalid="@_switchInvalid"
+                                        Disabled="@_switchDisabled"
+                                        OnChange="HandleSwitchChange">
+                                    自动同步
+                                </Switch>
+                                <span class="preview-feedback" role="status">Value: @_switchValue · @_switchNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <Checkbox Size="Size.Small" @bind-Value="_switchRequired">Required</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_switchInvalid">Invalid</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_switchDisabled">Disabled</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
+
+                case "tag":
+                    <ComponentPreview AnchorId="tag"
+                                      Category="内容 / 状态"
+                                      Title="Tag"
+                                      ComponentName="Tag"
+                                      Description="用于分类、状态和筛选条件的紧凑标签，关闭动作复用 Button 的图标能力。"
+                                      Parameters="@TagParameters"
+                                      Events="@TagEvents">
+                        <Preview>
+                            @if (_tagRemoved)
                             {
-                                <Button Color="@item.Color" OnClick="@(() => ShowAlertAsync(item.Severity))">@item.Label</Button>
+                                <div class="preview-empty">
+                                    <span>Tag 已触发 OnDismiss</span>
+                                    <Button Variant="ButtonVariant.Text"
+                                            Color="Color.Primary"
+                                            Size="Size.Small"
+                                            OnClick="RestoreTag">
+                                        恢复
+                                    </Button>
+                                </div>
                             }
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">自定义图标 / 指定位置</span>
-                        <div class="demo-row">
-                            <Button Variant="ButtonVariant.Ghost" Color="Color.Danger" StartIcon="@XmarkIcon" OnClick="@(() => ShowAlertAt(ToastPosition.TopCenter))">
-                                顶部居中 · 自定义图标
-                            </Button>
-                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowAlertAt(ToastPosition.BottomStart))">
-                                左下角
-                            </Button>
-                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowAlertAt(ToastPosition.BottomEnd))">
-                                右下角
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Confirm</h3>
-                    <span class="demo-panel__api">ConfirmAsync · 模态 · 返回结果</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-row">
-                        <Button Color="Color.Danger" StartIcon="@XmarkIcon" OnClick="ShowConfirmAsync">删除条目…</Button>
-                        <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" OnClick="ShowConfirmAsync">存在未保存的更改…</Button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="demo-panel">
-                <div class="demo-panel__head">
-                    <h3>Toast</h3>
-                    <span class="demo-panel__api">ShowToast · Severity · Position · 默认右上角</span>
-                </div>
-                <div class="demo-panel__body">
-                    <div class="demo-group">
-                        <span class="demo-caption">默认位置（右上角）</span>
-                        <div class="demo-row">
-                            @foreach (var item in Severities)
+                            else
                             {
-                                <Button Variant="ButtonVariant.Ghost" Color="@item.Color" OnClick="@(() => ShowToast(item.Severity))">@item.Label</Button>
+                                <Tag Color="@_tagColor"
+                                     Variant="@_tagVariant"
+                                     Size="@_tagSize"
+                                     Dismissible="@_tagDismissible"
+                                     DismissLabel="移除预览标签"
+                                     OnDismiss="DismissTag">
+                                    @(_tagText)
+                                </Tag>
                             }
-                        </div>
-                    </div>
-                    <div class="demo-group">
-                        <span class="demo-caption">指定位置</span>
-                        <div class="demo-row">
-                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.TopStart))">左上角</Button>
-                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.BottomEnd))">右下角</Button>
-                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => ShowToastAt(ToastPosition.CenterEnd))">右侧居中</Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="tag-text">标签文字</label>
+                                <input id="tag-text" @bind="_tagText" />
+                            </div>
+                            <div class="control-grid">
+                                <div class="control-field">
+                                    <span>Color</span>
+                                    <ShowcaseSelect TValue="Color" Id="tag-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_tagColor" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Variant</span>
+                                    <ShowcaseSelect TValue="TagVariant" Id="tag-variant" AriaLabel="Variant" Options="@(Enum.GetValues<TagVariant>())" @bind-Value="_tagVariant" />
+                                </div>
+                                <div class="control-field">
+                                    <span>Size</span>
+                                    <ShowcaseSelect TValue="Size" Id="tag-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_tagSize" />
+                                </div>
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_tagDismissible">Dismissible</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
 
-        <!-- 主题 -->
-        <section class="component-section" id="theme">
-            <div class="section-heading">
-                <div>
-                    <p class="section-index">06 / 主题</p>
-                    <h2>主题切换</h2>
-                </div>
-                <p class="section-description">
-                    跟随系统、浅色与深色三种模式由 ThemeProvider 解析，
-                    通过语义 Token 驱动。上方的每个区块都会实时换肤。
-                </p>
-            </div>
+                case "list":
+                    <ComponentPreview AnchorId="list"
+                                      Category="内容 / 选择"
+                                      Title="List + ListItem"
+                                      ComponentName="List / ListItem"
+                                      Description="可组合的静态选项列表，支持无选择、单选、多选和键盘导航。"
+                                      Parameters="@ListParameters"
+                                      Events="@ListEvents">
+                        <Preview>
+                            <div class="preview-list-wrap">
+                                @if (_listSelectionMode == SelectionMode.Multiple)
+                                {
+                                    <List SelectionMode="@_listSelectionMode"
+                                          SelectedValues="@_listSelectedValues"
+                                          SelectedValuesChanged="HandleListMultipleChanged"
+                                          AriaLabel="列表多选预览">
+                                        <ListItem Value="@DesignValue">设计</ListItem>
+                                        <ListItem Value="@DevelopmentValue">开发</ListItem>
+                                        <ListItem Value="@ProductValue">产品</ListItem>
+                                        <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
+                                    </List>
+                                }
+                                else
+                                {
+                                    <List SelectionMode="@_listSelectionMode"
+                                          AllowClear="@_listAllowClear"
+                                          SelectedValue="@_listSelectedValue"
+                                          SelectedValueChanged="HandleListSingleChanged"
+                                          AriaLabel="列表单选预览">
+                                        <ListItem Value="@DesignValue">设计</ListItem>
+                                        <ListItem Value="@DevelopmentValue">开发</ListItem>
+                                        <ListItem Value="@ProductValue">产品</ListItem>
+                                        <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
+                                    </List>
+                                }
+                                <span class="preview-feedback" role="status">@_listNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>SelectionMode</span>
+                                <ShowcaseSelect TValue="SelectionMode" Id="list-mode" AriaLabel="SelectionMode" Options="@(Enum.GetValues<SelectionMode>())" @bind-Value="_listSelectionMode" />
+                            </div>
+                            @if (_listSelectionMode != SelectionMode.Multiple)
+                            {
+                                <Checkbox Size="Size.Small" @bind-Value="_listAllowClear">AllowClear</Checkbox>
+                            }
+                        </Controls>
+                        <Notes>
+                            <span><code>ListItem.Selected</code> 是 List 内部计算状态，不是可设置参数；多选模式通过再次选择已选项移除它。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
 
-            <div class="theme-panel">
-                <div class="theme-panel__copy">
-                    <span class="panel-label">ThemeSwitch</span>
-                    <h3>选择画廊的外观。</h3>
-                    <p>
-                        <strong>跟随系统</strong> 随操作系统变化，<strong>浅色</strong> 与
-                        <strong>深色</strong> 则固定选择。在 Tauri 示例宿主中，窗口原生的
-                        磨砂背景与桌面模糊会随同一份状态一起切换。
-                    </p>
-                </div>
-                <div class="theme-panel__control">
-                    <ThemeSwitch Size="Size.Large" AriaLabel="画廊主题模式" />
-                    <div class="theme-readout">
-                        <span>实际生效：<strong>@(ThemeService.IsDark ? "深色" : "浅色")</strong></span>
-                        <span>模式：<strong>@ModeText(ThemeService.Mode)</strong></span>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+                case "rating":
+                    <ComponentPreview AnchorId="rating"
+                                      Category="内容 / 选择"
+                                      Title="Rating"
+                                      ComponentName="Rating"
+                                      Description="整数评分输入，支持只读展示、清除、键盘操作和 EditContext 校验。"
+                                      Parameters="@RatingParameters"
+                                      Events="@RatingEvents">
+                        <Preview>
+                            <div class="preview-stack">
+                                <Rating Value="@_ratingValue"
+                                        ValueChanged="HandleRatingChanged"
+                                        Max="@_ratingMax"
+                                        ReadOnly="@_ratingReadOnly"
+                                        AllowClear="@_ratingAllowClear"
+                                        Disabled="@_ratingDisabled"
+                                        AriaLabel="评分预览" />
+                                <span class="preview-feedback" role="status">当前评分：@_ratingValue / @_ratingMax</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="rating-max">Max</label>
+                                <input id="rating-max" type="number" min="1" max="10" @bind="_ratingMax" />
+                            </div>
+                            <div class="control-field">
+                                <label for="rating-value">Value</label>
+                                <input id="rating-value" type="number" min="0" max="10" @bind="_ratingValue" />
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_ratingReadOnly">ReadOnly</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_ratingAllowClear">AllowClear</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_ratingDisabled">Disabled</Checkbox>
+                        </Controls>
+                    </ComponentPreview>
+                    break;
 
-    <footer class="sample-footer">
-        <span>Aeterni UI / 组件画廊</span>
-        <span>真实组件 · 实时换肤 · 兼容 Tauri</span>
-    </footer>
+                case "combobox":
+                    <ComponentPreview AnchorId="combobox"
+                                      Category="内容 / 选择"
+                                      Title="ComboBox"
+                                      ComponentName="ComboBox&lt;TItem&gt;"
+                                      Description="默认下拉选择控件，支持泛型数据、模板、键盘导航和定位弹层，不包含自由输入搜索。"
+                                      Parameters="@ComboBoxParameters"
+                                      Events="@ComboBoxEvents"
+                                      Contracts="@ComboBoxContracts">
+                        <Preview>
+                            <div class="preview-form-control">
+                                <ComboBox TItem="string"
+                                          Items="@Cities"
+                                          Value="@_cityValue"
+                                          ValueChanged="@((string? value) => HandleCityChanged(value))"
+                                          Placeholder="@_comboPlaceholder"
+                                          Required="@_comboRequired"
+                                          Invalid="@_comboInvalid"
+                                          Disabled="@_comboDisabled"
+                                          AriaLabel="城市选择预览" />
+                                <span class="preview-feedback" role="status">当前选择：@(_cityValue ?? "（空）")</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <label for="combo-placeholder">Placeholder</label>
+                                <input id="combo-placeholder" @bind="_comboPlaceholder" />
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_comboRequired">Required</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_comboInvalid">Invalid</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_comboDisabled">Disabled</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span>当前实现是纯下拉选择：点击触发器打开选项，支持方向键、Home/End、Enter、Escape 和外部关闭。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
+                case "theme":
+                    <ComponentPreview AnchorId="theme"
+                                      Category="主题"
+                                      Title="ThemeProvider + ThemeSwitch"
+                                      ComponentName="ThemeProvider / ThemeSwitch"
+                                      Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换。"
+                                      Parameters="@ThemeParameters"
+                                      Events="@ThemeEvents"
+                                      Contracts="@ThemeContracts">
+                        <Preview>
+                            <div class="preview-stack">
+                                <ThemeSwitch Size="@_themeSwitchSize" AriaLabel="预览主题模式" ModeChanged="HandleThemeModeChanged" />
+                                <span class="preview-feedback" role="status">当前模式：@ModeText(ThemeService.Mode) · 实际主题：@(ThemeService.IsDark ? "深色" : "浅色")</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>ThemeSwitch Size</span>
+                                <ShowcaseSelect TValue="Size" Id="theme-size" AriaLabel="ThemeSwitch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_themeSwitchSize" />
+                            </div>
+                        </Controls>
+                        <Notes>
+                            <span>页面根部已经注册一个 <code>&lt;ThemeProvider /&gt;</code>；示例只调整现有 ThemeService，不直接修改 <code>data-theme</code>。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
+                case "feedback":
+                    <ComponentPreview AnchorId="feedback"
+                                      Category="反馈 / 浮层"
+                                      Title="Dialog、Alert、Confirm、Toast"
+                                      ComponentName="DialogProvider + IDialogService"
+                                      Description="通过同一个 DialogProvider 展示模态对话框、非模态 Alert 和非阻塞 Toast。"
+                                      Parameters="@FeedbackParameters"
+                                      Events="@FeedbackEvents"
+                                      Contracts="@FeedbackContracts">
+                        <Preview>
+                            <div class="preview-stack preview-feedback-actions">
+                                <div class="preview-action-row">
+                                    <Button Color="@FeedbackColor" OnClick="ShowPreviewAlert">Alert</Button>
+                                    <Button Variant="ButtonVariant.Outline" Color="@FeedbackColor" OnClick="ShowPreviewConfirm">Confirm</Button>
+                                    <Button Variant="ButtonVariant.Ghost" Color="@FeedbackColor" OnClick="ShowPreviewToast">Toast</Button>
+                                </div>
+                                <span class="preview-feedback" role="status">@_feedbackNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>Severity</span>
+                                <ShowcaseSelect TValue="Severity" Id="feedback-severity" AriaLabel="Severity" Options="@FeedbackSeverityOptions" TextSelector="@FeedbackSeverityText" @bind-Value="_feedbackSeverity" />
+                            </div>
+                            <div class="control-field">
+                                <span>ToastPosition</span>
+                                <ShowcaseSelect TValue="ToastPosition" Id="feedback-position" AriaLabel="ToastPosition" Options="@(Enum.GetValues<ToastPosition>())" @bind-Value="_feedbackPosition" />
+                            </div>
+                        </Controls>
+                        <Notes>
+                            <span>Alert 和 Toast 使用 <code>Duration</code> 控制自动关闭；设置为 <code>TimeSpan.Zero</code> 时保持持久显示。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+                }
+            </div>
+        </main>
+    </div>
 </div>
 
 @code {
-    private string _interactionNote = "将鼠标悬停或点击上方任一操作，即可查看其实时状态。";
+    private string _selectedComponent = "button";
+    private string _interactionNote = "点击预览组件即可查看事件反馈。";
+
+    private string _buttonText = "保存更改";
+    private ButtonVariant _buttonVariant = ButtonVariant.Default;
+    private Color _buttonColor = Color.Primary;
+    private Size _buttonSize = Size.Medium;
+    private ButtonType _buttonType = ButtonType.Button;
+    private bool _buttonLoading;
+    private bool _buttonDisabled;
+    private bool _buttonFullWidth;
+    private bool _buttonHasIcon = true;
+
+    private Orientation _buttonGroupOrientation = Orientation.Horizontal;
+    private bool _buttonGroupConnected = true;
+    private bool _buttonGroupFullWidth;
+    private bool _buttonGroupDisabled;
+
+    private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
+    private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;
+    private SurfacePadding _surfacePadding = SurfacePadding.Large;
+    private SurfaceRadius _surfaceRadius = SurfaceRadius.Large;
+    private bool _surfaceBordered = true;
+    private bool _surfaceFullWidth;
+
+    private SurfaceVariant _cardVariant = SurfaceVariant.Elevated;
+    private SurfaceElevation _cardElevation = SurfaceElevation.Small;
+    private SurfacePadding _cardPadding = SurfacePadding.Medium;
+    private bool _cardBordered = true;
+    private bool _cardInteractive = true;
+    private string _cardNote = "点击卡片查看 OnClick。";
+
+    private Size _iconSize = Size.Large;
+    private Color _iconColor = Color.Primary;
+    private bool _iconAccessible;
+    private bool _iconTitle;
+
     private string? _inputValue;
+    private InputType _inputType = InputType.Text;
+    private Size _inputSize = Size.Medium;
+    private string _inputPlaceholder = "调整右侧属性后输入";
+    private bool _inputReadOnly;
+    private bool _inputRequired;
+    private bool _inputInvalid;
+    private bool _inputDisabled;
+    private bool _inputFullWidth;
+
+    private string _formLabel = "显示名称";
+    private string? _formValue;
+    private bool _formDescription = true;
+    private bool _formRequired;
+    private bool _formInvalid;
+    private string _labelText = "独立 Label";
+
     private bool _checkboxValue;
-    private string _checkboxNote = "切换上面的绑定勾选框，可查看其值。";
+    private bool _checkboxIndeterminate = true;
+    private Size _checkboxSize = Size.Medium;
+    private bool _checkboxRequired;
+    private bool _checkboxInvalid;
+    private bool _checkboxDisabled;
+    private string _checkboxNote = "等待交互。";
+
+    private bool _switchValue;
+    private bool _switchRequired;
+    private bool _switchInvalid;
+    private bool _switchDisabled;
+    private string _switchNote = "等待交互。";
+
+    private string _tagText = "预览标签";
+    private Color _tagColor = Color.Primary;
+    private TagVariant _tagVariant = TagVariant.Soft;
+    private Size _tagSize = Size.Medium;
+    private bool _tagDismissible = true;
+    private bool _tagRemoved;
+
+    private SelectionMode _listSelectionMode = SelectionMode.Single;
+    private bool _listAllowClear = true;
+    private object? _listSelectedValue = "开发";
+    private IReadOnlyList<object?> _listSelectedValues = ["设计"];
+    private string _listNote = "选择一个列表项查看绑定结果。";
+
+    private int _ratingValue = 3;
+    private int _ratingMax = 5;
+    private bool _ratingReadOnly;
+    private bool _ratingAllowClear = true;
+    private bool _ratingDisabled;
+
+    private static readonly string[] Cities = ["北京", "上海", "广州", "深圳", "杭州", "成都"];
+    private const string DesignValue = "设计";
+    private const string DevelopmentValue = "开发";
+    private const string ProductValue = "产品";
+    private const string OperationsValue = "运营";
+    private static readonly bool[] BooleanOptions = [true, false];
+    private string? _cityValue;
+    private string _comboPlaceholder = "选择城市…";
+    private bool _comboRequired;
+    private bool _comboInvalid;
+    private bool _comboDisabled;
+
+    private Size _themeSwitchSize = Size.Large;
+
+    private Severity _feedbackSeverity = Severity.Info;
+    private ToastPosition _feedbackPosition = ToastPosition.TopEnd;
+    private string _feedbackNote = "选择一种反馈类型查看 DialogService。";
+
+    private Color FeedbackColor => _feedbackSeverity switch
+    {
+        Severity.Success => Color.Success,
+        Severity.Warning => Color.Warning,
+        Severity.Danger => Color.Danger,
+        _ => Color.Info
+    };
+
+    private static readonly ShowcaseNavGroup[] NavigationGroups =
+    [
+        new("基础", [
+            new("button", "Button", "动作按钮"),
+            new("button-group", "ButtonGroup", "按钮组合"),
+            new("surface", "Surface", "视觉容器"),
+            new("card", "Card", "结构化容器"),
+            new("icon", "Icon", "SVG 图标")
+        ]),
+        new("表单", [
+            new("input", "Input", "单行输入"),
+            new("form-field", "FormField", "字段组合"),
+            new("label", "Label", "原生标签"),
+            new("checkbox", "Checkbox", "复选框"),
+            new("switch", "Switch", "二态开关")
+        ]),
+        new("选择与状态", [
+            new("tag", "Tag", "标签状态"),
+            new("list", "List / ListItem", "列表选择"),
+            new("rating", "Rating", "整数评分"),
+            new("combobox", "ComboBox", "下拉选择")
+        ]),
+        new("系统反馈", [
+            new("theme", "Theme", "主题模式"),
+            new("feedback", "Dialog / Toast", "反馈与浮层")
+        ])
+    ];
+
+    private static readonly ShowcaseParameter[] ButtonParameters =
+    [
+        new("Variant", "ButtonVariant", "按钮视觉变体。", "Default"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("Size", "Size", "按钮尺寸。", "Default"),
+        new("Type", "ButtonType", "原生 button 类型。", "Button"),
+        new("Icon", "RenderFragment?", "兼容旧 API 的起始图标。"),
+        new("StartIcon", "RenderFragment?", "按钮左侧图标。"),
+        new("EndIcon", "RenderFragment?", "按钮右侧图标。"),
+        new("ChildContent", "RenderFragment?", "按钮文本或自定义内容。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("Loading", "bool", "加载状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] ButtonEvents =
+    [new("OnClick", "EventCallback<MouseEventArgs>", "按钮被点击时触发。")];
+
+    private static readonly ShowcaseParameter[] ButtonGroupParameters =
+    [
+        new("ChildContent", "RenderFragment?", "按钮组内容。"),
+        new("Orientation", "Orientation", "水平或垂直排列。", "Horizontal"),
+        new("Connected", "bool", "是否使用连体样式。", "true"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "按钮组无障碍名称。")
+    ];
+
+    private static readonly ShowcaseParameter[] SurfaceParameters =
+    [
+        new("Variant", "SurfaceVariant", "表面视觉变体。", "Default"),
+        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Padding", "SurfacePadding", "内容内边距。", "Medium"),
+        new("Radius", "SurfaceRadius", "圆角级别。", "Default"),
+        new("Bordered", "bool", "是否显示边框。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("ChildContent", "RenderFragment?", "容器内容。")
+    ];
+
+    private static readonly ShowcaseParameter[] CardParameters =
+    [
+        new("Variant", "SurfaceVariant", "卡片视觉变体。", "Default"),
+        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Padding", "SurfacePadding", "区域内边距。", "Medium"),
+        new("Bordered", "bool", "是否显示边框。", "true"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Interactive", "bool", "是否启用整卡交互语义。", "false"),
+        new("Header", "RenderFragment?", "头部区域。"),
+        new("ChildContent", "RenderFragment?", "主体区域。"),
+        new("Footer", "RenderFragment?", "底部区域。"),
+        new("AriaLabel", "string?", "交互卡片无障碍名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] CardEvents =
+    [new("OnClick", "EventCallback", "交互卡片被点击或键盘触发时调用。")];
+
+    private static readonly ShowcaseParameter[] IconParameters =
+    [
+        new("Definition", "IconDefinition", "必填的 SVG 图标定义。"),
+        new("Size", "Size", "图标尺寸。", "Default"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("AriaLabel", "string?", "提供后作为可访问图标；未提供时 aria-hidden。"),
+        new("Title", "string?", "SVG title 文本。")
+    ];
+
+    private static readonly ShowcaseParameter[] InputParameters =
+    [
+        new("Value", "string?", "当前输入值。"),
+        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
+        new("Type", "InputType", "原生输入类型。", "Text"),
+        new("Size", "Size", "输入尺寸。", "Default"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
+        new("InputMode", "string?", "原生 inputmode 属性。"),
+        new("Pattern", "string?", "原生 pattern 属性。"),
+        new("MinLength", "int?", "最小长度。"),
+        new("MaxLength", "int?", "最大长度。"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] InputEvents =
+    [
+        new("OnInput", "EventCallback<ChangeEventArgs>", "输入过程中触发。"),
+        new("OnChange", "EventCallback<ChangeEventArgs>", "值提交时触发。"),
+        new("OnFocus", "EventCallback<FocusEventArgs>", "获得焦点时触发。"),
+        new("OnBlur", "EventCallback<FocusEventArgs>", "失去焦点时触发。"),
+        new("OnKeyDown", "EventCallback<KeyboardEventArgs>", "键盘按键时触发。")
+    ];
+
+    private static readonly ShowcaseParameter[] FormFieldParameters =
+    [
+        new("Label", "string?", "字段标签。"),
+        new("Description", "string?", "帮助说明。"),
+        new("Error", "string?", "显式错误信息，优先于验证消息。"),
+        new("ChildContent", "RenderFragment?", "内部表单控件。"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("For", "Expression<Func<object?>>?", "关联 EditContext 字段。")
+    ];
+
+    private static readonly ShowcaseContract[] FormFieldContracts =
+    [new("FormFieldContext", "级联上下文", "向内部控件传递输入 ID、描述、禁用和校验状态。")];
+
+    private static readonly ShowcaseParameter[] LabelParameters =
+    [
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("For", "string?", "关联输入元素的 id。")
+    ];
+
+    private static readonly ShowcaseParameter[] CheckboxParameters =
+    [
+        new("Value", "bool", "当前选中值。"),
+        new("ValueChanged", "EventCallback<bool>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<bool>>?", "EditContext 字段表达式。"),
+        new("Indeterminate", "bool", "仅显示三态提示，交互后落定为 true/false。", "false"),
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("Size", "Size", "复选框尺寸。", "Default"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] CheckboxEvents =
+    [new("OnChange", "EventCallback<ChangeEventArgs>", "原生复选框发生变化时触发。")];
+
+    private static readonly ShowcaseParameter[] SwitchParameters =
+    [
+        new("Value", "bool", "当前开关值。"),
+        new("ValueChanged", "EventCallback<bool>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<bool>>?", "EditContext 字段表达式。"),
+        new("ChildContent", "RenderFragment?", "开关标签。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] SwitchEvents =
+    [new("OnChange", "EventCallback<ChangeEventArgs>", "原生 checkbox 发生变化时触发。")];
+
+    private static readonly ShowcaseParameter[] TagParameters =
+    [
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("StartIcon", "RenderFragment?", "起始图标。"),
+        new("EndIcon", "RenderFragment?", "结束图标。"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("Variant", "TagVariant", "标签变体。", "Default"),
+        new("Size", "Size", "标签尺寸。", "Default"),
+        new("Dismissible", "bool", "是否显示关闭按钮。", "false"),
+        new("DismissLabel", "string", "关闭按钮的无障碍名称。", "Remove tag")
+    ];
+
+    private static readonly ShowcaseEvent[] TagEvents =
+    [new("OnDismiss", "EventCallback", "关闭按钮被点击时触发。")];
+
+    private static readonly ShowcaseParameter[] ListParameters =
+    [
+        new("List.ChildContent", "RenderFragment?", "列表内容。"),
+        new("List.SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
+        new("List.SelectedValue", "object?", "单选当前值。"),
+        new("List.SelectedValues", "IReadOnlyList<object?>?", "多选当前值。"),
+        new("List.AllowClear", "bool", "单选时允许再次点击清除。", "false"),
+        new("List.AriaLabel", "string?", "列表无障碍名称。"),
+        new("ListItem.Value", "object?", "选项值。"),
+        new("ListItem.ChildContent", "RenderFragment?", "选项内容。"),
+        new("ListItem.LeadingContent", "RenderFragment?", "选项前置内容。"),
+        new("ListItem.TrailingContent", "RenderFragment?", "选项尾部内容。")
+    ];
+
+    private static readonly ShowcaseEvent[] ListEvents =
+    [
+        new("SelectedValueChanged", "EventCallback<object?>", "单选值发生变化时触发。"),
+        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<object?>>", "多选值发生变化时触发。"),
+        new("OnItemSelected", "EventCallback<object?>", "选项被选中或切换时触发。")
+    ];
+
+    private static readonly ShowcaseParameter[] RatingParameters =
+    [
+        new("Value", "int", "当前评分。", "0"),
+        new("ValueChanged", "EventCallback<int>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<int>>?", "EditContext 字段表达式。"),
+        new("Max", "int", "最大评分，必须大于 0。", "5"),
+        new("ReadOnly", "bool", "只读展示。", "false"),
+        new("AllowClear", "bool", "再次点击当前值时清零。", "false"),
+        new("Icon", "RenderFragment?", "自定义评分图标。"),
+        new("AriaLabel", "string", "评分组无障碍名称。", "Rating")
+    ];
+
+    private static readonly ShowcaseEvent[] RatingEvents =
+    [new("OnChange", "EventCallback<int>", "评分值发生变化时触发。")];
+
+    private static readonly ShowcaseParameter[] ComboBoxParameters =
+    [
+        new("Items", "IReadOnlyList<TItem>?", "可选项集合。"),
+        new("Value", "TItem?", "当前选中项。"),
+        new("ValueChanged", "EventCallback<TItem?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<TItem?>>?", "EditContext 字段表达式。"),
+        new("TextSelector", "Func<TItem, string>?", "将选项映射为展示文本。"),
+        new("Placeholder", "string?", "未选择时的占位文本。"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
+        new("EmptyContent", "RenderFragment?", "空列表内容。"),
+        new("AriaLabel", "string?", "无障碍名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] ComboBoxEvents =
+    [new("OnChange", "EventCallback<TItem?>", "选项确认后触发。")];
+
+    private static readonly ShowcaseContract[] ComboBoxContracts =
+    [new("ComboBox<TItem>", "泛型组件", "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。")];
+
+    private static readonly ShowcaseParameter[] ThemeParameters =
+    [
+        new("ThemeProvider", "无组件参数", "负责主题恢复、系统主题监听和页面主题同步。"),
+        new("ThemeSwitch.AriaLabel", "string", "主题切换组无障碍名称。", "Theme mode"),
+        new("ThemeSwitch.Size", "Size", "切换控件尺寸。", "Medium"),
+        new("ThemeSwitch.Disabled", "bool", "是否禁用模式切换。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] ThemeEvents =
+    [new("ModeChanged", "EventCallback<ThemeMode>", "主题模式被用户切换时触发。")];
+
+    private static readonly ShowcaseContract[] ThemeContracts =
+    [new("ThemeService", "服务", "维护 System、Light、Dark 模式与当前实际主题。")];
+
+    private static readonly ShowcaseParameter[] FeedbackParameters =
+    [
+        new("DialogOptions.Title", "string?", "标题。"),
+        new("DialogOptions.Severity", "Severity", "语义色。", "Default"),
+        new("DialogOptions.Icon", "RenderFragment?", "自定义图标。"),
+        new("DialogOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
+        new("DialogOptions.CloseOnEscape", "bool", "是否响应 Escape。", "true"),
+        new("DialogOptions.CloseOnOverlayClick", "bool", "是否允许点击遮罩关闭。", "false"),
+        new("AlertOptions.Position", "ToastPosition?", "Alert 位置。"),
+        new("AlertOptions.Duration", "TimeSpan?", "自动关闭时长。"),
+        new("AlertOptions.Blur", "bool", "是否启用自身背景模糊。", "true"),
+        new("ToastOptions.Position", "ToastPosition?", "Toast 位置。"),
+        new("ToastOptions.Duration", "TimeSpan?", "自动关闭时长。"),
+        new("ToastOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
+        new("ToastOptions.Blur", "bool", "是否启用自身背景模糊。", "true")
+    ];
+
+    private static readonly ShowcaseEvent[] FeedbackEvents =
+    [
+        new("AlertOptions.OnClosedAsync", "Func<Task>?", "Alert 关闭后回调。"),
+        new("ToastOptions.OnClosedAsync", "Func<Task>?", "Toast 关闭后回调。")
+    ];
+
+    private static readonly ShowcaseContract[] FeedbackContracts =
+    [
+        new("DialogProvider", "组件", "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。"),
+        new("IDialogService", "服务接口", "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。")
+    ];
+
+    private static readonly (Severity Severity, string Label, Color Color)[] FeedbackSeverities =
+    [
+        (Severity.Info, "Info", Color.Info),
+        (Severity.Success, "Success", Color.Success),
+        (Severity.Warning, "Warning", Color.Warning),
+        (Severity.Danger, "Danger", Color.Danger)
+    ];
+
+    private static readonly Severity[] FeedbackSeverityOptions =
+        FeedbackSeverities.Select(option => option.Severity).ToArray();
+
+    private RenderFragment? ButtonIcon => _buttonHasIcon ? CheckIcon : null;
 
     protected override void OnInitialized()
     {
         ThemeService.ThemeChanged += HandleThemeChanged;
     }
 
-    private void HandleThemeChanged(object? sender, EventArgs args)
-    {
-        _ = InvokeAsync(StateHasChanged);
-    }
+    private bool IsSelected(string id) => string.Equals(_selectedComponent, id, StringComparison.Ordinal);
 
-    private void HandleCheckboxChange(ChangeEventArgs _)
+    private void SelectComponent(string id)
     {
-        _checkboxNote = $"勾选框当前值为 {_checkboxValue}。";
+        _selectedComponent = id;
     }
 
     private static string ModeText(ThemeMode mode) => mode switch
@@ -743,107 +1132,103 @@
         _ => "深色"
     };
 
-    // ---- Switch / Tag / List / Rating / ComboBox demo state -----------------
+    private static string FeedbackSeverityText(Severity severity) =>
+        FeedbackSeverities.First(option => option.Severity == severity).Label;
 
-    private bool _switchValue;
-    private int _ratingValue = 3;
-    private string? _cityValue;
-    private object? _colorChoice;
-    private List<object?> _fruits = new() { FruitOption("苹果") };
-    private string _selectionNote = "选中上方列表或评分控件，即可查看状态。";
-    private static readonly string[] _cities =
-        ["北京", "上海", "广州", "深圳", "杭州", "成都", "武汉", "南京", "西安", "苏州"];
-    private List<SampleTag> _sampleTags =
-    [
-        new("生产环境", Color.Danger),
-        new("灰度发布", Color.Warning),
-        new("内部测试", Color.Success)
-    ];
+    private void HandleThemeChanged(object? sender, EventArgs args) => _ = InvokeAsync(StateHasChanged);
 
-    private static string ColorOption(string name) => name;
-
-    private static string FruitOption(string name) => name;
-
-    private Task OnColorSelected(object? value)
+    private void MarkInteraction(MouseEventArgs _)
     {
-        _colorChoice = value;
-        _selectionNote = value is null ? "已清除选择。" : $"已选择颜色：{value}。";
-        return InvokeAsync(StateHasChanged);
+        _interactionNote = $"已触发 OnClick：{DateTime.Now:HH:mm:ss}。";
     }
 
-    private Task OnFruitsChanged(IReadOnlyList<object?> values)
+    private void MarkCardInteraction()
     {
-        _fruits = values.ToList();
-        _selectionNote = _fruits.Count == 0
-            ? "未选择任何水果。"
-            : $"已选择：{string.Join("、", _fruits)}。";
-        return InvokeAsync(StateHasChanged);
+        _cardNote = $"卡片 OnClick 已触发：{DateTime.Now:HH:mm:ss}。";
     }
 
-    private void RemoveSampleTag(SampleTag tag)
+    private void HandleCheckboxChange(ChangeEventArgs _)
     {
-        _sampleTags.Remove(tag);
-        _selectionNote = $"已移除标签「{tag.Label}」。";
+        _checkboxNote = $"OnChange 已触发，当前值为 {_checkboxValue}。";
     }
 
-    private sealed record SampleTag(string Label, Color Color);
-
-    // ---- 演示数据 ------------------------------------------------------------
-
-    private static readonly (Color Color, string Label)[] SemanticColors =
+    private void HandleSwitchChange(ChangeEventArgs _)
     {
-        (Color.Primary, "主要"),
-        (Color.Neutral, "中性"),
-        (Color.Success, "成功"),
-        (Color.Warning, "警告"),
-        (Color.Danger, "危险"),
-        (Color.Info, "信息")
-    };
+        _switchNote = $"OnChange 已触发，当前值为 {_switchValue}。";
+    }
 
-    private static readonly (ButtonVariant Variant, string Label)[] ButtonVariants =
+    private void DismissTag()
     {
-        (ButtonVariant.Default, "默认"),
-        (ButtonVariant.Outline, "描边"),
-        (ButtonVariant.Ghost, "幽灵"),
-        (ButtonVariant.Text, "文字"),
-        (ButtonVariant.Link, "链接")
-    };
+        _tagRemoved = true;
+    }
 
-    private static readonly (SurfaceVariant Variant, string Label, string Note)[] SurfaceVariants =
+    private void RestoreTag(MouseEventArgs _)
     {
-        (SurfaceVariant.Default, "默认", "不透明、安静，可直接承载内容。"),
-        (SurfaceVariant.Subtle, "柔和", "轻染色层，安静地衬在内容之后。"),
-        (SurfaceVariant.Elevated, "浮起", "半透明并带有抬升阴影。"),
-        (SurfaceVariant.Glass, "玻璃", "带磨砂模糊的悬浮质感。")
-    };
+        _tagRemoved = false;
+    }
 
-    private static readonly (Severity Severity, Color Color, string Label)[] Severities =
+    private Task HandleListSingleChanged(object? value)
     {
-        (Severity.Info, Color.Info, "信息"),
-        (Severity.Success, Color.Success, "成功"),
-        (Severity.Warning, Color.Warning, "警告"),
-        (Severity.Danger, Color.Danger, "危险")
-    };
+        _listSelectedValue = value;
+        _listNote = value is null ? "单选已清除。" : $"单选值：{value}。";
+        return Task.CompletedTask;
+    }
 
-    private static readonly (string Name, IconDefinition Icon)[] SampleIcons =
+    private Task HandleListMultipleChanged(IReadOnlyList<object?> values)
     {
-        ("Plus", FontAwesomeIcons.Solid.Plus),
-        ("Check", FontAwesomeIcons.Solid.Check),
-        ("Xmark", FontAwesomeIcons.Solid.Xmark),
-        ("ArrowRight", FontAwesomeIcons.Solid.ArrowRight),
-        ("ChevronDown", FontAwesomeIcons.Solid.ChevronDown),
-        ("Gear", FontAwesomeIcons.Solid.Gear),
-        ("MagnifyingGlass", FontAwesomeIcons.Solid.MagnifyingGlass),
-        ("House", FontAwesomeIcons.Solid.House),
-        ("Bars", FontAwesomeIcons.Solid.Bars),
-        ("Sun", FontAwesomeIcons.Solid.Sun),
-        ("Moon", FontAwesomeIcons.Solid.Moon),
-        ("Spinner", FontAwesomeIcons.Solid.Spinner)
-    };
+        _listSelectedValues = values;
+        _listNote = values.Count == 0 ? "多选为空。" : $"多选值：{string.Join("、", values)}。";
+        return Task.CompletedTask;
+    }
 
-    // ---- 控件内使用的图标 ------------------------------------------------------
+    private Task HandleRatingChanged(int value)
+    {
+        _ratingValue = value;
+        return Task.CompletedTask;
+    }
 
-    private RenderFragment PlusIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Plus" />;
+    private Task HandleCityChanged(string? value)
+    {
+        _cityValue = value;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleThemeModeChanged(ThemeMode mode)
+    {
+        _feedbackNote = $"主题模式已切换为 {ModeText(mode)}。";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ShowPreviewAlert(MouseEventArgs _)
+    {
+        await DialogService.AlertAsync(
+            "这是一条来自组件展示库的 Alert。",
+            _feedbackPosition,
+            new AlertOptions { Title = "Alert 预览", Severity = _feedbackSeverity });
+        _feedbackNote = "Alert 已关闭。";
+    }
+
+    private async Task ShowPreviewConfirm(MouseEventArgs _)
+    {
+        var confirmed = await DialogService.ConfirmAsync(
+            "确认使用当前选项继续吗？",
+            new ConfirmOptions { Title = "Confirm 预览", Severity = _feedbackSeverity });
+        _feedbackNote = confirmed ? "Confirm 返回 true。" : "Confirm 返回 false。";
+    }
+
+    private void ShowPreviewToast(MouseEventArgs _)
+    {
+        DialogService.ShowToast(
+            "这是一条来自组件展示库的 Toast。",
+            _feedbackPosition,
+            new ToastOptions { Title = "Toast 预览", Severity = _feedbackSeverity });
+        _feedbackNote = $"Toast 已发送到 {_feedbackPosition}。";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= HandleThemeChanged;
+    }
 
     private RenderFragment CheckIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Check" />;
 
@@ -851,127 +1236,7 @@
 
     private RenderFragment ArrowRightIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" />;
 
-    private RenderFragment GearIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;
+    private sealed record ShowcaseNavGroup(string Label, IReadOnlyList<ShowcaseNavItem> Items);
 
-    private RenderFragment HouseIcon => @<Icon Definition="@FontAwesomeIcons.Solid.House" />;
-
-    private RenderFragment MagnifyingGlassIcon => @<Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />;
-
-    private RenderFragment SunIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Sun" />;
-
-    private RenderFragment XmarkIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Xmark" />;
-
-    // ---- 交互与反馈 --------------------------------------------------------------
-
-    private void MarkInteraction(MouseEventArgs _)
-    {
-        _interactionNote = $"已捕获一次交互：{DateTime.Now:HH:mm:ss}。";
-    }
-
-    private void OpenInteractionCard()
-    {
-        _interactionNote = $"交互卡片已打开：{DateTime.Now:HH:mm:ss}。";
-    }
-
-    private bool _working;
-
-    private async Task SimulateWorkAsync(MouseEventArgs args)
-    {
-        if (_working)
-        {
-            return;
-        }
-
-        _working = true;
-        _interactionNote = "正在保存…（按钮文字与图标保持可见，仅叠加加载遮罩）";
-        await InvokeAsync(StateHasChanged);
-        await Task.Delay(1800);
-        _working = false;
-        _interactionNote = $"模拟保存完成：{DateTime.Now:HH:mm:ss}。";
-    }
-
-    private async Task ShowAlertAsync(Severity severity)
-    {
-        await DialogService.AlertAsync(
-            severity switch
-            {
-                Severity.Success => "更改已保存。",
-                Severity.Warning => "该操作会覆盖之前的草稿。",
-                Severity.Danger => "操作失败，请重试。",
-                _ => "后台刷新已完成。"
-            },
-            new AlertOptions
-            {
-                Title = SeverityText(severity),
-                Severity = severity
-            });
-    }
-
-    private async Task ShowAlertAt(ToastPosition position)
-    {
-        await DialogService.AlertAsync(
-            "Alert 支持像 Toast 一样指定任意位置，避免遮挡页面顶部。",
-            position,
-            new AlertOptions
-            {
-                Title = "位置示例",
-                Severity = Severity.Danger,
-                Icon = XmarkIcon
-            });
-    }
-
-    private async Task ShowConfirmAsync(MouseEventArgs _)
-    {
-        var confirmed = await DialogService.ConfirmAsync(
-            "该操作无法撤销，确定继续吗？",
-            new ConfirmOptions
-            {
-                Title = "删除条目",
-                Severity = Severity.Danger
-            });
-
-        _interactionNote = confirmed ? "已确认删除。" : "已取消操作。";
-    }
-
-    private void ShowToast(Severity severity)
-    {
-        DialogService.ShowToast(
-            severity switch
-            {
-                Severity.Success => "保存成功。",
-                Severity.Warning => "提交前请检查你的输入。",
-                Severity.Danger => "出错了。",
-                _ => "收到一条新的通知。"
-            },
-            new ToastOptions
-            {
-                Title = SeverityText(severity),
-                Severity = severity
-            });
-    }
-
-    private void ShowToastAt(ToastPosition position)
-    {
-        DialogService.ShowToast(
-            "Toast 可以停靠在窗口的任意边缘。",
-            position,
-            new ToastOptions
-            {
-                Title = "位置示例",
-                Severity = Severity.Info
-            });
-    }
-
-    private static string SeverityText(Severity severity) => severity switch
-    {
-        Severity.Success => "成功",
-        Severity.Warning => "警告",
-        Severity.Danger => "危险",
-        _ => "信息"
-    };
-
-    public void Dispose()
-    {
-        ThemeService.ThemeChanged -= HandleThemeChanged;
-    }
+    private sealed record ShowcaseNavItem(string Id, string Label, string Summary);
 }

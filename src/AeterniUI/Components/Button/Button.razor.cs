@@ -60,6 +60,7 @@ public partial class Button : AeterniComponent
             .Add($"aeterni-button--{ColorClass}")
             .Add("is-icon-only", IsIconOnly)
             .Add("is-loading", Loading)
+            .Add("is-disabled", IsEffectivelyDisabled)
             .Add("is-full-width", FullWidth);
     }
 

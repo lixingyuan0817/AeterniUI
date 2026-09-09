@@ -6,11 +6,11 @@
     min-width: 0;
     height: var(--aeterni-control-height-md);
     padding: 0 var(--aeterni-control-padding-x-md);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
     border-radius: var(--aeterni-radius-input);
     outline: none;
-    background: var(--aeterni-bg-surface);
-    color: var(--aeterni-text-primary);
+    background: var(--aeterni-control-background);
+    color: var(--aeterni-control-foreground);
     font: inherit;
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-normal);
@@ -18,48 +18,54 @@
 }
 
 .aeterni-input::placeholder {
-    color: var(--aeterni-field-placeholder);
+    color: var(--aeterni-control-foreground-placeholder);
     opacity: 1;
 }
 
 .aeterni-input:hover:not(:disabled):not([readonly]) {
-    border-color: var(--aeterni-brand-500);
+    border-color: var(--aeterni-control-border-hover);
 }
 
 .aeterni-input:focus,
 .aeterni-input:focus-visible {
-    border-color: var(--aeterni-brand-500);
+    border-color: var(--aeterni-control-border-focus);
     box-shadow: none;
     outline: none;
 }
 
 .aeterni-input:disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
-    background: var(--aeterni-bg-disabled);
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+    color: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-input:disabled::placeholder {
+    color: var(--aeterni-control-foreground-disabled);
 }
 
 .aeterni-input[readonly],
 .aeterni-input.is-readonly {
     cursor: default;
-    background: var(--aeterni-bg-secondary);
+    background: var(--aeterni-control-background-readonly);
+    color: var(--aeterni-control-foreground-readonly);
 }
 
 .aeterni-input.is-invalid:not(:disabled),
 .aeterni-input[aria-invalid="true"]:not(:disabled) {
-    border-color: var(--aeterni-danger);
+    border-color: var(--aeterni-control-border-invalid);
 }
 
 /* Invalid inputs keep their danger border on hover and focus — the state cue
    must not be replaced by the neutral/theme hover treatment. */
 .aeterni-input.is-invalid:not(:disabled):not([readonly]):hover,
 .aeterni-input[aria-invalid="true"]:not(:disabled):not([readonly]):hover {
-    border-color: var(--aeterni-danger);
+    border-color: var(--aeterni-control-border-invalid);
 }
 
 .aeterni-input.is-invalid:not(:disabled):focus,
 .aeterni-input[aria-invalid="true"]:not(:disabled):focus {
-    border-color: var(--aeterni-danger);
+    border-color: var(--aeterni-control-border-invalid);
 }
 
 .aeterni-input--sm {

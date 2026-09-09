@@ -273,7 +273,7 @@ protected override StyleBuilder BuildStyle()
 
 ```css
 .aeterni-button {
-    background: var(--aeterni-brand-500);
+    background: var(--aeterni-color-brand-default);
     color: var(--aeterni-text-inverse);
     border-radius: var(--aeterni-radius-button);
     transition: var(--aeterni-transition-button);
@@ -320,11 +320,20 @@ background: #8b4df6;
 | 主要文本 | `--aeterni-text-primary` |
 | 次要文本 | `--aeterni-text-secondary`、`--aeterni-text-tertiary` |
 | 边框 | `--aeterni-border`、`--aeterni-border-strong` |
-| 悬浮表面 | `--aeterni-surface-hover` |
-| 按下表面 | `--aeterni-surface-active` |
-| 选中表面 | `--aeterni-surface-selected` |
-| 品牌动作 | `--aeterni-brand-500`、`--aeterni-brand-600` |
-| 状态反馈 | `--aeterni-success`、`--aeterni-warning`、`--aeterni-danger`、`--aeterni-info` |
+| 悬浮表面 | `--aeterni-state-background-hover` |
+| 按下表面 | `--aeterni-state-background-active` |
+| 选中/勾选表面 | `--aeterni-state-background-selected`、`--aeterni-state-background-checked` |
+| 禁用控件 | `--aeterni-state-color-disabled`、`--aeterni-state-background-disabled`、`--aeterni-state-border-disabled` |
+| 校验失败 | `--aeterni-state-color-invalid`、`--aeterni-state-background-invalid`、`--aeterni-state-border-invalid` |
+| 只读控件 | `--aeterni-state-color-readonly`、`--aeterni-state-background-readonly` |
+| 占位/弱化文本 | `--aeterni-state-color-placeholder`、`--aeterni-state-color-muted` |
+| 反色内容 | `--aeterni-state-color-inverse`、`--aeterni-state-background-inverse` |
+| 品牌动作 | `--aeterni-color-brand-default`、`--aeterni-color-brand-hover`、`--aeterni-color-brand-active`、`--aeterni-color-brand-disabled`、`--aeterni-color-brand-soft` |
+| 状态反馈 | `--aeterni-color-success-*`、`--aeterni-color-warning-*`、`--aeterni-color-danger-*`、`--aeterni-color-info-*`、`--aeterni-color-neutral-*` |
+
+每个颜色族都提供 `default`、`hover`、`active`、`disabled` 状态前景/边框别名，并提供 `soft` 柔和背景别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-hover` 和 `--aeterni-color-info-soft`。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
+
+常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*`；焦点环使用 `--aeterni-control-focus-ring` 或现有的 focus 尺寸 Token。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
 
 组件不得通过自己增加 `.dark`、`.light` 或媒体查询来实现主题切换。主题由 `ThemeProvider` 设置，组件只消费语义 Token。
 

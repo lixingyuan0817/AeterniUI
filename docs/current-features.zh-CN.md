@@ -40,6 +40,11 @@
 
 - 提供品牌色、语意色、背景色、文字色、边框色、阴影、圆角、间距、字号和动效 Token。
 - 提供 Light 和 Dark 两套主题 Token。
+- 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 状态别名；组件无需直接选择色阶。
+- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`，其中 `selected` 与 `checked` 使用同一套表面状态。
+- 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
+- 提供通用控件组合别名：`--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*` 和 `--aeterni-control-focus-ring`，方便组件直接组合控件状态。
+- 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
 - 支持系统主题跟随。
 - 主题切换由 `ThemeService` 管理。
 - `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
@@ -60,6 +65,7 @@
 - `ChildContent`、`Loading`、`Disabled`、`FullWidth`。
 - `AriaLabel`、`OnClick`。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
+- 禁用状态统一消费 `--aeterni-state-*` Token，保持所有颜色和变体的前景、背景可读；`Outline` 和 `Ghost` 仅保留各自的边框结构，`Link` 禁用时不会显示下划线。
 - 加载状态包含 spinner、`aria-busy` 和禁用交互。
 - Link 变体悬浮时只显示下划线，不显示背景色。
 

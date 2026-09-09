@@ -4,7 +4,7 @@
 
 .aeterni-dialog-provider__alert,
 .aeterni-dialog-provider__toast {
-    --aeterni-dialog-accent: var(--aeterni-brand-500);
+    --aeterni-dialog-accent: var(--aeterni-color-brand-default);
 
     position: relative;
     display: grid;
@@ -28,22 +28,22 @@
 
 .aeterni-dialog-provider__alert--info,
 .aeterni-dialog-provider__toast--info {
-    --aeterni-dialog-accent: var(--aeterni-info-500);
+    --aeterni-dialog-accent: var(--aeterni-color-info-default);
 }
 
 .aeterni-dialog-provider__alert--success,
 .aeterni-dialog-provider__toast--success {
-    --aeterni-dialog-accent: var(--aeterni-success-500);
+    --aeterni-dialog-accent: var(--aeterni-color-success-default);
 }
 
 .aeterni-dialog-provider__alert--warning,
 .aeterni-dialog-provider__toast--warning {
-    --aeterni-dialog-accent: var(--aeterni-warning-500);
+    --aeterni-dialog-accent: var(--aeterni-color-warning-default);
 }
 
 .aeterni-dialog-provider__alert--danger,
 .aeterni-dialog-provider__toast--danger {
-    --aeterni-dialog-accent: var(--aeterni-danger-500);
+    --aeterni-dialog-accent: var(--aeterni-color-danger-default);
 }
 
 .aeterni-dialog-provider__alert.is-no-blur,
