@@ -7,8 +7,7 @@
 /.sample-publish/
 
 # Rust generated output
-tauri/target/
-tauri/src-tauri/target/
+src-tauri/target/
 
 # IDE and OS files
 .DS_Store

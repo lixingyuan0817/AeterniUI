@@ -2,11 +2,18 @@
 
 版本基线：`0.1`
 
-状态：实施中
+状态：v0.1 已完成，v0.2 规划中
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
-## TODO 总览
+## 文档边界
+
+- `docs/current-features.zh-CN.md` 是当前已实现公共 API 和行为的唯一功能事实源；组件参数和行为以源码为准。
+- 本文档中的 v0.1 组件小节保留“原计划 API”和验收记录，用于说明交付过程，不应当被当作当前 API 说明。
+- 原计划与实际交付不一致时，以任务记录和 `current-features.zh-CN.md` 为准；例如当前 `ComboBox` 是纯下拉选择，不提供计划中的输入筛选、`ReadOnly` 或 `Clearable` 参数。
+- v0.2 及后续章节是 TODO/规划，不得在功能文档或项目索引中写成已实现能力。
+
+## v0.1 交付总览
 
 - [x] 记录组件路线图和验收规则
 - [x] 1. `FormField` + `Label`
@@ -45,7 +52,7 @@ Input
 
 目标：提供表单字段的统一标签、帮助文本、错误文本和控件插槽。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - 公开组件命名为 `FormField`，不额外创建仅转发的公共 `Field`；`Field` 作为概念名称保留在文档中。
 - `Label`、`Description`、`Error`、`ChildContent`、`Required`、`Disabled`、`Invalid`。
@@ -59,7 +66,7 @@ Input
 
 目标：提供原生复选框语义和稳定的布尔值绑定。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - `Value`、`ValueChanged`、`ValueExpression`，支持 `@bind-Value`。
 - `Indeterminate` 仅作为显示状态；点击后进入明确的 `true/false` 值。
@@ -73,7 +80,7 @@ Input
 
 目标：提供适合即时开关设置的二态控件，不把 Checkbox 的视觉样式直接复制成 Switch。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - `Value`、`ValueChanged`、`ValueExpression`、`Disabled`、`Required`、`Invalid`。
 - `Label`/`ChildContent`、`AriaLabel`、`OnChange`。
@@ -86,7 +93,7 @@ Input
 
 目标：提供用于分类、状态和筛选条件的紧凑标签。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - `ChildContent`、`Color`、`Size`、`Variant`。
 - `Dismissible`、`OnDismiss`、`AriaLabel`，可选 `StartIcon`/`EndIcon`。
@@ -99,7 +106,7 @@ Input
 
 目标：提供可组合的选项列表，先覆盖静态列表和单/多选，不承担虚拟化和远程数据加载。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - `List` 提供 `SelectionMode`（无选择、单选、多选）、`SelectedValue`/`SelectedValues`、对应变更事件和 `AriaLabel`。
 - `ListItem` 提供 `Value`、`ChildContent`、`Disabled`、`Selected`、`LeadingContent`/`TrailingContent`。
@@ -113,7 +120,7 @@ Input
 
 目标：提供紧凑的整数评分输入和只读展示。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - `Value`、`ValueChanged`、`ValueExpression`、`Max`、`ReadOnly`、`Disabled`。
 - `AllowClear`、`AriaLabel`、`OnChange`，支持键盘方向键和 Home/End。
@@ -126,7 +133,7 @@ Input
 
 目标：提供可输入筛选、键盘导航和选项选择的组合框。
 
-计划 API：
+原计划 API（历史记录，当前 API 请以 `current-features.zh-CN.md` 为准）：
 
 - 泛型组件 `ComboBox<TItem>`，提供 `Items`、`Value`、`ValueChanged`、`ValueExpression`。
 - 使用 `TextSelector` 将 `TItem` 映射为展示文本；允许自定义 `ItemTemplate` 和空状态内容。
@@ -154,7 +161,7 @@ Input
 | Checkbox | 已完成 | 通过 | 原生 `<input type="checkbox">` + 最小 JS 处理 indeterminate；已在示例与文档同步 |
 | Switch | 已完成 | 通过 | 原生 checkbox + `role="switch"`，无 JS；示例与文档已同步 |
 | Tag | 已完成 | 通过 | 三种变体 + 语意色 + 尺寸 + 可关闭（复用 Button 图标能力） |
-| List + ListItem | 已完成 | 通过 | `listbox`/`option` 语义、单选/多选、方向键与空格回车选择；示例与文档已同步 |
+| List + ListItem | 已完成 | 通过 | `listbox` 容器、原生 button 选项与 `aria-selected`、单选/多选、方向键与空格回车选择；示例与文档已同步 |
 | Rating | 已完成 | 通过 | 整数评分、radiogroup 语义、方向键与 Home/End、AllowClear/ReadOnly |
 | ComboBox | 已完成 | 通过 | 交付为纯下拉选择（点击弹出、无输入搜索，方向键/Enter/Esc/外部点击/滚动关闭）；原计划中的输入筛选不适用 |
 

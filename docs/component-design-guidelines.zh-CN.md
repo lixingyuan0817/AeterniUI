@@ -78,10 +78,10 @@ Services/Impl/
 - `.razor`：DOM 结构、语义属性、事件绑定和渲染分支。
 - `.razor.cs`：参数、状态、事件处理、class/style 构建和生命周期。
 - `.razor.css`：仅在确实需要 CSS isolation 时使用。
-- `wwwroot/css/aeterni_ui.css`：当前组件库统一加载的 Token 和组件样式文件。
+- `wwwroot/css/aeterni_ui.css`：当前组件库统一加载的 Token、主题变量和必要的主题别名；不得在此文件新增组件样式。
 - `.razor.js`：仅保存该组件需要的浏览器行为，不保存业务状态。
 
-当前组件库的公共样式集中在 `wwwroot/css/aeterni_ui.css`。新增组件时，应在文件中使用独立的组件样式区块，并保留清晰的组件标题。未来如果样式体量明显增大，再单独拆分样式文件。
+组件公共样式使用各组件目录下的 `.razor.css` 做 CSS isolation；新增组件时应将组件选择器放在自己的隔离样式文件中。`wwwroot/css/aeterni_ui.css` 只维护共享 Token、主题变量和必要的主题别名，不能作为组件样式的集中入口。
 
 ## 3. 组件公共 API
 
@@ -618,7 +618,7 @@ await DialogService.AlertAsync("Saved", ToastPosition.TopCenter);
 三种弹出内容的职责必须区分：
 
 - `Show` / `ConfirmAsync` 是模态内容，显示遮罩、锁定背景滚动并管理焦点；默认只有最顶层 Dialog 响应 Escape。
-- `AlertAsync` 是非模态、不阻塞页面的单行语义化提示，默认底部居中，可指定任意 `ToastPosition` 位置以避开页面顶部元素；支持 `Severity`、`Icon` 和手动关闭。过长内容必须省略，不能通过增加第二行撑高提示。
+- `AlertAsync` 是非模态、不阻塞页面的语义化提示，默认底部居中，可指定任意 `ToastPosition` 位置以避开页面顶部元素；支持 `Severity`、`Icon` 和手动关闭。消息内容最多显示两行，过长内容截断。
 - `AlertAsync` 和 `ShowToast` 默认自动关闭，四边环绕的边框进度条由 CSS 线性动画驱动（不显示倒计时文本，渲染过程不触发中间态重绘，多消息同时显示时也不会抖动）；将对应 options 的 `Duration` 设置为 `TimeSpan.Zero` 可改为仅手动关闭，设置为 `null` 时使用 `AddAeterniUI` 的全局默认值。
 - Alert 与 Toast 的卡片采用类似 iOS 通知中心的展示方式：磨砂圆角卡片、左侧图标徽标、标题与两行内内容、右侧顶部的轻量关闭按钮。
 - Alert 和 Toast 的语意背景沿用 Button 的 `Info`、`Success`、`Warning`、`Danger` 色值映射；`Blur = false` 可以关闭通知自身的背景模糊。

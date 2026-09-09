@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Publishes the AeterniUI Blazor sample so the repo-root "dist" folder directly
-# contains the deployable site (index.html at its root). Tauri loads ../../dist.
+# contains the deployable site (index.html at its root). Tauri loads ../dist
+# from the root-level src-tauri configuration.
 #
 # Usage: sample-publish.sh [Debug|Release]
 #

@@ -10,6 +10,8 @@
 3. `docs/component-roadmap.zh-CN.md` —— 当前任务、依赖、验收，以及“每项完成的固定交付物”。
 4. `docs/current-features.zh-CN.md` —— 公共表面事实源，先确认目标能力是否已存在，避免重复造轮子。
 
+涉及项目结构、入口、宿主、构建命令或模块定位时，额外阅读 `docs/project-index.zh-CN.md`；它只负责导航，不替代组件契约、功能清单或路线图。
+
 ## 2. 高频硬规则（速查）
 
 - 所有组件直接或间接继承 `AeterniComponent`；根元素使用 `BuildAttributes()`，class 用 `BuildClass()`。
@@ -34,7 +36,7 @@
 ```bash
 dotnet build aeterni_ui.slnx                       # 静态检查主门禁
 ./scripts/sample-publish.sh Debug                  # 重新生成 dist/（Tauri/静态预览用）
-cd tauri/src-tauri && cargo check                  # Rust 宿主编译检查
+cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
 node --check <file>.razor.js                       # 组件 JS 语法检查
 ```
 
