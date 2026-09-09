@@ -367,12 +367,14 @@
                             <Checkbox Size="Size.Small" @bind-Value="_radioInvalid">Invalid</Checkbox>
                         </Controls>
                         <Preview>
-                            <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
-                                <Radio TValue="string" Value="@("设计")">设计</Radio>
-                                <Radio TValue="string" Value="@("开发")">开发</Radio>
-                                <Radio TValue="string" Value="@("产品")">产品</Radio>
-                            </RadioGroup>
-                            <code class="preview-value">Value: @_radioValue</code>
+                            <div class="preview-stack">
+                                <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
+                                    <Radio TValue="string" Value="@("设计")">设计</Radio>
+                                    <Radio TValue="string" Value="@("开发")">开发</Radio>
+                                    <Radio TValue="string" Value="@("产品")">产品</Radio>
+                                </RadioGroup>
+                                <code class="preview-value">Value: @_radioValue</code>
+                            </div>
                         </Preview>
                     </ComponentPreview>
                     break;
@@ -395,7 +397,7 @@
                                       Parameters="@FormFieldParameters"
                                       Contracts="@FormFieldContracts">
                         <Preview>
-                            <div class="preview-form-control">
+                            <div class="preview-form-control preview-form-control--fill">
                                 <FormField Label="@_formLabel"
                                            Description="@(_formDescription ? "辅助说明会通过 aria-describedby 关联。" : null)"
                                            Error="@(_formInvalid ? "请检查此字段。" : null)"
@@ -662,7 +664,7 @@
                                       Events="@ComboBoxEvents"
                                       Contracts="@ComboBoxContracts">
                         <Preview>
-                            <div class="preview-form-control">
+                            <div class="preview-form-control preview-form-control--fill">
                                 <ComboBox TItem="string"
                                           Items="@Cities"
                                           Value="@_cityValue"

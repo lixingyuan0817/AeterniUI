@@ -217,8 +217,9 @@
 .preview-stack {
     display: grid;
     gap: 14px;
-    justify-items: start;
+    justify-items: center;
     width: min(100%, 440px);
+    text-align: center;
 }
 
 .preview-stack.preview-feedback-actions {
@@ -227,9 +228,11 @@
 
 .preview-feedback {
     display: block;
+    max-width: 100%;
     min-height: 1.25em;
     color: var(--aeterni-text-secondary);
     font-size: 12px;
+    text-align: center;
 }
 
 .preview-surface-content,
@@ -274,7 +277,16 @@
 .preview-form-control {
     display: grid;
     gap: 12px;
+    justify-items: center;
     width: min(100%, 460px);
+    text-align: center;
+}
+
+/* FormField/ComboBox fill the preview row (their layout is width-driven);
+   default-width inputs stay centered. */
+.preview-form-control--fill {
+    justify-items: stretch;
+    text-align: start;
 }
 
 .preview-value {
@@ -300,12 +312,14 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 10px;
 }
 
 .preview-feedback-actions {
     display: grid;
     gap: 16px;
+    justify-items: center;
 }
 
 /* Text and numeric fields remain native inputs; enum and boolean properties
