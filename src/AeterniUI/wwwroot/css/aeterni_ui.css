@@ -347,9 +347,9 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    --aeterni-surface-hover: rgba(116, 49, 223, .09);
-    --aeterni-surface-active: rgba(116, 49, 223, .15);
-    --aeterni-surface-selected: rgba(139, 77, 246, .13);
+    --aeterni-surface-hover: rgba(0, 0, 0, .06);
+    --aeterni-surface-active: rgba(0, 0, 0, .10);
+    --aeterni-surface-selected: rgba(0, 0, 0, .10);
     --aeterni-overlay: rgba(0, 0, 0, .42);
     --aeterni-text: #201B29;
     --aeterni-text-primary: var(--aeterni-text);
@@ -521,9 +521,9 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    --aeterni-surface-hover: rgba(170, 120, 255, .12);
-    --aeterni-surface-active: rgba(170, 120, 255, .19);
-    --aeterni-surface-selected: rgba(139, 77, 246, .18);
+    --aeterni-surface-hover: rgba(255, 255, 255, .10);
+    --aeterni-surface-active: rgba(255, 255, 255, .16);
+    --aeterni-surface-selected: rgba(255, 255, 255, .14);
     --aeterni-overlay: rgba(0, 0, 0, .64);
     --aeterni-text: #F2F3F5;
     --aeterni-text-primary: var(--aeterni-text);

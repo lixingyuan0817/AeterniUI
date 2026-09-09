@@ -1,6 +1,6 @@
 # AeterniUI 组件路线图
 
-版本基线：`0.1`
+文档版本：`0.1.0`
 
 状态：v0.1 已完成，v0.2 规划中
 
@@ -143,7 +143,7 @@ Input
 
 ## 第二阶段（v0.2）计划
 
-状态：规划中。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐高频基础控件与浮层能力。
+状态：规划中。功能新增将递增次版本号（例如 `0.1.0` → `0.2.0`）；问题修复递增补丁版本号（例如 `0.1.0` → `0.1.1`）；破坏性公共 API 变更递增主版本号。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐高频基础控件与浮层能力。
 
 ### TODO 总览
 
@@ -172,38 +172,73 @@ Input/Input 样式族
 
 ### 8. Textarea
 
-- 多行文本控件，`Value` / `ValueChanged` / `ValueExpression`，`Placeholder`、`Rows`、`Resize`（none/vertical）、`Disabled`、`ReadOnly`、`Required`、`Invalid`、`FullWidth`。
-- 复用 Input 的边框/状态视觉与 `EditContext` 校验、`FormField` 级联约定。
-- 验收：默认、只读、禁用、无效、尺寸与窄屏换行稳定；键盘与表单校验同步 `aria-invalid`。
+状态：未开始
+
+目标：提供复用 `Input` 语义和校验约定的多行文本控件。
+
+依赖：`Input`、`FormField`。
+
+验收重点：Value 绑定、Rows/Resize、只读/禁用/无效状态、窄屏换行、`aria-invalid` 和 EditContext 校验。
+
+暂不包含：富文本编辑、自动高度和异步校验。
 
 ### 9. Radio + RadioGroup
 
-- `RadioGroup<TItem>`：`Items` + `Value`/`ValueChanged` + `ItemTemplate`/`Radio` 子项两种用法；`Orientation`（Horizontal/Vertical）、`Name`、`Disabled`、`AriaLabel`。
-- 容器输出 `role="radiogroup"`；`Radio` 输出原生 `<input type="radio">` 语义，选中态同步 `aria-checked`。
-- 键盘：方向键在同组内移动焦点并选中，Tab 单点进出组（roving focus）。
-- 接入 `EditContext` 校验与 `FormField` 级联。
+状态：未开始
+
+目标：提供单选项及其分组语义。
+
+依赖：`FormField`、现有 List 的键盘交互约定。
+
+验收重点：原生 radio 语义、`radiogroup`、方向键导航、Tab 单点进出组、禁用状态和表单校验。
+
+暂不包含：远程选项、虚拟化和多选行为。
 
 ### 10. Progress
 
-- `Value`/`Max`（默认 100 且支持百分比显示）、`Variant`（Linear/Ring）、`Indeterminate`、`Color`（沿用语意色）、`Size`。
-- 输出 `role="progressbar"` 与 `aria-valuenow/min/max`；纯 CSS 动画 + reduced-motion 降级；可被 Button Loading 的环形指示复用。
+状态：未开始
+
+目标：提供线性和环形进度展示，并复用统一语意色和尺寸 Token。
+
+依赖：现有 Token 和 Button Loading 的视觉约定。
+
+验收重点：Value/Max、Indeterminate、progressbar ARIA、动画和 reduced-motion。
+
+暂不包含：上传任务管理、远程数据源和业务状态管理。
 
 ### 11. Tooltip
 
-- 文本/内容触发器 + `Placement`（上下左右 + 起止），hover/focus-visible 触发，Esc/点击外部关闭可选；使用 `PopupHost` 定位。
-- 保持键盘可聚焦目标可见焦点；不阻塞页面交互。
+状态：未开始
+
+目标：提供不阻塞页面的 hover/focus-visible 辅助说明。
+
+依赖：`PopupHost`。
+
+验收重点：Placement、键盘焦点、Escape/点击外部关闭、窄屏贴边和无障碍关联。
+
+暂不包含：复杂交互内容和模态行为。
 
 ### 12. PopupHost + Popover
 
-- `PopupHost`：应用根部挂载一次，提供“相对锚点元素定位、视口贴边/翻转、点击外部与滚动关闭、多实例”的基础能力（把 ComboBox 现役 JS 逻辑提升为通用层）。
-- `Popover`：基于 PopupHost 的浮层表面（关闭按钮、标题可选、语义 `role="dialog"` 或非模态）。
-- 迁移后 ComboBox/后续 Tooltip 不再依赖组件内 fixed 定位，能放进带 `backdrop-filter`/`overflow` 的容器内使用。
+状态：未开始
+
+目标：提供通用的锚定、翻转、贴边、点击外部和滚动关闭能力。
+
+依赖：现有 ComboBox 弹层定位逻辑。
+
+验收重点：多实例、视口边界、`backdrop-filter`/`overflow` 容器兼容、Popover 的模态/非模态语义。
+
+后续影响：完成后迁移 ComboBox，并供 Tooltip 使用。
 
 ### 13.（可延后）Tabs、Drawer、Empty、Divider
 
-- `Tabs`/`TabList`/`Tab`/`TabPanel`：tablist 语义与方向键切换。
-- `Drawer`：左侧/右侧滑入的模态面板（沿用 Dialog 的焦点/滚动锁定约定）。
-- `Empty`：空状态占位。`Divider`：分割线（水平/垂直）。
+状态：未开始
+
+目标：补充导航、模态面板、空状态和分隔线基础组件。
+
+验收重点：Tabs 的 tablist/方向键语义；Drawer 的焦点和滚动锁定；Empty/Divider 的响应式布局。
+
+暂不包含：复杂导航路由、数据加载和页面业务状态。
 
 ### 第二阶段固定交付物与验收
 

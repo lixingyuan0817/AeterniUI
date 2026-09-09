@@ -1,12 +1,14 @@
 # AeterniUI 当前已完成功能
 
-版本基线：`0.1`
+文档版本：`0.1.0`
 
-文档状态：当前实现清单
+文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
 ## 文档口径
+
+组件章节统一按以下顺序描述：支持能力、公共参数/事件、行为与无障碍、实现边界、基础用法（仅在有代表性时提供）。未适用的小节不强行添加。
 
 - 本文档以当前源码中的公开组件、`[Parameter]`、`EventCallback`、公开服务和配置类型为准；实现细节不等同于公共 API。
 - 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。
@@ -55,6 +57,8 @@
 
 ## 4. Button
 
+### 支持能力
+
 `Button` 当前支持：
 
 - `Variant`：`Default`、`Outline`、`Ghost`、`Text`、`Link`。
@@ -71,6 +75,8 @@
 
 ## 5. ButtonGroup
 
+### 支持能力
+
 `ButtonGroup` 当前支持：
 
 - `ChildContent`、`Orientation`（`Horizontal` / `Vertical`）、`Connected`、`FullWidth` 和 `AriaLabel`。
@@ -79,6 +85,8 @@
 - 统一处理按钮之间的边框和分隔关系。
 
 ## 6. Surface 和 Card
+
+### 支持能力
 
 `Surface` 当前支持：
 
@@ -101,6 +109,8 @@
 
 ## 7. Icon 和 Font Awesome
 
+### 支持能力
+
 - 提供 `Icon` 组件。
 - `Definition`（必填 `IconDefinition`）、`Size`、`Color`、`AriaLabel` 和 `Title`。
 - 图标尺寸和颜色使用组件库 Token。
@@ -110,10 +120,12 @@
 
 ## 8. Input
 
+### 支持能力
+
 `Input` 当前支持单行文本输入：
 
 - `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准绑定方式。
-- `InputType`：`Text`、`Password`、`Email`、`Search`、`Tel`、`Url`。
+- `Type`：`Text`、`Password`、`Email`、`Search`、`Tel`、`Url`。
 - `Size`：`Small`、`Default/Medium`、`Large`。
 - `Placeholder`、`Name`、`AutoComplete`、`InputMode`、`Pattern`、`MinLength` 和 `MaxLength`。
 - `Disabled`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`。
@@ -123,7 +135,11 @@
 - 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
 - 悬浮与聚焦均使用主题色（`--aeterni-brand-500`）边框，无外圈辉光/阴影；无效状态在悬浮、聚焦下始终保留危险色边框。
 
+### 行为与无障碍
+
 `Input` 是单行原生 `<input>` 封装；标签、帮助文本、错误文本布局由独立的 `FormField` 组合，不属于 `Input` 自身的渲染职责。
+
+### 基础用法
 
 ```razor
 <Input @bind-Value="UserName"
@@ -160,6 +176,8 @@
 
 ## 11. Switch
 
+### 支持能力
+
 `Switch` 提供适合即时开关设置的二态控件：
 
 - `Value` / `ValueChanged` / `ValueExpression`，支持 `@bind-Value`，内部使用可聚焦的原生 checkbox，并输出 `role="switch"` 与 `aria-checked`。
@@ -169,6 +187,8 @@
 
 ## 12. Tag
 
+### 支持能力
+
 `Tag` 提供分类、状态与筛选的紧凑标签：
 
 - `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`Default` / `Soft` / `Outline`）。
@@ -176,6 +196,8 @@
 - 可关闭 Tag 的关闭按钮带有可访问名称且只触发一次事件。
 
 ## 13. List + ListItem
+
+### 支持能力
 
 - `List` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues`、对应变更事件、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 使用原生 `<button>` 并同步 `aria-selected`，不额外设置 `role="option"`。
@@ -187,12 +209,16 @@
 
 ## 14. Rating
 
+### 支持能力
+
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用星号字形）。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`aria-label` 可自定义。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
 ## 15. ComboBox
+
+### 支持能力
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
@@ -202,6 +228,8 @@
 - 弹层由最小 JS module（`ComboBox.razor.js`）按触发按钮锚定为 fixed 定位并自动上下翻转/贴边，避免被卡片/容器裁剪遮挡。
 
 ## 16. ThemeProvider 和 ThemeSwitch 使用方式
+
+### 基础用法
 
 ```razor
 <ThemeProvider />

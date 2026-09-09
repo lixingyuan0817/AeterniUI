@@ -33,7 +33,17 @@
 - [ ] 公共 API/行为变更已同步 `current-features`，示例可操作演示，roadmap 勾选/记录同步。
 - [ ] 未提交 `bin/ obj/ target/ dist/ .sample-publish/` 与 IDE/OS 文件。
 
-## 4. 常用命令
+## 4. 版本与变更记录
+
+组件库版本采用 .NET SDK 版本属性统一管理，来源为根目录 `Directory.Build.props`。
+
+- 功能新增：递增次版本号，例如 `0.1.0` → `0.2.0`。
+- 问题修复：递增补丁版本号，例如 `0.1.0` → `0.1.1`。
+- 破坏性公共 API 变更：递增主版本号。
+- 文档、重构或内部实现变更：根据是否影响公共行为决定是否递增版本。
+- 提交功能或修复时，在提交说明或发布说明中标记版本影响；不要在各个项目文件中分别维护版本。
+
+## 5. 常用命令
 
 ```bash
 dotnet build aeterni_ui.slnx                       # 静态检查主门禁
@@ -42,7 +52,18 @@ cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
 node --check <file>.razor.js                       # 组件 JS 语法检查
 ```
 
-## 5. CI 兜底（.github/workflows/build.yml）
+## 6. 新增组件文档清单
+
+新增或修改公共组件时，按变更范围同步：
+
+- 组件源码、样式和示例页。
+- `docs/current-features.zh-CN.md`：新增或修改公共 API / 行为时必须更新。
+- `docs/component-roadmap.zh-CN.md`：完成路线图任务或改变规划时更新。
+- `docs/project-index.zh-CN.md`：仅在新增目录、服务、入口、宿主或命令时更新。
+- `README.md`：仅在安装、启动或对外入口变化时更新。
+- 版本：功能新增递增次版本，问题修复递增补丁版本；内部文档或重构按是否影响公共行为决定。
+
+## 7. CI 兜底（.github/workflows/build.yml）
 
 推送/PR 时会自动执行：
 
