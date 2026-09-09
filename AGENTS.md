@@ -1,5 +1,7 @@
 # AeterniUI Agent 指南
 
+> 本文档只记录项目硬性约束、禁止事项、验证门禁和 Agent 协作规则。组件设计契约、当前 API、路线图和项目导航分别以对应文档为准。
+
 ## 0. 开工前置与提交自检（跨 agent 协作约定）
 
 开始任何任务前，先按 `docs/agent-development.zh-CN.md` 阅读以下文档：
@@ -33,6 +35,8 @@ AeterniUI 是一个 Blazor 组件库，支持以下三类宿主：
 4. 保留工作区中与当前任务无关的用户修改。
 
 ## 架构规则
+
+组件设计细节以 [`docs/component-design-guidelines.zh-CN.md`](docs/component-design-guidelines.zh-CN.md) 为准；以下只保留项目级硬规则。
 
 - 所有组件都直接或间接继承 `AeterniComponent`。
 - 使用基类提供的生成 ID、`ClassBuilder`、`StyleBuilder`、公共属性和可选 JS module 生命周期。

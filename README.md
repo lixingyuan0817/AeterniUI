@@ -50,6 +50,17 @@ Place the providers once in the root layout:
 
 The public API and component rules are documented in the files under `docs/`.
 
+## Documentation
+
+| Topic | Document |
+| --- | --- |
+| Project rules | [`AGENTS.md`](AGENTS.md) |
+| Component design contract | [`docs/component-design-guidelines.zh-CN.md`](docs/component-design-guidelines.zh-CN.md) |
+| Current implemented features | [`docs/current-features.zh-CN.md`](docs/current-features.zh-CN.md) |
+| Roadmap and acceptance | [`docs/component-roadmap.zh-CN.md`](docs/component-roadmap.zh-CN.md) |
+| Project structure and commands | [`docs/project-index.zh-CN.md`](docs/project-index.zh-CN.md) |
+| Agent development workflow | [`docs/agent-development.zh-CN.md`](docs/agent-development.zh-CN.md) |
+
 ## Move to Another Computer
 
 1. Copy or clone the source tree, excluding generated output and IDE metadata.

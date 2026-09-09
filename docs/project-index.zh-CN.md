@@ -4,7 +4,7 @@
 
 文档状态：项目结构、入口和开发命令索引
 
-本文档用于帮助贡献者快速定位项目，不替代组件契约、公共 API 清单或路线图：
+本文档只负责项目结构、入口、命令和模块导航，不重复组件 API、设计契约或任务验收内容。
 
 - 组件参数、行为和已完成能力：阅读 [`current-features.zh-CN.md`](current-features.zh-CN.md)。
 - 组件设计约束：阅读 [`component-design-guidelines.zh-CN.md`](component-design-guidelines.zh-CN.md)。
@@ -178,26 +178,19 @@ CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执�
 
 ### 宿主模块
 
-- 示例宿主的 `host-backdrop.js`：仅处理 Tauri 原生窗口背景同步。
-- Rust `lib.rs`：处理 macOS Vibrancy、Windows Acrylic/Blur 和 IPC 命令。
+- 示例宿主的 `host-backdrop.js`：处理 Tauri 原生窗口背景同步。
+- Rust `lib.rs`：处理窗口初始化、原生背景和 IPC 命令。
 - 组件库不直接依赖 Tauri API，浏览器环境应继续正常运行。
+
+组件当前能力：见 [`current-features.zh-CN.md`](current-features.zh-CN.md)。
+
+任务状态和后续规划：见 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
 ## 7. 当前边界和后续计划
 
-当前项目没有自动化测试，且不包含 `Stack`、`Flex`、`IconButton`、复杂数据展示或导航组件。
+当前项目没有自动化测试。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 
-路线图 v0.2 规划但尚未完成：
-
-- `Textarea`
-- `Radio` / `RadioGroup`
-- `Progress`
-- `Tooltip`
-- `PopupHost` / `Popover`
-- 可延后的 `Tabs`、`Drawer`、`Empty`、`Divider`
-
-`ComboBox` 当前是纯下拉选择，不包含原计划中的自由输入筛选；这属于已记录的实现边界，不应在索引中描述成搜索组件。
-
-## 8. 文档事实源
+## 8. 文档职责和事实源
 
 不同文档的职责保持分离：
 

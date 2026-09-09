@@ -19,6 +19,19 @@ AeterniUI 同时服务于 Blazor Server、Blazor WebAssembly 和 Tauri + Blazor 
 
 本规范优先解决一致性和可维护性，不追求一次性覆盖所有组件类型。
 
+### 1.1 快速规则
+
+新增或修改组件时至少确认：
+
+1. 组件继承 `AeterniComponent`。
+2. 根元素使用 `BuildAttributes()`，class 在 `BuildClass()` 中构建。
+3. 组件样式放在组件目录的 `.razor.css`，不把组件选择器写入全局 Token 文件。
+4. 颜色、间距、圆角和动效使用现有 `--aeterni-*` Token。
+5. JS 只用于必要的浏览器行为，并确保监听器、Observer 和定时器可释放。
+6. 保留正确的 HTML、ARIA 和键盘语义。
+7. 公共能力同步 `docs/current-features.zh-CN.md`，任务状态同步 `docs/component-roadmap.zh-CN.md`。
+8. 完成后运行 `dotnet build aeterni_ui.slnx`。
+
 ## 2. 当前架构约定
 
 ### 2.1 组件继承关系
