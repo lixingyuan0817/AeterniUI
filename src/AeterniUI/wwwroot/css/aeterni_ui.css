@@ -336,21 +336,21 @@
     color-scheme: light;
 
     /* Surface, content and border semantics */
-    --aeterni-bg: #F4F1F8;
+    --aeterni-bg: #F7F7F7;
     --aeterni-bg-primary: var(--aeterni-bg);
-    --aeterni-bg-secondary: #EDE8F2;
-    --aeterni-bg-tertiary: #E4DDEA;
+    --aeterni-bg-secondary: #F0F0F0;
+    --aeterni-bg-tertiary: #E8E8E8;
     --aeterni-bg-surface: #FFFFFF;
-    --aeterni-bg-elevated: rgba(255, 255, 255, .72);
+    --aeterni-bg-elevated: rgba(255, 255, 255, .82);
     --aeterni-bg-solid: #FFFFFF;
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
-    --aeterni-surface-soft: rgba(71, 44, 99, .055);
+    --aeterni-surface-soft: rgba(0, 0, 0, .045);
     --aeterni-surface-hover: rgba(116, 49, 223, .09);
     --aeterni-surface-active: rgba(116, 49, 223, .15);
     --aeterni-surface-selected: rgba(139, 77, 246, .13);
-    --aeterni-overlay: rgba(22, 16, 30, .42);
+    --aeterni-overlay: rgba(0, 0, 0, .42);
     --aeterni-text: #201B29;
     --aeterni-text-primary: var(--aeterni-text);
     --aeterni-text-secondary: #696171;
@@ -360,10 +360,10 @@
     --aeterni-text-inverse: #FFFFFF;
     --aeterni-text-placeholder: var(--aeterni-text-muted);
     --aeterni-text-link: var(--aeterni-brand-600);
-    --aeterni-border: rgba(63, 45, 80, .11);
-    --aeterni-border-strong: rgba(63, 45, 80, .18);
+    --aeterni-border: rgba(0, 0, 0, .11);
+    --aeterni-border-strong: rgba(0, 0, 0, .18);
     --aeterni-border-default: var(--aeterni-border);
-    --aeterni-border-subtle: rgba(63, 45, 80, .07);
+    --aeterni-border-subtle: rgba(0, 0, 0, .07);
     --aeterni-border-disabled: var(--aeterni-border-subtle);
 
     /* Semantic state aliases: current Aeterni values */
@@ -510,13 +510,13 @@
 [data-aeterni-mode="dark"],
 .aeterni-dark {
     color-scheme: dark;
-    --aeterni-bg: #0D0B12;
+    --aeterni-bg: #101112;
     --aeterni-bg-primary: var(--aeterni-bg);
-    --aeterni-bg-secondary: #14111A;
-    --aeterni-bg-tertiary: #1E1925;
-    --aeterni-bg-surface: #18151E;
-    --aeterni-bg-elevated: rgba(25, 21, 32, .72);
-    --aeterni-bg-solid: #18151E;
+    --aeterni-bg-secondary: #17191B;
+    --aeterni-bg-tertiary: #202326;
+    --aeterni-bg-surface: #1B1D1F;
+    --aeterni-bg-elevated: rgba(32, 34, 36, .82);
+    --aeterni-bg-solid: #1B1D1F;
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
@@ -525,13 +525,13 @@
     --aeterni-surface-active: rgba(170, 120, 255, .19);
     --aeterni-surface-selected: rgba(139, 77, 246, .18);
     --aeterni-overlay: rgba(0, 0, 0, .64);
-    --aeterni-text: #F4F0FA;
+    --aeterni-text: #F2F3F5;
     --aeterni-text-primary: var(--aeterni-text);
-    --aeterni-text-secondary: #B5ADBF;
-    --aeterni-text-tertiary: #AAA1B4;
+    --aeterni-text-secondary: #B7BBC1;
+    --aeterni-text-tertiary: #A5AAB1;
     --aeterni-text-muted: var(--aeterni-text-tertiary);
-    --aeterni-text-disabled: #71697A;
-    --aeterni-text-inverse: #18151E;
+    --aeterni-text-disabled: #737980;
+    --aeterni-text-inverse: #1B1D1F;
     --aeterni-text-placeholder: var(--aeterni-text-muted);
     --aeterni-text-link: #AA78FF;
     --aeterni-border: rgba(255, 255, 255, .09);

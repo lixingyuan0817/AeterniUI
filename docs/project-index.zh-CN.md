@@ -147,7 +147,7 @@ node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
 
 CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。
 
-当前配置中，`src-tauri/tauri.conf.json` 的 `frontendDist` 为 `../dist`，`beforeDevCommand` / `beforeBuildCommand` 为 `../scripts/sample-publish.sh ...`；它们都以根目录 `src-tauri` 为基准，分别指向仓库根目录的 `dist/` 和 `scripts/`。
+当前配置中，`src-tauri/tauri.conf.json` 的 `frontendDist` 为 `../dist`，它由 Tauri 按配置目录解析；`beforeDevCommand` / `beforeBuildCommand` 为 `scripts/sample-publish.sh ...`，Tauri CLI 从配置目录的父目录（仓库根目录）执行这两个命令。两类配置的相对路径基准不同，不能同时添加 `../`。
 
 ## 6. 核心模块索引
 

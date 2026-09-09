@@ -5,8 +5,8 @@
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
-    "beforeDevCommand": "../scripts/sample-publish.sh Debug",
-    "beforeBuildCommand": "../scripts/sample-publish.sh Release"
+    "beforeDevCommand": "scripts/sample-publish.sh Debug",
+    "beforeBuildCommand": "scripts/sample-publish.sh Release"
   },
   "app": {
     "windows": [

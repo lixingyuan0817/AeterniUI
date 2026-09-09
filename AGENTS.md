@@ -71,7 +71,7 @@ cd src-tauri
 cargo tauri dev
 ```
 
-`src-tauri/tauri.conf.json` 中的 `beforeDevCommand` 会运行 `../scripts/sample-publish.sh Debug`，将 Blazor 示例发布到仓库根目录的 `dist/`，使 `dist/index.html` 成为 Web 根目录。这里的相对路径以根目录 `src-tauri` 为基准。不存在 `dotnet watch` 或独立前端开发服务器。不要手动发布或编辑 `dist/`；它由脚本重新生成并已被 Git 忽略。
+`src-tauri/tauri.conf.json` 中的 `beforeDevCommand` 会运行 `scripts/sample-publish.sh Debug`，将 Blazor 示例发布到仓库根目录的 `dist/`，使 `dist/index.html` 成为 Web 根目录。Tauri CLI 从配置目录的父目录（仓库根目录）运行前置命令；不要给脚本路径添加 `../`。不存在 `dotnet watch` 或独立前端开发服务器。不要手动发布或编辑 `dist/`；它由脚本重新生成并已被 Git 忽略。
 
 刷新 UI 时重新运行 `cargo tauri dev`，或从仓库根目录直接运行：
 
