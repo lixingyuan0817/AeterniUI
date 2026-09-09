@@ -1,0 +1,66 @@
+name: deploy-pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Publish sample site
+        run: ./scripts/sample-publish.sh Release
+
+      - name: Prepare Pages artifact
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "$PAGES_BASE_PATH" ]; then
+            BASE_HREF="${PAGES_BASE_PATH%/}/"
+          else
+            BASE_HREF="/"
+          fi
+
+          sed -i "s#<base href=\"/\" />#<base href=\"$BASE_HREF\" />#" dist/index.html
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
+          echo "GitHub Pages base href: $BASE_HREF"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

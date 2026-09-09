@@ -71,7 +71,9 @@ AeterniUI/
 │   ├── src/                          # main.rs、lib.rs
 │   ├── Cargo.toml / Cargo.lock
 │   └── tauri.conf.json
-└── .github/workflows/build.yml       # CI 构建、JS 和 Token 检查
+└── .github/workflows/
+    ├── build.yml                     # CI 构建、JS 和 Token 检查
+    └── pages.yml                     # 示例项目 GitHub Pages 发布
 ```
 
 组件目录遵循“一组件一目录”的约定。典型文件职责如下：
@@ -143,7 +145,7 @@ cargo check --manifest-path src-tauri/Cargo.toml
 node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
 ```
 
-CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`，以及全局 Token CSS 检查。
+CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。
 
 当前配置中，`src-tauri/tauri.conf.json` 的 `frontendDist` 为 `../dist`，`beforeDevCommand` / `beforeBuildCommand` 为 `../scripts/sample-publish.sh ...`；它们都以根目录 `src-tauri` 为基准，分别指向仓库根目录的 `dist/` 和 `scripts/`。
 
