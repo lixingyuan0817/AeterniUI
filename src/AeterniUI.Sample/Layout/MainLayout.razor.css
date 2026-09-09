@@ -1,0 +1,169 @@
+/*
+   AeterniUI.Sample — shared application shell (floating header + page chrome).
+   The header and navigation live in MainLayout so every routed page (首页 /
+   组件) shares the same chrome. Component colors, spacing and motion continue
+   to come from AeterniUI's semantic tokens.
+*/
+
+.sample-page {
+    --sample-shell-width: min(1440px, calc(100% - 48px));
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 16px 0 48px;
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-base);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
+}
+
+.sample-header {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    z-index: var(--aeterni-z-sticky);
+    width: var(--sample-shell-width);
+    max-height: calc(100vh - 32px);
+    transform: translateX(-50%);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.sample-header__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 64px;
+    padding: 0 18px;
+}
+
+.brand {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+    color: var(--aeterni-text-primary);
+    text-decoration: none;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-color-brand-default);
+    color: var(--aeterni-text-inverse);
+    font-size: 14px;
+    font-weight: var(--aeterni-font-weight-bold);
+}
+
+.brand-name {
+    font-family: var(--aeterni-font-family-display);
+    font-size: 17px;
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.brand-name span {
+    color: var(--aeterni-color-brand-default);
+}
+
+/* Top-level navigation between 首页 and 组件 — plain link style, aligned left
+   right after the brand (mirrors ButtonVariant.Link: no pill/background). */
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 6px;
+}
+
+.app-nav ::deep .app-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 8px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium, 500);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--aeterni-transition-color);
+}
+
+.app-nav ::deep .app-nav__link:hover {
+    color: var(--aeterni-text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--aeterni-color-brand-default);
+    text-underline-offset: 5px;
+}
+
+.app-nav ::deep .app-nav__link:active {
+    color: var(--aeterni-color-brand-active);
+}
+
+.app-nav ::deep .app-nav__link:focus-visible {
+    outline: 2px solid var(--aeterni-control-focus-ring);
+    outline-offset: 3px;
+    border-radius: var(--aeterni-radius-sm);
+}
+
+.app-nav ::deep .app-nav__link.active {
+    color: var(--aeterni-color-brand-default);
+    font-weight: var(--aeterni-font-weight-semibold);
+    text-decoration: underline;
+    text-decoration-color: var(--aeterni-color-brand-default);
+    text-underline-offset: 5px;
+    text-decoration-thickness: 2px;
+}
+
+@media (max-width: 1080px) {
+    .sample-page {
+        --sample-shell-width: min(1440px, calc(100% - 32px));
+    }
+
+    .sample-header {
+        width: var(--sample-shell-width);
+    }
+}
+
+@media (max-width: 700px) {
+    .sample-header__bar {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    .app-nav {
+        order: 3;
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        padding-top: 4px;
+    }
+}
+
+@media (max-width: 600px) {
+    .sample-page {
+        --sample-shell-width: calc(100% - 20px);
+        padding-bottom: 28px;
+    }
+
+    .sample-header {
+        top: 8px;
+        max-height: calc(100vh - 16px);
+        width: var(--sample-shell-width);
+    }
+
+    .sample-header__bar {
+        min-height: 56px;
+        padding: 0 12px;
+    }
+
+    .brand-name {
+        font-size: 15px;
+    }
+}

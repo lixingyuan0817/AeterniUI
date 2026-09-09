@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.0.0`
+文档版本：`10.1.0`
 
 状态：第一版草案
 
@@ -325,6 +325,13 @@ background: #8b4df6;
 ### 5.3 颜色角色
 
 组件依赖语义角色，不依赖色阶：
+
+背景 Token 分为两类，不能混用：
+
+- 页面和容器背景使用 `--aeterni-bg-*`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 等中性背景 Token；它们不使用品牌紫色，避免 Card、Surface、Header 或侧边栏形成大面积彩色底。
+- 组件交互状态可以使用 `--aeterni-surface-hover`、`--aeterni-surface-active`、`--aeterni-surface-selected` 和 `--aeterni-focus-color` 等品牌状态 Token；它们用于选中、悬停、按下和焦点反馈，不作为页面或容器的默认背景。
+
+组件新增背景时，先判断它是容器背景还是交互状态背景，再选择对应 Token。
 
 | 用途 | 优先 Token |
 | --- | --- |
@@ -671,10 +678,12 @@ Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要�
 ```text
 Sample/
   Pages/
-    Home.razor
+    Home.razor        # 首页文档页（/）
     Home.razor.css
+    Components.razor  # 组件文档页（/components）
+    Components.razor.css
   Layout/
-    MainLayout.razor
+    MainLayout.razor  # 固定头部与导航 + 全局 Provider
 ```
 
 组件变更后，示例页面必须同步展示真实参数和真实状态，不能使用静态文本模拟组件已支持的能力。

@@ -1,0 +1,6 @@
+.aeterni-tooltip { position: relative; display: inline-flex; max-width: 100%; }
+.aeterni-tooltip__trigger { display: inline-flex; min-width: 0; }
+.aeterni-tooltip__content { position: absolute; bottom: calc(100% + var(--aeterni-spacing-2)); left: 50%; z-index: var(--aeterni-z-tooltip); display: block; width: max-content; max-width: min(20rem, 80vw); padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3); border: 1px solid var(--aeterni-border-strong); border-radius: var(--aeterni-radius-tooltip); background: var(--aeterni-bg-solid); color: var(--aeterni-text-primary); box-shadow: var(--aeterni-shadow-md); font-size: var(--aeterni-font-size-xs); line-height: var(--aeterni-line-height-normal); text-align: start; pointer-events: none; visibility: hidden; opacity: 0; transform: translate(-50%, 4px); transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform), visibility var(--aeterni-duration-normal) var(--aeterni-ease-in-out); }
+.aeterni-tooltip:hover .aeterni-tooltip__content,
+.aeterni-tooltip:focus-within .aeterni-tooltip__content { visibility: visible; opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .aeterni-tooltip__content { transition: none; } }

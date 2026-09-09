@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.0.0`
+文档版本：`10.1.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -23,7 +23,7 @@
 - 已配置 Tauri + Blazor WebAssembly 开发模式。
 - Tauri 开发模式直接加载发布到仓库根目录 `dist/` 的静态站点（`scripts/sample-publish.sh` 负责发布），不再是 `dotnet watch` 热重载；使用透明窗口、原生窗口阴影和 macOS Vibrancy 配置。
 - 在 Tauri 宿主中，原生窗口背景（macOS vibrancy / Windows acrylic-blur）会随页面明暗主题切换色调；该能力由示例宿主层（`index.html` + `js/host-backdrop.js` + Tauri 命令 `apply_window_backdrop`）实现，组件库保持宿主无关。
-- 示例项目首页为组件展示页，使用真实组件展示按钮、分组、表面、输入、选择、通知与主题切换。
+- 示例项目包含文档首页（路由 `/`，品牌介绍与基础使用代码窗口）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
 - 组件 API 不依赖具体宿主，浏览器能力通过 JS isolation 提供。
 
 ## 2. 设计基础
@@ -149,15 +149,45 @@
        AriaLabel="Email address" />
 ```
 
-## 9. FormField
+## 9. Textarea
 
-`FormField` 提供表单控件的统一标签、描述和错误信息布局，公开 `Label`、`Description`、`Error`、`ChildContent`、`Required`、`Invalid` 和 `For` 参数，并继承基类的 `Disabled`。显式 `Error` 优先于 `EditContext` 验证消息；它会通过级联上下文将稳定的输入 ID、`aria-describedby`、禁用、必填和验证状态传递给内部表单控件。
+### 支持能力
 
-`Label` 提供独立的原生 `<label>` 组件，支持 `For` 参数和 `ChildContent`，可用于将自定义标签与输入控件关联。
+`Textarea` 提供多行原生文本输入，复用 `Input` 的绑定、校验和表单级联约定。
 
-## 10. Checkbox
+- `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准 `@bind-Value`。
+- `Placeholder`、`Name`、`AutoComplete`、`Rows`、`Resize`、`MinLength` 和 `MaxLength`。
+- `Disabled`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`。
+- `OnInput`、`OnChange`、`OnFocus`、`OnBlur` 和 `OnKeyDown` 事件回调。
+- `AriaLabel` 和 `AriaDescribedBy` 无障碍属性。
 
-`Checkbox` 提供原生复选框语义和稳定的布尔值绑定，使用 `<label>` 包裹原生 `<input type="checkbox">`，可被辅助技术直接识别。该组件会通过 `FormField` 级联上下文同步稳定的输入 ID、`aria-describedby` 和验证状态。
+### 行为与无障碍
+
+使用原生 `<textarea>` 语义；通过 `ValueExpression` 接入 EditContext 校验，并同步 `aria-invalid`、`aria-required`、`aria-readonly`、`aria-disabled` 和 `aria-describedby`。`Resize` 支持 `None` 和 `Vertical`，默认允许垂直调整大小。
+
+### 实现边界
+
+当前不提供富文本编辑、自动高度和异步校验。
+
+## 10. FormField
+
+### 支持能力
+
+`FormField` 提供表单控件的统一标签、描述和错误信息布局，公开 `Label`、`Description`、`Error`、`ChildContent`、`Required`、`Invalid` 和 `For` 参数，并继承基类的 `Disabled`。`Label` 提供独立的原生 `<label>` 组件，支持 `For` 参数和 `ChildContent`。
+
+### 行为与无障碍
+
+显式 `Error` 优先于 `EditContext` 验证消息，并通过稳定 ID 建立 label、描述文本、错误文本与控件之间的关联。FormField 会通过级联上下文向内部表单控件传递输入 ID、`aria-describedby`、禁用、必填和验证状态。
+
+### 实现边界
+
+FormField 负责布局和语义关联，不替代内部控件的值绑定或输入行为。
+
+## 11. Checkbox
+
+### 支持能力
+
+`Checkbox` 提供原生复选框语义和稳定的布尔值绑定，使用 `<label>` 包裹原生 `<input type="checkbox">`，可被辅助技术直接识别。
 
 - `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准 `@bind-Value`。
 - `Indeterminate` 仅作为显示状态；用户交互后组件落定到明确的 `true`/`false` 值，不保留不确定状态。
@@ -169,12 +199,38 @@
 - 支持默认、悬浮、聚焦、禁用和无效状态；三态显示通过原生 `:indeterminate` 呈现。
 - `indeterminate` 是 DOM 属性而非 HTML 属性，组件使用一个最小 JS module 将其设置到输入框；不设置 `Indeterminate` 时不产生任何浏览器副作用。
 
+### 行为与无障碍
+
+组件通过 `FormField` 级联上下文同步稳定的输入 ID、`aria-describedby` 和验证状态；禁用时不触发值变更。
+
+### 实现边界
+
+`Indeterminate` 只表示显示状态，用户交互后会落定为明确的 `true` 或 `false`，不提供独立的三态值模型。
+
+### 基础用法
+
 ```razor
 <Checkbox @bind-Value="Subscribe">Subscribe to updates</Checkbox>
 <Checkbox Indeterminate>Select all</Checkbox>
 ```
 
-## 11. Switch
+## 12. Radio / RadioGroup
+
+### 支持能力
+
+- `RadioGroup<TValue>` 提供 `Value`、`ValueChanged`、`ChildContent`、`Name`、`Disabled`、`Required`、`Invalid` 和 `AriaLabel`。
+- `Radio<TValue>` 提供 `Value`、`ValueChanged`、`ValueExpression`、`ChildContent`、`Name`、`Required`、`Invalid`、`AriaLabel` 和 `AriaDescribedBy`。
+- 使用原生 `<input type="radio">` 与 `fieldset` 分组语义。
+
+### 行为与无障碍
+
+单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填和无效状态会传递到选项，并输出相应的原生/ARIA 语义。
+
+### 实现边界
+
+当前不提供远程选项、虚拟化和多选行为；方向键导航沿用原生 radio 行为。
+
+## 13. Switch
 
 ### 支持能力
 
@@ -185,7 +241,15 @@
 - 可从 `FormField` 级联获取标签关联、禁用与校验状态。
 - 空格/原生 checkbox 行为可切换；reduced-motion 下关闭滑块过渡动画。
 
-## 12. Tag
+### 行为与无障碍
+
+内部使用可聚焦的原生 checkbox，并输出 `role="switch"` 与 `aria-checked`；禁用时不可切换，也不会触发值变更。
+
+### 实现边界
+
+Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，复杂标签关联由 `FormField` 负责。
+
+## 14. Tag
 
 ### 支持能力
 
@@ -195,7 +259,11 @@
 - 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
 - 可关闭 Tag 的关闭按钮带有可访问名称且只触发一次事件。
 
-## 13. List + ListItem
+### 行为与无障碍
+
+非可关闭 Tag 保持展示语义；可关闭 Tag 使用带可访问名称的 Button 关闭动作，且关闭事件只触发一次。
+
+## 15. List + ListItem
 
 ### 支持能力
 
@@ -207,7 +275,15 @@
 - 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id 且移出 Tab 序列，由容器键盘统一驱动。
 - 无选择模式渲染为普通列表结构，不输出按钮语义。
 
-## 14. Rating
+### 行为与无障碍
+
+选择模式下容器负责单点 Tab 聚焦和键盘导航，禁用项不可选择；无选择模式不伪造按钮或 listbox 交互语义。
+
+### 实现边界
+
+当前不提供拖拽、虚拟化、分组和异步数据源。
+
+## 16. Rating
 
 ### 支持能力
 
@@ -216,7 +292,15 @@
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`aria-label` 可自定义。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
-## 15. ComboBox
+### 行为与无障碍
+
+Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值播报；只读或禁用时不改变值。
+
+### 实现边界
+
+当前只支持整数评分，不实现半星。
+
+## 17. ComboBox
 
 ### 支持能力
 
@@ -227,7 +311,57 @@
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
 - 弹层由最小 JS module（`ComboBox.razor.js`）按触发按钮锚定为 fixed 定位并自动上下翻转/贴边，避免被卡片/容器裁剪遮挡。
 
-## 16. ThemeProvider 和 ThemeSwitch 使用方式
+### 行为与无障碍
+
+ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/End、Enter 和 Escape，外部点击或页面滚动会关闭选项。
+
+### 实现边界
+
+当前不支持自由输入筛选、远程搜索、虚拟化、无限滚动和多选。
+
+## 18. Progress
+
+### 支持能力
+
+`Progress` 提供线性进度展示，支持 `Value`、`Max`、`Indeterminate`、`Color`、`Size`、`ShowValue` 和 `AriaLabel`。
+
+### 行为与无障碍
+
+输出 `role="progressbar"`、`aria-valuemin`、`aria-valuemax`，确定进度时输出 `aria-valuenow`；不确定状态使用 CSS 动画，并在 reduced-motion 下停止动画。
+
+### 实现边界
+
+当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
+
+## 19. PopupHost / Popover
+
+### 支持能力
+
+`PopupHost` 提供浮层内容挂载容器；`Popover` 支持 `Open`、`Header`、`ChildContent`、`Modal` 和 `AriaLabel`。
+
+### 行为与无障碍
+
+Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容。
+
+### 实现边界
+
+当前提供基础容器与语义表面，不包含锚点定位、翻转、点击外部关闭和滚动关闭；这些能力留待后续 PopupHost 增强。
+
+## 20. Tooltip
+
+### 支持能力
+
+`Tooltip` 支持 `Text`、`ChildContent`、`Disabled` 和 `AriaLabel`，通过 hover/focus-visible 展示说明。
+
+### 行为与无障碍
+
+提示内容使用 `role="tooltip"`，不阻塞触发元素，也不影响页面布局。
+
+### 实现边界
+
+当前提供上方固定位置，不包含 Placement、Escape、点击外部关闭和复杂交互内容。
+
+## 21. ThemeProvider 和 ThemeSwitch 使用方式
 
 ### 基础用法
 
@@ -242,7 +376,7 @@
 
 主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
 
-## 17. Dialog、Confirm、Alert 和 Toast
+## 22. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -324,7 +458,7 @@ builder.Services.AddAeterniUI(options =>
 - `TimeSpan.Zero`：不自动关闭，只能手动关闭。
 - 大于零：按指定时长自动关闭。
 
-## 18. 服务注册
+## 23. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -340,7 +474,7 @@ builder.Services.AddAeterniUI();
 - `DialogService`。
 - `IDialogService`。
 
-## 19. 当前边界
+## 24. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

@@ -54,4 +54,29 @@
 
     const observer = new MutationObserver(syncSoon);
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // Reveal the hidden native window as soon as the first page fully loads
+    // (see tauri.conf.json "visible": false). Showing at load time gives the
+    // webview a fresh composite pass, avoiding the macOS transparent-window
+    // blank-until-manual-reload issue.
+    function notifyContentReady() {
+        internals.invoke('host_content_ready').catch(() => undefined);
+    }
+
+    if (document.readyState === 'complete') {
+        notifyContentReady();
+    } else {
+        window.addEventListener('load', notifyContentReady, { once: true });
+    }
+
+    // Also reveal once the Blazor app shell actually mounts: the first real
+    // .NET frame is what must reach the compositor, so showing at that moment
+    // (instead of only at "load") is the most reliable paint trigger.
+    const mountTimer = window.setInterval(() => {
+        if (document.querySelector('.sample-page')) {
+            window.clearInterval(mountTimer);
+            notifyContentReady();
+        }
+    }, 250);
+    window.setTimeout(() => window.clearInterval(mountTimer), 20000);
 })();

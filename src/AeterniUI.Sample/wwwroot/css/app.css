@@ -25,7 +25,6 @@ html[data-tauri-host="true"],
 html[data-tauri-host="true"] body,
 html[data-tauri-host="true"] #app {
     background: transparent;
-    scrollbar-gutter: stable;
     scrollbar-color: var(--aeterni-border-strong) transparent;
     color-scheme: light;
 }

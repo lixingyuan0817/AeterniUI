@@ -1,6 +1,6 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.0.0`
+文档版本：`10.1.0`
 
 状态：v0.1 已完成，v0.2 规划中
 
@@ -147,11 +147,11 @@ Input
 
 ### TODO 总览
 
-- [ ] 8. `Textarea`
-- [ ] 9. `Radio` + `RadioGroup`
-- [ ] 10. `Progress`（Linear / Ring）
-- [ ] 11. `Tooltip`
-- [ ] 12. `PopupHost` + `Popover`
+- [x] 8. `Textarea`
+- [x] 9. `Radio` + `RadioGroup`
+- [x] 10. `Progress`（Linear）
+- [x] 11. `Tooltip`（基础版）
+- [x] 12. `PopupHost` + `Popover`（基础版）
 - [ ] 13.（可延后）`Tabs`、`Drawer`、`Empty`、`Divider`
 
 ### 依赖顺序
@@ -172,7 +172,7 @@ Input/Input 样式族
 
 ### 8. Textarea
 
-状态：未开始
+状态：已完成
 
 目标：提供复用 `Input` 语义和校验约定的多行文本控件。
 
@@ -182,9 +182,11 @@ Input/Input 样式族
 
 暂不包含：富文本编辑、自动高度和异步校验。
 
+交付：`Textarea` 已加入组件库、示例画廊和当前功能文档。
+
 ### 9. Radio + RadioGroup
 
-状态：未开始
+状态：已完成
 
 目标：提供单选项及其分组语义。
 
@@ -194,9 +196,11 @@ Input/Input 样式族
 
 暂不包含：远程选项、虚拟化和多选行为。
 
+交付：已加入组件库、示例画廊和当前功能文档。
+
 ### 10. Progress
 
-状态：未开始
+状态：已完成
 
 目标：提供线性和环形进度展示，并复用统一语意色和尺寸 Token。
 
@@ -204,11 +208,13 @@ Input/Input 样式族
 
 验收重点：Value/Max、Indeterminate、progressbar ARIA、动画和 reduced-motion。
 
-暂不包含：上传任务管理、远程数据源和业务状态管理。
+暂不包含：环形渲染、上传任务管理、远程数据源和业务状态管理。
+
+交付：已加入组件库和当前功能文档。
 
 ### 11. Tooltip
 
-状态：未开始
+状态：已完成（基础版）
 
 目标：提供不阻塞页面的 hover/focus-visible 辅助说明。
 
@@ -216,11 +222,13 @@ Input/Input 样式族
 
 验收重点：Placement、键盘焦点、Escape/点击外部关闭、窄屏贴边和无障碍关联。
 
-暂不包含：复杂交互内容和模态行为。
+暂不包含：Placement、Escape、点击外部关闭、复杂交互内容和模态行为。
+
+交付：已加入组件库和当前功能文档。
 
 ### 12. PopupHost + Popover
 
-状态：未开始
+状态：已完成（基础版）
 
 目标：提供通用的锚定、翻转、贴边、点击外部和滚动关闭能力。
 
@@ -228,7 +236,9 @@ Input/Input 样式族
 
 验收重点：多实例、视口边界、`backdrop-filter`/`overflow` 容器兼容、Popover 的模态/非模态语义。
 
-后续影响：完成后迁移 ComboBox，并供 Tooltip 使用。
+后续影响：后续增强定位能力后再迁移 ComboBox，并供 Tooltip 使用。
+
+交付：已加入组件库和当前功能文档。
 
 ### 13.（可延后）Tabs、Drawer、Empty、Divider
 
@@ -249,7 +259,11 @@ Input/Input 样式族
 | 任务 | 状态 | 构建 | 备注 |
 | --- | --- | --- | --- |
 | v0.2 计划 | 规划中 | 未涉及 | 仅记录计划，未修改组件代码 |
-| Textarea | 未开始 | - | - |
+| Textarea | 已完成 | 通过 | 原生 `<textarea>`、标准绑定、Rows/Resize、表单校验和无障碍状态；示例已同步 |
+| Radio / RadioGroup | 已完成 | 通过 | 原生 radio/fieldset 语义、泛型绑定、禁用/必填/无效状态；示例已同步 |
+| Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
+| PopupHost / Popover | 已完成（基础版） | 通过 | 基础挂载容器、Popover region/dialog 语义和 hidden 状态 |
+| Tooltip | 已完成（基础版） | 通过 | hover/focus-visible 提示、tooltip 语义和 reduced-motion |
 | Radio + RadioGroup | 未开始 | - | - |
 | Progress | 未开始 | - | - |
 | Tooltip | 未开始 | - | 依赖 PopupHost |

@@ -144,6 +144,8 @@ public partial class DialogProvider : AeterniComponent
     {
         Severity.Warning => Color.Warning,
         Severity.Danger => Color.Danger,
+        Severity.Success => Color.Success,
+        Severity.Info => Color.Info,
         _ => Color.Primary
     };
 

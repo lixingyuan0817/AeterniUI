@@ -1,0 +1,11 @@
+@inherits AeterniComponent
+
+<div @attributes="BuildAttributes()">
+    <div class="aeterni-progress__track">
+        <div class="aeterni-progress__bar" style="width: @(Indeterminate ? "100%" : $"{Percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)}%")"></div>
+    </div>
+    @if (ShowValue && !Indeterminate && Value.HasValue)
+    {
+        <span class="aeterni-progress__value">@Math.Round(Percentage)%</span>
+    }
+</div>

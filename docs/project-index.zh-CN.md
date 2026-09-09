@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.0.0`
+文档版本：`10.1.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 JS 语法检查 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.0.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.1.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -62,8 +62,8 @@ AeterniUI/
 │   │   └── wwwroot/css/              # 统一 Token 和主题变量
 │   ├── AeterniUI.Icons.FontAwesome/  # Font Awesome 图标适配
 │   └── AeterniUI.Sample/             # Blazor WASM 示例
-│       ├── Layout/                   # MainLayout 和全局 Provider
-│       ├── Pages/                    # Home、NotFound 和页面样式
+│       ├── Layout/                   # MainLayout（固定头部/导航 + 全局 Provider）
+│       ├── Pages/                    # 首页文档、组件展示、NotFound 和页面样式
 │       └── wwwroot/                  # index.html、示例宿主 JS/CSS 和静态资源
 ├── src-tauri/                        # Rust/Tauri 桌面宿主
 │   ├── capabilities/                 # Tauri 权限声明
@@ -92,8 +92,9 @@ Components/<Component>/
 
 - [`src/AeterniUI.Sample/Program.cs`](../src/AeterniUI.Sample/Program.cs)：创建 WASM Host、注册根组件和 `AddAeterniUI()`。
 - [`src/AeterniUI.Sample/App.razor`](../src/AeterniUI.Sample/App.razor)：Blazor Router 入口。
-- [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`。
-- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：组件交互画廊。
+- [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
+- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口（含背景动效）。
+- [`src/AeterniUI.Sample/Pages/Components.razor`](../src/AeterniUI.Sample/Pages/Components.razor)：组件文档页（路由 `/components`），左侧分类导航加真实组件交互画廊。
 - [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
 
 ### 组件库基础入口

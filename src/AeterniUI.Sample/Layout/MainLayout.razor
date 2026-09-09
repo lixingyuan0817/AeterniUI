@@ -1,6 +1,29 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using AeterniUI.Enums
 
 <ThemeProvider />
 <DialogProvider />
 
-@Body
+<div class="sample-page">
+    <header class="sample-header">
+        <Surface Variant="SurfaceVariant.Glass"
+                 Padding="SurfacePadding.None"
+                 Radius="SurfaceRadius.ExtraLarge">
+            <div class="sample-header__bar">
+                <a class="brand" href="/" aria-label="Aeterni UI 首页">
+                    <span class="brand-mark" aria-hidden="true">A</span>
+                    <span class="brand-name">Aeterni<span>UI</span></span>
+                </a>
+
+                <nav class="app-nav" aria-label="主导航">
+                    <NavLink class="app-nav__link" href="/" Match="NavLinkMatch.All">首页</NavLink>
+                    <NavLink class="app-nav__link" href="/components">组件</NavLink>
+                </nav>
+
+                <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="主题模式" />
+            </div>
+        </Surface>
+    </header>
+
+    @Body
+</div>

@@ -19,18 +19,41 @@ pub fn run() {
                 )?;
             }
 
-            // Apply a sensible default before the webview reports the real
-            // theme; the sample host corrects it over IPC right after load.
+            // The window starts hidden (see tauri.conf.json "visible": false).
+            // Revealing it only after the first page load forces a fresh WKWebView
+            // composite pass, which avoids the known macOS/transparent-window
+            // blank-until-reload issue. A fallback timer guarantees the window is
+            // never left invisible when the page signal never arrives.
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
                 apply_window_backdrop_impl(&window, true);
+
+                let fallback = window.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(8));
+                    let _ = fallback.show();
+                });
             }
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![apply_window_backdrop])
+        .invoke_handler(tauri::generate_handler![
+            apply_window_backdrop,
+            host_content_ready
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Invoked by the sample host once the first page has fully loaded. Shows the
+/// hidden window at that point so the initial composite renders the UI.
+#[tauri::command]
+fn host_content_ready(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    Ok(())
 }
 
 /// Re-applies the native window backdrop to match the resolved page theme.

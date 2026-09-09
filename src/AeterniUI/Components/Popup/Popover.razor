@@ -1,0 +1,9 @@
+@inherits AeterniComponent
+
+<div @attributes="BuildAttributes()">
+    @if (Header is not null)
+    {
+        <div class="aeterni-popover__header">@Header</div>
+    }
+    <div class="aeterni-popover__content">@ChildContent</div>
+</div>

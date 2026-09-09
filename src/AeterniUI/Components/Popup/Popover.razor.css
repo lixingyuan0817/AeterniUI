@@ -1,0 +1,4 @@
+.aeterni-popover { box-sizing: border-box; min-width: 12rem; max-width: min(32rem, calc(100vw - 2rem)); padding: var(--aeterni-spacing-4); border: var(--aeterni-border-width) solid var(--aeterni-border-default); border-radius: var(--aeterni-radius-dropdown); background: var(--aeterni-bg-elevated); color: var(--aeterni-text-primary); box-shadow: var(--aeterni-shadow-dropdown); }
+.aeterni-popover[hidden] { display: none; }
+.aeterni-popover__header { margin-bottom: var(--aeterni-spacing-3); font-weight: var(--aeterni-font-weight-semibold); }
+.aeterni-popover__content { min-width: 0; }

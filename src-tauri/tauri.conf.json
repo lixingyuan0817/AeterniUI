@@ -5,7 +5,7 @@
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
-    "beforeDevCommand": "scripts/sample-publish.sh Debug",
+    "beforeDevCommand": { "script": "scripts/sample-publish.sh Debug", "wait": true },
     "beforeBuildCommand": "scripts/sample-publish.sh Release"
   },
   "app": {
@@ -18,7 +18,8 @@
         "fullscreen": false,
         "decorations": true,
         "transparent": true,
-        "shadow": false
+        "shadow": false,
+        "visible": false
       }
     ],
     "security": {

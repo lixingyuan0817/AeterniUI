@@ -1,0 +1,17 @@
+@typeparam TValue
+@inherits AeterniComponent
+
+<label class="aeterni-radio__label" for="@InputId">
+    <input @attributes="BuildAttributes()"
+           id="@InputId"
+           class="aeterni-radio__input"
+           type="radio"
+           checked="@IsChecked"
+           disabled="@IsDisabled"
+           @onclick="SelectAsync" />
+    <span class="aeterni-radio__control" aria-hidden="true"></span>
+    @if (ChildContent is not null)
+    {
+        <span class="aeterni-radio__content">@ChildContent</span>
+    }
+</label>

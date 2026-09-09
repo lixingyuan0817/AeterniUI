@@ -1,0 +1,462 @@
+/*
+   AeterniUI.Sample — components showcase page (/components).
+   The shared floating header, brand and navigation live in MainLayout; this
+   page owns the left category navigation and the component previews. Component
+   colors, spacing and motion come from AeterniUI's semantic tokens.
+*/
+
+.showcase-layout {
+    --showcase-sidebar-width: 276px;
+    display: grid;
+    grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+    width: var(--sample-shell-width);
+    margin: 108px auto 0;
+}
+
+.showcase-sidebar {
+    position: fixed;
+    left: calc((100% - var(--sample-shell-width)) / 2);
+    top: 96px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: var(--showcase-sidebar-width);
+    height: calc(100vh - 112px);
+    max-height: calc(100vh - 112px);
+    overflow: hidden;
+    padding: 18px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+    animation: showcase-fade-up var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
+    transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
+}
+
+.showcase-sidebar:hover {
+    border-color: var(--aeterni-border);
+    box-shadow: var(--aeterni-shadow-md);
+}
+
+.showcase-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    gap: 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-right: -18px;
+    padding: 4px 0 22px;
+    padding-right: 18px;
+    scrollbar-gutter: stable;
+}
+
+.showcase-nav__group {
+    display: grid;
+    gap: 7px;
+    animation: showcase-fade-up var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
+}
+
+.showcase-nav__label {
+    padding: 0 8px 3px;
+    color: var(--aeterni-text-tertiary);
+    font-size: 10px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.showcase-nav__item {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    text-align: left;
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-transform);
+}
+
+.showcase-nav__item:hover {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+    transform: translateX(2px);
+}
+
+.showcase-nav__item:active {
+    background: var(--aeterni-state-background-active);
+    transform: translateX(0);
+}
+
+.showcase-nav__item:focus-visible {
+    outline: 2px solid var(--aeterni-control-focus-ring);
+    outline-offset: 2px;
+}
+
+.showcase-nav__item.is-selected {
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.showcase-nav__item-name {
+    font-size: 13px;
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.showcase-nav__item-summary {
+    color: var(--aeterni-text-tertiary);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.showcase-nav__item.is-selected .showcase-nav__item-summary {
+    color: var(--aeterni-state-color-selected);
+}
+
+.showcase-nav__item.is-selected:active {
+    background: var(--aeterni-state-background-selected);
+}
+
+.showcase-nav__group:nth-child(2) {
+    animation-delay: .06s;
+}
+
+.showcase-nav__group:nth-child(3) {
+    animation-delay: .12s;
+}
+
+.showcase-nav__group:nth-child(4) {
+    animation-delay: .18s;
+}
+
+.showcase-main {
+    grid-column: 2;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-right: 16px;
+}
+
+.showcase-preview-host {
+    min-width: 0;
+}
+
+/* Sample content shown inside the generic preview stages. */
+
+.preview-overlay-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    width: 100%;
+    min-height: 180px;
+    padding: var(--aeterni-spacing-5);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.preview-overlay-demo__anchor {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-overlay-demo__label,
+.preview-overlay-demo__popover-title span {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.preview-overlay-demo__popover-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+}
+
+.preview-overlay-demo__popover-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--aeterni-spacing-3);
+    min-width: min(320px, 70vw);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+}
+
+.preview-overlay-demo__popover-body p,
+.preview-overlay-demo__popover-body ul {
+    margin: 0;
+}
+
+.preview-overlay-demo__popover-body ul {
+    padding-inline-start: var(--aeterni-spacing-5);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-overlay-demo__popover-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-overlay-demo__hint {
+    max-width: 520px;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-stack {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    width: min(100%, 440px);
+}
+
+.preview-stack.preview-feedback-actions {
+    width: min(100%, 520px);
+}
+
+.preview-feedback {
+    display: block;
+    min-height: 1.25em;
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+}
+
+.preview-surface-content,
+.preview-card-copy,
+.preview-card-footer {
+    color: var(--aeterni-text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.preview-surface-content {
+    display: grid;
+    gap: 6px;
+}
+
+.preview-label,
+.preview-card-title {
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.preview-card-title {
+    margin: 0;
+    font-size: 18px;
+}
+
+.preview-card-copy {
+    margin: 8px 0 0;
+}
+
+.preview-card-footer {
+    font-size: 11px;
+}
+
+.preview-icon-wrap {
+    display: grid;
+    place-items: center;
+    min-height: 96px;
+    color: var(--aeterni-brand-600);
+}
+
+.preview-form-control {
+    display: grid;
+    gap: 12px;
+    width: min(100%, 460px);
+}
+
+.preview-value {
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+}
+
+.preview-list-wrap {
+    width: min(100%, 520px);
+}
+
+.preview-empty {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    min-height: 120px;
+    color: var(--aeterni-text-secondary);
+    text-align: center;
+}
+
+.preview-action-row,
+.preview-feedback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-feedback-actions {
+    display: grid;
+    gap: 16px;
+}
+
+/* Text and numeric fields remain native inputs; enum and boolean properties
+   use the library ComboBox and Checkbox components directly. */
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 1 / -1;
+    gap: 12px;
+}
+
+.control-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.control-field > label,
+.control-field > span {
+    color: var(--aeterni-text-secondary);
+    font-size: 11px;
+}
+
+.control-field input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 9px;
+    border: 1px solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-primary);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: 12px;
+}
+
+.control-field input:focus-visible {
+    outline: 2px solid var(--aeterni-focus-color);
+    outline-offset: 2px;
+}
+
+.control-status {
+    display: block;
+    color: var(--aeterni-text-tertiary);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+@media (max-width: 1080px) {
+    .showcase-layout {
+        --showcase-sidebar-width: 240px;
+        grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
+        gap: 22px;
+    }
+}
+
+@media (max-width: 860px) {
+    .showcase-layout {
+        display: block;
+        margin-top: 100px;
+    }
+
+    .showcase-sidebar {
+        position: static;
+        left: auto;
+        width: auto;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        margin-bottom: 22px;
+    }
+
+    .showcase-nav {
+        overflow: visible;
+        margin-right: 0;
+        padding-right: 0;
+    }
+
+    .showcase-main {
+        grid-column: auto;
+        padding-right: 0;
+    }
+
+    .showcase-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 18px;
+    }
+}
+
+@media (max-width: 600px) {
+    .showcase-layout {
+        margin-top: 82px;
+    }
+
+    .showcase-sidebar {
+        padding: 14px;
+    }
+
+    .showcase-nav {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 8px;
+        margin: 0 -4px;
+        padding: 8px 4px 4px;
+    }
+
+    .showcase-nav__group {
+        display: contents;
+    }
+
+    .showcase-nav__label {
+        display: none;
+    }
+
+    .showcase-nav__item {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 116px;
+        padding: 8px 10px;
+    }
+
+    .showcase-nav__item-summary {
+        display: none;
+    }
+
+    .control-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes showcase-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .showcase-sidebar {
+        animation: none;
+        transition: none;
+    }
+
+    .showcase-nav__item {
+        transition: none;
+    }
+}
