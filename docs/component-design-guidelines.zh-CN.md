@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.4.0`
+文档版本：`10.5.0`
 
 状态：第一版草案
 
@@ -346,6 +346,15 @@ background: #8b4df6;
 - 组件交互状态可以使用 `--aeterni-surface-hover`、`--aeterni-surface-active`、`--aeterni-surface-selected` 和 `--aeterni-focus-color` 等品牌状态 Token；它们用于选中、悬停、按下和焦点反馈，不作为页面或容器的默认背景。
 
 组件新增背景时，先判断它是容器背景还是交互状态背景，再选择对应 Token。
+
+**表面归属**：写样式前先确认这个组件**是否该自带表面**，两类组件的结论相反：
+
+| 分类 | 组件 | 规则 |
+| --- | --- | --- |
+| 自带表面 | `Surface`、`Card`、`List`、`Input`/`Textarea`/`ComboBox` 的控件盒、`Checkbox`/`Radio`/`Switch` 的指示块、`Popover`/`Tooltip`/`Dialog`/Alert/Toast 的浮层、`Tag`/`Button` 的实心与柔和变体 | 自身负责 `--aeterni-bg-*` 或语义填充色，可以单独使用；外围不得再套一层同色底 |
+| 内容控件（不自带表面） | `Menu`、`Tabs`、`Rating`、`FormField`、`Label`、`Icon`、`Progress`、`ButtonGroup`、`Button` 的透明变体 | 只画内容与交互状态；底由宿主容器（`Card`/`Surface`/侧边栏/代码块）提供，**不得**自行加 `--aeterni-bg-*` |
+
+判断依据是"这个组件能不能单独构成一块界面"：导航列表、标签页、评分这类控件天生是嵌在容器里使用的，给它们加底会在卡片/侧栏里形成"白底套白底 + 双层边框"；反过来，`List` 是一次性交付"选项容器"的可选中列表，所以自带表面。示例页与组件文档必须展示真实用法——把内容控件放进宿主容器里演示，而不是让它们裸在页面底上。
 
 | 用途 | 优先 Token |
 | --- | --- |
@@ -834,6 +843,7 @@ Sample/
 - [ ] 容器背景是无色的（R = G = B，深色 ≤ +3）。
 - [ ] 文字只用 `primary` / `secondary` / `placeholder` / `disabled`；`tertiary` 只用于图标与装饰。
 - [ ] 尺寸只用 `--aeterni-spacing-*`，不用 gap/padding/margin 别名。
+- [ ] 已经按「表面归属」确认过本组件是否该自带表面，并与规范表格一致。
 - [ ] 没有覆盖其他组件或宿主项目的全局元素样式。
 - [ ] 尺寸变化不会造成布局跳动。
 - [ ] 动画使用统一 duration 和 easing。

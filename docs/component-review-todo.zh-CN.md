@@ -1,8 +1,8 @@
 # AeterniUI 组件审阅待办
 
-文档版本：`10.4.0`
+文档版本：`10.5.0`
 
-文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）与第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾；REV-13 与 REV-56 在本轮完成收尾（共享浮层能力抽取 + 三个 `Size` 档位），当前无未完成条目。
+文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）、第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾；REV-13 与 REV-56 在 v10.4.0 收尾；第五轮 1 项（REV-63）在 v10.5.0 修复。当前无未完成条目。
 
 本文档记录四轮全量审阅发现的问题：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色。问题按优先级排列，供后续分批修复和验收追踪。
 
@@ -691,6 +691,21 @@
 - **证据**：`DialogProvider.razor.css` 的 `.is-shaking` 动画写 `320ms`；`.aeterni-dialog-provider__notice-region` 的 `12px/14px/28px` 位移量无注释；示例页原本没有任何用于验收色彩体系的区域。
 - **修复**：时长改用 `--aeterni-duration-slow`；位移量补「这是运动距离不是尺寸」注释；示例新增 `/components/colors`（侧栏「设计基础」组），展示 6 个色族 × 5 种用法的对照矩阵、四个语意 Alert 的实发通知，以及对比度基线表。
 - **验收**：`bash scripts/check-docs.sh` 通过；示例页在 Light 与 Dark 下都能对照同一组组件。
+
+## 第五轮（v10.5.0）
+
+| 编号 | 优先级 | 范围 | 一句话问题 |
+| --- | --- | --- | --- |
+| REV-63 | P1 | Token 层 / 规范 / 示例 | 「组件是否该自带表面」没有成文规则，Menu 与 Tabs 的预览因此看起来像漏了背景 |
+
+### REV-63 表面归属未成文，内容控件预览缺宿主容器
+
+- [x] 已修复（用户报告：Menu / Tabs 预览背景透明）
+
+- **证据**：`Menu.razor.css` 的 `.aeterni-menu` 从 v0.1 起就没有 `background` 声明（`.aeterni-menu__item`/`__group-toggle` 一直是 `background: transparent`，只有 hover/active/selected 上色）；`Tabs.razor.css` 同样如此。而 `List.razor.css` 的 `.aeterni-list` 自带 `background: var(--aeterni-bg-surface)` + 1px 边框 + 圆角。示例预览画布（`.component-preview__canvas`）的背景是网格 + `--aeterni-bg-primary`，于是 Menu/Tabs 直接裸在页面底上，看起来像漏了背景。
+- **现象**：同一族里 `List` 有表面、`Menu`/`Tabs` 没有，但规范 §5.3 只区分「容器背景 vs 交互状态背景」，从未规定「组件是否自带表面」；`current-features` 的 Menu/Tabs 章节也没写这条边界。结果是**规则缺失**，而不是渲染错误——两个组件都是按"内容控件"实现的，且示例侧边栏（真实用法）本来就给 Menu 提供了底色。
+- **修复**：把判定写成规范 §5.3「表面归属」的两行表格（自带表面 vs 内容控件，判断依据是"能不能单独构成一块界面"），并进提交清单；`current-features` 的 Menu/Tabs 实现边界各补一条；示例预览改为真实语境——Menu 与 Tabs 都套 `Surface`（`Variant=Elevated` + `Bordered`，与示例侧栏同观感），两处 Notes 说明"组件不自带表面、底由宿主容器提供"。
+- **验收**：规范、功能文档、组件文档与示例四处描述一致；Menu/Tabs 的 CSS 仍无 `--aeterni-bg-*` 声明；预览在 Light/Dark 下都能看出宿主容器的边界。
 
 ## 第三轮细节（v10.4.0）
 

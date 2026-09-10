@@ -795,15 +795,17 @@
                                       Contracts="@MenuContracts">
                         <Preview>
                             <div class="preview-menu-demo">
-                                <Menu Items="MenuPreviewGroups"
-                                      SelectedId="@_menuSelectedId"
-                                      SelectedIdChanged="HandleMenuSelectedId"
-                                      OnItemSelected="HandleMenuItemSelected"
-                                      Accordion="_menuAccordion"
-                                      OpenKeys="@(_menuControlled ? _menuOpenKeys : null)"
-                                      OpenKeysChanged="HandleMenuOpenKeysChanged"
-                                      OnGroupToggled="HandleMenuGroupToggled"
-                                      AriaLabel="示例菜单" />
+                                <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                                    <Menu Items="MenuPreviewGroups"
+                                          SelectedId="@_menuSelectedId"
+                                          SelectedIdChanged="HandleMenuSelectedId"
+                                          OnItemSelected="HandleMenuItemSelected"
+                                          Accordion="_menuAccordion"
+                                          OpenKeys="@(_menuControlled ? _menuOpenKeys : null)"
+                                          OpenKeysChanged="HandleMenuOpenKeysChanged"
+                                          OnGroupToggled="HandleMenuGroupToggled"
+                                          AriaLabel="示例菜单" />
+                                </Surface>
                                 <span class="preview-feedback" role="status">@_menuNote</span>
                             </div>
                         </Preview>
@@ -815,6 +817,7 @@
                             <Checkbox Size="Size.Small" @bind-Value="_menuHiddenItem">隐藏一个菜单项</Checkbox>
                         </Controls>
                         <Notes>
+                            <span>Menu 是导航内容控件，自身不提供表面：底由宿主容器提供（示例用 <code>Surface</code> 模拟侧边栏，与页面左侧导航同观感）。</span>
                             <span>Tab 按原生顺序移动，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
                         </Notes>
                     </ComponentPreview>
@@ -830,32 +833,34 @@
                                       Events="@TabsEvents">
                         <Preview>
                             <div class="preview-stack preview-stack--fill">
-                                <Tabs @bind-Value="_tabValue" AriaLabel="组件信息示例">
-                                    <Tab Value="overview">
-                                        <Header>概览</Header>
-                                        <ChildContent>
-                                            <p class="preview-tab-text">概览面板：标签栏渲染在与面板分离的 <code>tablist</code> 里，面板由每个 <code>Tab</code> 自己渲染。</p>
-                                        </ChildContent>
-                                    </Tab>
-                                    <Tab Value="api">
-                                        <Header>接口</Header>
-                                        <ChildContent>
-                                            <p class="preview-tab-text">接口面板：按钮 id 与面板 id 由注册顺序派生，<code>aria-controls</code> 与 <code>aria-labelledby</code> 自动成对。</p>
-                                        </ChildContent>
-                                    </Tab>
-                                    <Tab Value="keyboard">
-                                        <Header>键盘</Header>
-                                        <ChildContent>
-                                            <p class="preview-tab-text">键盘面板：<code>ArrowLeft</code>/<code>ArrowRight</code> 与 <code>Home</code>/<code>End</code> 会同时移动焦点并切换选中项。</p>
-                                        </ChildContent>
-                                    </Tab>
-                                    <Tab Value="soon" Disabled>
-                                        <Header>禁用</Header>
-                                        <ChildContent>
-                                            <p class="preview-tab-text">禁用面板：禁用标签不可点、不可选中，也不进入方向键循环。</p>
-                                        </ChildContent>
-                                    </Tab>
-                                </Tabs>
+                                <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                                    <Tabs @bind-Value="_tabValue" AriaLabel="组件信息示例">
+                                        <Tab Value="overview">
+                                            <Header>概览</Header>
+                                            <ChildContent>
+                                                <p class="preview-tab-text">概览面板：标签栏渲染在与面板分离的 <code>tablist</code> 里，面板由每个 <code>Tab</code> 自己渲染。</p>
+                                            </ChildContent>
+                                        </Tab>
+                                        <Tab Value="api">
+                                            <Header>接口</Header>
+                                            <ChildContent>
+                                                <p class="preview-tab-text">接口面板：按钮 id 与面板 id 由注册顺序派生，<code>aria-controls</code> 与 <code>aria-labelledby</code> 自动成对。</p>
+                                            </ChildContent>
+                                        </Tab>
+                                        <Tab Value="keyboard">
+                                            <Header>键盘</Header>
+                                            <ChildContent>
+                                                <p class="preview-tab-text">键盘面板：<code>ArrowLeft</code>/<code>ArrowRight</code> 与 <code>Home</code>/<code>End</code> 会同时移动焦点并切换选中项。</p>
+                                            </ChildContent>
+                                        </Tab>
+                                        <Tab Value="soon" Disabled>
+                                            <Header>禁用</Header>
+                                            <ChildContent>
+                                                <p class="preview-tab-text">禁用面板：禁用标签不可点、不可选中，也不进入方向键循环。</p>
+                                            </ChildContent>
+                                        </Tab>
+                                    </Tabs>
+                                </Surface>
                                 <span class="preview-feedback" role="status">当前标签：@(_tabValue ?? "（未设置）")</span>
                             </div>
                         </Preview>
@@ -869,6 +874,7 @@
                             <span>点击标签或使用方向键切换；示例中第三个标签为 <code>Disabled</code>，会同时退出点击、选中和方向键循环。</span>
                             <span>把 <code>Value</code> 清空（或填一个不存在的值）时，组件默认把首个可用标签当作选中项渲染，但不会改写 <code>Value</code>。</span>
                             <span>窄屏下标签栏横向滚动而不是换行，滚动条使用细样式。</span>
+                            <span>Tabs 是内容控件，自身不提供表面（否则嵌在卡片里会出现双层底），示例因此用 <code>Surface</code> 作为宿主容器；标签栏只自带一条底部分界线。</span>
                         </Notes>
                     </ComponentPreview>
                     break;
