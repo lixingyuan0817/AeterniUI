@@ -1,0 +1,156 @@
+@page "/components/colors"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · 色彩与语义</PageTitle>
+
+<section class="showcase-colors" aria-labelledby="colors-title">
+    <p class="component-preview__eyebrow">设计基础</p>
+    <h1 id="colors-title">色彩与语义</h1>
+    <p class="showcase-install__lead">每个色族提供三种形态：填充（<code>--aeterni-color-*-default</code>）、文字/描边（<code>--aeterni-color-*-text</code>）和柔和底（<code>--aeterni-color-*-soft</code>）。填充档只用于实心表面，不能当文字或图标使用。</p>
+
+    <div class="showcase-colors__matrix">
+        <div class="showcase-colors__head" aria-hidden="true">
+            <span>色族</span>
+            <span>实心（填充 + 字色）</span>
+            <span>描边（文字形态）</span>
+            <span>Tag（浅底深字）</span>
+            <span>Icon（文字形态）</span>
+            <span>Progress（文字形态 + 色相轨道）</span>
+        </div>
+        @foreach (var family in ColorFamilies)
+        {
+            <div class="showcase-colors__row">
+                <span class="showcase-colors__name">@family.Label</span>
+                <Button Color="family.Color">@family.Label</Button>
+                <Button Variant="ButtonVariant.Outline" Color="family.Color">Outline</Button>
+                <span class="showcase-colors__chips">
+                    <Tag Color="family.Color">Tag</Tag>
+                    <Tag Color="family.Color" Variant="TagVariant.Outline">Outline</Tag>
+                </span>
+                <span class="showcase-colors__icons">
+                    <Icon Definition="FontAwesomeIcons.Solid.CircleCheck" Color="family.Color" Size="Size.Large" />
+                </span>
+                <Progress Value="62" Color="family.Color" />
+            </div>
+        }
+    </div>
+
+    <h2 class="showcase-colors__subtitle">语意通知</h2>
+    <p class="showcase-install__note">Alert 和 Toast 的卡片底色、徽标底色与进度环取填充档，徽标内的图标取文字形态。</p>
+    <div class="preview-action-row">
+        @foreach (var family in SeverityFamilies)
+        {
+            <Button Variant="ButtonVariant.Ghost"
+                    Color="family.Color"
+                    OnClick="@(args => ShowColorAlertAsync(family))">
+                @family.Label Alert
+            </Button>
+        }
+    </div>
+
+    <h2 class="showcase-colors__subtitle">中性容器表面</h2>
+    <p class="showcase-install__note">大面积容器表面一律无色（R = G = B）；带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，而且磨砂层的 <code>saturate()</code> 会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。</p>
+    <div class="showcase-colors__surfaces">
+        <div class="showcase-colors__surface showcase-colors__surface--page">
+            <span>页面</span>
+            <code>--aeterni-bg</code>
+        </div>
+        <div class="showcase-colors__surface showcase-colors__surface--secondary">
+            <span>次级底</span>
+            <code>--aeterni-bg-secondary</code>
+        </div>
+        <div class="showcase-colors__surface showcase-colors__surface--tertiary">
+            <span>三级底 / 轨道</span>
+            <code>--aeterni-bg-tertiary</code>
+        </div>
+        <div class="showcase-colors__surface showcase-colors__surface--elevated">
+            <span>磨砂层</span>
+            <code>--aeterni-bg-elevated</code>
+        </div>
+        <div class="showcase-colors__surface showcase-colors__surface--soft">
+            <span>叠色次级底</span>
+            <code>--aeterni-surface-soft</code>
+        </div>
+        <div class="showcase-colors__surface showcase-colors__surface--hover">
+            <span>交互悬停（有意带色）</span>
+            <code>--aeterni-state-background-hover</code>
+        </div>
+    </div>
+
+    <h2 class="showcase-colors__subtitle">文字色阶</h2>
+    <p class="showcase-install__note">文字用一个墨色加不透明度（Apple 的 label 模型）：同一色相、随表面自动调和。正文到图标级依次变浅，各司其职；<code>tertiary</code> 只用于图标与装饰。</p>
+    <div class="showcase-colors__type">
+        <div class="showcase-colors__type-row">
+            <code>--aeterni-text-primary</code>
+            <span class="showcase-colors__type-primary">正文 / 标题 · 11.7:1</span>
+        </div>
+        <div class="showcase-colors__type-row">
+            <code>--aeterni-text-secondary</code>
+            <span class="showcase-colors__type-secondary">标签 / 导航 / 说明 · 6.2:1</span>
+        </div>
+        <div class="showcase-colors__type-row">
+            <code>--aeterni-text-placeholder</code>
+            <span class="showcase-colors__type-placeholder">输入占位符 · 4.9:1</span>
+        </div>
+        <div class="showcase-colors__type-row">
+            <code>--aeterni-text-tertiary</code>
+            <span class="showcase-colors__type-tertiary">仅图标与装饰 · 4.3:1</span>
+        </div>
+        <div class="showcase-colors__type-row">
+            <code>--aeterni-text-disabled</code>
+            <span class="showcase-colors__type-disabled">禁用态 · 2.5:1（WCAG 豁免）</span>
+        </div>
+    </div>
+
+    <h2 class="showcase-colors__subtitle">对比度基线（按 Token 数值计算）</h2>
+    <div class="showcase-colors__table">
+        <div class="showcase-colors__table-row showcase-colors__table-row--head">
+            <span>用法</span><span>浅色主题</span><span>深色主题</span><span>要求</span>
+        </div>
+        @foreach (var check in ContrastChecks)
+        {
+            <div class="showcase-colors__table-row">
+                <span>@check.Usage</span>
+                <span>@check.Light</span>
+                <span>@check.Dark</span>
+                <span>@check.Requirement</span>
+            </div>
+        }
+    </div>
+    <p class="showcase-install__note">
+        切换主题可以对照同一组组件在两种主题下的结果；具体数值来自 Token 十六进制值按 WCAG 2.1 相对亮度公式计算，验收时仍需实测确认。
+    </p>
+</section>
+
+@code {
+    /// <summary>Contrast baselines shown on the colour reference page.</summary>
+    private static readonly ShowcaseContrast[] ContrastChecks =
+    [
+        new("语义图标与文字（-text 形态）", "4.6~6.7:1", "7.5~10.6:1", "≥ 4.5:1"),
+        new("填充档当 ink 使用（已弃用）", "2.2~4.9:1", "4.8~8.6:1", "≥ 4.5:1"),
+        new("实心语意按钮正文", "4.6~8.4:1", "4.8~8.6:1", "≥ 4.5:1"),
+        new("正文 / 次要 / 占位文字", "4.7~11.7:1", "4.8~13.0:1", "≥ 4.5:1"),
+        new("图标级文字（tertiary）", "4.1~4.3:1", "3.8~3.8:1", "≥ 3:1"),
+        new("进度条填充与轨道", "3.2~4.6:1", "5.7~7.5:1", "≥ 3:1"),
+        new("Tag chip 文字与底色", "5.0~7.2:1", "7.4~8.8:1", "≥ 4.5:1"),
+        new("Alert/Toast 徽标图标与徽标底", "3.7~5.6:1", "6.4~8.0:1", "≥ 3:1"),
+        new("Menu 选中项文字与选中底", "5.2~5.6:1", "7.2~7.4:1", "≥ 4.5:1"),
+        new("结构分隔线与表面", "1.7:1", "1.5:1", "可见即边")
+    ];
+
+    private async Task ShowColorAlertAsync((string Label, Color Color, Severity Severity) family)
+    {
+        await DialogService.AlertAsync(
+            $"{family.Label} 语意 Alert：卡片底色、徽标底色和进度环取填充档，徽标图标取文字形态。",
+            ToastPosition.BottomCenter,
+            new AlertOptions { Title = $"{family.Label} 预览", Severity = family.Severity });
+    }
+
+    /// <summary>One row of the contrast baseline table on the colour reference page.</summary>
+    private sealed record ShowcaseContrast(string Usage, string Light, string Dark, string Requirement);
+}

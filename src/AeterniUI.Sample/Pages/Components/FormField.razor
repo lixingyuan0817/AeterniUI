@@ -1,0 +1,67 @@
+@page "/components/form-field"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · FormField</PageTitle>
+
+<ComponentPreview AnchorId="form-field"
+                  Category="表单组件"
+                  Title="FormField"
+                  ComponentName="FormField"
+                  Description="将标签、描述、错误信息和内部控件组合为一个可访问的表单字段。"
+                  Parameters="@FormFieldParameters"
+                  Contracts="@FormFieldContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="@_formLabel"
+                       Description="@(_formDescription ? "辅助说明会通过 aria-describedby 关联。" : null)"
+                       Error="@(_formInvalid ? "请检查此字段。" : null)"
+                       Required="@_formRequired"
+                       Invalid="@_formInvalid">
+                <Input @bind-Value="_formValue" Placeholder="填写字段内容" AriaLabel="@_formLabel" />
+            </FormField>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="field-label">Label</label>
+            <input id="field-label" @bind="_formLabel" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_formDescription">显示 Description</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid / Error</Checkbox>
+    </Controls>
+    <Notes>
+        <span><code>FormField</code> 通过级联上下文把输入 ID、描述 ID、禁用和校验状态传给内部控件。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string _formLabel = "显示名称";
+
+    private string? _formValue;
+
+    private bool _formDescription = true;
+
+    private bool _formRequired;
+
+    private bool _formInvalid;
+
+    private static readonly ShowcaseParameter[] FormFieldParameters =
+    [
+        new("Label", "string?", "字段标签。"),
+        new("Description", "string?", "帮助说明。"),
+        new("Error", "string?", "显式错误信息，优先于验证消息。"),
+        new("ChildContent", "RenderFragment?", "内部表单控件。"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("For", "Expression<Func<object?>>?", "关联 EditContext 字段。")
+    ];
+
+    private static readonly ShowcaseContract[] FormFieldContracts =
+    [new("FormFieldContext", "级联上下文", "向内部控件传递输入 ID、描述、禁用和校验状态。")];
+}

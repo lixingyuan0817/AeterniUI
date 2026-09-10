@@ -1,0 +1,89 @@
+@page "/components/card"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Card</PageTitle>
+
+<ComponentPreview AnchorId="card"
+                  Category="基础组件"
+                  Title="Card"
+                  ComponentName="Card"
+                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。"
+                  Parameters="@CardParameters"
+                  Events="@CardEvents">
+    <Preview>
+        <Card Variant="@_cardVariant"
+              Elevation="@_cardElevation"
+              Padding="@_cardPadding"
+              Bordered="@_cardBordered"
+              Interactive="@_cardInteractive"
+              AriaLabel="预览卡片"
+              OnClick="MarkCardInteraction">
+            <Header><span class="preview-label">Card / Header</span></Header>
+            <ChildContent>
+                <h3 class="preview-card-title">一张可组合的卡片</h3>
+                <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+            </ChildContent>
+            <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+        </Card>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Variant</span>
+                <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_cardVariant" />
+            </div>
+            <div class="control-field">
+                <span>Elevation</span>
+                <ShowcaseSelect TValue="SurfaceElevation" Id="card-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_cardElevation" />
+            </div>
+            <div class="control-field">
+                <span>Padding</span>
+                <ShowcaseSelect TValue="SurfacePadding" Id="card-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_cardPadding" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_cardBordered">Bordered</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_cardInteractive">Interactive</Checkbox>
+        <span class="control-status" role="status">@_cardNote</span>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private SurfaceVariant _cardVariant = SurfaceVariant.Elevated;
+
+    private SurfaceElevation _cardElevation = SurfaceElevation.Small;
+
+    private SurfacePadding _cardPadding = SurfacePadding.Medium;
+
+    private bool _cardBordered = true;
+
+    private bool _cardInteractive = true;
+
+    private string _cardNote = "点击卡片查看 OnClick。";
+
+    private static readonly ShowcaseParameter[] CardParameters =
+    [
+        new("Variant", "SurfaceVariant", "卡片视觉变体。", "Default"),
+        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Padding", "SurfacePadding", "区域内边距。", "Medium"),
+        new("Bordered", "bool", "是否显示边框。", "true"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Interactive", "bool", "是否启用整卡交互语义。", "false"),
+        new("Header", "RenderFragment?", "头部区域。"),
+        new("ChildContent", "RenderFragment?", "主体区域。"),
+        new("Footer", "RenderFragment?", "底部区域。"),
+        new("AriaLabel", "string?", "交互卡片无障碍名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] CardEvents =
+    [new("OnClick", "EventCallback", "交互卡片被点击或键盘触发时调用。")];
+
+    private void MarkCardInteraction()
+    {
+        _cardNote = $"卡片 OnClick 已触发：{DateTime.Now:HH:mm:ss}。";
+    }
+}

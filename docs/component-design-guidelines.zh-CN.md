@@ -785,13 +785,19 @@ Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要�
 ```text
 Sample/
   Pages/
-    Home.razor        # 首页文档页（/）
-    Home.razor.css
-    Components.razor  # 组件文档页（/components）
-    Components.razor.css
+    Home.razor                  # 首页文档页（/）
+    Icons.razor                 # 图标浏览页（/icons）
+    Components/                 # 每个组件一个独立页面（/components/{id}）
+      Install.razor             # 安装页（/components）
+      Button.razor
+      Tabs.razor
+      ...
   Layout/
-    MainLayout.razor  # 固定头部与导航 + 全局 Provider
+    MainLayout.razor            # 固定头部与导航 + 全局 Provider
+    ComponentsLayout.razor      # 组件页侧栏布局（内嵌 MainLayout）
 ```
+
+示例页必须"一个组件一个页面"：页面只包含该组件的演示标记与自己的 `@code` 状态，跨页共享的只有少量基础件（`ComponentPreview`、组件目录、页面基类）和展示样式表。不要用一个大页面加 `switch` 来切换所有组件——那样每个组件都无法单独分享链接，也无法独立演进；页面标题（`PageTitle`）要能反映当前组件。示例样式在组件页拆分后必须放在示例项目的全局样式表里（作用域 CSS 无法跨页生效），但类名仍使用示例自己的前缀，不得覆盖 `.aeterni-*` 组件规则。
 
 组件变更后，示例页面必须同步展示真实参数和真实状态，不能使用静态文本模拟组件已支持的能力。
 

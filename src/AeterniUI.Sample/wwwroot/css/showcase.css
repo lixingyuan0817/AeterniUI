@@ -1,4 +1,12 @@
 /*
+   AeterniUI.Sample — showcase styles shared by every /components page and the
+   sidebar layout. These used to live in the scoped Pages/Components.razor.css,
+   which cannot reach across the per-component pages, so they are a global sheet
+   now. Class names stay page-scoped by prefix (showcase-*/preview-*/control-*);
+   no `.aeterni-*` component rule is overridden here.
+*/
+
+/*
    AeterniUI.Sample — components showcase page (/components).
    The shared floating header, brand and navigation live in MainLayout; this
    page owns the left category navigation and the component previews. Component
@@ -161,13 +169,16 @@
 .showcase-install { padding: clamp(28px, 5vw, 72px); border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-xl); background: var(--aeterni-bg-elevated); box-shadow: var(--aeterni-shadow-sm); }
 .showcase-install h1 { margin: 8px 0 14px; color: var(--aeterni-text-primary); font-size: clamp(28px, 4vw, 46px); }
 .showcase-install__lead { max-width: 680px; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-lg); line-height: var(--aeterni-line-height-relaxed); }
-.showcase-install__steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--aeterni-spacing-4); margin-top: 36px; }
+/* Installation steps run as one vertical column: each step keeps a full-width code
+   block instead of a third of the row. */
+.showcase-install__steps { display: grid; grid-template-columns: 1fr; gap: var(--aeterni-spacing-4); margin-top: 36px; }
 .showcase-install__steps section { min-width: 0; padding: 20px; border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-lg); background: var(--aeterni-bg-surface); }
+.showcase-install__steps header { display: flex; align-items: center; gap: var(--aeterni-spacing-3); }
 .showcase-install__steps span { color: var(--aeterni-color-brand-default); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-bold); }
-.showcase-install__steps h2 { margin: 10px 0 14px; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
+.showcase-install__steps h2 { display: flex; align-items: center; gap: var(--aeterni-spacing-2); margin: 0; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
+.showcase-install__steps pre { margin-top: var(--aeterni-spacing-3); }
 .showcase-install pre { margin: 0; overflow-x: auto; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); line-height: 1.6; white-space: pre-wrap; }
 .showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
-@media (max-width: 760px) { .showcase-install__steps { grid-template-columns: 1fr; } }
 
 /* Sample content shown inside the generic preview stages. */
 

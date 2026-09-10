@@ -1,0 +1,84 @@
+@page "/components/rating"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Rating</PageTitle>
+
+<ComponentPreview AnchorId="rating"
+                  Category="表单组件"
+                  Title="Rating"
+                  ComponentName="Rating"
+                  Description="整数评分输入，支持只读展示、清除、键盘操作和 EditContext 校验。"
+                  Parameters="@RatingParameters"
+                  Events="@RatingEvents">
+    <Preview>
+        <div class="preview-stack">
+            <Rating Value="@_ratingValue"
+                    Size="@_ratingSize"
+                    ValueChanged="HandleRatingChanged"
+                    Max="@_ratingMax"
+                    ReadOnly="@_ratingReadOnly"
+                    AllowClear="@_ratingAllowClear"
+                    Disabled="@_ratingDisabled"
+                    AriaLabel="评分预览" />
+            <span class="preview-feedback" role="status">当前评分：@_ratingValue / @_ratingMax</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="rating-max">Max</label>
+            <input id="rating-max" type="number" min="1" max="10" @bind="_ratingMax" />
+        </div>
+        <div class="control-field">
+            <label for="rating-value">Value</label>
+            <input id="rating-value" type="number" min="0" max="10" @bind="_ratingValue" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_ratingReadOnly">ReadOnly</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_ratingAllowClear">AllowClear</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_ratingDisabled">Disabled</Checkbox>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="rating-size" AriaLabel="Rating Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_ratingSize" />
+        </div>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private int _ratingValue = 3;
+
+    private int _ratingMax = 5;
+
+    private bool _ratingReadOnly;
+
+    private bool _ratingAllowClear = true;
+
+    private bool _ratingDisabled;
+
+    private Size _ratingSize = Size.Default;
+
+    private static readonly ShowcaseParameter[] RatingParameters =
+    [
+        new("Value", "int", "当前评分。", "0"),
+        new("ValueChanged", "EventCallback<int>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<int>>?", "EditContext 字段表达式。"),
+        new("Max", "int", "最大评分，必须大于 0。", "5"),
+        new("ReadOnly", "bool", "只读展示。", "false"),
+        new("AllowClear", "bool", "再次点击当前值时清零。", "false"),
+        new("Icon", "RenderFragment?", "自定义评分图标。"),
+        new("Size", "Size", "星形与命中区档位。", "Default"),
+        new("AriaLabel", "string", "评分组无障碍名称。", "Rating")
+    ];
+
+    private static readonly ShowcaseEvent[] RatingEvents =
+    [new("OnChange", "EventCallback<int>", "评分值发生变化时触发。")];
+
+    private Task HandleRatingChanged(int value)
+    {
+        _ratingValue = value;
+        return Task.CompletedTask;
+    }
+}

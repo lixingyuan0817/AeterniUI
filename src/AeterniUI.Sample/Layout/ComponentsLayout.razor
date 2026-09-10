@@ -1,0 +1,71 @@
+@layout MainLayout
+@inherits LayoutComponentBase
+@using AeterniUI.Icons
+@using AeterniUI.Sample.Components.Showcase
+
+@* Sidebar shell for every /components page. The page itself is the @Body, so each
+   component demo is its own route (and its own file) while the navigation, the
+   providers and the header stay in one place. *@
+<div class="showcase-layout" id="showcase">
+    <aside class="showcase-sidebar">
+        <div class="showcase-nav">
+            <Menu Items="MenuGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
+        </div>
+    </aside>
+
+    <main class="showcase-main">
+        <div class="showcase-preview-host" @key="SelectedId">
+            @Body
+        </div>
+    </main>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    private static readonly IReadOnlyList<ShowcaseNavGroup> NavigationGroups = ShowcaseCatalog.Groups;
+
+    private static readonly IReadOnlyList<MenuGroup> MenuGroups = NavigationGroups
+        .Select(group => new MenuGroup(
+            group.Label,
+            group.Label,
+            group.Items
+                .Select(item => new MenuItem(
+                    item.Id,
+                    item.Label,
+                    item.Summary,
+                    Href: item.Id == "install" ? "/components" : $"/components/{item.Id}"))
+                .ToArray(),
+            GroupIcon(group.Icon)))
+        .ToArray();
+
+    /// <summary>
+    /// Sidebar selection follows the route instead of a page parameter, because the
+    /// sections are separate pages now.
+    /// </summary>
+    private string SelectedId
+    {
+        get
+        {
+            var path = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            var index = path.IndexOf("components/", StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+            {
+                return "install";
+            }
+
+            var segment = path[(index + "components/".Length)..].Trim('/');
+            var query = segment.IndexOfAny(['?', '#']);
+            if (query >= 0)
+            {
+                segment = segment[..query];
+            }
+
+            return string.IsNullOrWhiteSpace(segment) ? "install" : segment;
+        }
+    }
+
+    /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
+    private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;
+}

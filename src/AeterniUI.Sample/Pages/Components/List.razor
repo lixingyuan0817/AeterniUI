@@ -1,0 +1,116 @@
+@page "/components/list"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · List + ListItem</PageTitle>
+
+<ComponentPreview AnchorId="list"
+                  Category="导航组件"
+                  Title="List + ListItem"
+                  ComponentName="List / ListItem"
+                  Description="可组合的静态选项列表，支持无选择、单选、多选和键盘导航。"
+                  Parameters="@ListParameters"
+                  Events="@ListEvents">
+    <Preview>
+        <div class="preview-list-wrap">
+            @if (_listSelectionMode == SelectionMode.Multiple)
+            {
+                <List SelectionMode="@_listSelectionMode"
+                      SelectedValues="@_listSelectedValues"
+                      SelectedValuesChanged="HandleListMultipleChanged"
+                      AriaLabel="列表多选预览">
+                    <ListItem Value="@DesignValue">设计</ListItem>
+                    <ListItem Value="@DevelopmentValue">开发</ListItem>
+                    <ListItem Value="@ProductValue">产品</ListItem>
+                    <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
+                </List>
+            }
+            else
+            {
+                <List SelectionMode="@_listSelectionMode"
+                      AllowClear="@_listAllowClear"
+                      SelectedValue="@_listSelectedValue"
+                      SelectedValueChanged="HandleListSingleChanged"
+                      AriaLabel="列表单选预览">
+                    <ListItem Value="@DesignValue">设计</ListItem>
+                    <ListItem Value="@DevelopmentValue">开发</ListItem>
+                    <ListItem Value="@ProductValue">产品</ListItem>
+                    <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
+                </List>
+            }
+            <span class="preview-feedback" role="status">@_listNote</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>SelectionMode</span>
+            <ShowcaseSelect TValue="SelectionMode" Id="list-mode" AriaLabel="SelectionMode" Options="@(Enum.GetValues<SelectionMode>())" @bind-Value="_listSelectionMode" />
+        </div>
+        @if (_listSelectionMode != SelectionMode.Multiple)
+        {
+            <Checkbox Size="Size.Small" @bind-Value="_listAllowClear">AllowClear</Checkbox>
+        }
+    </Controls>
+    <Notes>
+        <span><code>ListItem.Selected</code> 是 List 内部计算状态，不是可设置参数；多选模式通过再次选择已选项移除它。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private SelectionMode _listSelectionMode = SelectionMode.Single;
+
+    private bool _listAllowClear = true;
+
+    private object? _listSelectedValue = "开发";
+
+    private IReadOnlyList<object?> _listSelectedValues = ["设计"];
+
+    private string _listNote = "选择一个列表项查看绑定结果。";
+
+    private const string DesignValue = "设计";
+
+    private const string DevelopmentValue = "开发";
+
+    private const string ProductValue = "产品";
+
+    private const string OperationsValue = "运营";
+
+    private static readonly ShowcaseParameter[] ListParameters =
+    [
+        new("List.ChildContent", "RenderFragment?", "列表内容。"),
+        new("List.SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
+        new("List.SelectedValue", "object?", "单选当前值。"),
+        new("List.SelectedValues", "IReadOnlyList<object?>?", "多选当前值。"),
+        new("List.AllowClear", "bool", "单选时允许再次点击清除。", "false"),
+        new("List.AriaLabel", "string?", "列表无障碍名称。"),
+        new("ListItem.Value", "object?", "选项值。"),
+        new("ListItem.ChildContent", "RenderFragment?", "选项内容。"),
+        new("ListItem.LeadingContent", "RenderFragment?", "选项前置内容。"),
+        new("ListItem.TrailingContent", "RenderFragment?", "选项尾部内容。")
+    ];
+
+    private static readonly ShowcaseEvent[] ListEvents =
+    [
+        new("SelectedValueChanged", "EventCallback<object?>", "单选值发生变化时触发。"),
+        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<object?>>", "多选值发生变化时触发。"),
+        new("OnItemSelected", "EventCallback<object?>", "选项被选中或切换时触发。")
+    ];
+
+    private Task HandleListSingleChanged(object? value)
+    {
+        _listSelectedValue = value;
+        _listNote = value is null ? "单选已清除。" : $"单选值：{value}。";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleListMultipleChanged(IReadOnlyList<object?> values)
+    {
+        _listSelectedValues = values;
+        _listNote = values.Count == 0 ? "多选为空。" : $"多选值：{string.Join("、", values)}。";
+        return Task.CompletedTask;
+    }
+}

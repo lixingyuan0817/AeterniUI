@@ -1,0 +1,59 @@
+@page "/components"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · 安装</PageTitle>
+
+@* Installation guide: the four steps are one vertical column, so each step keeps a
+   full-width code block instead of being squeezed into a third of the row. *@
+<section class="showcase-install" aria-labelledby="install-title">
+    <p class="component-preview__eyebrow">开始使用</p>
+    <h1 id="install-title">安装 AeterniUI</h1>
+    <p class="showcase-install__lead">一套基于语义 Token 的 Blazor 组件库，覆盖 Server、WebAssembly 与 Tauri 桌面宿主。</p>
+
+    <div class="showcase-install__steps">
+        <section>
+            <header>
+                <span>01</span>
+                <h2><Icon Definition="@FontAwesomeIcons.Solid.Plug" Color="Color.Primary" /> 添加服务</h2>
+            </header>
+            <pre><code>builder.Services.AddAeterniUI();</code></pre>
+        </section>
+
+        <section>
+            <header>
+                <span>02</span>
+                <h2><Icon Definition="@FontAwesomeIcons.Solid.Link" Color="Color.Primary" /> 引入样式</h2>
+            </header>
+            <pre><code>&lt;link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" /&gt;</code></pre>
+        </section>
+
+        <section>
+            <header>
+                <span>03</span>
+                <h2><Icon Definition="@FontAwesomeIcons.Solid.Gear" Color="Color.Primary" /> 注册 Provider</h2>
+            </header>
+            <pre><code>&lt;ThemeProvider /&gt;
+&lt;DialogProvider /&gt;</code></pre>
+        </section>
+
+        <section>
+            <header>
+                <span>04</span>
+                <h2><Icon Definition="@FontAwesomeIcons.Solid.Paintbrush" Color="Color.Primary" /> 预渲染主题</h2>
+            </header>
+            <pre><code>&lt;script&gt;
+  const m = localStorage.getItem('aeterni.theme.mode');
+  const t = m === 'dark' || m === 'light'
+    ? m
+    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = t;
+  document.documentElement.style.colorScheme = t;
+&lt;/script&gt;</code></pre>
+        </section>
+    </div>
+
+    <p class="showcase-install__note">从左侧选择组件查看实时预览、参数、事件与接口说明；每个组件都是独立页面，可以直接分享链接。</p>
+</section>

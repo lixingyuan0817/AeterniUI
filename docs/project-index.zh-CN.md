@@ -64,9 +64,11 @@ AeterniUI/
 │   │   └── wwwroot/                  # 统一 Token、主题变量与共享浏览器能力（css/、js/）
 │   ├── AeterniUI.Icons.FontAwesome/  # Font Awesome 图标适配
 │   └── AeterniUI.Sample/             # Blazor WASM 示例
-│       ├── Layout/                   # MainLayout（固定头部/导航 + 全局 Provider）
-│       ├── Pages/                    # 首页文档、组件展示、图标浏览、NotFound 和页面样式
-│       └── wwwroot/                  # index.html、示例宿主 JS/CSS 和静态资源
+│       ├── Components/Showcase/      # 示例页共享件：ComponentPreview、组件目录、页面基类
+│       ├── Layout/                   # MainLayout（固定头部 + 全局 Provider）与组件页侧栏布局
+│       ├── Pages/                    # 首页、图标浏览、NotFound 和页面样式
+│       │   └── Components/           # 每个组件一个独立页面（路由 /components/{id}）
+│       └── wwwroot/                  # index.html、示例宿主 JS/CSS、共享展示样式和静态资源
 ├── src-tauri/                        # Rust/Tauri 桌面宿主
 │   ├── capabilities/                 # Tauri 权限声明
 │   ├── icons/                        # 桌面应用图标
@@ -96,7 +98,11 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/App.razor`](../src/AeterniUI.Sample/App.razor)：Blazor Router 入口。
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
 - [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口（含背景动效）。
-- [`src/AeterniUI.Sample/Pages/Components.razor`](../src/AeterniUI.Sample/Pages/Components.razor)：组件文档页（路由 `/components` 与 `/components/{ComponentId}`），左侧分类导航加真实组件交互画廊；其中的「色彩与语义」（`/components/colors`）用 6 个色族 × 5 种用法展示 Token 形态，并列出对比度基线。
+- [`src/AeterniUI.Sample/Layout/ComponentsLayout.razor`](../src/AeterniUI.Sample/Layout/ComponentsLayout.razor)：组件页的侧栏布局（`@layout MainLayout` 之上再嵌一层），负责分类导航、路由高亮和预览容器；页面本体是 `@Body`。
+- [`src/AeterniUI.Sample/Pages/Components/`](../src/AeterniUI.Sample/Pages/Components)：**每个组件一个独立页面**，路由形如 `/components/button`、`/components/tabs`，安装页是 `/components`，色彩页是 `/components/colors`；页面只包含该组件的演示标记与自己的 `@code` 状态。
+- [`src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs)：跨页共享的少量状态（注入的服务、Button 演示的交互提示、主题订阅），其余状态都留在各自页面里。
+- [`src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs)：侧栏分类与页面清单的单一事实源，导航 Href 由条目 id 生成。
+- [`src/AeterniUI.Sample/wwwroot/css/showcase.css`](../src/AeterniUI.Sample/wwwroot/css/showcase.css)：所有组件页共享的展示样式（`showcase-*` / `preview-*` / `control-*`）；组件页拆成独立文件后，作用域 CSS 无法跨页生效，所以这里是全局表。
 - [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
 - [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
 

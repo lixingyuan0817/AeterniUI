@@ -1,0 +1,62 @@
+@page "/components/icon"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Icon</PageTitle>
+
+<ComponentPreview AnchorId="icon"
+                  Category="基础组件"
+                  Title="Icon"
+                  ComponentName="Icon"
+                  Description="渲染供应商无关的 SVG 图标定义，并通过语义颜色、尺寸和无障碍名称接入其他组件。"
+                  Parameters="@IconParameters">
+    <Preview>
+        <div class="preview-icon-wrap">
+            <Icon Definition="@FontAwesomeIcons.Solid.Sun"
+                  Size="@_iconSize"
+                  Color="@_iconColor"
+                  AriaLabel="@(_iconAccessible ? "装饰图标" : null)"
+                  Title="@(_iconTitle ? "Icon title" : null)" />
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="icon-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_iconSize" />
+            </div>
+            <div class="control-field">
+                <span>Color</span>
+                <ShowcaseSelect TValue="Color" Id="icon-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_iconColor" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_iconAccessible">提供 AriaLabel</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_iconTitle">提供 Title</Checkbox>
+    </Controls>
+    <Notes>
+        <span>没有 <code>AriaLabel</code> 时，Icon 会输出 <code>aria-hidden="true"</code>；核心库只接收 <code>IconDefinition</code>。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private Size _iconSize = Size.Large;
+
+    private Color _iconColor = Color.Primary;
+
+    private bool _iconAccessible;
+
+    private bool _iconTitle;
+
+    private static readonly ShowcaseParameter[] IconParameters =
+    [
+        new("Definition", "IconDefinition", "必填的 SVG 图标定义。"),
+        new("Size", "Size", "图标尺寸。", "Default"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("AriaLabel", "string?", "提供后作为可访问图标；未提供时 aria-hidden。"),
+        new("Title", "string?", "SVG title 文本。")
+    ];
+}

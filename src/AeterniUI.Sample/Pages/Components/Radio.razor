@@ -1,0 +1,73 @@
+@page "/components/radio"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Radio / RadioGroup</PageTitle>
+
+<ComponentPreview AnchorId="radio"
+                  Category="表单组件"
+                  Title="Radio / RadioGroup"
+                  ComponentName="RadioGroup"
+                  Description="原生单选语义与分组绑定，支持禁用、必填和无效状态。"
+                  Parameters="@RadioParameters">
+    <Controls>
+        <Checkbox Size="Size.Small" @bind-Value="_radioDisabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_radioRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_radioInvalid">Invalid</Checkbox>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="radio-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_radioSize" />
+        </div>
+        <div class="control-field">
+            <span>Orientation</span>
+            <ShowcaseSelect TValue="Orientation" Id="radio-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_radioOrientation" />
+        </div>
+    </Controls>
+    <Preview>
+        <div class="preview-stack">
+            <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Size="_radioSize" Orientation="_radioOrientation" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
+                <Radio TValue="string" Value="@("设计")">设计</Radio>
+                <Radio TValue="string" Value="@("开发")">开发</Radio>
+                <Radio TValue="string" Value="@("产品")">产品</Radio>
+            </RadioGroup>
+            <div class="preview-state-row" aria-label="Radio 与 Checkbox 视觉重量对照">
+                <Radio TValue="string" Value="@("独立")" Size="_radioSize">独立 Radio</Radio>
+                <Checkbox Size="_radioSize">同尺寸 Checkbox</Checkbox>
+            </div>
+            <code class="preview-value">Value: @_radioValue</code>
+        </div>
+    </Preview>
+</ComponentPreview>
+
+@code {
+    private string? _radioValue = "开发";
+
+    private bool _radioDisabled;
+
+    private bool _radioRequired;
+
+    private bool _radioInvalid;
+
+    private Size _radioSize = Size.Default;
+
+    private Orientation _radioOrientation = Orientation.Horizontal;
+
+    private static readonly ShowcaseParameter[] RadioParameters =
+    [
+        new("Value", "TValue?", "当前选中值。"),
+        new("ValueChanged", "EventCallback<TValue?>", "标准绑定回调。"),
+        new("ChildContent", "RenderFragment?", "Radio 选项内容。"),
+        new("Name", "string?", "原生单选组名称。"),
+        new("Size", "Size?", "尺寸档位；未设置时使用分组值，分组也未设置时为 Default。"),
+        new("Orientation", "Orientation", "分组布局方向，与 aria-orientation 一致。", "Horizontal"),
+        new("Disabled", "bool", "禁用整个分组。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("AriaLabel", "string?", "单选组无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素的 id。")
+    ];
+}

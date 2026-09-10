@@ -1,0 +1,78 @@
+@page "/components/surface"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Surface</PageTitle>
+
+<ComponentPreview AnchorId="surface"
+                  Category="基础组件"
+                  Title="Surface"
+                  ComponentName="Surface"
+                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。"
+                  Parameters="@SurfaceParameters">
+    <Preview>
+        <Surface Variant="@_surfaceVariant"
+                 Elevation="@_surfaceElevation"
+                 Padding="@_surfacePadding"
+                 Radius="@_surfaceRadius"
+                 Bordered="@_surfaceBordered"
+                 FullWidth="@_surfaceFullWidth">
+            <div class="preview-surface-content">
+                <span class="preview-label">Surface preview</span>
+                <strong>统一的表面容器</strong>
+                <span>调整右侧属性查看视觉变化。</span>
+            </div>
+        </Surface>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Variant</span>
+                <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_surfaceVariant" />
+            </div>
+            <div class="control-field">
+                <span>Elevation</span>
+                <ShowcaseSelect TValue="SurfaceElevation" Id="surface-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_surfaceElevation" />
+            </div>
+            <div class="control-field">
+                <span>Padding</span>
+                <ShowcaseSelect TValue="SurfacePadding" Id="surface-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_surfacePadding" />
+            </div>
+            <div class="control-field">
+                <span>Radius</span>
+                <ShowcaseSelect TValue="SurfaceRadius" Id="surface-radius" AriaLabel="Radius" Options="@(Enum.GetValues<SurfaceRadius>())" @bind-Value="_surfaceRadius" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_surfaceBordered">Bordered</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_surfaceFullWidth">FullWidth</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
+
+    private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;
+
+    private SurfacePadding _surfacePadding = SurfacePadding.Large;
+
+    private SurfaceRadius _surfaceRadius = SurfaceRadius.Large;
+
+    private bool _surfaceBordered = true;
+
+    private bool _surfaceFullWidth;
+
+    private static readonly ShowcaseParameter[] SurfaceParameters =
+    [
+        new("Variant", "SurfaceVariant", "表面视觉变体。", "Default"),
+        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Padding", "SurfacePadding", "内容内边距。", "Medium"),
+        new("Radius", "SurfaceRadius", "圆角级别。", "Default"),
+        new("Bordered", "bool", "是否显示边框。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("ChildContent", "RenderFragment?", "容器内容。")
+    ];
+}

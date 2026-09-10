@@ -1,0 +1,105 @@
+@page "/components/input"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Input</PageTitle>
+
+<ComponentPreview AnchorId="input"
+                  Category="表单组件"
+                  Title="Input"
+                  ComponentName="Input"
+                  Description="单行原生输入控件，支持标准绑定、HTML 输入语义、校验状态、事件和 FormField 级联。"
+                  Parameters="@InputParameters"
+                  Events="@InputEvents">
+    <Preview>
+        <div class="preview-form-control">
+            <Input @bind-Value="_inputValue"
+                   Type="@_inputType"
+                   Size="@_inputSize"
+                   Placeholder="@_inputPlaceholder"
+                   ReadOnly="@_inputReadOnly"
+                   Required="@_inputRequired"
+                   Invalid="@_inputInvalid"
+                   Disabled="@_inputDisabled"
+                   FullWidth="@_inputFullWidth"
+                   AriaLabel="预览输入框" />
+            <code class="preview-value">Value: @_inputValue</code>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="input-placeholder">Placeholder</label>
+            <input id="input-placeholder" @bind="_inputPlaceholder" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Type</span>
+                <ShowcaseSelect TValue="InputType" Id="input-type" AriaLabel="Type" Options="@(Enum.GetValues<InputType>())" @bind-Value="_inputType" />
+            </div>
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="input-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_inputSize" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_inputReadOnly">ReadOnly</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_inputRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_inputInvalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_inputDisabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_inputFullWidth">FullWidth</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private string? _inputValue;
+
+    private InputType _inputType = InputType.Text;
+
+    private Size _inputSize = Size.Medium;
+
+    private string _inputPlaceholder = "调整右侧属性后输入";
+
+    private bool _inputReadOnly;
+
+    private bool _inputRequired;
+
+    private bool _inputInvalid;
+
+    private bool _inputDisabled;
+
+    private bool _inputFullWidth;
+
+    private static readonly ShowcaseParameter[] InputParameters =
+    [
+        new("Value", "string?", "当前输入值。"),
+        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
+        new("Type", "InputType", "原生输入类型。", "Text"),
+        new("Size", "Size", "输入尺寸。", "Default"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
+        new("InputMode", "string?", "原生 inputmode 属性。"),
+        new("Pattern", "string?", "原生 pattern 属性。"),
+        new("MinLength", "int?", "最小长度。"),
+        new("MaxLength", "int?", "最大长度。"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] InputEvents =
+    [
+        new("OnInput", "EventCallback<ChangeEventArgs>", "输入过程中触发。"),
+        new("OnChange", "EventCallback<ChangeEventArgs>", "值提交时触发。"),
+        new("OnFocus", "EventCallback<FocusEventArgs>", "获得焦点时触发。"),
+        new("OnBlur", "EventCallback<FocusEventArgs>", "失去焦点时触发。"),
+        new("OnKeyDown", "EventCallback<KeyboardEventArgs>", "键盘按键时触发。")
+    ];
+}

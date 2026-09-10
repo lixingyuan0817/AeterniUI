@@ -1,0 +1,65 @@
+@page "/components/theme"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · ThemeProvider + ThemeSwitch</PageTitle>
+
+<ComponentPreview AnchorId="theme"
+                  Category="主题组件"
+                  Title="ThemeProvider + ThemeSwitch"
+                  ComponentName="ThemeProvider / ThemeSwitch"
+                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换。"
+                  Parameters="@ThemeParameters"
+                  Events="@ThemeEvents"
+                  Contracts="@ThemeContracts">
+    <Preview>
+        <div class="preview-stack">
+            <ThemeSwitch Size="@_themeSwitchSize" AriaLabel="预览主题模式" ModeChanged="HandleThemeModeChanged" />
+            <span class="preview-feedback" role="status">当前模式：@ModeText(ThemeService.Mode) · 实际主题：@(ThemeService.IsDark ? "深色" : "浅色")</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>ThemeSwitch Size</span>
+            <ShowcaseSelect TValue="Size" Id="theme-size" AriaLabel="ThemeSwitch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_themeSwitchSize" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>页面根部已经注册一个 <code>&lt;ThemeProvider /&gt;</code>；示例只调整现有 ThemeService，不直接修改 <code>data-theme</code>。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private Size _themeSwitchSize = Size.Large;
+
+    private static readonly ShowcaseParameter[] ThemeParameters =
+    [
+        new("ThemeProvider", "无组件参数", "负责主题恢复、系统主题监听和页面主题同步。"),
+        new("ThemeSwitch.AriaLabel", "string", "主题切换组无障碍名称。", "Theme mode"),
+        new("ThemeSwitch.Size", "Size", "切换控件尺寸。", "Medium"),
+        new("ThemeSwitch.Disabled", "bool", "是否禁用模式切换。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] ThemeEvents =
+    [new("ModeChanged", "EventCallback<ThemeMode>", "主题模式被用户切换时触发。")];
+
+    private static readonly ShowcaseContract[] ThemeContracts =
+    [new("ThemeService", "服务", "维护 System、Light、Dark 模式与当前实际主题。")];
+
+    private static string ModeText(ThemeMode mode) => mode switch
+    {
+        ThemeMode.System => "跟随系统",
+        ThemeMode.Light => "浅色",
+        _ => "深色"
+    };
+
+    private async Task HandleThemeModeChanged(ThemeMode mode)
+    {
+        _feedbackNote = $"主题模式已切换为 {ModeText(mode)}。";
+        await InvokeAsync(StateHasChanged);
+    }
+}

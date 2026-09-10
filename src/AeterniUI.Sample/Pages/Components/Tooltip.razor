@@ -1,0 +1,53 @@
+@page "/components/tooltip"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Tooltip</PageTitle>
+
+<ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明，并在视口边缘自动翻转与偏移。" Parameters="@TooltipParameters">
+    <Preview>
+        <div class="preview-overlay-demo">
+            <p class="preview-overlay-demo__hint">将鼠标悬停在按钮上，或使用 Tab 聚焦按钮，查看 Tooltip 内容：</p>
+            <Tooltip Text="这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。" Placement="@_tooltipPlacement">
+                <Button Variant="ButtonVariant.Outline">悬停或聚焦查看说明</Button>
+            </Tooltip>
+            <div class="preview-state-row" aria-label="四个方位的 Tooltip 对照">
+                @foreach (var placement in Enum.GetValues<TooltipPlacement>())
+                {
+                    var placementLabel = $"Placement = {placement}";
+                    <Tooltip Text="@placementLabel" Placement="@placement">
+                        <Button Variant="ButtonVariant.Ghost" Size="Size.Small">@placement</Button>
+                    </Tooltip>
+                }
+            </div>
+            <p class="preview-overlay-demo__hint">Tooltip 内容：这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。</p>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Placement</span>
+            <ShowcaseSelect TValue="TooltipPlacement" Id="tooltip-placement" AriaLabel="Placement" Options="@(Enum.GetValues<TooltipPlacement>())" @bind-Value="_tooltipPlacement" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>提示文本会作为 <code>ChildContent</code> 中第一个可聚焦元素的 <code>aria-describedby</code>，屏幕阅读器可直接朗读。</span>
+        <span>方位会随视口空间自动翻转并沿交叉轴偏移；把触发元素放在靠近视口边缘的位置即可观察该行为。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private TooltipPlacement _tooltipPlacement = TooltipPlacement.Top;
+
+    private static readonly ShowcaseParameter[] TooltipParameters =
+    [
+        new("Text", "string?", "提示内容；只有它会被渲染为 tooltip，为空白时不显示。"),
+        new("ChildContent", "RenderFragment?", "被描述的触发元素；其中第一个可聚焦元素会获得 aria-describedby。"),
+        new("Placement", "TooltipPlacement", "首选方位，越界时自动翻转到对侧并在交叉轴偏移。", "Top"),
+        new("AriaLabel", "string?", "触发元素的无障碍名称。"),
+        new("Disabled", "bool", "禁用后不显示提示。", "false")
+    ];
+}

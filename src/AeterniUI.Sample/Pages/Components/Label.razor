@@ -1,0 +1,39 @@
+@page "/components/label"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Label</PageTitle>
+
+<ComponentPreview AnchorId="label"
+                  Category="表单组件"
+                  Title="Label"
+                  ComponentName="Label"
+                  Description="独立的原生 label 元素，用 For 将说明文字关联到指定输入控件。"
+                  Parameters="@LabelParameters">
+    <Preview>
+        <div class="preview-form-control">
+            <Label For="label-preview-input">独立 Label</Label>
+            <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="独立 Label 示例" />
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="label-text">标签文字</label>
+            <input id="label-text" @bind="_labelText" />
+        </div>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private string _labelText = "独立 Label";
+
+    private static readonly ShowcaseParameter[] LabelParameters =
+    [
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("For", "string?", "关联输入元素的 id。")
+    ];
+}

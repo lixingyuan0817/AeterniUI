@@ -1,0 +1,124 @@
+@page "/components/button"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Button</PageTitle>
+
+<ComponentPreview AnchorId="button"
+                  Category="基础组件"
+                  Title="Button"
+                  ComponentName="Button"
+                  Description="用于触发动作的原生按钮，统一承载变体、语义色、尺寸、图标、加载和禁用状态。"
+                  Parameters="@ButtonParameters"
+                  Events="@ButtonEvents">
+    <Preview>
+        <div class="preview-stack">
+            <Button Variant="@_buttonVariant"
+                    Color="@_buttonColor"
+                    Size="@_buttonSize"
+                    Type="@_buttonType"
+                    Loading="@_buttonLoading"
+                    Disabled="@_buttonDisabled"
+                    FullWidth="@_buttonFullWidth"
+                    StartIcon="@ButtonIcon"
+                    OnClick="MarkInteraction">
+                @_buttonText
+            </Button>
+            <span class="preview-feedback" role="status">@_interactionNote</span>
+        </div>
+        <div class="preview-state-row" aria-label="Loading 状态在各变体下的对照">
+            <Button Variant="ButtonVariant.Default" Loading="true">Default</Button>
+            <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
+            <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
+            <Button Variant="ButtonVariant.Text" Loading="true">Text</Button>
+            <Button Variant="ButtonVariant.Link" Loading="true">Link</Button>
+        </div>
+        <div class="preview-state-row" aria-label="实心语义色对照">
+            <Button Color="Color.Primary">Primary</Button>
+            <Button Color="Color.Success">Success</Button>
+            <Button Color="Color.Warning">Warning</Button>
+            <Button Color="Color.Danger">Danger</Button>
+            <Button Color="Color.Info">Info</Button>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="button-text">按钮文本</label>
+            <input id="button-text" @bind="_buttonText" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Variant</span>
+                <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_buttonVariant" />
+            </div>
+            <div class="control-field">
+                <span>Color</span>
+                <ShowcaseSelect TValue="Color" Id="button-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_buttonColor" />
+            </div>
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_buttonSize" />
+            </div>
+            <div class="control-field">
+                <span>Type</span>
+                <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="Type" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_buttonType" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_buttonLoading">Loading</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_buttonDisabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_buttonFullWidth">FullWidth</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_buttonHasIcon">显示起始图标</Checkbox>
+    </Controls>
+    <Notes>
+        <span>点击预览按钮会触发 <code>OnClick</code>，加载状态会同时输出 <code>aria-busy</code> 并阻止交互。</span>
+        <span>禁用状态会随 <code>Variant</code> 和 <code>Color</code> 保留层级与语意底色，不使用透明背景。</span>
+        <span>第一行为 <code>Loading</code> 对照：透明变体只叠加自身语意色的半透明遮罩，不会变成实心按钮。</span>
+        <span>第二行为实心语义色对照：前景使用 <code>--aeterni-color-on-semantic</code>，请在浅色与深色主题下各核对一次对比度。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string _buttonText = "保存更改";
+
+    private ButtonVariant _buttonVariant = ButtonVariant.Default;
+
+    private Color _buttonColor = Color.Primary;
+
+    private Size _buttonSize = Size.Medium;
+
+    private ButtonType _buttonType = ButtonType.Button;
+
+    private bool _buttonLoading;
+
+    private bool _buttonDisabled;
+
+    private bool _buttonFullWidth;
+
+    private bool _buttonHasIcon = true;
+
+    private static readonly ShowcaseParameter[] ButtonParameters =
+    [
+        new("Variant", "ButtonVariant", "按钮视觉变体。", "Default"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("Size", "Size", "按钮尺寸。", "Default"),
+        new("Type", "ButtonType", "原生 button 类型。", "Button"),
+        new("Icon", "RenderFragment?", "兼容旧 API 的起始图标。"),
+        new("StartIcon", "RenderFragment?", "按钮左侧图标。"),
+        new("EndIcon", "RenderFragment?", "按钮右侧图标。"),
+        new("ChildContent", "RenderFragment?", "按钮文本或自定义内容。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("Loading", "bool", "加载状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] ButtonEvents =
+    [new("OnClick", "EventCallback<MouseEventArgs>", "按钮被点击时触发。")];
+
+    private RenderFragment? ButtonIcon => _buttonHasIcon ? CheckIcon : null;
+
+    private RenderFragment CheckIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Check" />;
+}

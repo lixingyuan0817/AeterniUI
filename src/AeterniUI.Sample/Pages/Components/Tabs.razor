@@ -1,0 +1,81 @@
+@page "/components/tabs"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Tabs</PageTitle>
+
+<ComponentPreview AnchorId="tabs"
+                  Category="导航组件"
+                  Title="Tabs"
+                  ComponentName="Tabs / Tab"
+                  Description="标签页导航：tablist/tab/tabpanel 三件套、roving tabindex、方向键自动激活与窄屏横向滚动。"
+                  Parameters="@TabsParameters"
+                  Events="@TabsEvents">
+    <Preview>
+        <div class="preview-stack preview-stack--fill">
+            <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                <Tabs @bind-Value="_tabValue" AriaLabel="组件信息示例">
+                    <Tab Value="overview">
+                        <Header>概览</Header>
+                        <ChildContent>
+                            <p class="preview-tab-text">概览面板：标签栏渲染在与面板分离的 <code>tablist</code> 里，面板由每个 <code>Tab</code> 自己渲染。</p>
+                        </ChildContent>
+                    </Tab>
+                    <Tab Value="api">
+                        <Header>接口</Header>
+                        <ChildContent>
+                            <p class="preview-tab-text">接口面板：按钮 id 与面板 id 由注册顺序派生，<code>aria-controls</code> 与 <code>aria-labelledby</code> 自动成对。</p>
+                        </ChildContent>
+                    </Tab>
+                    <Tab Value="keyboard">
+                        <Header>键盘</Header>
+                        <ChildContent>
+                            <p class="preview-tab-text">键盘面板：<code>ArrowLeft</code>/<code>ArrowRight</code> 与 <code>Home</code>/<code>End</code> 会同时移动焦点并切换选中项。</p>
+                        </ChildContent>
+                    </Tab>
+                    <Tab Value="soon" Disabled>
+                        <Header>禁用</Header>
+                        <ChildContent>
+                            <p class="preview-tab-text">禁用面板：禁用标签不可点、不可选中，也不进入方向键循环。</p>
+                        </ChildContent>
+                    </Tab>
+                </Tabs>
+            </Surface>
+            <span class="preview-feedback" role="status">当前标签：@(_tabValue ?? "（未设置）")</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="tabs-value">Value</label>
+            <input id="tabs-value" @bind="_tabValue" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>点击标签或使用方向键切换；示例中第三个标签为 <code>Disabled</code>，会同时退出点击、选中和方向键循环。</span>
+        <span>把 <code>Value</code> 清空（或填一个不存在的值）时，组件默认把首个可用标签当作选中项渲染，但不会改写 <code>Value</code>。</span>
+        <span>窄屏下标签栏横向滚动而不是换行，滚动条使用细样式。</span>
+        <span>Tabs 是内容控件，自身不提供表面（否则嵌在卡片里会出现双层底），示例因此用 <code>Surface</code> 作为宿主容器；标签栏只自带一条底部分界线。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string? _tabValue = "overview";
+
+    private static readonly ShowcaseParameter[] TabsParameters =
+    [
+        new("Value", "string?", "当前选中标签的值，支持 @bind-Value。"),
+        new("AriaLabel", "string?", "标签栏可访问名称。", "Tabs"),
+        new("ChildContent", "RenderFragment?", "由一个或多个 Tab 组成。"),
+        new("Tab.Value", "string", "标签标识，必须在同一个 Tabs 内唯一且非空。", "必填"),
+        new("Tab.Header", "RenderFragment?", "标签按钮内容。"),
+        new("Tab.ChildContent", "RenderFragment?", "面板内容。"),
+        new("Tab.Disabled", "bool", "禁用标签：不可点、不可选中、跳过方向键循环。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] TabsEvents =
+    [new("ValueChanged", "EventCallback<string?>", "选中标签变化时触发（点击或方向键）。")];
+}

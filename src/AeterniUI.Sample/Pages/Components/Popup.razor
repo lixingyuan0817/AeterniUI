@@ -1,0 +1,120 @@
+@page "/components/popup"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · PopupHost / Popover</PageTitle>
+
+<ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。" Parameters="@PopupParameters">
+    <Preview>
+        <div class="preview-overlay-demo">
+            <PopupHost>
+                <div class="preview-overlay-demo__anchor">
+                    <span class="preview-overlay-demo__label">触发元素</span>
+                    <Button Variant="ButtonVariant.Outline"
+                            AriaLabel='@(_popoverOpen ? "关闭 Popover 浮层" : "打开 Popover 浮层")'
+                            aria-expanded='@(_popoverOpen ? "true" : "false")'
+                            OnClick="TogglePopoverPreview">@(_popoverOpen ? "关闭 Popover" : "打开 Popover")</Button>
+                </div>
+                <Popover Open="@_popoverOpen"
+                         OpenChanged="HandlePopoverOpenChanged"
+                         Placement="_popoverPlacement"
+                         Modal="@_popoverModal"
+                         CloseOnOverlayClick="@_popoverCloseOnOverlayClick"
+                         AriaLabel="示例浮层">
+                    <Header>
+                        <div class="preview-overlay-demo__popover-title">
+                            <strong>浮层标题</strong>
+                            <span>Popover · region</span>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <div class="preview-overlay-demo__popover-body">
+                            <p>这是一个有标题、说明文字和操作内容的基础浮层。</p>
+                            <ul>
+                                <li>点击「打开 Popover」显示内容</li>
+                                <li>Escape 或点击浮层外部收起（Modal 时点遮罩）</li>
+                                <li>空间不足时翻转到另一侧，并贴住视口边缘</li>
+                                <li>Modal 时提供遮罩、焦点陷阱与背景滚动锁</li>
+                            </ul>
+                            <div class="preview-overlay-demo__popover-actions">
+                                <Button Size="Size.Small" Color="Color.Primary" OnClick="PreviewPopoverAction">了解更多</Button>
+                                <Button Size="Size.Small" Variant="ButtonVariant.Ghost" OnClick="ClosePopoverPreview">关闭浮层</Button>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </Popover>
+            </PopupHost>
+            <p class="preview-overlay-demo__hint" role="status">@_popoverNote</p>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Placement</span>
+            <ShowcaseSelect TValue="PopupPlacement" Id="popover-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_popoverPlacement" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverModal">Modal</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnOverlayClick">CloseOnOverlayClick</Checkbox>
+    </Controls>
+    <Notes>
+        <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内，空间不足时翻到另一侧并把内容贴回视口；<code>Placement</code> 提供四个起始方位。</span>
+        <span><code>Escape</code>、点击外部、<code>Modal</code> 遮罩都会通过 <code>OpenChanged</code> 请求关闭，<code>Open</code> 始终由使用方持有。</span>
+        <span><code>Modal</code> 额外提供遮罩、<code>aria-modal</code>、焦点陷阱（Tab 循环、关闭后焦点回到触发点）和背景滚动锁。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private bool _popoverOpen;
+
+    private PopupPlacement _popoverPlacement = PopupPlacement.BottomStart;
+
+    private bool _popoverModal;
+
+    private bool _popoverCloseOnOverlayClick = true;
+
+    private string _popoverNote = "浮层当前为关闭状态，点击「打开 Popover」查看内容。";
+
+    private static readonly ShowcaseParameter[] PopupParameters =
+    [
+        new("PopupHost.ChildContent", "RenderFragment?", "浮层内容的挂载点。"),
+        new("Popover.Open", "bool", "是否显示浮层（受控）。", "false"),
+        new("Popover.OpenChanged", "EventCallback<bool>", "Escape / 点击外部 / 遮罩请求关闭时触发，支持 @bind-Open。"),
+        new("Popover.Placement", "PopupPlacement", "相对 PopupHost 的起始方位。", "BottomStart"),
+        new("Popover.Modal", "bool", "模态层：遮罩、aria-modal、焦点陷阱、背景滚动锁。", "false"),
+        new("Popover.CloseOnEscape", "bool", "Escape 是否请求关闭。", "true"),
+        new("Popover.CloseOnOutsideClick", "bool", "点击浮层外部（Modal 时为遮罩）是否请求关闭。", "true"),
+        new("Popover.Header", "RenderFragment?", "浮层标题区域。"),
+        new("Popover.ChildContent", "RenderFragment?", "浮层主体内容。"),
+        new("Popover.AriaLabel", "string?", "浮层无障碍名称。")
+    ];
+
+    private void HandlePopoverOpenChanged(bool open)
+    {
+        _popoverOpen = open;
+        _popoverNote = open
+            ? "浮层已打开；按 Escape、点外部或点遮罩可以关闭。"
+            : "浮层已由 Escape、外部点击或遮罩关闭。";
+    }
+
+    private void TogglePopoverPreview(MouseEventArgs _)
+    {
+        _popoverOpen = !_popoverOpen;
+        _popoverNote = _popoverOpen
+            ? "浮层已打开：内容以 region 语义展示在触发元素下方，可再次点击触发按钮或「关闭浮层」收起。"
+            : "浮层已关闭：内容通过 hidden 移除。";
+    }
+
+    private void ClosePopoverPreview(MouseEventArgs _)
+    {
+        _popoverOpen = false;
+        _popoverNote = "浮层已关闭：内容通过 hidden 移除。";
+    }
+
+    private void PreviewPopoverAction(MouseEventArgs _)
+    {
+        _popoverNote = "「了解更多」按钮已触发示例动作，当前浮层保持打开。";
+    }
+}

@@ -1,0 +1,94 @@
+@page "/components/combobox"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · ComboBox</PageTitle>
+
+<ComponentPreview AnchorId="combobox"
+                  Category="表单组件"
+                  Title="ComboBox"
+                  ComponentName="ComboBox&lt;TItem&gt;"
+                  Description="默认下拉选择控件，支持泛型数据、模板、键盘导航和定位弹层，不包含自由输入搜索。"
+                  Parameters="@ComboBoxParameters"
+                  Events="@ComboBoxEvents"
+                  Contracts="@ComboBoxContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <ComboBox TItem="string"
+                      Size="@_comboSize"
+                      Items="@Cities"
+                      Value="@_cityValue"
+                      ValueChanged="@((string? value) => HandleCityChanged(value))"
+                      Placeholder="@_comboPlaceholder"
+                      Required="@_comboRequired"
+                      Invalid="@_comboInvalid"
+                      Disabled="@_comboDisabled"
+                      AriaLabel="城市选择预览" />
+            <span class="preview-feedback" role="status">当前选择：@(_cityValue ?? "（空）")</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="combo-placeholder">Placeholder</label>
+            <input id="combo-placeholder" @bind="_comboPlaceholder" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_comboRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_comboInvalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_comboDisabled">Disabled</Checkbox>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="combo-size" AriaLabel="ComboBox Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_comboSize" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>当前实现是纯下拉选择：点击触发器打开选项，支持方向键、Home/End、Enter、Escape 和外部关闭。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly string[] Cities = ["北京", "上海", "广州", "深圳", "杭州", "成都"];
+
+    private string? _cityValue;
+
+    private string _comboPlaceholder = "选择城市…";
+
+    private bool _comboRequired;
+
+    private bool _comboInvalid;
+
+    private bool _comboDisabled;
+
+    private Size _comboSize = Size.Default;
+
+    private static readonly ShowcaseParameter[] ComboBoxParameters =
+    [
+        new("Items", "IReadOnlyList<TItem>?", "可选项集合。"),
+        new("Value", "TItem?", "当前选中项。"),
+        new("ValueChanged", "EventCallback<TItem?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<TItem?>>?", "EditContext 字段表达式。"),
+        new("TextSelector", "Func<TItem, string>?", "将选项映射为展示文本。"),
+        new("Placeholder", "string?", "未选择时的占位文本。"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Size", "Size", "触发器与选项档位，与同排 Input/Textarea 对齐。", "Default"),
+        new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
+        new("EmptyContent", "RenderFragment?", "空列表内容。"),
+        new("AriaLabel", "string?", "无障碍名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] ComboBoxEvents =
+    [new("OnChange", "EventCallback<TItem?>", "选项确认后触发。")];
+
+    private static readonly ShowcaseContract[] ComboBoxContracts =
+    [new("ComboBox<TItem>", "泛型组件", "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。")];
+
+    private Task HandleCityChanged(string? value)
+    {
+        _cityValue = value;
+        return Task.CompletedTask;
+    }
+}

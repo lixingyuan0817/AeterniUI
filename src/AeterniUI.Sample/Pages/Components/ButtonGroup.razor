@@ -1,0 +1,70 @@
+@page "/components/button-group"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · ButtonGroup</PageTitle>
+
+        <ComponentPreview AnchorId="button-group"
+                          Category="基础组件"
+                          Title="ButtonGroup"
+                          ComponentName="ButtonGroup"
+                          Description="将多个 Button 组合为水平或垂直的操作组，并通过级联上下文传递禁用状态。"
+                          Parameters="@ButtonGroupParameters">
+            <Preview>
+<ButtonGroup Orientation="@_buttonGroupOrientation"
+             Connected="@_buttonGroupConnected"
+             FullWidth="@_buttonGroupFullWidth"
+             Disabled="@_buttonGroupDisabled"
+             AriaLabel="按钮组预览">
+                    <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
+                    <Button OnClick="MarkInteraction">当前页</Button>
+                    <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
+                </ButtonGroup>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Orientation</span>
+                        <ShowcaseSelect TValue="Orientation" Id="group-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_buttonGroupOrientation" />
+                    </div>
+                    <div class="control-field">
+                        <span>Connected</span>
+                        <ShowcaseSelect TValue="bool" Id="group-connected" AriaLabel="Connected" Options="@BooleanOptions" @bind-Value="_buttonGroupConnected" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_buttonGroupFullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_buttonGroupDisabled">禁用整个组</Checkbox>
+            </Controls>
+            <Notes>
+                <span>按钮组的 <code>Disabled</code> 会通过级联上下文作用到内部 Button。</span>
+            </Notes>
+        </ComponentPreview>
+
+@code {
+    private Orientation _buttonGroupOrientation = Orientation.Horizontal;
+
+    private bool _buttonGroupConnected = true;
+
+    private bool _buttonGroupFullWidth;
+
+    private bool _buttonGroupDisabled;
+
+    private static readonly bool[] BooleanOptions = [true, false];
+
+    private static readonly ShowcaseParameter[] ButtonGroupParameters =
+    [
+        new("ChildContent", "RenderFragment?", "按钮组内容。"),
+        new("Orientation", "Orientation", "水平或垂直排列。", "Horizontal"),
+        new("Connected", "bool", "是否使用连体样式。", "true"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "按钮组无障碍名称。")
+    ];
+
+    private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
+
+    private RenderFragment ArrowRightIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" />;
+}

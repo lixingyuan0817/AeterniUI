@@ -1,0 +1,29 @@
+@page "/components/progress"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Progress</PageTitle>
+
+<ComponentPreview AnchorId="progress" Category="图表组件" Title="Progress" ComponentName="Progress" Description="线性进度条，支持确定和不确定状态。" Parameters="@ProgressParameters">
+    <Preview>
+        <Progress Value="68" ShowValue AriaLabel="完成进度" />
+        <Progress Indeterminate Color="Color.Info" AriaLabel="处理中" />
+    </Preview>
+</ComponentPreview>
+
+@code {
+    private static readonly ShowcaseParameter[] ProgressParameters =
+    [
+        new("Value", "double?", "确定进度时的当前值；为 null 且 Indeterminate 为 false 时按 0 处理。"),
+        new("Max", "double", "进度总量。", "100"),
+        new("Indeterminate", "bool", "不确定进度：使用 CSS 动画并在 reduced-motion 下停止。", "false"),
+        new("Color", "Color", "语义颜色。", "Primary"),
+        new("Size", "Size", "进度条厚度。", "Default"),
+        new("ShowValue", "bool", "显示百分比文本。", "false"),
+        new("AriaLabel", "string?", "进度条无障碍名称。")
+    ];
+}

@@ -1,0 +1,76 @@
+@page "/components/switch"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Switch</PageTitle>
+
+<ComponentPreview AnchorId="switch"
+                  Category="表单组件"
+                  Title="Switch"
+                  ComponentName="Switch"
+                  Description="适用于即时设置的二态控件，内部使用原生 checkbox 并输出 switch 语义。"
+                  Parameters="@SwitchParameters"
+                  Events="@SwitchEvents">
+    <Preview>
+        <div class="preview-stack">
+            <Switch @bind-Value="_switchValue"
+                    Size="@_switchSize"
+                    Required="@_switchRequired"
+                    Invalid="@_switchInvalid"
+                    Disabled="@_switchDisabled"
+                    OnChange="HandleSwitchChange">
+                自动同步
+            </Switch>
+            <span class="preview-feedback" role="status">Value: @_switchValue · @_switchNote</span>
+        </div>
+    </Preview>
+    <Controls>
+        <Checkbox Size="Size.Small" @bind-Value="_switchRequired">Required</Checkbox>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="switch-size" AriaLabel="Switch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_switchSize" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_switchInvalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_switchDisabled">Disabled</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private bool _switchValue;
+
+    private Size _switchSize = Size.Default;
+
+    private bool _switchRequired;
+
+    private bool _switchInvalid;
+
+    private bool _switchDisabled;
+
+    private string _switchNote = "等待交互。";
+
+    private static readonly ShowcaseParameter[] SwitchParameters =
+    [
+        new("Value", "bool", "当前开关值。"),
+        new("ValueChanged", "EventCallback<bool>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<bool>>?", "EditContext 字段表达式。"),
+        new("ChildContent", "RenderFragment?", "开关标签。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Size", "Size", "控件档位，与同排 Checkbox/Input 对齐。", "Default")
+    ];
+
+    private static readonly ShowcaseEvent[] SwitchEvents =
+    [new("OnChange", "EventCallback<ChangeEventArgs>", "原生 checkbox 发生变化时触发。")];
+
+    private void HandleSwitchChange(ChangeEventArgs _)
+    {
+        _switchNote = $"OnChange 已触发，当前值为 {_switchValue}。";
+    }
+}

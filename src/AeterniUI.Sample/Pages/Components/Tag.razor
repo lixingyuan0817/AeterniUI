@@ -1,0 +1,103 @@
+@page "/components/tag"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Tag</PageTitle>
+
+<ComponentPreview AnchorId="tag"
+                  Category="基础组件"
+                  Title="Tag"
+                  ComponentName="Tag"
+                  Description="用于分类、状态和筛选条件的紧凑标签，关闭动作复用 Button 的图标能力。"
+                  Parameters="@TagParameters"
+                  Events="@TagEvents">
+    <Preview>
+        @if (_tagRemoved)
+        {
+            <div class="preview-empty">
+                <span>Tag 已触发 OnDismiss</span>
+                <Button Variant="ButtonVariant.Text"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        OnClick="RestoreTag">
+                    恢复
+                </Button>
+            </div>
+        }
+        else
+        {
+            <Tag Color="@_tagColor"
+                 Variant="@_tagVariant"
+                 Size="@_tagSize"
+                 Dismissible="@_tagDismissible"
+                 DismissLabel="移除预览标签"
+                 OnDismiss="DismissTag">
+                @(_tagText)
+            </Tag>
+        }
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="tag-text">标签文字</label>
+            <input id="tag-text" @bind="_tagText" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Color</span>
+                <ShowcaseSelect TValue="Color" Id="tag-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_tagColor" />
+            </div>
+            <div class="control-field">
+                <span>Variant</span>
+                <ShowcaseSelect TValue="TagVariant" Id="tag-variant" AriaLabel="Variant" Options="@(Enum.GetValues<TagVariant>())" @bind-Value="_tagVariant" />
+            </div>
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="tag-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_tagSize" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_tagDismissible">Dismissible</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private string _tagText = "预览标签";
+
+    private Color _tagColor = Color.Primary;
+
+    private TagVariant _tagVariant = TagVariant.Soft;
+
+    private Size _tagSize = Size.Medium;
+
+    private bool _tagDismissible = true;
+
+    private bool _tagRemoved;
+
+    private static readonly ShowcaseParameter[] TagParameters =
+    [
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("StartIcon", "RenderFragment?", "起始图标。"),
+        new("EndIcon", "RenderFragment?", "结束图标。"),
+        new("Color", "Color", "语义颜色。", "Default"),
+        new("Variant", "TagVariant", "标签变体。", "Default"),
+        new("Size", "Size", "标签尺寸。", "Default"),
+        new("Dismissible", "bool", "是否显示关闭按钮。", "false"),
+        new("DismissLabel", "string", "关闭按钮的无障碍名称。", "Remove tag")
+    ];
+
+    private static readonly ShowcaseEvent[] TagEvents =
+    [new("OnDismiss", "EventCallback", "关闭按钮被点击时触发。")];
+
+    private void DismissTag()
+    {
+        _tagRemoved = true;
+    }
+
+    private void RestoreTag(MouseEventArgs _)
+    {
+        _tagRemoved = false;
+    }
+}
