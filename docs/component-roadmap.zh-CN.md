@@ -250,6 +250,14 @@ Input/Input 样式族
 
 暂不包含：复杂导航路由、数据加载和页面业务状态。
 
+### 14. Menu
+
+状态：已完成
+
+目标：提供可分组折叠的菜单基础组件，支持手风琴模式、选中项、图标、描述和禁用状态。
+
+交付：已加入组件库，并用于示例组件页面的侧边栏导航。
+
 ### 第二阶段固定交付物与验收
 
 沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/current-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
@@ -265,3 +273,4 @@ Input/Input 样式族
 | PopupHost / Popover | 已完成（基础版） | 通过 | 基础挂载容器、Popover region/dialog 语义和 hidden 状态 |
 | Tooltip | 已完成（基础版） | 通过 | hover/focus-visible 提示、tooltip 语义和 reduced-motion |
 | Tabs / Drawer / Empty / Divider | 未开始 | - | 可延后 |
+| Menu | 已完成 | 通过 | 分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏 |

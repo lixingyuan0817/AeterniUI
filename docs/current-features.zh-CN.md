@@ -347,7 +347,16 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 当前提供基础容器与语义表面，不包含锚点定位、翻转、点击外部关闭和滚动关闭；这些能力留待后续 PopupHost 增强。
 
-## 20. Tooltip
+## 20. Menu
+
+`Menu` 提供可复用的分组菜单，支持 `Items`、`SelectedId`、`SelectedIdChanged`、`ItemSelected`、`Accordion` 和 `AriaLabel`。
+
+- `MenuGroup` 支持分组标题、图标、初始展开状态和菜单项集合。
+- `MenuItem` 支持 `Id`、`Label`、`Description`、`Icon` 和 `Disabled`。
+- 分组可以独立展开/折叠；设置 `Accordion` 后同一时间只展开一个分组。
+- 当前项输出选中态和 `aria-current="page"`，菜单项使用原生 button 语义并支持键盘聚焦。
+
+## 21. Tooltip
 
 ### 支持能力
 

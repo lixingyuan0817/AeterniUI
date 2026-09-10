@@ -164,7 +164,7 @@ CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执�
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup` |
-| 内容和选择 | `Tag`、`List`、`ListItem`、`Rating`、`ComboBox` |
+| 内容和选择 | `Tag`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu` |
 | 状态反馈 | `Progress` |
 | 图标和主题 | `Icon`、`ThemeProvider`、`ThemeSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
