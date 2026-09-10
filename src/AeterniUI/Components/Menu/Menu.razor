@@ -9,8 +9,7 @@
                 @if (group.Icon is not null) { <span class="aeterni-menu__icon">@group.Icon</span> }
                 <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true">⌄</span>
             </button>
-            @if (open)
-            {
+            <div class="aeterni-menu__collapse @(open ? "is-open" : "")">
                 <div class="aeterni-menu__items">
                     @foreach (var item in group.Items)
                     {
@@ -20,7 +19,7 @@
                         </button>
                     }
                 </div>
-            }
+            </div>
         </section>
     }
 </nav>

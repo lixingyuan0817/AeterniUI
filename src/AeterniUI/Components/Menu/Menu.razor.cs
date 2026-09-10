@@ -22,6 +22,14 @@ public partial class Menu : AeterniComponent
     {
         base.OnParametersSet();
         if (!_initialized) { foreach (var group in Items.Where(x => x.InitiallyOpen)) _open.Add(group.Key); _initialized = true; }
+        if (!string.IsNullOrWhiteSpace(SelectedId))
+        {
+            foreach (var group in Items.Where(group => group.Items.Any(item => item.Id == SelectedId)))
+            {
+                _open.Add(group.Key);
+                if (Accordion) _open.RemoveWhere(key => key != group.Key);
+            }
+        }
     }
 
     private bool IsOpen(string key) => _open.Contains(key);
