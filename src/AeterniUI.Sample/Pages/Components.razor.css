@@ -730,3 +730,18 @@
 .showcase-colors__type-disabled {
     color: var(--aeterni-text-disabled);
 }
+
+/* Tab preview: the strip should span the preview width so the horizontal scroll
+   behaviour is visible, which the centred default stack does not do. */
+.preview-stack--fill {
+    align-items: stretch;
+    width: 100%;
+    text-align: start;
+}
+
+.preview-tab-text {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}

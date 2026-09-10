@@ -506,7 +506,31 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 ### 实现边界
 
 不提供多于两层的嵌套、组合式子组件（`ChildContent` + 子组件）、搜索过滤和多选；长菜单不内置滚动容器，把它放进带 `max-height` 的容器即可（示例侧边栏即如此）。
-## 22. Tooltip
+## 22. Tabs
+
+### 支持能力
+
+`Tabs` + `Tab` 是可组合的标签页导航（与 `List`/`RadioGroup` 同一形态：子组件注册自己，父组件渲染标签栏）：
+
+- `Tabs`：`Value` / `ValueChanged`（支持 `@bind-Value`）、`AriaLabel`、`ChildContent`。`AriaLabel` 缺省取 `AeterniUITextOptions.TabsLabel`，可通过 `AeterniUIOptions.Text` 覆写。
+- `Tab`：`Value`（必填，同一个 `Tabs` 内必须唯一且非空）、`Header`（标签按钮内容）、`ChildContent`（面板内容）、`Disabled`。重复的 `Value` 会在注册时抛出 `InvalidOperationException`，避免出现两个同时选中的标签。
+- `Tab` 自己渲染 `tabpanel`，`Tabs` 渲染整条 `tablist`；两者都接入基类属性契约（`Id`/`Class`/`Style`/`Visible`/`AdditionalAttributes`）。
+
+### 行为与无障碍
+
+- `role="tablist"`（带 `aria-orientation="horizontal"`）、每个按钮 `role="tab"` + `aria-selected`（字符串）、每个面板 `role="tabpanel"`。
+- 按钮 id 与面板 id 由注册顺序派生（`{ElementId}-tab-{i}` / `{ElementId}-panel-{i}`），`aria-controls` 与 `aria-labelledby` 成对且不依赖使用方提供 id；面板默认 `tabindex="0"`，无焦点内容时也能用键盘到达。
+- roving tabindex：整条标签栏只有一个 Tab 停留点；选中项被禁用时，停留点回退到首个可用标签，因此标签栏始终可用键盘进入。
+- 自动激活模型：`ArrowLeft`/`ArrowRight`（RTL 下由模块报告书写方向并自动互换）与 `Home`/`End` 在可用标签之间循环，同时改变选中项并把焦点移回标签栏；`Tabs.razor.js` 只做这两件事（移动焦点、报告方向），无 JS 时标签仍可点击与 Tab 进出。
+- `Value` 未匹配任何标签（包括初始 `null`）时，组件把首个可用标签当作选中项渲染，但不会自行改写 `Value`；点击或方向键选中后才会通过 `ValueChanged` 上报。
+- 窄屏横向滚动：标签栏不换行、不压缩，使用细滚动条（`--aeterni-scrollbar-*`）横向滚动，焦点环使用外扩负偏移避免被滚动容器裁切。
+- 键盘焦点环与禁用态沿用全库 Token（`--aeterni-focus-*`、`--aeterni-state-color-disabled`）；选中标签使用品牌色的文字形态与 2px 指示条。
+
+### 实现边界
+
+当前只提供水平标签栏：不支持垂直标签、懒加载面板内容、关闭按钮和拖拽排序，也不接管路由（导航用例请配合 `Menu` 的 `Href` 或页面级导航）；面板内容在首次渲染时全部构建，未选中项只是通过 `hidden` 移出无障碍树与布局。
+
+## 23. Tooltip
 
 ### 支持能力
 
@@ -522,7 +546,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 不提供 Escape、点击外部关闭、富交互内容和模态行为；无 JS 时视觉提示仍可用，只是缺少 `aria-describedby` 关联与翻转/偏移。
 
-## 23. ThemeProvider 和 ThemeSwitch 使用方式
+## 24. ThemeProvider 和 ThemeSwitch 使用方式
 
 ### 基础用法
 
@@ -540,7 +564,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 ### 实现边界
 
 系统主题跟随依赖浏览器 `matchMedia`；Tauri 窗口主题由 `src-tauri` 宿主同步，浏览器中没有 Tauri API 时自动降级。
-## 24. DialogProvider
+## 25. DialogProvider
 
 ### 支持能力
 
@@ -564,7 +588,7 @@ Provider 自身不提供定位或动画开关；位置、时长与数量等默�
 
 同时显示的 Toast 数量上限为 `AeterniUIOptions.MaxToastCount`（默认 5），超出后最早的一条会被完成并移除；Alert 由调用方 `await` 控制生命周期，不设数量上限。
 
-## 25. Dialog、Confirm、Alert 和 Toast
+## 26. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -649,7 +673,7 @@ builder.Services.AddAeterniUI(options =>
 ### 实现边界
 
 Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全输出，需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内再嵌套模态入口。
-## 26. 服务注册
+## 27. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -689,7 +713,7 @@ builder.Services.AddAeterniUI(options =>
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## 27. 当前边界
+## 28. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

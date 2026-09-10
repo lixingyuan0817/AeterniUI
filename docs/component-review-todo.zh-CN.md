@@ -50,7 +50,7 @@
 | REV-23 | Token 层注释 + `current-features` | 字体栈中 Inter / JetBrains Mono 标注为可选宿主依赖，库不随包提供 webfont |
 | REV-24 | `TooltipPlacement` 枚举、`Tooltip.razor(.cs/.css/.js)` | 支持 Top/Bottom/Start/End，与 REV-11 共用同一套翻转/偏移实现 |
 | REV-25 | `RadioGroup.razor(.cs/.css)` | 新增 `Orientation`，垂直单列布局并同步 `aria-orientation`，fieldset 输出 `role="radiogroup"` |
-| REV-26 | `current-features` §24 | 明确 Toast 上限为 `MaxToastCount`（默认 5）、超出时移除最早一条、Alert 由调用方控制生命周期；容器超出视口时可滚动 |
+| REV-26 | `current-features` §25 | 明确 Toast 上限为 `MaxToastCount`（默认 5）、超出时移除最早一条、Alert 由调用方控制生命周期；容器超出视口时可滚动 |
 | REV-27 | `Rating.razor.css` | 自定义 `Icon` 与内置星形统一使用 `--aeterni-icon-size-lg`，删除 glyph 覆盖 |
 | REV-28 | `DialogProvider.razor.js` | 锁定滚动时按滚动条宽度补偿 `body` 右内边距，关闭时恢复 |
 | REV-29 | `Button.razor.css`、`ButtonGroup.razor.css` | 文字/链接禁用态改用更轻的半透明表面（与注释一致）；分隔线取自按钮自身前景色，实心变体全部可辨 |

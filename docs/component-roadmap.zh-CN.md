@@ -2,7 +2,7 @@
 
 文档版本：`10.4.0`
 
-状态：v0.1 已完成，v0.2 进行中（仅剩 `Tabs`），v0.3 规划中；组件审阅待办两轮（29 项 + 21 项）已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1 与 v0.2 已完成，v0.3 规划中；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -152,7 +152,7 @@ Input
 - [x] 10. `Progress`（Linear）
 - [x] 11. `Tooltip`（四方位 + 翻转/贴边）
 - [x] 12. `PopupHost` + `Popover`（定位、翻转/贴边、遮罩、焦点陷阱、外部点击）
-- [ ] 13. `Tabs`（原条目中的 `Drawer`、`Empty`、`Divider` 已移入第三阶段）
+- [x] 13. `Tabs`（原条目中的 `Drawer`、`Empty`、`Divider` 已移入第三阶段）
 
 ### 依赖顺序
 
@@ -168,6 +168,8 @@ Input/Input 样式族
           +--> Tooltip
           +--> Popover
           +--> ComboBox 弹层迁移（替换内置 fixed 定位）
+  |
+  +--> Tabs                    （roving tabindex + 焦点控制，复用 List/Menu 的键盘约定）
 ```
 
 ### 8. Textarea
@@ -246,13 +248,24 @@ Input/Input 样式族
 
 ### 13. Tabs
 
-状态：未开始
+状态：已完成
 
 目标：补充标签页导航基础组件。
 
-验收重点：`tablist`/`tab`/`tabpanel` 语义、roving tabindex、方向键与 Home/End、禁用标签、`aria-controls` 与面板 id 对应、窄屏横向滚动。
+交付：`Tabs` + `Tab`，与 `List`/`RadioGroup` 同为可组合组件：`Tab` 注册自己并渲染自己的面板，`Tabs` 负责渲染标签栏与整套 ARIA 关联。选择由 `Value`/`ValueChanged` 控制（支持 `@bind-Value`），`AriaLabel` 缺省取 `AeterniUITextOptions.TabsLabel`。
 
-暂不包含：复杂导航路由、数据加载和页面业务状态。
+验收重点（均已通过渲染验证）：
+
+- `tablist`/`tab`/`tabpanel` 三件套；按钮 id 与面板 id 由注册顺序派生（`{ElementId}-tab-{i}` / `-panel-{i}`），`aria-controls` 与 `aria-labelledby` 成对且不依赖使用方提供 id。
+- roving tabindex：整条标签栏只有一个 Tab 停留点；选中项被禁用时停留点回退到首个可用项。
+- 自动激活：`ArrowLeft`/`ArrowRight`（RTL 下自动互换）与 `Home`/`End` 在可用标签间循环并同时改变选中项，焦点随后移回标签栏（由 `Tabs.razor.js` 完成唯一的浏览器行为）。
+- 禁用标签不可点、不可选中、不进入方向键循环。
+- 窄屏横向滚动：标签栏不换行、不压缩，改用细滚动条横向滚动，焦点环不会被裁切。
+- `Value` 未匹配任何标签（包括初始 `null`）时默认把首个可用标签当作选中项渲染，但不会自改 `Value`。
+
+暂不包含：垂直标签、复杂导航路由、数据加载、懒加载面板内容与页面业务状态。
+
+说明：本条目原包含的 `Drawer`、`Empty`、`Divider` 已移入第三阶段（v0.3）计划。
 
 说明：本条目原包含的 `Drawer`、`Empty`、`Divider` 已移入第三阶段（v0.3）计划，见下文第 15、16、21 项。
 
@@ -278,7 +291,7 @@ Input/Input 样式族
 | Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
 | PopupHost / Popover | 已完成 | 通过 | 定位（`PopupPlacement` 四方位）、视口翻转与交叉轴贴边、Escape/外部指针/遮罩关闭（通过 `OpenChanged`）、模态遮罩与 `aria-modal`、Tab 焦点陷阱、背景滚动锁与焦点回归 |
 | Tooltip | 已完成 | 通过 | 四方位 hover/focus-visible 提示、`aria-describedby` 关联、翻转与贴边改为复用共享浮层模块 |
-| Tabs | 未开始 | - | 原条目中的 Drawer、Empty、Divider 已移入第三阶段（v0.3）计划 |
+| Tabs | 已完成 | 通过 | `tablist`/`tab`/`tabpanel` 三件套与按注册顺序派生的成对 id、roving tabindex（含选中项被禁用时回退到首个可用项）、自动激活模型 + 方向键/Home/End（RTL 自动互换）、禁用标签、窄屏横向滚动与细滚动条、`Value` 未匹配任何标签时默认显示首个可用项 |
 | Menu | 已完成 | 通过 | 分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏并新增示例专区；键盘模型、`aria-expanded`/`aria-controls`、折叠可见性、`Href` 链接项、受控 `OpenKeys`、分组级禁用/可见性、`ul`/`li` 语义、RTL 方向键与方向键滚动抑制已补齐 |
 | 文档与代码一致性审计 | 已完成 | 通过 | 修正 current-features 标题编号（§21 重复）并补 Label、DialogProvider 章节；补齐 List/Menu/Rating 参数与枚举类型名；示例页补 Progress、Tooltip、Popover 参数表与 Radio 无障碍参数；清理规范中的陈旧组件名（Select→ComboBox、Stack/Flex、Toolbar/ToggleGroup）；把 check-docs.sh 写入 AGENTS.md 与 agent-development |
 | 组件审阅修复批次 1（P0） | 已完成 | 通过 | Switch 关闭态滑块改用 `--aeterni-state-background-thumb`；Button 加载遮罩按变体取值、实心语意色改用 `--aeterni-color-on-semantic`；Alert 与 Toast 合并到同一位置容器 |

@@ -18,6 +18,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a <c>Rating</c> group.</summary>
     public string RatingLabel { get; set; } = "Rating";
 
+    /// <summary>Accessible name of a <c>Tabs</c> strip.</summary>
+    public string TabsLabel { get; set; } = "Tabs";
+
     /// <summary>Accessible name of the <c>ThemeSwitch</c> group.</summary>
     public string ThemeSwitchLabel { get; set; } = "Theme mode";
 
@@ -54,6 +57,7 @@ public sealed class AeterniUITextOptions
         ComboBoxPlaceholder = Or(ComboBoxPlaceholder, defaults.ComboBoxPlaceholder);
         ComboBoxListLabel = Or(ComboBoxListLabel, defaults.ComboBoxListLabel);
         RatingLabel = Or(RatingLabel, defaults.RatingLabel);
+        TabsLabel = Or(TabsLabel, defaults.TabsLabel);
         ThemeSwitchLabel = Or(ThemeSwitchLabel, defaults.ThemeSwitchLabel);
         ThemeSystemLabel = Or(ThemeSystemLabel, defaults.ThemeSystemLabel);
         ThemeLightLabel = Or(ThemeLightLabel, defaults.ThemeLightLabel);

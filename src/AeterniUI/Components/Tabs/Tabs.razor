@@ -1,0 +1,32 @@
+@inherits AeterniComponent
+
+@* The strip is rendered here from the registered Tab children; every tab renders
+   its own panel below, so markup order is the reading order and no consumer has to
+   wire ids by hand. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <div class="aeterni-tabs__list"
+         role="tablist"
+         aria-orientation="horizontal"
+         aria-label="@EffectiveAriaLabel"
+         @onkeydown="HandleKeyDownAsync">
+        @foreach (var tab in RegisteredTabs)
+        {
+            var selected = IsRenderedSelected(tab);
+            <button type="button"
+                    id="@TabButtonId(tab)"
+                    class="aeterni-tabs__tab"
+                    role="tab"
+                    aria-selected="@(selected ? "true" : "false")"
+                    aria-controls="@TabPanelId(tab)"
+                    tabindex="@(ReferenceEquals(tab, TabStop) ? 0 : -1)"
+                    disabled="@tab.Disabled"
+                    @onclick="() => SelectAsync(tab)">
+                @tab.Header
+            </button>
+        }
+    </div>
+
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>

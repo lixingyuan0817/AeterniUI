@@ -1,0 +1,8 @@
+@inherits AeterniComponent
+
+@* The panel is rendered by the tab itself; the button that controls it is rendered
+   by Tabs. The panel id comes from BuildAttributes() so consumer ids cannot break
+   the aria-controls/aria-labelledby pairing. *@
+<div @attributes="BuildAttributes()">
+    @ChildContent
+</div>

@@ -1,0 +1,114 @@
+/* Tabs ------------------------------------------------------------------------
+   A tab strip with an inline indicator. The strip scrolls horizontally on narrow
+   viewports instead of shrinking or wrapping, so the tab order stays a single
+   visual row and the focus ring is never clipped. */
+.aeterni-tabs {
+    display: block;
+    min-width: 0;
+}
+
+.aeterni-tabs__list {
+    display: flex;
+    align-items: stretch;
+    gap: var(--aeterni-spacing-1);
+    box-sizing: border-box;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-separator);
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-tabs__list::-webkit-scrollbar {
+    height: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-tabs__list::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-tabs__list::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
+.aeterni-tabs__tab {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    min-height: var(--aeterni-row-height-compact);
+    padding: 0 var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-md) var(--aeterni-radius-md) 0 0;
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-normal);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
+}
+
+/* The indicator is a pseudo element rather than a bottom border: a border would add
+   to the box and shift the label by a pixel when a tab becomes selected. */
+.aeterni-tabs__tab::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(var(--aeterni-border-width) * -1);
+    height: var(--aeterni-border-width-medium);
+    background: transparent;
+}
+
+.aeterni-tabs__tab:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-tabs__tab:focus-visible {
+    /* Inset so the ring is not clipped by the strip's own overflow. */
+    z-index: 1;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(var(--aeterni-focus-offset) * -1);
+}
+
+.aeterni-tabs__tab[aria-selected="true"] {
+    color: var(--aeterni-color-brand-text);
+}
+
+.aeterni-tabs__tab[aria-selected="true"]::after {
+    background: var(--aeterni-color-brand-default);
+}
+
+.aeterni-tabs__tab:disabled {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-tabs__panel {
+    min-width: 0;
+    padding-top: var(--aeterni-spacing-4);
+}
+
+.aeterni-tabs__panel[hidden] {
+    display: none;
+}
+
+.aeterni-tabs__panel:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-tabs__tab {
+        transition: none;
+    }
+}
