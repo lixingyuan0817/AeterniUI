@@ -2,7 +2,7 @@
 
 文档版本：`10.1.0`
 
-状态：v0.1 已完成，v0.2 规划中
+状态：v0.1 已完成，v0.2 进行中，v0.3 规划中
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -152,7 +152,7 @@ Input
 - [x] 10. `Progress`（Linear）
 - [x] 11. `Tooltip`（基础版）
 - [x] 12. `PopupHost` + `Popover`（基础版）
-- [ ] 13.（可延后）`Tabs`、`Drawer`、`Empty`、`Divider`
+- [ ] 13. `Tabs`（原条目中的 `Drawer`、`Empty`、`Divider` 已移入第三阶段）
 
 ### 依赖顺序
 
@@ -240,15 +240,17 @@ Input/Input 样式族
 
 交付：已加入组件库和当前功能文档。
 
-### 13.（可延后）Tabs、Drawer、Empty、Divider
+### 13. Tabs
 
 状态：未开始
 
-目标：补充导航、模态面板、空状态和分隔线基础组件。
+目标：补充标签页导航基础组件。
 
-验收重点：Tabs 的 tablist/方向键语义；Drawer 的焦点和滚动锁定；Empty/Divider 的响应式布局。
+验收重点：`tablist`/`tab`/`tabpanel` 语义、roving tabindex、方向键与 Home/End、禁用标签、`aria-controls` 与面板 id 对应、窄屏横向滚动。
 
 暂不包含：复杂导航路由、数据加载和页面业务状态。
+
+说明：本条目原包含的 `Drawer`、`Empty`、`Divider` 已移入第三阶段（v0.3）计划，见下文第 15、16、21 项。
 
 ### 14. Menu
 
@@ -272,7 +274,152 @@ Input/Input 样式族
 | Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
 | PopupHost / Popover | 已完成（基础版） | 通过 | 基础挂载容器、Popover region/dialog 语义和 hidden 状态 |
 | Tooltip | 已完成（基础版） | 通过 | hover/focus-visible 提示、tooltip 语义和 reduced-motion |
-| Tabs / Drawer / Empty / Divider | 未开始 | - | 可延后 |
+| Tabs | 未开始 | - | 原条目中的 Drawer、Empty、Divider 已移入第三阶段（v0.3）计划 |
 | Menu | 已完成 | 通过 | 分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏并新增示例专区；键盘模型、`aria-expanded`/`aria-controls`、折叠可见性、`Href` 链接项、受控 `OpenKeys`、分组级禁用/可见性、`ul`/`li` 语义、RTL 方向键与方向键滚动抑制已补齐 |
 | 文档与代码一致性审计 | 已完成 | 通过 | 修正 current-features 标题编号（§21 重复）并补 Label、DialogProvider 章节；补齐 List/Menu/Rating 参数与枚举类型名；示例页补 Progress、Tooltip、Popover 参数表与 Radio 无障碍参数；清理规范中的陈旧组件名（Select→ComboBox、Stack/Flex、Toolbar/ToggleGroup）；把 check-docs.sh 写入 AGENTS.md 与 agent-development |
 | 图标库完善 | 已完成 | 通过 | 新增核心 `AeterniIcons`（组件内字形全部改为图标渲染）；Font Awesome 适配包升级到 7.3.1 精选 343 个图标并提供 `Categories`/`TryGet`；新增生成脚本和 `/icons` 图标浏览页 |
+
+## 第三阶段（v0.3）计划
+
+状态：规划中。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
+
+版本规则沿用第二阶段：功能新增递增次版本号；问题修复递增补丁版本号；破坏性公共 API 变更递增主版本号。
+
+### TODO 总览
+
+- [ ] 15. `Divider`
+- [ ] 16. `Empty`
+- [ ] 17. `Spinner`
+- [ ] 18. `Skeleton`
+- [ ] 19. `Badge`
+- [ ] 20. `Segmented`
+- [ ] 21. `Drawer`
+
+### 依赖顺序
+
+```text
+Token 和现有基础组件
+  +--> Divider / Skeleton / Badge     （纯展示，无额外依赖）
+  +--> Spinner                        （沿用 Button Loading 的视觉约定）
+  +--> Empty                          （Icon + Button + Surface）
+  +--> Segmented                      （Radio 的单选语义；落地后反向重构 ThemeSwitch）
+  +--> FocusTrap + 背景滚动锁抽取       （与 v0.2 第 12 项的 Popup 增强共用）
+          |
+          +--> Drawer
+```
+
+### 15. Divider
+
+状态：未开始
+
+目标：提供水平与垂直分隔线，支持中缝文字或图标。
+
+依赖：Token 层（`--aeterni-border`、间距和字号 Token）。
+
+验收重点：`role="separator"` 与 `aria-orientation`；垂直形态在 flex 容器内自适应高度；中缝内容与线宽对齐；纯 CSS 无 JS。
+
+暂不包含：渐变装饰线、可拖拽的 splitter。
+
+### 16. Empty
+
+状态：未开始
+
+目标：提供空状态占位，支持图标、标题、描述与操作区。
+
+依赖：`Icon`、`Button`、`Surface`；需要新增“空/无数据”核心字形（`AeterniIcons` 目前只有 7 个字形）。
+
+验收重点：默认图标可被 `Icon` 参数或自定义插画替换；`Description` 与操作区插槽；尺寸档位；文本居中与窄屏换行；`ChildContent` 为空时不渲染空壳；无 JS。
+
+暂不包含：数据加载逻辑、插图资源包、动画插画。
+
+### 17. Spinner
+
+状态：未开始
+
+目标：提供独立加载指示器，供内容区、对话框和页面级加载复用。
+
+依赖：现有 Button spinner 的视觉与 keyframes，落地时应先把该视觉抽成共享实现，再让 `Button.Loading` 引用，避免两份动画。
+
+验收重点：尺寸与语义色档位；可访问名称（`role="status"` 或 `aria-label`）；`prefers-reduced-motion` 降级；与 Button Loading 视觉一致。
+
+暂不包含：进度百分比（使用 `Progress`）和遮罩层布局。
+
+### 18. Skeleton
+
+状态：未开始
+
+目标：提供内容加载占位（文本行、矩形、圆形及常见组合）。
+
+依赖：Token 层（表面色、圆角和动效 Token）。
+
+验收重点：形状与尺寸参数；微光动画在 `prefers-reduced-motion` 下退化为静态；占位内容对读屏不可见（`aria-hidden`），容器按需标记 `aria-busy`；无 JS。
+
+暂不包含：与具体组件绑定的骨架模板和延迟加载策略。
+
+### 19. Badge
+
+状态：未开始
+
+目标：提供数字或圆点角标，附着在图标、头像或按钮上。
+
+依赖：`Tag` 的语义色与 soft/outline 思路。
+
+验收重点：数字上限显示（如 `99+`）、圆点模式、相对父级定位、语义色、最大宽度与溢出处理；数字需要有可访问名称。
+
+暂不包含：独立堆叠布局和消息计数业务逻辑。
+
+### 20. Segmented
+
+状态：未开始
+
+目标：提供通用分段控件（互斥选项切换），并把 `ThemeSwitch` 重构为它的专用用法。
+
+依赖：`Radio`/`RadioGroup` 的单选语义与现有 `ThemeSwitch` 的滑块动画。
+
+验收重点：`radiogroup` 语义与 roving tabindex；滑块指示器与选项数量无关（不得像 `ThemeSwitch` 那样硬编码三列和 `translate3d(200%)`）；尺寸档位；单项禁用与整体禁用；方向键；RTL 方向。
+
+暂不包含：多选分段、可编辑标签和路由集成。
+
+说明：公共名为 `Segmented`。落地后 `ThemeSwitch` 应改为基于该组件，并同步解决英文硬编码文案问题（见 [`component-review-todo.zh-CN.md`](component-review-todo.zh-CN.md) 的 REV-18）。
+
+### 21. Drawer
+
+状态：未开始
+
+目标：提供从视口边缘滑出的面板，支持非模态和模态两种形态。
+
+依赖：必须先抽取 `Dialog` 中已有的焦点陷阱与背景滚动锁能力（见 [`component-review-todo.zh-CN.md`](component-review-todo.zh-CN.md) 的 REV-13、REV-28），避免 `Drawer`、`Popup`、`Dialog` 各维护一份实现。
+
+验收重点：四个方向（start/end/top/bottom）；模态形态使用 `role="dialog"` + `aria-modal` + 焦点陷阱 + 背景滚动锁 + 关闭后焦点回归；非模态形态不抢焦点；Escape 与外部点击（可配置）；`prefers-reduced-motion` 下关闭滑入动效；窄屏宽度自适应。
+
+暂不包含：多抽屉堆叠、可拖拽调整宽度和路由集成。
+
+### 第三阶段前置能力
+
+以下能力不产出新组件，但会阻塞或影响第三阶段质量，需在同批次内完成：
+
+| 能力 | 影响的任务 |
+| --- | --- |
+| FocusTrap + 背景滚动锁抽取 | 21 `Drawer`，并回填 v0.2 第 12 项的 Popup 增强 |
+| 浮层定位能力（锚定/flip/shift/外部点击/滚动关闭） | 21 `Drawer` 的遮罩、v0.2 的 ComboBox 弹层迁移与 Tooltip 复用 |
+| 语义枚举收敛（`Color`/`Severity`） | 19 `Badge`、17 `Spinner` 等新增带色组件 |
+| 文案本地化入口 | 20 `Segmented`（含 `ThemeSwitch` 重构） |
+| 核心图标字形补充 | 16 `Empty` 及后续新增组件 |
+| 示例页拆分 | 第三阶段每个组件都需要可交互演示 |
+
+### 第三阶段固定交付物与验收
+
+沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/current-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
+
+### 第三阶段任务记录
+
+| 任务 | 状态 | 构建 | 备注 |
+| --- | --- | --- | --- |
+| v0.3 计划 | 规划中 | 未涉及 | 仅记录计划，未修改组件代码 |
+| Divider | 未开始 | - | - |
+| Empty | 未开始 | - | - |
+| Spinner | 未开始 | - | - |
+| Skeleton | 未开始 | - | - |
+| Badge | 未开始 | - | - |
+| Segmented | 未开始 | - | 落地后需重构 ThemeSwitch |
+| Drawer | 未开始 | - | 依赖焦点陷阱与滚动锁抽取 |
