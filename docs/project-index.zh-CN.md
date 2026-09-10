@@ -215,5 +215,6 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | `docs/current-features.zh-CN.md` | 已实现的公共 API 和行为 |
 | `docs/component-roadmap.zh-CN.md` | 未完成任务、依赖、验收和构建记录 |
 | `docs/component-design-guidelines.zh-CN.md` | 组件 API、样式、可访问性和 JS 设计契约 |
+| `docs/component-review-todo.zh-CN.md` | 组件审阅发现的质量问题待办、优先级和验收条件 |
 
 发生冲突时，优先以实际代码、`AGENTS.md` 的硬规则和 CI 检查为准，并在同一变更中修正文档冲突。
