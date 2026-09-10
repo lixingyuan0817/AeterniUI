@@ -1,7 +1,7 @@
-.aeterni-menu { display:grid; gap:var(--aeterni-spacing-3); }
+.aeterni-menu { display:grid; gap:var(--aeterni-spacing-3); width:100%; box-sizing:border-box; }
 .aeterni-menu__group { display:grid; gap:var(--aeterni-spacing-1); }
 .aeterni-menu__group-toggle,.aeterni-menu__item { display:flex; align-items:center; gap:var(--aeterni-spacing-2); width:100%; border:1px solid transparent; border-radius:var(--aeterni-radius-md); background:transparent; color:var(--aeterni-text-secondary); text-align:start; cursor:pointer; font:inherit; }
-.aeterni-menu__group-toggle { padding:8px 10px; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); font-weight:var(--aeterni-font-weight-semibold); }
+.aeterni-menu__group-toggle { justify-content:flex-start; min-height:34px; padding:8px 10px; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); font-weight:var(--aeterni-font-weight-semibold); text-align:start; }
 .aeterni-menu__item { position:relative; padding:10px 12px; }
 .aeterni-menu__group-toggle:hover,.aeterni-menu__item:hover { background:var(--aeterni-state-background-hover); color:var(--aeterni-text-primary); }
 .aeterni-menu__group-toggle:active,.aeterni-menu__item:active { background:var(--aeterni-state-background-active); }
@@ -14,6 +14,7 @@
 .aeterni-menu__collapse { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 .aeterni-menu__collapse.is-open { grid-template-rows:1fr; opacity:1; }
 .aeterni-menu__items { min-height:0; overflow:hidden; display:grid; gap:3px; padding-inline-start:8px; }
+.aeterni-menu__items > .aeterni-menu__item { box-sizing:border-box; }
 .aeterni-menu__chevron { margin-inline-start:auto; transition:transform var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 .aeterni-menu__group.is-open .aeterni-menu__chevron { transform:rotate(180deg); }
 .aeterni-menu button:focus-visible { outline:2px solid var(--aeterni-control-focus-ring); outline-offset:2px; }
