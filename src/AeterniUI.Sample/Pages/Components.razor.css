@@ -23,9 +23,9 @@
     flex-direction: column;
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
-    /* Content height: the panel shrinks to the collapsed navigation instead of
-       always filling the viewport, and scrolls once it would grow past it. */
-    height: auto;
+    /* Stable panel: collapsing the navigation must not resize the card; the
+       inner scroll container handles content that outgrows the viewport. */
+    height: calc(100vh - 112px);
     max-height: calc(100vh - 112px);
     overflow: hidden;
     padding: 18px;

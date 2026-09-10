@@ -372,6 +372,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 - `MenuGroup`：`Key`、`Label`、`Items`、`Icon`、`InitiallyOpen`、`Disabled`、`Visible`。
 - `MenuItem`：`Id`、`Label`、`Description`、`Icon`、`Disabled`、`Href`、`Target`、`Visible`。
+- 标签与 `Description` 在同一行显示，空间不足时按需省略（`…`），因此分组开关与菜单项保持同高（`36px`）；菜单本身不会因父容器更高而拉伸行高。
 - 设置 `Href` 的菜单项渲染为真实 `<a>`（保留中键新标签页、浏览器历史与链接语义），`Target="_blank"` 会自动带上 `rel="noopener noreferrer"`；未设置 `Href` 或项被禁用时渲染为原生 `<button>`。
 - `Href` + `Target` 由规范 §7.1“导航使用 `<a>`”约束；链接项仍会触发 `OnItemSelected`，只是导航交给浏览器。
 
