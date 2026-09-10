@@ -10,16 +10,26 @@ public sealed record ShowcaseNavGroup(string Label, IconDefinition Icon, IReadOn
 }
 
 /// <summary>A single showcase entry: id anchors the preview section on /components.</summary>
-public sealed record ShowcaseNavItem(string Id, string Label, string Summary);
+/// <remarks>
+/// Non-component pages (for example the installation guide) set
+/// <see cref="IsComponent"/> to false so they stay out of <see cref="ShowcaseCatalog.ComponentCount"/>.
+/// </remarks>
+public sealed record ShowcaseNavItem(string Id, string Label, string Summary)
+{
+    public bool IsComponent { get; init; } = true;
+}
 
 /// <summary>
-/// Single source of truth for the showcase navigation and the stats shown on
-/// the docs home page (component/group counts stay in sync automatically).
+/// Single source of truth for the showcase sidebar: the routing entries of
+/// /components and the component counters derived from them.
 /// </summary>
 public static class ShowcaseCatalog
 {
     public static IReadOnlyList<ShowcaseNavGroup> Groups { get; } =
     [
+        new("开始", FontAwesomeIcons.Solid.Rocket, [
+            new("install", "安装", "安装与初始化") { IsComponent = false }
+        ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
@@ -55,8 +65,10 @@ public static class ShowcaseCatalog
         ])
     ];
 
-    /// <summary>Number of showcase entries (components and combined demos).</summary>
-    public static int ComponentCount => Groups.Sum(group => group.Count);
+    /// <summary>Number of component entries, excluding non-component pages.</summary>
+    public static int ComponentCount => Groups
+        .SelectMany(group => group.Items)
+        .Count(item => item.IsComponent);
 
     /// <summary>Number of showcase groups (categories).</summary>
     public static int GroupCount => Groups.Count;
