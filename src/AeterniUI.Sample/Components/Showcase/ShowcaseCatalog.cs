@@ -17,34 +17,38 @@ public static class ShowcaseCatalog
 {
     public static IReadOnlyList<ShowcaseNavGroup> Groups { get; } =
     [
-        new("基础", [
+        new("基础组件", [
             new("button", "Button", "动作按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
             new("surface", "Surface", "视觉容器"),
             new("card", "Card", "结构化容器"),
-            new("icon", "Icon", "SVG 图标")
+            new("icon", "Icon", "SVG 图标"),
+            new("tag", "Tag", "标签状态")
         ]),
-        new("表单", [
+        new("表单组件", [
             new("input", "Input", "单行输入"),
             new("textarea", "Textarea", "多行输入"),
             new("radio", "Radio / RadioGroup", "单选分组"),
-            new("progress", "Progress", "进度展示"),
             new("form-field", "FormField", "字段组合"),
             new("label", "Label", "原生标签"),
             new("checkbox", "Checkbox", "复选框"),
-            new("switch", "Switch", "二态开关")
-        ]),
-        new("选择与状态", [
-            new("tag", "Tag", "标签状态"),
-            new("list", "List / ListItem", "列表选择"),
+            new("switch", "Switch", "二态开关"),
             new("rating", "Rating", "整数评分"),
             new("combobox", "ComboBox", "下拉选择")
         ]),
-        new("系统反馈", [
-            new("theme", "Theme", "主题模式"),
+        new("导航组件", [
+            new("list", "List / ListItem", "列表选择"),
+        ]),
+        new("图表组件", [
+            new("progress", "Progress", "进度展示")
+        ]),
+        new("通知组件", [
             new("popup", "Popup / Popover", "基础浮层"),
             new("tooltip", "Tooltip", "辅助提示"),
             new("feedback", "Dialog / Toast", "反馈与浮层")
+        ]),
+        new("主题组件", [
+            new("theme", "Theme", "主题模式")
         ])
     ];
 

@@ -137,6 +137,14 @@
     animation-delay: .18s;
 }
 
+.showcase-nav__group:nth-child(5) {
+    animation-delay: .24s;
+}
+
+.showcase-nav__group:nth-child(6) {
+    animation-delay: .30s;
+}
+
 .showcase-main {
     grid-column: 2;
     min-width: 0;

@@ -202,7 +202,7 @@ Input/Input 样式族
 
 状态：已完成
 
-目标：提供线性和环形进度展示，并复用统一语意色和尺寸 Token。
+目标：提供线性进度展示，并复用统一语意色和尺寸 Token。
 
 依赖：现有 Token 和 Button Loading 的视觉约定。
 
@@ -220,7 +220,7 @@ Input/Input 样式族
 
 依赖：`PopupHost`。
 
-验收重点：Placement、键盘焦点、Escape/点击外部关闭、窄屏贴边和无障碍关联。
+基础验收重点：hover/focus-visible 提示、固定位置、tooltip 语义和 reduced-motion。
 
 暂不包含：Placement、Escape、点击外部关闭、复杂交互内容和模态行为。
 
@@ -230,11 +230,11 @@ Input/Input 样式族
 
 状态：已完成（基础版）
 
-目标：提供通用的锚定、翻转、贴边、点击外部和滚动关闭能力。
+目标：提供基础浮层挂载和 Popover 模态/非模态语义；锚定、翻转、贴边、点击外部和滚动关闭列为后续增强。
 
 依赖：现有 ComboBox 弹层定位逻辑。
 
-验收重点：多实例、视口边界、`backdrop-filter`/`overflow` 容器兼容、Popover 的模态/非模态语义。
+基础验收重点：多实例挂载、Open/hidden 状态、Popover 的模态/非模态语义。
 
 后续影响：后续增强定位能力后再迁移 ComboBox，并供 Tooltip 使用。
 
@@ -264,8 +264,4 @@ Input/Input 样式族
 | Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
 | PopupHost / Popover | 已完成（基础版） | 通过 | 基础挂载容器、Popover region/dialog 语义和 hidden 状态 |
 | Tooltip | 已完成（基础版） | 通过 | hover/focus-visible 提示、tooltip 语义和 reduced-motion |
-| Radio + RadioGroup | 未开始 | - | - |
-| Progress | 未开始 | - | - |
-| Tooltip | 未开始 | - | 依赖 PopupHost |
-| PopupHost + Popover | 未开始 | - | 需先确认挂载层设计 |
 | Tabs / Drawer / Empty / Divider | 未开始 | - | 可延后 |

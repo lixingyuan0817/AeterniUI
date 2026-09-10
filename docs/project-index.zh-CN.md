@@ -163,10 +163,11 @@ CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执�
 | 能力组 | 组件 |
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card` |
-| 表单基础 | `Input`、`FormField`、`Label`、`Checkbox`、`Switch` |
+| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup` |
 | 内容和选择 | `Tag`、`List`、`ListItem`、`Rating`、`ComboBox` |
+| 状态反馈 | `Progress` |
 | 图标和主题 | `Icon`、`ThemeProvider`、`ThemeSwitch` |
-| 浮层和反馈 | `DialogProvider`、Dialog、Confirm、Alert、Toast |
+| 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。
 
