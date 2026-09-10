@@ -241,6 +241,17 @@
     text-align: center;
 }
 
+/* The Menu demo keeps the menu left-aligned at a sidebar-like width. */
+.preview-menu-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    width: min(100%, 360px);
+}
+
+.preview-menu-demo .preview-feedback {
+    text-align: start;
+}
+
 .preview-stack.preview-feedback-actions {
     width: min(100%, 520px);
 }

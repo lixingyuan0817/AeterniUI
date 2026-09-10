@@ -12,8 +12,10 @@
 <PageTitle>Aeterni UI · 组件文档</PageTitle>
 
 <div class="showcase-layout" id="showcase">
-        <aside class="showcase-sidebar" aria-label="组件导航">
-            <Menu Items="MenuGroups" SelectedId="_selectedComponent" SelectedIdChanged="SelectComponent" Accordion />
+        <aside class="showcase-sidebar">
+            <div class="showcase-nav">
+                <Menu Items="MenuGroups" SelectedId="_selectedComponent" Accordion AriaLabel="组件导航" />
+            </div>
         </aside>
 
         <main class="showcase-main">
@@ -617,6 +619,42 @@
                     </ComponentPreview>
                     break;
 
+                case "menu":
+                    <ComponentPreview AnchorId="menu"
+                                      Category="导航组件"
+                                      Title="Menu"
+                                      ComponentName="Menu"
+                                      Description="分组可折叠的菜单导航，支持链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。"
+                                      Parameters="@MenuParameters"
+                                      Events="@MenuEvents"
+                                      Contracts="@MenuContracts">
+                        <Preview>
+                            <div class="preview-menu-demo">
+                                <Menu Items="MenuPreviewGroups"
+                                      SelectedId="_menuSelectedId"
+                                      SelectedIdChanged="HandleMenuSelectedId"
+                                      OnItemSelected="HandleMenuItemSelected"
+                                      Accordion="_menuAccordion"
+                                      OpenKeys="@(_menuControlled ? _menuOpenKeys : null)"
+                                      OpenKeysChanged="HandleMenuOpenKeysChanged"
+                                      OnGroupToggled="HandleMenuGroupToggled"
+                                      AriaLabel="示例菜单" />
+                                <span class="preview-feedback" role="status">@_menuNote</span>
+                            </div>
+                        </Preview>
+                        <Controls>
+                            <Checkbox Size="Size.Small" @bind-Value="_menuAccordion">Accordion</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_menuHref">菜单项使用 Href</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_menuControlled">受控 OpenKeys</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_menuDisabledGroup">禁用第二个分组</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_menuHiddenItem">隐藏一个菜单项</Checkbox>
+                        </Controls>
+                        <Notes>
+                            <span>Tab 按原生顺序移动，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
+                        </Notes>
+                    </ComponentPreview>
+                    break;
+
                 case "rating":
                     <ComponentPreview AnchorId="rating"
                                       Category="表单组件"
@@ -821,6 +859,44 @@
     [Parameter] public string? ComponentId { get; set; }
     private string _interactionNote = "点击预览组件即可查看事件反馈。";
 
+    private string _menuNote = "点击菜单项或分组查看事件反馈。";
+    private bool _menuAccordion = true;
+    private bool _menuHref = true;
+    private bool _menuControlled;
+    private bool _menuDisabledGroup;
+    private bool _menuHiddenItem;
+    private string _menuSelectedId = "button";
+    private IReadOnlyList<string> _menuOpenKeys = ["components"];
+
+    /// <summary>Demo groups exercised by the checkboxes in the Menu controls.</summary>
+    private IReadOnlyList<MenuGroup> MenuPreviewGroups =>
+    [
+        new MenuGroup("getting-started", "开始", [
+            new MenuItem("install", "安装", "安装与初始化", Href: _menuHref ? "/components" : null),
+            new MenuItem("quickstart", "快速上手", "最小可运行示例", Visible: _menuHiddenItem)
+        ], GroupIcon(FontAwesomeIcons.Solid.Rocket)),
+        new MenuGroup("components", "组件", [
+            new MenuItem("button", "Button", "动作按钮"),
+            new MenuItem("input", "Input", "单行输入"),
+            new MenuItem("soon", "即将推出", "禁用项示例", Disabled: true)
+        ], GroupIcon(FontAwesomeIcons.Solid.Cubes), Disabled: _menuDisabledGroup),
+        new MenuGroup("resources", "资源", [
+            new MenuItem("docs", "文档示例", "跳转到本页锚点", Href: _menuHref ? "/components/menu" : null)
+        ], GroupIcon(FontAwesomeIcons.Solid.Book), InitiallyOpen: false)
+    ];
+
+    private void HandleMenuSelectedId(string id) => _menuSelectedId = id;
+
+    private void HandleMenuItemSelected(MenuItem item) => _menuNote = $"选中：{item.Label}";
+
+    private void HandleMenuOpenKeysChanged(IReadOnlyList<string> keys)
+    {
+        _menuOpenKeys = keys;
+        _menuNote = keys.Count == 0 ? "已全部折叠" : $"展开：{string.Join(" / ", keys)}";
+    }
+
+    private void HandleMenuGroupToggled(MenuGroup group) => _menuNote = $"切换分组：{group.Label}";
+
     private string _buttonText = "保存更改";
     private ButtonVariant _buttonVariant = ButtonVariant.Default;
     private Color _buttonColor = Color.Primary;
@@ -954,12 +1030,41 @@
         .Select(group => new MenuGroup(
             group.Label,
             group.Label,
-            group.Items.Select(item => new MenuItem(item.Id, item.Label, item.Summary)).ToArray(),
+            group.Items
+                .Select(item => new MenuItem(
+                    item.Id,
+                    item.Label,
+                    item.Summary,
+                    Href: item.Id == "install" ? "/components" : $"/components/{item.Id}"))
+                .ToArray(),
             GroupIcon(group.Icon)))
         .ToArray();
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;
+
+    private static readonly ShowcaseParameter[] MenuParameters =
+    [
+        new("Items", "IReadOnlyList<MenuGroup>", "分组与菜单项。", "必填"),
+        new("SelectedId", "string?", "当前选中项的 Id，用于选中态和 aria-current。"),
+        new("Accordion", "bool", "同一时间只展开一个分组。", "false"),
+        new("OpenKeys", "IReadOnlyList<string>?", "受控的展开分组键；为 null 时由组件自行维护状态。"),
+        new("AriaLabel", "string?", "导航区域的可访问名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] MenuEvents =
+    [
+        new("SelectedIdChanged", "EventCallback<string>", "选中项变化时触发，支持 @bind-SelectedId。"),
+        new("OnItemSelected", "EventCallback<MenuItem>", "激活非禁用菜单项时触发（链接项也会导航）。"),
+        new("OpenKeysChanged", "EventCallback<IReadOnlyList<string>>", "展开状态变化时触发；传入 OpenKeys 后由消费者接管状态。"),
+        new("OnGroupToggled", "EventCallback<MenuGroup>", "分组折叠或展开后触发。")
+    ];
+
+    private static readonly ShowcaseContract[] MenuContracts =
+    [
+        new("MenuGroup", "record", "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。"),
+        new("MenuItem", "record", "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。")
+    ];
 
     private static readonly ShowcaseParameter[] ButtonParameters =
     [
@@ -1283,13 +1388,6 @@
     {
         base.OnParametersSet();
         _selectedComponent = string.IsNullOrWhiteSpace(ComponentId) ? "install" : ComponentId.ToLowerInvariant();
-    }
-
-    private bool IsSelected(string id) => string.Equals(_selectedComponent, id, StringComparison.Ordinal);
-
-    private void SelectComponent(string id)
-    {
-        NavigationManager.NavigateTo(id == "install" ? "/components" : $"/components/{id}");
     }
 
     private static string ModeText(ThemeMode mode) => mode switch

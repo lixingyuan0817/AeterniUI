@@ -50,7 +50,8 @@ public static class ShowcaseCatalog
             new("combobox", "ComboBox", "下拉选择")
         ]),
         new("导航组件", FontAwesomeIcons.Solid.Compass, [
-            new("list", "List / ListItem", "列表选择")
+            new("list", "List / ListItem", "列表选择"),
+            new("menu", "Menu", "分组菜单")
         ]),
         new("图表组件", FontAwesomeIcons.Solid.ChartColumn, [
             new("progress", "Progress", "进度展示")
