@@ -158,6 +158,8 @@ node scripts/generate-fontawesome-icons.mjs --check   # 图标定义是否与生
 
 CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。
 
+GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `dist/404.html`，因此直接访问或刷新深链接（例如 `/components/button`）会拿到 404 状态码的完整应用外壳。应用仍会正常启动并路由到目标页面，但浏览器控制台会记录该 404；页面内部的链接点击走框架拦截，不产生文档请求。
+
 当前配置中，`src-tauri/tauri.conf.json` 的 `frontendDist` 为 `../dist`，它由 Tauri 按配置目录解析；`beforeDevCommand` / `beforeBuildCommand` 为 `scripts/sample-publish.sh ...`，Tauri CLI 从配置目录的父目录（仓库根目录）执行这两个命令。两类配置的相对路径基准不同，不能同时添加 `../`。
 
 ## 6. 核心模块索引

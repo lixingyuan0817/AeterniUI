@@ -23,7 +23,9 @@
     flex-direction: column;
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
-    height: calc(100vh - 112px);
+    /* Content height: the panel shrinks to the collapsed navigation instead of
+       always filling the viewport, and scrolls once it would grow past it. */
+    height: auto;
     max-height: calc(100vh - 112px);
     overflow: hidden;
     padding: 18px;

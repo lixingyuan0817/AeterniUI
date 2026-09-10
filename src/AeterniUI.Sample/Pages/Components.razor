@@ -14,7 +14,7 @@
 <div class="showcase-layout" id="showcase">
         <aside class="showcase-sidebar">
             <div class="showcase-nav">
-                <Menu Items="MenuGroups" SelectedId="_selectedComponent" Accordion AriaLabel="组件导航" />
+                <Menu Items="MenuGroups" SelectedId="@_selectedComponent" Accordion AriaLabel="组件导航" />
             </div>
         </aside>
 
@@ -631,7 +631,7 @@
                         <Preview>
                             <div class="preview-menu-demo">
                                 <Menu Items="MenuPreviewGroups"
-                                      SelectedId="_menuSelectedId"
+                                      SelectedId="@_menuSelectedId"
                                       SelectedIdChanged="HandleMenuSelectedId"
                                       OnItemSelected="HandleMenuItemSelected"
                                       Accordion="_menuAccordion"
