@@ -1,7 +1,7 @@
 .aeterni-form-field {
     display: flex;
     flex-direction: column;
-    gap: var(--aeterni-gap-xs);
+    gap: var(--aeterni-spacing-1);
     min-width: 0;
 }
 
@@ -12,9 +12,23 @@
     line-height: var(--aeterni-line-height-normal);
 }
 
-.aeterni-form-field__required { color: var(--aeterni-color-danger-default); margin-inline-start: var(--aeterni-spacing-1); }
-.aeterni-form-field__description { color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); }
-.aeterni-form-field__error { color: var(--aeterni-color-danger-default); font-size: var(--aeterni-font-size-xs); }
+/* Feedback text uses the danger family's text form: the fill stop only reaches
+   3.6:1 on a light surface, which is below the 4.5:1 body-text requirement. */
+.aeterni-form-field__required {
+    color: var(--aeterni-color-danger-text);
+    margin-inline-start: var(--aeterni-spacing-1);
+}
+
+.aeterni-form-field__description {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-form-field__error {
+    color: var(--aeterni-color-danger-text);
+    font-size: var(--aeterni-font-size-xs);
+}
+
 .aeterni-form-field.is-disabled {
     color: var(--aeterni-state-color-disabled);
 }

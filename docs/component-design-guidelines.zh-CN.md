@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.2.0`
+文档版本：`10.4.0`
 
 状态：第一版草案
 
@@ -371,7 +371,40 @@ background: #8b4df6;
 
 组件不得通过自己增加 `.dark`、`.light` 或媒体查询来实现主题切换。主题由 `ThemeProvider` 设置，组件只消费语义 Token。
 
-### 5.4 尺寸和圆角
+### 5.4 色板构建
+
+色阶按 OKLCH 构建，不用手调 hex：
+
+- **每族一条明度阶梯**，锚在「该色相看起来最自然」的中档明度上——黄色与绿色天生比蓝色亮，所以不强行让所有族的 500 档明度相同；族内相邻档的 ΔL 必须单调且不要出现 2 倍以上的跳变。
+- **色相固定**，只允许浅档做 ≤6° 的 Abney 补偿漂移（浅色看起来偏粉/偏黄是视觉规律）。同一色族内出现 8° 以上漂移要重做。
+- **chroma 凹形收敛**：中档最高、两端下降；品牌色的峰值建议 ≤ 0.20（0.24 以上会发荧光）。
+- **中档锚点可以来自外部参考色**（例如沿用 Apple 系统色的语意色）：此时以参考色的 OKLCH 为 500 档锚点，浅端插值到统一的 L 0.976、深端插值到统一的 L 0.30，再按固定比例缩放 chroma。这样既保留参考色的观感，又不会出现「参考色直接塞进另一套阶梯」造成的明度断层与色相漂移。
+- 每族必须提供三种形态，缺一就会出现对比度问题：
+  | 形态 | Token | 用途 |
+  | --- | --- | --- |
+  | 填充 | `--aeterni-color-{role}-default`（500 档） | 实心按钮、开关轨道、选中指示、通知卡片底色/徽标底/进度环 |
+  | 文字/描边 | `--aeterni-color-{role}-text` | 描边/文字变体的文字与边框、图标 |
+  | 柔和底 | `--aeterni-color-{role}-soft` | 选中态、Tag/Alert 底色 |
+  直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
+- **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
+- **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。
+- **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
+
+  | Token | 浅色 | 深色 | 允许的用法（浅色主题在页面上的对比度） |
+  | --- | --- | --- | --- |
+  | `--aeterni-text-primary` | `rgba(0,0,0,.78)` | `rgba(255,255,255,.86)` | 正文、标题、控件值（11.7:1） |
+  | `--aeterni-text-secondary` | `rgba(0,0,0,.62)` | `rgba(255,255,255,.56)` | 标签、导航、说明、分组标题、未选中项（6.2:1） |
+  | `--aeterni-text-placeholder` | `rgba(0,0,0,.56)` | `rgba(255,255,255,.48)` | 输入占位符（4.9:1） |
+  | `--aeterni-text-tertiary` | `rgba(0,0,0,.52)` | `rgba(255,255,255,.40)` | **仅图标与装饰**（4.3:1），不得用于正文或标签 |
+  | `--aeterni-text-disabled` | `rgba(0,0,0,.36)` | `rgba(255,255,255,.28)` | 禁用态（2.5:1，WCAG 对禁用态豁免） |
+
+  用不透明度的另一个好处是文字会随所在表面自动调和（着色 chip、hover 底、毛玻璃层），不需要为每个表面另写一个 hex。
+- **结构分隔线用 `--aeterni-separator`**（不透明，浅色 1.7:1 / 深色 1.5:1），不用 7% alpha 的 `--aeterni-border-subtle`：后者在卡片头/底分界上看起来像一片污渍。
+- `--aeterni-bg-hover` 与 `--aeterni-bg-active` 是**交互态别名**（有意带品牌色），不属于上面的「中性容器背景」；组件一律使用 `--aeterni-state-background-*`。
+- **实心填充的字色由填充明度决定**：深档填充（品牌）配 `--aeterni-text-inverse`，亮档填充（success/warning/danger/info）配 `--aeterni-color-on-semantic`。同一控件在 base/hover/active 三个状态必须保持同一字色，否则很容易掉到 4.5:1 以下；品牌填充向下取档，语意填充向白提亮 12%。
+- **浅底深字**：带色 chip（Tag）必须用「浅色调底 + 深色文字」，文字由强调色与正文字色按约 1:1 混合得到；只用两成墨色会让 chip 文字掉到 3:1 以下。
+
+### 5.5 尺寸和圆角
 
 组件尺寸应映射到统一尺度：
 
@@ -387,11 +420,17 @@ Large  -> 强调控件
 
 尺寸档位遵循“默认档位不输出修饰类”的约定：`Size.Default` 与 `Size.Medium` 表示同一中间档，`Variant=Default`、`Elevation=None`、`Radius=Default` 等同样不生成类名。组件不得让 `Default` 与 `Medium` 指向不同档位（`Icon` 的中档有独立规则，是文档化的唯一例外）。组件发出的每个类名都必须在某个样式表中有匹配规则；不写空的占位类，也不写永不匹配的死规则。
 
+尺寸阶梯只使用 `--aeterni-spacing-*`：`--aeterni-gap-*`、`--aeterni-padding-*` 和 `--aeterni-margin-*` 是留给宿主的同名别名，组件内部不得使用，否则同一个 4px 在库里会有三种写法。
+
+浮层半径按层级递增，不是随手取值：Tooltip `--aeterni-radius-tooltip`（4px）< Popover / 下拉列表 `--aeterni-radius-dropdown`（8px）< Dialog `--aeterni-radius-modal`（16px）；通知卡片沿 iOS 通知中心的观感使用 `--aeterni-radius-2xl`（16px），与 Dialog 同档但卡片是独立一层。同一层级新组件应沿用对应 Token。
+
+过渡声明优先复用复合 Token（`--aeterni-transition-button`、`--aeterni-transition-control`、`--aeterni-transition-color` 等）；不要在多个组件里重复写同一串属性 + 时长 + 缓动的组合。确实属于该组件特有的属性（`width`、`grid-template-rows`、`translate`）才就地声明。
+
 选项到类名的映射集中在 `Components/ComponentClass.cs`：`ForSize`、`ForColor`、`For` 负责尺寸、语意色与通用修饰类的生成，组件不要各自维护一套 switch。`Severity` 到 `Color` 的映射也只保留这一处。
 
 组件样式表中不允许出现未注释的裸像素尺寸。能映射到 Token 的直接引用 Token；确实缺少档位的先在 Token 层补语义 Token（例如浮层宽度、紧凑行高、通知字号）再引用；结构性机制（无障碍裁剪模式的 `1px` + `50%`）、动画位移与排版微调可以保留字面量，但必须用注释说明它是机制或微调而不是尺寸档位。
 
-### 5.5 样式覆盖边界
+### 5.6 样式覆盖边界
 
 新增组件时：
 
@@ -401,6 +440,19 @@ Large  -> 强调控件
 - 不使用全局 `button`、`input` 等选择器覆盖宿主应用。
 - 组件样式必须以 `.aeterni-{component}` 为根选择器。
 - 用户传入的 `Class` 只能作为扩展入口，不能改变基类属性合并规则。
+
+### 5.7 结构稳定性
+
+组件结构必须只有一个真相源：
+
+- **一个根元素、一份内容标记。** 不要用 `@if` 给同一个组件的两种模式各写一份相同的子树（把差异放进 `BuildClass()` / `BuildAttributes()`），否则后续只改一份就会分叉。
+- **根属性一律走 `BuildAttributes()`。** 除文档化的例外（`ThemeProvider` 不渲染 DOM）外，不要用 `class="@SomeBuilder()"` 手写根元素属性：那会让 `Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes` 静默失效。
+- **子元素 class 也用 `ClassBuilder`。** 不要用 `List<string>` + `string.Join` 手工拼接。
+- **事件只在必要时绑定。** 非交互组件不应注册 DOM 监听器：处理属性可以返回 `default` 的 `EventCallback<T>`（渲染树不产生处理帧），不要把判断全部丢进处理器内部。
+- **图标尺寸只有一个入口。** 通过祖先元素的 `--aeterni-icon-render-size` 传递；不要用 `font-size` 依赖 Icon 的 `1em` 回落，也不要用 `::deep svg { width/height }` 覆盖。
+- **有可见根元素的组件必须绑 `@ref="RootElement"`**，否则 `Element` / `ElementChanged` 永远不会回调。
+- **禁用态用 Token，不要整块降透明度。** 使用 `--aeterni-state-color-disabled` / `--aeterni-state-background-disabled` / `--aeterni-state-border-disabled`；`opacity` 只用于组件局部的光学微调（加载中的标签、弱化的字形）并在注释里说明。
+- **同一角色的魔数只写一次。** 已经存在的 Token（如 `--aeterni-opacity-muted`、`--aeterni-radius-badge`）不要在旁边再写一份字面量；先看 Token 层是否已有对应角色。
 
 ## 6. 状态和交互规范
 
@@ -489,6 +541,8 @@ aria-disabled="true"
 ### 7.3 ARIA
 
 ARIA 用来补充语义，不用来替代正确的 HTML 元素。每个 ARIA 属性都必须对应一个真实的交互状态。组件的 `AriaLabel` 等参数只在文本内容不能提供可访问名称时使用。
+
+带值的 ARIA 状态必须输出字符串：Blazor 把 `bool` 属性值渲染成最小化属性（`aria-selected` 而不是 `aria-selected="true"`，为 `false` 时直接省略），两者对读屏都是无效值。统一写成 `? "true" : "false"`；原生布尔属性（`disabled`、`hidden`、`checked`）不受影响。
 
 复合控件的角色层次必须成立：`listbox` 的直接子元素是 `role="option"`，`radiogroup` 内恒有至多一个 `aria-checked="true"`，非可聚焦的选项元素不得进入 Tab 序列，也不得抢走容器的 DOM 焦点。单选组、评分等复合控件的键盘模型使用 roving tabindex：组件整体只有一次 Tab 停留点。
 
@@ -754,12 +808,20 @@ Sample/
 - [ ] 没有重复生成 `id`、`class` 或 `style`。
 - [ ] 没有自行创建 Guid id。
 - [ ] `Disabled` 的语义与根元素能力一致。
+- [ ] 可见根元素绑定了 `@ref="RootElement"`。
+- [ ] 两种渲染模式共用同一份内容标记（模式差异只在 class/属性）。
+- [ ] 非交互分支不注册 DOM 事件处理器。
+- [ ] 禁用态使用 state-disabled Token，而不是整块 `opacity`。
 
 ### 样式
 
 - [ ] 根 class 使用 `aeterni-{component}`。
 - [ ] 变体和状态 class 命名统一。
 - [ ] 主题颜色使用 `--aeterni-*` Token。
+- [ ] 填充档只用于实心表面；ink 与需与浅色轨道/页面区分的实心图形用文字形态。
+- [ ] 容器背景是无色的（R = G = B，深色 ≤ +3）。
+- [ ] 文字只用 `primary` / `secondary` / `placeholder` / `disabled`；`tertiary` 只用于图标与装饰。
+- [ ] 尺寸只用 `--aeterni-spacing-*`，不用 gap/padding/margin 别名。
 - [ ] 没有覆盖其他组件或宿主项目的全局元素样式。
 - [ ] 尺寸变化不会造成布局跳动。
 - [ ] 动画使用统一 duration 和 easing。
@@ -771,6 +833,7 @@ Sample/
 - [ ] 键盘可以完成核心操作。
 - [ ] `focus-visible` 清晰可见。
 - [ ] Disabled、Loading、Selected、Invalid 等状态有对应语义。
+- [ ] 带值的 ARIA 状态输出字符串而不是 `bool`。
 - [ ] 没有用视觉效果替代必要的文本或 ARIA 语义。
 
 ### JS 和主题

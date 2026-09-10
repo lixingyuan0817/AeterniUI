@@ -66,7 +66,9 @@ public partial class Tag : AeterniComponent
         return base.BuildClass()
             .Add("aeterni-tag")
             .Add($"aeterni-tag--{VariantClass}")
-            .Add($"aeterni-tag--{ColorClass}")
+            // Color.Default emits no modifier; interpolating the mapping directly
+            // produced a stray "aeterni-tag--" class for the default colour.
+            .Add(ComponentClass.ForColor("aeterni-tag", Color))
             .Add(SizeClass);
     }
 
@@ -78,6 +80,4 @@ public partial class Tag : AeterniComponent
     };
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-tag", Size);
-
-    private string? ColorClass => ComponentClass.ForColor("aeterni-tag", Color);
 }

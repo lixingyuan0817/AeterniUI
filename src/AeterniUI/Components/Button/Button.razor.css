@@ -2,9 +2,9 @@
    base rule instead of duplicating it. */
 .aeterni-button,
 .aeterni-button--primary {
-    --aeterni-button-color: var(--aeterni-color-brand-default);
-    --aeterni-button-color-hover: var(--aeterni-color-brand-hover);
-    --aeterni-button-color-active: var(--aeterni-color-brand-active);
+    --aeterni-button-color: var(--aeterni-color-brand-text);
+    --aeterni-button-color-hover: var(--aeterni-color-brand-text);
+    --aeterni-button-color-active: var(--aeterni-color-brand-text);
     --aeterni-button-background: var(--aeterni-color-brand-default);
     --aeterni-button-background-hover: var(--aeterni-color-brand-hover);
     --aeterni-button-background-active: var(--aeterni-color-brand-active);
@@ -28,7 +28,6 @@
     --aeterni-button-loading-surface: var(--aeterni-button-background);
     --aeterni-button-loading-veil: color-mix(in srgb, var(--aeterni-button-loading-surface) 76%, transparent);
     --aeterni-button-loading-foreground: var(--aeterni-button-foreground);
-    --aeterni-button-foreground-strong: var(--aeterni-button-foreground);
 
     position: relative;
     box-sizing: border-box;
@@ -57,14 +56,14 @@
 
 .aeterni-button:hover:not(:disabled) {
     background: var(--aeterni-button-background-hover);
-    color: var(--aeterni-button-foreground-strong);
+    color: var(--aeterni-button-foreground);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateY(-1px);
 }
 
 .aeterni-button:active:not(:disabled) {
     background: var(--aeterni-button-background-active);
-    color: var(--aeterni-button-foreground-strong);
+    color: var(--aeterni-button-foreground);
     box-shadow: none;
     transform: translateY(0);
 }
@@ -255,66 +254,75 @@
     max-width: 100%;
 }
 
+/* Neutral fill. The whole ramp moves the surface toward the ink, which is the only
+   direction that keeps the hover/pressed feedback consistent across themes: the
+   light theme darkens and the dark theme lightens. Reusing the neutral background
+   tokens made light-theme hover *lighter* than the rest state. */
 .aeterni-button--neutral {
     --aeterni-button-color: var(--aeterni-text-primary);
     --aeterni-button-color-hover: var(--aeterni-text-primary);
     --aeterni-button-color-active: var(--aeterni-text-primary);
     --aeterni-button-background: var(--aeterni-bg-tertiary);
-    --aeterni-button-background-hover: var(--aeterni-bg-secondary);
-    --aeterni-button-background-active: var(--aeterni-state-background-active);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-bg-tertiary) 86%, var(--aeterni-text-primary));
+    --aeterni-button-background-active: color-mix(in srgb, var(--aeterni-bg-tertiary) 76%, var(--aeterni-text-primary));
     --aeterni-button-foreground: var(--aeterni-text-primary);
     --aeterni-button-soft: var(--aeterni-state-background-hover);
     --aeterni-button-soft-active: var(--aeterni-state-background-active);
 }
 
+/* Semantic fills (success, warning, danger, info) are bright, so all four share one
+   treatment: they keep the on-semantic ink in every state, hover brightens the fill
+   instead of deepening it (a deeper stop would push the ink below 4.5:1) and the
+   pressed state settles back onto the base fill. Transparent variants paint the
+   accent instead of filling with it, so they use the family's text stop, which is
+   the one that stays readable on a light surface. */
 .aeterni-button--success {
-    --aeterni-button-color: var(--aeterni-color-success-default);
-    --aeterni-button-color-hover: var(--aeterni-color-success-hover);
-    --aeterni-button-color-active: var(--aeterni-color-success-active);
+    --aeterni-button-color: var(--aeterni-color-success-text);
+    --aeterni-button-color-hover: var(--aeterni-color-success-text);
+    --aeterni-button-color-active: var(--aeterni-color-success-text);
     --aeterni-button-background: var(--aeterni-color-success-default);
-    --aeterni-button-background-hover: var(--aeterni-color-success-hover);
-    --aeterni-button-background-active: var(--aeterni-color-success-active);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-success-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-success-default);
     --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-success-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-success-default) 18%, transparent);
 }
 
+/* See .aeterni-button--success above for the shared semantic-fill treatment. */
 .aeterni-button--warning {
-    --aeterni-button-color: var(--aeterni-color-warning-default);
-    --aeterni-button-color-hover: var(--aeterni-color-warning-hover);
-    --aeterni-button-color-active: var(--aeterni-color-warning-active);
+    --aeterni-button-color: var(--aeterni-color-warning-text);
+    --aeterni-button-color-hover: var(--aeterni-color-warning-text);
+    --aeterni-button-color-active: var(--aeterni-color-warning-text);
     --aeterni-button-background: var(--aeterni-color-warning-default);
-    --aeterni-button-background-hover: var(--aeterni-color-warning-hover);
-    --aeterni-button-background-active: var(--aeterni-color-warning-active);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-warning-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-warning-default);
     --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-warning-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-warning-default) 18%, transparent);
 }
 
+/* See .aeterni-button--success above for the shared semantic-fill treatment. */
 .aeterni-button--danger {
-    --aeterni-button-color: var(--aeterni-color-danger-default);
-    --aeterni-button-color-hover: var(--aeterni-color-danger-hover);
-    --aeterni-button-color-active: var(--aeterni-color-danger-active);
+    --aeterni-button-color: var(--aeterni-color-danger-text);
+    --aeterni-button-color-hover: var(--aeterni-color-danger-text);
+    --aeterni-button-color-active: var(--aeterni-color-danger-text);
     --aeterni-button-background: var(--aeterni-color-danger-default);
-    --aeterni-button-background-hover: var(--aeterni-color-danger-hover);
-    --aeterni-button-background-active: var(--aeterni-color-danger-active);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-danger-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-danger-default);
     --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-danger-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-danger-default) 18%, transparent);
 }
 
+/* See .aeterni-button--success above for the shared semantic-fill treatment. */
 .aeterni-button--info {
-    --aeterni-button-color: var(--aeterni-color-info-default);
-    --aeterni-button-color-hover: var(--aeterni-color-info-hover);
-    --aeterni-button-color-active: var(--aeterni-color-info-active);
+    --aeterni-button-color: var(--aeterni-color-info-text);
+    --aeterni-button-color-hover: var(--aeterni-color-info-text);
+    --aeterni-button-color-active: var(--aeterni-color-info-text);
     --aeterni-button-background: var(--aeterni-color-info-default);
-    --aeterni-button-background-hover: var(--aeterni-color-info-hover);
-    --aeterni-button-background-active: var(--aeterni-color-info-active);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-info-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-info-default);
     --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-info-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-info-default) 18%, transparent);
 }

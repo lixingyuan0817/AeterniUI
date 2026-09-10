@@ -9,7 +9,7 @@
             role="combobox"
             aria-labelledby="@FormFieldLabelId"
             aria-describedby="@FormFieldDescribedBy"
-            aria-expanded="@_open"
+            aria-expanded="@(_open ? "true" : "false")"
             aria-controls="@ListboxId"
             aria-haspopup="listbox"
             aria-invalid="@(IsInvalid ? "true" : null)"
@@ -43,7 +43,7 @@
                     var selected = ValuesEqual(item, Value);
                     <div id="@($"{ListboxId}-option-{index}")"
                             role="option"
-                            aria-selected="@selected"
+                            aria-selected="@(selected ? "true" : "false")"
                             class="aeterni-combobox__option @(index == _activeIndex ? "is-active" : string.Empty) @(selected ? "is-selected" : string.Empty)"
                             @onclick="@(args => ChooseAsync(item))">
                         @if (ItemTemplate is not null)

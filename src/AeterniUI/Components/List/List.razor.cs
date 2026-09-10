@@ -167,13 +167,17 @@ public partial class List : AeterniComponent
         return attributes;
     }
 
+    /// <summary>
+    /// Keyboard handler that is only bound for a selectable list. A default
+    /// <see cref="EventCallback{T}" /> renders no attribute at all, so a display-only
+    /// list registers no DOM listener.
+    /// </summary>
+    private EventCallback<KeyboardEventArgs> KeyDownHandler => IsSelectable
+        ? EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync)
+        : default;
+
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
-        if (!IsSelectable)
-        {
-            return;
-        }
-
         if (args.Key is "ArrowDown" or "ArrowUp" or "Home" or "End")
         {
             await MoveFocusAsync(args.Key);

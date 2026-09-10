@@ -143,6 +143,9 @@
     --aeterni-transition-shadow: box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
     --aeterni-transition-all: all var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
     --aeterni-transition-button: background-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), border-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
+    /* Field-shaped controls (Input, Textarea, ComboBox trigger) share one
+       transition list instead of repeating four composites per component. */
+    --aeterni-transition-control: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color), var(--aeterni-transition-shadow);
     --aeterni-ease-standard: var(--aeterni-ease-in-out);
     --aeterni-ease-emphasized: var(--aeterni-ease-out);
     /* Blur and glass surface primitives; components may consume these later. */
@@ -236,58 +239,58 @@
     --aeterni-gray-dark-800: #1A1D27;
     --aeterni-gray-dark-700: #242835;
     --aeterni-gray-dark-600: #303646;
-    --aeterni-success-50: #F0FDF4;
-    --aeterni-success-100: #DCFCE7;
-    --aeterni-success-200: #BBF7D0;
-    --aeterni-success-300: #86EFAC;
-    --aeterni-success-400: #4ADE80;
+    --aeterni-success-50: #EBFDEE;
+    --aeterni-success-100: #CCF0D2;
+    --aeterni-success-200: #A8E6B4;
+    --aeterni-success-300: #84DD95;
+    --aeterni-success-400: #5ED277;
     --aeterni-success-500: #34C759;
-    --aeterni-success-600: #16A34A;
-    --aeterni-success-700: #15803D;
-    --aeterni-success-800: #166534;
-    --aeterni-success-900: #14532D;
-    --aeterni-warning-50: #FFFBEB;
-    --aeterni-warning-100: #FEF3C7;
-    --aeterni-warning-200: #FDE68A;
-    --aeterni-warning-300: #FCD34D;
-    --aeterni-warning-400: #FBBF24;
+    --aeterni-success-600: #29AB4A;
+    --aeterni-success-700: #218D3C;
+    --aeterni-success-800: #1C6F30;
+    --aeterni-success-900: #135322;
+    --aeterni-warning-50: #FFF5EC;
+    --aeterni-warning-100: #FFE1C6;
+    --aeterni-warning-200: #FFCFA1;
+    --aeterni-warning-300: #FFBC7C;
+    --aeterni-warning-400: #FFA953;
     --aeterni-warning-500: #FF9500;
-    --aeterni-warning-600: #D97706;
-    --aeterni-warning-700: #B45309;
-    --aeterni-warning-800: #92400E;
-    --aeterni-warning-900: #78350F;
-    --aeterni-danger-50: #FEF2F2;
-    --aeterni-danger-100: #FEE2E2;
-    --aeterni-danger-200: #FECACA;
-    --aeterni-danger-300: #FCA5A5;
-    --aeterni-danger-400: #F87171;
+    --aeterni-warning-600: #DA7E00;
+    --aeterni-warning-700: #B36700;
+    --aeterni-warning-800: #8D5002;
+    --aeterni-warning-900: #693A00;
+    --aeterni-danger-50: #FFF4F2;
+    --aeterni-danger-100: #FFD3CA;
+    --aeterni-danger-200: #FFB4A6;
+    --aeterni-danger-300: #FF9482;
+    --aeterni-danger-400: #FF6F5D;
     --aeterni-danger-500: #FF3B30;
-    --aeterni-danger-600: #DC2626;
-    --aeterni-danger-700: #B91C1C;
-    --aeterni-danger-800: #991B1B;
-    --aeterni-danger-900: #7F1D1D;
-    --aeterni-info-50: #EFF6FF;
-    --aeterni-info-100: #DBEAFE;
-    --aeterni-info-200: #BFDBFE;
-    --aeterni-info-300: #93C5FD;
-    --aeterni-info-400: #60A5FA;
+    --aeterni-danger-600: #DE3228;
+    --aeterni-danger-700: #BA2B22;
+    --aeterni-danger-800: #95261E;
+    --aeterni-danger-900: #741E17;
+    --aeterni-info-50: #F3F7FF;
+    --aeterni-info-100: #C7DCFF;
+    --aeterni-info-200: #9FC4FF;
+    --aeterni-info-300: #77ACFF;
+    --aeterni-info-400: #4B94FF;
     --aeterni-info-500: #007AFF;
-    --aeterni-info-600: #2563EB;
-    --aeterni-info-700: #1D4ED8;
-    --aeterni-info-800: #1E40AF;
-    --aeterni-info-900: #1E3A8A;
+    --aeterni-info-600: #036BDF;
+    --aeterni-info-700: #095BBD;
+    --aeterni-info-800: #104C99;
+    --aeterni-info-900: #0F3C78;
     --aeterni-neutral-0: #FFFFFF;
-    --aeterni-neutral-50: #F9FAFB;
-    --aeterni-neutral-100: #F3F4F6;
-    --aeterni-neutral-200: #E5E7EB;
-    --aeterni-neutral-300: #D1D5DB;
-    --aeterni-neutral-400: #9CA3AF;
+    --aeterni-neutral-50: #F7F7F8;
+    --aeterni-neutral-100: #DEDEE0;
+    --aeterni-neutral-200: #C9C8CB;
+    --aeterni-neutral-300: #B4B4B8;
+    --aeterni-neutral-400: #A1A1A5;
     --aeterni-neutral-500: #8E8E93;
-    --aeterni-neutral-600: #4B5563;
-    --aeterni-neutral-700: #374151;
-    --aeterni-neutral-800: #1F2937;
-    --aeterni-neutral-900: #111827;
-    --aeterni-neutral-950: #0B0F19;
+    --aeterni-neutral-600: #7B7B7F;
+    --aeterni-neutral-700: #67676B;
+    --aeterni-neutral-800: #535356;
+    --aeterni-neutral-900: #404042;
+    --aeterni-neutral-950: #2E2E30;
 }
 
 
@@ -358,16 +361,16 @@
 
 /* 01. Brand primitives — unchanged across color modes */
 :root {
-    --aeterni-brand-50: #F7F3FF;
-    --aeterni-brand-100: #EEE6FF;
-    --aeterni-brand-200: #DECEFF;
-    --aeterni-brand-300: #C6A7FF;
-    --aeterni-brand-400: #AA78FF;
-    --aeterni-brand-500: #8B4DF6;
-    --aeterni-brand-600: #7431DF;
-    --aeterni-brand-700: #6126BD;
-    --aeterni-brand-800: #51239A;
-    --aeterni-brand-900: #441F7C;
+    --aeterni-brand-50: #F5F4FF;
+    --aeterni-brand-100: #E8E6FF;
+    --aeterni-brand-200: #D4CFFF;
+    --aeterni-brand-300: #B7ADF7;
+    --aeterni-brand-400: #9985ED;
+    --aeterni-brand-500: #795AD9;
+    --aeterni-brand-600: #6646BB;
+    --aeterni-brand-700: #54399A;
+    --aeterni-brand-800: #432F7A;
+    --aeterni-brand-900: #34255E;
 }
 
 /* 02. Light semantic theme */
@@ -376,7 +379,12 @@
 [data-aeterni-mode="light"] {
     color-scheme: light;
 
-    /* Surface, content and border semantics */
+    /* Surface, content and border semantics.
+       Large neutral surfaces stay hueless on purpose (R = G = B). A container that
+       carries even a +2 blue/violet cast reads as "brand tinted" once it covers a
+       sidebar or a card, and the frosted layers amplify it through their
+       saturate() filter. Only text keeps the small cool bias that gives the
+       "cold neutral" family its name. */
     --aeterni-bg: #F7F7F7;
     --aeterni-bg-primary: var(--aeterni-bg);
     --aeterni-bg-secondary: #F0F0F0;
@@ -387,35 +395,52 @@
     /* Toggle indicator surface. The white knob keeps a readable edge on the
        light track and on the dark track, unlike the inverse-text token. */
     --aeterni-state-background-thumb: var(--aeterni-gray-0);
+    /* Interaction-state aliases. These ARE brand tinted on purpose (hover and
+       pressed feedback); `bg-` here means "surface that hosts content", not the
+       neutral "container background role" used by bg-primary/bg-secondary. */
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    --aeterni-surface-hover: rgba(116, 49, 223, .09);
-    --aeterni-surface-active: rgba(116, 49, 223, .15);
-    --aeterni-surface-selected: rgba(139, 77, 246, .13);
+    --aeterni-surface-hover: rgba(121, 90, 217, .09);
+    --aeterni-surface-active: rgba(121, 90, 217, .15);
+    --aeterni-surface-selected: rgba(121, 90, 217, .13);
     --aeterni-overlay: rgba(0, 0, 0, .42);
-    --aeterni-text: #201B29;
+    /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
+       level on the same hue, and because the levels are translucent they also adapt
+       to whatever surface they land on (tinted chips, hover states, frosted layers)
+       instead of needing a per-surface hex.
+       Contrast is quoted on the two surfaces each level is allowed on:
+         primary     11.7:1 white / 9.6:1 bg-tertiary   正文、标题
+         secondary    6.2:1 white / 5.1:1 bg-tertiary   标签、导航、说明
+         tertiary     4.3:1 white / 3.5:1 bg-tertiary   仅图标与装饰，不用于正文
+         placeholder  4.9:1 on a field surface
+         disabled     2.5:1（WCAG 对禁用态豁免） */
+    --aeterni-text: rgba(0, 0, 0, .78);
     --aeterni-text-primary: var(--aeterni-text);
-    --aeterni-text-secondary: #696171;
-    --aeterni-text-tertiary: #756D7E;
-    --aeterni-text-muted: var(--aeterni-text-tertiary);
-    --aeterni-text-disabled: #A69EAD;
+    --aeterni-text-secondary: rgba(0, 0, 0, .62);
+    --aeterni-text-tertiary: rgba(0, 0, 0, .52);
+    /* Muted text is de-emphasised text, so it stays at the readable level. */
+    --aeterni-text-muted: var(--aeterni-text-secondary);
+    --aeterni-text-disabled: rgba(0, 0, 0, .36);
     --aeterni-text-inverse: #FFFFFF;
-    --aeterni-text-placeholder: var(--aeterni-text-muted);
+    --aeterni-text-placeholder: rgba(0, 0, 0, .56);
     --aeterni-text-link: var(--aeterni-brand-600);
     --aeterni-border: rgba(0, 0, 0, .11);
     --aeterni-border-strong: rgba(0, 0, 0, .18);
     --aeterni-border-default: var(--aeterni-border);
     --aeterni-border-subtle: rgba(0, 0, 0, .07);
     --aeterni-border-disabled: var(--aeterni-border-subtle);
+    /* Structural dividers (card header/footer, dialog chrome). An opaque hairline
+       reads as a real edge; the 7%-alpha alternative looked like a smudge. */
+    --aeterni-separator: #C6C6C6;
 
     /* Semantic state aliases: current Aeterni values */
-    --aeterni-sem-success: #34C759;
-    --aeterni-sem-warning: #FF9500;
-    --aeterni-sem-danger: #FF3B30;
-    --aeterni-sem-info: #007AFF;
-    --aeterni-sem-neutral: #8E8E93;
+    --aeterni-sem-success: var(--aeterni-success-500);
+    --aeterni-sem-warning: var(--aeterni-warning-500);
+    --aeterni-sem-danger: var(--aeterni-danger-500);
+    --aeterni-sem-info: var(--aeterni-info-500);
+    --aeterni-sem-neutral: var(--aeterni-neutral-500);
     --aeterni-success-soft: rgba(52, 199, 89, .11);
     --aeterni-warning-soft: rgba(255, 149, 0, .12);
     --aeterni-danger-soft: rgba(255, 59, 48, .11);
@@ -426,8 +451,9 @@
        controls). The near-black primitive clears 4.5:1 against every semantic
        stop in both themes; "strong" covers the darker 600/700 hover and active
        stops used by the light theme. */
-    --aeterni-color-on-semantic: var(--aeterni-gray-950);
-    --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
+    /* Ink for vivid semantic fills. Hueless on purpose: the previous blue-black
+       primitive (#0B0F19) tinted every success/warning label. */
+    --aeterni-color-on-semantic: #141414;
 
     /* State aliases: components consume these names instead of selecting a
        palette stop independently. The primitive scales remain available for
@@ -435,6 +461,15 @@
     --aeterni-color-brand-default: var(--aeterni-brand-500);
     --aeterni-color-brand-hover: var(--aeterni-brand-600);
     --aeterni-color-brand-active: var(--aeterni-brand-700);
+    /* Accent as text or border on a light surface. The fill stops above are too
+       light to read, so every family exposes a dedicated "text" stop; the dark
+       theme mirrors this with its lighter stops. */
+    --aeterni-color-brand-text: var(--aeterni-brand-600);
+    --aeterni-color-success-text: var(--aeterni-success-800);
+    --aeterni-color-warning-text: var(--aeterni-warning-800);
+    --aeterni-color-danger-text: var(--aeterni-danger-600);
+    --aeterni-color-info-text: var(--aeterni-info-600);
+    --aeterni-color-neutral-text: var(--aeterni-neutral-700);
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent);
@@ -471,8 +506,12 @@
     --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
     --aeterni-state-color-active: var(--aeterni-color-brand-active);
     --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-    --aeterni-state-color-selected: var(--aeterni-color-brand-default);
-    --aeterni-state-color-checked: var(--aeterni-color-brand-default);
+    /* Selected/checked are foreground roles: they paint labels and glyphs on the
+       tinted selection surface, so they use the accent's text form. Pointing them
+       at the fill stop dropped the selected menu label to 4.0:1 on its own
+       surface. */
+    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-checked: var(--aeterni-state-color-selected);
     --aeterni-state-color-disabled: var(--aeterni-text-disabled);
     --aeterni-state-background-default: var(--aeterni-bg-surface);
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
@@ -540,11 +579,11 @@
     --aeterni-neutral: var(--aeterni-color-neutral-default);
 
     /* Elevation, blur and motion */
-    --aeterni-shadow-xs: 0 1px 2px rgba(32, 27, 41, .05);
-    --aeterni-shadow-sm: 0 1px 3px rgba(32, 27, 41, .08), 0 1px 2px rgba(32, 27, 41, .05);
-    --aeterni-shadow-md: 0 4px 8px -2px rgba(32, 27, 41, .09), 0 2px 4px -2px rgba(32, 27, 41, .06);
-    --aeterni-shadow-lg: 0 12px 20px -6px rgba(32, 27, 41, .12), 0 4px 8px -4px rgba(32, 27, 41, .07);
-    --aeterni-shadow-xl: 0 24px 36px -12px rgba(32, 27, 41, .16), 0 8px 16px -8px rgba(32, 27, 41, .08);
+    --aeterni-shadow-xs: 0 1px 2px rgba(20, 20, 26, .05);
+    --aeterni-shadow-sm: 0 1px 3px rgba(20, 20, 26, .08), 0 1px 2px rgba(20, 20, 26, .05);
+    --aeterni-shadow-md: 0 4px 8px -2px rgba(20, 20, 26, .09), 0 2px 4px -2px rgba(20, 20, 26, .06);
+    --aeterni-shadow-lg: 0 12px 20px -6px rgba(20, 20, 26, .12), 0 4px 8px -4px rgba(20, 20, 26, .07);
+    --aeterni-shadow-xl: 0 24px 36px -12px rgba(20, 20, 26, .16), 0 8px 16px -8px rgba(20, 20, 26, .08);
     --aeterni-shadow-card: var(--aeterni-shadow-md);
     --aeterni-shadow-dropdown: var(--aeterni-shadow-lg);
     --aeterni-shadow-modal: var(--aeterni-shadow-xl);
@@ -562,36 +601,38 @@
 [data-aeterni-mode="dark"],
 .aeterni-dark {
     color-scheme: dark;
-    --aeterni-bg: #101112;
+    --aeterni-bg: #101013;
     --aeterni-bg-primary: var(--aeterni-bg);
-    --aeterni-bg-secondary: #17191B;
-    --aeterni-bg-tertiary: #202326;
-    --aeterni-bg-surface: #1B1D1F;
-    --aeterni-bg-elevated: rgba(32, 34, 36, .82);
-    --aeterni-bg-solid: #1B1D1F;
+    --aeterni-bg-secondary: #17171A;
+    --aeterni-bg-tertiary: #202023;
+    --aeterni-bg-surface: #1A1A1D;
+    --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+    --aeterni-bg-solid: #1A1A1D;
     --aeterni-state-background-thumb: var(--aeterni-gray-0);
+    /* See the light theme block: interaction-state aliases, not container roles. */
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    --aeterni-surface-hover: rgba(170, 120, 255, .12);
-    --aeterni-surface-active: rgba(170, 120, 255, .19);
-    --aeterni-surface-selected: rgba(139, 77, 246, .18);
+    --aeterni-surface-hover: rgba(153, 133, 237, .12);
+    --aeterni-surface-active: rgba(153, 133, 237, .19);
+    --aeterni-surface-selected: rgba(121, 90, 217, .18);
     --aeterni-overlay: rgba(0, 0, 0, .64);
-    --aeterni-text: #F2F3F5;
+    --aeterni-text: rgba(255, 255, 255, .86);
     --aeterni-text-primary: var(--aeterni-text);
-    --aeterni-text-secondary: #B7BBC1;
-    --aeterni-text-tertiary: #A5AAB1;
-    --aeterni-text-muted: var(--aeterni-text-tertiary);
-    --aeterni-text-disabled: #737980;
-    --aeterni-text-inverse: #1B1D1F;
-    --aeterni-text-placeholder: var(--aeterni-text-muted);
-    --aeterni-text-link: #AA78FF;
+    --aeterni-text-secondary: rgba(255, 255, 255, .56);
+    --aeterni-text-tertiary: rgba(255, 255, 255, .40);
+    --aeterni-text-muted: var(--aeterni-text-secondary);
+    --aeterni-text-disabled: rgba(255, 255, 255, .28);
+    --aeterni-text-inverse: #1A1A1D;
+    --aeterni-text-placeholder: rgba(255, 255, 255, .48);
+    --aeterni-text-link: var(--aeterni-brand-400);
     --aeterni-border: rgba(255, 255, 255, .09);
     --aeterni-border-strong: rgba(255, 255, 255, .16);
     --aeterni-border-default: var(--aeterni-border);
     --aeterni-border-subtle: rgba(255, 255, 255, .06);
     --aeterni-border-disabled: var(--aeterni-border-subtle);
+    --aeterni-separator: #3A3A3A;
     --aeterni-sem-success: #30D158;
     --aeterni-sem-warning: #FF9F0A;
     --aeterni-sem-danger: #FF453A;
@@ -604,10 +645,15 @@
     /* Dark-theme hover/active stops run lighter, so one ink covers the whole
        interaction range (see the light theme block for the rationale). */
     --aeterni-color-on-semantic: var(--aeterni-text-inverse);
-    --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
     --aeterni-neutral-soft: rgba(142, 142, 147, .12);
 
     /* Dark-theme state aliases use lighter hover/active stops for contrast. */
+    --aeterni-color-brand-text: var(--aeterni-brand-300);
+    --aeterni-color-success-text: var(--aeterni-success-300);
+    --aeterni-color-warning-text: var(--aeterni-warning-300);
+    --aeterni-color-danger-text: var(--aeterni-danger-300);
+    --aeterni-color-info-text: var(--aeterni-info-300);
+    --aeterni-color-neutral-text: var(--aeterni-neutral-300);
     --aeterni-color-brand-default: var(--aeterni-brand-400);
     --aeterni-color-brand-hover: var(--aeterni-brand-300);
     --aeterni-color-brand-active: var(--aeterni-brand-200);
@@ -641,12 +687,14 @@
     --aeterni-color-neutral-disabled: var(--aeterni-text-disabled);
     --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
+    /* Selected/checked mirror the light theme; the accent aliases above already
+       resolve to this theme's text stop. */
     --aeterni-state-color-default: var(--aeterni-color-brand-default);
     --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
     --aeterni-state-color-active: var(--aeterni-color-brand-active);
     --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-    --aeterni-state-color-selected: var(--aeterni-color-brand-default);
-    --aeterni-state-color-checked: var(--aeterni-color-brand-default);
+    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-checked: var(--aeterni-state-color-selected);
     --aeterni-state-color-disabled: var(--aeterni-text-disabled);
     --aeterni-state-background-default: var(--aeterni-bg-surface);
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
@@ -726,36 +774,37 @@
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]):not([data-aeterni-mode]):not(.aeterni-dark) {
         color-scheme: dark;
-        --aeterni-bg: #101112;
+        --aeterni-bg: #101013;
         --aeterni-bg-primary: var(--aeterni-bg);
-        --aeterni-bg-secondary: #17191B;
-        --aeterni-bg-tertiary: #202326;
-        --aeterni-bg-surface: #1B1D1F;
-        --aeterni-bg-elevated: rgba(32, 34, 36, .82);
-        --aeterni-bg-solid: #1B1D1F;
+        --aeterni-bg-secondary: #17171A;
+        --aeterni-bg-tertiary: #202023;
+        --aeterni-bg-surface: #1A1A1D;
+        --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+        --aeterni-bg-solid: #1A1A1D;
         --aeterni-state-background-thumb: var(--aeterni-gray-0);
         --aeterni-bg-hover: var(--aeterni-surface-hover);
         --aeterni-bg-active: var(--aeterni-surface-active);
         --aeterni-bg-disabled: var(--aeterni-bg-secondary);
         --aeterni-surface-soft: rgba(255, 255, 255, .045);
-        --aeterni-surface-hover: rgba(170, 120, 255, .12);
-        --aeterni-surface-active: rgba(170, 120, 255, .19);
-        --aeterni-surface-selected: rgba(139, 77, 246, .18);
+        --aeterni-surface-hover: rgba(153, 133, 237, .12);
+        --aeterni-surface-active: rgba(153, 133, 237, .19);
+        --aeterni-surface-selected: rgba(121, 90, 217, .18);
         --aeterni-overlay: rgba(0, 0, 0, .64);
-        --aeterni-text: #F2F3F5;
+        --aeterni-text: rgba(255, 255, 255, .86);
         --aeterni-text-primary: var(--aeterni-text);
-        --aeterni-text-secondary: #B7BBC1;
-        --aeterni-text-tertiary: #A5AAB1;
-        --aeterni-text-muted: var(--aeterni-text-tertiary);
-        --aeterni-text-disabled: #737980;
-        --aeterni-text-inverse: #1B1D1F;
-        --aeterni-text-placeholder: var(--aeterni-text-muted);
-        --aeterni-text-link: #AA78FF;
+        --aeterni-text-secondary: rgba(255, 255, 255, .56);
+        --aeterni-text-tertiary: rgba(255, 255, 255, .40);
+        --aeterni-text-muted: var(--aeterni-text-secondary);
+        --aeterni-text-disabled: rgba(255, 255, 255, .28);
+        --aeterni-text-inverse: #1A1A1D;
+        --aeterni-text-placeholder: rgba(255, 255, 255, .48);
+        --aeterni-text-link: var(--aeterni-brand-400);
         --aeterni-border: rgba(255, 255, 255, .09);
         --aeterni-border-strong: rgba(255, 255, 255, .16);
         --aeterni-border-default: var(--aeterni-border);
         --aeterni-border-subtle: rgba(255, 255, 255, .06);
         --aeterni-border-disabled: var(--aeterni-border-subtle);
+        --aeterni-separator: #3A3A3A;
         --aeterni-sem-success: #30D158;
         --aeterni-sem-warning: #FF9F0A;
         --aeterni-sem-danger: #FF453A;
@@ -768,10 +817,15 @@
         /* Dark-theme hover/active stops run lighter, so one ink covers the whole
            interaction range (see the light theme block for the rationale). */
         --aeterni-color-on-semantic: var(--aeterni-text-inverse);
-        --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
         --aeterni-neutral-soft: rgba(142, 142, 147, .12);
 
         /* Dark-theme state aliases use lighter hover/active stops for contrast. */
+        --aeterni-color-brand-text: var(--aeterni-brand-300);
+        --aeterni-color-success-text: var(--aeterni-success-300);
+        --aeterni-color-warning-text: var(--aeterni-warning-300);
+        --aeterni-color-danger-text: var(--aeterni-danger-300);
+        --aeterni-color-info-text: var(--aeterni-info-300);
+        --aeterni-color-neutral-text: var(--aeterni-neutral-300);
         --aeterni-color-brand-default: var(--aeterni-brand-400);
         --aeterni-color-brand-hover: var(--aeterni-brand-300);
         --aeterni-color-brand-active: var(--aeterni-brand-200);
@@ -809,8 +863,8 @@
         --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
         --aeterni-state-color-active: var(--aeterni-color-brand-active);
         --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-        --aeterni-state-color-selected: var(--aeterni-color-brand-default);
-        --aeterni-state-color-checked: var(--aeterni-color-brand-default);
+        --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+        --aeterni-state-color-checked: var(--aeterni-state-color-selected);
         --aeterni-state-color-disabled: var(--aeterni-text-disabled);
         --aeterni-state-background-default: var(--aeterni-bg-surface);
         --aeterni-state-background-hover: var(--aeterni-surface-hover);

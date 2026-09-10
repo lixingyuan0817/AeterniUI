@@ -1,6 +1,6 @@
 @inherits AeterniComponent
 
-<div @attributes="BuildAttributes()">
+<div @ref="RootElement" @attributes="BuildAttributes()">
     @if (!string.IsNullOrWhiteSpace(Label))
     {
         <label class="aeterni-form-field__label" id="@LabelId" for="@InputId">

@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.2.0`
+文档版本：`10.4.0`
 
-状态：v0.1 已完成，v0.2 进行中（仅剩 `Tabs`），v0.3 规划中；组件审阅待办（29 项）已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1 已完成，v0.2 进行中（仅剩 `Tabs`），v0.3 规划中；组件审阅待办两轮（29 项 + 21 项）已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -281,7 +281,12 @@ Input/Input 样式族
 | 组件审阅修复批次 2（P1） | 已完成 | 通过 | Input/Textarea 焦点环；FormField 标签关联（ComboBox/Rating/RadioGroup 补 `aria-labelledby`）；List 选项改 `role="option"` 并移除选项焦点；Rating roving tabindex 与唯一 checked；ComboBox 选项非聚焦化；Radio 状态补齐与 Size 档位；Tooltip `aria-describedby` 与四方位翻转偏移；Tag 关闭热区 24×24；Popup 死 CSS 清理并在文档中明确基础版边界 |
 | 组件审阅修复批次 3（P2） | 已完成 | 通过 | 补齐浮层/紧凑表面度量 Token 并把组件裸像素收敛到 Token；删除死类、死 CSS 与死标记；统一圆角阶梯与类名映射（`ComponentClass`）；文案集中到 `AeterniUIOptions.Text`；CSS 与参数声明格式统一；滚动条改为细样式；主题系统偏好兜底与预渲染脚本；字体栈标注为可选依赖 |
 | 组件审阅修复批次 4（P3） | 已完成 | 通过 | Tooltip 支持四个方位；RadioGroup 增加 `Orientation` 与垂直布局；通知数量上限写入文档；Rating 自定义图标与内置星形同尺寸；对话框打开时补偿滚动条宽度；Button 禁用态变量与 ButtonGroup 分隔线对齐注释 |
+| 色彩体系优化（v10.3） | 已完成 | 通过 | 品牌色按 OKLCH 重建（紫罗兰 `#795AD9`／深色 `#9985ED`）：峰值 chroma 0.237→0.186、色相漂移 7.8°→1.7°、明度阶梯拉直；语意色沿用 Apple 系统色，色阶以 500 档为锚点重建（浅端统一 L 0.976、深端 L 0.30），消除 `Info` 的 400→500 断层与色相漂移；中性文字从紫灰改为冷中性并换掉紫调阴影墨色；新增 `-text` 强调文字形态 Token（修掉亮色档当文字只有 2.2:1 的老问题）；实心控件字色改为「按填充明度分两层、三态不换字」，删掉 `--aeterni-color-on-semantic-strong`；Tag 改浅底深字（2.5~3.5:1 → 5.0~6.9:1）；全系统 44 项对比度校验通过 |
 | 图标库完善 | 已完成 | 通过 | 新增核心 `AeterniIcons`（组件内字形全部改为图标渲染）；Font Awesome 适配包升级到 7.3.1 精选 343 个图标并提供 `Categories`/`TryGet`；新增生成脚本和 `/icons` 图标浏览页 |
+| 全组件色彩与结构复核（v10.4） | 已完成 | 通过 | 把「填充档不当 ink 用」的规则落实到全部组件：Icon 命名色、Alert/Toast 徽标与弹窗头部图标、FormField 反馈文字、Menu 选中项、Progress 填充/轨道、Rating 星形共六处换上文字形态或按色相染色（最低组合从 1.78:1 提到 3.15:1，ink 类从 1.91:1 提到 3.65:1）；浅色三级文字锚到最暗中性面；中性填充按钮 hover 方向改为两个主题一致；拆出通知卡片的填充/ink 双 accent 角色，消除 `Severity.Default` 死类。结构侧：`NoticeCard`/`ListItem` 重新接入基类属性契约并合并重复标记，静态 `Card`/展示型 `List` 不再注册 DOM 事件，`Progress` 去掉 inline `width` 与 `!important`，`Tag`/`Icon`/`Radio` 的第二套映射收敛到 `ComponentClass`，图标尺寸统一走 `--aeterni-icon-render-size`，六个组件补 `@ref`，`ThemeSwitch` 选项改单一模板，五处布尔型 ARIA 状态改为字符串输出；示例新增 `/components/colors` 验收页 |
+| 样式体系一致性（v10.4） | 已完成 | 通过 | 中性容器表面去除彩偏移：浅色四个容器背景改为完全无色（v10.3 的 +2~+4 蓝紫偏移在大面积上会被读成品牌色底，且磨砂层的 `saturate()` 会放大它），深色统一 +3，规则写入 AGENTS.md、规范与提交清单（容器背景只能是黑/白/灰/毛玻璃）；Menu 禁用态由整行 `opacity` 改为 `--aeterni-state-color-disabled`；组件内间距收敛到 `--aeterni-spacing-*`（gap/padding/margin 降为宿主别名）；新增 `--aeterni-transition-control` 消除字段控件三处重复的过渡声明；`--aeterni-opacity-muted` 与 `--aeterni-radius-badge` 获得真实消费者，交互态别名 `bg-hover/-active` 补语义注释；浮层半径层级与 `surface-soft`/`bg-secondary` 分工写入规范 |
+| 文字色阶与观感清理（v10.4） | 已完成 | 通过 | 文字改为「单一墨色 + 不透明度阶梯」（Apple label 模型）：浅色 `rgba(0,0,0,.78/.62/.56/.52/.36)`、深色 `rgba(255,255,255,.86/.56/.48/.40/.28)`，主色从 17:1 降到 11.7:1（不再发硬），二级/三级不再只差 1.16:1，且文字会随所在表面自动调和；`tertiary` 降为图标/装饰级，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项与示例页元信息改用 `secondary`/`muted`；Tag 标签文字改用 accent 的 text 形态（85% + 15% 正文墨）而不是「亮填充档 52% + 近黑 48%」，绿/黄 chip 不再浑浊（4.95~7.15:1）；新增不透明的 `--aeterni-separator` 作为卡片/对话框头尾分界（1.71:1 / 1.53:1，原 7% alpha 像污渍）；`--aeterni-color-on-semantic` 从蓝黑 `#0B0F19` 改为无色 `#141414` |
+| Size 档位补齐（Switch / ComboBox / Rating） | 未开始 | 未验收 | 三个控件缺 `Size` 参数，小尺寸表单行无法与同排 `Input` 对齐；需新增公共参数与三档视觉，验收条件：`Small` 档下高度与 `Input Size="Small"` 一致 |
 
 ## 第三阶段（v0.3）计划
 

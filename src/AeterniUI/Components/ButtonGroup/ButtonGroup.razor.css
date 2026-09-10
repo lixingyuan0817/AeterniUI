@@ -57,11 +57,14 @@
     margin-inline-start: calc(var(--aeterni-border-width) * -1);
 }
 
+/* Transparent variants have no fill to draw a divider with, so they take a tint of
+   the button's own accent. A neutral grey line would break the hue of an outline
+   group, whose shared edge sits between two accent borders. */
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--outline,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--link {
-    border-inline-start-color: var(--aeterni-border-strong);
+    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button {
@@ -87,7 +90,7 @@
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--link {
-    border-block-start-color: var(--aeterni-border-strong);
+    border-block-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 }
 
 .aeterni-button-group.is-connected ::deep .aeterni-button:hover,

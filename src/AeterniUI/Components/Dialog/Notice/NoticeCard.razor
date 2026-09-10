@@ -1,11 +1,10 @@
 @inherits AeterniComponent
 
-<div class="@BuildCardClass()"
-     role="@Role"
-     aria-live="@Live"
-     data-aeterni-notice-card="true">
-    <span class="aeterni-dialog-provider__notice-icon @(Icon is null ? "is-default" : string.Empty)"
-          aria-hidden="true">
+@* Card attributes come from BuildAttributes(), so Id/Class/Style/Visible and any
+   extra consumer attribute reach the card like every other component. The kind,
+   severity and state classes are built in BuildClass(). *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <span class="aeterni-dialog-provider__notice-icon" aria-hidden="true">
         @if (Icon is not null)
         {
             @Icon

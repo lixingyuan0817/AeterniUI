@@ -31,8 +31,7 @@
    a single rhythm; the label and its description share one line and ellipsize
    instead of wrapping, so a long entry cannot grow the row. */
 .aeterni-menu__group-toggle,
-.aeterni-menu__item {
-    display: flex;
+.aeterni-menu__item {    display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-2);
     width: 100%;
@@ -58,7 +57,9 @@
 .aeterni-menu__group-toggle {
     justify-content: flex-start;
     padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
-    color: var(--aeterni-text-tertiary);
+    /* A group title is a real label, so it uses the readable secondary ink;
+       tertiary is reserved for icons and decoration. */
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
 }
@@ -82,7 +83,7 @@
 }
 
 .aeterni-menu__item.is-selected .aeterni-menu__icon {
-    color: var(--aeterni-color-brand-default);
+    color: var(--aeterni-color-brand-text);
 }
 
 /* The icon inherits its size from this box; setting the variable here reaches
@@ -117,7 +118,7 @@
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -171,7 +172,8 @@
     --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
 
     margin-inline-start: auto;
-    opacity: .7;
+    /* De-emphasised until the row is hovered or the group is open. */
+    opacity: var(--aeterni-opacity-muted);
     transform-origin: center;
     transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
 }
@@ -191,9 +193,12 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
+/* Disabled rows use the shared muted ink instead of a whole-row opacity: every
+   other component expresses disabled through --aeterni-state-*-disabled, and a
+   faded row also faded its own hover surface. */
 .aeterni-menu button:disabled {
     cursor: not-allowed;
-    opacity: var(--aeterni-opacity-disabled);
+    color: var(--aeterni-state-color-disabled);
 }
 
 @media (prefers-reduced-motion: reduce) {

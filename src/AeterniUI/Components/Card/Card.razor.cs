@@ -82,6 +82,22 @@ public partial class Card : AeterniComponent
 
     private bool IsInteractive => Interactive || OnClick.HasDelegate;
 
+    /// <summary>
+    /// Click handler that is only bound for an interactive card. A default
+    /// <see cref="EventCallback{T}" /> renders no attribute at all, so a static card
+    /// registers no DOM listener.
+    /// </summary>
+    private EventCallback<MouseEventArgs> ClickHandler => IsInteractive
+        ? EventCallback.Factory.Create<MouseEventArgs>(this, HandleClickAsync)
+        : default;
+
+    /// <summary>
+    /// Keyboard handler that is only bound for an interactive card.
+    /// </summary>
+    private EventCallback<KeyboardEventArgs> KeyDownHandler => IsInteractive
+        ? EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync)
+        : default;
+
     private async Task HandleClickAsync(MouseEventArgs _)
     {
         if (IsInteractive && !Disabled)

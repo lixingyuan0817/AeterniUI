@@ -14,7 +14,7 @@
     font: inherit;
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-normal);
-    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color), var(--aeterni-transition-shadow);
+    transition: var(--aeterni-transition-control);
 }
 
 .aeterni-input::placeholder {

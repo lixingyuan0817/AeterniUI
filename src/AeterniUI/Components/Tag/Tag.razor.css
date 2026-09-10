@@ -1,7 +1,13 @@
 .aeterni-tag {
+    /* Two accent roles, like the notification cards: --aeterni-tag-color is the
+       fill stop (chip tint, outline) and --aeterni-tag-ink is the text stop. The
+       label is that deep stop nudged 15% toward the body ink, which keeps the hue
+       saturated (5.9-8.4:1) instead of the muddy olive/brown a 50/50 mix of the
+       bright fill stop with near-black produced. */
     --aeterni-tag-color: var(--aeterni-color-brand-default);
+    --aeterni-tag-ink: var(--aeterni-color-brand-text);
     --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 14%, transparent);
-    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 78%, var(--aeterni-text-primary));
+    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-ink) 85%, var(--aeterni-text-primary));
     --aeterni-tag-border: transparent;
     --aeterni-tag-min-height: var(--aeterni-height-xs);
     --aeterni-tag-padding-inline: var(--aeterni-spacing-2);
@@ -9,7 +15,7 @@
 
     display: inline-flex;
     align-items: center;
-    gap: var(--aeterni-gap-xs);
+    gap: var(--aeterni-spacing-1);
     box-sizing: border-box;
     min-width: 0;
     min-height: var(--aeterni-tag-min-height);
@@ -28,43 +34,46 @@
 
 .aeterni-tag--primary {
     --aeterni-tag-color: var(--aeterni-color-brand-default);
+    --aeterni-tag-ink: var(--aeterni-color-brand-text);
 }
 
 .aeterni-tag--default {
     --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
     --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
-    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 86%, var(--aeterni-text-primary));
 }
 
 .aeterni-tag--neutral {
     --aeterni-tag-color: var(--aeterni-color-neutral-default);
+    --aeterni-tag-ink: var(--aeterni-color-neutral-text);
 }
 
 .aeterni-tag--success {
     --aeterni-tag-color: var(--aeterni-color-success-default);
+    --aeterni-tag-ink: var(--aeterni-color-success-text);
 }
 
 .aeterni-tag--warning {
     --aeterni-tag-color: var(--aeterni-color-warning-default);
+    --aeterni-tag-ink: var(--aeterni-color-warning-text);
 }
 
 .aeterni-tag--danger {
     --aeterni-tag-color: var(--aeterni-color-danger-default);
+    --aeterni-tag-ink: var(--aeterni-color-danger-text);
 }
 
 .aeterni-tag--info {
     --aeterni-tag-color: var(--aeterni-color-info-default);
+    --aeterni-tag-ink: var(--aeterni-color-info-text);
 }
 
 .aeterni-tag--soft {
     --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 9%, transparent);
-    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 72%, var(--aeterni-text-primary));
 }
 
 .aeterni-tag--outline {
     --aeterni-tag-bg: transparent;
     --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 42%, transparent);
-    --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 88%, var(--aeterni-text-primary));
 }
 
 /* Size tiers stay on the shared height scale: sm is one step below the default
@@ -131,12 +140,16 @@
     height: var(--aeterni-touch-target-min);
 }
 
+/* The glyph is the shared Icon component, so its size travels through the icon
+   size variable (a font-size would only reach it through the 1em fallback). */
 .aeterni-tag__dismiss-glyph {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+
     display: inline-flex;
     color: var(--aeterni-tag-fg);
-    font-size: var(--aeterni-icon-size-sm);
     line-height: 1;
-    opacity: .72;
+    /* Same de-emphasised-glyph role as the Menu chevron. */
+    opacity: var(--aeterni-opacity-muted);
     transition: var(--aeterni-transition-opacity);
 }
 

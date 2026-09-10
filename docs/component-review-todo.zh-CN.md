@@ -1,10 +1,10 @@
 # AeterniUI 组件审阅待办
 
-文档版本：`10.2.0`
+文档版本：`10.4.0`
 
-文档状态：29 项已全部在 v10.2.0 修复；每一项保留问题描述与验收条件，并在条目内记录修复方案。
+文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）与第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾。每一项保留问题描述与验收条件，并在条目内记录修复方案。
 
-本文档记录一次全量组件审阅（token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`）发现的问题，按优先级排列，供后续分批修复和验收追踪。
+本文档记录四轮全量审阅发现的问题：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色。问题按优先级排列，供后续分批修复和验收追踪。
 
 ## 文档边界
 
@@ -16,8 +16,9 @@
 
 ## 审阅方法与可信度
 
-- 本次为**静态审阅**：未运行应用、未做截图比对。视觉结论来自 CSS 规则推导和 token 数值计算。
-- 对比度数值（REV-04）由 token 十六进制值按 WCAG 2.1 相对亮度公式计算，修复前需实测确认。
+- 两轮审阅均为**静态审阅**：未运行应用、未做截图比对。视觉结论来自 CSS 规则推导和 token 数值计算。
+- 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
+- 第二轮的**结构结论**额外用 `HtmlRenderer` 与自定义 `Renderer` 渲染真实组件做了验证：确认静态 `Card`/非选择态 `List` 的渲染树中不存在 `onclick`/`onkeydown` 帧、`NoticeCard`/`ListItem` 能接受消费者 `Class`/`Style`/`Visible`、`Progress` 不再输出 inline `width`、ARIA 状态属性输出为字符串而不是最小化布尔属性。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
 ## 修复摘要（v10.2.0）
@@ -27,7 +28,7 @@
 | REV-01 | `Switch.razor.css`、Token 层 | 新增 `--aeterni-state-background-thumb`（浅色取 surface、深色取 `gray-0`），滑块不再复用反色文字 Token |
 | REV-02 | `Button.razor.css` | 新增 `--aeterni-button-loading-surface/-veil/-foreground`：所有变体统一为“自身表面半透明层 + `blur(2px)`”，遮罩向外扩展一个边框宽度以盖住控件边框，Button 因此不再裁剪子元素 |
 | REV-03 | `DialogProvider.razor` | 每个 `ToastPosition` 只渲染一个位置容器，Alert 在前、Toast 在后纵向堆叠 |
-| REV-04 | Token 层、`Button.razor.css` | 新增 `--aeterni-color-on-semantic(-strong)`；success/warning/danger/info 实心前景改用该 Token，base 与 hover/active 分别在两种主题下 ≥ 4.5:1 |
+| REV-04 | Token 层、`Button.razor.css` | 实心语意控件改用 `--aeterni-color-on-semantic`（浅色近黑墨、深色反色墨）；v10.3 色彩体系优化后取消「hover/active 切换字色」的做法，改为三态同一字色（品牌向下取档、语意向白提亮），因此删除了 `--aeterni-color-on-semantic-strong` |
 | REV-05 | `Input.razor.css`、`Textarea.razor.css` | `:focus-visible` 补回 `--aeterni-focus-width` 焦点环；无效态使用 `--aeterni-focus-color-invalid` 且优先保留危险色边框 |
 | REV-06 | `FormFieldContext`、`FormField`、`ComboBox`、`Rating`、`RadioGroup`、`Radio` | 上下文增加 `LabelId`；容器型控件采用输入 ID 并用 `aria-labelledby`/`aria-describedby` 关联标签、描述与错误 |
 | REV-07 | `ListItem.razor(.cs)`、`List.razor.cs`、`ListItem.razor.css` | 选项改为非可聚焦 `role="option"`；容器独占焦点，方向键不再调用 `FocusAsync`，新增 `is-active` 视觉提示 |
@@ -68,8 +69,35 @@
 - **REV-13**：审阅给出的两个选项中选择“暂不补齐 + 三处描述一致”。锚点定位、翻转、遮罩、焦点陷阱与点击外部关闭需要先抽取共享浮层能力（第三阶段前置能力，见 roadmap），否则会在 `Dialog`、`Popup`、`Drawer` 各维护一份实现。本次已删除死 CSS、让 `PopupHost` 成为可用的定位容器、把 `Modal` 的实际效果（仅 `role` 与层级）写入 `current-features` 与示例，并保持 roadmap 状态为“基础版”。
 - **REV-23**：审阅允许“随包提供字体”或“文档说明为可选依赖”，本次选择后者，因此字体栈仍保留 Inter / JetBrains Mono 名称。
 
-## 优先级定义
+## 修复摘要（v10.4.0）
 
+第二轮审阅主题是「品牌色/语意色在全组件的落地」与「组件结构稳定」。色彩部分先把两套主题下每条前景/背景组合的对比度算出来，再按「填充档不当 ink 用」的规则改组件；结构部分把所有绕过基类契约、重复标记、双套映射和无效 ARIA 值统一收敛。
+
+| 编号 | 修复位置 | 关键改动 |
+| --- | --- | --- |
+| REV-30 | `Icon.razor.css`、`Icon.razor.cs` | 六个命名色改用「强调文字形态」`--aeterni-color-*-text`（浅色 4.6~6.7:1，原来 success/warning 只有 2.2:1）；`Color.Default` 继续用 `currentColor`；删除第二套颜色 switch，收敛到 `ComponentClass.ForColor` |
+| REV-31 | `NoticeCard.razor.css`、`DialogProvider.razor.css` | 拆出填充与文字两个 accent 角色：`--aeterni-dialog-accent`（卡片底色/徽标底色/进度环）与 `--aeterni-dialog-accent-ink`（徽标图标、弹窗头部图标，1.9~3.2:1 → 3.7~5.6:1） |
+| REV-32 | `FormField.razor.css` | 必填星号与错误文字改用 `--aeterni-color-danger-text`（3.55:1 → 4.57:1），并把三条单行规则恢复为多行格式 |
+| REV-33 | Token 层、`Menu.razor.css` | 新增说明并把 `--aeterni-state-color-selected/-checked` 指向 `--aeterni-color-brand-text`（选中项文字 4.03~4.37:1 → 5.0~7.4:1）；选中项图标同步用文字形态 |
+| REV-34 | Token 层 | 浅色 `--aeterni-text-tertiary` 由 `#6E6E79` 改为 `#64646E`，在中性面上达到 4.7:1（原 4.08:1） |
+| REV-35 | `Progress.razor(.cs/.css)` | 进度条填充改走强调文字形态，轨道用同色相 12% 染色：填充/轨道 1.78~3.98:1 → 3.2~4.6:1（浅色）、5.5~7.5:1（深色），且轨道与页面 1.23:1 → 1.46:1 |
+| REV-36 | `Rating.razor.css` | 填充星改用 `--aeterni-color-warning-text`（2.20:1 → 6.40:1），空星改用 `--aeterni-text-tertiary`（2.44:1 → 5.85:1） |
+| REV-37 | `Button.razor.css` | `--neutral` 的 hover/pressed 改为沿「向墨色收敛」方向取色（86%/76%），浅色主题不再出现 hover 变浅的反相反馈 |
+| REV-38 | `ButtonGroup.razor.css` | 透明变体的连接分隔线改用按钮自身强调色的 45% 染色，不再用中性 `--aeterni-border-strong`，避免描边组合内出现异色分隔线 |
+| REV-39 | `DialogProvider.razor.css`、`NoticeCard.razor.css` | `Severity.Default → Color.Primary` 会发出 `--primary` 修饰类却没有规则；把 `--primary` 并入基础规则选择器组（沿用 Button 先例），消除死类 |
+| REV-40 | `NoticeCard.razor(.cs)` | 从 `BuildCardClass()` 改为 `BuildClass()`/`BuildAttributes()` 覆写：`Id`/`Class`/`Style`/`Visible`/`AdditionalAttributes` 重新生效，`Severity → 颜色` 收敛到 `ComponentClass.ToColor()` |
+| REV-41 | `ListItem.razor(.cs)` | 两套重复标记合并为单一根元素；class 改用 `ClassBuilder`，根属性改走 `BuildAttributes()`，消费者 `Class`/`Style`/`Visible` 生效，选项 id 仍由 `aria-activedescendant` 契约优先 |
+| REV-42 | `Card.razor(.cs)`、`List.razor(.cs)`、`ListItem.razor.cs` | 非交互卡片 / 非选择态列表不再绑定 DOM 事件：改用默认 `EventCallback<T>` 条件绑定（渲染树中无 `onclick`/`onkeydown` 帧，已用自定义 `Renderer` 验证） |
+| REV-43 | `Progress.razor(.cs/.css)` | 去掉 inline `width` 与两处 `!important`：宽度改走 `--aeterni-progress-value` 自定义属性，不确定态用特异性覆盖；补 `@ref="RootElement"` |
+| REV-44 | `Tag.razor.cs` | `Color.Default` 时不再输出空修饰类 `aeterni-tag--`，改用 `ComponentClass.ForColor` |
+| REV-45 | `Radio.razor.cs`、`Icon.razor.cs` | 删除组件内的第二套 `SizeClass`/`ColorClass` 映射，统一走 `ComponentClass.ForSize`/`ForColor` |
+| REV-46 | `NoticeCard.razor.css`、`DialogProvider.razor.css`、`Tag.razor.css`、`ComboBox.razor.css` | 图标尺寸统一由 `--aeterni-icon-render-size` 传递，删除 `font-size` 间接生效与 `::deep svg { width/height }` 覆盖；`14px` 裸像素改为 `--aeterni-icon-size-sm` |
+| REV-47 | `NoticeCard.razor(.cs)`、`Button.razor.css`、Token 层 | 删除死类与重复：`is-default`、无消费者的 `data-aeterni-notice-card`、恒等于 `foreground` 的 `--aeterni-button-foreground-strong`、四份重复的「System-preference fallback」注释、四个语义变体上重复的同段注释 |
+| REV-48 | `ThemeSwitch.razor(.cs)`、6 个组件 | 三个选项改为单一模板循环（`aria-pressed` 与选中类不再三处重复）；`Label`/`FormField`/`Progress`/`Popover`/`PopupHost`/`ThemeSwitch` 补 `@ref="RootElement"`，`Element`/`ElementChanged` 契约恢复生效 |
+| REV-49 | `Rating.razor`、`ComboBox.razor`、`Switch.razor`、`ThemeSwitch.razor`、`ListItem.razor.cs` | ARIA 状态属性改为字符串：布尔值会渲染成最小化属性（`aria-selected` 且无值），读屏会当成无效值；现已输出 `"true"`/`"false"` |
+| REV-50 | `DialogProvider.razor.css`、示例页 | 抖动动画的硬编码 `320ms` 改用 `--aeterni-duration-slow`，通知位移量补注释；示例新增「色彩与语义」页（`/components/colors`）用于两种主题下验收 |
+
+## 优先级定义
 | 优先级 | 含义 | 处理时机 |
 | --- | --- | --- |
 | P0 | 用户可直接观察到的视觉错误，或对比度不达标 | 立即，单批修复 |
@@ -118,6 +146,64 @@
 | REV-27 | P3 | Rating | 自定义图标与默认星形尺寸不同 |
 | REV-28 | P3 | DialogProvider | 打开时未补偿滚动条宽度 |
 | REV-29 | P3 | Button / ButtonGroup | 禁用态变量重复、注释与实现不符 |
+
+---
+
+## 第二轮总览（v10.4.0）
+
+所有条目均已修复并通过 `dotnet build aeterni_ui.slnx`、`bash scripts/check-docs.sh` 与渲染验证；对比度数值由 Token 值计算。
+
+| 编号 | 优先级 | 组件/范围 | 一句话问题 |
+| --- | --- | --- | --- |
+| REV-30 | P0 | Icon | 六个命名色用填充档做前景，浅色下 success/warning 只有 2.2:1 |
+| REV-31 | P0 | NoticeCard / DialogProvider | Alert/Toast 徽标与弹窗头部图标用填充档做 ink，最低 1.9:1 |
+| REV-32 | P0 | FormField | 必填星号与错误文字用 `danger` 填充档，只有 3.55:1 |
+| REV-33 | P0 | Token 层 / Menu | 选中项文字取填充档，在自己的选中底上只有 4.0~4.4:1 |
+| REV-34 | P1 | Token 层 | 浅色三级文字在中性面上只有 4.08~4.47:1 |
+| REV-35 | P1 | Progress | 语意进度条填充与轨道只有 1.78~2.88:1，且轨道与页面几乎同亮度 |
+| REV-36 | P1 | Rating | 填充星 2.20:1、空星 2.44:1，均低于图形 3:1 |
+| REV-37 | P2 | Button | `--neutral` 的 hover 在浅色主题下反向变浅 |
+| REV-38 | P2 | ButtonGroup | 透明变体的连接分隔线用中性色，与两侧强调色边框色相不一致 |
+| REV-39 | P2 | DialogProvider / NoticeCard | `Severity.Default` 发出的 `--primary` 类没有规则（死类） |
+| REV-40 | P1 | NoticeCard | 绕过 `BuildAttributes()`，`Id`/`Class`/`Style`/`Visible` 全部失效 |
+| REV-41 | P1 | ListItem | 两套重复标记 + 手写 class 拼接，消费者属性失效 |
+| REV-42 | P1 | Card / List / ListItem | 静态卡片与非选择态列表仍绑定 DOM 事件监听器 |
+| REV-43 | P2 | Progress | inline `width` + 两处 `!important` 覆盖，且没有 `@ref` |
+| REV-44 | P2 | Tag | `Color.Default` 输出空修饰类 `aeterni-tag--` |
+| REV-45 | P2 | Radio / Icon | 组件内维护第二套尺寸/颜色映射 |
+| REV-46 | P2 | 全局 | 图标尺寸存在两套机制（`font-size` 间接生效与 `::deep svg` 覆盖） |
+| REV-47 | P2 | 全局 | 死类、无消费者的 data 属性、恒等 Token 与重复注释 |
+| REV-48 | P2 | ThemeSwitch + 6 个组件 | 选项标记三处重复；六个组件缺 `@ref`，`Element`/`ElementChanged` 失效 |
+| REV-49 | P1 | Rating / ComboBox / Switch / ThemeSwitch / ListItem | 布尔型 ARIA 状态渲染成最小化属性，读屏读到无效值 |
+| REV-50 | P3 | DialogProvider / 示例页 | 硬编码动画时长与未注释的位移量；缺一个可用于验收色彩改动的示例页 |
+
+---
+
+## 第三轮总览（v10.4.0）
+
+| 编号 | 优先级 | 范围 | 一句话问题 |
+| --- | --- | --- | --- |
+| REV-51 | P0 | Token 层 | 中性容器表面重新带上蓝紫偏移（+2~+6），大面积看起来又变成紫色 |
+| REV-52 | P1 | Menu | 禁用态用整行 `opacity`，与全库禁用 Token 的表达不一致 |
+| REV-53 | P2 | 全局 | `spacing` / `gap` / `padding` / `margin` 四套别名并存且组件用法不一致 |
+| REV-54 | P2 | Input / Textarea / ComboBox | 同一条四属性过渡声明在三处重复 |
+| REV-55 | P2 | Menu / Tag / NoticeCard / Token 层 | 已有角色 Token 无消费者，旁边却写着字面量；`bg-hover/-active` 语义误导 |
+| REV-56 | P2 | Switch / ComboBox / Rating | 没有 `Size` 档位，无法与同排 Input 对齐（记入 roadmap，未实现） |
+| REV-57 | P2 | Token 层 / 文档 | 浮层圆角四档并存但无成文依据 |
+| REV-58 | P3 | Token 层 / 文档 | `--aeterni-surface-soft` 与 `--aeterni-bg-secondary` 同为「次级底」但取值机制不同，需要写明是有意区别 |
+
+---
+
+## 第四轮总览（v10.4.0）
+
+主题：界面「不干净」——文字色阶、分隔线与浑浊的彩色 chip。
+
+| 编号 | 优先级 | 范围 | 一句话问题 |
+| --- | --- | --- | --- |
+| REV-59 | P0 | Token 层 + Menu / ThemeSwitch / 示例页 | 文字用四个手调 hex：主色过黑（17:1 发硬）、二级与三级几乎同色（6.8 vs 5.9 看起来脏）、且固定 hex 在着色表面上偏色 |
+| REV-60 | P1 | Tag | 标签文字是「亮色填充档 52% + 近黑 48%」的混色，绿/黄族混出橄榄、褐色 |
+| REV-61 | P2 | Card / DialogProvider / Token 层 | 结构分隔线用 7% alpha（1.17:1），卡片头/底分界看起来像污渍 |
+| REV-62 | P2 | Token 层 | `--aeterni-color-on-semantic` 用蓝黑 primitive `#0B0F19`（B-R=+14），给实心绿/黄按钮上的文字带蓝调 |
 
 ---
 
@@ -407,6 +493,315 @@
 
 ---
 
+---
+
+## 第二轮 P0：色彩可读性
+
+### REV-30 Icon 命名色把填充档当 ink 用
+
+- [x] 已修复
+
+- **证据**：`Icon.razor.css` 的 `.aeterni-icon--primary/success/warning/danger/info` 全部取 `--aeterni-color-*-default`。
+- **现象**：图标是 ink，不是实心表面。按 Token 值计算，success/warning 在浅色页面只有 **2.20/2.22:1**，danger 3.55:1、info 4.02:1、primary 4.91:1，均低于图形 3:1 与正文 4.5:1。
+- **修复**：六个命名色改用强调文字形态 `--aeterni-color-*-text`（4.6~6.7:1）；`Color.Default` 继续留给 `currentColor`。
+- **验收**：六个命名色在两种主题下均 ≥ 4.5:1；`/icons` 与 `/components` 中的示例图标肉眼可辨。
+
+### REV-31 Alert/Toast 徽标与弹窗头部图标
+
+- [x] 已修复
+
+- **证据**：`NoticeCard.razor.css` 的 `--aeterni-dialog-accent` 同时用于卡片底色、徽标底色、进度环和徽标图标颜色（`__notice-icon`/`__notice-glyph`）；`DialogProvider.razor.css` 的 `__icon` 同样取它。
+- **现象**：accent 是填充档。徽标图标画在「accent 16% 透明」的淡色徽标上，浅色主题下 success 1.93:1、warning 1.91:1，几乎不可见；弹窗头部图标同理。
+- **修复**：拆成两个角色——`--aeterni-dialog-accent`（填充：卡片底色、徽标底色、进度环）与 `--aeterni-dialog-accent-ink`（文字：徽标图标、头部图标）。
+- **验收**：四种语意在浅色/深色下徽标图标对比度 ≥ 3:1（实测 3.65~7.97:1）；卡片底色与进度环仍取填充档。
+
+### REV-32 FormField 反馈文字
+
+- [x] 已修复
+
+- **证据**：`FormField.razor.css` 的 `__required` 与 `__error` 取 `--aeterni-color-danger-default`。
+- **现象**：`danger-500` 在浅色页面上只有 **3.55:1**，12px 正文需要 4.5:1。
+- **修复**：改用 `--aeterni-color-danger-text`（4.57:1）。
+- **验收**：必填星号与错误文案在两种主题下 ≥ 4.5:1；`Invalid` 状态演示仍可辨。
+
+### REV-33 选中态文字取填充档
+
+- [x] 已修复
+
+- **证据**：`Menu.razor.css` 的 `.aeterni-menu__item.is-selected { color: var(--aeterni-state-color-selected); }`；Token 层把该别名指向 `--aeterni-color-brand-default`。
+- **现象**：`selected`/`checked` 是**前景**别名，却指向填充档。选中项文字画在自己的选中底上（浅色 `rgba(121,90,217,.13)`），实测只有 **4.03~4.37:1**；hover 叠加后更低。
+- **修复**：别名改指 `--aeterni-color-brand-text`（5.02~5.93:1），深色主题 7.13~7.44:1；组件内不再各自取档。
+- **验收**：Menu 选中项、`--aeterni-control-foreground-selected` 的所有消费者在两种主题下 ≥ 4.5:1。
+
+---
+
+## 第二轮 P1：一致性与可访问性
+
+### REV-34 浅色三级文字在中性面上不足
+
+- [x] 已修复
+
+- **证据**：浅色 `--aeterni-text-tertiary: #6E6E79`。
+- **现象**：该 Token 被 ComboBox 箭头、Menu 分组标题、ThemeSwitch 未选中项、弹窗关闭字形使用。在 `--aeterni-bg-secondary` 上只有 **4.47:1**，在 `--aeterni-bg-tertiary` 上只有 **4.08:1**。
+- **修复**：改为 `#64646E`（页面 5.85:1、secondary 5.19:1、tertiary 4.74:1）。
+- **验收**：该 Token 在三个中性面（surface / secondary / tertiary）上均 ≥ 4.5:1；次级文字的层级差仍然可辨。
+
+### REV-35 Progress 填充与轨道对比不足
+
+- [x] 已修复
+
+- **证据**：`Progress.razor.css` 中填充取 `--aeterni-color-*-default`，轨道取 `--aeterni-bg-tertiary`。
+- **现象**：填充与轨道实测 success **1.80:1**、warning 1.78:1、neutral 2.64:1、danger 2.88:1（浅色），低于图形 3:1；同时轨道与页面只有 1.23:1，低进度时看不出进度条有多长。
+- **修复**：填充改走强调文字形态，轨道用同色相 12% 染色。
+- **验收**：六族的填充/轨道对比在浅色 3.15~4.70:1、深色 5.67~7.90:1；轨道与页面 ≥ 1.4:1；`indeterminate` 与 `prefers-reduced-motion` 行为不变。
+
+### REV-36 Rating 星形
+
+- [x] 已修复
+
+- **证据**：`Rating.razor.css` 中 `.is-filled` 取 `--aeterni-color-warning-default`，空星取 `--aeterni-state-color-disabled`。
+- **现象**：填充星是实心图形，浅色下只有 **2.20:1**；空星 2.44:1，两个状态都看不出形状。
+- **修复**：填充星改用 `--aeterni-color-warning-text`（6.40/10.51:1），空星改用 `--aeterni-text-tertiary`（5.85/6.38:1）。
+- **验收**：两种状态在两种主题下的表面比度均 ≥ 3:1；填充/空星仍能一眼区分。
+
+### REV-40 NoticeCard 绕过基类属性契约
+
+- [x] 已修复
+
+- **证据**：`NoticeCard.razor` 的根元素写 `class="@BuildCardClass()"` 并手写 `role`/`aria-live`/`data-aeterni-notice-card`，没有 `@attributes="BuildAttributes()"`。
+- **现象**：基类提供的 `Id`/`Class`/`Style`/`Visible`/`AdditionalAttributes` 全部静默失效；`Class` 连 `ClassBuilder(Class)` 都没传入；另外 `SeverityClass` 是第二份 Severity→class 映射，`is-default` 与 `data-aeterni-notice-card` 没有任何消费者。
+- **修复**：改为 `BuildClass()` + `BuildAttributes()` 覆写，颜色映射收敛到 `ComponentClass.ToColor()`，删除死类与无消费者的 data 属性。
+- **验收**：渲染验证确认根元素拿到消费者 `Class`/`Style`，`Visible=false` 输出 `hidden`，`role`/`aria-live` 仍在（`assertive`/`polite` 保持原规则）。
+
+### REV-41 ListItem 两套重复标记
+
+- [x] 已修复
+
+- **证据**：`ListItem.razor` 用 `@if (Interactive)` 写了两份完全相同的行内容，两份都直接输出 `class="@BuildItemClass()"`；`BuildItemClass()` 用 `List<string>` + `string.Join` 手工拼 class，不经 `ClassBuilder`。
+- **现象**：同一行内容有两份，后续只改其中一份就会分叉（第一轮的 `ListItem` 注释事故就是同一类问题）；消费者 `Class`/`Style`/`Visible` 同样失效。
+- **修复**：单一根元素（带 `@ref`）承载两份语义，`role`/`aria-selected`/`aria-disabled`/选项 id 只在可选态输出，class 改由 `BuildClass()` 构建。
+- **验收**：渲染验证确认非选择态没有 `role`、选择态有 `role="option"` 且 id 仍为 `{listId}-option-…`（`aria-activedescendant` 契约不变）。
+
+### REV-42 静态容器仍绑定事件
+
+- [x] 已修复
+
+- **证据**：`Card.razor` 无条件写 `@onclick`/`@onkeydown`；`List.razor` 无条件写 `@onkeydown`；`ListItem.razor` 同样无条件写 `@onclick`。
+- **现象**：静态卡片与展示型列表也会为每个实例注册 DOM 监听器（长列表中纯属开销），且事件处理器内部再写一次状态判断。
+- **修复**：处理器改为返回 `EventCallback<T>` 的属性，非交互时返回 `default`（渲染树中不产生处理帧，且不需要可空委托）。`List` 的处理前置判断改由绑定条件承担，`ListItem` 保留点击处理器内部的数据校验。
+- **验收**：自定义 `Renderer` 检查渲染帧：静态 `Card` 无 `onclick`/`onkeydown`，交互 `Card` 两个都在；展示型 `List` 无 `onkeydown`，选择态 `List` 有。
+
+### REV-49 布尔型 ARIA 状态被渲染成最小化属性
+
+- [x] 已修复
+
+- **证据**：`ListItem.razor.cs`（`aria-selected`）、`Switch.razor`（`aria-checked`）、`ThemeSwitch.razor`（`aria-pressed`）、`Rating.razor`（`aria-checked`）、`ComboBox.razor`（`aria-expanded`、`aria-selected`）直接绑定 `bool`。
+- **现象**：Blazor 把 `bool` 属性值渲染为最小化属性，即输出裸的 `aria-selected` / `aria-checked`（无值），为 `false` 时直接省略；两者对读屏都是无效值。库内 `Menu` 已使用 `? "true" : "false"` 的写法，属于同一库内的两种契约。
+- **修复**：全部改为显式字符串 `"true"/"false"`。
+- **验收**：渲染验证确认输出 `aria-selected="true"`、`aria-checked="false"`、`aria-pressed="true"`、`aria-expanded="false"`；Rating 仍然只有一个 `aria-checked="true"`。
+
+---
+
+## 第二轮 P2：Token 纪律与结构卫生
+
+### REV-37 Button 中性填充 hover 反向
+
+- [x] 已修复
+
+- **证据**：`.aeterni-button--neutral` 的 `--aeterni-button-background: var(--aeterni-bg-tertiary)`、`-hover: var(--aeterni-bg-secondary)`；语义变体则用 `color-mix(填充 88%, gray-0)`。
+- **现象**：浅色主题 `bg-secondary` 比 `bg-tertiary` **更浅**，hover 反而变淡（反相反馈）；深色主题方向又相反，两个主题不同步；`-active` 还混入了紫色的 `--aeterni-state-background-active`。
+- **修复**：中性色阶统一沿「向墨色收敛」方向移动（86% / 76%），两类填充方向一致且与主题无关。
+- **验收**：浅色 hover/pressed 比 rest 更深、深色更亮；正文对比度均 ≥ 8:1。
+
+### REV-38 ButtonGroup 连接分隔线色相
+
+- [x] 已修复
+
+- **证据**：透明变体（outline/ghost/text/link）的连接分隔线取 `--aeterni-border-strong`。
+- **现象**：描边组合的两侧边框是强调色，共享边却是中性灰，同一组内出现异色线。
+- **修复**：改用按钮自身强调色的 45% 染色。
+- **验收**：连接态分隔线在六个色族 × 四种变体下均与两侧边框同色相且更轻。
+
+### REV-39 `--primary` 死类
+
+- [x] 已修复
+
+- **证据**：`Severity.Default → Color.Primary`，`ComponentClass.ForColor` 因此输出 `aeterni-dialog-provider__dialog--primary` / `--alert--primary` / `--toast--primary`，但两个样式表只有 `--info/--success/--warning/--danger` 规则。
+- **修复**：把 `--primary` 并入基础规则选择器组（与 `Button.razor.css` 的 `.aeterni-button--primary` 同一先例）。
+- **验收**：组件发出的每个类名都能在某个样式表中找到匹配规则（包括 `Severity.Default` 路径）。
+
+### REV-43 Progress 绕开 Token 与样式源
+
+- [x] 已修复
+
+- **证据**：`Progress.razor` 用 `style="width: @(Percentage)%"` 写内联宽度，CSS 再用两处 `!important` 覆盖它（`is-indeterminate` 与 reduced-motion）；根元素没有 `@ref="RootElement"`。
+- **修复**：宽度改走 `--aeterni-progress-value`（用 `StyleBuilder` 输出，不确定态不输出），删除两处 `!important`；补 `@ref`。
+- **验收**：渲染验证确认输出 `style="--aeterni-progress-value: 62%;"`、不确定态无 inline style；`is-indeterminate` 仍由特异性覆盖宽度。
+
+### REV-44 Tag 空修饰类
+
+- [x] 已修复
+
+- **证据**：`Tag.BuildClass()` 写 `.Add($"aeterni-tag--{ColorClass}")`，而 `ColorClass` 在 `Color.Default` 时为 `null`。
+- **现象**：输出名为 `aeterni-tag--` 的空修饰类（匹配不到任何规则）。
+- **修复**：直接用 `.Add(ComponentClass.ForColor("aeterni-tag", Color))`。
+- **验收**：渲染验证确认默认色只输出 `aeterni-tag aeterni-tag--default`。
+
+### REV-45 组件内的第二套映射
+
+- [x] 已修复
+
+- **证据**：`Radio.razor.cs` 自带 `SizeClass` switch（产出 `aeterni-radio--sm/--lg`）；`Icon.razor.cs` 自带 `ColorClass` switch（并把 `Color.Default` 映射为 `"default"`）。
+- **现象**：与 `ComponentClass` 的「默认档不输出修饰类」约定并行，两处逻辑需要同步维护；Icon 的 `--default` 也没有规则。
+- **修复**：两处均改用 `ComponentClass.ForSize` / `ForColor`。
+- **验收**：`grep SizeClass/ColorClass` 在组件内只剩对 `ComponentClass` 的调用；渲染输出不变。
+
+### REV-46 图标尺寸两套机制
+
+- [x] 已修复
+
+- **证据**：`NoticeCard.razor.css` 用 `::deep svg { width/height: 16px }` 覆盖徽标内图标，同时 `__notice-glyph` 又用 `font-size` 让其 1em 回落生效；`DialogProvider` 与 `Tag` 的关闭字形同样用 `font-size`；`ComboBox` 箭头写死 `14px`。
+- **现象**：徽标内自定义图标与内置严重度字形的尺寸来自两条不同规则，`--aeterni-icon-render-size` 声明形同虚设；`font-size` 方案依赖 Icon 的 1em 回落，属于间接生效。
+- **修复**：统一在祖先元素上设 `--aeterni-icon-render-size`，删除 `::deep svg` 覆盖与 `font-size` 间接生效；`14px` 改为 `--aeterni-icon-size-sm`。
+- **验收**：徽标内的自定义图标与内置字形同尺寸（16px）；Tag/弹窗关闭字形为 14px/16px；组件 CSS 中不再用 `font-size` 控制图标尺寸。
+
+### REV-47 死类、恒等 Token 与重复注释
+
+- [x] 已修复
+
+- **证据**：Token 层有四份完全相同的「System-preference fallback」注释；`Button.razor.css` 在四个语义变体上重复同一段注释，且 `--aeterni-button-foreground-strong` 在基础规则已恒等于 `--aeterni-button-foreground`，四个变体又各自重写一次；`NoticeCard` 的 `is-default` 与 `data-aeterni-notice-card` 无消费者。
+- **修复**：注释各保留一份（变体处改为指向 `--success` 的短注释），删除 `--aeterni-button-foreground-strong` 及其全部使用点（hover/active 直接用 `--aeterni-button-foreground`），删除无消费者的类与属性。
+- **验收**：`grep foreground-strong` 无结果；每段共享行为只有一处注释。
+
+### REV-48 ThemeSwitch 重复标记与缺失的 `@ref`
+
+- [x] 已修复
+
+- **证据**：`ThemeSwitch.razor` 手写三个选项按钮，标签分散在 `SystemLabel`/`LightLabel`/`DarkLabel` 三个属性；`Label`/`FormField`/`Progress`/`Popover`/`PopupHost`/`ThemeSwitch` 的根元素没有 `@ref="RootElement"`。
+- **现象**：三处选项标记需要同步修改（选中类、`aria-pressed`、禁用态、回调参数），是 REV-10 同类分叉风险；缺 `@ref` 的组件即使声明了 `Element` / `ElementChanged` 也不会有任何回调。
+- **修复**：选项改为 `foreach` 单一模板 + `ModeLabel(mode)`，模式顺序写成显式数组并注明它与滑块的列偏移契约相关；六个组件补 `@ref`。
+- **验收**：渲染验证确认三个选项的类名、`aria-pressed` 与 `data-mode` 输出不变；所有带可见根元素的组件都绑定了根引用。
+
+### REV-50 硬编码动效时长与验收缺失
+
+- [x] 已修复
+
+- **证据**：`DialogProvider.razor.css` 的 `.is-shaking` 动画写 `320ms`；`.aeterni-dialog-provider__notice-region` 的 `12px/14px/28px` 位移量无注释；示例页原本没有任何用于验收色彩体系的区域。
+- **修复**：时长改用 `--aeterni-duration-slow`；位移量补「这是运动距离不是尺寸」注释；示例新增 `/components/colors`（侧栏「设计基础」组），展示 6 个色族 × 5 种用法的对照矩阵、四个语意 Alert 的实发通知，以及对比度基线表。
+- **验收**：`bash scripts/check-docs.sh` 通过；示例页在 Light 与 Dark 下都能对照同一组组件。
+
+## 第三轮细节（v10.4.0）
+
+### REV-51 中性容器表面重新带上蓝紫偏移
+
+- [x] 已修复（用户报告）
+
+- **证据**：v0.1 容器为红紫调 `--aeterni-bg: #F4F1F8`（B-R=+4、R>G）；v10.2 曾改为完全无色 `#F7F7F7 / #F0F0F0 / #E8E8E8`；v10.3 色彩体系重建后变成 `#F7F7F9 / #F1F1F4 / #E7E7EB`（B-R=+2/+3/+4），深色 `#101013 / #17171B / #202026 / #1A1A1F`（+3/+4/+6/+5），文字 `#5A5A65 / #64646E`（+11/+10）与深色 `#B4B4BE / #9C9CA7`（+10/+11）。
+- **现象**：+2 以上的彩偏移在小面积上不可见，但侧栏、卡片、磨砂面板这种大面积会被读成「品牌色底」，而且 `backdrop-filter: var(--aeterni-blur-md)` 里的 `saturate(135%)` 会再放大它。`current-features` 当时已写「不再带紫调」，实现与文档不一致。
+- **修复**：把「大面积面」与「小面积文字」拆开约束。浅色容器全部无色（`#F7F7F7 / #F0F0F0 / #E8E8E8`）；深色容器统一 +3（`#101013 / #17171A / #202023 / #1A1A1D`）；文字统一 +4（`#1B1B1F / #5A5A5E / #646468 / #A5A5A9`，深色 `#F3F3F6 / #B4B4B8 / #9C9CA0 / #6E6E72`）。规则写入设计规范 §5.4 与提交检查清单，避免下一次色板重建又引入彩偏移。
+- **验收**：浅色四个容器背景的 R = G = B 均为 0 偏移；文字偏移 ≤ 4；全部对比度复测仍达标（三级文字在中性面 4.81~5.89:1，正文 17.2:1）。
+
+### REV-52 Menu 禁用态用整行透明度
+
+- [x] 已修复
+
+- **证据**：`Menu.razor.css` 的 `.aeterni-menu button:disabled { cursor: not-allowed; opacity: var(--aeterni-opacity-disabled); }`。
+- **现象**：全库其余组件均用 `--aeterni-state-color-disabled` / `--aeterni-state-background-disabled` / `--aeterni-state-border-disabled` 表达禁用；Menu 用整块透明度，会把文字、图标一起淡化到不可控的程度，也让禁用行的量度与其他控件不一致。
+- **修复**：改用 `color: var(--aeterni-state-color-disabled)`（图标继承 `currentColor`，跟随级联）。
+- **验收**：禁用菜单项的正文与图标均为 `--aeterni-state-color-disabled`，行高与布局不变，hover 底仍不会出现在禁用行上。
+
+### REV-53 四套间距别名并存
+
+- [x] 已修复
+
+- **证据**：Token 层同时定义 `--aeterni-spacing-*`、`--aeterni-gap-*`、`--aeterni-padding-*`、`--aeterni-margin-*`；组件里 Checkbox/FormField/Tag 用 `--aeterni-gap-xs`、Switch 用 `--aeterni-gap-sm`，而其余组件用 `--aeterni-spacing-*`（两者解析到同一个值）。`--aeterni-padding-*`、`--aeterni-margin-*` 零消费者。
+- **现象**：同一个 4px 在库里有三种写法，复现了 REV-19 的「双轨制」问题——只是这次是命名而非格式。
+- **修复**：组件内部统一 `--aeterni-spacing-*`（四处 `gap-*` 全部替换）；三个别名家族保留为宿主面向的兼容别名，并在规范 §5.5 写明组件不得使用。
+- **验收**：组件与示例样式中 `grep aeterni-gap-/padding-/margin-` 无结果；别名仍可被宿主引用。
+
+### REV-54 字段控件过渡声明重复
+
+- [x] 已修复
+
+- **证据**：`Input`/`Textarea` 写 `var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color), var(--aeterni-transition-shadow)`，`ComboBox` 触发器写前三个。
+- **现象**：Button 已有 `--aeterni-transition-button` 这一先例，字段类控件却各自拼装，修改时长或缓动需要改三处。
+- **修复**：新增 `--aeterni-transition-control`（与上面四个复合变量完全等价），三处引用它。
+- **验收**：渲染后的过渡效果不变；组件中不再出现多变量拼装的 `transition` 声明。
+
+### REV-55 已有角色 Token 无消费者
+
+- [x] 已修复
+
+- **证据**：`--aeterni-opacity-muted`（.68）无消费者，而 Tag 关闭字形写 `.72`、Menu 箭头写 `.7`；`--aeterni-radius-badge`（胶囊/圆形输牌）无消费者，而 NoticeCard 徽标写 `--aeterni-radius-round`；`--aeterni-bg-hover` / `--aeterni-bg-active` 无消费者且指向品牌色，与「`bg-*` 是中性容器背景」的规范描述矛盾。
+- **现象**：「同一角色的魔数只写一次」是 REV-14 的目标，但已存在的角色 Token 旁边仍写着字面量；`bg-hover/-active` 则是命名陷阱——未来谁拿它当容器底，就会得到一块紫色底。
+- **修复**：Menu 箭头与 Tag 关闭字形改用 `--aeterni-opacity-muted`；NoticeCard 徽标改用 `--aeterni-radius-badge`（30×30 方形上两值渲染相同）；`bg-hover/-active` 补注释说明它们是交互态别名、并要求组件使用 `--aeterni-state-background-*`。
+- **验收**：三个 Token 各自至少有一个消费者；组件内只剩 Button 加载态的两处光学透明度（已在注释中说明为微调）。
+
+### REV-56 Switch / ComboBox / Rating 没有 Size 档位
+
+- [ ] 未实现（已记入 roadmap，不作为已实现能力描述）
+
+- **证据**：`Input`/`Textarea`/`Button`/`Checkbox`/`Radio`/`ThemeSwitch`/`Tag`/`Progress` 均有 `small`/`large` 档；`Switch`、`ComboBox`、`Rating` 没有 `Size` 参数。
+- **现象**：小尺寸表单行里 `Input Size="Small"`（32px）与 `ComboBox`（固定 40px）无法对齐；Switch 与 Rating 同样无法随表单密度缩放。
+- **修复方向**：为三个组件补 `Size` 参数与三档视觉（轨道/触发器/星形尺寸 + 字号），并在示例中展示与 `Input` 同行对齐。这属于新增公共 API，需要走 roadmap 交付流程，不在样式审核中顺手实现。
+- **验收**：`Small` 档下三者高度与同排 `Input Size="Small"` 一致（已写入 roadmap 的验收条件）。
+
+### REV-57 浮层圆角缺少成文依据
+
+- [x] 已修复（文档）
+
+- **证据**：Tooltip 4px（`--aeterni-radius-tooltip`）、Popover 与下拉列表 8px（`--aeterni-radius-dropdown`）、Dialog 16px（`--aeterni-radius-modal`）、通知卡 16px（`--aeterni-radius-2xl`）。
+- **现象**：四档取值都能用，但规范只写了控件与容器半径，没有说明浮层层级关系；新组件容易随手取一档。
+- **修复**：在规范 §5.5 补「浮层半径按层级递增」的说明与对应 Token。
+- **验收**：新增浮层组件能按层级找到对应 Token，不再自选数值。
+
+### REV-58 `--aeterni-surface-soft` 与 `--aeterni-bg-secondary` 的职责重叠
+
+- [x] 已修复（文档）
+
+- **证据**：`Surface`/`Card` 的 `--subtle` 变体用 `--aeterni-surface-soft`（`rgba(0, 0, 0, .045)`，随父层叠色），而示例页的次级底与禁用底用 `--aeterni-bg-secondary`（`#F0F0F0`，固定中性面）。
+- **现象**：两者在白色卡片上几乎同色（`#F4F4F4` vs `#F0F0F0`），容易被当成重复 Token 而收敛掉，从而丢失「叠在任意父层上都成立」的 alpha 语义。
+- **修复**：规范中明确两者分工——需要叠在未知父层上的容器表面用 alpha 的 `surface-soft`，需要与中性面严格对齐的静态底用 `bg-secondary`。
+- **验收**：文档能回答「新组件该用哪个」，不再出现两者混用。
+
+## 第四轮细节（v10.4.0）
+
+### REV-59 文字色阶不干净
+
+- [x] 已修复（用户报告）
+
+- **证据**：文字是四个手调 hex：浅色 `#1B1B1F` / `#5A5A5E` / `#646468` / `#A5A5A9`，深色 `#F3F3F6` / `#B4B4B8` / `#9C9CA0` / `#6E6E72`；二级与三级只差 1.16:1（6.83 vs 5.89），主色对页面 17.1:1。
+- **现象**：（1）**主色过黑**：17:1 的正文在白色上发硬，与苹果 10:1 左右的 label 观感差距很大；（2）**二级/三级分不出来**：两者色相、色阶都接近，同屏出现时像「同一个灰没对齐」，这是“看起来不干净”的主要来源；（3）**固定 hex 不随表面变**：同一串 hex 落在着色 chip、hover 底、毛玻璃上不会随表面调和，加上本身带冷偏移，很容易读成脏。
+- **修复**：改成 **单一墨色 + 不透明度阶梯**（Apple label 模型）。浅色墨 `rgba(0,0,0,α)`：正文 `.78`（11.7:1）、次要 `.62`（6.2:1）、占位 `.56`（4.9:1）、图标级 `.52`（4.3:1）、禁用 `.36`（2.5:1）；深色白墨 `.86 / .56 / .48 / .40 / .28`。同时重新划分职责：`--aeterni-text-tertiary` 降为**图标与装饰级**，原先用它做正文的 Menu 分组标题、Menu 条目描述、ThemeSwitch 未选中项改用 `secondary`；`--aeterni-text-muted` 指向 `secondary`；示例页里的元信息文字也一并从 `tertiary` 改为 `muted`。
+- **验收**：每一级只用一个透明度定义；正文 / 次要 / 占位在四个中性面上均 ≥ 4.5:1（正文 10.3~11.7:1、次要 5.8~6.2:1、占位 4.7~4.9:1），图标级 ≥ 3:1（4.1~4.3:1），禁用态 2.5:1（WCAG 豁免）；库内不再有 `tertiary` 作为正文的用法。
+
+### REV-60 Tag 标签文字是浑浊混色
+
+- [x] 已修复
+
+- **证据**：`Tag.razor.css` 的 `--aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 52%, var(--aeterni-text-primary))`——`--aeterni-tag-color` 是**填充档**（success `#34C759`、warning `#FF9500`）。
+- **现象**：把高亮度填充档与近黑对半混，得到的不是“深一档的同色”，而是去饱和后的橄榄色 / 褐色（绿的 52% + 黑 48% 是暗黄绿）；对比度虽然达标（5.1~7.7:1），但色相丢了，chip 看起来脏。
+- **修复**：像通知卡片一样拆出两个 accent 角色：`--aeterni-tag-color`（填充：底色、描边）与 `--aeterni-tag-ink`（文字形态），文字 = ink 的 85% + 正文墨 15%。这一档既保住色相又拉到 4.95~7.15:1（浅色）/ 7.35~8.78:1（深色），并让 `--default`/`--soft`/`--outline` 三个变体共用同一条文字规则。
+- **验收**：六个色族 × 三个变体在两种主题下 ≥ 4.5:1；danger 族（最紧）浅色 4.95:1；chip 文字肉眼不再偏绿/偏褐。
+
+### REV-61 结构分隔线几乎不可见
+
+- [x] 已修复
+
+- **证据**：`Card.razor.css` 与 `DialogProvider.razor.css` 的头/底分界用 `var(--aeterni-border-subtle)` = `rgba(0,0,0,.07)`（对页面 1.17:1）。
+- **现象**：7% alpha 的分界线在卡片上几乎看不到，头/底分界看起来像没对齐的灰痕，而不是一道边。
+- **修复**：新增 `--aeterni-separator`（不透明：浅色 `#C6C6C6` = 1.71:1，深色 `#3A3A3A` = 1.53:1，参照 Apple 的 opaqueSeparator），卡片与对话框的头/底分界改用它；`--aeterni-border-subtle` 保留给宿主页面装饰。
+- **验收**：卡片头/底分界在两种主题下能辨认且不抢文字；控件描边（Input/Checkbox 等）保持原来的柔和取值不变。
+
+### REV-62 实心语意按钮上的文字带蓝调
+
+- [x] 已修复
+
+- **证据**：浅色 `--aeterni-color-on-semantic: var(--aeterni-gray-950)` = `#0B0F19`（R11 G15 B25，B-R=+14，且 G>R）。
+- **现象**：这是 Tailwind 的蓝黑 primitive，用在亮色 success/warning 填充上时，文字是发蓝的近黑，与绿/黄底色不协调。
+- **修复**：改为无色 `#141414`（success 8.30:1、warning 8.38:1、danger 5.19:1、info 4.59:1），保持所有实心语意控件 ≥ 4.5:1。
+- **验收**：实心语意按钮/通知上的文字在两种主题下均为无彩色墨色，对比度不低于 4.5:1。
+
 ## 建议的修复批次
 
 | 批次 | 范围 | 说明 |
@@ -415,6 +810,13 @@
 | 批次 2 | REV-05 ~ REV-13 | 含 ARIA 结构变化，需同步 `current-features` 与示例页演示 |
 | 批次 3 | REV-14 ~ REV-23 | Token 与卫生类，可与相关组件的后续改动合并，避免大范围无功能改动 |
 | 批次 4 | REV-24 ~ REV-29 | 体验增强，按需排期 |
+| 批次 5（v10.4） | REV-30 ~ REV-36 | 色彩可读性：填充档不当 ink 用 + 进度条/评分图形对比度 |
+| 批次 6（v10.4） | REV-37 ~ REV-39 | 色彩一致性与死类收敛 |
+| 批次 7（v10.4） | REV-40 ~ REV-42、REV-49 | 结构稳定与可访问性：基类属性契约、单一标记、条件事件绑定、ARIA 字符串 |
+| 批次 8（v10.4） | REV-43 ~ REV-48、REV-50 | Token 纪律与代码卫生，示例页新增验收区域 |
+| 批次 9（v10.4） | REV-51 ~ REV-55、REV-57、REV-58 | 中性面无彩化 + 样式体系一致性（禁用态、间距阶梯、过渡声明、角色 Token 复用） |
+| 批次 10（v10.4） | REV-56 | 新增公共 API（3 个 `Size` 档位），走 roadmap 交付，不在样式批次内实现 |
+| 批次 11（v10.4） | REV-59 ~ REV-62 | 文字色阶（Apple label 模型）、chip 混色、结构分隔线、实心语意墨色 |
 
 ## 每项修复的固定交付物
 

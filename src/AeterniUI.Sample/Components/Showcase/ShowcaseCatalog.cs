@@ -30,6 +30,9 @@ public static class ShowcaseCatalog
         new("开始", FontAwesomeIcons.Solid.Rocket, [
             new("install", "安装", "安装与初始化") { IsComponent = false }
         ]),
+        new("设计基础", FontAwesomeIcons.Solid.Palette, [
+            new("colors", "色彩与语义", "色族形态对照") { IsComponent = false }
+        ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),

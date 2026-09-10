@@ -1,10 +1,18 @@
 /* Notification card ----------------------------------------------------------
    iOS Notification Center look: a frosted, softly rounded sheet with a tinted
-   leading badge, two-line text column and a quiet trailing close control. */
+   leading badge, two-line text column and a quiet trailing close control.
+
+   Two accent roles per severity:
+   - --aeterni-dialog-accent  the fill stop: card tint, badge tint, progress ring.
+   - --aeterni-dialog-accent-ink  the text stop: the badge glyph, which is ink on a
+     light tint and only reaches 1.9:1 with the fill stop. */
 
 .aeterni-dialog-provider__alert,
-.aeterni-dialog-provider__toast {
+.aeterni-dialog-provider__toast,
+.aeterni-dialog-provider__alert--primary,
+.aeterni-dialog-provider__toast--primary {
     --aeterni-dialog-accent: var(--aeterni-color-brand-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
 
     position: relative;
     display: grid;
@@ -29,21 +37,25 @@
 .aeterni-dialog-provider__alert--info,
 .aeterni-dialog-provider__toast--info {
     --aeterni-dialog-accent: var(--aeterni-color-info-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-info-text);
 }
 
 .aeterni-dialog-provider__alert--success,
 .aeterni-dialog-provider__toast--success {
     --aeterni-dialog-accent: var(--aeterni-color-success-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-success-text);
 }
 
 .aeterni-dialog-provider__alert--warning,
 .aeterni-dialog-provider__toast--warning {
     --aeterni-dialog-accent: var(--aeterni-color-warning-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-warning-text);
 }
 
 .aeterni-dialog-provider__alert--danger,
 .aeterni-dialog-provider__toast--danger {
     --aeterni-dialog-accent: var(--aeterni-color-danger-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-danger-text);
 }
 
 .aeterni-dialog-provider__alert.is-no-blur,
@@ -53,30 +65,28 @@
 }
 
 /* Leading icon badge: custom icons and the auto-generated severity glyph both
-   sit inside a tinted circular badge, keeping rows aligned and quiet. */
+   sit inside a tinted circular badge, keeping rows aligned and quiet. One icon
+   size variable on the badge covers both paths, so the severity glyph no longer
+   resizes through a second `::deep svg` rule. */
 .aeterni-dialog-provider__notice-icon {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     width: var(--aeterni-badge-size-md);
     height: var(--aeterni-badge-size-md);
-    border-radius: var(--aeterni-radius-round);
+    border-radius: var(--aeterni-radius-badge);
     background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, transparent);
-    color: var(--aeterni-dialog-accent);
-}
-
-.aeterni-dialog-provider__notice-icon ::deep svg {
-    width: var(--aeterni-icon-size-md);
-    height: var(--aeterni-icon-size-md);
+    color: var(--aeterni-dialog-accent-ink);
 }
 
 .aeterni-dialog-provider__notice-glyph {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--aeterni-dialog-accent);
-    font-size: var(--aeterni-font-size-compact);
+    color: inherit;
     line-height: 1;
 }
 
@@ -128,11 +138,12 @@
 }
 
 .aeterni-dialog-provider__close-glyph {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--aeterni-text-tertiary);
-    font-size: var(--aeterni-icon-size-md);
     line-height: 1;
     transition: var(--aeterni-transition-color);
 }

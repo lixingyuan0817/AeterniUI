@@ -1,39 +1,24 @@
 @inherits AeterniComponent
 
-@* Selectable ListItem renders a non-focusable `role="option"` element: the
+@* A selectable ListItem renders a non-focusable `role="option"` element: the
    Listbox container owns DOM focus and reports the active option through
    aria-activedescendant, so options must stay out of the Tab sequence and must
-   not steal focus on click. *@
-@if (Interactive)
-{
-    <div id="@OptionId"
-         class="@BuildItemClass()"
-         role="option"
-         aria-selected="@Selected"
-         aria-disabled="@(EffectiveDisabled ? "true" : null)"
-         @onclick="HandleClickAsync">
-        @if (LeadingContent is not null)
-        {
-            <span class="aeterni-list-item__leading">@LeadingContent</span>
-        }
-        <span class="aeterni-list-item__content">@ChildContent</span>
-        @if (TrailingContent is not null)
-        {
-            <span class="aeterni-list-item__trailing">@TrailingContent</span>
-        }
-    </div>
-}
-else
-{
-    <div class="@BuildItemClass()">
-        @if (LeadingContent is not null)
-        {
-            <span class="aeterni-list-item__leading">@LeadingContent</span>
-        }
-        <span class="aeterni-list-item__content">@ChildContent</span>
-        @if (TrailingContent is not null)
-        {
-            <span class="aeterni-list-item__trailing">@TrailingContent</span>
-        }
-    </div>
-}
+   not steal focus on click.
+   One element and one copy of the row content serve both modes; the option role,
+   the option id and the click handler are added by BuildAttributes()/BuildClass()
+   only while the owning List is selectable. *@
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onclick="ClickHandler">
+    @if (LeadingContent is not null)
+    {
+        <span class="aeterni-list-item__leading">@LeadingContent</span>
+    }
+
+    <span class="aeterni-list-item__content">@ChildContent</span>
+
+    @if (TrailingContent is not null)
+    {
+        <span class="aeterni-list-item__trailing">@TrailingContent</span>
+    }
+</div>

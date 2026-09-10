@@ -53,7 +53,9 @@
     border: 0;
     border-radius: var(--aeterni-radius-full);
     background: transparent;
-    color: var(--aeterni-text-tertiary);
+    /* Unselected options are labels, not decoration: secondary keeps them AA while
+       the selected option still reads stronger through its own surface. */
+    color: var(--aeterni-text-secondary);
     font: inherit;
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);

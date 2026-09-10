@@ -16,7 +16,7 @@
         <button type="button"
                 class="aeterni-rating__item @(rating <= Value ? "is-filled" : string.Empty)"
                 role="radio"
-                aria-checked="@(rating == Value)"
+                aria-checked="@(rating == Value ? "true" : "false")"
                 tabindex="@(rating == TabStop ? 0 : -1)"
                 aria-label="@(rating.ToString(CultureInfo.InvariantCulture))"
                 title="@(rating.ToString(CultureInfo.InvariantCulture)) / @(Max.ToString(CultureInfo.InvariantCulture))"

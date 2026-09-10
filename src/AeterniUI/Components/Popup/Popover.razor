@@ -1,6 +1,6 @@
 @inherits AeterniComponent
 
-<div @attributes="BuildAttributes()">
+<div @ref="RootElement" @attributes="BuildAttributes()">
     @if (Header is not null)
     {
         <div class="aeterni-popover__header">@Header</div>

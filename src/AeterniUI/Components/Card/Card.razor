@@ -2,8 +2,8 @@
 
 <div @ref="RootElement"
      @attributes="BuildAttributes()"
-     @onclick="HandleClickAsync"
-     @onkeydown="HandleKeyDownAsync">
+     @onclick="ClickHandler"
+     @onkeydown="KeyDownHandler">
     @if (Header is not null)
     {
         <div class="aeterni-card__header">

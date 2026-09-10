@@ -6,7 +6,10 @@
 }
 
 .aeterni-rating__item {
-    --aeterni-rating-star: var(--aeterni-state-color-disabled);
+    /* Both star states are filled glyphs, so each one has to clear 3:1 against the
+       surface on its own: the empty star uses tertiary ink and the filled star the
+       warning family's text stop (the fill stop only reaches 2.2:1 in light). */
+    --aeterni-rating-star: var(--aeterni-text-tertiary);
     /* One icon size covers both the built-in star and an Icon passed through
        the Icon parameter, so custom glyphs match the default. */
     --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
@@ -28,7 +31,7 @@
 }
 
 .aeterni-rating__item.is-filled {
-    --aeterni-rating-star: var(--aeterni-color-warning-default);
+    --aeterni-rating-star: var(--aeterni-color-warning-text);
 }
 
 .aeterni-rating__item:hover:not(:disabled) {

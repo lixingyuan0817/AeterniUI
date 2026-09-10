@@ -20,26 +20,28 @@
     --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
 }
 
-.aeterni-icon--primary {
-    color: var(--aeterni-color-brand-default);
+/* Semantic modifiers paint the accent's text form. The fill stops are meant for
+   solid surfaces; as ink they only reach 2.2:1 on a light page (success/warning),
+   while the text stops hold 4.6-6.7:1. */.aeterni-icon--primary {
+    color: var(--aeterni-color-brand-text);
 }
 
 .aeterni-icon--neutral {
-    color: var(--aeterni-text-primary);
+    color: var(--aeterni-color-neutral-text);
 }
 
 .aeterni-icon--success {
-    color: var(--aeterni-color-success-default);
+    color: var(--aeterni-color-success-text);
 }
 
 .aeterni-icon--warning {
-    color: var(--aeterni-color-warning-default);
+    color: var(--aeterni-color-warning-text);
 }
 
 .aeterni-icon--danger {
-    color: var(--aeterni-color-danger-default);
+    color: var(--aeterni-color-danger-text);
 }
 
 .aeterni-icon--info {
-    color: var(--aeterni-color-info-default);
+    color: var(--aeterni-color-info-text);
 }

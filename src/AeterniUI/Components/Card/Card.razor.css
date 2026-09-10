@@ -115,11 +115,11 @@
 }
 
 .aeterni-card__header {
-    border-bottom: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 .aeterni-card__footer {
-    border-top: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-top: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 @media (prefers-reduced-motion: reduce) {

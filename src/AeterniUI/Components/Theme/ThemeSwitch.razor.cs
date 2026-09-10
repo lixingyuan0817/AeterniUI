@@ -29,11 +29,18 @@ public partial class ThemeSwitch : AeterniComponent
 
     private string GroupLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.ThemeSwitchLabel : AriaLabel;
 
-    private string SystemLabel => UiText.ThemeSystemLabel;
+    /// <summary>
+    /// Option order of the switch. The slider offset in the stylesheet is expressed
+    /// in whole columns, so this order is part of the component contract.
+    /// </summary>
+    private static readonly ThemeMode[] Modes = [ThemeMode.System, ThemeMode.Light, ThemeMode.Dark];
 
-    private string LightLabel => UiText.ThemeLightLabel;
-
-    private string DarkLabel => UiText.ThemeDarkLabel;
+    private string ModeLabel(ThemeMode mode) => mode switch
+    {
+        ThemeMode.Light => UiText.ThemeLightLabel,
+        ThemeMode.Dark => UiText.ThemeDarkLabel,
+        _ => UiText.ThemeSystemLabel
+    };
 
     protected override ClassBuilder BuildClass()
     {

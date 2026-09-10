@@ -1,30 +1,24 @@
 @inherits AeterniComponent
 
-<div @attributes="BuildAttributes()"
+@* One option template drives all three modes, so the label, the selected class and
+   the pressed state can never drift between them. The slider position is derived
+   from data-mode on the root, which is why the options carry no index of their own. *@
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
      role="group"
      aria-label="@GroupLabel"
      data-mode="@ThemeService.Mode.ToString().ToLowerInvariant()">
     <span class="aeterni-theme-switch__slider" aria-hidden="true"></span>
 
-    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.System ? "is-selected" : string.Empty)"
-            type="button"
-            aria-pressed="@(ThemeService.Mode == ThemeMode.System)"
-            disabled="@Disabled"
-            @onclick="() => SelectModeAsync(ThemeMode.System)">
-        @SystemLabel
-    </button>
-    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Light ? "is-selected" : string.Empty)"
-            type="button"
-            aria-pressed="@(ThemeService.Mode == ThemeMode.Light)"
-            disabled="@Disabled"
-            @onclick="() => SelectModeAsync(ThemeMode.Light)">
-        @LightLabel
-    </button>
-    <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Dark ? "is-selected" : string.Empty)"
-            type="button"
-            aria-pressed="@(ThemeService.Mode == ThemeMode.Dark)"
-            disabled="@Disabled"
-            @onclick="() => SelectModeAsync(ThemeMode.Dark)">
-        @DarkLabel
-    </button>
+    @foreach (var mode in Modes)
+    {
+        var selected = ThemeService.Mode == mode;
+        <button class="aeterni-theme-switch__option @(selected ? "is-selected" : string.Empty)"
+                type="button"
+                aria-pressed="@(selected ? "true" : "false")"
+                disabled="@Disabled"
+                @onclick="() => SelectModeAsync(mode)">
+            @ModeLabel(mode)
+        </button>
+    }
 </div>

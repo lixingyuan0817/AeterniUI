@@ -26,7 +26,7 @@
     line-height: var(--aeterni-line-height-normal);
     text-align: start;
     cursor: pointer;
-    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color);
+    transition: var(--aeterni-transition-control);
 }
 
 .aeterni-combobox__trigger:hover:not(:disabled) {
@@ -82,7 +82,8 @@
    component's scope attribute does not reach the root element of a child
    component; the size still travels through the icon size variable. */
 .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
-    --aeterni-icon-render-size: 14px;
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+
     flex: 0 0 auto;
     fill: var(--aeterni-text-tertiary);
     transition: var(--aeterni-transition-transform);

@@ -65,14 +65,8 @@ public partial class Icon : AeterniComponent
     // 16px glyph box) instead of inheriting the parent icon slot.
     private string? SizeClass => ComponentClass.ForSize("aeterni-icon", Size, "md");
 
-    private string ColorClass => Color switch
-    {
-        Color.Primary => "primary",
-        Color.Neutral => "neutral",
-        Color.Success => "success",
-        Color.Warning => "warning",
-        Color.Danger => "danger",
-        Color.Info => "info",
-        _ => "default"
-    };
+    // Color.Default keeps `currentColor`, so the modifier comes from the shared
+    // option→class mapping instead of a second colour switch. The stylesheet only
+    // implements the six named colours.
+    private string? ColorClass => ComponentClass.ForColor("aeterni-icon", Color);
 }

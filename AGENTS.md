@@ -15,6 +15,8 @@
 
 禁止事项：不得在 `wwwroot/css/aeterni_ui.css` 写入组件样式（CI 会拦截）；不得用 `::deep` 或全局规则在示例页覆盖组件原生样式；不得新建第二套尺寸、颜色、圆角体系；不得绕过 `ThemeProvider` 自行修改 `data-theme`。
 
+容器与页面背景只能是黑、白、灰或毛玻璃（R = G = B 的无彩色）：不得给容器背景加任何彩色或色相偏移。彩色只允许出现在品牌色/语意色元素、交互状态（hover/pressed/selected）和通知卡片这类“内容表面”上。大面积上的 +2 色相偏移就会被读成品牌色底，且磨砂层的 `saturate()` 会放大它。
+
 提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`target/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
 
 ## 项目范围

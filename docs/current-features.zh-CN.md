@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.2.0`
+文档版本：`10.4.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -46,11 +46,29 @@
 - 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`，其中 `selected` 与 `checked` 使用同一套表面状态。
 - 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
 - 提供通用控件组合别名：`--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*` 和 `--aeterni-control-focus-ring`，方便组件直接组合控件状态。
+- 色板按 OKLCH 重建：每个色族一条明度阶梯、固定色相（仅浅档做少量 Abney 补偿漂移）、chroma 在中档收敛成峰值，因此不再出现「阶梯忽大忽小」「同一色族色相漂移 8°」这类问题。
+- 品牌色是紫罗兰色系（浅色主题 `--aeterni-brand-500` = `#795AD9`，深色主题取 `--aeterni-brand-400` = `#9985ED`），峰值 chroma 从 0.237 降到 0.186、色相漂移从 7.8° 收到 1.7°，去掉了原来的荧光感。
+- 语意色沿用 Apple 系统色：浅色 500 档为 `#34C759` / `#FF9500` / `#FF3B30` / `#007AFF` / `#8E8E93`，深色默认值为 `#30D158` / `#FF9F0A` / `#FF453A` / `#0A84FF` / `#8E8E93`。色阶以 500 档为锚点按 OKLCH 重建：浅端统一到 L 0.976、深端统一到 L 0.30，中间的 chroma 凹形收敛，因此保住了 Apple 的观感，同时消除了原有的 `Info` 400→500 明度断层（0.111）与色相漂移（254°→265°）。
+- 中性色采用「无色容器 + 单墨色文字」的 Apple label 模型：
+  - **容器表面一律无色**（浅色 `#F7F7F7 / #F0F0F0 / #E8E8E8`，R = G = B；深色统一 +3 冷偏移 `#101013 / #17171A / #202023 / #1A1A1D`）。容器带 +2 以上的彩偏移在大面积上会被读成品牌色底，磨砂层的 `saturate()` 还会放大它。
+  - **文字色阶是一个墨色加不透明度**，而不是一组手调 hex：正文 `rgba(0,0,0,.78)`（11.7:1）、次要 `.62`（6.2:1）、占位 `.56`（4.9:1）、图标级 `.52`（4.3:1，**仅图标与装饰**）、禁用 `.36`（2.5:1，WCAG 豁免）；深色对应白墨 `.86 / .56 / .48 / .40 / .28`。透明的优点是文字会随所在表面（着色 chip、hover 底、毛玻璃）自动调和，而且二级与三级不会“既不同色又只差一点”。
+  - `--aeterni-text-muted` 指向 `secondary`（弱化文字的可用级别）；`--aeterni-text-tertiary` 从“第三种文字”改为“图标/装饰级别”，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项已改用 `secondary`。
+- 实心语意表面的前景 `--aeterni-color-on-semantic`（浅色 `#141414`、深色取反色墨）改为无色：原先的蓝黑 primitive `#0B0F19` 给绿/黄按钮上的文字带了蓝调。
+- 新增 `--aeterni-separator`（不透明，浅色 `#C6C6C6` / 深色 `#3A3A3A`）：卡片头/底与对话框头/底的分界线用它，不再用 7% alpha 的 `--aeterni-border-subtle`（1.17:1，看起来像污渍）。
+- 每个色族额外提供「强调文字/描边形态」的 `--aeterni-color-{brand,success,warning,danger,info,neutral}-text`：浅色主题取深档、深色主题取亮档，这解决了「亮色填充档当文字用只有 2.2:1」的老问题（描边/文字语义色按钮现在 5.0~9.5:1）。
+- 形态选择写成硬规则：填充档只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片的底色/徽标底/进度环），凡是 ink（文字、图标）或需要与浅色轨道/页面区分的实心图形（进度条填充、评分星形）均取文字形态。
+- `--aeterni-state-color-selected` 与 `--aeterni-state-color-checked` 是前景别名，已指向 `--aeterni-color-brand-text`：选中项文字画在自己的选中底上，用填充档只有 4.0~4.4:1。
+- 浅色 `--aeterni-text-tertiary` 是图标/装饰级别（`rgba(0,0,0,.52)`，4.27:1）：该级别既要看清字形（≥ 3:1）又不与正文争抢，ComboBox 箭头、关闭字形、Rating 空星都用它。
+- 实心控件的字色按填充明度分两层：品牌填充走深档配 `--aeterni-text-inverse`，success/warning/danger/info 填充走亮档配 `--aeterni-color-on-semantic`；两类填充的 hover 都保持同一字色（品牌向下取档、语意向白提亮 12%），因此不再需要 `-strong` 这种按状态切换字色的 Token。`Button` 的 `--neutral` 填充则沿「向墨色收敛」方向取 hover/pressed（86% / 76%），使浅色与深色的反馈方向一致。
+- `Icon` 的六个命名色（`Primary`/`Neutral`/`Success`/`Warning`/`Danger`/`Info`）消费 `--aeterni-color-*-text`；`Color.Default` 仍为 `currentColor`。Alert/Toast 卡片同时使用两个 accent 角色：`--aeterni-dialog-accent`（卡片底色、徽标底色、进度环）与 `--aeterni-dialog-accent-ink`（徽标图标、弹窗头部图标）。
+- `FormField` 的必填星号与错误文案、`Menu` 选中项文字同样使用强调文字形态。
+- `Tag` 的标签文字取词族的「强调文字形态」（`--aeterni-tag-ink`）再向正文墨靠 15%，而不是把亮色填充档与近黑对半混：后者会把绿/黄族混成橄榄色、褐色，看起来脏；当前浅色 4.95~7.15:1、深色 7.35~8.78:1，且色相保持饱和。
 - 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
 - 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md` 和 `--aeterni-width-control-md`。
 - 提供可发现滚动条 Token：`--aeterni-scrollbar-size`、`--aeterni-scrollbar-thumb`、`--aeterni-scrollbar-track`；长选项列表和长通知堆栈使用细滚动条而不是隐藏滚动条。
 - 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
-- 实心语意表面使用专用前景 Token：`--aeterni-color-on-semantic` 及其 `-strong` 档，用于 success/warning/danger/info 实心控件的正文，保证浅色与深色主题下对比度 ≥ 4.5:1。
+- 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
+- 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
 - 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
 - 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。
 - 字体栈中的 Inter 与 JetBrains Mono 是可选的宿主依赖，库不随包提供 webfont；宿主未提供时回落到系统 UI 字体（等宽回落 Consolas / Courier New）。
@@ -152,6 +170,7 @@
 - 提供 `Icon` 组件。
 - `Definition`（必填 `IconDefinition`）、`Size`、`Color`、`AriaLabel` 和 `Title`。
 - 图标尺寸和颜色使用组件库 Token。
+- `Color` 的六个命名色取 `--aeterni-color-*-text`（浅色 4.6~6.7:1、深色 7.5~10.5:1）；`Color.Default` 不附加修饰类，继续继承 `currentColor`。
 - 未传 `AriaLabel` 时输出 `aria-hidden="true"`；传入后输出 `role="img"` 和可访问名称。
 - 图标库通过 RenderFragment 与 Button、Dialog、Toast 等组件组合使用。
 
@@ -379,6 +398,8 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
+- `aria-checked` 输出显式字符串 `"true"`/`"false"`（布尔值会被渲染成最小化属性，读屏会当成无效值）。
+- 填充星取 `--aeterni-color-warning-text`、空星取 `--aeterni-text-tertiary`：星形是实心图形，填充档在浅色下只有 2.2:1。
 - 只读或禁用时把当前值并入分组可访问名称（`aria-label`），自定义 `Icon` 与内置星形使用同一尺寸（`--aeterni-icon-size-lg`）。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
@@ -418,10 +439,12 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 `Progress` 提供线性进度展示，支持 `Value`、`Max`、`Indeterminate`、`Color`、`Size`、`ShowValue` 和 `AriaLabel`。
 
+- 填充取色族的强调文字形态、轨道取同色相 12% 染色（填充/轨道浅色 3.2~4.6:1、深色 5.7~7.5:1；轨道与页面 1.4:1）；填充档直接做进度条时，浅色 success/warning 只有 1.8:1。
+- 宽度通过 `--aeterni-progress-value` 自定义属性传入，`indeterminate` 与 reduced-motion 用特异性覆盖，不使用 `!important`。
+
 ### 行为与无障碍
 
 输出 `role="progressbar"`、`aria-valuemin`、`aria-valuemax`，确定进度时输出 `aria-valuenow`；不确定状态使用 CSS 动画，并在 reduced-motion 下停止动画。
-
 ### 实现边界
 
 当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
@@ -661,6 +684,7 @@ builder.Services.AddAeterniUI(options =>
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
+- `Switch`、`ComboBox` 和 `Rating` 没有 `Size` 档位，而 `Input`/`Textarea`/`Button`/`Checkbox`/`Radio` 都有 `Small`/`Large`；因此小尺寸表单行里无法把这三者与同排输入控件对齐。补档位需要新增公共参数与三档视觉，已记入 roadmap（见 `component-roadmap.zh-CN.md`），当前不作为已实现能力描述。
 - `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。

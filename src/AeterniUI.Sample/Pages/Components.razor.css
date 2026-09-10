@@ -65,7 +65,7 @@
 
 .showcase-nav__label {
     padding: 0 8px 3px;
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-size: 10px;
     font-weight: var(--aeterni-font-weight-semibold);
     letter-spacing: .12em;
@@ -114,7 +114,7 @@
 }
 
 .showcase-nav__item-summary {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-size: 11px;
     line-height: 1.35;
 }
@@ -166,7 +166,7 @@
 .showcase-install__steps span { color: var(--aeterni-color-brand-default); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-bold); }
 .showcase-install__steps h2 { margin: 10px 0 14px; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
 .showcase-install pre { margin: 0; overflow-x: auto; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); line-height: 1.6; white-space: pre-wrap; }
-.showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-tertiary); font-size: var(--aeterni-font-size-sm); }
+.showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
 @media (max-width: 760px) { .showcase-install__steps { grid-template-columns: 1fr; } }
 
 /* Sample content shown inside the generic preview stages. */
@@ -407,7 +407,7 @@
 
 .control-status {
     display: block;
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-size: 11px;
     line-height: 1.45;
 }
@@ -516,4 +516,217 @@
     .showcase-nav__item {
         transition: none;
     }
+}
+
+/* Colour reference page (/components/colors) --------------------------------
+   Page-local layout only: every colour, radius and spacing below comes from an
+   AeterniUI token, and no `.aeterni-*` component rule is overridden. */
+.showcase-colors {
+    padding: clamp(28px, 5vw, 72px);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.showcase-colors h1 {
+    margin: 8px 0 14px;
+    color: var(--aeterni-text-primary);
+    font-size: clamp(28px, 4vw, 46px);
+}
+
+.showcase-colors__subtitle {
+    margin: 40px 0 10px;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-lg);
+}
+
+.showcase-colors__matrix {
+    display: grid;
+    gap: 0;
+    margin-top: 32px;
+    overflow-x: auto;
+}
+
+.showcase-colors__head,
+.showcase-colors__row {
+    display: grid;
+    grid-template-columns: 148px repeat(5, minmax(150px, 1fr));
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    min-width: 900px;
+}
+
+.showcase-colors__head {
+    padding-bottom: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wider);
+    text-transform: uppercase;
+}
+
+.showcase-colors__row {
+    padding: var(--aeterni-spacing-3) 0;
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.showcase-colors__name {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.showcase-colors__chips,
+.showcase-colors__icons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.showcase-colors__table {
+    margin-top: var(--aeterni-spacing-4);
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+}
+
+.showcase-colors__table-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__table-row + .showcase-colors__table-row {
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.showcase-colors__table-row--head {
+    background: var(--aeterni-surface-soft);
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+    .showcase-colors__table-row {
+        grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+        font-size: var(--aeterni-font-size-xs);
+    }
+}
+
+/* Neutral surface swatches: show the hueless container ramp next to the one
+   intentionally tinted interaction surface. Page-local; each swatch paints a
+   token, no `.aeterni-*` rule is touched. */
+.showcase-colors__surfaces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--aeterni-spacing-3);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__surface {
+    display: grid;
+    align-content: end;
+    gap: var(--aeterni-spacing-1);
+    min-height: 96px;
+    padding: var(--aeterni-spacing-3);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+}
+
+.showcase-colors__surface span {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__surface code {
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+.showcase-colors__surface--page {
+    background: var(--aeterni-bg-primary);
+}
+
+.showcase-colors__surface--secondary {
+    background: var(--aeterni-bg-secondary);
+}
+
+.showcase-colors__surface--tertiary {
+    background: var(--aeterni-bg-tertiary);
+}
+
+.showcase-colors__surface--elevated {
+    background: var(--aeterni-bg-elevated);
+}
+
+.showcase-colors__surface--soft {
+    background: var(--aeterni-surface-soft);
+}
+
+.showcase-colors__surface--hover {
+    background: var(--aeterni-state-background-hover);
+}
+
+/* Text ladder: each row paints one semantic ink token on the neutral surface, so
+   the four levels can be compared side by side in either theme. */
+.showcase-colors__type {
+    display: grid;
+    gap: 0;
+    margin-top: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__type-row {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+}
+
+.showcase-colors__type-row + .showcase-colors__type-row {
+    border-top: 1px solid var(--aeterni-separator);
+}
+
+.showcase-colors__type-row code {
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+.showcase-colors__type-row span {
+    font-size: var(--aeterni-font-size-md);
+}
+
+.showcase-colors__type-primary {
+    color: var(--aeterni-text-primary);
+}
+
+.showcase-colors__type-secondary {
+    color: var(--aeterni-text-secondary);
+}
+
+.showcase-colors__type-placeholder {
+    color: var(--aeterni-text-placeholder);
+}
+
+.showcase-colors__type-tertiary {
+    color: var(--aeterni-text-tertiary);
+}
+
+.showcase-colors__type-disabled {
+    color: var(--aeterni-text-disabled);
 }

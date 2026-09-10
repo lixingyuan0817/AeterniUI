@@ -29,8 +29,13 @@
     animation: aeterni-dialog-fade-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
-.aeterni-dialog-provider__dialog {
+.aeterni-dialog-provider__dialog,
+.aeterni-dialog-provider__dialog--primary {
+    /* Fill and ink roles: the accent tints chrome and the leading icon badge, while
+       the ink paints the header glyph. Using the fill stop as ink left the
+       success/warning header icons at ~1.9:1 on the light backdrop. */
     --aeterni-dialog-accent: var(--aeterni-color-brand-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
 
     display: flex;
     flex-direction: column;
@@ -50,18 +55,22 @@
 
 .aeterni-dialog-provider__dialog--info {
     --aeterni-dialog-accent: var(--aeterni-color-info-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-info-text);
 }
 
 .aeterni-dialog-provider__dialog--success {
     --aeterni-dialog-accent: var(--aeterni-color-success-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-success-text);
 }
 
 .aeterni-dialog-provider__dialog--warning {
     --aeterni-dialog-accent: var(--aeterni-color-warning-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-warning-text);
 }
 
 .aeterni-dialog-provider__dialog--danger {
     --aeterni-dialog-accent: var(--aeterni-color-danger-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-danger-text);
 }
 
 /* Notice regions ------------------------------------------------------------
@@ -69,6 +78,8 @@
    markup and styles live in NoticeCard). Each region declares where cards
    come from and leave towards. */
 .aeterni-dialog-provider__notice-region {
+    /* Enter/exit direction per position; the 12px/14px/28px values below are motion
+       distances, not layout sizes. */
     --aeterni-notice-in-x: 0px;
     --aeterni-notice-in-y: 12px;
     --aeterni-notice-out-x: 0px;
@@ -213,7 +224,7 @@
 
 .aeterni-dialog-provider__header {
     justify-content: space-between;
-    border-bottom: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 .aeterni-dialog-provider__heading {
@@ -238,17 +249,19 @@
     justify-content: center;
     width: var(--aeterni-icon-size-lg);
     height: var(--aeterni-icon-size-lg);
-    color: var(--aeterni-dialog-accent);
+    color: var(--aeterni-dialog-accent-ink);
 }
 
 /* Modal header close glyph (the NoticeCard stylesheet owns the same glyph for
-   Alert/Toast cards). */
+   Alert/Toast cards). The size travels through the icon size variable instead of
+   a font-size, which only reached the glyph through its 1em fallback. */
 .aeterni-dialog-provider__close-glyph {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--aeterni-text-tertiary);
-    font-size: var(--aeterni-icon-size-md);
     line-height: 1;
     transition: var(--aeterni-transition-color);
 }
@@ -267,7 +280,7 @@
 
 .aeterni-dialog-provider__footer {
     justify-content: flex-end;
-    border-top: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-top: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 /* Closing states ------------------------------------------------------------ */
@@ -277,7 +290,7 @@
 }
 
 .aeterni-dialog-provider__dialog.is-shaking {
-    animation: aeterni-dialog-shake 320ms var(--aeterni-ease-in-out);
+    animation: aeterni-dialog-shake var(--aeterni-duration-slow) var(--aeterni-ease-in-out);
 }
 
 @keyframes aeterni-dialog-fade-in {

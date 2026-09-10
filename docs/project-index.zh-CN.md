@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.2.0`
+文档版本：`10.4.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -96,7 +96,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/App.razor`](../src/AeterniUI.Sample/App.razor)：Blazor Router 入口。
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
 - [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口（含背景动效）。
-- [`src/AeterniUI.Sample/Pages/Components.razor`](../src/AeterniUI.Sample/Pages/Components.razor)：组件文档页（路由 `/components`），左侧分类导航加真实组件交互画廊。
+- [`src/AeterniUI.Sample/Pages/Components.razor`](../src/AeterniUI.Sample/Pages/Components.razor)：组件文档页（路由 `/components` 与 `/components/{ComponentId}`），左侧分类导航加真实组件交互画廊；其中的「色彩与语义」（`/components/colors`）用 6 个色族 × 5 种用法展示 Token 形态，并列出对比度基线。
 - [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
 - [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
 

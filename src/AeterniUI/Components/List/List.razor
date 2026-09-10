@@ -2,7 +2,7 @@
 
 <div @ref="RootElement"
      @attributes="BuildAttributes()"
-     @onkeydown="HandleKeyDownAsync">
+     @onkeydown="KeyDownHandler">
     <CascadingValue Value="this">
         @ChildContent
     </CascadingValue>

@@ -4,7 +4,7 @@
     --aeterni-checkbox-size: var(--aeterni-control-size-md);
     display: inline-flex;
     align-items: center;
-    gap: var(--aeterni-gap-xs);
+    gap: var(--aeterni-spacing-1);
     color: var(--aeterni-text-primary);
     font: inherit;
     font-size: var(--aeterni-font-size-sm);

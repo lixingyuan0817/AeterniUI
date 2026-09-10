@@ -1,4 +1,15 @@
+/* Progress uses the accent families' text (emphasis) form for the filled bar
+   instead of the fill stop. A 500-stop bar only separates from a light track by
+   1.8:1 (success/warning), while the text stops hold 3.2-4.6:1 in light and
+   5.5-7.5:1 in dark. The track is tinted with the same accent so its extent stays
+   visible even at low values. --aeterni-progress-accent carries the family; every
+   colour modifier below only re-points it. */
 .aeterni-progress {
+    --aeterni-progress-accent: var(--aeterni-color-brand-text);
+    /* Bar width is data, not a style tier: Progress writes it from C# and the
+       indeterminate rule below overrides it, so no !important is needed. */
+    --aeterni-progress-value: 0%;
+
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-2);
@@ -6,6 +17,7 @@
     min-width: 0;
     color: var(--aeterni-text-secondary);
 }
+
 .aeterni-progress__track {
     position: relative;
     flex: 1 1 auto;
@@ -13,62 +25,77 @@
     height: var(--aeterni-spacing-2);
     overflow: hidden;
     border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-bg-tertiary);
+    background: color-mix(in srgb, var(--aeterni-progress-accent) 12%, var(--aeterni-bg-tertiary));
 }
+
 .aeterni-progress__bar {
+    width: var(--aeterni-progress-value);
     height: 100%;
     border-radius: inherit;
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-progress-accent);
     transition: width var(--aeterni-duration-normal) var(--aeterni-ease-standard);
 }
 
 /* Color.Primary is the explicit form of the brand default bar. */
-.aeterni-progress--primary .aeterni-progress__bar {
-    background: var(--aeterni-color-brand-default);
+.aeterni-progress--primary {
+    --aeterni-progress-accent: var(--aeterni-color-brand-text);
 }
-.aeterni-progress--success .aeterni-progress__bar {
-    background: var(--aeterni-color-success-default);
+
+.aeterni-progress--success {
+    --aeterni-progress-accent: var(--aeterni-color-success-text);
 }
-.aeterni-progress--warning .aeterni-progress__bar {
-    background: var(--aeterni-color-warning-default);
+
+.aeterni-progress--warning {
+    --aeterni-progress-accent: var(--aeterni-color-warning-text);
 }
-.aeterni-progress--danger .aeterni-progress__bar {
-    background: var(--aeterni-color-danger-default);
+
+.aeterni-progress--danger {
+    --aeterni-progress-accent: var(--aeterni-color-danger-text);
 }
-.aeterni-progress--info .aeterni-progress__bar {
-    background: var(--aeterni-color-info-default);
+
+.aeterni-progress--info {
+    --aeterni-progress-accent: var(--aeterni-color-info-text);
 }
-.aeterni-progress--neutral .aeterni-progress__bar {
-    background: var(--aeterni-color-neutral-default);
+
+.aeterni-progress--neutral {
+    --aeterni-progress-accent: var(--aeterni-color-neutral-text);
 }
+
 .aeterni-progress--sm .aeterni-progress__track {
     height: var(--aeterni-spacing-1);
 }
+
 .aeterni-progress--lg .aeterni-progress__track {
     height: var(--aeterni-spacing-3);
 }
+
 .aeterni-progress__value {
     /* 3ch keeps the numeric readout from reflowing while it counts. */
     min-width: 3ch;
     font-size: var(--aeterni-font-size-xs);
     text-align: end;
 }
+
+/* The indeterminate sweep paints a moving segment; it wins over the value rule by
+   specificity, so the bar width stays a single declarative source. */
 .aeterni-progress.is-indeterminate .aeterni-progress__bar {
-    width: 35% !important;
+    width: 35%;
     animation: aeterni-progress-indeterminate var(--aeterni-duration-slower) var(--aeterni-ease-in-out) infinite;
 }
+
 /* Keyframe offsets are motion distances driven by the track width. */
 @keyframes aeterni-progress-indeterminate {
     from { transform: translateX(-120%); }
     to { transform: translateX(320%); }
 }
+
 @media (prefers-reduced-motion: reduce) {
     .aeterni-progress__bar {
         transition: none;
     }
 
     .aeterni-progress.is-indeterminate .aeterni-progress__bar {
-        width: 100% !important;
+        width: 100%;
         animation: none;
     }
 }

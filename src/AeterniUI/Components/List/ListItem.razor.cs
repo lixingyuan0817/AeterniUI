@@ -39,30 +39,58 @@ public partial class ListItem : AeterniComponent
     internal bool EffectiveDisabled => Disabled || (Owner?.Disabled ?? false);
 
     /// <summary>
+    /// Click handler that is only bound while the owning List is selectable. A
+    /// default <see cref="EventCallback{T}" /> renders no attribute at all, so a
+    /// static row registers no DOM listener.
+    /// </summary>
+    private EventCallback<MouseEventArgs> ClickHandler => Interactive
+        ? EventCallback.Factory.Create<MouseEventArgs>(this, HandleClickAsync)
+        : default;
+
+    /// <summary>
     /// Re-renders this option. The List calls it when the active option moves so
     /// the keyboard cue stays visible without focus leaving the container.
     /// </summary>
     internal void Refresh() => _ = InvokeAsync(StateHasChanged);
 
-    private string BuildItemClass()
+    protected override ClassBuilder BuildClass()
     {
-        var classes = new List<string> { "aeterni-list-item" };
-        if (Selected)
+        return base.BuildClass()
+            .Add("aeterni-list-item")
+            .Add("is-selected", Selected)
+            .Add("is-active", Active)
+            .Add("is-disabled", EffectiveDisabled);
+    }
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (!Interactive)
         {
-            classes.Add("is-selected");
+            return attributes;
         }
 
-        if (Active)
+        // The Listbox container points aria-activedescendant at this option, so the
+        // option id takes over from the base element id while it is selectable.
+        if (OptionId is not null)
         {
-            classes.Add("is-active");
+            attributes["id"] = OptionId;
         }
+
+        attributes["role"] = "option";
+        // ARIA state values are strings: a bool value renders as a minimised
+        // attribute, which assistive technology reads as an invalid/empty value.
+        attributes["aria-selected"] = Selected ? "true" : "false";
 
         if (EffectiveDisabled)
         {
-            classes.Add("is-disabled");
+            attributes["aria-disabled"] = "true";
         }
 
-        return string.Join(" ", classes);
+        return attributes;
     }
 
     private async Task HandleClickAsync(MouseEventArgs args)

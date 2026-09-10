@@ -60,24 +60,29 @@ public partial class NoticeCard : AeterniComponent
         ? "aeterni-dialog-provider__alert"
         : "aeterni-dialog-provider__toast";
 
-    private string BuildCardClass()
+    protected override ClassBuilder BuildClass()
     {
-        return ClassBuilder(CardKindClass)
-            .Add(ComponentClass.For(CardKindClass, SeverityClass(Severity)))
+        return base.BuildClass()
+            .Add(CardKindClass)
+            // Severity → colour lives in ComponentClass only. Severity.Default maps to
+            // Color.Primary, whose `--primary` modifier shares the base accent rule.
+            .Add(ComponentClass.ForColor(CardKindClass, Severity.ToColor()))
             .Add("is-no-blur", NoBlur)
-            .Add("is-closing", IsClosing)
-            .Build();
+            .Add("is-closing", IsClosing);
     }
 
-    // Returns null for the default severity, whose accent comes from the base rule.
-    private static string? SeverityClass(Severity severity) => severity switch
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
-        Severity.Info => "info",
-        Severity.Success => "success",
-        Severity.Warning => "warning",
-        Severity.Danger => "danger",
-        _ => null
-    };
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase)
+        {
+            ["role"] = Role,
+            ["aria-live"] = Live
+        };
+
+        return attributes;
+    }
 
     private async Task HandleCloseAsync(MouseEventArgs args)
     {

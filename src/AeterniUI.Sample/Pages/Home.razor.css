@@ -280,7 +280,7 @@ html[data-theme="dark"] .doc-home__orb {
 }
 
 .doc-intro__cta-hint {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-size: 12px;
     line-height: 1.5;
 }
@@ -336,7 +336,7 @@ html[data-theme="dark"] .doc-home__orb {
 .doc-code__file {
     overflow: hidden;
     margin-left: 8px;
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-family: var(--aeterni-font-family-mono);
     font-size: 11px;
     text-overflow: ellipsis;
@@ -364,7 +364,7 @@ html[data-theme="dark"] .doc-home__orb {
 /* Lightweight syntax colouring on top of semantic tokens. */
 
 .doc-code__body .tok-c {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-muted);
     font-style: italic;
 }
 
