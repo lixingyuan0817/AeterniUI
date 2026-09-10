@@ -55,6 +55,7 @@
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
 - 主题切换包含过渡动画，并适配 reduced-motion 场景。
 
+- `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`），表示实际生效的主题。
 ## 4. Button
 
 ### 支持能力
@@ -73,6 +74,13 @@
 - 加载状态包含 spinner、`aria-busy` 和禁用交互。
 - Link 变体悬浮时只显示下划线，不显示背景色。
 
+### 行为与无障碍
+
+使用原生 `<button>` 语义，`Type`（`ButtonType`：`Button` / `Submit` / `Reset`）控制原生类型；`Disabled` 输出原生 `disabled` 与 `aria-disabled`，`Loading` 期间阻止重复提交并保持尺寸稳定；键盘使用原生 Enter/Space 激活，`:focus-visible` 提供清晰焦点环。
+
+### 实现边界
+
+不提供独立 `IconButton`；图标通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入。
 ## 5. ButtonGroup
 
 ### 支持能力
@@ -84,6 +92,13 @@
 - 通过级联上下文向子 Button 传递禁用状态。
 - 统一处理按钮之间的边框和分隔关系。
 
+### 行为与无障碍
+
+`Disabled` 通过级联上下文传递给内部 Button，而不是只在容器上做视觉置灰；保留原生 Tab 顺序，不实现方向键导航；连接模式下相邻按钮之间保留 1px 分隔线。
+
+### 实现边界
+
+不提供 Toolbar / ToggleGroup 语义（两者均未实现）。
 ## 6. Surface 和 Card
 
 ### 支持能力
@@ -107,6 +122,15 @@
 - 可点击状态的悬浮和按下反馈。
 - 三个内容区域使用统一的内边距和边界关系。
 
+参数类型分别为 `SurfaceVariant`、`SurfaceElevation`、`SurfacePadding` 和 `SurfaceRadius`；`Card` 复用前三个，没有独立的 `Radius` 参数。
+
+### 行为与无障碍
+
+`Surface` 与 `Card` 默认不是交互控件，不输出按钮或链接语义；只有 `Card.Interactive = true` 时才输出按钮语义、Tab 焦点和 Enter/Space 触发，此时内部不要再嵌套可聚焦控件。
+
+### 实现边界
+
+两者都不做定位、滚动或动画；内容区域由业务内容自行组织。
 ## 7. Icon、内置图标集和 Font Awesome
 
 ### Icon 组件
@@ -166,6 +190,9 @@
        AriaLabel="Email address" />
 ```
 
+### 实现边界
+
+不提供日期时间选择、掩码输入和异步校验；多行输入使用 `Textarea`。
 ## 9. Textarea
 
 ### 支持能力
@@ -173,7 +200,7 @@
 `Textarea` 提供多行原生文本输入，复用 `Input` 的绑定、校验和表单级联约定。
 
 - `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准 `@bind-Value`。
-- `Placeholder`、`Name`、`AutoComplete`、`Rows`、`Resize`、`MinLength` 和 `MaxLength`。
+- `Placeholder`、`Name`、`AutoComplete`、`Rows`、`Resize`（`TextareaResize`）、`MinLength` 和 `MaxLength`。
 - `Disabled`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`。
 - `OnInput`、`OnChange`、`OnFocus`、`OnBlur` 和 `OnKeyDown` 事件回调。
 - `AriaLabel` 和 `AriaDescribedBy` 无障碍属性。
@@ -200,7 +227,25 @@
 
 FormField 负责布局和语义关联，不替代内部控件的值绑定或输入行为。
 
-## 11. Checkbox
+## 11. Label
+
+### 支持能力
+
+`Label` 渲染原生 `<label>`，用于把可见文字与表单控件关联起来。
+
+- `ChildContent`：标签文字或内容。
+- `For`：目标控件的 DOM id，输出到 `for` 属性。
+- 继承 `AeterniComponent` 的 `Id`、`Class`、`Style`、`Visible` 等公共参数。
+
+### 行为与无障碍
+
+`For` 与控件的 `Id` 一致时，点击标签即可聚焦或切换对应控件（原生行为，无需 JS）。
+`FormField` 已内置标签渲染，只有在需要独立标签或自定义排布时才单独使用 `Label`。
+
+### 实现边界
+
+不提供必填标记、帮助文本或错误文案，这些属于 `FormField`。
+## 12. Checkbox
 
 ### 支持能力
 
@@ -231,7 +276,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 <Checkbox Indeterminate>Select all</Checkbox>
 ```
 
-## 12. Radio / RadioGroup
+## 13. Radio / RadioGroup
 
 ### 支持能力
 
@@ -247,7 +292,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 当前不提供远程选项、虚拟化和多选行为；方向键导航沿用原生 radio 行为。
 
-## 13. Switch
+## 14. Switch
 
 ### 支持能力
 
@@ -266,13 +311,13 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，复杂标签关联由 `FormField` 负责。
 
-## 14. Tag
+## 15. Tag
 
 ### 支持能力
 
 `Tag` 提供分类、状态与筛选的紧凑标签：
 
-- `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`Default` / `Soft` / `Outline`）。
+- `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`TagVariant`：`Default` / `Soft` / `Outline`）。
 - 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
 - 可关闭 Tag 的关闭按钮带有可访问名称且只触发一次事件。
 
@@ -280,11 +325,14 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 非可关闭 Tag 保持展示语义；可关闭 Tag 使用带可访问名称的 Button 关闭动作，且关闭事件只触发一次。
 
-## 15. List + ListItem
+### 实现边界
+
+不提供分组、折叠或拖拽；`Dismissible` 只触发 `OnDismiss`，是否从集合中移除由业务决定。
+## 16. List + ListItem
 
 ### 支持能力
 
-- `List` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues`、对应变更事件、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
+- `List` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 使用原生 `<button>` 并同步 `aria-selected`，不额外设置 `role="option"`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。
@@ -300,13 +348,13 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 当前不提供拖拽、虚拟化、分组和异步数据源。
 
-## 16. Rating
+## 17. Rating
 
 ### 支持能力
 
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
-- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`aria-label` 可自定义。
+- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 可自定义（输出 `aria-label`）。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
 ### 行为与无障碍
@@ -317,7 +365,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 当前只支持整数评分，不实现半星。
 
-## 17. ComboBox
+## 18. ComboBox
 
 ### 支持能力
 
@@ -336,7 +384,7 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 当前不支持自由输入筛选、远程搜索、虚拟化、无限滚动和多选。
 
-## 18. Progress
+## 19. Progress
 
 ### 支持能力
 
@@ -350,7 +398,7 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
 
-## 19. PopupHost / Popover
+## 20. PopupHost / Popover
 
 ### 支持能力
 
@@ -364,7 +412,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 当前提供基础容器与语义表面，不包含锚点定位、翻转、点击外部关闭和滚动关闭；这些能力留待后续 PopupHost 增强。
 
-## 20. Menu
+## 21. Menu
 
 `Menu` 提供可复用的分组导航菜单，支持 `Items`、`SelectedId`、`Accordion`、`OpenKeys` 和 `AriaLabel`。
 
@@ -380,7 +428,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 - 默认非受控：组件自行维护展开分组，初始渲染最多展开一个 `InitiallyOpen` 分组（`Accordion`），选中项所在分组优先打开；`Items` 被替换时清理已不存在的分组。
 - 传入 `OpenKeys` 后变为受控：所有变更通过 `OpenKeysChanged` 回传（支持 `@bind-OpenKeys`），组件不再自行修改状态。
-- 分组折叠/展开后触发 `OnGroupToggled`；菜单项激活后触发 `OnItemSelected`（旧名 `ItemSelected` 已改名为 `OnItemSelected`，与 `List.OnItemSelected` 保持一致）。
+- 分组折叠/展开后触发 `OnGroupToggled`；菜单项激活后触发 `OnItemSelected`（旧名 `ItemSelected` 已改名为 `OnItemSelected`，与 `List.OnItemSelected` 保持一致）；选中项变化通过 `SelectedIdChanged` 回传。
 
 ### 禁用与可见性
 
@@ -395,11 +443,14 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 组件声明一个 JS module（`Components/Menu/Menu.razor.js`），只负责把焦点移到 C# 模型选中的节点、在菜单内部抑制方向键的默认页面滚动，并报告书写方向；折叠动画仍由 CSS 完成。
 - 长菜单不强制滚动容器：把 `Menu` 放进带 `max-height` 的滚动容器（示例侧边栏即如此）即可，避免组件自己裁切焦点环。
 
-## 21. Tooltip
+### 实现边界
+
+不提供多于两层的嵌套、组合式子组件（`ChildContent` + 子组件）、搜索过滤和多选；长菜单不内置滚动容器，把它放进带 `max-height` 的容器即可（示例侧边栏即如此）。
+## 22. Tooltip
 
 ### 支持能力
 
-`Tooltip` 支持 `Text`、`ChildContent`、`Disabled` 和 `AriaLabel`，通过 hover/focus-visible 展示说明。
+`Tooltip` 支持 `Text`、`ChildContent`、`Disabled` 和 `AriaLabel`：`ChildContent` 是被描述的触发元素，`Text` 才是提示内容（两者不是重复内容参数）。
 
 ### 行为与无障碍
 
@@ -409,7 +460,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 当前提供上方固定位置，不包含 Placement、Escape、点击外部关闭和复杂交互内容。
 
-## 21. ThemeProvider 和 ThemeSwitch 使用方式
+## 23. ThemeProvider 和 ThemeSwitch 使用方式
 
 ### 基础用法
 
@@ -424,7 +475,29 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
 
-## 22. Dialog、Confirm、Alert 和 Toast
+### 实现边界
+
+系统主题跟随依赖浏览器 `matchMedia`；Tauri 窗口主题由 `src-tauri` 宿主同步，浏览器中没有 Tauri API 时自动降级。
+## 24. DialogProvider
+
+### 支持能力
+
+`DialogProvider` 是无可见内容的宿主组件，负责挂载 Dialog、Confirm、Alert 和 Toast：
+
+- 无公开参数（继承基类的 `Id`、`Class`、`Style`、`Visible` 等）。
+- 在应用 Layout 或根组件中**只放置一次**，业务代码不要直接引用它。
+
+### 行为与无障碍
+
+Provider 统一负责遮罩、焦点管理、背景滚动锁定和弹层层级，并通过 `IDialogService` 对外提供能力，
+因此应用组件不访问 Provider 内部状态。消息内容按纯文本安全输出。
+
+### 实现边界
+
+Provider 自身不提供定位或动画开关；位置、时长与数量等默认值由 `AddAeterniUI` 的
+`AeterniUIOptions` 配置，单个弹层可通过对应 options 覆盖。
+
+## 25. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -506,7 +579,10 @@ builder.Services.AddAeterniUI(options =>
 - `TimeSpan.Zero`：不自动关闭，只能手动关闭。
 - 大于零：按指定时长自动关闭。
 
-## 23. 服务注册
+### 实现边界
+
+Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全输出，需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内再嵌套模态入口。
+## 26. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -522,7 +598,7 @@ builder.Services.AddAeterniUI();
 - `DialogService`。
 - `IDialogService`。
 
-## 24. 当前边界
+## 27. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

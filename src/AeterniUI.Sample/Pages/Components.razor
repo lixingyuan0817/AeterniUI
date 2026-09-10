@@ -381,7 +381,7 @@
                     break;
 
                 case "progress":
-                    <ComponentPreview AnchorId="progress" Category="图表组件" Title="Progress" ComponentName="Progress" Description="线性进度条，支持确定和不确定状态。">
+                    <ComponentPreview AnchorId="progress" Category="图表组件" Title="Progress" ComponentName="Progress" Description="线性进度条，支持确定和不确定状态。" Parameters="@ProgressParameters">
                         <Preview>
                             <Progress Value="68" ShowValue AriaLabel="完成进度" />
                             <Progress Indeterminate Color="Color.Info" AriaLabel="处理中" />
@@ -757,7 +757,7 @@
                     break;
 
                 case "popup":
-                    <ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。">
+                    <ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。" Parameters="@PopupParameters">
                         <Preview>
                             <div class="preview-overlay-demo">
                                 <div class="preview-overlay-demo__anchor">
@@ -802,7 +802,7 @@
                     break;
 
                 case "tooltip":
-                    <ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明。">
+                    <ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明。" Parameters="@TooltipParameters">
                         <Preview>
                             <div class="preview-overlay-demo">
                                 <p class="preview-overlay-demo__hint">将鼠标悬停在按钮上，或使用 Tab 聚焦按钮，查看 Tooltip 内容：</p>
@@ -1194,7 +1194,9 @@
         new("Name", "string?", "原生单选组名称。"),
         new("Disabled", "bool", "禁用整个分组。", "false"),
         new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false")
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("AriaLabel", "string?", "单选组无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素的 id。")
     ];
 
     private static readonly ShowcaseParameter[] FormFieldParameters =
@@ -1322,6 +1324,35 @@
 
     private static readonly ShowcaseContract[] ComboBoxContracts =
     [new("ComboBox<TItem>", "泛型组件", "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。")];
+
+    private static readonly ShowcaseParameter[] ProgressParameters =
+    [
+        new("Value", "double?", "确定进度时的当前值；为 null 且 Indeterminate 为 false 时按 0 处理。"),
+        new("Max", "double", "进度总量。", "100"),
+        new("Indeterminate", "bool", "不确定进度：使用 CSS 动画并在 reduced-motion 下停止。", "false"),
+        new("Color", "Color", "语义颜色。", "Primary"),
+        new("Size", "Size", "进度条厚度。", "Default"),
+        new("ShowValue", "bool", "显示百分比文本。", "false"),
+        new("AriaLabel", "string?", "进度条无障碍名称。")
+    ];
+
+    private static readonly ShowcaseParameter[] TooltipParameters =
+    [
+        new("Text", "string?", "提示内容；只有它会被渲染为 tooltip，为空白时不显示。"),
+        new("ChildContent", "RenderFragment?", "被描述的触发元素。"),
+        new("AriaLabel", "string?", "触发元素的无障碍名称。"),
+        new("Disabled", "bool", "禁用后不显示提示。", "false")
+    ];
+
+    private static readonly ShowcaseParameter[] PopupParameters =
+    [
+        new("PopupHost.ChildContent", "RenderFragment?", "浮层内容的挂载点。"),
+        new("Popover.Open", "bool", "是否显示浮层。", "false"),
+        new("Popover.Header", "RenderFragment?", "浮层标题区域。"),
+        new("Popover.ChildContent", "RenderFragment?", "浮层主体内容。"),
+        new("Popover.Modal", "bool", "模态语义（dialog）而非 region。", "false"),
+        new("Popover.AriaLabel", "string?", "浮层无障碍名称。")
+    ];
 
     private static readonly ShowcaseParameter[] ThemeParameters =
     [

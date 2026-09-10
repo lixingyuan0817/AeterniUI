@@ -93,12 +93,23 @@ Tauri 配置文件是 `src-tauri/tauri.conf.json`，其中 `frontendDist` 指向
 
 ```bash
 dotnet build aeterni_ui.slnx
+bash scripts/check-docs.sh
 ```
+
+`check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性、Tauri 路径与关键组件章节，
+修改文档或项目结构后必须执行。另外两项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
+选择器」与 `.razor.js` 语法检查（见下）。
 
 仅修改 JS 时使用：
 
 ```bash
 node --check path/to/module.razor.js
+```
+
+修改图标（`AeterniUI.Icons.FontAwesome` 清单或组件内字形）时额外执行：
+
+```bash
+node scripts/generate-fontawesome-icons.mjs --check
 ```
 
 如果静态 Web 资源错误指向 `obj\\Debug`，先停止运行中的 Tauri 进程，再清理生成的 `bin`/`obj`，然后通过 `scripts/sample-publish.sh` 或 `cargo tauri dev` 重新构建。

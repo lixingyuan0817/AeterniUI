@@ -274,4 +274,5 @@ Input/Input 样式族
 | Tooltip | 已完成（基础版） | 通过 | hover/focus-visible 提示、tooltip 语义和 reduced-motion |
 | Tabs / Drawer / Empty / Divider | 未开始 | - | 可延后 |
 | Menu | 已完成 | 通过 | 分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏并新增示例专区；键盘模型、`aria-expanded`/`aria-controls`、折叠可见性、`Href` 链接项、受控 `OpenKeys`、分组级禁用/可见性、`ul`/`li` 语义、RTL 方向键与方向键滚动抑制已补齐 |
+| 文档与代码一致性审计 | 已完成 | 通过 | 修正 current-features 标题编号（§21 重复）并补 Label、DialogProvider 章节；补齐 List/Menu/Rating 参数与枚举类型名；示例页补 Progress、Tooltip、Popover 参数表与 Radio 无障碍参数；清理规范中的陈旧组件名（Select→ComboBox、Stack/Flex、Toolbar/ToggleGroup）；把 check-docs.sh 写入 AGENTS.md 与 agent-development |
 | 图标库完善 | 已完成 | 通过 | 新增核心 `AeterniIcons`（组件内字形全部改为图标渲染）；Font Awesome 适配包升级到 7.3.1 精选 343 个图标并提供 `Categories`/`TryGet`；新增生成脚本和 `/icons` 图标浏览页 |

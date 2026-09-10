@@ -47,9 +47,11 @@
 
 ```bash
 dotnet build aeterni_ui.slnx                       # 静态检查主门禁
+bash scripts/check-docs.sh                         # 文档一致性门禁（CI 同款）
 ./scripts/sample-publish.sh Debug                  # 重新生成 dist/（Tauri/静态预览用）
 cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
 node --check <file>.razor.js                       # 组件 JS 语法检查
+node scripts/generate-fontawesome-icons.mjs --check # 图标清单与生成文件是否一致
 ```
 
 ## 6. 新增组件文档清单

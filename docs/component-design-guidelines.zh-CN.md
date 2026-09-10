@@ -159,6 +159,9 @@ public enum ButtonVariant
 
 不要为只有两个选项的状态创建枚举，优先使用 `bool`。例如使用 `Disabled`，不要创建 `DisabledState`。
 
+例外：表达方向或形态而不是“开/关状态”的二值参数可以使用枚举（例如 `Orientation.Horizontal/Vertical`、
+`TextareaResize.None/Vertical`），因为它们描述的是取值域而不是布尔状态。
+
 ### 3.4 事件回调
 
 组件事件使用 `EventCallback` 或 `EventCallback<T>`，不要暴露 `Action`、`Action<T>` 或组件内部事件对象：
@@ -187,7 +190,8 @@ ValueExpression
 public RenderFragment? ChildContent { get; set; }
 ```
 
-不要同时提供多个表达相同内容的参数，例如 `Text` 和 `ChildContent`。如果组件需要支持图标，图标可以使用明确命名的 `StartIcon` 和 `EndIcon`，但必须保持文本和图标的语义顺序。
+不要同时提供多个表达相同内容的参数，例如 `Text` 和 `ChildContent`（`Tooltip` 的
+`ChildContent` 是触发元素、`Text` 是提示内容，属于分工而非重复）。如果组件需要支持图标，图标可以使用明确命名的 `StartIcon` 和 `EndIcon`，但必须保持文本和图标的语义顺序。
 
 图标本身使用核心 `Icon` 组件渲染供应商无关的 SVG 定义：
 
@@ -204,7 +208,8 @@ public RenderFragment? ChildContent { get; set; }
 组件自己文件里渲染的元素上，子组件的根元素拿不到父组件作用域，因此
 `.aeterni-parent__part { }` 无法命中 `<Icon Class="aeterni-parent__part" />` 渲染出的
 `<svg>`。可行做法是：用包装元素承载 class（尺寸、颜色通过继承生效），或改用
-`::deep`，或把尺寸通过 `--aeterni-icon-render-size` 在祖先元素上传递。
+`::deep`，或通过 `Icon` 组件读取的局部变量 `--aeterni-icon-render-size`（默认回退 `1em`，
+在祖先元素上设置即可传递尺寸，它不是全局 Token）在祖先元素上传递。
 
 ## 4. 基类使用规范
 
@@ -234,7 +239,7 @@ public RenderFragment? ChildContent { get; set; }
 `Disabled` 的处理取决于组件根节点是否就是实际交互元素：
 
 - 单根交互组件，例如 `Button`、`Input`，应重写 `SupportsDisabled`，由基类向根元素输出 `disabled` 和 `aria-disabled`。
-- 复合组件，例如 `ThemeSwitch`、`Select`，根节点通常是 `div` 或其他容器，不应重写 `SupportsDisabled` 来伪造原生禁用能力。
+- 复合组件，例如 `ThemeSwitch`、`ComboBox`，根节点通常是 `div` 或其他容器，不应重写 `SupportsDisabled` 来伪造原生禁用能力。
 - 复合组件应在内部真正的交互元素上应用 `disabled`，并在根容器上根据需要输出 `aria-disabled` 或其他复合组件语义。
 - 复合组件内部不要再次调用 `BuildAttributes()` 处理每个子控件；子控件的属性由组件自身按语义生成。
 
@@ -324,7 +329,7 @@ background: #8b4df6;
 公开 Token 必须使用 `--aeterni-` 前缀。组件专用 Token 继续使用该前缀，并包含组件名：
 
 ```css
---aeterni-button-height
+--aeterni-button-height          /* 以下三行只是命名示例，不表示这些 Token 已存在 */
 --aeterni-button-padding-inline
 --aeterni-dialog-width
 ```
@@ -576,7 +581,7 @@ Tauri 能力必须是可选的：
 主题服务中的两个概念必须区分：
 
 - `Mode`：用户选择的来源，`System`、`Light` 或 `Dark`。
-- `CurrentTheme`：当前实际生效的主题，只有 `Light` 或 `Dark`。
+- `CurrentTheme`：当前实际生效的主题，类型为 `ThemeKind`（`Light` 或 `Dark`）。
 
 System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式下，`CurrentTheme` 由用户选择决定。
 
@@ -774,10 +779,12 @@ Button
 ButtonGroup
 Surface
 Input
-Stack
-Flex
 FormField
 ```
+
+`Stack`、`Flex` 曾列入本阶段范围，但从未实现，当前 roadmap 也没有排期；
+布局能力由 `Surface`、`Card` 与业务自身的布局样式承担。规范中不再把它们
+写成已落地能力，需要的组件应先进入 roadmap 再实现。
 
 `IconButton` 暂不纳入当前阶段。Button 已通过 `Icon`、`StartIcon` 和 `EndIcon` 支持带图标操作；只有在独立图标操作的 API 需求明确后，再单独设计 IconButton。
 
@@ -804,7 +811,7 @@ FormField
 - `Orientation="Orientation.Vertical"` 用于垂直组合。
 - `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
 - `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。
-- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为留给后续 Toolbar 或 ToggleGroup。
+- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为留给后续 Toolbar 或 ToggleGroup（两者均未实现，roadmap 中无排期）。
 
 `Surface` 和 `Card` 的职责需要区分：
 
