@@ -61,7 +61,7 @@ AeterniUI/
 │   │   ├── Models/Dialog/             # Dialog、Alert、Toast 配置和结果
 │   │   ├── Modules/                  # JS module 元数据和依赖信息
 │   │   ├── Services/                 # 服务接口、选项和实现
-│   │   └── wwwroot/css/              # 统一 Token 和主题变量
+│   │   └── wwwroot/                  # 统一 Token、主题变量与共享浏览器能力（css/、js/）
 │   ├── AeterniUI.Icons.FontAwesome/  # Font Awesome 图标适配
 │   └── AeterniUI.Sample/             # Blazor WASM 示例
 │       ├── Layout/                   # MainLayout（固定头部/导航 + 全局 Provider）
@@ -110,6 +110,7 @@ Components/<Component>/
 - [`src/AeterniUI/Services/Impl/ThemeService.cs`](../src/AeterniUI/Services/Impl/ThemeService.cs)：主题模式和实际主题状态。
 - [`src/AeterniUI/Services/Impl/DialogService.cs`](../src/AeterniUI/Services/Impl/DialogService.cs)：Dialog、Confirm、Alert 和 Toast 状态管理。
 - [`src/AeterniUI/Services/Impl/JsModuleManager.cs`](../src/AeterniUI/Services/Impl/JsModuleManager.cs)：组件 JS module 的扫描、加载、调用和释放。
+- [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover 和 DialogProvider 导入。
 
 ### Tauri
 

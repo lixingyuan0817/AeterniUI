@@ -1,8 +1,32 @@
 .aeterni-combobox {
+    /* Field metrics live on the root so the trigger and the option list always
+       share one tier; the small/large modifiers only re-point these four values. */
+    --aeterni-combobox-height: var(--aeterni-control-height-md);
+    --aeterni-combobox-padding-x: var(--aeterni-control-padding-x-md);
+    --aeterni-combobox-font-size: var(--aeterni-font-size-sm);
+    --aeterni-combobox-radius: var(--aeterni-radius-input);
+    --aeterni-combobox-icon-size: var(--aeterni-icon-size-sm);
+
     position: relative;
     box-sizing: border-box;
     min-width: 0;
     color: var(--aeterni-text-primary);
+}
+
+.aeterni-combobox--sm {
+    --aeterni-combobox-height: var(--aeterni-control-height-sm);
+    --aeterni-combobox-padding-x: var(--aeterni-control-padding-x-sm);
+    --aeterni-combobox-font-size: var(--aeterni-font-size-xs);
+    --aeterni-combobox-radius: var(--aeterni-radius-input-sm);
+    --aeterni-combobox-icon-size: var(--aeterni-icon-size-xs);
+}
+
+.aeterni-combobox--lg {
+    --aeterni-combobox-height: var(--aeterni-control-height-lg);
+    --aeterni-combobox-padding-x: var(--aeterni-control-padding-x-lg);
+    --aeterni-combobox-font-size: var(--aeterni-font-size-base);
+    --aeterni-combobox-radius: var(--aeterni-radius-input-lg);
+    --aeterni-combobox-icon-size: var(--aeterni-icon-size-md);
 }
 
 /* Read-only select-style trigger -------------------------------------------- */
@@ -15,14 +39,14 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    min-height: var(--aeterni-control-height-md);
-    padding: 0 var(--aeterni-control-padding-x-md);
+    min-height: var(--aeterni-combobox-height);
+    padding: 0 var(--aeterni-combobox-padding-x);
     border: var(--aeterni-border-width) solid var(--aeterni-control-border);
-    border-radius: var(--aeterni-radius-input);
+    border-radius: var(--aeterni-combobox-radius);
     background: var(--aeterni-control-background);
     color: var(--aeterni-control-foreground);
     font: inherit;
-    font-size: var(--aeterni-font-size-sm);
+    font-size: var(--aeterni-combobox-font-size);
     line-height: var(--aeterni-line-height-normal);
     text-align: start;
     cursor: pointer;
@@ -82,7 +106,7 @@
    component's scope attribute does not reach the root element of a child
    component; the size still travels through the icon size variable. */
 .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
-    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+    --aeterni-icon-render-size: var(--aeterni-combobox-icon-size);
 
     flex: 0 0 auto;
     fill: var(--aeterni-text-tertiary);
@@ -142,14 +166,14 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    min-height: var(--aeterni-control-height-sm);
+    min-height: calc(var(--aeterni-combobox-height) - var(--aeterni-spacing-2));
     padding: var(--aeterni-spacing-1) var(--aeterni-spacing-3);
     border: 0;
     border-radius: var(--aeterni-radius-md);
     background: transparent;
     color: var(--aeterni-text-primary);
     font: inherit;
-    font-size: var(--aeterni-font-size-sm);
+    font-size: var(--aeterni-combobox-font-size);
     text-align: start;
     cursor: pointer;
     transition: var(--aeterni-transition-background);
@@ -180,10 +204,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: var(--aeterni-control-height-lg);
+    min-height: var(--aeterni-combobox-height);
     padding: var(--aeterni-spacing-2);
     color: var(--aeterni-control-foreground-placeholder);
-    font-size: var(--aeterni-font-size-sm);
+    font-size: var(--aeterni-combobox-font-size);
 }
 
 @keyframes aeterni-combobox-pop {

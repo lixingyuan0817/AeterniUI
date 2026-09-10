@@ -34,6 +34,7 @@
 - 提供 `ClassBuilder` 和 `StyleBuilder`，组件可以在代码后置中组合 class 和 style。
 - 支持 `ElementChanged` 回调。
 - 支持组件级 `.razor.css` CSS isolation。
+- JS 分两层：组件模块是组件目录下的 `*.razor.js`（由 `[JsModule]` 声明），共享的浏览器能力放在 `wwwroot/js/aeterni_floating.js`（浮层定位/翻转、焦点陷阱、滚动锁），组件模块通过相对路径导入它。
 - JS module 可选，不添加 JS 文件的组件不会执行 JS 初始化。
 - 一个组件最多维护一个主 JS module，JS module 支持初始化、调用和释放生命周期。
 - 组件库使用统一的语义化 Token，组件内部不重新建立独立颜色体系。
@@ -340,7 +341,8 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 `Switch` 提供适合即时开关设置的二态控件：
 
 - `Value` / `ValueChanged` / `ValueExpression`，支持 `@bind-Value`，内部使用可聚焦的原生 checkbox，并输出 `role="switch"` 与 `aria-checked`。
-- 支持 `ChildContent`、`Name`、`Required`、`Invalid`、`Disabled`、`AriaLabel`、`AriaDescribedBy` 与 `OnChange`；不提供独立的 `Label` 参数。
+- 支持 `ChildContent`、`Name`、`Required`、`Invalid`、`Disabled`、`Size`、`AriaLabel`、`AriaDescribedBy` 与 `OnChange`；不提供独立的 `Label` 参数。
+- `Size` 提供 `Small` / `Default` / `Large` 三档：轨道尺寸由档位推导（跑道宽 = 旋钮 × 2 + 内边距 × 2 + 边框 × 2，滑块行程恰好等于一个旋钮宽），默认档与之前的固定 38×22 完全一致；`Small` 为 34×20（旋钮 14，与同排 16px Checkbox 成比例）、`Large` 为 46×26。
 - 可从 `FormField` 级联获取标签关联、禁用与校验状态。
 - 空格/原生 checkbox 行为可切换；reduced-motion 下关闭滑块过渡动画。
 
@@ -398,6 +400,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
+- `Size` 提供三档：`Small` 为 16px 星形 + 4px 命中余量（与 Checkbox Small 同档）、`Default` 为 20px + 8px（与之前一致）、`Large` 为 24px + 12px。
 - `aria-checked` 输出显式字符串 `"true"`/`"false"`（布尔值会被渲染成最小化属性，读屏会当成无效值）。
 - 填充星取 `--aeterni-color-warning-text`、空星取 `--aeterni-text-tertiary`：星形是实心图形，填充档在浅色下只有 2.2:1。
 - 只读或禁用时把当前值并入分组可访问名称（`aria-label`），自定义 `Icon` 与内置星形使用同一尺寸（`--aeterni-icon-size-lg`）。
@@ -417,7 +420,8 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`AriaLabel` 和 `OnChange`；未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnChange`；未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（32px，与 `Input Size="Small"` 等高）、`Default` 40px、`Large` 48px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
 - 选项渲染为非可聚焦的 `role="option"` 元素：打开后焦点始终留在触发器上，Tab 不会进入选项列表，键盘提示由 `is-active` 与 `aria-activedescendant` 表达。
@@ -453,15 +457,20 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 ### 支持能力
 
-`PopupHost` 提供浮层内容挂载容器；`Popover` 支持 `Open`、`Header`、`ChildContent`、`Modal` 和 `AriaLabel`。
+`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`Header`、`ChildContent` 和 `AriaLabel`。
+
+- `Placement`（`PopupPlacement`：`BottomStart` / `BottomEnd` / `TopStart` / `TopEnd`，默认 `BottomStart`）指定相对 `PopupHost` 的起始方位。
+- **定位与翻转**：浮层在 `PopupHost` 内绝对定位，由 `Popover.razor.js` 在打开、`resize` 与页面滚动时重算：优先使用指定方位，空间不足时翻到对侧（每次重算都从首选方位开始，所以视口变宽后能翻回），再沿交叉轴贴回视口边缘（偏移写入 `--aeterni-popover-shift-x`）。
+- **关闭**：Escape、非模态下的外部指针、模态下的遮罩点击都会通过 `OpenChanged` 请求关闭（`Open` 始终由使用方持有，与 `@bind-Open` 配套）；`CloseOnEscape` 与 `CloseOnOutsideClick` 可分别关掉。
+- **模态**：`Modal` 除切换到 `dialog` 语义外，还渲染遮罩、输出 `aria-modal`、把 Tab 困在层内（`tabindex="-1"` 作为无交互内容时的回退焦点）、锁定背景滚动（带滚动条宽度补偿）并在关闭后把焦点还给打开前的元素。
 
 ### 行为与无障碍
 
-Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容；`Modal` 同时把浮层提升到模态层级（`--aeterni-z-modal` 与模态阴影）。
+Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容；模态浮层额外输出 `aria-modal="true"` 并提升到 `--aeterni-z-modal`。
 
 ### 实现边界
 
-仍是**基础版**：`PopupHost` 现在是真实的定位容器（`position: relative` 的正常盒子），但库不提供锚点定位、翻转/贴边、遮罩、焦点陷阱、Escape 与点击外部关闭。需要这些能力时由使用方在 `PopupHost` 内自行定位，或等待 v0.3 的共享浮层能力（见 `component-roadmap.zh-CN.md` 第三阶段前置能力）。`Modal` 目前只切换 `role` 与层级，不提供模态交互行为。
+浮层是在 `PopupHost` 内部定位的：**宿主就是锚点盒**，因此触发元素与浮层都应放进 `PopupHost`——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。祖先容器若带 `overflow: hidden` 仍可能裁切浮层；需要相对视口定位的场合用 `ComboBox` 那类 fixed 定位的弹层。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。多浮层堆叠、嵌套模态与 Drawer 类侧边面板留给后续组件，其中 `Drawer` 复用同一套共享能力。
 
 ## 21. Menu
 
@@ -507,7 +516,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 提示内容使用 `role="tooltip"`，不阻塞触发元素，也不影响页面布局。`Tooltip.razor.js` 会把提示节点的 id 写入 `ChildContent` 中第一个可聚焦元素的 `aria-describedby`（没有可聚焦元素时回退到触发包装元素），因此读屏可以直接朗读提示文本；提示节点在 `Text` 为空或禁用时完全不渲染，不会留下悬空引用。
 
-方位由 CSS 决定，JS 只在需要时切换方位类并写入偏移变量：优先使用 `Placement` 指定的一侧，空间不足时翻转到对侧，再沿交叉轴偏移以留在视口内（`resize` 时重算）。`prefers-reduced-motion` 下只保留位移过渡的关闭。
+方位由 CSS 决定，JS 只在需要时切换方位类并写入偏移变量：优先使用 `Placement` 指定的一侧，空间不足时翻转到对侧，再沿交叉轴偏移以留在视口内（`resize` 时重算）。`prefers-reduced-motion` 下只保留位移过渡的关闭。翻转与贴边的数值计算来自共享浮层模块 `wwwroot/js/aeterni_floating.js`（与 `Popover` 同一套实现）。
 
 ### 实现边界
 
@@ -684,7 +693,8 @@ builder.Services.AddAeterniUI(options =>
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
-- `Switch`、`ComboBox` 和 `Rating` 没有 `Size` 档位，而 `Input`/`Textarea`/`Button`/`Checkbox`/`Radio` 都有 `Small`/`Large`；因此小尺寸表单行里无法把这三者与同排输入控件对齐。补档位需要新增公共参数与三档视觉，已记入 roadmap（见 `component-roadmap.zh-CN.md`），当前不作为已实现能力描述。
 - `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
+- `ComboBox` 的弹层仍是 trigger 锚定的 fixed 定位（有自己的翻转/贴边实现），尚未迁移到共享浮层模块；迁移时需同时保留“页面滚动即关闭”的原生 select 行为。
+- `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。

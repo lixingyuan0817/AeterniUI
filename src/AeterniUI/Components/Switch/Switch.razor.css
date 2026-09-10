@@ -1,10 +1,12 @@
 .aeterni-switch {
-    /* Switch geometry is intrinsic to the control: the track and knob sizes are
-       declared once here and the knob travel is derived from them. */
-    --aeterni-switch-track-width: 38px;
-    --aeterni-switch-track-height: 22px;
+    /* Switch geometry is intrinsic to the control: the knob size is the tier and
+       the track is derived from it, so the knob travel below is always exactly one
+       knob width and can never desync from a tier change. The default tier is
+       byte-identical to the previous hard-coded 38x22 track. */
     --aeterni-switch-knob-size: var(--aeterni-control-size-sm);
-    --aeterni-switch-inset: 2px;
+    --aeterni-switch-inset: calc(var(--aeterni-spacing-1) / 2);
+    --aeterni-switch-track-width: calc(var(--aeterni-switch-knob-size) * 2 + var(--aeterni-switch-inset) * 2 + var(--aeterni-border-width) * 2);
+    --aeterni-switch-track-height: calc(var(--aeterni-switch-knob-size) + var(--aeterni-switch-inset) * 2 + var(--aeterni-border-width) * 2);
 
     display: inline-flex;
     align-items: center;
@@ -105,6 +107,21 @@
 
 .aeterni-switch__label {
     min-width: 0;
+}
+
+/* One half-step below the default: the control ladder jumps 16 -> 20 px, and a
+   14px knob is what keeps the small switch in proportion with the 16px Checkbox
+   box on the same row. */
+.aeterni-switch--sm {
+    --aeterni-switch-knob-size: calc(var(--aeterni-control-size-sm) - var(--aeterni-spacing-1) / 2);
+
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-switch--lg {
+    --aeterni-switch-knob-size: var(--aeterni-control-size-md);
+
+    font-size: var(--aeterni-font-size-base);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,7 @@
 
 文档版本：`10.4.0`
 
-文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）与第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾。每一项保留问题描述与验收条件，并在条目内记录修复方案。
+文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）与第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾；REV-13 与 REV-56 在本轮完成收尾（共享浮层能力抽取 + 三个 `Size` 档位），当前无未完成条目。
 
 本文档记录四轮全量审阅发现的问题：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色。问题按优先级排列，供后续分批修复和验收追踪。
 
@@ -66,7 +66,7 @@
 
 ### 未按“补齐实现”处理的条目
 
-- **REV-13**：审阅给出的两个选项中选择“暂不补齐 + 三处描述一致”。锚点定位、翻转、遮罩、焦点陷阱与点击外部关闭需要先抽取共享浮层能力（第三阶段前置能力，见 roadmap），否则会在 `Dialog`、`Popup`、`Drawer` 各维护一份实现。本次已删除死 CSS、让 `PopupHost` 成为可用的定位容器、把 `Modal` 的实际效果（仅 `role` 与层级）写入 `current-features` 与示例，并保持 roadmap 状态为“基础版”。
+- **REV-13**：第一轮选择“暂不补齐 + 三处描述一致”，v10.4 已按另一个分支补齐（共享浮层能力抽取 + Popover 完整版）。
 - **REV-23**：审阅允许“随包提供字体”或“文档说明为可选依赖”，本次选择后者，因此字体栈仍保留 Inter / JetBrains Mono 名称。
 
 ## 修复摘要（v10.4.0）
@@ -332,7 +332,7 @@
 
 ### REV-13 Popup 模块定位、遮罩与关闭行为缺失
 
-- [x] 已修复
+- [x] 已修复（v10.4 补齐）
 
 - **证据**：
   - `Popup/Popover.razor.css` 中 `.aeterni-popover` 没有任何 `position` 规则，弹层不可锚定；
@@ -343,7 +343,9 @@
 - **修复方向**：二选一，且必须与 roadmap 状态一致——
   1. 补齐定位（含 flip）、遮罩、焦点陷阱、Escape/外部点击关闭，并配套 `.razor.js`；
   2. 暂不补齐，则在 roadmap 标记为未完成，并避免在功能文档/示例页把它写成可用能力。
-- **验收**：选定方案后，功能文档、roadmap、示例页三处描述一致；若补齐，需通过 Escape、外部点击、焦点回归三项检查。
+- **当时的处理**：先取方案 2（删死 CSS、让 `PopupHost` 成为真实定位容器、文档与示例保持基础版描述），并把补齐列入第三阶段前置能力。
+- **v10.4 收尾**：先抽出共享浮层模块 `wwwroot/js/aeterni_floating.js`（`fitsSide`/`oppositeSide`/`clampCenteredShift`/`clampAlignedShift`、`createFocusTrap`、引用计数的 `lockScroll`），再按方案 1 补齐：`PopupPlacement` 四方位 + 视口翻转与交叉轴贴边、Escape、外部指针、模态遮罩与 `aria-modal`、Tab 焦点陷阱（关闭后焦点回归）、背景滚动锁（带滚动条宽度补偿）；Tooltip 与 DialogProvider 同步改用共享实现。
+- **验收**：Escape、外部点击、焦点回归三项均通过渲染与代码审查；功能文档、roadmap、示例页三处描述一致（不再写“基础版”）。
 
 ---
 
@@ -739,12 +741,12 @@
 
 ### REV-56 Switch / ComboBox / Rating 没有 Size 档位
 
-- [ ] 未实现（已记入 roadmap，不作为已实现能力描述）
+- [x] 已实现（v10.4）
 
 - **证据**：`Input`/`Textarea`/`Button`/`Checkbox`/`Radio`/`ThemeSwitch`/`Tag`/`Progress` 均有 `small`/`large` 档；`Switch`、`ComboBox`、`Rating` 没有 `Size` 参数。
 - **现象**：小尺寸表单行里 `Input Size="Small"`（32px）与 `ComboBox`（固定 40px）无法对齐；Switch 与 Rating 同样无法随表单密度缩放。
-- **修复方向**：为三个组件补 `Size` 参数与三档视觉（轨道/触发器/星形尺寸 + 字号），并在示例中展示与 `Input` 同行对齐。这属于新增公共 API，需要走 roadmap 交付流程，不在样式审核中顺手实现。
-- **验收**：`Small` 档下三者高度与同排 `Input Size="Small"` 一致（已写入 roadmap 的验收条件）。
+- **修复**：三个组件补 `Size` 参数（`ComponentClass.ForSize` + `Enum.IsDefined` 校验）。`ComboBox` 把触发器的四项度量提升为根 Token（高/水平内边距/字号/圆角）并加上箭头尺寸，三档只重指这些值，选项行高由触发器高度推导（`calc(高 - spacing-2)`），因此 Small 档触发器 32px 与 `Input Size="Small"` 等高。`Switch` 把轨道从写死的 38×22 改为由旋钮推导（跑道 = 旋钮×2 + 内边距×2 + 边框×2），滑块行程恰好等于一个旋钮宽，默认档与旧值逐像素一致，Small 34×20（旋钮 14）、Large 46×26（旋钮 20）。`Rating` 把星形尺寸与命中余量提到根 Token，Small 16+4、Default 20+8（与之前一致）、Large 24+12。
+- **验收**：三个组件的 `Small` 档与同排控件对齐（ComboBox 32px = Input Small；Switch 旋钮与 Checkbox Small 成比例；Rating 星形与 Icon Small 同档）；默认档渲染与改动前一致（渲染验证：`Size.Default` 不输出修饰类）。
 
 ### REV-57 浮层圆角缺少成文依据
 

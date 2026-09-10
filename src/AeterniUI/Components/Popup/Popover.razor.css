@@ -1,26 +1,71 @@
+/* Popover ---------------------------------------------------------------------
+   The layer is positioned against its PopupHost (the documented positioning
+   container). Only the four placement classes set `top`/`bottom` + inline edge; the
+   JS module flips the side when the viewport has no room and shifts the layer on
+   the cross axis through --aeterni-popover-shift-x.
+
+   The shift is applied with `margin-left` instead of `translate`/`transform` on
+   purpose: a transform would make the layer the containing block of its own
+   `position: fixed` backdrop, which must stay anchored to the viewport. */
 .aeterni-popover {
+    --aeterni-popover-gap: var(--aeterni-spacing-2);
+    --aeterni-popover-shift-x: 0px;
+
+    position: absolute;
     box-sizing: border-box;
     z-index: var(--aeterni-z-popover);
     min-width: var(--aeterni-overlay-min-width-sm);
     max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    margin-left: var(--aeterni-popover-shift-x);
     padding: var(--aeterni-spacing-4);
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-dropdown);
     background: var(--aeterni-bg-elevated);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-dropdown);
+    animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
 .aeterni-popover[hidden] {
     display: none;
 }
 
-/* Modal popovers sit on the modal layer. Backdrop, focus trap and background
-   scroll lock are not implemented yet — see the v0.3 roadmap entry for the
-   shared focus/positioning extraction. */
+.aeterni-popover--bottom-start,
+.aeterni-popover--bottom-end {
+    top: calc(100% + var(--aeterni-popover-gap));
+}
+
+.aeterni-popover--top-start,
+.aeterni-popover--top-end {
+    bottom: calc(100% + var(--aeterni-popover-gap));
+}
+
+.aeterni-popover--bottom-start,
+.aeterni-popover--top-start {
+    left: 0;
+}
+
+.aeterni-popover--bottom-end,
+.aeterni-popover--top-end {
+    right: 0;
+}
+
+/* Modal popovers sit on the modal layer and block the page behind them. */
 .aeterni-popover.is-modal {
     z-index: var(--aeterni-z-modal);
     box-shadow: var(--aeterni-shadow-modal);
+}
+
+.aeterni-popover__backdrop {
+    /* Behind the layer's own surface: the layer's z-index creates the stacking
+       context, so -1 paints above the page but below the popover box. */
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--aeterni-overlay);
+    -webkit-backdrop-filter: var(--aeterni-blur-sm);
+    backdrop-filter: var(--aeterni-blur-sm);
+    animation: aeterni-popover-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
 .aeterni-popover__header {
@@ -30,4 +75,34 @@
 
 .aeterni-popover__content {
     min-width: 0;
+}
+
+/* Keyframe offsets are motion distances, not layout sizes. */
+@keyframes aeterni-popover-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes aeterni-popover-backdrop-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-popover,
+    .aeterni-popover__backdrop {
+        animation: none;
+    }
 }

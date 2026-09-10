@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq.Expressions;
 using AeterniUI.Components.FormField;
+using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -33,6 +34,12 @@ public partial class Rating : AeterniComponent
     [Parameter]
     public bool AllowClear { get; set; }
 
+    /// <summary>
+    /// Control tier for the star box and hit target.
+    /// </summary>
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
+
     [Parameter]
     public RenderFragment? Icon { get; set; }
 
@@ -56,6 +63,11 @@ public partial class Rating : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(Max), Max, "The rating maximum must be greater than zero.");
         }
 
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown rating size.");
+        }
+
         // Transient out-of-range values (rapid keyboard input, binding races)
         // must never tear down the whole render tree: clamp instead of throw.
         var clamped = Math.Clamp(Value, 0, Max);
@@ -69,10 +81,13 @@ public partial class Rating : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-rating")
+            .Add(SizeClass)
             .Add("is-readonly", ReadOnly)
             .Add("is-invalid", IsInvalid)
             .Add("is-disabled", Disabled);
     }
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-rating", Size);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

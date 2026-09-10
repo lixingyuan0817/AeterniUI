@@ -1,8 +1,23 @@
 .aeterni-rating {
+    /* Tier tokens live on the root so both the hit box and the glyph inherit them;
+       the glyph size travels through --aeterni-icon-render-size below. */
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-lg);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-2);
+
     display: inline-flex;
     align-items: center;
     gap: var(--aeterni-spacing-1);
     color: var(--aeterni-text-primary);
+}
+
+.aeterni-rating--sm {
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-md);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-1);
+}
+
+.aeterni-rating--lg {
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-xl);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-3);
 }
 
 .aeterni-rating__item {
@@ -12,15 +27,15 @@
     --aeterni-rating-star: var(--aeterni-text-tertiary);
     /* One icon size covers both the built-in star and an Icon passed through
        the Icon parameter, so custom glyphs match the default. */
-    --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
+    --aeterni-icon-render-size: var(--aeterni-rating-icon-size);
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
     /* Square hit box around the glyph: the icon tier plus one spacing step. */
-    width: calc(var(--aeterni-icon-size-lg) + var(--aeterni-spacing-2));
-    height: calc(var(--aeterni-icon-size-lg) + var(--aeterni-spacing-2));
+    width: calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap));
+    height: calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap));
     padding: 0;
     border: 0;
     border-radius: var(--aeterni-radius-sm);

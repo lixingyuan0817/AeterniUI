@@ -1,9 +1,19 @@
 @inherits AeterniComponent
 
+@* The backdrop is the first child and paints behind the layer's own surface
+   (z-index: -1 inside the layer's stacking context). Keeping it inside the root
+   keeps the component a single element, and the layer deliberately does not use
+   `transform` so the fixed backdrop still resolves against the viewport. *@
 <div @ref="RootElement" @attributes="BuildAttributes()">
+    @if (Modal && Open)
+    {
+        <div class="aeterni-popover__backdrop" aria-hidden="true" @onclick="HandleBackdropClickAsync"></div>
+    }
+
     @if (Header is not null)
     {
         <div class="aeterni-popover__header">@Header</div>
     }
+
     <div class="aeterni-popover__content">@ChildContent</div>
 </div>

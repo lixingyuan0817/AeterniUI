@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
+using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -45,6 +46,13 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     [Parameter]
     public bool Required { get; set; }
+
+    /// <summary>
+    /// Control tier. Matches Input/Textarea tiers so a small form row lines up:
+    /// <see cref="Size.Small" /> uses the same height as <c>Input Size="Small"</c>.
+    /// </summary>
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
 
     [Parameter]
     public RenderFragment<TItem>? ItemTemplate { get; set; }
@@ -92,16 +100,24 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         base.OnParametersSet();
         UpdateEditContextSubscription();
         RebuildVisibleItems();
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown combo box size.");
+        }
     }
 
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
             .Add("aeterni-combobox")
+            .Add(SizeClass)
             .Add("is-open", _open)
             .Add("is-invalid", IsInvalid)
             .Add("is-disabled", Disabled);
     }
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-combobox", Size);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

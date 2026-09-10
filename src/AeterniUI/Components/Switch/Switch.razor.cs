@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using AeterniUI.Components.FormField;
+using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -41,6 +42,13 @@ public partial class Switch : AeterniComponent
     [Parameter]
     public bool Invalid { get; set; }
 
+    /// <summary>
+    /// Control tier. <see cref="Size.Small" /> pairs with a small Checkbox/Input in
+    /// the same form row, <see cref="Size.Large" /> with the large tier.
+    /// </summary>
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
+
     [Parameter]
     public EventCallback<ChangeEventArgs> OnChange { get; set; }
 
@@ -67,6 +75,12 @@ public partial class Switch : AeterniComponent
         _effectiveDisabled = Disabled || (FormField?.Disabled ?? false);
         _effectiveRequired = Required || (FormField?.Required ?? false);
         _currentValue = Value;
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown switch size.");
+        }
+
         UpdateEditContextSubscription();
     }
 
@@ -74,11 +88,13 @@ public partial class Switch : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-switch")
+            .Add(SizeClass)
             .Add("is-checked", _currentValue)
             .Add("is-invalid", IsInvalid)
-            .Add("is-disabled", _effectiveDisabled)
-;
+            .Add("is-disabled", _effectiveDisabled);
     }
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-switch", Size);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

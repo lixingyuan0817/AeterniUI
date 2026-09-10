@@ -651,6 +651,7 @@
                         <Preview>
                             <div class="preview-stack">
                                 <Switch @bind-Value="_switchValue"
+                                        Size="@_switchSize"
                                         Required="@_switchRequired"
                                         Invalid="@_switchInvalid"
                                         Disabled="@_switchDisabled"
@@ -662,6 +663,10 @@
                         </Preview>
                         <Controls>
                             <Checkbox Size="Size.Small" @bind-Value="_switchRequired">Required</Checkbox>
+                            <div class="control-field">
+                                <span>Size</span>
+                                <ShowcaseSelect TValue="Size" Id="switch-size" AriaLabel="Switch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_switchSize" />
+                            </div>
                             <Checkbox Size="Size.Small" @bind-Value="_switchInvalid">Invalid</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_switchDisabled">Disabled</Checkbox>
                         </Controls>
@@ -826,6 +831,7 @@
                         <Preview>
                             <div class="preview-stack">
                                 <Rating Value="@_ratingValue"
+                                        Size="@_ratingSize"
                                         ValueChanged="HandleRatingChanged"
                                         Max="@_ratingMax"
                                         ReadOnly="@_ratingReadOnly"
@@ -847,6 +853,10 @@
                             <Checkbox Size="Size.Small" @bind-Value="_ratingReadOnly">ReadOnly</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_ratingAllowClear">AllowClear</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_ratingDisabled">Disabled</Checkbox>
+                            <div class="control-field">
+                                <span>Size</span>
+                                <ShowcaseSelect TValue="Size" Id="rating-size" AriaLabel="Rating Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_ratingSize" />
+                            </div>
                         </Controls>
                     </ComponentPreview>
                     break;
@@ -863,6 +873,7 @@
                         <Preview>
                             <div class="preview-form-control preview-form-control--fill">
                                 <ComboBox TItem="string"
+                                          Size="@_comboSize"
                                           Items="@Cities"
                                           Value="@_cityValue"
                                           ValueChanged="@((string? value) => HandleCityChanged(value))"
@@ -882,6 +893,10 @@
                             <Checkbox Size="Size.Small" @bind-Value="_comboRequired">Required</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_comboInvalid">Invalid</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_comboDisabled">Disabled</Checkbox>
+                            <div class="control-field">
+                                <span>Size</span>
+                                <ShowcaseSelect TValue="Size" Id="combo-size" AriaLabel="ComboBox Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_comboSize" />
+                            </div>
                         </Controls>
                         <Notes>
                             <span>当前实现是纯下拉选择：点击触发器打开选项，支持方向键、Home/End、Enter、Escape 和外部关闭。</span>
@@ -920,15 +935,20 @@
                     <ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。" Parameters="@PopupParameters">
                         <Preview>
                             <div class="preview-overlay-demo">
-                                <div class="preview-overlay-demo__anchor">
-                                    <span class="preview-overlay-demo__label">触发元素</span>
-                                    <Button Variant="ButtonVariant.Outline"
-                                            AriaLabel='@(_popoverOpen ? "关闭 Popover 浮层" : "打开 Popover 浮层")'
-                                            aria-expanded='@(_popoverOpen ? "true" : "false")'
-                                            OnClick="TogglePopoverPreview">@(_popoverOpen ? "关闭 Popover" : "打开 Popover")</Button>
-                                </div>
                                 <PopupHost>
-                                    <Popover Open="@_popoverOpen" AriaLabel="示例浮层">
+                                    <div class="preview-overlay-demo__anchor">
+                                        <span class="preview-overlay-demo__label">触发元素</span>
+                                        <Button Variant="ButtonVariant.Outline"
+                                                AriaLabel='@(_popoverOpen ? "关闭 Popover 浮层" : "打开 Popover 浮层")'
+                                                aria-expanded='@(_popoverOpen ? "true" : "false")'
+                                                OnClick="TogglePopoverPreview">@(_popoverOpen ? "关闭 Popover" : "打开 Popover")</Button>
+                                    </div>
+                                    <Popover Open="@_popoverOpen"
+                                             OpenChanged="HandlePopoverOpenChanged"
+                                             Placement="_popoverPlacement"
+                                             Modal="@_popoverModal"
+                                             CloseOnOverlayClick="@_popoverCloseOnOverlayClick"
+                                             AriaLabel="示例浮层">
                                         <Header>
                                             <div class="preview-overlay-demo__popover-title">
                                                 <strong>浮层标题</strong>
@@ -940,9 +960,9 @@
                                                 <p>这是一个有标题、说明文字和操作内容的基础浮层。</p>
                                                 <ul>
                                                     <li>点击「打开 Popover」显示内容</li>
-                                                    <li>再次点击触发按钮或「关闭浮层」收起</li>
-                                                    <li>支持自定义 Header 与 ChildContent</li>
-                                                    <li>可表达 region 或 dialog 语义</li>
+                                                    <li>Escape 或点击浮层外部收起（Modal 时点遮罩）</li>
+                                                    <li>空间不足时翻转到另一侧，并贴住视口边缘</li>
+                                                    <li>Modal 时提供遮罩、焦点陷阱与背景滚动锁</li>
                                                 </ul>
                                                 <div class="preview-overlay-demo__popover-actions">
                                                     <Button Size="Size.Small" Color="Color.Primary" OnClick="PreviewPopoverAction">了解更多</Button>
@@ -955,9 +975,18 @@
                                 <p class="preview-overlay-demo__hint" role="status">@_popoverNote</p>
                             </div>
                         </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>Placement</span>
+                                <ShowcaseSelect TValue="PopupPlacement" Id="popover-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_popoverPlacement" />
+                            </div>
+                            <Checkbox Size="Size.Small" @bind-Value="_popoverModal">Modal</Checkbox>
+                            <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnOverlayClick">CloseOnOverlayClick</Checkbox>
+                        </Controls>
                         <Notes>
-                            <span>基础版 Popover 渲染在触发元素下方；示例通过切换 <code>Open</code> 展示打开与关闭，关闭时内容以 <code>hidden</code> 移除。</span>
-                            <span><code>PopupHost</code> 是真实定位容器（<code>position: relative</code>），但没有内置锚点定位、翻转、遮罩、焦点陷阱、Escape 与点击外部关闭这些能力，需要时由使用方在容器内自行定位；<code>Modal</code> 目前只切换 <code>role</code> 与层级。</span>
+                            <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内，空间不足时翻到另一侧并把内容贴回视口；<code>Placement</code> 提供四个起始方位。</span>
+                            <span><code>Escape</code>、点击外部、<code>Modal</code> 遮罩都会通过 <code>OpenChanged</code> 请求关闭，<code>Open</code> 始终由使用方持有。</span>
+                            <span><code>Modal</code> 额外提供遮罩、<code>aria-modal</code>、焦点陷阱（Tab 循环、关闭后焦点回到触发点）和背景滚动锁。</span>
                         </Notes>
                     </ComponentPreview>
                     break;
@@ -1153,6 +1182,7 @@
     private string _checkboxNote = "等待交互。";
 
     private bool _switchValue;
+    private Size _switchSize = Size.Default;
     private bool _switchRequired;
     private bool _switchInvalid;
     private bool _switchDisabled;
@@ -1176,6 +1206,7 @@
     private bool _ratingReadOnly;
     private bool _ratingAllowClear = true;
     private bool _ratingDisabled;
+    private Size _ratingSize = Size.Default;
 
     private static readonly (string Label, Color Color)[] ColorFamilies =
     [
@@ -1222,10 +1253,14 @@
     private bool _comboRequired;
     private bool _comboInvalid;
     private bool _comboDisabled;
+    private Size _comboSize = Size.Default;
 
     private Size _themeSwitchSize = Size.Large;
 
     private bool _popoverOpen;
+    private PopupPlacement _popoverPlacement = PopupPlacement.BottomStart;
+    private bool _popoverModal;
+    private bool _popoverCloseOnOverlayClick = true;
     private TooltipPlacement _tooltipPlacement = TooltipPlacement.Top;
     private string _popoverNote = "浮层当前为关闭状态，点击「打开 Popover」查看内容。";
 
@@ -1465,7 +1500,8 @@
         new("AriaLabel", "string?", "无障碍名称。"),
         new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
         new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false")
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Size", "Size", "控件档位，与同排 Checkbox/Input 对齐。", "Default")
     ];
 
     private static readonly ShowcaseEvent[] SwitchEvents =
@@ -1516,6 +1552,7 @@
         new("ReadOnly", "bool", "只读展示。", "false"),
         new("AllowClear", "bool", "再次点击当前值时清零。", "false"),
         new("Icon", "RenderFragment?", "自定义评分图标。"),
+        new("Size", "Size", "星形与命中区档位。", "Default"),
         new("AriaLabel", "string", "评分组无障碍名称。", "Rating")
     ];
 
@@ -1532,6 +1569,7 @@
         new("Placeholder", "string?", "未选择时的占位文本。"),
         new("Invalid", "bool", "无效状态。", "false"),
         new("Required", "bool", "必填状态。", "false"),
+        new("Size", "Size", "触发器与选项档位，与同排 Input/Textarea 对齐。", "Default"),
         new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
         new("EmptyContent", "RenderFragment?", "空列表内容。"),
         new("AriaLabel", "string?", "无障碍名称。")
@@ -1566,10 +1604,14 @@
     private static readonly ShowcaseParameter[] PopupParameters =
     [
         new("PopupHost.ChildContent", "RenderFragment?", "浮层内容的挂载点。"),
-        new("Popover.Open", "bool", "是否显示浮层。", "false"),
+        new("Popover.Open", "bool", "是否显示浮层（受控）。", "false"),
+        new("Popover.OpenChanged", "EventCallback<bool>", "Escape / 点击外部 / 遮罩请求关闭时触发，支持 @bind-Open。"),
+        new("Popover.Placement", "PopupPlacement", "相对 PopupHost 的起始方位。", "BottomStart"),
+        new("Popover.Modal", "bool", "模态层：遮罩、aria-modal、焦点陷阱、背景滚动锁。", "false"),
+        new("Popover.CloseOnEscape", "bool", "Escape 是否请求关闭。", "true"),
+        new("Popover.CloseOnOutsideClick", "bool", "点击浮层外部（Modal 时为遮罩）是否请求关闭。", "true"),
         new("Popover.Header", "RenderFragment?", "浮层标题区域。"),
         new("Popover.ChildContent", "RenderFragment?", "浮层主体内容。"),
-        new("Popover.Modal", "bool", "模态语义（dialog）而非 region。", "false"),
         new("Popover.AriaLabel", "string?", "浮层无障碍名称。")
     ];
 
@@ -1680,6 +1722,14 @@
     private void RestoreTag(MouseEventArgs _)
     {
         _tagRemoved = false;
+    }
+
+    private void HandlePopoverOpenChanged(bool open)
+    {
+        _popoverOpen = open;
+        _popoverNote = open
+            ? "浮层已打开；按 Escape、点外部或点遮罩可以关闭。"
+            : "浮层已由 Escape、外部点击或遮罩关闭。";
     }
 
     private void TogglePopoverPreview(MouseEventArgs _)

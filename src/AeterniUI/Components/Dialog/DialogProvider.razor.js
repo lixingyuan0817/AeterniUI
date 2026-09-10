@@ -1,3 +1,9 @@
+// Page-level scroll lock and the focusable-element list come from the shared
+// floating-layer helpers, so Dialog, Popover and (later) Drawer agree on what
+// "lock the page" and "first focusable" mean. The Tab/Escape handling stays local:
+// dialogs form a stack and only the topmost one may respond.
+import { focusableWithin, focusFirst, lockScroll } from '../../js/aeterni_floating.js';
+
 const instances = new Map();
 
 export function init(_reference, key) {
@@ -6,8 +12,7 @@ export function init(_reference, key) {
     const instance = {
         activeDialog: null,
         previousActiveElement: null,
-        previousBodyOverflow: null,
-        previousBodyPaddingRight: null,
+        releaseScroll: null,
         keydownHandler: null
     };
 
@@ -29,18 +34,8 @@ export function sync(root, activeDialogId, hasModal) {
             instance.previousActiveElement = document.activeElement;
         }
 
-        if (instance.previousBodyOverflow === null) {
-            instance.previousBodyOverflow = document.body.style.overflow;
-            instance.previousBodyPaddingRight = document.body.style.paddingRight;
-
-            // Locking the scrollbar would otherwise reflow the page by its
-            // width; the matching padding keeps the background from shifting.
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            if (scrollbarWidth > 0) {
-                document.body.style.paddingRight = `${scrollbarWidth}px`;
-            }
-
-            document.body.style.overflow = 'hidden';
+        if (instance.releaseScroll === null) {
+            instance.releaseScroll = lockScroll();
         }
 
         const dialog = root.querySelector(`[data-aeterni-dialog-id="${activeDialogId}"]`);
@@ -55,11 +50,7 @@ export function sync(root, activeDialogId, hasModal) {
 }
 
 function focusDialog(dialog) {
-    const target = dialog.querySelector(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    ) || dialog;
-
-    target.focus?.();
+    focusFirst(dialog);
 }
 
 function handleTabKey(event, instance) {
@@ -72,9 +63,7 @@ function handleTabKey(event, instance) {
         return;
     }
 
-    const focusable = [...dialog.querySelectorAll(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )];
+    const focusable = focusableWithin(dialog);
 
     if (focusable.length === 0) {
         event.preventDefault();
@@ -95,12 +84,8 @@ function handleTabKey(event, instance) {
 }
 
 function restoreBodyAndFocus(instance) {
-    if (instance.previousBodyOverflow !== null) {
-        document.body.style.overflow = instance.previousBodyOverflow;
-        instance.previousBodyOverflow = null;
-        document.body.style.paddingRight = instance.previousBodyPaddingRight ?? '';
-        instance.previousBodyPaddingRight = null;
-    }
+    instance.releaseScroll?.();
+    instance.releaseScroll = null;
 
     const previous = instance.previousActiveElement;
     instance.previousActiveElement = null;

@@ -642,6 +642,18 @@ Tauri 能力必须是可选的：
 - 页面主题和 titlebar 主题必须由同一个 `ThemeService` 状态驱动。
 - 不把 Tauri 专用代码写入普通组件的核心渲染逻辑。
 
+### 8.5 共享浮层能力
+
+锚定浮层（Tooltip、Popover、后续的 Drawer）共用 `wwwroot/js/aeterni_floating.js`，不得各自重写视口贴合、焦点陷阱与滚动锁：
+
+- `fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift` —— 翻转与交叉轴贴边的全部数值。居中对齐（Tooltip）与边对齐（Popover）用不同的 clamp，不要拿一个公式套两种几何。
+- `createFocusTrap(container, { onEscape })` —— Tab 循环、Escape 上报、释放时把焦点还给打开前的元素；返回幂等的 `release()`。
+- `lockScroll()` —— 带滚动条宽度补偿、引用计数的页面滚动锁；返回幂等的释放函数，重叠浮层不会互相解锁。
+- 组件模块通过相对路径导入（`../../js/aeterni_floating.js`）。共享文件放 `wwwroot/js/`，因为它不属于任何单个组件；而组件模块必须是组件目录下的 `*.razor.js`（只有这个命名会被 Razor SDK 当作静态资源发布）。
+- **浮层不得用 `transform`/`translate` 做偏移**：变换会让浮层成为自身 `position: fixed` 遮罩的包含块。需要像素级偏移时用 `margin`（Popover 用 `margin-left` 承载 `--aeterni-popover-shift-x`）。
+- 关闭始终由使用方的 `OpenChanged` 驱动：JS 只负责“请求关闭”，不直接改 DOM 状态，也不假设参数未被绑定。
+- 堆栈类浮层（Dialog）可以保留自己的 Tab/Escape 处理，因为它要判断“只有最顶层响应”；这类差异必须在代码注释与当前功能文档里写明。
+
 ## 9. 主题规范
 
 ### 9.1 状态定义

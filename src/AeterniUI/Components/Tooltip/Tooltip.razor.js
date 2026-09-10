@@ -1,12 +1,15 @@
 // Tooltip layer: links the tooltip text to the focusable trigger content for
-// assistive technology and keeps the layer inside the viewport by flipping to
-// the opposite side and shifting along the cross axis. Visibility itself stays
+// assistive technology and keeps the layer inside the viewport by flipping to the
+// opposite side and shifting along the cross axis. Visibility itself stays
 // CSS-driven (:hover / :focus-within), so the hint still shows without JS.
+//
+// The viewport maths lives in the shared floating-layer helpers, together with the
+// Popover's focus trap and scroll lock.
+
+import { clampCenteredShift, fitsSide, oppositeSide } from '../../js/aeterni_floating.js';
 
 const instances = new Map();
 const PLACEMENTS = ['top', 'bottom', 'start', 'end'];
-const OPPOSITE = { top: 'bottom', bottom: 'top', start: 'end', end: 'start' };
-const VIEWPORT_MARGIN = 8;
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 let resizeHandler = null;
 
@@ -110,52 +113,23 @@ function applyPlacement(entry) {
         return;
     }
 
-    entry.root.classList.remove(...PLACEMENTS.map(value => `aeterni-tooltip--${value}`));
-    entry.root.classList.add(`aeterni-tooltip--${entry.placement}`);
+    setPlacement(entry, entry.preferred);
 
     entry.content.style.setProperty('--aeterni-tooltip-shift-x', '0px');
     entry.content.style.setProperty('--aeterni-tooltip-shift-y', '0px');
 
-    const contentRect = entry.content.getBoundingClientRect();
-
-    // Flip to the opposite side when the preferred side does not fit but the
-    // opposite side has more room.
-    const fitsPreferred = horizontal
-        ? entry.placement === 'top'
-            ? contentRect.top >= VIEWPORT_MARGIN
-            : contentRect.bottom <= window.innerHeight - VIEWPORT_MARGIN
-        : entry.placement === 'start'
-            ? contentRect.left >= VIEWPORT_MARGIN
-            : contentRect.right <= window.innerWidth - VIEWPORT_MARGIN;
-
-    if (!fitsPreferred) {
-        const opposite = OPPOSITE[entry.placement];
-        entry.root.classList.remove(`aeterni-tooltip--${entry.placement}`);
-        entry.root.classList.add(`aeterni-tooltip--${opposite}`);
+    // Flip to the opposite side when the preferred side does not fit.
+    if (!fitsSide(entry.content.getBoundingClientRect(), entry.placement)) {
+        const opposite = oppositeSide(entry.placement);
+        setPlacement(entry, opposite);
         entry.placement = opposite;
     }
 
-    const flippedRect = entry.content.getBoundingClientRect();
-
-    if (horizontal) {
-        const triggerCenter = triggerRect.left + triggerRect.width / 2;
-        const half = flippedRect.width / 2;
-        const minimum = VIEWPORT_MARGIN + half - triggerCenter;
-        const maximum = window.innerWidth - VIEWPORT_MARGIN - half - triggerCenter;
-        entry.content.style.setProperty('--aeterni-tooltip-shift-x', `${clamp(0, minimum, maximum)}px`);
-    } else {
-        const triggerCenter = triggerRect.top + triggerRect.height / 2;
-        const half = flippedRect.height / 2;
-        const minimum = VIEWPORT_MARGIN + half - triggerCenter;
-        const maximum = window.innerHeight - VIEWPORT_MARGIN - half - triggerCenter;
-        entry.content.style.setProperty('--aeterni-tooltip-shift-y', `${clamp(0, minimum, maximum)}px`);
-    }
+    const shift = clampCenteredShift(triggerRect, entry.content.getBoundingClientRect(), horizontal ? 'x' : 'y');
+    entry.content.style.setProperty(horizontal ? '--aeterni-tooltip-shift-x' : '--aeterni-tooltip-shift-y', `${shift}px`);
 }
 
-function clamp(value, minimum, maximum) {
-    if (minimum > maximum) {
-        return minimum;
-    }
-
-    return Math.min(Math.max(value, minimum), maximum);
+function setPlacement(entry, placement) {
+    entry.root.classList.remove(...PLACEMENTS.map(value => `aeterni-tooltip--${value}`));
+    entry.root.classList.add(`aeterni-tooltip--${placement}`);
 }
