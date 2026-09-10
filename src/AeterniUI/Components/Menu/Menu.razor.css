@@ -1,29 +1,33 @@
 .aeterni-menu { display:grid; gap:var(--aeterni-spacing-3); width:100%; box-sizing:border-box; }
+.aeterni-menu__list { display:grid; gap:var(--aeterni-spacing-3); margin:0; padding:0; list-style:none; }
 .aeterni-menu__group { display:grid; gap:var(--aeterni-spacing-1); }
 .aeterni-menu__group-toggle,.aeterni-menu__item { display:flex; align-items:center; gap:var(--aeterni-spacing-2); width:100%; border:1px solid transparent; border-radius:var(--aeterni-radius-md); background:transparent; color:var(--aeterni-text-secondary); text-align:start; cursor:pointer; font:inherit; }
-.aeterni-menu__group-toggle { justify-content:flex-start; min-height:34px; padding:8px 10px; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); font-weight:var(--aeterni-font-weight-semibold); text-align:start; }
-.aeterni-menu__item { position:relative; padding:10px 12px; }
-.aeterni-menu__group-toggle:hover,.aeterni-menu__item:hover { background:var(--aeterni-state-background-hover); color:var(--aeterni-text-primary); }
-.aeterni-menu__group-toggle:active,.aeterni-menu__item:active { background:var(--aeterni-state-background-active); }
+/* Link entries (MenuItem.Href) keep the same surface as buttons, without the
+   underline or the visited colour the browser would add. */
+.aeterni-menu__item { position:relative; padding:10px 12px; text-decoration:none; }
+.aeterni-menu__group-toggle { justify-content:flex-start; min-height:34px; padding:8px 10px; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); font-weight:var(--aeterni-font-weight-semibold); }
+.aeterni-menu__group-toggle:hover:not(:disabled),.aeterni-menu__item:hover:not(:disabled) { background:var(--aeterni-state-background-hover); color:var(--aeterni-text-primary); }
+.aeterni-menu__group-toggle:active:not(:disabled),.aeterni-menu__item:active:not(:disabled) { background:var(--aeterni-state-background-active); }
 .aeterni-menu__item.is-selected { border-color:var(--aeterni-color-brand-default); background:var(--aeterni-state-background-selected); color:var(--aeterni-state-color-selected); box-shadow:inset 3px 0 0 var(--aeterni-color-brand-default); }
 .aeterni-menu__item.is-selected .aeterni-menu__icon { color:var(--aeterni-color-brand-default); }
 .aeterni-menu__icon { display:inline-flex; flex:0 0 auto; width:18px; height:18px; align-items:center; justify-content:center; }
 .aeterni-menu__icon > svg { width:100%; height:100%; }
 .aeterni-menu__item-copy { display:grid; gap:2px; min-width:0; }
-.aeterni-menu__item-copy small { color:var(--aeterni-text-tertiary); font-size:11px; }
+.aeterni-menu__item-copy small { color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); }
 /* Collapsed groups leave the accessibility tree and the tab order (visibility,
    not only opacity/clip). The visibility flip is delayed on close so the
    collapse animation stays visible, and immediate on open. */
 .aeterni-menu__collapse { display:grid; grid-template-rows:0fr; opacity:0; visibility:hidden; transition:grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal); }
 .aeterni-menu__collapse.is-open { grid-template-rows:1fr; opacity:1; visibility:visible; transition-delay:0s,0s,0s; }
-.aeterni-menu__items { min-height:0; overflow:hidden; display:grid; gap:3px; padding-inline-start:8px; }
-.aeterni-menu__items > .aeterni-menu__item { box-sizing:border-box; }
+.aeterni-menu__items { min-height:0; overflow:hidden; display:grid; gap:var(--aeterni-spacing-1); margin:0; padding:0; padding-inline-start:var(--aeterni-spacing-2); list-style:none; }
+.aeterni-menu__item-row { min-width:0; }
+.aeterni-menu__item-row > .aeterni-menu__item { box-sizing:border-box; }
 /* Disclosure chevron: points right when a group is collapsed and rotates a
    quarter turn when it opens, so the indicator never flattens mid-transition. */
 .aeterni-menu__chevron { display:inline-flex; align-items:center; justify-content:center; --aeterni-icon-render-size:14px; margin-inline-start:auto; opacity:.7; transform-origin:center; transition:transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
-.aeterni-menu__group-toggle:hover .aeterni-menu__chevron,
+.aeterni-menu__group-toggle:hover:not(:disabled) .aeterni-menu__chevron,
 .aeterni-menu__group.is-open .aeterni-menu__chevron { opacity:1; }
 .aeterni-menu__group.is-open .aeterni-menu__chevron { transform:rotate(90deg); }
-.aeterni-menu button:focus-visible { outline:2px solid var(--aeterni-control-focus-ring); outline-offset:2px; }
+.aeterni-menu button:focus-visible,.aeterni-menu a:focus-visible { outline:var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring); outline-offset:var(--aeterni-focus-offset); }
 .aeterni-menu button:disabled { cursor:not-allowed; opacity:.55; }
 @media (prefers-reduced-motion: reduce) { .aeterni-menu__collapse,.aeterni-menu__chevron { transition:none; } }

@@ -366,17 +366,33 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ## 20. Menu
 
-`Menu` 提供可复用的分组菜单，支持 `Items`、`SelectedId`、`SelectedIdChanged`、`ItemSelected`、`Accordion` 和 `AriaLabel`。
+`Menu` 提供可复用的分组导航菜单，支持 `Items`、`SelectedId`、`Accordion`、`OpenKeys` 和 `AriaLabel`。
 
-- `MenuGroup` 支持分组标题、图标、初始展开状态和菜单项集合。
-- `MenuItem` 支持 `Id`、`Label`、`Description`、`Icon` 和 `Disabled`。
-- 分组可以独立展开/折叠；设置 `Accordion` 后同一时间只展开一个分组，初始渲染也只展开第一个 `InitiallyOpen` 分组，选中项所在分组优先打开。
-- `Items` 被替换时，不再存在的分组会从展开状态中清理。
-- 折叠的分组通过 `visibility` 退出无障碍树和 Tab 顺序（不只依赖 opacity/裁剪），关闭时的可见性切换会等折叠动画结束。
-- 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`。
-- 当前项输出选中态和 `aria-current="page"`，菜单项使用原生 button 语义。
-- 键盘：Tab 顺序保持原生；`ArrowDown` / `ArrowUp` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环移动焦点，`Home` / `End` 跳到首/尾，`ArrowRight` 展开当前分组，`ArrowLeft` 折叠当前分组或将焦点退回分组开关，`Enter` / `Space` 保持原生按钮行为；禁用项不参与移动。
-- 组件声明一个无状态 JS module（`Components/Menu/Menu.razor.js`），仅用于把焦点移到 C# 键盘模型选中的节点；折叠和展开动画仍由 CSS 完成。
+### 数据模型
+
+- `MenuGroup`：`Key`、`Label`、`Items`、`Icon`、`InitiallyOpen`、`Disabled`、`Visible`。
+- `MenuItem`：`Id`、`Label`、`Description`、`Icon`、`Disabled`、`Href`、`Target`、`Visible`。
+- 设置 `Href` 的菜单项渲染为真实 `<a>`（保留中键新标签页、浏览器历史与链接语义），`Target="_blank"` 会自动带上 `rel="noopener noreferrer"`；未设置 `Href` 或项被禁用时渲染为原生 `<button>`。
+- `Href` + `Target` 由规范 §7.1“导航使用 `<a>`”约束；链接项仍会触发 `OnItemSelected`，只是导航交给浏览器。
+
+### 展开状态
+
+- 默认非受控：组件自行维护展开分组，初始渲染最多展开一个 `InitiallyOpen` 分组（`Accordion`），选中项所在分组优先打开；`Items` 被替换时清理已不存在的分组。
+- 传入 `OpenKeys` 后变为受控：所有变更通过 `OpenKeysChanged` 回传（支持 `@bind-OpenKeys`），组件不再自行修改状态。
+- 分组折叠/展开后触发 `OnGroupToggled`；菜单项激活后触发 `OnItemSelected`（旧名 `ItemSelected` 已改名为 `OnItemSelected`，与 `List.OnItemSelected` 保持一致）。
+
+### 禁用与可见性
+
+- `Menu.Disabled`（基类参数）会下传到所有分组开关和菜单项；`MenuGroup.Disabled` 只禁用该分组，`MenuItem.Disabled` 只禁用该项。
+- `MenuGroup.Visible` / `MenuItem.Visible` 为 false 时对应的 DOM 节点不渲染，也不参与键盘遍历。
+
+### 语义与无障碍
+
+- 根为 `<nav>`（`AriaLabel` 提供可访问名称），分组与菜单项使用 `ul` / `li`（`role="list"`），折叠区域通过 `visibility` 退出无障碍树和 Tab 顺序。
+- 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`；当前项输出 `aria-current="page"`。
+- 键盘：Tab 保持原生顺序；`ArrowUp` / `ArrowDown` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环，`Home` / `End` 跳到首尾，`ArrowRight` 展开、`ArrowLeft` 折叠（RTL 下由模块读取 `direction` 自动互换），`ArrowLeft` 在展开分组内会把焦点退回分组开关，`Enter` / `Space` 保持原生行为。
+- 组件声明一个 JS module（`Components/Menu/Menu.razor.js`），只负责把焦点移到 C# 模型选中的节点、在菜单内部抑制方向键的默认页面滚动，并报告书写方向；折叠动画仍由 CSS 完成。
+- 长菜单不强制滚动容器：把 `Menu` 放进带 `max-height` 的滚动容器（示例侧边栏即如此）即可，避免组件自己裁切焦点环。
 
 ## 21. Tooltip
 

@@ -1,39 +1,77 @@
 @inherits AeterniComponent
 
 <nav @ref="RootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel" @onkeydown="HandleKeyDownAsync">
-    @for (var groupIndex = 0; groupIndex < Items.Count; groupIndex++)
-    {
-        var group = Items[groupIndex];
-        var open = IsOpen(group.Key);
-        <section class="aeterni-menu__group @(open ? "is-open" : "")">
-            <button type="button"
-                    id="@GroupToggleId(groupIndex)"
-                    class="aeterni-menu__group-toggle"
-                    aria-expanded="@(open ? "true" : "false")"
-                    aria-controls="@GroupRegionId(groupIndex)"
-                    @onfocus="() => TrackFocus(groupIndex, NoItem)"
-                    @onclick="() => ToggleGroupAsync(group.Key)">
-                @if (group.Icon is not null) { <span class="aeterni-menu__icon">@group.Icon</span> }
-                <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true"><Icon Definition="@AeterniIcons.ChevronRight" /></span>
-            </button>
-            <div class="aeterni-menu__collapse @(open ? "is-open" : "")" id="@GroupRegionId(groupIndex)">
-                <div class="aeterni-menu__items">
-                    @for (var itemIndex = 0; itemIndex < group.Items.Count; itemIndex++)
-                    {
-                        var item = group.Items[itemIndex];
-                        <button type="button"
-                                id="@ItemId(groupIndex, itemIndex)"
-                                class="aeterni-menu__item @(SelectedId == item.Id ? "is-selected" : "")"
-                                disabled="@item.Disabled"
-                                aria-current="@(SelectedId == item.Id ? "page" : null)"
-                                @onfocus="() => TrackFocus(groupIndex, itemIndex)"
-                                @onclick="() => SelectAsync(item)">
-                            @if (item.Icon is not null) { <span class="aeterni-menu__icon">@item.Icon</span> }
-                            <span class="aeterni-menu__item-copy"><span>@item.Label</span>@if (!string.IsNullOrWhiteSpace(item.Description)) { <small>@item.Description</small> }</span>
-                        </button>
-                    }
+    <ul class="aeterni-menu__list" role="list">
+        @for (var groupIndex = 0; groupIndex < Items.Count; groupIndex++)
+        {
+            var group = Items[groupIndex];
+            if (!group.Visible)
+            {
+                continue;
+            }
+
+            var open = IsOpen(group.Key);
+            var groupDisabled = IsGroupDisabled(group);
+            <li class="aeterni-menu__group @(open ? "is-open" : "")">
+                <button type="button"
+                        id="@GroupToggleId(groupIndex)"
+                        class="aeterni-menu__group-toggle"
+                        aria-expanded="@(open ? "true" : "false")"
+                        aria-controls="@GroupRegionId(groupIndex)"
+                        disabled="@groupDisabled"
+                        @onfocus="() => TrackFocus(groupIndex, NoItem)"
+                        @onclick="() => ToggleGroupAsync(group)">
+                    @if (group.Icon is not null) { <span class="aeterni-menu__icon">@group.Icon</span> }
+                    <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true"><Icon Definition="@AeterniIcons.ChevronRight" /></span>
+                </button>
+                <div class="aeterni-menu__collapse @(open ? "is-open" : "")" id="@GroupRegionId(groupIndex)">
+                    <ul class="aeterni-menu__items" role="list">
+                        @for (var itemIndex = 0; itemIndex < group.Items.Count; itemIndex++)
+                        {
+                            var item = group.Items[itemIndex];
+                            if (!item.Visible)
+                            {
+                                continue;
+                            }
+
+                            var selected = IsSelected(item);
+                            var itemDisabled = IsItemDisabled(group, item);
+                            <li class="aeterni-menu__item-row">
+                                @if (item.Href is not null && !itemDisabled)
+                                {
+                                    <a id="@ItemId(groupIndex, itemIndex)"
+                                       class="aeterni-menu__item @(selected ? "is-selected" : "")"
+                                       href="@item.Href"
+                                       target="@item.Target"
+                                       rel="@LinkRel(item)"
+                                       aria-current="@(selected ? "page" : null)"
+                                       @onfocus="() => TrackFocus(groupIndex, itemIndex)"
+                                       @onclick="() => SelectAsync(group, item)">
+                                        @ItemBody(item)
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            id="@ItemId(groupIndex, itemIndex)"
+                                            class="aeterni-menu__item @(selected ? "is-selected" : "")"
+                                            disabled="@itemDisabled"
+                                            aria-current="@(selected ? "page" : null)"
+                                            @onfocus="() => TrackFocus(groupIndex, itemIndex)"
+                                            @onclick="() => SelectAsync(group, item)">
+                                        @ItemBody(item)
+                                    </button>
+                                }
+                            </li>
+                        }
+                    </ul>
                 </div>
-            </div>
-        </section>
-    }
+            </li>
+        }
+    </ul>
 </nav>
+
+@code {
+    /// <summary>Body markup shared by the button and link variants of an entry.</summary>
+    private static RenderFragment ItemBody(MenuItem item) => @<text>@if (item.Icon is not null) { <span class="aeterni-menu__icon">@item.Icon</span> }<span class="aeterni-menu__item-copy"><span>@item.Label</span>@if (!string.IsNullOrWhiteSpace(item.Description)) { <small>@item.Description</small> }</span></text>;
+}

@@ -433,7 +433,7 @@ transition: var(--aeterni-transition-button);
 通用要求：
 
 - 背景、颜色、边框、阴影和透明度可以过渡。
-- 变换动画应使用 `transform`，不要改变布局属性。
+- 变换动画应使用 `transform`，不要改变布局属性。已登记的例外：折叠面板的自动高度展开/收起使用 `grid-template-rows: 0fr → 1fr`（`Menu` 的 `aeterni-menu__collapse`），因为在不引入 JS 测量高度的情况下它是不改变 DOM 结构的唯一方案；该属性只能用在自有折叠容器上，且必须同时兼容 `prefers-reduced-motion: reduce`。
 - 不为点击添加夸张的缩放或跳动效果。
 - 不使用无限循环动画表达普通交互状态。
 - 必须兼容 `prefers-reduced-motion: reduce`。
@@ -445,7 +445,7 @@ transition: var(--aeterni-transition-button);
 优先使用正确的原生元素：
 
 - 动作使用 `<button>`。
-- 导航使用 `<a>`。
+- 导航使用 `<a>`；组件在提供导航项时，应像 `Menu` 一样允许消费者传入 `Href`（`Target="_blank"` 时自动补 `rel="noopener noreferrer"`），不要只能用 `@onclick` 模拟跳转。
 - 输入使用 `<input>`、`<textarea>`、`<select>`。
 - 分组使用 `<fieldset>` 和 `<legend>`。
 - 弹窗使用合适的 dialog 语义。
