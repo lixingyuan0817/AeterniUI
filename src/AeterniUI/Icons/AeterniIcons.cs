@@ -22,6 +22,13 @@ public static class AeterniIcons
         16,
         "M4.2 6 8 9.8 11.8 6l.9.9L8 11.6 3.3 6.9z");
 
+    /// <summary>Rightward chevron used by collapsed groups (rotated to point down when open).</summary>
+    public static IconDefinition ChevronRight { get; } = new(
+        "chevron-right",
+        16,
+        16,
+        "M6 11.8 9.8 8 6 4.2l.9-.9L11.6 8 6.9 12.7z");
+
     /// <summary>Dismiss cross used by Tag, Dialog close buttons and danger notices.</summary>
     public static IconDefinition Xmark { get; } = new(
         "xmark",

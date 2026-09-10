@@ -7,7 +7,7 @@
         <section class="aeterni-menu__group @(open ? "is-open" : "")">
             <button type="button" class="aeterni-menu__group-toggle" aria-expanded="@open" @onclick="() => ToggleGroupAsync(group.Key)">
                 @if (group.Icon is not null) { <span class="aeterni-menu__icon">@group.Icon</span> }
-                <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true"><Icon Definition="@AeterniIcons.ChevronDown" /></span>
+                <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true"><Icon Definition="@AeterniIcons.ChevronRight" /></span>
             </button>
             <div class="aeterni-menu__collapse @(open ? "is-open" : "")">
                 <div class="aeterni-menu__items">

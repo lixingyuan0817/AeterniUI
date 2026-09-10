@@ -120,9 +120,10 @@
 ### 核心内置图标集 `AeterniIcons`
 
 - 位于 `AeterniUI/Icons/AeterniIcons.cs`，是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商。
-- 提供 `Check`、`ChevronDown`、`Xmark`、`Star`、`Info` 和 `Exclamation`。
+- 提供 `Check`、`ChevronDown`、`ChevronRight`、`Xmark`、`Star`、`Info` 和 `Exclamation`。
 - 组件内部统一通过它渲染字形，替换了此前散落在组件中的内联 SVG 和文本字符：
-  - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Menu` 分组折叠箭头；`Rating` 星形。
+  - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Rating` 星形。
+  - `Menu` 分组折叠指示使用 `ChevronRight`，展开时旋转 90° 变为向下，避免 180° 翻转在中间帧退化成横线。
   - `Dialog` 关闭按钮、`Tag` 关闭按钮统一使用 `Xmark`。
   - Alert / Toast 未传 `Icon` 时按 `Severity` 使用 `Check`、`Exclamation`、`Xmark` 和 `Info`。
 - 业务代码可以直接复用这些定义，也可以传入自己的 `IconDefinition`。
