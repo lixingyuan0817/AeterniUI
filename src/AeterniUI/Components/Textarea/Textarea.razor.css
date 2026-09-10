@@ -26,11 +26,12 @@
     border-color: var(--aeterni-control-border-hover);
 }
 
-.aeterni-textarea:focus,
+/* Keyboard focus draws the shared control ring. See Input.razor.css for the
+   `:focus-visible` rationale. */
 .aeterni-textarea:focus-visible {
     border-color: var(--aeterni-control-border-focus);
-    box-shadow: none;
-    outline: none;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 .aeterni-textarea:disabled {
@@ -59,8 +60,11 @@
 .aeterni-textarea.is-invalid:not(:disabled):not([readonly]):hover,
 .aeterni-textarea[aria-invalid="true"]:not(:disabled):not([readonly]):hover,
 .aeterni-textarea.is-invalid:not(:disabled):focus,
-.aeterni-textarea[aria-invalid="true"]:not(:disabled):focus {
+.aeterni-textarea.is-invalid:not(:disabled):focus-visible,
+.aeterni-textarea[aria-invalid="true"]:not(:disabled):focus,
+.aeterni-textarea[aria-invalid="true"]:not(:disabled):focus-visible {
     border-color: var(--aeterni-control-border-invalid);
+    outline-color: var(--aeterni-focus-color-invalid);
 }
 
 .aeterni-textarea--resize-none {

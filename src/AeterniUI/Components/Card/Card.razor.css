@@ -1,3 +1,11 @@
+/* Card and Surface intentionally share one option→token mapping: the variant,
+   elevation and padding modifiers below resolve to the same semantic tokens as
+   the matching `.aeterni-surface--*` rules. Blazor scoped CSS cannot host shared
+   rules, so the mapping is kept identical by convention and verified by the
+   component review checklist. Only the defaults differ on purpose: Card is a
+   structured container (radius 12px, bordered by default) while Surface is a
+   plain wrapper (radius 8px, not bordered).
+   Scoped CSS limitation: keep both files in sync when a modifier changes. */
 .aeterni-card {
     --aeterni-card-padding: var(--aeterni-spacing-4);
 
@@ -31,10 +39,6 @@
 .aeterni-card.is-interactive:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
-}
-
-.aeterni-card.is-interactive.is-disabled {
-    cursor: not-allowed;
 }
 
 .aeterni-card--subtle {
@@ -95,6 +99,7 @@
 }
 
 .aeterni-card.is-interactive.is-disabled {
+    cursor: not-allowed;
     border-color: var(--aeterni-state-border-disabled);
     background: var(--aeterni-state-background-disabled);
     color: var(--aeterni-state-color-disabled);
@@ -110,11 +115,11 @@
 }
 
 .aeterni-card__header {
-    border-bottom: 1px solid var(--aeterni-border-subtle);
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
 }
 
 .aeterni-card__footer {
-    border-top: 1px solid var(--aeterni-border-subtle);
+    border-top: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
 }
 
 @media (prefers-reduced-motion: reduce) {

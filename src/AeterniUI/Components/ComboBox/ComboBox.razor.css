@@ -102,12 +102,13 @@
     display: grid;
     align-content: start;
     gap: var(--aeterni-spacing-1);
-    max-height: min(320px, 45vh);
+    max-height: min(var(--aeterni-overlay-max-height), 45vh);
     overflow-y: auto;
     /* Isolate the option-list scroller: reaching its edge must not chain a
        page scroll (which would otherwise read as “page scrolled → close”). */
     overscroll-behavior: contain;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
     padding: var(--aeterni-spacing-2);
     border: var(--aeterni-border-width) solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-lg);
@@ -119,8 +120,19 @@
     animation: aeterni-combobox-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
+/* A thin bar instead of a hidden one: a long option list has to look scrollable
+   (and remain mouse-wheel scrollable). */
 .aeterni-combobox__popover::-webkit-scrollbar {
-    display: none;
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-combobox__popover::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-combobox__popover::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 .aeterni-combobox__option {
@@ -152,10 +164,9 @@
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-.aeterni-combobox__option:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
-    outline-offset: -1px;
-}
+/* Options are non-focusable elements inside a select-only combobox: focus stays
+   on the trigger and the active option is reported with aria-activedescendant,
+   so `.is-active` (not `:focus-visible`) carries the keyboard cue. */
 
 .aeterni-combobox__option-text {
     min-width: 0;

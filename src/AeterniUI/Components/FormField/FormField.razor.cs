@@ -10,19 +10,34 @@ public partial class FormField : AeterniComponent
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
-    [Parameter] public string? Label { get; set; }
-    [Parameter] public string? Description { get; set; }
-    [Parameter] public string? Error { get; set; }
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public bool Required { get; set; }
-    [Parameter] public bool Invalid { get; set; }
-    [Parameter] public Expression<Func<object?>>? For { get; set; }
+    [Parameter]
+    public string? Label { get; set; }
+    [Parameter]
+    public string? Description { get; set; }
+    [Parameter]
+    public string? Error { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public bool Required { get; set; }
+    [Parameter]
+    public bool Invalid { get; set; }
+    [Parameter]
+    public Expression<Func<object?>>? For { get; set; }
 
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
     private EditContext? _subscribedEditContext;
 
     private string InputId => $"{ElementId}-input";
+
+    /// <summary>
+    /// Id of the rendered label, exposed through <see cref="FormFieldContext"/>
+    /// so container-type controls (ComboBox, Rating, RadioGroup) can name
+    /// themselves with <c>aria-labelledby</c>.
+    /// </summary>
+    private string? LabelId => string.IsNullOrWhiteSpace(Label) ? null : $"{ElementId}-label";
+
     private string DescriptionId => $"{ElementId}-description";
     private string ErrorId => $"{ElementId}-error";
     private string? ErrorMessage => !string.IsNullOrWhiteSpace(Error)
@@ -30,7 +45,7 @@ public partial class FormField : AeterniComponent
         : _hasFieldIdentifier ? CascadedEditContext?.GetValidationMessages(_fieldIdentifier).FirstOrDefault() : null;
     private bool IsInvalid => Invalid || ErrorMessage is not null;
     private string? DescribedBy => string.Join(" ", new[] { string.IsNullOrWhiteSpace(Description) ? null : DescriptionId, ErrorMessage is null ? null : ErrorId }.Where(x => x is not null));
-    private FormFieldContext Context => new(InputId, DescribedBy, Disabled, IsInvalid, Required);
+    private FormFieldContext Context => new(InputId, LabelId, DescribedBy, Disabled, IsInvalid, Required);
 
     protected override void OnParametersSet()
     {

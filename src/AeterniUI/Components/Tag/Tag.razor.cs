@@ -30,8 +30,16 @@ public partial class Tag : AeterniComponent
     [Parameter]
     public EventCallback OnDismiss { get; set; }
 
+    /// <summary>
+    /// Accessible name of the dismiss button. Defaults to
+    /// <see cref="AeterniUITextOptions.TagDismissLabel"/>.
+    /// </summary>
     [Parameter]
-    public string DismissLabel { get; set; } = "Remove tag";
+    public string DismissLabel { get; set; } = string.Empty;
+
+    private string EffectiveDismissLabel => string.IsNullOrWhiteSpace(DismissLabel)
+        ? UiText.TagDismissLabel
+        : DismissLabel;
 
     protected override void OnParametersSet()
     {
@@ -59,8 +67,7 @@ public partial class Tag : AeterniComponent
             .Add("aeterni-tag")
             .Add($"aeterni-tag--{VariantClass}")
             .Add($"aeterni-tag--{ColorClass}")
-            .Add($"aeterni-tag--{SizeClass}")
-            .Add("is-dismissible", Dismissible);
+            .Add(SizeClass);
     }
 
     private string VariantClass => Variant switch
@@ -70,20 +77,7 @@ public partial class Tag : AeterniComponent
         _ => "default"
     };
 
-    private string SizeClass => Size switch
-    {
-        Size.Small => "sm",
-        Size.Large => "lg",
-        _ => "md"
-    };
+    private string? SizeClass => ComponentClass.ForSize("aeterni-tag", Size);
 
-    private string ColorClass => Color switch
-    {
-        Color.Neutral => "neutral",
-        Color.Success => "success",
-        Color.Warning => "warning",
-        Color.Danger => "danger",
-        Color.Info => "info",
-        _ => "primary"
-    };
+    private string? ColorClass => ComponentClass.ForColor("aeterni-tag", Color);
 }

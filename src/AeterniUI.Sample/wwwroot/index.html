@@ -7,14 +7,34 @@
     <title>Aeterni UI</title>
     <base href="/" />
     <script>
+        // Pre-paint theme resolution ------------------------------------------
+        // Runs before the stylesheets are applied so a dark-preference visitor
+        // never sees a light flash. Keep this snippet in sync with
+        // ThemeProvider (storage key and the data-theme / data-aeterni-mode
+        // attributes are the library contract); the stylesheet also carries a
+        // prefers-color-scheme fallback for hosts that skip the snippet.
+        (function () {
+            const root = document.documentElement;
+            const storedMode = (function () {
+                try {
+                    return window.localStorage?.getItem('aeterni.theme.mode') || null;
+                } catch {
+                    return null;
+                }
+            })();
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const theme = storedMode === 'dark' || storedMode === 'light' ? storedMode : systemTheme;
+
+            root.dataset.aeterniMode = theme;
+            root.dataset.theme = theme;
+            root.style.colorScheme = theme;
+        })();
+
+        // Tauri resets the native appearance so the webview keeps following the
+        // operating system instead of a previously set native theme.
         if (window.__TAURI__ || window.__TAURI_INTERNALS__) {
             const root = document.documentElement;
-            const initialTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-
             root.dataset.tauriHost = "true";
-            root.dataset.theme = initialTheme;
-            root.dataset.aeterniMode = initialTheme;
-            root.style.colorScheme = initialTheme;
 
             const tauri = window.__TAURI__;
             const tauriWindow = tauri?.window?.getCurrentWindow?.();

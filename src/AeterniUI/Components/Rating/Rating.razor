@@ -4,7 +4,7 @@
 <div @ref="RootElement"
      @attributes="BuildAttributes()"
      role="radiogroup"
-     aria-label="@AriaLabel"
+     aria-label="@EffectiveAriaLabel"
      aria-invalid="@(IsInvalid ? "true" : null)"
      @onkeydown="HandleKeyDownAsync">
     @for (var index = 1; index <= Max; index++)
@@ -16,7 +16,8 @@
         <button type="button"
                 class="aeterni-rating__item @(rating <= Value ? "is-filled" : string.Empty)"
                 role="radio"
-                aria-checked="@(rating <= Value)"
+                aria-checked="@(rating == Value)"
+                tabindex="@(rating == TabStop ? 0 : -1)"
                 aria-label="@(rating.ToString(CultureInfo.InvariantCulture))"
                 title="@(rating.ToString(CultureInfo.InvariantCulture)) / @(Max.ToString(CultureInfo.InvariantCulture))"
                 disabled="@(Disabled ? "true" : null)"

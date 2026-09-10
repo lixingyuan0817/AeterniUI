@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.1.0`
+文档版本：`10.2.0`
 
 状态：第一版草案
 
@@ -383,6 +383,14 @@ Large  -> 强调控件
 
 尺寸变化必须保持稳定的布局尺寸，不能让文字、图标或状态切换导致组件跳动。圆角优先使用已有 `--aeterni-radius-*` Token。胶囊控件使用 `--aeterni-radius-full`，不要在组件中重新定义 `9999px`。
 
+控件型组件的圆角走同一档阶梯：`Small -> --aeterni-radius-control-sm`、`Medium/Default -> --aeterni-radius-control-md`、`Large -> --aeterni-radius-control-lg`，并通过 `--aeterni-radius-button*` / `--aeterni-radius-input*` 引用，保证同一表单行内 Button、Input、Textarea 圆角一致。容器型组件使用 `--aeterni-radius-surface`（通用包装）或 `--aeterni-radius-card`（带分区的结构化容器），两者的默认差异必须在组件文档中写明理由。
+
+尺寸档位遵循“默认档位不输出修饰类”的约定：`Size.Default` 与 `Size.Medium` 表示同一中间档，`Variant=Default`、`Elevation=None`、`Radius=Default` 等同样不生成类名。组件不得让 `Default` 与 `Medium` 指向不同档位（`Icon` 的中档有独立规则，是文档化的唯一例外）。组件发出的每个类名都必须在某个样式表中有匹配规则；不写空的占位类，也不写永不匹配的死规则。
+
+选项到类名的映射集中在 `Components/ComponentClass.cs`：`ForSize`、`ForColor`、`For` 负责尺寸、语意色与通用修饰类的生成，组件不要各自维护一套 switch。`Severity` 到 `Color` 的映射也只保留这一处。
+
+组件样式表中不允许出现未注释的裸像素尺寸。能映射到 Token 的直接引用 Token；确实缺少档位的先在 Token 层补语义 Token（例如浮层宽度、紧凑行高、通知字号）再引用；结构性机制（无障碍裁剪模式的 `1px` + `50%`）、动画位移与排版微调可以保留字面量，但必须用注释说明它是机制或微调而不是尺寸档位。
+
 ### 5.5 样式覆盖边界
 
 新增组件时：
@@ -481,6 +489,12 @@ aria-disabled="true"
 ### 7.3 ARIA
 
 ARIA 用来补充语义，不用来替代正确的 HTML 元素。每个 ARIA 属性都必须对应一个真实的交互状态。组件的 `AriaLabel` 等参数只在文本内容不能提供可访问名称时使用。
+
+复合控件的角色层次必须成立：`listbox` 的直接子元素是 `role="option"`，`radiogroup` 内恒有至多一个 `aria-checked="true"`，非可聚焦的选项元素不得进入 Tab 序列，也不得抢走容器的 DOM 焦点。单选组、评分等复合控件的键盘模型使用 roving tabindex：组件整体只有一次 Tab 停留点。
+
+表单字段的关联有三种合法形态：原生可聚焦控件（`Input`、`Textarea`、`Checkbox`、`Switch`、独立 `Radio`）直接采用 `FormField` 的输入 ID 让 `label for` 生效；容器型控件（`ComboBox`、`Rating`、`RadioGroup`）既采用输入 ID 以保持 `for` 可解析，又必须用 `aria-labelledby` 关联标签 ID、用 `aria-describedby` 关联描述与错误文本。
+
+库内所有用户可见文案（无障碍名称、占位符、关闭按钮文案）统一取自 `AeterniUIOptions.Text`，不得在组件里硬编码中英文混排的默认值；组件参数优先于文案表。
 
 ### 7.4 键盘行为
 
@@ -614,6 +628,10 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 - 释放 JS 监听和对象引用。
 
 它不包裹 Layout，也不承担业务布局职责。
+
+`ThemeProvider` **不渲染 DOM**：主题通过 JS module 写到 `<html>` 的 `data-theme` / `data-aeterni-mode` 上，因此基类提供的 `Id`、`Class`、`Style`、`Visible` 对它是无效参数，文档中必须这样说明，不能暗示它支持 DOM 参数。
+
+为避免首帧主题闪烁，宿主应在样式表之前放一段预渲染脚本（读取 `aeterni.theme.mode` 与 `prefers-color-scheme` 并写入 `<html data-theme>`）。样式表本身也提供 `prefers-color-scheme: dark` 兜底：只有在没有显式主题属性时才生效。
 
 ### 9.4 DialogProvider 和 IDialogService
 

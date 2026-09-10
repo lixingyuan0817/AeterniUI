@@ -1,15 +1,20 @@
 @typeparam TValue
 @inherits AeterniComponent
 
-<label class="aeterni-radio__label" for="@InputId">
-    <input @attributes="BuildAttributes()"
+@* The root is the label (like Checkbox and Switch), so the component class —
+   including the size modifiers that carry --aeterni-radio-size — wraps the
+   visual circle instead of being splatted onto the input element. *@
+<label @ref="RootElement" @attributes="BuildAttributes()">
+    <input @attributes="BuildInputAttributes()"
            id="@InputId"
            class="aeterni-radio__input"
            type="radio"
            checked="@IsChecked"
            disabled="@IsDisabled"
            @onclick="SelectAsync" />
-    <span class="aeterni-radio__control" aria-hidden="true"></span>
+    <span class="aeterni-radio__control" aria-hidden="true">
+        <span class="aeterni-radio__dot"></span>
+    </span>
     @if (ChildContent is not null)
     {
         <span class="aeterni-radio__content">@ChildContent</span>

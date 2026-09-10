@@ -6,6 +6,12 @@ using Microsoft.JSInterop;
 
 namespace AeterniUI.Components.Theme;
 
+/// <summary>
+/// Theme owner. It renders <em>no DOM</em>: the component applies the theme to
+/// the document root element through its JS module, so the inherited
+/// <c>Id</c>, <c>Class</c>, <c>Style</c> and <c>Visible</c> parameters have no
+/// effect and are intentionally unused. Place it once in the app layout.
+/// </summary>
 [JsModule("Components/Theme/ThemeProvider.razor.js", Name = "theme-provider", Interactive = true)]
 public partial class ThemeProvider : AeterniComponent
 {

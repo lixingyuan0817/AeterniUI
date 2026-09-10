@@ -1,5 +1,8 @@
+/* See Card.razor.css: both components map the same variant/elevation/padding
+   options onto the same semantic tokens. Surface is the plain wrapper (radius
+   8px, not bordered by default) and Card the structured one (12px, bordered). */
 .aeterni-surface {
-    --aeterni-surface-radius: var(--aeterni-radius-lg);
+    --aeterni-surface-radius: var(--aeterni-radius-surface);
 
     display: block;
     box-sizing: border-box;

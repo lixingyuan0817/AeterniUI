@@ -30,6 +30,10 @@ public static class AeterniServiceCollectionExtensions
         ValidateDuration(options.DefaultAlertDuration, nameof(options.DefaultAlertDuration));
         ValidateDuration(options.DefaultToastDuration, nameof(options.DefaultToastDuration));
 
+        // Empty text entries fall back to the English defaults instead of
+        // rendering an unlabelled control.
+        options.Text.FillEmptyFrom(new AeterniUITextOptions());
+
         services.AddSingleton(options);
         services.AddScoped<JsModuleManager>();
         services.AddScoped<ThemeService>();

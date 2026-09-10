@@ -258,6 +258,17 @@
     width: min(100%, 520px);
 }
 
+/* State comparison rows used by the Button preview (loading and semantic
+   colour matrices). */
+.preview-state-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-3);
+    width: min(100%, 520px);
+}
+
 .preview-feedback {
     display: block;
     max-width: 100%;

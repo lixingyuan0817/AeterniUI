@@ -1,4 +1,7 @@
-.aeterni-button {
+/* Color.Primary is the explicit form of the brand default, so it shares the
+   base rule instead of duplicating it. */
+.aeterni-button,
+.aeterni-button--primary {
     --aeterni-button-color: var(--aeterni-color-brand-default);
     --aeterni-button-color-hover: var(--aeterni-color-brand-hover);
     --aeterni-button-color-active: var(--aeterni-color-brand-active);
@@ -11,10 +14,21 @@
     --aeterni-button-text-soft: color-mix(in srgb, var(--aeterni-button-color) 8%, transparent);
     --aeterni-button-text-soft-active: color-mix(in srgb, var(--aeterni-button-color) 14%, transparent);
     --aeterni-button-disabled-background: var(--aeterni-state-background-disabled);
-    --aeterni-button-disabled-background-subtle: var(--aeterni-state-background-disabled);
+    /* Text/link actions keep a quieter, semi-transparent disabled surface so a
+       wide control does not read as a filled block. */
+    --aeterni-button-disabled-background-subtle: color-mix(in srgb, var(--aeterni-state-background-disabled) 70%, transparent);
     --aeterni-button-disabled-foreground: var(--aeterni-state-color-disabled);
     --aeterni-button-disabled-border: var(--aeterni-state-border-disabled);
-    --aeterni-button-radius: var(--aeterni-radius-button-lg);
+    --aeterni-button-radius: var(--aeterni-radius-button);
+    /* Unified busy treatment: every variant dims behind a translucent veil of
+       its own surface colour plus the same soft blur, so the label stays in
+       place and stays recognisable instead of being covered by a solid layer.
+       Solid variants veil with their own fill; transparent variants veil with a
+       light tint of their accent (a stronger tint would fake a filled button). */
+    --aeterni-button-loading-surface: var(--aeterni-button-background);
+    --aeterni-button-loading-veil: color-mix(in srgb, var(--aeterni-button-loading-surface) 76%, transparent);
+    --aeterni-button-loading-foreground: var(--aeterni-button-foreground);
+    --aeterni-button-foreground-strong: var(--aeterni-button-foreground);
 
     position: relative;
     box-sizing: border-box;
@@ -25,7 +39,9 @@
     min-width: 0;
     min-height: var(--aeterni-control-height-md);
     padding: 0 var(--aeterni-control-padding-x-md);
-    overflow: hidden;
+    /* No `overflow: hidden`: the loading veil has to paint over the control's own
+       border (see .aeterni-button__loading). The veil inherits the radius, so
+       rounding still holds without clipping. */
     border: var(--aeterni-border-width) solid transparent;
     border-radius: var(--aeterni-button-radius);
     background: var(--aeterni-button-background);
@@ -41,12 +57,14 @@
 
 .aeterni-button:hover:not(:disabled) {
     background: var(--aeterni-button-background-hover);
+    color: var(--aeterni-button-foreground-strong);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateY(-1px);
 }
 
 .aeterni-button:active:not(:disabled) {
     background: var(--aeterni-button-background-active);
+    color: var(--aeterni-button-foreground-strong);
     box-shadow: none;
     transform: translateY(0);
 }
@@ -72,8 +90,10 @@
 }
 
 /* Loading veil --------------------------------------------------------------
-   A solid layer uses the active button colour, keeping the busy state readable
-   in every variant and avoiding a translucent overlay over arbitrary content. */
+   One treatment for every variant: a translucent veil of the control's own
+   surface plus a soft blur of the label underneath. The veil is inset by a
+   negative border width so it also covers the control's border, which keeps the
+   busy state reading as one continuous surface. */
 .aeterni-button.is-loading {
     cursor: progress;
 }
@@ -84,12 +104,14 @@
 
 .aeterni-button__loading {
     position: absolute;
-    inset: 0;
+    inset: calc(var(--aeterni-border-width) * -1);
     display: grid;
     place-items: center;
     border-radius: inherit;
-    background: var(--aeterni-button-background);
-    color: var(--aeterni-button-foreground);
+    background: var(--aeterni-button-loading-veil);
+    color: var(--aeterni-button-loading-foreground);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     pointer-events: none;
 }
 
@@ -113,7 +135,7 @@
 .aeterni-button__spinner {
     width: var(--aeterni-icon-size-md);
     height: var(--aeterni-icon-size-md);
-    border: 2px solid currentColor;
+    border: var(--aeterni-border-width-medium) solid currentColor;
     border-right-color: transparent;
     border-radius: var(--aeterni-radius-round);
     opacity: .92;
@@ -152,6 +174,9 @@
 .aeterni-button--ghost,
 .aeterni-button--text,
 .aeterni-button--link {
+    --aeterni-button-loading-veil: color-mix(in srgb, var(--aeterni-button-color) 14%, transparent);
+    --aeterni-button-loading-foreground: var(--aeterni-button-color);
+
     background: transparent;
     color: var(--aeterni-button-color);
 }
@@ -198,6 +223,7 @@
     color: var(--aeterni-button-color-hover);
     box-shadow: none;
     text-decoration: underline;
+    /* Optical offset for the underline, tied to the font rather than a size tier. */
     text-underline-offset: 3px;
 }
 
@@ -248,6 +274,8 @@
     --aeterni-button-background: var(--aeterni-color-success-default);
     --aeterni-button-background-hover: var(--aeterni-color-success-hover);
     --aeterni-button-background-active: var(--aeterni-color-success-active);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-success-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-success-default) 18%, transparent);
 }
@@ -259,7 +287,8 @@
     --aeterni-button-background: var(--aeterni-color-warning-default);
     --aeterni-button-background-hover: var(--aeterni-color-warning-hover);
     --aeterni-button-background-active: var(--aeterni-color-warning-active);
-    --aeterni-button-foreground: var(--aeterni-text-primary);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-warning-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-warning-default) 18%, transparent);
 }
@@ -271,6 +300,8 @@
     --aeterni-button-background: var(--aeterni-color-danger-default);
     --aeterni-button-background-hover: var(--aeterni-color-danger-hover);
     --aeterni-button-background-active: var(--aeterni-color-danger-active);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-danger-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-danger-default) 18%, transparent);
 }
@@ -282,6 +313,8 @@
     --aeterni-button-background: var(--aeterni-color-info-default);
     --aeterni-button-background-hover: var(--aeterni-color-info-hover);
     --aeterni-button-background-active: var(--aeterni-color-info-active);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-foreground-strong: var(--aeterni-color-on-semantic-strong);
     --aeterni-button-soft: var(--aeterni-color-info-soft);
     --aeterni-button-soft-active: color-mix(in srgb, var(--aeterni-color-info-default) 18%, transparent);
 }
@@ -295,13 +328,6 @@
     background: var(--aeterni-button-disabled-background);
     color: var(--aeterni-button-disabled-foreground);
     box-shadow: none;
-}
-
-/* A solid button retains a quiet surface so the disabled action still reads
-   as a control. */
-.aeterni-button--default:disabled:not(.is-loading),
-.aeterni-button--default.is-disabled:not(.is-loading) {
-    background: var(--aeterni-button-disabled-background);
 }
 
 /* Outline communicates its disabled state through a muted outline and an

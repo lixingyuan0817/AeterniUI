@@ -1,6 +1,87 @@
-.aeterni-tooltip { position: relative; display: inline-flex; max-width: 100%; }
-.aeterni-tooltip__trigger { display: inline-flex; min-width: 0; }
-.aeterni-tooltip__content { position: absolute; bottom: calc(100% + var(--aeterni-spacing-2)); left: 50%; z-index: var(--aeterni-z-tooltip); display: block; width: max-content; max-width: min(20rem, 80vw); padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3); border: 1px solid var(--aeterni-border-strong); border-radius: var(--aeterni-radius-tooltip); background: var(--aeterni-bg-solid); color: var(--aeterni-text-primary); box-shadow: var(--aeterni-shadow-md); font-size: var(--aeterni-font-size-xs); line-height: var(--aeterni-line-height-normal); text-align: start; pointer-events: none; visibility: hidden; opacity: 0; transform: translate(-50%, 4px); transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform), visibility var(--aeterni-duration-normal) var(--aeterni-ease-in-out); }
+.aeterni-tooltip {
+    position: relative;
+    display: inline-flex;
+    max-width: 100%;
+}
+
+.aeterni-tooltip__trigger {
+    display: inline-flex;
+    min-width: 0;
+}
+
+/* The layer stays in layout while hidden, so the JS placement pass can measure
+   it before the first reveal. `translate` carries the entrance offset so the
+   per-placement `transform` can keep centring the layer. */
+.aeterni-tooltip__content {
+    --aeterni-tooltip-shift-x: 0px;
+    --aeterni-tooltip-shift-y: 0px;
+    --aeterni-tooltip-rise-x: 0px;
+    --aeterni-tooltip-rise-y: 4px;
+
+    position: absolute;
+    z-index: var(--aeterni-z-tooltip);
+    display: block;
+    width: max-content;
+    max-width: min(var(--aeterni-overlay-max-width-xs), 80vw);
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-tooltip);
+    background: var(--aeterni-bg-solid);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-md);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    translate: var(--aeterni-tooltip-rise-x) var(--aeterni-tooltip-rise-y);
+    transition: var(--aeterni-transition-opacity), translate var(--aeterni-duration-normal) var(--aeterni-ease-in-out), visibility var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+}
+
+/* Placement geometry. The JS layer only overrides the placement class on flip
+   and the shift variables when the layer has to stay inside the viewport. */
+.aeterni-tooltip--top .aeterni-tooltip__content {
+    bottom: calc(100% + var(--aeterni-spacing-2));
+    left: 50%;
+    transform: translateX(calc(-50% + var(--aeterni-tooltip-shift-x)));
+}
+
+.aeterni-tooltip--bottom .aeterni-tooltip__content {
+    --aeterni-tooltip-rise-y: -4px;
+
+    top: calc(100% + var(--aeterni-spacing-2));
+    left: 50%;
+    transform: translateX(calc(-50% + var(--aeterni-tooltip-shift-x)));
+}
+
+.aeterni-tooltip--start .aeterni-tooltip__content {
+    --aeterni-tooltip-rise-x: 4px;
+    --aeterni-tooltip-rise-y: 0px;
+
+    top: 50%;
+    right: calc(100% + var(--aeterni-spacing-2));
+    transform: translateY(calc(-50% + var(--aeterni-tooltip-shift-y)));
+}
+
+.aeterni-tooltip--end .aeterni-tooltip__content {
+    --aeterni-tooltip-rise-x: -4px;
+    --aeterni-tooltip-rise-y: 0px;
+
+    top: 50%;
+    left: calc(100% + var(--aeterni-spacing-2));
+    transform: translateY(calc(-50% + var(--aeterni-tooltip-shift-y)));
+}
+
 .aeterni-tooltip:hover .aeterni-tooltip__content,
-.aeterni-tooltip:focus-within .aeterni-tooltip__content { visibility: visible; opacity: 1; transform: translate(-50%, 0); }
-@media (prefers-reduced-motion: reduce) { .aeterni-tooltip__content { transition: none; } }
+.aeterni-tooltip:focus-within .aeterni-tooltip__content {
+    visibility: visible;
+    opacity: 1;
+    translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-tooltip__content {
+        transition: none;
+    }
+}

@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.1.0`
+文档版本：`10.2.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -103,7 +103,10 @@ Components/<Component>/
 ### 组件库基础入口
 
 - [`src/AeterniUI/Components/AeterniComponent.cs`](../src/AeterniUI/Components/AeterniComponent.cs)：所有组件的基类和公共生命周期。
-- [`src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs`](../src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs)：服务注册入口 `AddAeterniUI()`。
+- [`src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs`](../src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs)：服务注册入口 `AddAeterniUI()`，同时校验并注册 `AeterniUIOptions`。
+- [`src/AeterniUI/Services/AeterniUIOptions.cs`](../src/AeterniUI/Services/AeterniUIOptions.cs)：弹层默认值与文案表入口。
+- [`src/AeterniUI/Services/AeterniUITextOptions.cs`](../src/AeterniUI/Services/AeterniUITextOptions.cs)：库内用户可见文案的集中定义与覆写入口。
+- [`src/AeterniUI/Components/ComponentClass.cs`](../src/AeterniUI/Components/ComponentClass.cs)：尺寸、语意色与 Severity 到 CSS 修饰类的唯一映射。
 - [`src/AeterniUI/Services/Impl/ThemeService.cs`](../src/AeterniUI/Services/Impl/ThemeService.cs)：主题模式和实际主题状态。
 - [`src/AeterniUI/Services/Impl/DialogService.cs`](../src/AeterniUI/Services/Impl/DialogService.cs)：Dialog、Confirm、Alert 和 Toast 状态管理。
 - [`src/AeterniUI/Services/Impl/JsModuleManager.cs`](../src/AeterniUI/Services/Impl/JsModuleManager.cs)：组件 JS module 的扫描、加载、调用和释放。
@@ -168,6 +171,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 - `AeterniComponent`：统一 ID、属性合并、可见/禁用语义、ElementReference 和生命周期。
 - `ClassBuilder` / `StyleBuilder`：统一生成 class 和 inline style。
+- `ComponentClass`：把 `Size`、`Color`、`Severity` 与通用修饰类映射为组件根类名，默认档位不输出修饰类。
 - `Attributes` / `Modules`：声明并解析组件 JS module 及其依赖。
 
 ### 已完成组件

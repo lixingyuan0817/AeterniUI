@@ -94,12 +94,11 @@ public partial class Checkbox : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-checkbox")
-            .Add($"aeterni-checkbox--{SizeClass}")
+            .Add(SizeClass)
             .Add("is-checked", _currentValue)
             .Add("is-indeterminate", EffectiveIndeterminate)
             .Add("is-invalid", IsInvalid)
-            .Add("is-disabled", _effectiveDisabled)
-            .Add("is-required", _effectiveRequired);
+            .Add("is-disabled", _effectiveDisabled);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -255,12 +254,7 @@ public partial class Checkbox : AeterniComponent
 
     private bool CanChangeValue => !_effectiveDisabled;
 
-    private string SizeClass => Size switch
-    {
-        Size.Small => "sm",
-        Size.Large => "lg",
-        _ => "md"
-    };
+    private string? SizeClass => ComponentClass.ForSize("aeterni-checkbox", Size);
 
     private void ValidateParameters()
     {

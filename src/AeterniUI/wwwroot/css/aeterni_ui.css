@@ -3,10 +3,17 @@
    All non-theme primitives are maintained in one readable root scope.
    ========================================================================== */
 :root {
+    /* AeterniUI ships no webfonts: Inter and JetBrains Mono are optional host
+       dependencies. When the host does not load them, the stacks resolve to the
+       platform UI font (or Consolas/Courier New for the mono stack). */
     --aeterni-font-family-base: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
     --aeterni-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace;
     --aeterni-font-family-display: 'Inter', 'Segoe UI', sans-serif;
     --aeterni-font-size-xs: 12px;
+    /* Text of compact surfaces (notification cards, dense chips) sits between
+       the xs and sm scale steps; it is exposed as a role token instead of a
+       scale step so the numbered scale stays a clean ladder. */
+    --aeterni-font-size-compact: 13px;
     --aeterni-font-size-sm: 14px;
     --aeterni-font-size-base: 16px;
     --aeterni-font-size-md: 16px;
@@ -98,10 +105,21 @@
     --aeterni-radius-3xl: 24px;
     --aeterni-radius-full: 9999px;
     --aeterni-radius-round: 50%;
-    --aeterni-radius-button: var(--aeterni-radius-md);
-    --aeterni-radius-button-sm: var(--aeterni-radius-sm);
-    --aeterni-radius-button-lg: var(--aeterni-radius-lg);
-    --aeterni-radius-input: var(--aeterni-radius-md);
+    /* Interactive controls resolve their radius through one size ladder, so a
+       Button and an Input of the same tier line up in a form row. */
+    --aeterni-radius-control-sm: var(--aeterni-radius-sm);
+    --aeterni-radius-control-md: var(--aeterni-radius-md);
+    --aeterni-radius-control-lg: var(--aeterni-radius-lg);
+    --aeterni-radius-button: var(--aeterni-radius-control-md);
+    --aeterni-radius-button-sm: var(--aeterni-radius-control-sm);
+    --aeterni-radius-button-lg: var(--aeterni-radius-control-lg);
+    --aeterni-radius-input: var(--aeterni-radius-control-md);
+    --aeterni-radius-input-sm: var(--aeterni-radius-control-sm);
+    --aeterni-radius-input-lg: var(--aeterni-radius-control-lg);
+    /* Container radii are intentionally one step apart: Card carries a header,
+       body and footer structure, so it reads as the larger container, while
+       Surface is a plain wrapper that follows the control geometry. */
+    --aeterni-radius-surface: var(--aeterni-radius-lg);
     --aeterni-radius-card: var(--aeterni-radius-xl);
     --aeterni-radius-modal: var(--aeterni-radius-2xl);
     --aeterni-radius-badge: var(--aeterni-radius-full);
@@ -152,6 +170,25 @@
     --aeterni-height-md: 40px;
     --aeterni-height-lg: 48px;
     --aeterni-height-xl: 56px;
+    /* Default max width of a multi-segment control (theme switch, and the
+       planned Segmented control). */
+    --aeterni-width-control-md: 360px;
+    /* Box size of inline controls (checkbox, radio) and their indicator boxes. */
+    --aeterni-control-size-sm: 16px;
+    --aeterni-control-size-md: 20px;
+    --aeterni-control-size-lg: 26px;
+    /* Dense row height used by menu and list style navigation rows. */
+    --aeterni-row-height-compact: 36px;
+    /* Badge/indicator disc that holds a medium icon plus its optical padding. */
+    --aeterni-badge-size-md: 30px;
+    /* Floating layer metrics: dialogs, dropdown option lists and popovers. */
+    --aeterni-overlay-width-sm: 420px;
+    --aeterni-overlay-width-md: 520px;
+    --aeterni-overlay-height-md: 720px;
+    --aeterni-overlay-max-height: 320px;
+    --aeterni-overlay-min-width-sm: 12rem;
+    --aeterni-overlay-max-width-sm: 32rem;
+    --aeterni-overlay-max-width-xs: 20rem;
     --aeterni-width-input-xs: 160px;
     --aeterni-width-input-sm: 200px;
     --aeterni-width-input-md: 240px;
@@ -286,6 +323,9 @@
     --aeterni-control-padding-x-md: var(--aeterni-spacing-4);
     --aeterni-control-padding-x-lg: var(--aeterni-spacing-5);
     --aeterni-touch-target: var(--aeterni-height-lg);
+    /* Minimum pointer target size from WCAG 2.5.8, used to grow hit areas of
+       small glyph buttons without changing their visual box. */
+    --aeterni-touch-target-min: var(--aeterni-height-xs);
     --aeterni-opacity-disabled: .45;
     --aeterni-opacity-muted: .68;
     --aeterni-focus-width: 3px;
@@ -304,10 +344,11 @@
     --aeterni-field-placeholder: var(--aeterni-state-color-placeholder, var(--aeterni-text-muted, var(--aeterni-text-tertiary)));
     --aeterni-field-invalid: var(--aeterni-state-color-invalid, var(--aeterni-danger));
     --aeterni-preview-size: var(--aeterni-spacing-4);
+    /* Discoverable but quiet scrollbars for scrollable overlay content. */
+    --aeterni-scrollbar-size: 6px;
+    --aeterni-scrollbar-thumb: var(--aeterni-border-strong);
+    --aeterni-scrollbar-track: transparent;
     --aeterni-token-color: transparent;
-    --aeterni-icon-size-sm: 14px;
-    --aeterni-icon-size-md: 16px;
-    --aeterni-icon-size-lg: 20px;
 }
 
 /* --------------------------------------------------------------------------
@@ -343,6 +384,9 @@
     --aeterni-bg-surface: #FFFFFF;
     --aeterni-bg-elevated: rgba(255, 255, 255, .82);
     --aeterni-bg-solid: #FFFFFF;
+    /* Toggle indicator surface. The white knob keeps a readable edge on the
+       light track and on the dark track, unlike the inverse-text token. */
+    --aeterni-state-background-thumb: var(--aeterni-gray-0);
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
@@ -378,6 +422,13 @@
     --aeterni-info-soft: rgba(0, 122, 255, .11);
     --aeterni-neutral-soft: rgba(142, 142, 147, .11);
 
+    /* Ink for vivid semantic surfaces (solid success/warning/danger/info
+       controls). The near-black primitive clears 4.5:1 against every semantic
+       stop in both themes; "strong" covers the darker 600/700 hover and active
+       stops used by the light theme. */
+    --aeterni-color-on-semantic: var(--aeterni-gray-950);
+    --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
+
     /* State aliases: components consume these names instead of selecting a
        palette stop independently. The primitive scales remain available for
        custom themes, while the aliases define the component contract. */
@@ -387,6 +438,7 @@
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent);
+    --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 24%, transparent);
     --aeterni-color-success-default: var(--aeterni-sem-success);
     --aeterni-color-success-hover: var(--aeterni-success-600);
     --aeterni-color-success-active: var(--aeterni-success-700);
@@ -517,6 +569,7 @@
     --aeterni-bg-surface: #1B1D1F;
     --aeterni-bg-elevated: rgba(32, 34, 36, .82);
     --aeterni-bg-solid: #1B1D1F;
+    --aeterni-state-background-thumb: var(--aeterni-gray-0);
     --aeterni-bg-hover: var(--aeterni-surface-hover);
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
@@ -548,6 +601,10 @@
     --aeterni-warning-soft: rgba(255, 159, 10, .12);
     --aeterni-danger-soft: rgba(255, 69, 58, .11);
     --aeterni-info-soft: rgba(10, 132, 255, .11);
+    /* Dark-theme hover/active stops run lighter, so one ink covers the whole
+       interaction range (see the light theme block for the rationale). */
+    --aeterni-color-on-semantic: var(--aeterni-text-inverse);
+    --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
     --aeterni-neutral-soft: rgba(142, 142, 147, .12);
 
     /* Dark-theme state aliases use lighter hover/active stops for contrast. */
@@ -557,6 +614,7 @@
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
+    --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
     --aeterni-color-success-default: var(--aeterni-sem-success);
     --aeterni-color-success-hover: var(--aeterni-success-400);
     --aeterni-color-success-active: var(--aeterni-success-300);
@@ -658,6 +716,171 @@
     --aeterni-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, .28), 0 2px 4px -2px rgba(0, 0, 0, .18);
     --aeterni-shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, .34), 0 4px 8px -4px rgba(0, 0, 0, .22);
     --aeterni-shadow-xl: 0 24px 36px -12px rgba(0, 0, 0, .42), 0 8px 16px -8px rgba(0, 0, 0, .28);
+}
+
+/* System-preference fallback -------------------------------------------------
+   Before any script runs, an unset theme follows the operating system so a
+   dark-preference visitor never sees a light flash. The declarations mirror the
+   [data-theme="dark"] block above; an explicit theme attribute turns this rule
+   off. Keep both blocks in sync until the palette moves to a shared layer. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]):not([data-aeterni-mode]):not(.aeterni-dark) {
+        color-scheme: dark;
+        --aeterni-bg: #101112;
+        --aeterni-bg-primary: var(--aeterni-bg);
+        --aeterni-bg-secondary: #17191B;
+        --aeterni-bg-tertiary: #202326;
+        --aeterni-bg-surface: #1B1D1F;
+        --aeterni-bg-elevated: rgba(32, 34, 36, .82);
+        --aeterni-bg-solid: #1B1D1F;
+        --aeterni-state-background-thumb: var(--aeterni-gray-0);
+        --aeterni-bg-hover: var(--aeterni-surface-hover);
+        --aeterni-bg-active: var(--aeterni-surface-active);
+        --aeterni-bg-disabled: var(--aeterni-bg-secondary);
+        --aeterni-surface-soft: rgba(255, 255, 255, .045);
+        --aeterni-surface-hover: rgba(170, 120, 255, .12);
+        --aeterni-surface-active: rgba(170, 120, 255, .19);
+        --aeterni-surface-selected: rgba(139, 77, 246, .18);
+        --aeterni-overlay: rgba(0, 0, 0, .64);
+        --aeterni-text: #F2F3F5;
+        --aeterni-text-primary: var(--aeterni-text);
+        --aeterni-text-secondary: #B7BBC1;
+        --aeterni-text-tertiary: #A5AAB1;
+        --aeterni-text-muted: var(--aeterni-text-tertiary);
+        --aeterni-text-disabled: #737980;
+        --aeterni-text-inverse: #1B1D1F;
+        --aeterni-text-placeholder: var(--aeterni-text-muted);
+        --aeterni-text-link: #AA78FF;
+        --aeterni-border: rgba(255, 255, 255, .09);
+        --aeterni-border-strong: rgba(255, 255, 255, .16);
+        --aeterni-border-default: var(--aeterni-border);
+        --aeterni-border-subtle: rgba(255, 255, 255, .06);
+        --aeterni-border-disabled: var(--aeterni-border-subtle);
+        --aeterni-sem-success: #30D158;
+        --aeterni-sem-warning: #FF9F0A;
+        --aeterni-sem-danger: #FF453A;
+        --aeterni-sem-info: #0A84FF;
+        --aeterni-sem-neutral: #8E8E93;
+        --aeterni-success-soft: rgba(48, 209, 88, .11);
+        --aeterni-warning-soft: rgba(255, 159, 10, .12);
+        --aeterni-danger-soft: rgba(255, 69, 58, .11);
+        --aeterni-info-soft: rgba(10, 132, 255, .11);
+        /* Dark-theme hover/active stops run lighter, so one ink covers the whole
+           interaction range (see the light theme block for the rationale). */
+        --aeterni-color-on-semantic: var(--aeterni-text-inverse);
+        --aeterni-color-on-semantic-strong: var(--aeterni-text-inverse);
+        --aeterni-neutral-soft: rgba(142, 142, 147, .12);
+
+        /* Dark-theme state aliases use lighter hover/active stops for contrast. */
+        --aeterni-color-brand-default: var(--aeterni-brand-400);
+        --aeterni-color-brand-hover: var(--aeterni-brand-300);
+        --aeterni-color-brand-active: var(--aeterni-brand-200);
+        --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+        --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
+        --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
+        --aeterni-color-success-default: var(--aeterni-sem-success);
+        --aeterni-color-success-hover: var(--aeterni-success-400);
+        --aeterni-color-success-active: var(--aeterni-success-300);
+        --aeterni-color-success-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-success-soft: var(--aeterni-success-soft);
+        --aeterni-color-warning-default: var(--aeterni-sem-warning);
+        --aeterni-color-warning-hover: var(--aeterni-warning-400);
+        --aeterni-color-warning-active: var(--aeterni-warning-300);
+        --aeterni-color-warning-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-warning-soft: var(--aeterni-warning-soft);
+        --aeterni-color-danger-default: var(--aeterni-sem-danger);
+        --aeterni-color-danger-hover: var(--aeterni-danger-400);
+        --aeterni-color-danger-active: var(--aeterni-danger-300);
+        --aeterni-color-danger-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-danger-soft: var(--aeterni-danger-soft);
+        --aeterni-color-info-default: var(--aeterni-sem-info);
+        --aeterni-color-info-hover: var(--aeterni-info-400);
+        --aeterni-color-info-active: var(--aeterni-info-300);
+        --aeterni-color-info-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-info-soft: var(--aeterni-info-soft);
+        --aeterni-color-neutral-default: var(--aeterni-sem-neutral);
+        --aeterni-color-neutral-hover: var(--aeterni-neutral-400);
+        --aeterni-color-neutral-active: var(--aeterni-neutral-300);
+        --aeterni-color-neutral-disabled: var(--aeterni-text-disabled);
+        --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
+
+        --aeterni-state-color-default: var(--aeterni-color-brand-default);
+        --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-color-active: var(--aeterni-color-brand-active);
+        --aeterni-state-color-focus: var(--aeterni-color-brand-default);
+        --aeterni-state-color-selected: var(--aeterni-color-brand-default);
+        --aeterni-state-color-checked: var(--aeterni-color-brand-default);
+        --aeterni-state-color-disabled: var(--aeterni-text-disabled);
+        --aeterni-state-background-default: var(--aeterni-bg-surface);
+        --aeterni-state-background-hover: var(--aeterni-surface-hover);
+        --aeterni-state-background-active: var(--aeterni-surface-active);
+        --aeterni-state-background-selected: var(--aeterni-surface-selected);
+        --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+        --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
+        --aeterni-state-border-default: var(--aeterni-border-default);
+        --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-border-active: var(--aeterni-color-brand-active);
+        --aeterni-state-border-focus: var(--aeterni-color-brand-default);
+        --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
+        --aeterni-state-border-disabled: var(--aeterni-border-disabled);
+        --aeterni-state-color-pressed: var(--aeterni-state-color-active);
+        --aeterni-state-background-pressed: var(--aeterni-state-background-active);
+        --aeterni-state-color-invalid: var(--aeterni-color-danger-default);
+        --aeterni-state-background-invalid: var(--aeterni-danger-soft);
+        --aeterni-state-color-readonly: var(--aeterni-text-secondary);
+        --aeterni-state-background-readonly: var(--aeterni-bg-secondary);
+        --aeterni-state-color-placeholder: var(--aeterni-text-placeholder);
+        --aeterni-state-color-muted: var(--aeterni-text-muted);
+        --aeterni-state-color-inverse: var(--aeterni-text-inverse);
+        --aeterni-state-background-inverse: var(--aeterni-bg-solid);
+
+        /* General control aliases reduce repeated state wiring in components. */
+        --aeterni-control-background: var(--aeterni-state-background-default);
+        --aeterni-control-background-hover: var(--aeterni-state-background-hover);
+        --aeterni-control-background-active: var(--aeterni-state-background-active);
+        --aeterni-control-background-selected: var(--aeterni-state-background-selected);
+        --aeterni-control-background-checked: var(--aeterni-state-background-checked);
+        --aeterni-control-background-disabled: var(--aeterni-state-background-disabled);
+        --aeterni-control-background-invalid: var(--aeterni-state-background-invalid);
+        --aeterni-control-background-readonly: var(--aeterni-state-background-readonly);
+        --aeterni-control-background-inverse: var(--aeterni-state-background-inverse);
+        --aeterni-control-border: var(--aeterni-state-border-default);
+        --aeterni-control-border-hover: var(--aeterni-state-border-hover);
+        --aeterni-control-border-active: var(--aeterni-state-border-active);
+        --aeterni-control-border-focus: var(--aeterni-state-border-focus);
+        --aeterni-control-border-invalid: var(--aeterni-state-border-invalid);
+        --aeterni-control-border-disabled: var(--aeterni-state-border-disabled);
+        --aeterni-control-foreground: var(--aeterni-text-primary);
+        --aeterni-control-foreground-hover: var(--aeterni-state-color-hover);
+        --aeterni-control-foreground-active: var(--aeterni-state-color-active);
+        --aeterni-control-foreground-selected: var(--aeterni-state-color-selected);
+        --aeterni-control-foreground-checked: var(--aeterni-state-color-checked);
+        --aeterni-control-foreground-focus: var(--aeterni-state-color-focus);
+        --aeterni-control-foreground-readonly: var(--aeterni-state-color-readonly);
+        --aeterni-control-foreground-placeholder: var(--aeterni-state-color-placeholder);
+        --aeterni-control-foreground-muted: var(--aeterni-state-color-muted);
+        --aeterni-control-foreground-disabled: var(--aeterni-state-color-disabled);
+        --aeterni-control-foreground-invalid: var(--aeterni-state-color-invalid);
+        --aeterni-control-foreground-inverse: var(--aeterni-state-color-inverse);
+        --aeterni-control-focus-ring: var(--aeterni-focus-color);
+
+        --aeterni-color-success: var(--aeterni-color-success-default);
+        --aeterni-color-warning: var(--aeterni-color-warning-default);
+        --aeterni-color-danger: var(--aeterni-color-danger-default);
+        --aeterni-color-info: var(--aeterni-color-info-default);
+        --aeterni-color-neutral: var(--aeterni-color-neutral-default);
+        --aeterni-success: var(--aeterni-color-success-default);
+        --aeterni-warning: var(--aeterni-color-warning-default);
+        --aeterni-danger: var(--aeterni-color-danger-default);
+        --aeterni-info: var(--aeterni-color-info-default);
+        --aeterni-neutral: var(--aeterni-color-neutral-default);
+        --aeterni-shadow-xs: 0 1px 2px rgba(0, 0, 0, .18);
+        --aeterni-shadow-sm: 0 1px 3px rgba(0, 0, 0, .24), 0 1px 2px rgba(0, 0, 0, .16);
+        --aeterni-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, .28), 0 2px 4px -2px rgba(0, 0, 0, .18);
+        --aeterni-shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, .34), 0 4px 8px -4px rgba(0, 0, 0, .22);
+        --aeterni-shadow-xl: 0 24px 36px -12px rgba(0, 0, 0, .42), 0 8px 16px -8px rgba(0, 0, 0, .28);
+    }
 }
 
 [data-aeterni-mode="light"] {

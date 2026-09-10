@@ -1,1 +1,18 @@
-.aeterni-radio-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--aeterni-spacing-3) var(--aeterni-spacing-5); min-width: 0; margin: 0; padding: 0; border: 0; }
+.aeterni-radio-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-3) var(--aeterni-spacing-5);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.aeterni-radio-group--vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: var(--aeterni-spacing-3);
+}

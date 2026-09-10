@@ -13,4 +13,10 @@ public sealed class AeterniUIOptions
     public TimeSpan DefaultAlertDuration { get; set; } = TimeSpan.FromSeconds(5);
 
     public TimeSpan DefaultToastDuration { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Text the library renders itself. Mutate the entries to localise every
+    /// component at once.
+    /// </summary>
+    public AeterniUITextOptions Text { get; } = new();
 }

@@ -1,4 +1,33 @@
-.aeterni-popover { box-sizing: border-box; min-width: 12rem; max-width: min(32rem, calc(100vw - 2rem)); padding: var(--aeterni-spacing-4); border: var(--aeterni-border-width) solid var(--aeterni-border-default); border-radius: var(--aeterni-radius-dropdown); background: var(--aeterni-bg-elevated); color: var(--aeterni-text-primary); box-shadow: var(--aeterni-shadow-dropdown); }
-.aeterni-popover[hidden] { display: none; }
-.aeterni-popover__header { margin-bottom: var(--aeterni-spacing-3); font-weight: var(--aeterni-font-weight-semibold); }
-.aeterni-popover__content { min-width: 0; }
+.aeterni-popover {
+    box-sizing: border-box;
+    z-index: var(--aeterni-z-popover);
+    min-width: var(--aeterni-overlay-min-width-sm);
+    max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    padding: var(--aeterni-spacing-4);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-dropdown);
+    background: var(--aeterni-bg-elevated);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-dropdown);
+}
+
+.aeterni-popover[hidden] {
+    display: none;
+}
+
+/* Modal popovers sit on the modal layer. Backdrop, focus trap and background
+   scroll lock are not implemented yet — see the v0.3 roadmap entry for the
+   shared focus/positioning extraction. */
+.aeterni-popover.is-modal {
+    z-index: var(--aeterni-z-modal);
+    box-shadow: var(--aeterni-shadow-modal);
+}
+
+.aeterni-popover__header {
+    margin-bottom: var(--aeterni-spacing-3);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-popover__content {
+    min-width: 0;
+}

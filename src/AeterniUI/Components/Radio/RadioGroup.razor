@@ -1,7 +1,7 @@
 @typeparam TValue
 @inherits AeterniComponent
 
-<fieldset @attributes="BuildAttributes()" class="aeterni-radio-group" id="@GroupId" aria-label="@AriaLabel" aria-invalid="@(Invalid ? "true" : null)" aria-required="@(Required ? "true" : null)">
+<fieldset @attributes="BuildAttributes()" role="radiogroup" aria-label="@AriaLabel" aria-invalid="@(Invalid ? "true" : null)" aria-required="@(Required ? "true" : null)">
     <CascadingValue Value="Context" IsFixed="false">
         @ChildContent
     </CascadingValue>

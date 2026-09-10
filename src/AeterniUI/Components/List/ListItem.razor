@@ -1,17 +1,17 @@
 @inherits AeterniComponent
 
+@* Selectable ListItem renders a non-focusable `role="option"` element: the
+   Listbox container owns DOM focus and reports the active option through
+   aria-activedescendant, so options must stay out of the Tab sequence and must
+   not steal focus on click. *@
 @if (Interactive)
 {
-    <button type="button"
-            @ref="_rootElement"
-            id="@OptionId"
-            class="@BuildItemClass()"
-            disabled="@EffectiveDisabled"
-            tabindex="-1"
-            aria-selected="@Selected"
-            aria-disabled="@EffectiveDisabled"
-            @onclick="HandleClickAsync"
-            @onfocus="HandleFocus">
+    <div id="@OptionId"
+         class="@BuildItemClass()"
+         role="option"
+         aria-selected="@Selected"
+         aria-disabled="@(EffectiveDisabled ? "true" : null)"
+         @onclick="HandleClickAsync">
         @if (LeadingContent is not null)
         {
             <span class="aeterni-list-item__leading">@LeadingContent</span>
@@ -21,7 +21,7 @@
         {
             <span class="aeterni-list-item__trailing">@TrailingContent</span>
         }
-    </button>
+    </div>
 }
 else
 {

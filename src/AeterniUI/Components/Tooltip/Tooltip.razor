@@ -1,9 +1,9 @@
 @inherits AeterniComponent
 
-<span @attributes="BuildAttributes()" class="aeterni-tooltip">
+<span @ref="RootElement" @attributes="BuildAttributes()">
     <span class="aeterni-tooltip__trigger">@ChildContent</span>
     @if (!Disabled && !string.IsNullOrWhiteSpace(Text))
     {
-        <span class="aeterni-tooltip__content" role="tooltip">@Text</span>
+        <span class="aeterni-tooltip__content" id="@ContentId" role="tooltip">@Text</span>
     }
 </span>

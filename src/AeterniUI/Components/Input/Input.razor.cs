@@ -115,7 +115,7 @@ public partial class Input : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-input")
-            .Add($"aeterni-input--{SizeClass}")
+            .Add(SizeClass)
             .Add("is-full-width", FullWidth)
             .Add("is-readonly", ReadOnly)
             .Add("is-invalid", IsInvalid)
@@ -294,12 +294,7 @@ public partial class Input : AeterniComponent
         _ => "text"
     };
 
-    private string SizeClass => Size switch
-    {
-        Size.Small => "sm",
-        Size.Large => "lg",
-        _ => "md"
-    };
+    private string? SizeClass => ComponentClass.ForSize("aeterni-input", Size);
 
     private void ValidateParameters()
     {

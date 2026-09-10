@@ -3,14 +3,17 @@
     --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 14%, transparent);
     --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 78%, var(--aeterni-text-primary));
     --aeterni-tag-border: transparent;
+    --aeterni-tag-min-height: var(--aeterni-height-xs);
+    --aeterni-tag-padding-inline: var(--aeterni-spacing-2);
+    --aeterni-tag-icon-size: var(--aeterni-icon-size-xs);
 
     display: inline-flex;
     align-items: center;
     gap: var(--aeterni-gap-xs);
     box-sizing: border-box;
     min-width: 0;
-    min-height: 24px;
-    padding: 0 10px;
+    min-height: var(--aeterni-tag-min-height);
+    padding: 0 var(--aeterni-tag-padding-inline);
     border: var(--aeterni-border-width) solid var(--aeterni-tag-border);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-tag-bg);
@@ -64,15 +67,20 @@
     --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-color) 88%, var(--aeterni-text-primary));
 }
 
+/* Size tiers stay on the shared height scale: sm is one step below the default
+   chip and lg one step above, so a new raw pixel tier is never introduced. */
 .aeterni-tag--sm {
-    min-height: 20px;
-    padding-inline: 8px;
-    font-size: 10px;
+    --aeterni-tag-min-height: calc(var(--aeterni-height-xs) - var(--aeterni-spacing-1));
+    --aeterni-tag-padding-inline: var(--aeterni-spacing-2);
+
+    font-size: var(--aeterni-font-size-xs);
 }
 
 .aeterni-tag--lg {
-    min-height: 28px;
-    padding-inline: 12px;
+    --aeterni-tag-min-height: calc(var(--aeterni-height-xs) + var(--aeterni-spacing-1));
+    --aeterni-tag-padding-inline: var(--aeterni-spacing-3);
+    --aeterni-tag-icon-size: var(--aeterni-icon-size-sm);
+
     font-size: var(--aeterni-font-size-sm);
 }
 
@@ -81,13 +89,8 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 12px;
-    height: 12px;
-}
-
-.aeterni-tag--lg .aeterni-tag__icon {
-    width: 14px;
-    height: 14px;
+    width: var(--aeterni-tag-icon-size);
+    height: var(--aeterni-tag-icon-size);
 }
 
 .aeterni-tag__icon > svg {
@@ -102,21 +105,36 @@
 }
 
 /* Dismiss action — the close Button is shrunk to a quiet glyph hit target and
-   never contributes to the Tag's height. */
+   never contributes to the Tag's height. The glyph box stays 16x16 while an
+   invisible pseudo element grows the pointer target to the 24x24 minimum
+   (WCAG 2.5.8) inside the chip's own padding. */
 .aeterni-tag ::deep .aeterni-tag__dismiss {
-    width: 16px;
-    min-height: 16px;
-    height: 16px;
+    position: relative;
+    width: var(--aeterni-icon-size-md);
+    min-height: var(--aeterni-icon-size-md);
+    height: var(--aeterni-icon-size-md);
     padding: 0;
-    margin: 0 -4px 0 2px;
+    /* Pull the glyph box against the chip's inline end; the flex gap above
+       already separates it from the label. */
+    margin: 0 calc(var(--aeterni-spacing-2) * -1) 0 0;
     border-radius: var(--aeterni-radius-round);
     background: transparent;
+    overflow: visible;
+}
+
+.aeterni-tag ::deep .aeterni-tag__dismiss::after {
+    content: "";
+    position: absolute;
+    top: calc((100% - var(--aeterni-touch-target-min)) / 2);
+    left: calc((100% - var(--aeterni-touch-target-min)) / 2);
+    width: var(--aeterni-touch-target-min);
+    height: var(--aeterni-touch-target-min);
 }
 
 .aeterni-tag__dismiss-glyph {
     display: inline-flex;
     color: var(--aeterni-tag-fg);
-    font-size: 14px;
+    font-size: var(--aeterni-icon-size-sm);
     line-height: 1;
     opacity: .72;
     transition: var(--aeterni-transition-opacity);

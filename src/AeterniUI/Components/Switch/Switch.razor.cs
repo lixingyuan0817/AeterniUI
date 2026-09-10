@@ -77,7 +77,7 @@ public partial class Switch : AeterniComponent
             .Add("is-checked", _currentValue)
             .Add("is-invalid", IsInvalid)
             .Add("is-disabled", _effectiveDisabled)
-            .Add("is-required", _effectiveRequired);
+;
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()

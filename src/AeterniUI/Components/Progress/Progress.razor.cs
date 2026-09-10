@@ -5,20 +5,27 @@ namespace AeterniUI.Components.Progress;
 
 public partial class Progress : AeterniComponent
 {
-    [Parameter] public double? Value { get; set; }
-    [Parameter] public double Max { get; set; } = 100;
-    [Parameter] public bool Indeterminate { get; set; }
-    [Parameter] public Color Color { get; set; } = Color.Primary;
-    [Parameter] public Size Size { get; set; } = Size.Default;
-    [Parameter] public bool ShowValue { get; set; }
-    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter]
+    public double? Value { get; set; }
+    [Parameter]
+    public double Max { get; set; } = 100;
+    [Parameter]
+    public bool Indeterminate { get; set; }
+    [Parameter]
+    public Color Color { get; set; } = Color.Primary;
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
+    [Parameter]
+    public bool ShowValue { get; set; }
+    [Parameter]
+    public string? AriaLabel { get; set; }
 
     private double Percentage => Indeterminate || !Value.HasValue ? 0 : Math.Clamp(Value.Value / Max * 100, 0, 100);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-progress")
-        .Add($"aeterni-progress--{SizeClass}")
-        .Add($"aeterni-progress--{ColorClass}")
+        .Add(SizeClass)
+        .Add(ColorClass)
         .Add("is-indeterminate", Indeterminate);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -35,8 +42,8 @@ public partial class Progress : AeterniComponent
         return attributes;
     }
 
-    private string SizeClass => Size switch { Size.Small => "sm", Size.Large => "lg", _ => "md" };
-    private string ColorClass => Color.ToString().ToLowerInvariant();
+    private string? SizeClass => ComponentClass.ForSize("aeterni-progress", Size);
+    private string? ColorClass => ComponentClass.ForColor("aeterni-progress", Color);
 
     private void ValidateParameters()
     {

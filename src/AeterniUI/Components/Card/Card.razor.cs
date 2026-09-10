@@ -43,9 +43,9 @@ public partial class Card : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-card")
-            .Add($"aeterni-card--{VariantClass}")
-            .Add($"aeterni-card--elevation-{ElevationClass}")
-            .Add($"aeterni-card--padding-{PaddingClass}")
+            .Add(ComponentClass.For("aeterni-card", VariantClass))
+            .Add(ComponentClass.For("aeterni-card", ElevationClass))
+            .Add(ComponentClass.For("aeterni-card", PaddingClass))
             .Add("is-bordered", Bordered)
             .Add("is-full-width", FullWidth)
             .Add("is-interactive", IsInteractive)
@@ -100,28 +100,30 @@ public partial class Card : AeterniComponent
         await OnClick.InvokeAsync();
     }
 
-    private string VariantClass => Variant switch
+    // Each mapper returns null for the tier that the component's base rule
+    // already renders, so no modifier class is emitted without a matching rule.
+    private string? VariantClass => Variant switch
     {
         SurfaceVariant.Subtle => "subtle",
         SurfaceVariant.Elevated => "elevated",
         SurfaceVariant.Glass => "glass",
-        _ => "default"
+        _ => null
     };
 
-    private string ElevationClass => Elevation switch
+    private string? ElevationClass => Elevation switch
     {
-        SurfaceElevation.Small => "small",
-        SurfaceElevation.Medium => "medium",
-        SurfaceElevation.Large => "large",
-        _ => "none"
+        SurfaceElevation.Small => "elevation-small",
+        SurfaceElevation.Medium => "elevation-medium",
+        SurfaceElevation.Large => "elevation-large",
+        _ => null
     };
 
-    private string PaddingClass => Padding switch
+    private string? PaddingClass => Padding switch
     {
-        SurfacePadding.None => "none",
-        SurfacePadding.Small => "small",
-        SurfacePadding.Large => "large",
-        SurfacePadding.ExtraLarge => "extra-large",
-        _ => "medium"
+        SurfacePadding.None => "padding-none",
+        SurfacePadding.Small => "padding-small",
+        SurfacePadding.Large => "padding-large",
+        SurfacePadding.ExtraLarge => "padding-extra-large",
+        _ => "padding-medium"
     };
 }

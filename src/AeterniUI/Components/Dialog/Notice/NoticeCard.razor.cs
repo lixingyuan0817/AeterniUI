@@ -54,7 +54,7 @@ public partial class NoticeCard : AeterniComponent
 
     private string Live => IsAlert || Severity == Severity.Danger ? "assertive" : "polite";
 
-    private string DefaultCloseLabel => IsAlert ? "Close alert" : "Close notification";
+    private string DefaultCloseLabel => IsAlert ? UiText.AlertCloseLabel : UiText.ToastCloseLabel;
 
     private string CardKindClass => IsAlert
         ? "aeterni-dialog-provider__alert"
@@ -62,32 +62,21 @@ public partial class NoticeCard : AeterniComponent
 
     private string BuildCardClass()
     {
-        var classes = new List<string>
-        {
-            CardKindClass,
-            $"{CardKindClass}--{SeverityClass(Severity)}"
-        };
-
-        if (NoBlur)
-        {
-            classes.Add("is-no-blur");
-        }
-
-        if (IsClosing)
-        {
-            classes.Add("is-closing");
-        }
-
-        return string.Join(" ", classes);
+        return ClassBuilder(CardKindClass)
+            .Add(ComponentClass.For(CardKindClass, SeverityClass(Severity)))
+            .Add("is-no-blur", NoBlur)
+            .Add("is-closing", IsClosing)
+            .Build();
     }
 
-    private static string SeverityClass(Severity severity) => severity switch
+    // Returns null for the default severity, whose accent comes from the base rule.
+    private static string? SeverityClass(Severity severity) => severity switch
     {
         Severity.Info => "info",
         Severity.Success => "success",
         Severity.Warning => "warning",
         Severity.Danger => "danger",
-        _ => "default"
+        _ => null
     };
 
     private async Task HandleCloseAsync(MouseEventArgs args)

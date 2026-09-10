@@ -70,6 +70,17 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private string ListboxId => $"{ElementId}-list";
 
+    // The trigger adopts the FormField input id so the field label's `for` still
+    // resolves; the field label itself is linked through aria-labelledby because
+    // a select-style trigger is a button, not a labelable text control.
+    private string? FormFieldInputId => FormField?.InputId;
+    private string? FormFieldLabelId => FormField?.LabelId;
+    private string? FormFieldDescribedBy => FormField?.DescribedBy;
+
+    private string PlaceholderText => string.IsNullOrWhiteSpace(Placeholder) ? UiText.ComboBoxPlaceholder : Placeholder;
+
+    private string ListLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.ComboBoxListLabel : AriaLabel;
+
     private bool IsInvalid =>
         Invalid ||
         (FormField?.Invalid ?? false) ||

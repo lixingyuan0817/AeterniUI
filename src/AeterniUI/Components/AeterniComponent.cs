@@ -1,5 +1,6 @@
 using AeterniUI.Attributes;
 using AeterniUI.Modules;
+using AeterniUI.Services;
 using AeterniUI.Services.Impl;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ namespace AeterniUI.Components;
 
 public class AeterniComponent : ComponentBase, IAsyncDisposable
 {
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [Inject] protected IServiceProvider ServiceProvider { get; set; } = default!;
 
     private JsModuleManager? _jsModuleManager;
     private IReadOnlyList<JsModuleAttribute>? _jsModules;
@@ -20,6 +21,7 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
     #region 私有字段
 
     private readonly string _instanceId = $"aeterni-{Guid.NewGuid():N}";
+    private AeterniUITextOptions? _uiText;
     private bool _disposed;
     private ElementReference _rootElement;
     private bool _rootElementInitialized;
@@ -62,6 +64,13 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
     /// </summary>
     protected JsModuleManager JsModuleManager =>
         _jsModuleManager ??= ServiceProvider.GetRequiredService<JsModuleManager>();
+
+    /// <summary>
+    /// Gets the localisable text table. Falls back to the built-in defaults when
+    /// the host did not register <see cref="AeterniUIOptions"/>.
+    /// </summary>
+    protected AeterniUITextOptions UiText =>
+        _uiText ??= ServiceProvider.GetService<AeterniUIOptions>()?.Text ?? new AeterniUITextOptions();
 
     /// <summary>
     /// Gets the modules declared by the concrete component, including inherited declarations.

@@ -42,26 +42,34 @@ public partial class Menu : AeterniComponent
 
     [Parameter, EditorRequired] public IReadOnlyList<MenuGroup> Items { get; set; } = [];
 
-    [Parameter] public string? SelectedId { get; set; }
+    [Parameter]
+    public string? SelectedId { get; set; }
 
-    [Parameter] public bool Accordion { get; set; }
+    [Parameter]
+    public bool Accordion { get; set; }
 
     /// <summary>
     /// Controlled expansion state. When set, the consumer owns which groups are
     /// open and receives every change through <see cref="OpenKeysChanged"/>;
     /// when null the component keeps the state itself.
     /// </summary>
-    [Parameter] public IReadOnlyList<string>? OpenKeys { get; set; }
+    [Parameter]
+    public IReadOnlyList<string>? OpenKeys { get; set; }
 
-    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter]
+    public string? AriaLabel { get; set; }
 
-    [Parameter] public EventCallback<string> SelectedIdChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedIdChanged { get; set; }
 
-    [Parameter] public EventCallback<IReadOnlyList<string>> OpenKeysChanged { get; set; }
+    [Parameter]
+    public EventCallback<IReadOnlyList<string>> OpenKeysChanged { get; set; }
 
-    [Parameter] public EventCallback<MenuItem> OnItemSelected { get; set; }
+    [Parameter]
+    public EventCallback<MenuItem> OnItemSelected { get; set; }
 
-    [Parameter] public EventCallback<MenuGroup> OnGroupToggled { get; set; }
+    [Parameter]
+    public EventCallback<MenuGroup> OnGroupToggled { get; set; }
 
     private readonly HashSet<string> _open = [];
     private bool _initialized;
@@ -70,7 +78,7 @@ public partial class Menu : AeterniComponent
 
     private bool IsControlled => OpenKeys is not null;
 
-    protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-menu").Add("is-accordion", Accordion);
+    protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-menu");
 
     protected override void OnParametersSet()
     {

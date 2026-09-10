@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.1.0`
+文档版本：`10.2.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -47,10 +47,20 @@
 - 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
 - 提供通用控件组合别名：`--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*` 和 `--aeterni-control-focus-ring`，方便组件直接组合控件状态。
 - 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
+- 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md` 和 `--aeterni-width-control-md`。
+- 提供可发现滚动条 Token：`--aeterni-scrollbar-size`、`--aeterni-scrollbar-thumb`、`--aeterni-scrollbar-track`；长选项列表和长通知堆栈使用细滚动条而不是隐藏滚动条。
+- 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
+- 实心语意表面使用专用前景 Token：`--aeterni-color-on-semantic` 及其 `-strong` 档，用于 success/warning/danger/info 实心控件的正文，保证浅色与深色主题下对比度 ≥ 4.5:1。
+- 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
+- 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。
+- 字体栈中的 Inter 与 JetBrains Mono 是可选的宿主依赖，库不随包提供 webfont；宿主未提供时回落到系统 UI 字体（等宽回落 Consolas / Courier New）。
+- 无显式主题时，`@media (prefers-color-scheme: dark)` 提供系统偏好兜底，避免深色偏好用户在脚本执行前看到浅色闪烁；一旦存在显式 `data-theme` / `data-aeterni-mode`，该兜底不再生效。
 - 支持系统主题跟随。
 - 主题切换由 `ThemeService` 管理。
 - `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
 - `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题和 Tauri titlebar 主题。
+- `ThemeProvider` 不渲染 DOM：基类的 `Id`、`Class`、`Style` 和 `Visible` 对它无效，主题只写到 `<html>` 上。
+- 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode` 与 `prefers-color-scheme`，写入 `data-theme`），否则深色偏好用户会在 Blazor 启动前看到浅色；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。
 - 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
 - 主题切换包含过渡动画，并适配 reduced-motion 场景。
@@ -70,8 +80,10 @@
 - `ChildContent`、`Loading`、`Disabled`、`FullWidth`。
 - `AriaLabel`、`OnClick`。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
+- 实心语义色（`Success`、`Warning`、`Danger`、`Info`）使用 `--aeterni-color-on-semantic` 前景；`Primary` 与 `Default` 共用基础品牌规则（`--primary` 与基础选择器同组）。
+- 默认档位不输出修饰类：`Size.Default` / `Size.Medium` 与 `Color.Default` 不再生成 `aeterni-button--md` / `aeterni-button--primary` 之外的空类名。
 - 禁用状态统一消费 `--aeterni-state-*` Token，保持所有颜色和变体的前景、背景可读；`Outline` 和 `Ghost` 仅保留各自的边框结构，`Link` 禁用时不会显示下划线。
-- 加载状态包含 spinner、`aria-busy` 和禁用交互。
+- 加载状态包含 spinner、`aria-busy` 和禁用交互。遮罩对所有变体使用同一套处理：自身表面的半透明层 + `blur(2px)`，因此文字会被模糊但仍然可见，实心变体保持自身语意底色、透明变体保持自身语意色描边。遮罩向外扩展一个边框宽度（`inset: calc(var(--aeterni-border-width) * -1)`），把控件自身的边框也盖在模糊层之下；Button 因此不再对子元素做 `overflow` 裁剪。
 - Link 变体悬浮时只显示下划线，不显示背景色。
 
 ### 行为与无障碍
@@ -94,7 +106,7 @@
 
 ### 行为与无障碍
 
-`Disabled` 通过级联上下文传递给内部 Button，而不是只在容器上做视觉置灰；保留原生 Tab 顺序，不实现方向键导航；连接模式下相邻按钮之间保留 1px 分隔线。
+`Disabled` 通过级联上下文传递给内部 Button，而不是只在容器上做视觉置灰；保留原生 Tab 顺序，不实现方向键导航；连接模式下相邻按钮之间保留 1px 分隔线，分隔线取相邻按钮自身前景色的 32% 混合（透明变体改用 `--aeterni-border-strong`），因此在品牌色、中性色和语意色实心按钮上都清晰可辨。
 
 ### 实现边界
 
@@ -123,6 +135,8 @@
 - 三个内容区域使用统一的内边距和边界关系。
 
 参数类型分别为 `SurfaceVariant`、`SurfaceElevation`、`SurfacePadding` 和 `SurfaceRadius`；`Card` 复用前三个，没有独立的 `Radius` 参数。
+
+两者共享同一套“选项 → 语意 Token”映射（变体、高度和内边距的每条规则指向相同 Token，评审脚本可逐条比对），默认值则有意不同：`Card` 是结构化容器（圆角 `--aeterni-radius-card`，默认带边框），`Surface` 是通用包装（圆角 `--aeterni-radius-surface`，默认无边框且支持 `Radius`）。默认档位不输出修饰类（`Variant=Default`、`Elevation=None`、`Radius=Default` 均不生成空类名）。
 
 ### 行为与无障碍
 
@@ -174,7 +188,9 @@
 - `AriaLabel` 和 `AriaDescribedBy` 无障碍属性。
 - 在 `EditForm` 中通过 `ValueExpression` 读取 `EditContext` 的验证消息，并同步 `aria-invalid`。
 - 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
-- 悬浮与聚焦均使用主题色（`--aeterni-brand-500`）边框，无外圈辉光/阴影；无效状态在悬浮、聚焦下始终保留危险色边框。
+- 悬浮与聚焦均使用主题色边框；`:focus-visible` 额外绘制全库统一的焦点环（`--aeterni-focus-width` + `--aeterni-focus-color`，文本输入在鼠标聚焦时同样匹配 `:focus-visible`）。
+- 无效状态在悬浮、聚焦下始终保留危险色边框，焦点环改用 `--aeterni-focus-color-invalid`，错误提示不会被焦点环覆盖。
+- `Small` / `Large` 档位同步切换圆角阶梯，保持与同档 Button 一致。
 
 ### 行为与无障碍
 
@@ -207,7 +223,7 @@
 
 ### 行为与无障碍
 
-使用原生 `<textarea>` 语义；通过 `ValueExpression` 接入 EditContext 校验，并同步 `aria-invalid`、`aria-required`、`aria-readonly`、`aria-disabled` 和 `aria-describedby`。`Resize` 支持 `None` 和 `Vertical`，默认允许垂直调整大小。
+使用原生 `<textarea>` 语义；通过 `ValueExpression` 接入 EditContext 校验，并同步 `aria-invalid`、`aria-required`、`aria-readonly`、`aria-disabled` 和 `aria-describedby`。`Resize` 支持 `None` 和 `Vertical`，默认允许垂直调整大小。聚焦时绘制与 `Input` 相同的焦点环，无效状态下焦点环使用危险色。
 
 ### 实现边界
 
@@ -221,7 +237,9 @@
 
 ### 行为与无障碍
 
-显式 `Error` 优先于 `EditContext` 验证消息，并通过稳定 ID 建立 label、描述文本、错误文本与控件之间的关联。FormField 会通过级联上下文向内部表单控件传递输入 ID、`aria-describedby`、禁用、必填和验证状态。
+显式 `Error` 优先于 `EditContext` 验证消息，并通过稳定 ID 建立 label、描述文本、错误文本与控件之间的关联。FormField 会通过级联上下文向内部表单控件传递输入 ID、label ID、`aria-describedby`、禁用、必填和验证状态。
+
+`Input`、`Textarea`、`Checkbox`、`Switch` 与独立的 `Radio` 会直接采用该输入 ID，`ComboBox`、`Rating` 和 `RadioGroup` 则是容器型控件：它们采用输入 ID 让 `label for` 仍然可解析，并通过 `aria-labelledby` 关联标签、通过 `aria-describedby` 关联描述与错误文本。
 
 ### 实现边界
 
@@ -255,7 +273,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 - `Indeterminate` 仅作为显示状态；用户交互后组件落定到明确的 `true`/`false` 值，不保留不确定状态。
 - `ChildContent` 作为标签文本，点击整行即可切换。
 - `Name`、`AriaLabel`、`AriaDescribedBy`。
-- `Size`：`Small`、`Default`、`Medium`、`Large`，默认/中等 20px、Small 16px、Large 26px 的紧凑盒体，标签与复选框间距为 4px。
+- `Size`：`Small`、`Default`、`Medium`、`Large`；尺寸盒体消费 `--aeterni-control-size-*`（Small 16px、默认/Medium 20px、Large 26px），与 `Radio` 使用同一套档位。
 - `Required`、`Invalid`、`Disabled`。
 - `OnChange` 回调，并在 `EditForm`/`EditContext` 中通过 `ValueExpression` 校验，同步 `aria-invalid`。
 - 支持默认、悬浮、聚焦、禁用和无效状态；三态显示通过原生 `:indeterminate` 呈现。
@@ -280,13 +298,17 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 ### 支持能力
 
-- `RadioGroup<TValue>` 提供 `Value`、`ValueChanged`、`ChildContent`、`Name`、`Disabled`、`Required`、`Invalid` 和 `AriaLabel`。
-- `Radio<TValue>` 提供 `Value`、`ValueChanged`、`ValueExpression`、`ChildContent`、`Name`、`Required`、`Invalid`、`AriaLabel` 和 `AriaDescribedBy`。
-- 使用原生 `<input type="radio">` 与 `fieldset` 分组语义。
+- `RadioGroup<TValue>` 提供 `Value`、`ValueChanged`、`ChildContent`、`Name`、`Size`、`Orientation`（`Horizontal` / `Vertical`）、`Disabled`、`Required`、`Invalid` 和 `AriaLabel`。
+- `Radio<TValue>` 提供 `Value`、`ValueChanged`、`ValueExpression`、`ChildContent`、`Name`、`Size`、`Required`、`Invalid`、`AriaLabel` 和 `AriaDescribedBy`；`Size` 为空时继承分组值。
+- 使用原生 `<input type="radio">` 与 `fieldset` 分组语义，分组输出 `role="radiogroup"` 和与布局一致的 `aria-orientation`。
+- 视觉与 `Checkbox` 对齐：同一 `--aeterni-control-size-*` 档位、1px 边框、选中态用内圆点而不是加粗边框，并补齐悬浮、无效、禁用与“禁用 + 选中”状态。
+- 根元素是 `<label>`（与 Checkbox、Switch 一致）：组件类与状态类（`aeterni-radio`、`--sm/--lg`、`is-checked`、`is-disabled`、`is-invalid`）落在根标签上，原生输入通过独立的输入属性集合渲染，因此尺寸与状态样式始终作用于可视圆圈。
 
 ### 行为与无障碍
 
-单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填和无效状态会传递到选项，并输出相应的原生/ARIA 语义。
+单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填、无效和尺寸档位会传递到选项，并输出相应的原生/ARIA 语义。垂直布局时容器切换为单列，并由 `aria-orientation="vertical"` 同步表达。
+
+位于 `FormField` 中的独立 `Radio` 会采用字段的输入 ID（点击标签可直接聚焦），`RadioGroup` 则让 fieldset 采用该 ID 并用 `aria-labelledby` 关联字段标签。
 
 ### 实现边界
 
@@ -319,7 +341,8 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 - `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`TagVariant`：`Default` / `Soft` / `Outline`）。
 - 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
-- 可关闭 Tag 的关闭按钮带有可访问名称且只触发一次事件。
+- 可关闭 Tag 的关闭按钮带有可访问名称、只触发一次事件，热区通过透明伪元素扩展到 `--aeterni-touch-target-min`（24×24，满足 WCAG 2.5.8）且不改变 Tag 高度。
+- `Size` 档位基于 `--aeterni-height-xs` 上下各取一档（`--sm` 20px、默认 24px、`--lg` 28px），不再使用 10px 字号等低于 Token 下限的裸值。
 
 ### 行为与无障碍
 
@@ -333,11 +356,11 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 ### 支持能力
 
 - `List` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
-- 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 使用原生 `<button>` 并同步 `aria-selected`，不额外设置 `role="option"`。
+- 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。
 - 支持鼠标、方向键、Home/End 与空格/回车选择；禁用项不可选择。
-- 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id 且移出 Tab 序列，由容器键盘统一驱动。
+- 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id、不进 Tab 序列也不接收 DOM 焦点，由容器键盘统一驱动，当前项用 `is-active` 样式提示。
 - 无选择模式渲染为普通列表结构，不输出按钮语义。
 
 ### 行为与无障碍
@@ -354,7 +377,9 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
-- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 可自定义（输出 `aria-label`）。
+- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
+- 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
+- 只读或禁用时把当前值并入分组可访问名称（`aria-label`），自定义 `Icon` 与内置星形使用同一尺寸（`--aeterni-icon-size-lg`）。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
 ### 行为与无障碍
@@ -371,9 +396,12 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`AriaLabel` 和 `OnChange`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`AriaLabel` 和 `OnChange`；未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
+- 选项渲染为非可聚焦的 `role="option"` 元素：打开后焦点始终留在触发器上，Tab 不会进入选项列表，键盘提示由 `is-active` 与 `aria-activedescendant` 表达。
+- 触发器采用 `FormField` 的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联字段标签、描述与错误文本。
+- 长选项列表使用细滚动条（`--aeterni-scrollbar-*`）而不是隐藏滚动条，滚动提示可见且仍可用鼠标滚轮滚动。
 - 弹层由最小 JS module（`ComboBox.razor.js`）按触发按钮锚定为 fixed 定位并自动上下翻转/贴边，避免被卡片/容器裁剪遮挡。
 
 ### 行为与无障碍
@@ -406,11 +434,11 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 ### 行为与无障碍
 
-Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容。
+Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容；`Modal` 同时把浮层提升到模态层级（`--aeterni-z-modal` 与模态阴影）。
 
 ### 实现边界
 
-当前提供基础容器与语义表面，不包含锚点定位、翻转、点击外部关闭和滚动关闭；这些能力留待后续 PopupHost 增强。
+仍是**基础版**：`PopupHost` 现在是真实的定位容器（`position: relative` 的正常盒子），但库不提供锚点定位、翻转/贴边、遮罩、焦点陷阱、Escape 与点击外部关闭。需要这些能力时由使用方在 `PopupHost` 内自行定位，或等待 v0.3 的共享浮层能力（见 `component-roadmap.zh-CN.md` 第三阶段前置能力）。`Modal` 目前只切换 `role` 与层级，不提供模态交互行为。
 
 ## 21. Menu
 
@@ -450,15 +478,17 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ### 支持能力
 
-`Tooltip` 支持 `Text`、`ChildContent`、`Disabled` 和 `AriaLabel`：`ChildContent` 是被描述的触发元素，`Text` 才是提示内容（两者不是重复内容参数）。
+`Tooltip` 支持 `Text`、`ChildContent`、`Disabled`、`AriaLabel` 和 `Placement`（`TooltipPlacement`：`Top` / `Bottom` / `Start` / `End`，默认 `Top`）：`ChildContent` 是被描述的触发元素，`Text` 才是提示内容（两者不是重复内容参数）。
 
 ### 行为与无障碍
 
-提示内容使用 `role="tooltip"`，不阻塞触发元素，也不影响页面布局。
+提示内容使用 `role="tooltip"`，不阻塞触发元素，也不影响页面布局。`Tooltip.razor.js` 会把提示节点的 id 写入 `ChildContent` 中第一个可聚焦元素的 `aria-describedby`（没有可聚焦元素时回退到触发包装元素），因此读屏可以直接朗读提示文本；提示节点在 `Text` 为空或禁用时完全不渲染，不会留下悬空引用。
+
+方位由 CSS 决定，JS 只在需要时切换方位类并写入偏移变量：优先使用 `Placement` 指定的一侧，空间不足时翻转到对侧，再沿交叉轴偏移以留在视口内（`resize` 时重算）。`prefers-reduced-motion` 下只保留位移过渡的关闭。
 
 ### 实现边界
 
-当前提供上方固定位置，不包含 Placement、Escape、点击外部关闭和复杂交互内容。
+不提供 Escape、点击外部关闭、富交互内容和模态行为；无 JS 时视觉提示仍可用，只是缺少 `aria-describedby` 关联与翻转/偏移。
 
 ## 23. ThemeProvider 和 ThemeSwitch 使用方式
 
@@ -485,6 +515,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 `DialogProvider` 是无可见内容的宿主组件，负责挂载 Dialog、Confirm、Alert 和 Toast：
 
 - 无公开参数（继承基类的 `Id`、`Class`、`Style`、`Visible` 等）。
+- 同一个 `ToastPosition` 下 Alert 与 Toast 共用一个位置容器（先 Alert 后 Toast），不会互相覆盖；容器超出视口高度时可用滚轮滚动，并使用细滚动条提示可滚动。
 - 在应用 Layout 或根组件中**只放置一次**，业务代码不要直接引用它。
 
 ### 行为与无障碍
@@ -492,10 +523,14 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 Provider 统一负责遮罩、焦点管理、背景滚动锁定和弹层层级，并通过 `IDialogService` 对外提供能力，
 因此应用组件不访问 Provider 内部状态。消息内容按纯文本安全输出。
 
+锁定背景滚动时会按“视口宽度 − 文档可用宽度”补偿 `body` 的右内边距，打开与关闭对话框都不会让背景横向跳动。
+
 ### 实现边界
 
 Provider 自身不提供定位或动画开关；位置、时长与数量等默认值由 `AddAeterniUI` 的
 `AeterniUIOptions` 配置，单个弹层可通过对应 options 覆盖。
+
+同时显示的 Toast 数量上限为 `AeterniUIOptions.MaxToastCount`（默认 5），超出后最早的一条会被完成并移除；Alert 由调用方 `await` 控制生命周期，不设数量上限。
 
 ## 25. Dialog、Confirm、Alert 和 Toast
 
@@ -592,11 +627,35 @@ builder.Services.AddAeterniUI();
 
 注册内容包括：
 
-- `AeterniUIOptions`。
+- `AeterniUIOptions`（含 `Text` 文案表）。
 - `JsModuleManager`。
 - `ThemeService`。
 - `DialogService`。
 - `IDialogService`。
+
+### 文案与本地化
+
+库内所有用户可见文案集中在 `AeterniUIOptions.Text`（类型 `AeterniUITextOptions`），默认值为英文；通过 `AddAeterniUI` 覆写即可整体本地化：
+
+```csharp
+builder.Services.AddAeterniUI(options =>
+{
+    options.Text.ComboBoxPlaceholder = "请选择";
+    options.Text.ComboBoxListLabel = "选项";
+    options.Text.RatingLabel = "评分";
+    options.Text.ThemeSwitchLabel = "主题模式";
+    options.Text.ThemeSystemLabel = "跟随系统";
+    options.Text.ThemeLightLabel = "浅色";
+    options.Text.ThemeDarkLabel = "深色";
+    options.Text.AlertCloseLabel = "关闭提示";
+    options.Text.ToastCloseLabel = "关闭通知";
+    options.Text.DialogCloseLabel = "关闭对话框";
+    options.Text.DialogLabel = "对话框";
+    options.Text.TagDismissLabel = "移除标签";
+});
+```
+
+组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
 ## 27. 当前边界
 

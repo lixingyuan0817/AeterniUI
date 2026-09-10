@@ -36,8 +36,12 @@ public partial class Rating : AeterniComponent
     [Parameter]
     public RenderFragment? Icon { get; set; }
 
+    /// <summary>
+    /// Accessible name of the rating group. Defaults to
+    /// <see cref="AeterniUITextOptions.RatingLabel"/>.
+    /// </summary>
     [Parameter]
-    public string AriaLabel { get; set; } = "Rating";
+    public string AriaLabel { get; set; } = string.Empty;
 
     [Parameter]
     public EventCallback<int> OnChange { get; set; }
@@ -69,6 +73,55 @@ public partial class Rating : AeterniComponent
             .Add("is-invalid", IsInvalid)
             .Add("is-disabled", Disabled);
     }
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase);
+
+        // A radiogroup container cannot be named by a `for` attribute, so the
+        // field label is linked through aria-labelledby; the container still
+        // adopts the field input id to keep the label's `for` resolvable.
+        if (FormField?.InputId is { } inputId)
+        {
+            attributes["id"] = inputId;
+        }
+
+        if (FormField?.LabelId is { } labelId)
+        {
+            attributes["aria-labelledby"] = labelId;
+        }
+
+        if (FormField?.DescribedBy is { } describedBy)
+        {
+            attributes["aria-describedby"] = describedBy;
+        }
+
+        return attributes;
+    }
+
+    /// <summary>
+    /// Roving tabindex stop: the selected star (or the first one when nothing is
+    /// selected) is the only radio in the Tab sequence, so the group is entered
+    /// and left with a single Tab press.
+    /// </summary>
+    private int TabStop => Value > 0 ? Math.Clamp(Value, 1, Max) : 1;
+
+    /// <summary>
+    /// Read-only and disabled ratings are display-only, so the current value is
+    /// folded into the group name instead of relying on focusable radios.
+    /// </summary>
+    private string EffectiveAriaLabel
+    {
+        get
+        {
+            var label = string.IsNullOrWhiteSpace(AriaLabel) ? UiText.RatingLabel : AriaLabel;
+            return IsInteractive ? label : $"{label}: {ValueLabel}";
+        }
+    }
+
+    private bool IsInteractive => !ReadOnly && !Disabled;
 
     private async Task HandleClickAsync(int index)
     {

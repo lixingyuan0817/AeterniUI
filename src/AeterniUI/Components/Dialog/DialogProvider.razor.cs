@@ -131,23 +131,16 @@ public partial class DialogProvider : AeterniComponent
         _ => "bottom-end"
     };
 
-    private static string SeverityClass(Severity severity) => severity switch
-    {
-        Severity.Info => "info",
-        Severity.Success => "success",
-        Severity.Warning => "warning",
-        Severity.Danger => "danger",
-        _ => "default"
-    };
-
-    private static Color ActionColor(Severity severity) => severity switch
-    {
-        Severity.Warning => Color.Warning,
-        Severity.Danger => Color.Danger,
-        Severity.Success => Color.Success,
-        Severity.Info => Color.Info,
-        _ => Color.Primary
-    };
+    /// <summary>
+    /// Dialog chrome classes. The severity is expressed with the shared colour
+    /// mapping, so a default severity adds no modifier (the base rule already
+    /// carries the brand accent).
+    /// </summary>
+    private string BuildDialogClass(DialogEntry dialog) => ClassBuilder("aeterni-dialog-provider__dialog")
+        .Add(ComponentClass.ForColor("aeterni-dialog-provider__dialog", dialog.Options.Severity.ToColor()))
+        .Add("is-shaking", IsDialogShaking(dialog.Id))
+        .Add("is-closing", dialog.IsClosing)
+        .Build();
 
     private bool IsDialogShaking(string id) => _shakingDialogs.Contains(id);
 

@@ -1,5 +1,9 @@
 .aeterni-button-group {
-    --aeterni-button-group-divider: color-mix(in srgb, var(--aeterni-text-inverse) 28%, transparent);
+    /* The divider colours itself from the connected button's own ink, so it stays
+       visible on every solid variant (brand, neutral and the semantic colours)
+       instead of assuming a dark button surface. Transparent variants draw a
+       border instead and use the strong border colour below. */
+    --aeterni-button-group-divider: color-mix(in srgb, var(--aeterni-button-foreground, currentColor) 32%, transparent);
 
     display: inline-flex;
     align-items: stretch;

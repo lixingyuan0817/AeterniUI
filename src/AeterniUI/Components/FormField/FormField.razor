@@ -3,7 +3,7 @@
 <div @attributes="BuildAttributes()">
     @if (!string.IsNullOrWhiteSpace(Label))
     {
-        <label class="aeterni-form-field__label" for="@InputId">
+        <label class="aeterni-form-field__label" id="@LabelId" for="@InputId">
             @Label
             @if (Required)
             {

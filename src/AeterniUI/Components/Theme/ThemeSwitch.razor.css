@@ -5,23 +5,23 @@
     box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: min(100%, 360px);
-    min-height: 48px;
-    padding: 4px;
+    width: min(100%, var(--aeterni-width-control-md));
+    min-height: var(--aeterni-height-lg);
+    padding: var(--aeterni-spacing-1);
     overflow: hidden;
-    border: 1px solid var(--aeterni-border);
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-bg-secondary);
 }
 
 .aeterni-theme-switch__slider {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
+    top: var(--aeterni-spacing-1);
+    bottom: var(--aeterni-spacing-1);
+    left: var(--aeterni-spacing-1);
     z-index: 0;
     box-sizing: border-box;
-    width: calc((100% - 8px) / 3);
+    width: calc((100% - var(--aeterni-spacing-2)) / 3);
     pointer-events: none;
     border: var(--aeterni-border-width) solid var(--aeterni-color-brand-hover);
     border-radius: var(--aeterni-radius-full);
@@ -32,6 +32,9 @@
     will-change: transform;
 }
 
+/* The slider offset is expressed in whole columns because this control is a
+   fixed three-option switch. The planned Segmented control replaces it with a
+   column-count independent transform (see the v0.3 roadmap). */
 .aeterni-theme-switch[data-mode="light"] .aeterni-theme-switch__slider {
     transform: translate3d(100%, 0, 0);
 }
@@ -44,7 +47,7 @@
     position: relative;
     z-index: 1;
     min-width: 0;
-    min-height: 38px;
+    min-height: calc(var(--aeterni-height-lg) - var(--aeterni-spacing-2));
     padding: 0 var(--aeterni-spacing-3);
     overflow: hidden;
     border: 0;
@@ -84,26 +87,26 @@
 }
 
 .aeterni-theme-switch--sm {
-    min-height: 40px;
+    min-height: var(--aeterni-height-md);
 }
 
 .aeterni-theme-switch--sm .aeterni-theme-switch__option {
-    min-height: 30px;
+    min-height: calc(var(--aeterni-height-md) - var(--aeterni-spacing-2));
     padding: 0 var(--aeterni-spacing-2);
     font-size: var(--aeterni-font-size-xs);
 }
 
 .aeterni-theme-switch--sm .aeterni-theme-switch__slider {
-    top: 4px;
-    bottom: 4px;
+    top: var(--aeterni-spacing-1);
+    bottom: var(--aeterni-spacing-1);
 }
 
 .aeterni-theme-switch--lg {
-    min-height: 56px;
+    min-height: var(--aeterni-height-xl);
 }
 
 .aeterni-theme-switch--lg .aeterni-theme-switch__option {
-    min-height: 46px;
+    min-height: calc(var(--aeterni-height-xl) - var(--aeterni-spacing-2));
     font-size: var(--aeterni-font-size-base);
 }
 

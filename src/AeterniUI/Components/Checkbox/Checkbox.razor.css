@@ -1,7 +1,7 @@
 .aeterni-checkbox {
     /* Compact control: the default box is smaller than the old control-height
        tokens (which were sized for buttons/inputs). */
-    --aeterni-checkbox-size: 20px;
+    --aeterni-checkbox-size: var(--aeterni-control-size-md);
     display: inline-flex;
     align-items: center;
     gap: var(--aeterni-gap-xs);
@@ -15,7 +15,9 @@
 }
 
 /* Visually hide the native input while keeping it focusable and exposed to
-   assistive technology. The custom control renders the visual state. */
+   assistive technology. The 1px box plus the 50% clip below is the standard
+   clip mechanism, not a design size. The custom control renders the visual
+   state. */
 .aeterni-checkbox__input {
     position: absolute;
     width: 1px;
@@ -79,7 +81,8 @@
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control::after {
     content: "";
     width: 50%;
-    height: 2px;
+    /* Bar thickness is a two-pixel rule, not a layout size. */
+    height: var(--aeterni-border-width-medium);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-text-inverse);
 }
@@ -135,12 +138,12 @@
 }
 
 .aeterni-checkbox--sm {
-    --aeterni-checkbox-size: 16px;
+    --aeterni-checkbox-size: var(--aeterni-control-size-sm);
     font-size: var(--aeterni-font-size-xs);
 }
 
 .aeterni-checkbox--lg {
-    --aeterni-checkbox-size: 26px;
+    --aeterni-checkbox-size: var(--aeterni-control-size-lg);
     font-size: var(--aeterni-font-size-base);
 }
 

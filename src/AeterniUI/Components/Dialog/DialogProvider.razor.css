@@ -35,8 +35,8 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    width: min(100%, 520px);
-    max-height: min(720px, calc(100vh - var(--aeterni-spacing-12)));
+    width: min(100%, var(--aeterni-overlay-width-md));
+    max-height: min(var(--aeterni-overlay-height-md), calc(100vh - var(--aeterni-spacing-12)));
     overflow: hidden auto;
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
@@ -79,16 +79,34 @@
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-3);
-    width: min(420px, calc(100vw - var(--aeterni-spacing-8)));
+    width: min(var(--aeterni-overlay-width-sm), calc(100vw - var(--aeterni-spacing-8)));
     max-height: calc(100vh - var(--aeterni-spacing-8));
     overflow-x: hidden;
     overflow-y: auto;
-    scrollbar-width: none;
+    /* The region itself stays click-through; the cards inside re-enable pointer
+       events, which is also what lets the wheel scroll this container when the
+       stack grows past its max height. */
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
     pointer-events: none;
 }
 
+.aeterni-dialog-provider__notice-region > * {
+    pointer-events: auto;
+}
+
 .aeterni-dialog-provider__notice-region::-webkit-scrollbar {
-    display: none;
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 .aeterni-dialog-provider__notice-region--top-start {
@@ -230,7 +248,7 @@
     align-items: center;
     justify-content: center;
     color: var(--aeterni-text-tertiary);
-    font-size: 16px;
+    font-size: var(--aeterni-icon-size-md);
     line-height: 1;
     transition: var(--aeterni-transition-color);
 }
@@ -267,6 +285,7 @@
     to { opacity: 1; }
 }
 
+/* Keyframe offsets are motion distances, not layout sizes. */
 @keyframes aeterni-dialog-slide-in {
     from { opacity: 0; transform: translateY(8px) scale(.98); }
     to { opacity: 1; transform: translateY(0) scale(1); }
@@ -284,6 +303,8 @@
     to { opacity: 0; transform: translateY(6px) scale(.98); }
 }
 
+/* Custom properties cannot be used in media conditions, so the query repeats
+   the value of --aeterni-breakpoint-sm (640px). */
 @media (max-width: 640px) {
     .aeterni-dialog-provider__backdrop {
         padding: var(--aeterni-spacing-4);

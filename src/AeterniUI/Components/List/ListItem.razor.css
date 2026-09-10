@@ -32,9 +32,10 @@
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-.aeterni-list--select .aeterni-list-item:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: -1px;
+/* The container owns focus; `.is-active` mirrors the option reported through
+   aria-activedescendant (see ListItem). */
+.aeterni-list--select .aeterni-list-item.is-active {
+    background: var(--aeterni-state-background-hover);
 }
 
 .aeterni-list-item.is-disabled {

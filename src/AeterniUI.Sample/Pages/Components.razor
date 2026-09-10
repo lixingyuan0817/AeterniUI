@@ -32,6 +32,18 @@
                             <section><span>02</span><h2><Icon Definition="@FontAwesomeIcons.Solid.Link" Color="Color.Primary" /> 引入样式</h2><pre><code>&lt;link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" /&gt;</code></pre></section>
                             <section><span>03</span><h2><Icon Definition="@FontAwesomeIcons.Solid.Gear" Color="Color.Primary" /> 注册 Provider</h2><pre><code>&lt;ThemeProvider /&gt;
 &lt;DialogProvider /&gt;</code></pre></section>
+                            <section>
+                                <span>04</span>
+                                <h2><Icon Definition="@FontAwesomeIcons.Solid.Paintbrush" Color="Color.Primary" /> 预渲染主题</h2>
+                                <pre><code>&lt;script&gt;
+  const m = localStorage.getItem('aeterni.theme.mode');
+  const t = m === 'dark' || m === 'light'
+    ? m
+    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = t;
+  document.documentElement.style.colorScheme = t;
+&lt;/script&gt;</code></pre>
+                            </section>
                         </div>
                         <p class="showcase-install__note">从左侧选择组件查看实时预览、参数、事件与接口说明。</p>
                     </section>
@@ -58,6 +70,20 @@
                                     @_buttonText
                                 </Button>
                                 <span class="preview-feedback" role="status">@_interactionNote</span>
+                            </div>
+                            <div class="preview-state-row" aria-label="Loading 状态在各变体下的对照">
+                                <Button Variant="ButtonVariant.Default" Loading="true">Default</Button>
+                                <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
+                                <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
+                                <Button Variant="ButtonVariant.Text" Loading="true">Text</Button>
+                                <Button Variant="ButtonVariant.Link" Loading="true">Link</Button>
+                            </div>
+                            <div class="preview-state-row" aria-label="实心语义色对照">
+                                <Button Color="Color.Primary">Primary</Button>
+                                <Button Color="Color.Success">Success</Button>
+                                <Button Color="Color.Warning">Warning</Button>
+                                <Button Color="Color.Danger">Danger</Button>
+                                <Button Color="Color.Info">Info</Button>
                             </div>
                         </Preview>
                         <Controls>
@@ -91,6 +117,8 @@
                         <Notes>
                             <span>点击预览按钮会触发 <code>OnClick</code>，加载状态会同时输出 <code>aria-busy</code> 并阻止交互。</span>
                             <span>禁用状态会随 <code>Variant</code> 和 <code>Color</code> 保留层级与语意底色，不使用透明背景。</span>
+                            <span>第一行为 <code>Loading</code> 对照：透明变体只叠加自身语意色的半透明遮罩，不会变成实心按钮。</span>
+                            <span>第二行为实心语义色对照：前景使用 <code>--aeterni-color-on-semantic</code>，请在浅色与深色主题下各核对一次对比度。</span>
                         </Notes>
                     </ComponentPreview>
                     break;
@@ -366,14 +394,26 @@
                             <Checkbox Size="Size.Small" @bind-Value="_radioDisabled">Disabled</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_radioRequired">Required</Checkbox>
                             <Checkbox Size="Size.Small" @bind-Value="_radioInvalid">Invalid</Checkbox>
+                            <div class="control-field">
+                                <span>Size</span>
+                                <ShowcaseSelect TValue="Size" Id="radio-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_radioSize" />
+                            </div>
+                            <div class="control-field">
+                                <span>Orientation</span>
+                                <ShowcaseSelect TValue="Orientation" Id="radio-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_radioOrientation" />
+                            </div>
                         </Controls>
                         <Preview>
                             <div class="preview-stack">
-                                <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
+                                <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Size="_radioSize" Orientation="_radioOrientation" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
                                     <Radio TValue="string" Value="@("设计")">设计</Radio>
                                     <Radio TValue="string" Value="@("开发")">开发</Radio>
                                     <Radio TValue="string" Value="@("产品")">产品</Radio>
                                 </RadioGroup>
+                                <div class="preview-state-row" aria-label="Radio 与 Checkbox 视觉重量对照">
+                                    <Radio TValue="string" Value="@("独立")" Size="_radioSize">独立 Radio</Radio>
+                                    <Checkbox Size="_radioSize">同尺寸 Checkbox</Checkbox>
+                                </div>
                                 <code class="preview-value">Value: @_radioValue</code>
                             </div>
                         </Preview>
@@ -796,22 +836,42 @@
                             </div>
                         </Preview>
                         <Notes>
-                            <span>基础版 Popover 渲染在触发元素下方；示例通过切换 <code>Open</code> 展示打开与关闭，关闭时内容以 <code>hidden</code> 移除。锚点定位、翻转与点击外部关闭留待后续 PopupHost 增强。</span>
+                            <span>基础版 Popover 渲染在触发元素下方；示例通过切换 <code>Open</code> 展示打开与关闭，关闭时内容以 <code>hidden</code> 移除。</span>
+                            <span><code>PopupHost</code> 是真实定位容器（<code>position: relative</code>），但没有内置锚点定位、翻转、遮罩、焦点陷阱、Escape 与点击外部关闭这些能力，需要时由使用方在容器内自行定位；<code>Modal</code> 目前只切换 <code>role</code> 与层级。</span>
                         </Notes>
                     </ComponentPreview>
                     break;
 
                 case "tooltip":
-                    <ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明。" Parameters="@TooltipParameters">
+                    <ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明，并在视口边缘自动翻转与偏移。" Parameters="@TooltipParameters">
                         <Preview>
                             <div class="preview-overlay-demo">
                                 <p class="preview-overlay-demo__hint">将鼠标悬停在按钮上，或使用 Tab 聚焦按钮，查看 Tooltip 内容：</p>
-                                <Tooltip Text="这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。">
+                                <Tooltip Text="这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。" Placement="@_tooltipPlacement">
                                     <Button Variant="ButtonVariant.Outline">悬停或聚焦查看说明</Button>
                                 </Tooltip>
+                                <div class="preview-state-row" aria-label="四个方位的 Tooltip 对照">
+                                    @foreach (var placement in Enum.GetValues<TooltipPlacement>())
+                                    {
+                                        var placementLabel = $"Placement = {placement}";
+                                        <Tooltip Text="@placementLabel" Placement="@placement">
+                                            <Button Variant="ButtonVariant.Ghost" Size="Size.Small">@placement</Button>
+                                        </Tooltip>
+                                    }
+                                </div>
                                 <p class="preview-overlay-demo__hint">Tooltip 内容：这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。</p>
                             </div>
                         </Preview>
+                        <Controls>
+                            <div class="control-field">
+                                <span>Placement</span>
+                                <ShowcaseSelect TValue="TooltipPlacement" Id="tooltip-placement" AriaLabel="Placement" Options="@(Enum.GetValues<TooltipPlacement>())" @bind-Value="_tooltipPlacement" />
+                            </div>
+                        </Controls>
+                        <Notes>
+                            <span>提示文本会作为 <code>ChildContent</code> 中第一个可聚焦元素的 <code>aria-describedby</code>，屏幕阅读器可直接朗读。</span>
+                            <span>方位会随视口空间自动翻转并沿交叉轴偏移；把触发元素放在靠近视口边缘的位置即可观察该行为。</span>
+                        </Notes>
                     </ComponentPreview>
                     break;
 
@@ -830,6 +890,7 @@
                                     <Button Color="@FeedbackColor" OnClick="ShowPreviewAlert">Alert</Button>
                                     <Button Variant="ButtonVariant.Outline" Color="@FeedbackColor" OnClick="ShowPreviewConfirm">Confirm</Button>
                                     <Button Variant="ButtonVariant.Ghost" Color="@FeedbackColor" OnClick="ShowPreviewToast">Toast</Button>
+                                    <Button Variant="ButtonVariant.Text" Color="@FeedbackColor" OnClick="ShowPreviewAlertAndToast">Alert + Toast</Button>
                                 </div>
                                 <span class="preview-feedback" role="status">@_feedbackNote</span>
                             </div>
@@ -846,6 +907,7 @@
                         </Controls>
                         <Notes>
                             <span>Alert 和 Toast 使用 <code>Duration</code> 控制自动关闭；设置为 <code>TimeSpan.Zero</code> 时保持持久显示。</span>
+                            <span><code>Alert + Toast</code> 会在同一 <code>ToastPosition</code> 同时发送两类通知，用于对照它们在同一个位置容器内的堆叠顺序。</span>
                         </Notes>
                     </ComponentPreview>
                     break;
@@ -941,6 +1003,8 @@
     private bool _radioDisabled;
     private bool _radioRequired;
     private bool _radioInvalid;
+    private Size _radioSize = Size.Default;
+    private Orientation _radioOrientation = Orientation.Horizontal;
     private int _textareaRows = 4;
     private TextareaResize _textareaResize = TextareaResize.Vertical;
     private bool _textareaReadOnly;
@@ -1009,6 +1073,7 @@
     private Size _themeSwitchSize = Size.Large;
 
     private bool _popoverOpen;
+    private TooltipPlacement _tooltipPlacement = TooltipPlacement.Top;
     private string _popoverNote = "浮层当前为关闭状态，点击「打开 Popover」查看内容。";
 
     private Severity _feedbackSeverity = Severity.Info;
@@ -1192,6 +1257,8 @@
         new("ValueChanged", "EventCallback<TValue?>", "标准绑定回调。"),
         new("ChildContent", "RenderFragment?", "Radio 选项内容。"),
         new("Name", "string?", "原生单选组名称。"),
+        new("Size", "Size?", "尺寸档位；未设置时使用分组值，分组也未设置时为 Default。"),
+        new("Orientation", "Orientation", "分组布局方向，与 aria-orientation 一致。", "Horizontal"),
         new("Disabled", "bool", "禁用整个分组。", "false"),
         new("Required", "bool", "必填状态。", "false"),
         new("Invalid", "bool", "无效状态。", "false"),
@@ -1339,7 +1406,8 @@
     private static readonly ShowcaseParameter[] TooltipParameters =
     [
         new("Text", "string?", "提示内容；只有它会被渲染为 tooltip，为空白时不显示。"),
-        new("ChildContent", "RenderFragment?", "被描述的触发元素。"),
+        new("ChildContent", "RenderFragment?", "被描述的触发元素；其中第一个可聚焦元素会获得 aria-describedby。"),
+        new("Placement", "TooltipPlacement", "首选方位，越界时自动翻转到对侧并在交叉轴偏移。", "Top"),
         new("AriaLabel", "string?", "触发元素的无障碍名称。"),
         new("Disabled", "bool", "禁用后不显示提示。", "false")
     ];
@@ -1538,6 +1606,21 @@
             _feedbackPosition,
             new ToastOptions { Title = "Toast 预览", Severity = _feedbackSeverity });
         _feedbackNote = $"Toast 已发送到 {_feedbackPosition}。";
+    }
+
+    private async Task ShowPreviewAlertAndToast(MouseEventArgs _)
+    {
+        DialogService.ShowToast(
+            "Toast 与 Alert 共享同一个位置容器。",
+            _feedbackPosition,
+            new ToastOptions { Title = "Toast 预览", Severity = _feedbackSeverity });
+        _feedbackNote = $"Toast 已发送到 {_feedbackPosition}，等待 Alert 关闭。";
+
+        await DialogService.AlertAsync(
+            "Alert 与 Toast 共享同一个位置容器，两者不会重叠。",
+            _feedbackPosition,
+            new AlertOptions { Title = "Alert 预览", Severity = _feedbackSeverity });
+        _feedbackNote = "Alert 与 Toast 的组合演示已关闭。";
     }
 
     public void Dispose()

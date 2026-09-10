@@ -9,11 +9,15 @@ public partial class ThemeSwitch : AeterniComponent
     [Inject]
     protected ThemeService ThemeService { get; set; } = default!;
 
+    /// <summary>
+    /// Accessible name of the mode group. Defaults to
+    /// <see cref="AeterniUITextOptions.ThemeSwitchLabel"/>.
+    /// </summary>
     [Parameter]
-    public string AriaLabel { get; set; } = "Theme mode";
+    public string AriaLabel { get; set; } = string.Empty;
 
     [Parameter]
-    public Size Size { get; set; } = Size.Medium;
+    public Size Size { get; set; } = Size.Default;
 
     [Parameter]
     public EventCallback<ThemeMode> ModeChanged { get; set; }
@@ -22,6 +26,14 @@ public partial class ThemeSwitch : AeterniComponent
     {
         ThemeService.ThemeChanged += HandleThemeChanged;
     }
+
+    private string GroupLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.ThemeSwitchLabel : AriaLabel;
+
+    private string SystemLabel => UiText.ThemeSystemLabel;
+
+    private string LightLabel => UiText.ThemeLightLabel;
+
+    private string DarkLabel => UiText.ThemeDarkLabel;
 
     protected override ClassBuilder BuildClass()
     {
@@ -65,12 +77,7 @@ public partial class ThemeSwitch : AeterniComponent
         return ValueTask.CompletedTask;
     }
 
-    private string SizeClass => this.Size switch
-    {
-        global::AeterniUI.Enums.Size.Small => "aeterni-theme-switch--sm",
-        global::AeterniUI.Enums.Size.Large => "aeterni-theme-switch--lg",
-        _ => "aeterni-theme-switch--md"
-    };
+    private string? SizeClass => ComponentClass.ForSize("aeterni-theme-switch", Size);
 
     private void HandleThemeChanged(object? sender, EventArgs args)
     {

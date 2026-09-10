@@ -7,7 +7,8 @@
     @foreach (var position in NoticePositions)
     {
         var alerts = DialogService.GetAlerts(position);
-        if (alerts.Count == 0)
+        var toasts = DialogService.GetToasts(position);
+        if (alerts.Count == 0 && toasts.Count == 0)
         {
             continue;
         }
@@ -25,22 +26,10 @@
                             NoBlur="@(alert.Options is AlertOptions { Blur: false })"
                             IsClosing="@alert.IsClosing"
                             Duration="@alert.Duration"
-                            CloseLabel="Close alert"
+                            CloseLabel="@UiText.AlertCloseLabel"
                             CloseRequested="@(() => CloseDialogAsync(alert, DialogResult.Dismiss()))" />
             }
-        </div>
-    }
 
-    @foreach (var position in NoticePositions)
-    {
-        var toasts = DialogService.GetToasts(position);
-        if (toasts.Count == 0)
-        {
-            continue;
-        }
-
-        <div class="aeterni-dialog-provider__notice-region aeterni-dialog-provider__notice-region--@PositionClass(position)"
-             data-position="@PositionClass(position)">
             @foreach (var toast in toasts)
             {
                 <NoticeCard IsAlert="false"
@@ -53,7 +42,7 @@
                             NoBlur="@(!toast.Options.Blur)"
                             IsClosing="@toast.IsClosing"
                             Duration="@toast.Duration"
-                            CloseLabel="Close notification"
+                            CloseLabel="@UiText.ToastCloseLabel"
                             CloseRequested="@(() => toast.Reference.CloseAsync())" />
             }
         </div>
@@ -67,12 +56,12 @@
                 var titleId = $"{dialog.Id}-title";
                 <div class="aeterni-dialog-provider__backdrop"
                      @onclick="() => HandleOverlayClickAsync(dialog)">
-                    <section class="aeterni-dialog-provider__dialog aeterni-dialog-provider__dialog--@SeverityClass(dialog.Options.Severity) @(IsDialogShaking(dialog.Id) ? "is-shaking" : string.Empty) @(dialog.IsClosing ? "is-closing" : string.Empty)"
+                    <section class="@BuildDialogClass(dialog)"
                              data-aeterni-dialog-id="@dialog.Id"
                              role="dialog"
                              aria-modal="true"
                              tabindex="-1"
-                             aria-label="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? "Dialog" : null)"
+                             aria-label="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? UiText.DialogLabel : null)"
                              aria-labelledby="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? null : titleId)"
                              @onclick:stopPropagation="true">
                         @if (dialog.Options.Icon is not null || !string.IsNullOrWhiteSpace(dialog.Options.Title) || dialog.Options.ShowCloseButton)
@@ -96,7 +85,7 @@
                                     <Button Variant="ButtonVariant.Ghost"
                                             Color="Color.Neutral"
                                             Size="Size.Small"
-                                            AriaLabel="Close dialog"
+                                            AriaLabel="@UiText.DialogCloseLabel"
                                             OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
                                         <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
                                     </Button>
@@ -118,7 +107,7 @@
                         @if (dialog.Kind == DialogContentKind.Alert && dialog.Options is AlertOptions alertOptions)
                         {
                             <footer class="aeterni-dialog-provider__footer">
-                                <Button Color="@ActionColor(dialog.Options.Severity)"
+                                <Button Color="@dialog.Options.Severity.ToColor()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
                                     @alertOptions.CloseText
                                 </Button>
@@ -132,7 +121,7 @@
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Cancel()))">
                                     @confirmOptions.CancelText
                                 </Button>
-                                <Button Color="@ActionColor(dialog.Options.Severity)"
+                                <Button Color="@dialog.Options.Severity.ToColor()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Confirm()))">
                                     @confirmOptions.ConfirmText
                                 </Button>

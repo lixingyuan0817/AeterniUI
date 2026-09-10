@@ -7,6 +7,7 @@ export function init(_reference, key) {
         activeDialog: null,
         previousActiveElement: null,
         previousBodyOverflow: null,
+        previousBodyPaddingRight: null,
         keydownHandler: null
     };
 
@@ -30,6 +31,15 @@ export function sync(root, activeDialogId, hasModal) {
 
         if (instance.previousBodyOverflow === null) {
             instance.previousBodyOverflow = document.body.style.overflow;
+            instance.previousBodyPaddingRight = document.body.style.paddingRight;
+
+            // Locking the scrollbar would otherwise reflow the page by its
+            // width; the matching padding keeps the background from shifting.
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+            if (scrollbarWidth > 0) {
+                document.body.style.paddingRight = `${scrollbarWidth}px`;
+            }
+
             document.body.style.overflow = 'hidden';
         }
 
@@ -88,6 +98,8 @@ function restoreBodyAndFocus(instance) {
     if (instance.previousBodyOverflow !== null) {
         document.body.style.overflow = instance.previousBodyOverflow;
         instance.previousBodyOverflow = null;
+        document.body.style.paddingRight = instance.previousBodyPaddingRight ?? '';
+        instance.previousBodyPaddingRight = null;
     }
 
     const previous = instance.previousActiveElement;

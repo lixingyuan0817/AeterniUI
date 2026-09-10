@@ -1,4 +1,11 @@
 .aeterni-switch {
+    /* Switch geometry is intrinsic to the control: the track and knob sizes are
+       declared once here and the knob travel is derived from them. */
+    --aeterni-switch-track-width: 38px;
+    --aeterni-switch-track-height: 22px;
+    --aeterni-switch-knob-size: var(--aeterni-control-size-sm);
+    --aeterni-switch-inset: 2px;
+
     display: inline-flex;
     align-items: center;
     gap: var(--aeterni-gap-sm);
@@ -15,6 +22,8 @@
    track is a styled mirror of the native checked state, so keyboard toggling
    (Space) and assistive technology keep working without extra JS. */
 .aeterni-switch__input {
+    /* Visually hidden with the shared clip pattern: the 1px box plus the 50%
+       clip is the standard clip mechanism, not a design size. */
     position: absolute;
     width: 1px;
     height: 1px;
@@ -32,9 +41,9 @@
     display: inline-flex;
     align-items: center;
     flex: 0 0 auto;
-    width: 38px;
-    height: 22px;
-    padding: 2px;
+    width: var(--aeterni-switch-track-width);
+    height: var(--aeterni-switch-track-height);
+    padding: var(--aeterni-switch-inset);
     border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-bg-tertiary);
@@ -42,10 +51,10 @@
 }
 
 .aeterni-switch__knob {
-    width: 16px;
-    height: 16px;
+    width: var(--aeterni-switch-knob-size);
+    height: var(--aeterni-switch-knob-size);
     border-radius: var(--aeterni-radius-round);
-    background: var(--aeterni-text-inverse);
+    background: var(--aeterni-state-background-thumb);
     box-shadow: var(--aeterni-shadow-sm);
     transition: var(--aeterni-transition-transform), var(--aeterni-transition-background);
 }
@@ -55,8 +64,9 @@
     background: var(--aeterni-color-brand-default);
 }
 
+/* Travel = track width minus the knob and the inset/border on both sides. */
 .aeterni-switch__input:checked + .aeterni-switch__track .aeterni-switch__knob {
-    transform: translateX(16px);
+    transform: translateX(calc(var(--aeterni-switch-track-width) - var(--aeterni-switch-knob-size) - var(--aeterni-switch-inset) * 2 - var(--aeterni-border-width) * 2));
 }
 
 .aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {

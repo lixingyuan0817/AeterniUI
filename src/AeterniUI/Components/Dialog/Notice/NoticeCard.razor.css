@@ -59,16 +59,16 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: var(--aeterni-badge-size-md);
+    height: var(--aeterni-badge-size-md);
     border-radius: var(--aeterni-radius-round);
     background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, transparent);
     color: var(--aeterni-dialog-accent);
 }
 
 .aeterni-dialog-provider__notice-icon ::deep svg {
-    width: 16px;
-    height: 16px;
+    width: var(--aeterni-icon-size-md);
+    height: var(--aeterni-icon-size-md);
 }
 
 .aeterni-dialog-provider__notice-glyph {
@@ -76,7 +76,7 @@
     align-items: center;
     justify-content: center;
     color: var(--aeterni-dialog-accent);
-    font-size: 13px;
+    font-size: var(--aeterni-font-size-compact);
     line-height: 1;
 }
 
@@ -85,6 +85,7 @@
 .aeterni-dialog-provider__notice-content {
     display: flex;
     flex-direction: column;
+    /* 2px gap and padding are a hairline rhythm inside the text column. */
     gap: 2px;
     min-width: 0;
     padding: 2px 0;
@@ -94,7 +95,7 @@
     color: var(--aeterni-text-primary);
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);
-    line-height: 1.3;
+    line-height: var(--aeterni-line-height-tight);
     overflow-wrap: anywhere;
 }
 
@@ -104,12 +105,8 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     color: var(--aeterni-text-secondary);
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.aeterni-dialog-provider__notice-content .aeterni-dialog-provider__separator {
-    display: none;
+    font-size: var(--aeterni-font-size-compact);
+    line-height: var(--aeterni-line-height-normal);
 }
 
 /* Trailing close control: only as wide as its glyph, vertically centred with
@@ -124,8 +121,8 @@
 }
 
 .aeterni-dialog-provider__notice-close ::deep .aeterni-button {
-    width: 24px;
-    height: 24px;
+    width: var(--aeterni-height-xs);
+    height: var(--aeterni-height-xs);
     padding: 0;
     justify-content: center;
 }
@@ -135,7 +132,7 @@
     align-items: center;
     justify-content: center;
     color: var(--aeterni-text-tertiary);
-    font-size: 16px;
+    font-size: var(--aeterni-icon-size-md);
     line-height: 1;
     transition: var(--aeterni-transition-color);
 }
@@ -153,7 +150,7 @@
    re-renders Blazor state. */
 .aeterni-dialog-provider__progress {
     position: absolute;
-    inset: 1px;
+    inset: var(--aeterni-border-width);
     box-sizing: border-box;
     border-radius: inherit;
     pointer-events: none;
@@ -168,7 +165,7 @@
 
 .aeterni-progress-ring {
     fill: none;
-    stroke-width: 2;
+    stroke-width: var(--aeterni-border-width-medium);
     stroke-linecap: butt;
     stroke-linejoin: round;
 }
@@ -201,6 +198,7 @@
 @keyframes aeterni-notice-enter {
     from {
         opacity: 0;
+        /* Fallback offsets are the enter/exit motion distance, not a layout size. */
         transform: translate3d(var(--aeterni-notice-in-x, 0px), var(--aeterni-notice-in-y, 12px), 0) scale(.98);
     }
     to {
@@ -209,6 +207,7 @@
     }
 }
 
+/* Fallback offsets are the enter/exit motion distance, not a layout size. */
 @keyframes aeterni-notice-exit {
     from {
         opacity: 1;

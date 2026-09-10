@@ -2,7 +2,7 @@
 
 <div @attributes="BuildAttributes()"
      role="group"
-     aria-label="@AriaLabel"
+     aria-label="@GroupLabel"
      data-mode="@ThemeService.Mode.ToString().ToLowerInvariant()">
     <span class="aeterni-theme-switch__slider" aria-hidden="true"></span>
 
@@ -11,20 +11,20 @@
             aria-pressed="@(ThemeService.Mode == ThemeMode.System)"
             disabled="@Disabled"
             @onclick="() => SelectModeAsync(ThemeMode.System)">
-        System
+        @SystemLabel
     </button>
     <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Light ? "is-selected" : string.Empty)"
             type="button"
             aria-pressed="@(ThemeService.Mode == ThemeMode.Light)"
             disabled="@Disabled"
             @onclick="() => SelectModeAsync(ThemeMode.Light)">
-        Light
+        @LightLabel
     </button>
     <button class="aeterni-theme-switch__option @(ThemeService.Mode == ThemeMode.Dark ? "is-selected" : string.Empty)"
             type="button"
             aria-pressed="@(ThemeService.Mode == ThemeMode.Dark)"
             disabled="@Disabled"
             @onclick="() => SelectModeAsync(ThemeMode.Dark)">
-        Dark
+        @DarkLabel
     </button>
 </div>

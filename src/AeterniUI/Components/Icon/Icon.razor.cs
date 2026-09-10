@@ -25,8 +25,8 @@ public partial class Icon : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-icon")
-            .Add($"aeterni-icon--{SizeClass}")
-            .Add($"aeterni-icon--{ColorClass}");
+            .Add(SizeClass)
+            .Add(ColorClass);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -61,13 +61,9 @@ public partial class Icon : AeterniComponent
         return attributes;
     }
 
-    private string SizeClass => Size switch
-    {
-        Size.Small => "sm",
-        Size.Medium => "md",
-        Size.Large => "lg",
-        _ => "default"
-    };
+    // Icon is the one component whose middle tier has an explicit rule (a fixed
+    // 16px glyph box) instead of inheriting the parent icon slot.
+    private string? SizeClass => ComponentClass.ForSize("aeterni-icon", Size, "md");
 
     private string ColorClass => Color switch
     {

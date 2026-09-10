@@ -105,8 +105,22 @@ public partial class List : AeterniComponent
 
     internal void SetActive(ItemHandle? item)
     {
+        if (ReferenceEquals(_focusedItem, item))
+        {
+            return;
+        }
+
         _focusedItem = item;
+
+        // Focus stays on the listbox container, so the active option has to
+        // re-render itself to show the keyboard cue.
+        foreach (var handle in _items)
+        {
+            handle.Item.Refresh();
+        }
     }
+
+    internal bool IsActive(ItemHandle item) => ReferenceEquals(_focusedItem, item);
 
     protected override void OnParametersSet()
     {
@@ -122,8 +136,7 @@ public partial class List : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-list")
-            .Add($"aeterni-list--{(SelectionMode == SelectionMode.None ? "display" : "select")}")
-            .Add("is-multi", SelectionMode == SelectionMode.Multiple);
+            .Add("aeterni-list--select", IsSelectable);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -211,8 +224,6 @@ public partial class List : AeterniComponent
         var next = enabled[nextIndex];
         SetActive(next);
 
-        await next.Element.FocusAsync();
-
         if (SelectionMode == SelectionMode.Single && next.Value is not null)
         {
             await ToggleAsync(next);
@@ -253,6 +264,4 @@ internal sealed class ItemHandle
     public string? OptionId { get; set; }
 
     public bool Disabled { get; set; }
-
-    public ElementReference Element { get; set; }
 }

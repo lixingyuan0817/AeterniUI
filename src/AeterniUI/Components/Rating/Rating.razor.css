@@ -7,16 +7,17 @@
 
 .aeterni-rating__item {
     --aeterni-rating-star: var(--aeterni-state-color-disabled);
-    /* Sizes an Icon passed through the Icon parameter; the built-in star
-       overrides this in .aeterni-rating__glyph. */
-    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+    /* One icon size covers both the built-in star and an Icon passed through
+       the Icon parameter, so custom glyphs match the default. */
+    --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    width: 28px;
-    height: 28px;
+    /* Square hit box around the glyph: the icon tier plus one spacing step. */
+    width: calc(var(--aeterni-icon-size-lg) + var(--aeterni-spacing-2));
+    height: calc(var(--aeterni-icon-size-lg) + var(--aeterni-spacing-2));
     padding: 0;
     border: 0;
     border-radius: var(--aeterni-radius-sm);
@@ -44,7 +45,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    --aeterni-icon-render-size: 20px;
     line-height: 1;
 }
 

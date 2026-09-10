@@ -2,44 +2,203 @@
    the menu extra height (a stretched sidebar or grid cell) must not stretch the
    group rows, which would inflate the toggles and leave empty space where a
    collapsed list should be. */
-.aeterni-menu { --aeterni-menu-row-height:36px; display:grid; align-content:start; gap:var(--aeterni-spacing-3); width:100%; box-sizing:border-box; }
-.aeterni-menu__list { display:grid; align-content:start; gap:var(--aeterni-spacing-3); margin:0; padding:0; list-style:none; }
-.aeterni-menu__group { display:grid; align-content:start; gap:var(--aeterni-spacing-1); }
+.aeterni-menu {
+    --aeterni-menu-row-height: var(--aeterni-row-height-compact);
+
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-3);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.aeterni-menu__list {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aeterni-menu__group {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+}
+
 /* Group toggles and entries share one fixed row height so the navigation keeps
    a single rhythm; the label and its description share one line and ellipsize
    instead of wrapping, so a long entry cannot grow the row. */
-.aeterni-menu__group-toggle,.aeterni-menu__item { display:flex; align-items:center; gap:var(--aeterni-spacing-2); width:100%; box-sizing:border-box; height:var(--aeterni-menu-row-height); border:1px solid transparent; border-radius:var(--aeterni-radius-md); background:transparent; color:var(--aeterni-text-secondary); text-align:start; cursor:pointer; font:inherit; }
+.aeterni-menu__group-toggle,
+.aeterni-menu__item {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    width: 100%;
+    box-sizing: border-box;
+    height: var(--aeterni-menu-row-height);
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    text-align: start;
+    cursor: pointer;
+    font: inherit;
+}
+
 /* Link entries (MenuItem.Href) keep the same surface as buttons, without the
    underline or the visited colour the browser would add. */
-.aeterni-menu__item { position:relative; padding:var(--aeterni-spacing-2) var(--aeterni-spacing-3); text-decoration:none; }
-.aeterni-menu__group-toggle { justify-content:flex-start; padding:var(--aeterni-spacing-2) 10px; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); font-weight:var(--aeterni-font-weight-semibold); }
-.aeterni-menu__group-toggle:hover:not(:disabled),.aeterni-menu__item:hover:not(:disabled) { background:var(--aeterni-state-background-hover); color:var(--aeterni-text-primary); }
-.aeterni-menu__group-toggle:active:not(:disabled),.aeterni-menu__item:active:not(:disabled) { background:var(--aeterni-state-background-active); }
-.aeterni-menu__item.is-selected { border-color:var(--aeterni-color-brand-default); background:var(--aeterni-state-background-selected); color:var(--aeterni-state-color-selected); box-shadow:inset 3px 0 0 var(--aeterni-color-brand-default); }
-.aeterni-menu__item.is-selected .aeterni-menu__icon { color:var(--aeterni-color-brand-default); }
+.aeterni-menu__item {
+    position: relative;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    text-decoration: none;
+}
+
+.aeterni-menu__group-toggle {
+    justify-content: flex-start;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-menu__group-toggle:hover:not(:disabled),
+.aeterni-menu__item:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-menu__group-toggle:active:not(:disabled),
+.aeterni-menu__item:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-menu__item.is-selected {
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-color-brand-default);
+}
+
+.aeterni-menu__item.is-selected .aeterni-menu__icon {
+    color: var(--aeterni-color-brand-default);
+}
+
 /* The icon inherits its size from this box; setting the variable here reaches
    the shared Icon component, whose own stylesheet cannot be targeted from this
    component's scope. */
-.aeterni-menu__icon { display:inline-flex; flex:0 0 auto; width:18px; height:18px; --aeterni-icon-render-size:100%; align-items:center; justify-content:center; }
-.aeterni-menu__item-copy { display:flex; align-items:baseline; gap:var(--aeterni-spacing-2); min-width:0; overflow:hidden; }
-.aeterni-menu__item-copy > span { flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.aeterni-menu__item-copy small { flex:1 1 auto; min-width:0; overflow:hidden; color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); text-overflow:ellipsis; white-space:nowrap; }
+.aeterni-menu__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-icon-size-lg);
+    height: var(--aeterni-icon-size-lg);
+    --aeterni-icon-render-size: 100%;
+}
+
+.aeterni-menu__item-copy {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.aeterni-menu__item-copy > span {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-menu__item-copy small {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Collapsed groups leave the accessibility tree and the tab order (visibility,
    not only opacity/clip). The visibility flip is delayed on close so the
    collapse animation stays visible, and immediate on open.
    min-height:0 is required on this container as well as on the inner list: as a
    grid item it would otherwise keep an automatic minimum size, and the `0fr`
    row would stay a few pixels tall per group instead of collapsing. */
-.aeterni-menu__collapse { display:grid; grid-template-rows:0fr; min-height:0; align-content:start; opacity:0; visibility:hidden; transition:grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal); }
-.aeterni-menu__collapse.is-open { grid-template-rows:1fr; opacity:1; visibility:visible; transition-delay:0s,0s,0s; }
-.aeterni-menu__items { min-height:0; overflow:hidden; display:grid; align-content:start; gap:var(--aeterni-spacing-1); margin:0; padding:0; padding-inline-start:var(--aeterni-spacing-2); list-style:none; }
-.aeterni-menu__item-row { min-width:0; }
+.aeterni-menu__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    min-height: 0;
+    align-content: start;
+    opacity: 0;
+    visibility: hidden;
+    transition: grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal);
+}
+
+.aeterni-menu__collapse.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s, 0s, 0s;
+}
+
+.aeterni-menu__items {
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+    margin: 0;
+    padding: 0;
+    padding-inline-start: var(--aeterni-spacing-2);
+    list-style: none;
+}
+
+.aeterni-menu__item-row {
+    min-width: 0;
+}
+
 /* Disclosure chevron: points right when a group is collapsed and rotates a
    quarter turn when it opens, so the indicator never flattens mid-transition. */
-.aeterni-menu__chevron { display:inline-flex; align-items:center; justify-content:center; --aeterni-icon-render-size:14px; margin-inline-start:auto; opacity:.7; transform-origin:center; transition:transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
+.aeterni-menu__chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+
+    margin-inline-start: auto;
+    opacity: .7;
+    transform-origin: center;
+    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
+}
+
 .aeterni-menu__group-toggle:hover:not(:disabled) .aeterni-menu__chevron,
-.aeterni-menu__group.is-open .aeterni-menu__chevron { opacity:1; }
-.aeterni-menu__group.is-open .aeterni-menu__chevron { transform:rotate(90deg); }
-.aeterni-menu button:focus-visible,.aeterni-menu a:focus-visible { outline:var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring); outline-offset:var(--aeterni-focus-offset); }
-.aeterni-menu button:disabled { cursor:not-allowed; opacity:.55; }
-@media (prefers-reduced-motion: reduce) { .aeterni-menu__collapse,.aeterni-menu__chevron { transition:none; } }
+.aeterni-menu__group.is-open .aeterni-menu__chevron {
+    opacity: 1;
+}
+
+.aeterni-menu__group.is-open .aeterni-menu__chevron {
+    transform: rotate(90deg);
+}
+
+.aeterni-menu button:focus-visible,
+.aeterni-menu a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-menu button:disabled {
+    cursor: not-allowed;
+    opacity: var(--aeterni-opacity-disabled);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-menu__collapse,
+    .aeterni-menu__chevron {
+        transition: none;
+    }
+}

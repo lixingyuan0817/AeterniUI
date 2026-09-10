@@ -1,1 +1,7 @@
-.aeterni-popup-host { position: relative; display: contents; }
+/* Positioning container for floating layers. It must generate a real box: with
+   the previous `display: contents` the declaration below had no effect, so a
+   Popover could not be anchored to the host at all. */
+.aeterni-popup-host {
+    position: relative;
+    display: block;
+}

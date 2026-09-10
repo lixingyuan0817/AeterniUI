@@ -26,11 +26,13 @@
     border-color: var(--aeterni-control-border-hover);
 }
 
-.aeterni-input:focus,
+/* Keyboard focus draws the shared control ring, matching Button, Checkbox,
+   Switch, ComboBox, List and Menu. `:focus-visible` still matches on a plain
+   click for text fields, so mouse focus keeps the same cue. */
 .aeterni-input:focus-visible {
     border-color: var(--aeterni-control-border-focus);
-    box-shadow: none;
-    outline: none;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 .aeterni-input:disabled {
@@ -64,11 +66,16 @@
 }
 
 .aeterni-input.is-invalid:not(:disabled):focus,
-.aeterni-input[aria-invalid="true"]:not(:disabled):focus {
+.aeterni-input.is-invalid:not(:disabled):focus-visible,
+.aeterni-input[aria-invalid="true"]:not(:disabled):focus,
+.aeterni-input[aria-invalid="true"]:not(:disabled):focus-visible {
     border-color: var(--aeterni-control-border-invalid);
+    outline-color: var(--aeterni-focus-color-invalid);
 }
 
 .aeterni-input--sm {
+    --aeterni-radius-input: var(--aeterni-radius-input-sm);
+
     width: min(100%, var(--aeterni-width-input-sm));
     height: var(--aeterni-control-height-sm);
     padding-inline: var(--aeterni-control-padding-x-sm);
@@ -76,6 +83,8 @@
 }
 
 .aeterni-input--lg {
+    --aeterni-radius-input: var(--aeterni-radius-input-lg);
+
     width: min(100%, var(--aeterni-width-input-lg));
     height: var(--aeterni-control-height-lg);
     padding-inline: var(--aeterni-control-padding-x-lg);

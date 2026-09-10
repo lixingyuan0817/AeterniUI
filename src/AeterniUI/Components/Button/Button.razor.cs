@@ -57,7 +57,7 @@ public partial class Button : AeterniComponent
             .Add("aeterni-button")
             .Add(SizeClass)
             .Add($"aeterni-button--{VariantClass}")
-            .Add($"aeterni-button--{ColorClass}")
+            .Add(ColorClass)
             .Add("is-icon-only", IsIconOnly)
             .Add("is-loading", Loading)
             .Add("is-disabled", IsEffectivelyDisabled)
@@ -110,12 +110,7 @@ public partial class Button : AeterniComponent
     private bool IsIconOnly =>
         EffectiveStartIcon is not null && EndIcon is null && !HasTextContent;
 
-    private string SizeClass => Size switch
-    {
-        Size.Small => "aeterni-button--sm",
-        Size.Large => "aeterni-button--lg",
-        _ => "aeterni-button--md"
-    };
+    private string? SizeClass => ComponentClass.ForSize("aeterni-button", Size);
 
     private string VariantClass => Variant switch
     {
@@ -126,14 +121,5 @@ public partial class Button : AeterniComponent
         _ => "default"
     };
 
-    private string ColorClass => Color switch
-    {
-        Color.Primary => "primary",
-        Color.Neutral => "neutral",
-        Color.Success => "success",
-        Color.Warning => "warning",
-        Color.Danger => "danger",
-        Color.Info => "info",
-        _ => "primary"
-    };
+    private string? ColorClass => ComponentClass.ForColor("aeterni-button", Color);
 }
