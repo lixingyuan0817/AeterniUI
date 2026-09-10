@@ -78,10 +78,11 @@
     color: var(--aeterni-control-foreground-placeholder);
 }
 
+/* Rendered by the shared Icon component; the size travels through the icon size
+   variable so the shared .aeterni-icon width/height declaration still applies. */
 .aeterni-combobox__chevron {
+    --aeterni-icon-render-size: 14px;
     flex: 0 0 auto;
-    width: 14px;
-    height: 14px;
     fill: var(--aeterni-text-tertiary);
     transition: var(--aeterni-transition-transform);
 }

@@ -1,0 +1,182 @@
+@page "/icons"
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Icons.FontAwesome
+
+<PageTitle>Aeterni UI · 图标</PageTitle>
+
+<main class="doc-icons">
+    <header class="doc-icons__intro">
+        <p class="doc-icons__eyebrow">图标</p>
+        <h1 id="icons-title">图标库</h1>
+        <p class="doc-icons__lead">
+            核心库自带供应商无关的 <code>AeterniIcons</code>，组件内部全部通过它渲染勾选、箭头、星标和提示符号；
+            <code>AeterniUI.Icons.FontAwesome</code> 适配包提供 Font Awesome Free 7.3.1 精选图标。
+            两者都交给同一个 <code>Icon</code> 组件渲染，共享 Size、Color、AriaLabel 与 Title 语义。
+        </p>
+
+        <dl class="doc-icons__stats">
+            <div>
+                <dt>内置图标</dt>
+                <dd>@BuiltInIcons.Count</dd>
+            </div>
+            <div>
+                <dt>Font Awesome</dt>
+                <dd>@TotalFontAwesomeIcons</dd>
+            </div>
+            <div>
+                <dt>分类</dt>
+                <dd>@Categories.Count</dd>
+            </div>
+        </dl>
+    </header>
+
+    <section class="doc-icons__section" aria-labelledby="icons-builtin-title">
+        <h2 id="icons-builtin-title">内置图标</h2>
+        <p class="doc-icons__section-lead">
+            <code>AeterniIcons</code> 是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商，
+            因此切换适配包不会改变组件本身的观感。业务代码也可以直接复用。
+        </p>
+
+        <ul class="doc-icons__grid doc-icons__grid--builtin">
+            @foreach (var (definition, usedBy) in BuiltInIcons)
+            {
+                <li class="doc-icons__cell">
+                    <Icon Definition="definition" Size="@_size" Color="@_color" />
+                    <span class="doc-icons__name">@definition.Name</span>
+                    <span class="doc-icons__usage">@usedBy</span>
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section class="doc-icons__section" aria-labelledby="icons-fontawesome-title">
+        <h2 id="icons-fontawesome-title">Font Awesome Free</h2>
+        <p class="doc-icons__section-lead">
+            适配包只包含 SVG 定义，不引入 Font Awesome 的 CSS、字体或 JavaScript 运行时。
+            可用 <code>FontAwesomeIcons.TryGet("arrow-right", out var icon)</code> 按名称解析，
+            或用 <code>FontAwesomeIcons.Categories</code> 构建选择器。
+        </p>
+
+        <div class="doc-icons__controls">
+            <div class="doc-icons__field">
+                <label for="icons-search">搜索</label>
+                <Input Id="icons-search"
+                       @bind-Value="_query"
+                       Placeholder="例如 arrow、user、chart"
+                       AriaLabel="搜索图标名称" />
+            </div>
+            <div class="doc-icons__field doc-icons__field--compact">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="icons-size" AriaLabel="图标尺寸" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+            <div class="doc-icons__field doc-icons__field--compact">
+                <span>Color</span>
+                <ShowcaseSelect TValue="Color" Id="icons-color" AriaLabel="图标颜色" Options="@(Enum.GetValues<Color>())" @bind-Value="_color" />
+            </div>
+        </div>
+
+        <p class="doc-icons__status" role="status">@MatchCount 个图标匹配当前条件</p>
+
+        @if (MatchCount == 0)
+        {
+            <p class="doc-icons__empty">没有匹配的图标，尝试更短的关键词，例如 <code>arrow</code> 或 <code>check</code>。</p>
+        }
+        else
+        {
+            @foreach (var category in FilteredCategories)
+            {
+                <section class="doc-icons__group" aria-label="@category.Name">
+                    <h3>
+                        <span>@category.Name</span>
+                        <span class="doc-icons__count">@category.Icons.Count</span>
+                    </h3>
+                    <ul class="doc-icons__grid">
+                        @foreach (var definition in category.Icons)
+                        {
+                            <li class="doc-icons__cell">
+                                <Icon Definition="definition" Size="@_size" Color="@_color" />
+                                <span class="doc-icons__name">@definition.Name</span>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        }
+    </section>
+
+    <section class="doc-icons__section" aria-labelledby="icons-usage-title">
+        <h2 id="icons-usage-title">用法</h2>
+        <div class="doc-icons__code">
+            <pre><code>@IconUsageSample</code></pre>
+        </div>
+        <p class="doc-icons__section-lead">
+            图标默认输出 <code>aria-hidden="true"</code>；只有图标没有可见文本时，才需要 <code>AriaLabel</code> 提供可访问名称。
+        </p>
+    </section>
+</main>
+
+@code {
+    private static readonly IReadOnlyList<IconCategory> Categories = FontAwesomeIcons.Categories;
+
+    private static readonly IReadOnlyList<(IconDefinition Definition, string UsedBy)> BuiltInIcons =
+    [
+        (AeterniIcons.Check, "Checkbox、成功提示"),
+        (AeterniIcons.ChevronDown, "ComboBox、Menu 分组"),
+        (AeterniIcons.Xmark, "Tag、Dialog 关闭、错误提示"),
+        (AeterniIcons.Star, "Rating"),
+        (AeterniIcons.Info, "信息提示"),
+        (AeterniIcons.Exclamation, "警告提示")
+    ];
+
+    private const string IconUsageSample = """
+<Icon Definition="@FontAwesomeIcons.Solid.ArrowRight"
+      Size="Size.Large"
+      Color="Color.Primary"
+      AriaLabel="下一步" />
+
+// 只做装饰时省略 AriaLabel，Icon 会输出 aria-hidden="true"
+<Icon Definition="@AeterniIcons.Check" />
+""";
+
+    private string _query = string.Empty;
+    private Size _size = Size.Default;
+    private Color _color = Color.Default;
+
+    private static int TotalFontAwesomeIcons => Categories.Sum(category => category.Icons.Count);
+
+    private int MatchCount => FilteredCategories.Sum(category => category.Icons.Count);
+
+    private IReadOnlyList<IconCategory> FilteredCategories
+    {
+        get
+        {
+            var query = _query.Trim();
+            if (query.Length == 0)
+            {
+                return Categories;
+            }
+
+            var groups = new List<IconCategory>();
+            foreach (var category in Categories)
+            {
+                if (category.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    groups.Add(category);
+                    continue;
+                }
+
+                var matches = category.Icons
+                    .Where(icon => icon.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+
+                if (matches.Length > 0)
+                {
+                    groups.Add(new IconCategory(category.Name, matches));
+                }
+            }
+
+            return groups;
+        }
+    }
+}

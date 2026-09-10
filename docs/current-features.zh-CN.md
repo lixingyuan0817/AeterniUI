@@ -107,16 +107,32 @@
 - 可点击状态的悬浮和按下反馈。
 - 三个内容区域使用统一的内边距和边界关系。
 
-## 7. Icon 和 Font Awesome
+## 7. Icon、内置图标集和 Font Awesome
 
-### 支持能力
+### Icon 组件
 
 - 提供 `Icon` 组件。
 - `Definition`（必填 `IconDefinition`）、`Size`、`Color`、`AriaLabel` 和 `Title`。
 - 图标尺寸和颜色使用组件库 Token。
-- 提供独立的 `AeterniUI.Icons.FontAwesome` 项目。
-- 当前已封装常用的新增、方向、确认、关闭、展开收起、主题、设置、搜索、首页、菜单和加载图标。
+- 未传 `AriaLabel` 时输出 `aria-hidden="true"`；传入后输出 `role="img"` 和可访问名称。
 - 图标库通过 RenderFragment 与 Button、Dialog、Toast 等组件组合使用。
+
+### 核心内置图标集 `AeterniIcons`
+
+- 位于 `AeterniUI/Icons/AeterniIcons.cs`，是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商。
+- 提供 `Check`、`ChevronDown`、`Xmark`、`Star`、`Info` 和 `Exclamation`。
+- 组件内部统一通过它渲染字形，替换了此前散落在组件中的内联 SVG 和文本字符：
+  - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Menu` 分组折叠箭头；`Rating` 星形。
+  - `Dialog` 关闭按钮、`Tag` 关闭按钮统一使用 `Xmark`。
+  - Alert / Toast 未传 `Icon` 时按 `Severity` 使用 `Check`、`Exclamation`、`Xmark` 和 `Info`。
+- 业务代码可以直接复用这些定义，也可以传入自己的 `IconDefinition`。
+
+### `AeterniUI.Icons.FontAwesome` 适配包
+
+- 提供 Font Awesome Free 7.3.1 Classic Solid 精选集，当前 343 个图标，分为基础操作、导航与方向、表单与数据、状态与反馈、媒体与自然、代码与开发、业务与场景七组。
+- 图标以 `FontAwesomeIcons.Solid.<Name>` 类型化属性暴露，另提供 `FontAwesomeIcons.Categories`（分组，供选择器和文档使用）和 `FontAwesomeIcons.TryGet(name, out definition)`（按名称解析）。
+- `FontAwesomeIcons.cs` 由 `scripts/generate-fontawesome-icons.mjs` 生成，清单中的每个名称都会对照官方 npm 包校验，重命名或缺失会直接报错。
+- 适配包不引入 Font Awesome 的 CSS、字体或 JavaScript 运行时；核心库不直接依赖具体图标供应商。
 
 ## 8. Input
 
@@ -288,7 +304,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 ### 支持能力
 
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
-- 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用星号字形）。
+- 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`aria-label` 可自定义。
 - 接入 `EditContext` 校验（`ValueExpression`），无效状态输出 `aria-invalid` 并可在 `FormField` 中级联。
 
@@ -430,7 +446,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - `AlertOptions` 支持 `Position`、`Duration`、`Blur`、`OnClosedAsync`，并继承 `DialogOptions` 的语意色、图标和关闭设置。
 - 使用 Button 相同的 `Info`、`Success`、`Warning`、`Danger` 语意色映射。
 - 语意背景使用浅色混合，去除左侧语意边框。
-- 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 自动生成默认图标，关闭按钮只占自身内容宽度并上下居中。
+- 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并上下居中。
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
@@ -441,7 +457,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 非阻塞通知。
 - 支持 TopStart、TopCenter、TopEnd、CenterStart、CenterEnd、BottomStart、BottomCenter、BottomEnd 八个位置，默认右上角（TopEnd）。
 - 支持全局默认位置、单条通知位置和最大显示数量。
-- 支持图标、标题、手动关闭和复杂 RenderFragment 内容；未传 `Icon` 时按 Severity 自动生成默认图标。
+- 支持图标、标题、手动关闭和复杂 RenderFragment 内容；未传 `Icon` 时按 `Severity` 自动使用内置严重度图标。
 - `ToastOptions` 支持 `Title`、`Severity`、`Icon`、`Position`、`Duration`、`ShowCloseButton`、`Blur` 和 `OnClosedAsync`。
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。

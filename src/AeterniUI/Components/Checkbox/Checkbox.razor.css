@@ -43,9 +43,11 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color);
 }
 
-.aeterni-checkbox__check {
-    width: 68%;
-    height: 68%;
+/* The check mark is rendered by the shared Icon component, so the size travels
+   through the icon size variable and the rule stays qualified by the control to
+   keep its specificity above the shared .aeterni-icon defaults. */
+.aeterni-checkbox__control .aeterni-checkbox__check {
+    --aeterni-icon-render-size: 68%;
     color: var(--aeterni-text-inverse);
     opacity: 0;
     transform: scale(.5);

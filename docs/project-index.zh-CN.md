@@ -21,10 +21,10 @@
 | 桌面宿主 | Tauri 2、Rust 2021、原生 WebView |
 | 样式 | CSS Isolation（`.razor.css`）+ AeterniUI 语义 Token |
 | 浏览器行为 | 原生 ES Module（组件旁的 `.razor.js`），由 `JsModuleManager` 管理 |
-| 图标 | 核心 `Icon` + 独立 `AeterniUI.Icons.FontAwesome` 适配项目 |
+| 图标 | 核心 `Icon` 与内置 `AeterniIcons`；`AeterniUI.Icons.FontAwesome` 适配包提供 343 个精选图标 |
 | .NET 依赖管理 | NuGet `PackageReference` |
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
-| 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 JS 语法检查 |
+| 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
 组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.1.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
@@ -49,13 +49,15 @@ AeterniUI/
 ├── README.md                         # 项目概览和启动说明
 ├── docs/                             # 设计、路线图、功能和本索引
 ├── scripts/
+│   ├── generate-fontawesome-icons.mjs # 从官方 npm 包生成 Font Awesome 定义
+│   ├── check-docs.sh                 # 文档一致性检查
 │   └── sample-publish.sh             # 发布 WASM 示例到 dist/
 ├── src/
 │   ├── AeterniUI/                    # 核心组件库
 │   │   ├── Attributes/               # JsModule 等特性
 │   │   ├── Components/               # Razor、代码后置、隔离样式和组件 JS
 │   │   ├── Enums/                    # Button、Color、Size、Theme 等公开枚举
-│   │   ├── Icons/                    # IconDefinition 等核心图标类型
+│   │   ├── Icons/                    # IconDefinition、内置 AeterniIcons 图标集
 │   │   ├── Models/Dialog/             # Dialog、Alert、Toast 配置和结果
 │   │   ├── Modules/                  # JS module 元数据和依赖信息
 │   │   ├── Services/                 # 服务接口、选项和实现
@@ -63,7 +65,7 @@ AeterniUI/
 │   ├── AeterniUI.Icons.FontAwesome/  # Font Awesome 图标适配
 │   └── AeterniUI.Sample/             # Blazor WASM 示例
 │       ├── Layout/                   # MainLayout（固定头部/导航 + 全局 Provider）
-│       ├── Pages/                    # 首页文档、组件展示、NotFound 和页面样式
+│       ├── Pages/                    # 首页文档、组件展示、图标浏览、NotFound 和页面样式
 │       └── wwwroot/                  # index.html、示例宿主 JS/CSS 和静态资源
 ├── src-tauri/                        # Rust/Tauri 桌面宿主
 │   ├── capabilities/                 # Tauri 权限声明
@@ -95,6 +97,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
 - [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口（含背景动效）。
 - [`src/AeterniUI.Sample/Pages/Components.razor`](../src/AeterniUI.Sample/Pages/Components.razor)：组件文档页（路由 `/components`），左侧分类导航加真实组件交互画廊。
+- [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
 - [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
 
 ### 组件库基础入口
@@ -111,6 +114,12 @@ Components/<Component>/
 - [`src-tauri/src/lib.rs`](../src-tauri/src/lib.rs)：Tauri Builder、窗口初始化和 `apply_window_backdrop` 命令。
 - [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json)：窗口、静态资源和发布钩子配置。
 - [`scripts/sample-publish.sh`](../scripts/sample-publish.sh)：执行 `dotnet publish` 并整理仓库根目录 `dist/`。
+
+### 图标
+
+- [`src/AeterniUI/Icons/AeterniIcons.cs`](../src/AeterniUI/Icons/AeterniIcons.cs)：核心库自带的供应商无关图标集，组件内部字形均由此渲染。
+- [`src/AeterniUI.Icons.FontAwesome/FontAwesomeIcons.cs`](../src/AeterniUI.Icons.FontAwesome/FontAwesomeIcons.cs)：生成的 Font Awesome Free 精选定义，含 `Categories` 分组和 `TryGet` 名称解析。
+- [`scripts/generate-fontawesome-icons.mjs`](../scripts/generate-fontawesome-icons.mjs)：从官方 npm 包重新生成上述定义，并校验清单中的图标名称。
 
 ## 5. 启动和开发命令
 
@@ -144,6 +153,7 @@ Tauri 开发模式加载发布后的静态站点，不启动 `dotnet watch` 或�
 dotnet build aeterni_ui.slnx -c Debug --nologo
 cargo check --manifest-path src-tauri/Cargo.toml
 node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
+node scripts/generate-fontawesome-icons.mjs --check   # 图标定义是否与生成脚本清单一致
 ```
 
 CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。
@@ -166,7 +176,7 @@ CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执�
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup` |
 | 内容和选择 | `Tag`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu` |
 | 状态反馈 | `Progress` |
-| 图标和主题 | `Icon`、`ThemeProvider`、`ThemeSwitch` |
+| 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。

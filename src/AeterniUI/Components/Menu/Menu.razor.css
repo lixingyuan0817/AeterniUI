@@ -15,7 +15,7 @@
 .aeterni-menu__collapse.is-open { grid-template-rows:1fr; opacity:1; }
 .aeterni-menu__items { min-height:0; overflow:hidden; display:grid; gap:3px; padding-inline-start:8px; }
 .aeterni-menu__items > .aeterni-menu__item { box-sizing:border-box; }
-.aeterni-menu__chevron { margin-inline-start:auto; transition:transform var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
+.aeterni-menu__chevron { display:inline-flex; align-items:center; justify-content:center; margin-inline-start:auto; transition:transform var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 .aeterni-menu__group.is-open .aeterni-menu__chevron { transform:rotate(180deg); }
 .aeterni-menu button:focus-visible { outline:2px solid var(--aeterni-control-focus-ring); outline-offset:2px; }
 .aeterni-menu button:disabled { cursor:not-allowed; opacity:.55; }

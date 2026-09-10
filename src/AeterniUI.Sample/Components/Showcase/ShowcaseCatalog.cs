@@ -1,7 +1,10 @@
+using AeterniUI.Icons;
+using AeterniUI.Icons.FontAwesome;
+
 namespace AeterniUI.Sample.Components.Showcase;
 
 /// <summary>A component group shown in the showcase sidebar.</summary>
-public sealed record ShowcaseNavGroup(string Label, IReadOnlyList<ShowcaseNavItem> Items)
+public sealed record ShowcaseNavGroup(string Label, IconDefinition Icon, IReadOnlyList<ShowcaseNavItem> Items)
 {
     public int Count => Items.Count;
 }
@@ -17,7 +20,7 @@ public static class ShowcaseCatalog
 {
     public static IReadOnlyList<ShowcaseNavGroup> Groups { get; } =
     [
-        new("基础组件", [
+        new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
             new("surface", "Surface", "视觉容器"),
@@ -25,7 +28,7 @@ public static class ShowcaseCatalog
             new("icon", "Icon", "SVG 图标"),
             new("tag", "Tag", "标签状态")
         ]),
-        new("表单组件", [
+        new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),
             new("textarea", "Textarea", "多行输入"),
             new("radio", "Radio / RadioGroup", "单选分组"),
@@ -36,18 +39,18 @@ public static class ShowcaseCatalog
             new("rating", "Rating", "整数评分"),
             new("combobox", "ComboBox", "下拉选择")
         ]),
-        new("导航组件", [
-            new("list", "List / ListItem", "列表选择"),
+        new("导航组件", FontAwesomeIcons.Solid.Compass, [
+            new("list", "List / ListItem", "列表选择")
         ]),
-        new("图表组件", [
+        new("图表组件", FontAwesomeIcons.Solid.ChartColumn, [
             new("progress", "Progress", "进度展示")
         ]),
-        new("通知组件", [
+        new("通知组件", FontAwesomeIcons.Solid.Bell, [
             new("popup", "Popup / Popover", "基础浮层"),
             new("tooltip", "Tooltip", "辅助提示"),
             new("feedback", "Dialog / Toast", "反馈与浮层")
         ]),
-        new("主题组件", [
+        new("主题组件", FontAwesomeIcons.Solid.Swatchbook, [
             new("theme", "Theme", "主题模式")
         ])
     ];

@@ -17,9 +17,7 @@
         <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
             @(Value is null ? (Placeholder ?? "请选择") : DisplayText(Value))
         </span>
-        <svg class="aeterni-combobox__chevron" viewBox="0 0 16 16" focusable="false" aria-hidden="true">
-            <path d="M4.2 6 8 9.8 11.8 6l.9.9L8 11.6 3.3 6.9z" />
-        </svg>
+        <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-combobox__chevron" />
     </button>
 
     @if (_open)

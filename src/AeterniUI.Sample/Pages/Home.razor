@@ -1,4 +1,5 @@
 @page "/"
+@using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · Blazor 组件库</PageTitle>
 
@@ -21,15 +22,24 @@
             </p>
 
             <ul class="doc-features">
-                <li>一套代码覆盖三类宿主，无需改写业务层</li>
-                <li>System / Light / Dark 主题由语义 Token 统一驱动</li>
-                <li>原生语义、焦点管理与表单校验状态开箱即用</li>
+                <li>
+                    <Icon Definition="@FontAwesomeIcons.Solid.LayerGroup" Color="Color.Primary" />
+                    <span>一套代码覆盖三类宿主，无需改写业务层</span>
+                </li>
+                <li>
+                    <Icon Definition="@FontAwesomeIcons.Solid.Palette" Color="Color.Primary" />
+                    <span>System / Light / Dark 主题由语义 Token 统一驱动</span>
+                </li>
+                <li>
+                    <Icon Definition="@FontAwesomeIcons.Solid.UniversalAccess" Color="Color.Primary" />
+                    <span>原生语义、焦点管理与表单校验状态开箱即用</span>
+                </li>
             </ul>
 
             <div class="doc-intro__cta">
                 <a class="doc-cta" href="/components">
                     浏览组件
-                    <span class="doc-cta__arrow" aria-hidden="true">→</span>
+                    <span class="doc-cta__arrow" aria-hidden="true"><Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" /></span>
                 </a>
                 <span class="doc-intro__cta-hint">每个组件都附预览、参数、事件与接口说明</span>
             </div>

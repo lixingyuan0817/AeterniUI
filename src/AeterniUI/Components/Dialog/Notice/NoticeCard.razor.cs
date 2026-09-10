@@ -1,5 +1,6 @@
 using System.Globalization;
 using AeterniUI.Enums;
+using AeterniUI.Icons;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -97,24 +98,13 @@ public partial class NoticeCard : AeterniComponent
         }
     }
 
-    private static RenderFragment NoticeGlyph(Severity severity)
+    private static IconDefinition NoticeIcon(Severity severity) => severity switch
     {
-        var glyph = severity switch
-        {
-            Severity.Success => "\u2713", // ✓
-            Severity.Warning => "!",
-            Severity.Danger => "\u00d7", // ×
-            _ => "i"
-        };
-
-        return builder =>
-        {
-            builder.OpenElement(0, "span");
-            builder.AddAttribute(1, "class", "aeterni-dialog-provider__notice-glyph");
-            builder.AddContent(2, glyph);
-            builder.CloseElement();
-        };
-    }
+        Severity.Success => AeterniIcons.Check,
+        Severity.Warning => AeterniIcons.Exclamation,
+        Severity.Danger => AeterniIcons.Xmark,
+        _ => AeterniIcons.Info
+    };
 
     private static string ProgressStyle(TimeSpan duration) =>
         $"--aeterni-dialog-duration: {duration.TotalMilliseconds.ToString("0.##", CultureInfo.InvariantCulture)}ms;";

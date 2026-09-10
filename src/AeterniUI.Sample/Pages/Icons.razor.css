@@ -1,0 +1,252 @@
+/*
+   AeterniUI.Sample — 图标文档页（/icons）。
+   左侧无导航，页面自上而下分为：说明与统计、内置图标、Font Awesome 精选集
+   （搜索 + 尺寸/颜色控制）、用法示例。所有颜色、间距、圆角与动效均来自
+   AeterniUI 语义 Token，图标本身由核心 Icon 组件渲染。
+*/
+
+.doc-icons {
+    width: var(--sample-shell-width);
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: grid;
+    gap: var(--aeterni-spacing-10);
+    padding: 128px 16px 64px;
+}
+
+.doc-icons__intro {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+}
+
+.doc-icons__eyebrow {
+    margin: 0;
+    color: var(--aeterni-color-brand-default);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.doc-icons h1 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-4xl);
+}
+
+.doc-icons__lead {
+    max-width: 78ch;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-md);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.doc-icons code {
+    padding: 2px 6px;
+    border-radius: var(--aeterni-radius-sm);
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: .92em;
+}
+
+/* Inline statistic strip ---------------------------------------------------- */
+
+.doc-icons__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-6);
+    margin: var(--aeterni-spacing-4) 0 0;
+}
+
+.doc-icons__stats div {
+    display: grid;
+    gap: 2px;
+}
+
+.doc-icons__stats dt {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.doc-icons__stats dd {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xl);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+/* Sections ----------------------------------------------------------------- */
+
+.doc-icons__section {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-6);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.doc-icons__section > h2 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-2xl);
+}
+
+.doc-icons__section-lead {
+    max-width: 82ch;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+/* Controls ----------------------------------------------------------------- */
+
+.doc-icons__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--aeterni-spacing-4);
+}
+
+.doc-icons__field {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.doc-icons__field--compact {
+    flex: 0 1 180px;
+}
+
+.doc-icons__field > label,
+.doc-icons__field > span {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.doc-icons__status {
+    margin: 0;
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.doc-icons__empty {
+    margin: 0;
+    padding: var(--aeterni-spacing-5);
+    border: 1px dashed var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    text-align: center;
+}
+
+/* Icon grids --------------------------------------------------------------- */
+
+.doc-icons__group {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+    margin-top: var(--aeterni-spacing-2);
+}
+
+.doc-icons__group h3 {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+}
+
+.doc-icons__count {
+    color: var(--aeterni-text-tertiary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-regular);
+}
+
+.doc-icons__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.doc-icons__grid--builtin {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.doc-icons__cell {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--aeterni-spacing-2);
+    min-height: 92px;
+    padding: var(--aeterni-spacing-3);
+    box-sizing: border-box;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-secondary);
+    text-align: center;
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border);
+}
+
+.doc-icons__cell:hover {
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-hover);
+}
+
+.doc-icons__name {
+    max-width: 100%;
+    color: var(--aeterni-text-secondary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+.doc-icons__usage {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+/* Usage sample ------------------------------------------------------------- */
+
+.doc-icons__code {
+    overflow-x: auto;
+    padding: var(--aeterni-spacing-5);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-secondary);
+}
+
+.doc-icons__code pre {
+    margin: 0;
+}
+
+.doc-icons__code code {
+    padding: 0;
+    background: none;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: 1.7;
+    white-space: pre;
+}
+
+@media (max-width: 760px) {
+    .doc-icons {
+        padding-top: 112px;
+    }
+
+    .doc-icons__section {
+        padding: var(--aeterni-spacing-4);
+    }
+}

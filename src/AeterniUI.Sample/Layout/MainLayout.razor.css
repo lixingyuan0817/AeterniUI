@@ -1,7 +1,7 @@
 /*
    AeterniUI.Sample — shared application shell (floating header + page chrome).
    The header and navigation live in MainLayout so every routed page (首页 /
-   组件) shares the same chrome. Component colors, spacing and motion continue
+   组件 / 图标) shares the same chrome. Component colors, spacing and motion continue
    to come from AeterniUI's semantic tokens.
 */
 
@@ -86,6 +86,7 @@
 .app-nav ::deep .app-nav__link {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     min-height: 32px;
     padding: 0 8px;
     color: var(--aeterni-text-secondary);

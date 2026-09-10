@@ -195,7 +195,10 @@ public RenderFragment? ChildContent { get; set; }
 <Icon Definition="@FontAwesomeIcons.Solid.Plus" />
 ```
 
-图标供应商应通过独立适配包提供定义，例如 `AeterniUI.Icons.FontAwesome`，核心组件库不直接依赖具体图标供应商。
+组件内部的字形（勾选、箭头、星形、严重度提示和关闭按钮）使用核心库自带的
+`AeterniIcons`，它是不依赖任何图标供应商的 16 × 16 几何定义，因此更换适配包
+不会改变组件本身的观感。业务图标则通过独立适配包提供，例如
+`AeterniUI.Icons.FontAwesome`；核心组件库不直接依赖具体图标供应商。
 
 ## 4. 基类使用规范
 
@@ -651,7 +654,7 @@ await DialogService.AlertAsync("Saved", ToastPosition.TopCenter);
 - `AlertAsync` 和 `ShowToast` 默认自动关闭，四边环绕的边框进度条由 CSS 线性动画驱动（不显示倒计时文本，渲染过程不触发中间态重绘，多消息同时显示时也不会抖动）；将对应 options 的 `Duration` 设置为 `TimeSpan.Zero` 可改为仅手动关闭，设置为 `null` 时使用 `AddAeterniUI` 的全局默认值。
 - Alert 与 Toast 的卡片采用类似 iOS 通知中心的展示方式：磨砂圆角卡片、左侧图标徽标、标题与两行内内容、右侧顶部的轻量关闭按钮。
 - Alert 和 Toast 的语意背景沿用 Button 的 `Info`、`Success`、`Warning`、`Danger` 色值映射；`Blur = false` 可以关闭通知自身的背景模糊。
-- Alert 与 Toast 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 `Severity` 自动生成默认图标，关闭按钮只占自身内容宽度并保持上下居中。
+- Alert 与 Toast 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 `Severity` 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并保持上下居中。
 - 需要在关闭后执行逻辑时使用 `AlertOptions.OnClosedAsync` 或 `ToastOptions.OnClosedAsync`。
 - `ShowToast` 是非阻塞通知，支持 `Info`、`Success`、`Warning`、`Danger`、手动关闭、自动关闭以及八个位置。
 

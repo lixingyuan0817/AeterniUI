@@ -226,9 +226,11 @@
 /* Modal header close glyph (the NoticeCard stylesheet owns the same glyph for
    Alert/Toast cards). */
 .aeterni-dialog-provider__close-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: var(--aeterni-text-tertiary);
     font-size: 16px;
-    font-weight: var(--aeterni-font-weight-regular);
     line-height: 1;
     transition: var(--aeterni-transition-color);
 }

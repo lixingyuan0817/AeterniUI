@@ -157,23 +157,18 @@ html[data-theme="dark"] .doc-home__orb {
 }
 
 .doc-features li {
-    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     max-width: 46ch;
-    padding-left: 18px;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-normal);
 }
 
-.doc-features li::before {
-    content: "·";
-    position: absolute;
-    top: 0;
-    left: 4px;
-    color: var(--aeterni-color-brand-default);
-    font-size: 16px;
-    font-weight: var(--aeterni-font-weight-bold);
-    line-height: 1;
+/* Feature icons ride on the text line without changing the row rhythm. */
+.doc-features li > svg {
+    margin-top: .18em;
 }
 
 /* CTA */

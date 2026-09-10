@@ -6,7 +6,16 @@
      data-aeterni-notice-card="true">
     <span class="aeterni-dialog-provider__notice-icon @(Icon is null ? "is-default" : string.Empty)"
           aria-hidden="true">
-        @(Icon ?? NoticeGlyph(Severity))
+        @if (Icon is not null)
+        {
+            @Icon
+        }
+        else
+        {
+            <span class="aeterni-dialog-provider__notice-glyph">
+                <Icon Definition="@NoticeIcon(Severity)" />
+            </span>
+        }
     </span>
 
     <div class="aeterni-dialog-provider__notice-content">
@@ -34,7 +43,7 @@
                     Size="Size.Small"
                     AriaLabel="@(CloseLabel ?? DefaultCloseLabel)"
                     OnClick="HandleCloseAsync">
-                <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true">&times;</span>
+                <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
             </Button>
         </div>
     }

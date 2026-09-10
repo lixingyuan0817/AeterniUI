@@ -26,9 +26,9 @@
                         <h1 id="install-title">安装 AeterniUI</h1>
                         <p class="showcase-install__lead">一套基于语义 Token 的 Blazor 组件库，覆盖 Server、WebAssembly 与 Tauri 桌面宿主。</p>
                         <div class="showcase-install__steps">
-                            <section><span>01</span><h2>添加服务</h2><pre><code>builder.Services.AddAeterniUI();</code></pre></section>
-                            <section><span>02</span><h2>引入样式</h2><pre><code>&lt;link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" /&gt;</code></pre></section>
-                            <section><span>03</span><h2>注册 Provider</h2><pre><code>&lt;ThemeProvider /&gt;
+                            <section><span>01</span><h2><Icon Definition="@FontAwesomeIcons.Solid.Plug" Color="Color.Primary" /> 添加服务</h2><pre><code>builder.Services.AddAeterniUI();</code></pre></section>
+                            <section><span>02</span><h2><Icon Definition="@FontAwesomeIcons.Solid.Link" Color="Color.Primary" /> 引入样式</h2><pre><code>&lt;link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" /&gt;</code></pre></section>
+                            <section><span>03</span><h2><Icon Definition="@FontAwesomeIcons.Solid.Gear" Color="Color.Primary" /> 注册 Provider</h2><pre><code>&lt;ThemeProvider /&gt;
 &lt;DialogProvider /&gt;</code></pre></section>
                         </div>
                         <p class="showcase-install__note">从左侧选择组件查看实时预览、参数、事件与接口说明。</p>
@@ -954,8 +954,12 @@
         .Select(group => new MenuGroup(
             group.Label,
             group.Label,
-            group.Items.Select(item => new MenuItem(item.Id, item.Label, item.Summary)).ToArray()))
+            group.Items.Select(item => new MenuItem(item.Id, item.Label, item.Summary)).ToArray(),
+            GroupIcon(group.Icon)))
         .ToArray();
+
+    /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
+    private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;
 
     private static readonly ShowcaseParameter[] ButtonParameters =
     [

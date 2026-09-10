@@ -16,8 +16,18 @@
                 </a>
 
                 <nav class="app-nav" aria-label="主导航">
-                    <NavLink class="app-nav__link" href="/" Match="NavLinkMatch.All">首页</NavLink>
-                    <NavLink class="app-nav__link" href="/components">组件</NavLink>
+                    <NavLink class="app-nav__link" href="/" Match="NavLinkMatch.All">
+                        <Icon Definition="@FontAwesomeIcons.Solid.House" />
+                        <span>首页</span>
+                    </NavLink>
+                    <NavLink class="app-nav__link" href="/components">
+                        <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
+                        <span>组件</span>
+                    </NavLink>
+                    <NavLink class="app-nav__link" href="/icons">
+                        <Icon Definition="@FontAwesomeIcons.Solid.Star" />
+                        <span>图标</span>
+                    </NavLink>
                 </nav>
 
                 <ThemeSwitch Size="Size.Small" Class="header-theme-switch" AriaLabel="主题模式" />
