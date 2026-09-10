@@ -370,8 +370,13 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 - `MenuGroup` 支持分组标题、图标、初始展开状态和菜单项集合。
 - `MenuItem` 支持 `Id`、`Label`、`Description`、`Icon` 和 `Disabled`。
-- 分组可以独立展开/折叠；设置 `Accordion` 后同一时间只展开一个分组。
-- 当前项输出选中态和 `aria-current="page"`，菜单项使用原生 button 语义并支持键盘聚焦。
+- 分组可以独立展开/折叠；设置 `Accordion` 后同一时间只展开一个分组，初始渲染也只展开第一个 `InitiallyOpen` 分组，选中项所在分组优先打开。
+- `Items` 被替换时，不再存在的分组会从展开状态中清理。
+- 折叠的分组通过 `visibility` 退出无障碍树和 Tab 顺序（不只依赖 opacity/裁剪），关闭时的可见性切换会等折叠动画结束。
+- 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`。
+- 当前项输出选中态和 `aria-current="page"`，菜单项使用原生 button 语义。
+- 键盘：Tab 顺序保持原生；`ArrowDown` / `ArrowUp` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环移动焦点，`Home` / `End` 跳到首/尾，`ArrowRight` 展开当前分组，`ArrowLeft` 折叠当前分组或将焦点退回分组开关，`Enter` / `Space` 保持原生按钮行为；禁用项不参与移动。
+- 组件声明一个无状态 JS module（`Components/Menu/Menu.razor.js`），仅用于把焦点移到 C# 键盘模型选中的节点；折叠和展开动画仍由 CSS 完成。
 
 ## 21. Tooltip
 
