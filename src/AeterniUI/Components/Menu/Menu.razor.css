@@ -16,8 +16,11 @@
 .aeterni-menu__item-copy small { color:var(--aeterni-text-tertiary); font-size:var(--aeterni-font-size-xs); }
 /* Collapsed groups leave the accessibility tree and the tab order (visibility,
    not only opacity/clip). The visibility flip is delayed on close so the
-   collapse animation stays visible, and immediate on open. */
-.aeterni-menu__collapse { display:grid; grid-template-rows:0fr; opacity:0; visibility:hidden; transition:grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal); }
+   collapse animation stays visible, and immediate on open.
+   min-height:0 is required on this container as well as on the inner list: as a
+   grid item it would otherwise keep an automatic minimum size, and the `0fr`
+   row would stay a few pixels tall per group instead of collapsing. */
+.aeterni-menu__collapse { display:grid; grid-template-rows:0fr; min-height:0; opacity:0; visibility:hidden; transition:grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal); }
 .aeterni-menu__collapse.is-open { grid-template-rows:1fr; opacity:1; visibility:visible; transition-delay:0s,0s,0s; }
 .aeterni-menu__items { min-height:0; overflow:hidden; display:grid; gap:var(--aeterni-spacing-1); margin:0; padding:0; padding-inline-start:var(--aeterni-spacing-2); list-style:none; }
 .aeterni-menu__item-row { min-width:0; }
