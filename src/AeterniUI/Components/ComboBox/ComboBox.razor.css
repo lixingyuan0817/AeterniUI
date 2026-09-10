@@ -50,7 +50,7 @@
     color: var(--aeterni-control-foreground-disabled);
 }
 
-.aeterni-combobox__trigger:disabled .aeterni-combobox__chevron {
+.aeterni-combobox__trigger:disabled ::deep .aeterni-combobox__chevron {
     fill: var(--aeterni-control-foreground-disabled);
 }
 
@@ -78,16 +78,17 @@
     color: var(--aeterni-control-foreground-placeholder);
 }
 
-/* Rendered by the shared Icon component; the size travels through the icon size
-   variable so the shared .aeterni-icon width/height declaration still applies. */
-.aeterni-combobox__chevron {
+/* Rendered by the shared Icon component. ::deep is required because this
+   component's scope attribute does not reach the root element of a child
+   component; the size still travels through the icon size variable. */
+.aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
     --aeterni-icon-render-size: 14px;
     flex: 0 0 auto;
     fill: var(--aeterni-text-tertiary);
     transition: var(--aeterni-transition-transform);
 }
 
-.aeterni-combobox.is-open .aeterni-combobox__chevron {
+.aeterni-combobox.is-open .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
     transform: rotate(180deg);
 }
 
@@ -180,7 +181,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .aeterni-combobox__popover,
-    .aeterni-combobox__chevron {
+    .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
         transition: none;
         animation: none;
     }

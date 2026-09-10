@@ -44,9 +44,10 @@
 }
 
 /* The check mark is rendered by the shared Icon component, so the size travels
-   through the icon size variable and the rule stays qualified by the control to
-   keep its specificity above the shared .aeterni-icon defaults. */
-.aeterni-checkbox__control .aeterni-checkbox__check {
+   through the icon size variable. ::deep is required because the scope
+   attribute of this component is not applied to the root element of a child
+   component, so a plain `.aeterni-checkbox__check` rule would never match. */
+.aeterni-checkbox__control ::deep .aeterni-checkbox__check {
     --aeterni-icon-render-size: 68%;
     color: var(--aeterni-text-inverse);
     opacity: 0;
@@ -59,7 +60,7 @@
     background: var(--aeterni-color-brand-default);
 }
 
-.aeterni-checkbox__input:checked + .aeterni-checkbox__control .aeterni-checkbox__check {
+.aeterni-checkbox__input:checked + .aeterni-checkbox__control ::deep .aeterni-checkbox__check {
     opacity: 1;
     transform: scale(1);
 }
@@ -70,7 +71,7 @@
     background: var(--aeterni-color-brand-default);
 }
 
-.aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control .aeterni-checkbox__check {
+.aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control ::deep .aeterni-checkbox__check {
     opacity: 0;
     transform: scale(.5);
 }
@@ -111,7 +112,7 @@
     background: var(--aeterni-state-background-disabled);
 }
 
-.aeterni-checkbox.is-disabled.is-checked .aeterni-checkbox__check {
+.aeterni-checkbox.is-disabled.is-checked ::deep .aeterni-checkbox__check {
     color: var(--aeterni-state-color-disabled);
 }
 
@@ -145,7 +146,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .aeterni-checkbox__control,
-    .aeterni-checkbox__check {
+    .aeterni-checkbox__control ::deep .aeterni-checkbox__check {
         transition: none;
     }
 }

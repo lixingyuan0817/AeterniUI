@@ -200,6 +200,12 @@ public RenderFragment? ChildContent { get; set; }
 不会改变组件本身的观感。业务图标则通过独立适配包提供，例如
 `AeterniUI.Icons.FontAwesome`；核心组件库不直接依赖具体图标供应商。
 
+给子组件（尤其是 `Icon`）根元素挂自定义 class 时注意：CSS 隔离的作用域属性只加在
+组件自己文件里渲染的元素上，子组件的根元素拿不到父组件作用域，因此
+`.aeterni-parent__part { }` 无法命中 `<Icon Class="aeterni-parent__part" />` 渲染出的
+`<svg>`。可行做法是：用包装元素承载 class（尺寸、颜色通过继承生效），或改用
+`::deep`，或把尺寸通过 `--aeterni-icon-render-size` 在祖先元素上传递。
+
 ## 4. 基类使用规范
 
 ### 4.1 根元素渲染
