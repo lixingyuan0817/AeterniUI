@@ -1,0 +1,67 @@
+.aeterni-skeleton {
+    /* Two stops of the same neutral: the track is the soft surface tint, the sheen
+       is a low-alpha body ink, so the shimmer stays visible in both themes instead
+       of assuming a lighter or darker background. */
+    --aeterni-skeleton-track: var(--aeterni-surface-soft);
+    --aeterni-skeleton-sheen: color-mix(in srgb, var(--aeterni-text-primary) 8%, transparent);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.aeterni-skeleton__bar {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    /* Text lines default to one line box; other variants override the fallback. */
+    width: var(--aeterni-skeleton-width, 100%);
+    height: var(--aeterni-skeleton-height, 1em);
+    border-radius: var(--aeterni-radius-sm);
+    background-color: var(--aeterni-skeleton-track);
+    background-image: linear-gradient(90deg, transparent, var(--aeterni-skeleton-sheen), transparent);
+    background-repeat: no-repeat;
+    background-size: 200% 100%;
+    /* 1.4s of shimmer: the slow duration token scaled to a period that reads as a
+       gentle sweep rather than a pulse. */
+    animation: aeterni-skeleton-shimmer calc(var(--aeterni-duration-slower) * 2.8) var(--aeterni-ease-in-out) infinite;
+}
+
+/* A multi-line text block ends on a shortened line, the way real text does; the
+   shrink is a percentage of the requested width so an explicit Width still wins. */
+.aeterni-skeleton--text .aeterni-skeleton__bar.is-last {
+    width: calc(var(--aeterni-skeleton-width, 100%) * .8);
+}
+
+.aeterni-skeleton--rectangle .aeterni-skeleton__bar {
+    height: var(--aeterni-skeleton-height, var(--aeterni-height-md));
+    border-radius: var(--aeterni-radius-md);
+}
+
+/* A circle stays square: the width follows an explicit height, and falls back to
+   the large icon box when neither is set. */
+.aeterni-skeleton--circle .aeterni-skeleton__bar {
+    width: var(--aeterni-skeleton-width, var(--aeterni-skeleton-height, var(--aeterni-icon-size-2xl)));
+    height: var(--aeterni-skeleton-height, var(--aeterni-icon-size-2xl));
+    border-radius: var(--aeterni-radius-round);
+}
+
+@keyframes aeterni-skeleton-shimmer {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Reduced motion keeps the placeholder as a static block: the sheen is
+       removed with the animation so nothing implies progress. */
+    .aeterni-skeleton__bar {
+        animation: none;
+        background-image: none;
+    }
+}

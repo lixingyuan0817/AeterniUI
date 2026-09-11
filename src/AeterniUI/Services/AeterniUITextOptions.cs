@@ -48,6 +48,15 @@ public sealed class AeterniUITextOptions
     /// <summary>Dismiss-button label of a dismissible <c>Tag</c>.</summary>
     public string TagDismissLabel { get; set; } = "Remove tag";
 
+    /// <summary>Accessible name of a <c>Spinner</c>.</summary>
+    public string SpinnerLabel { get; set; } = "Loading";
+
+    /// <summary>Heading of an <c>Empty</c> placeholder that has no title.</summary>
+    public string EmptyTitle { get; set; } = "No data";
+
+    /// <summary>Accessible name of a dot-mode <c>Badge</c> indicator.</summary>
+    public string BadgeLabel { get; set; } = "New";
+
     /// <summary>
     /// Copies the defaults of a fresh instance onto this one. Used by the option
     /// validation to repair empty entries without losing the host's overrides.
@@ -67,6 +76,9 @@ public sealed class AeterniUITextOptions
         DialogCloseLabel = Or(DialogCloseLabel, defaults.DialogCloseLabel);
         DialogLabel = Or(DialogLabel, defaults.DialogLabel);
         TagDismissLabel = Or(TagDismissLabel, defaults.TagDismissLabel);
+        SpinnerLabel = Or(SpinnerLabel, defaults.SpinnerLabel);
+        EmptyTitle = Or(EmptyTitle, defaults.EmptyTitle);
+        BadgeLabel = Or(BadgeLabel, defaults.BadgeLabel);
     }
 
     private static string Or(string? value, string fallback) =>

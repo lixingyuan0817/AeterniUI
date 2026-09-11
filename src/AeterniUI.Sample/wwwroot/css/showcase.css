@@ -643,3 +643,132 @@
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-relaxed);
 }
+
+/*
+   Divider preview: the labelled and vertical forms need a column with real gaps
+   and a row that stretches, because a vertical separator takes its length from
+   the flex box around it.
+*/
+.preview-divider-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    width: min(100%, 460px);
+    text-align: start;
+}
+
+.preview-divider-demo p {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.preview-divider-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--aeterni-spacing-4);
+    min-height: 56px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-divider-row span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Empty preview: the placeholder is transparent by design, so the demo shows it
+   inside the container that owns the surface. */
+.preview-empty-host {
+    display: block;
+    width: min(100%, 520px);
+}
+
+.preview-empty-illustration {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-soft);
+    font-size: 28px;
+}
+
+/* Spinner preview: one row for sizes, one for colours, one host box that shows
+   the indicator in context. */
+.preview-spinner-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-5);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-spinner-cell,
+.preview-badge-cell {
+    display: grid;
+    justify-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-spinner-host {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    width: min(100%, 320px);
+    padding: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* Skeleton preview: the blocks stack so the line/gap rhythm is visible. */
+.preview-skeleton-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-5);
+    width: min(100%, 460px);
+    text-align: start;
+}
+
+.preview-skeleton-block {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-skeleton-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Badge preview: the indicator overflows its anchor, so cells need room around
+   the corner it sits on. */
+.preview-badge-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-6);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-badge-demo .preview-state-row {
+    gap: var(--aeterni-spacing-6);
+}
+
+.preview-badge-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--aeterni-radius-full);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+}

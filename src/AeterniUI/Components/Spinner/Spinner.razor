@@ -1,0 +1,5 @@
+@inherits AeterniComponent
+
+@* The root element is the ring itself: the border and the rotation both belong to
+   it, so the spinner needs no inner markup and cannot be styled inconsistently. *@
+<span @ref="RootElement" @attributes="BuildAttributes()"></span>

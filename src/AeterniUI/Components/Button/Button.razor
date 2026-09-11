@@ -21,8 +21,10 @@
 
     @if (Loading)
     {
+        @* aria-hidden: the button itself already carries aria-busy, so the nested
+           status role must not announce a second time. *@
         <span class="aeterni-button__loading" aria-hidden="true">
-            <span class="aeterni-button__spinner"></span>
+            <Spinner />
         </span>
     }
 </button>

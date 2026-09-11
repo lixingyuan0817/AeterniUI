@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.5.0`
+文档版本：`10.6.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -675,7 +675,96 @@ builder.Services.AddAeterniUI(options =>
 ### 实现边界
 
 Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全输出，需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内再嵌套模态入口。
-## 27. 服务注册
+## 27. Divider
+
+### 支持能力
+
+- `Orientation`（`Orientation`：`Horizontal` / `Vertical`，默认 `Horizontal`）与可选 `ChildContent` 中缝内容（文字或图标）。
+- 两个形态共用同一份标记：没有中缝内容时根元素本身就是线段（零高度的 `border-top`）；有中缝内容时同一元素内渲染「线段 + 内容 + 线段」，两侧线段各保留 `--aeterni-spacing-4` 的最小长度，所以在收缩宽度的 flex 父级里也不会消失。
+- 垂直形态 `align-self: stretch`，长度跟随父级 flex 行；脱离 flex 容器时以 `1em` 兜底。
+- 线段使用 `--aeterni-separator`（不透明，浅色 1.7:1 / 深色 1.5:1），随主题切换；无 JS。
+
+### 行为与无障碍
+
+根元素输出 `role="separator"` 与显式的 `aria-orientation`（带值 ARIA 一律输出字符串：该角色没有垂直默认值）；装饰用的线段 `aria-hidden`，中缝内容是普通文本内容。
+
+### 实现边界
+
+不提供渐变/图案装饰线、可拖拽 splitter 和中缝对齐位置参数；中缝内容固定居中，长文本由使用方控制换行。
+
+## 28. Empty
+
+### 支持能力
+
+`Empty` 提供空状态占位：
+
+- `Size`（`Small` / `Default` / `Large`）、`Title`、`Description`、`Icon`（自定义图标或插画）与 `ChildContent`（操作区）。
+- 默认插画是新增的核心字形 `AeterniIcons.EmptyBox`，尺寸通过祖先元素上的 `--aeterni-icon-render-size` 传递：Small 取 `--aeterni-icon-size-xl`（24px）、Default 取 `--aeterni-icon-size-2xl`（32px）、Large 在 2xl 基础上加 `--aeterni-spacing-2`（40px）；传入 `Icon` 片段则整体替换插画。
+- 插画取 `--aeterni-text-tertiary`（图标/装饰级），标题取 `--aeterni-text-primary`，描述取 `--aeterni-text-secondary`，`Size` 同步字号档位。
+- `Title` 为空时使用 `AeterniUITextOptions.EmptyTitle`；`Description` 为空时不渲染该段落；`ChildContent` 为 `null` 时不渲染操作区容器。
+- 文本居中、长单词与窄屏用 `overflow-wrap: anywhere` 换行，描述限制在 `--aeterni-empty-measure`（28em）的行长内；无 JS。
+
+### 行为与无障碍
+
+插画是装饰内容（`aria-hidden`），标题与描述是普通文本；操作区里的可访问性由使用方传入的 `Button` 等组件负责。
+
+### 实现边界
+
+不包含数据加载逻辑、插图资源包与动画插画。组件**不绘制表面**（内容控件），应放进 `Card`、`Surface` 或表格主体使用；操作区包装元素只看 `ChildContent` 是否为 `null`——若在片段内部用 `@if` 关掉全部内容，包装元素仍会存在，需要完全移除时请在外层判断或传 `null` 片段。
+
+## 29. Spinner
+
+### 支持能力
+
+- `Size` 三档：`Small` 16px（`--aeterni-icon-size-md`）、`Default` 20px（`--aeterni-icon-size-lg`）、`Large` 32px（`--aeterni-icon-size-2xl`，描边同时从 2px 加粗到 3px）。
+- `Color` 命名色取色族的**文字形态**（`--aeterni-color-{role}-text`），`Color.Default` 继承当前文字色。
+- `AriaLabel` 提供可访问名称，未提供时取 `AeterniUITextOptions.SpinnerLabel`。
+- 环形视觉只有一份实现：`Spinner.razor.css` 拥有 currentColor 描边、缺一个象限的缺口和 700ms 线性旋转；`Button.Loading` 改为渲染该组件，只通过 `--aeterni-spinner-size` 按档位（14/16/20px）指定尺寸，两级不再各自维护一份动画。
+- `prefers-reduced-motion: reduce` 下停止旋转，环形保持静止但仍作为可见的忙碌指示。
+
+### 行为与无障碍
+
+根元素输出 `role="status"` 与始终存在的可访问名称，因此空白环形也能被读屏播报为加载状态。Button 的加载遮罩本身带 `aria-busy`，它内部的 Spinner 处在 `aria-hidden` 容器中，不会重复播报。
+
+### 实现边界
+
+不显示进度百分比（使用 `Progress`）、不提供遮罩层布局和加载文案；尺寸与颜色之外的视觉由宿主决定。
+
+## 30. Skeleton
+
+### 支持能力
+
+- `Variant`（`SkeletonVariant`：`Text` / `Rectangle` / `Circle`）、`Lines`（至少 1，用于多行文本占位）、`Width` 与 `Height`（CSS 长度）。
+- 宽高通过自定义属性 `--aeterni-skeleton-width` / `--aeterni-skeleton-height` 传入；默认尺寸按变体：文本行 `1em`（圆角 `sm`）、矩形 `--aeterni-height-md`（圆角 `md`）、圆形 `--aeterni-icon-size-2xl`（`--aeterni-radius-round`，宽度跟随显式高度保持正圆）。
+- 多行文本的最后一行按宽度的 80% 收尾，显式 `Width` 也参与这个比例计算。
+- 微光由「`--aeterni-surface-soft` 轨道 + 8% 正文墨高光」组成，两种主题下都有可见的明度差；无 JS。
+
+### 行为与无障碍
+
+占位图形对读屏不可见（根元素 `aria-hidden="true"`）；正在加载的容器由使用方标记 `aria-busy`。`prefers-reduced-motion: reduce` 下停止动画并移除高光渐变，占位退化为静态色块。
+
+### 实现边界
+
+不提供与具体组件绑定的骨架模板、延迟加载策略和虚拟列表占位；`Lines` 只是把同一个形状堆叠多次，头像 + 文本这类组合由使用方用多个 `Skeleton` 拼装。
+
+## 31. Badge
+
+### 支持能力
+
+- `Count`（`int?`）、`Max`（默认 99）、`Dot`、`Color`、`AriaLabel` 与 `ChildContent`（被附着的图标、头像或按钮）。
+- 数字上限：`Count > Max` 时显示 `{Max}+`；`Count` 为 `null` 且未开启 `Dot` 时不渲染指示器；显式 0 显示为 0；负数与 `Max < 1` 抛出参数异常。
+- 指示器压在锚点右上角（逻辑 `inset-*`，RTL 下自动镜像），用自身尺寸的百分比位移精确对准角点；最小 16px 胶囊、最大宽度 40px，超长数字做省略处理；`Dot` 模式是 12px 圆点。
+- 颜色分两个角色：`--aeterni-badge-fill`（指示器底）与 `--aeterni-badge-ink`（文字/圆点）。品牌填充配 `--aeterni-text-inverse`，中性与语意填充（亮档）配 `--aeterni-color-on-semantic`。
+
+### 行为与无障碍
+
+数字模式把数字本身作为文本内容；提供 `AriaLabel` 时用完整名称替换裸数字。圆点模式没有可见文字，因此把可访问名称（`AriaLabel` 缺省取 `AeterniUITextOptions.BadgeLabel`）作为视觉隐藏文本输出，而不是在空盒子上挂 `aria-label`。
+
+### 实现边界
+
+只有数字与圆点两种形态，不支持自定义文本内容、独立堆叠布局和消息计数业务逻辑；指示器不自带描边，与锚点重叠处的分离由使用方决定。
+
+## 32. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -710,15 +799,19 @@ builder.Services.AddAeterniUI(options =>
     options.Text.DialogCloseLabel = "关闭对话框";
     options.Text.DialogLabel = "对话框";
     options.Text.TagDismissLabel = "移除标签";
+    options.Text.SpinnerLabel = "加载中";
+    options.Text.EmptyTitle = "暂无数据";
+    options.Text.BadgeLabel = "有新内容";
 });
 ```
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## 28. 当前边界
+## 33. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
+- 第三阶段的 `Segmented` 与 `Drawer` 仍在路线图中：`Segmented` 落地后需要反向重构 `ThemeSwitch`，`Drawer` 复用共享浮层的焦点陷阱与滚动锁。
 - `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。

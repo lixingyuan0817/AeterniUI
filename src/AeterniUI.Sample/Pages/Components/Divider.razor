@@ -1,0 +1,62 @@
+@page "/components/divider"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · Divider</PageTitle>
+
+<ComponentPreview AnchorId="divider"
+                  Category="基础组件"
+                  Title="Divider"
+                  ComponentName="Divider"
+                  Description="水平或垂直分隔线，可以在线段中缝放置文字或图标；两种形态共用同一个分隔语义。"
+                  Parameters="@DividerParameters">
+    <Preview>
+        <div class="preview-divider-demo">
+            <p>无中缝内容</p>
+            <Divider />
+
+            <p>中缝文字</p>
+            <Divider Orientation="@_dividerOrientation">@_dividerLabel</Divider>
+
+            <p>中缝图标</p>
+            <Divider><Icon Definition="@AeterniIcons.Star" Size="Size.Small" /></Divider>
+
+            <p>垂直形态</p>
+            <div class="preview-divider-row">
+                <span>左侧</span>
+                <Divider Orientation="Orientation.Vertical" />
+                <span>中间</span>
+                <Divider Orientation="Orientation.Vertical">或</Divider>
+                <span>右侧</span>
+            </div>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="divider-label">中缝文字</label>
+            <input id="divider-label" @bind="_dividerLabel" />
+        </div>
+        <div class="control-field">
+            <span>Orientation</span>
+            <ShowcaseSelect TValue="Orientation" Id="divider-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_dividerOrientation" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>根元素输出 <code>role="separator"</code> 与显式的 <code>aria-orientation</code>，两个形态共用同一份标记。</span>
+        <span>线段使用 <code>--aeterni-separator</code> 的 1px 实线；垂直形态依赖父级 flex 盒子的拉伸高度，示例里的三栏行由示例样式提供。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string _dividerLabel = "或";
+
+    private Orientation _dividerOrientation = Orientation.Horizontal;
+
+    private static readonly ShowcaseParameter[] DividerParameters =
+    [
+        new("Orientation", "Orientation", "分隔线方向；垂直形态拉伸到 flex 行的高度。", "Horizontal"),
+        new("ChildContent", "RenderFragment?", "中缝内容（文字或图标）；为空时渲染一条连续线段。")
+    ];
+}

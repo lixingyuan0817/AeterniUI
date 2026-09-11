@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.5.0`
+文档版本：`10.6.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.1.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.6.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -187,10 +187,10 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 | 能力组 | 组件 |
 | --- | --- |
-| 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card` |
+| 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card`、`Divider` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup` |
-| 内容和选择 | `Tag`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
-| 状态反馈 | `Progress` |
+| 内容和选择 | `Tag`、`Badge`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
+| 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 

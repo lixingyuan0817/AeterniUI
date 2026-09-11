@@ -1,0 +1,83 @@
+@page "/components/skeleton"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Skeleton</PageTitle>
+
+<ComponentPreview AnchorId="skeleton"
+                  Category="状态反馈"
+                  Title="Skeleton"
+                  ComponentName="Skeleton"
+                  Description="内容加载占位：文本行、矩形和圆形，以及由它们拼出的常见组合。"
+                  Parameters="@SkeletonParameters">
+    <Preview>
+        <div class="preview-skeleton-demo">
+            <section class="preview-skeleton-block">
+                <span class="preview-value">文本块</span>
+                <Skeleton Lines="3" />
+            </section>
+
+            <section class="preview-skeleton-block">
+                <span class="preview-value">矩形</span>
+                <Skeleton Variant="SkeletonVariant.Rectangle" Height="96px" />
+            </section>
+
+            <section class="preview-skeleton-block">
+                <span class="preview-value">头像 + 两行文本</span>
+                <div class="preview-skeleton-row">
+                    <Skeleton Variant="SkeletonVariant.Circle" Height="48px" />
+                    <div class="preview-skeleton-copy">
+                        <Skeleton Lines="2" Height="12px" />
+                    </div>
+                </div>
+            </section>
+
+            <section class="preview-skeleton-block">
+                <span class="preview-value">当前参数</span>
+                <Skeleton Variant="@_skeletonVariant" Lines="@_skeletonLines" Width="@_skeletonWidth" Height="@_skeletonHeight" />
+            </section>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Variant</span>
+            <ShowcaseSelect TValue="SkeletonVariant" Id="skeleton-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SkeletonVariant>())" @bind-Value="_skeletonVariant" />
+        </div>
+        <div class="control-field">
+            <label for="skeleton-lines">Lines</label>
+            <input id="skeleton-lines" type="number" min="1" max="6" @bind="_skeletonLines" />
+        </div>
+        <div class="control-field">
+            <label for="skeleton-width">Width</label>
+            <input id="skeleton-width" placeholder="100%" @bind="_skeletonWidth" />
+        </div>
+        <div class="control-field">
+            <label for="skeleton-height">Height</label>
+            <input id="skeleton-height" placeholder="按变体默认" @bind="_skeletonHeight" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>占位图形对读屏不可见（根元素 <code>aria-hidden="true"</code>）；正在加载的容器由使用方标记 <code>aria-busy</code>。</span>
+        <span>文本块的最后一行按宽度的 80% 收尾，避免占位块看起来像一整块实心矩形。</span>
+        <span><code>prefers-reduced-motion</code> 下微光动画停止并移除高光渐变，占位块退化为静态色块。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private SkeletonVariant _skeletonVariant = SkeletonVariant.Text;
+
+    private int _skeletonLines = 3;
+
+    private string? _skeletonWidth;
+
+    private string? _skeletonHeight;
+
+    private static readonly ShowcaseParameter[] SkeletonParameters =
+    [
+        new("Variant", "SkeletonVariant", "占位形状：Text / Rectangle / Circle。", "Text"),
+        new("Lines", "int", "堆叠的占位条数量（至少 1）。", "1"),
+        new("Width", "string?", "占位条宽度（CSS 长度）；默认占满容器。"),
+        new("Height", "string?", "占位条高度（CSS 长度）；默认按变体取值。")
+    ];
+}

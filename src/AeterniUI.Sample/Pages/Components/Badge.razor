@@ -1,0 +1,100 @@
+@page "/components/badge"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · Badge</PageTitle>
+
+<ComponentPreview AnchorId="badge"
+                  Category="基础组件"
+                  Title="Badge"
+                  ComponentName="Badge"
+                  Description="附着在图标、头像或按钮右上角的数字或圆点角标，位置随书写方向镜像。"
+                  Parameters="@BadgeParameters">
+    <Preview>
+        <div class="preview-badge-demo">
+            <div class="preview-state-row">
+                <Badge Count="@_badgeCount" Max="@_badgeMax" Color="@_badgeColor"
+                       AriaLabel="@_badgeAriaLabel">
+                    <Button Variant="ButtonVariant.Outline"
+                            Color="Color.Neutral"
+                            AriaLabel="通知"
+                            StartIcon="@NotifyIcon"
+                            OnClick="MarkInteraction" />
+                </Badge>
+
+                <Badge Dot Color="@_badgeColor" AriaLabel="有新的构建结果">
+                    <Icon Definition="@AeterniIcons.Star" Size="Size.Large" Color="Color.Warning" AriaLabel="收藏" />
+                </Badge>
+
+                <Badge Count="8" Max="99" Color="Color.Info">
+                    <Surface Class="preview-badge-avatar">AU</Surface>
+                </Badge>
+
+                <Badge Count="120" Max="99" Color="Color.Danger" AriaLabel="120 条未读消息">
+                    <Button Color="Color.Primary" OnClick="MarkInteraction">消息</Button>
+                </Badge>
+            </div>
+
+            <div class="preview-state-row">
+                @foreach (var family in ColorFamilies)
+                {
+                    <span class="preview-badge-cell">
+                        <Badge Count="@_badgeCount" Max="@_badgeMax" Color="@family.Color">
+                            <Surface Class="preview-badge-avatar">@_badgeCount</Surface>
+                        </Badge>
+                        <span class="preview-value">@family.Label</span>
+                    </span>
+                }
+            </div>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="badge-count">Count</label>
+            <input id="badge-count" type="number" min="0" max="999" @bind="_badgeCount" />
+        </div>
+        <div class="control-field">
+            <label for="badge-max">Max</label>
+            <input id="badge-max" type="number" min="1" max="999" @bind="_badgeMax" />
+        </div>
+        <div class="control-field">
+            <span>Color</span>
+            <ShowcaseSelect TValue="Color" Id="badge-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_badgeColor" />
+        </div>
+        <div class="control-field">
+            <label for="badge-label">AriaLabel</label>
+            <input id="badge-label" placeholder="留空则读出数字本身" @bind="_badgeAriaLabel" />
+        </div>
+    </Controls>
+    <Notes>
+        <span><code>Count</code> 为 <code>null</code> 且未开启 <code>Dot</code> 时不渲染角标；显式的 0 会显示为 0。</span>
+        <span>超过 <code>Max</code> 的数字显示为 <code>99+</code>；圆点没有可见文字，因此把可访问名称作为视觉隐藏文本输出（默认取 <code>AeterniUITextOptions.BadgeLabel</code>）。</span>
+        <span>角标用逻辑定位属性贴在右上角，RTL 下自动镜像；它只绘制指示器表面，锚点内容的表面仍由锚点自身决定。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private int? _badgeCount = 99;
+
+    private int _badgeMax = 99;
+
+    private Color _badgeColor = Color.Danger;
+
+    private string? _badgeAriaLabel = "99 条未读消息";
+
+    // The bell goes through Button.StartIcon: an <Icon> element inside Button's own
+    // child content resolves to Button's legacy Icon parameter, not the component.
+    private RenderFragment NotifyIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Bell" />;
+
+    private static readonly ShowcaseParameter[] BadgeParameters =
+    [
+        new("Count", "int?", "要显示的数字；null 时不渲染角标，0 会显示为 0。"),
+        new("Max", "int", "完整显示的最大值，超过时显示为 {Max}+。", "99"),
+        new("Dot", "bool", "圆点模式，忽略 Count。", "false"),
+        new("Color", "Color", "指示器语义颜色；Default 是品牌填充。", "Default"),
+        new("AriaLabel", "string?", "可访问名称：数字模式替换裸数字，圆点模式替换默认文案。"),
+        new("ChildContent", "RenderFragment?", "被附着的图标、头像或按钮。")
+    ];
+}

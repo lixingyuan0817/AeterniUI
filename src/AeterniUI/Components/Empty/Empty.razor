@@ -1,0 +1,28 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <span class="aeterni-empty__icon" aria-hidden="true">
+        @if (Icon is not null)
+        {
+            @Icon
+        }
+        else
+        {
+            <Icon Definition="@AeterniIcons.EmptyBox" />
+        }
+    </span>
+
+    <p class="aeterni-empty__title">@EffectiveTitle</p>
+
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p class="aeterni-empty__description">@Description</p>
+    }
+
+    @* The action slot is optional: an empty wrapper would add stray spacing, so it
+       only exists when the consumer supplies content for it. *@
+    @if (ChildContent is not null)
+    {
+        <div class="aeterni-empty__actions">@ChildContent</div>
+    }
+</div>

@@ -1,0 +1,12 @@
+@inherits AeterniComponent
+
+@* One root and one content markup: the labelled form adds the two line segments
+   inside the same element, so both modes share the separator semantics. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @if (ChildContent is not null)
+    {
+        <span class="aeterni-divider__line" aria-hidden="true"></span>
+        <span class="aeterni-divider__label">@ChildContent</span>
+        <span class="aeterni-divider__line" aria-hidden="true"></span>
+    }
+</div>

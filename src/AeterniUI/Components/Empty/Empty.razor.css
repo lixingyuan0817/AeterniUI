@@ -1,0 +1,77 @@
+/* The placeholder carries no surface: it is dropped into a Card, Surface or table
+   body, and a second background would read as a card inside a card. */
+.aeterni-empty {
+    --aeterni-empty-icon-size: var(--aeterni-icon-size-2xl);
+    /* Typographic measure, not a size tier: it keeps a single description line
+       from running the full width of a wide container. */
+    --aeterni-empty-measure: 28em;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    padding: var(--aeterni-spacing-8) var(--aeterni-spacing-4);
+    text-align: center;
+}
+
+.aeterni-empty--sm {
+    --aeterni-empty-icon-size: var(--aeterni-icon-size-xl);
+}
+
+.aeterni-empty--lg {
+    --aeterni-empty-icon-size: calc(var(--aeterni-icon-size-2xl) + var(--aeterni-spacing-2));
+}
+
+/* Decorative artwork, so it stays on the icon/decoration text level instead of
+   borrowing the body ink. */
+.aeterni-empty__icon {
+    --aeterni-icon-render-size: var(--aeterni-empty-icon-size);
+
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--aeterni-text-tertiary);
+}
+
+.aeterni-empty__title {
+    max-width: var(--aeterni-empty-measure);
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-tight);
+    /* Long words and narrow containers wrap instead of pushing the layout wider. */
+    overflow-wrap: anywhere;
+}
+
+.aeterni-empty__description {
+    max-width: var(--aeterni-empty-measure);
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+    overflow-wrap: anywhere;
+}
+
+.aeterni-empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-2);
+    margin-top: var(--aeterni-spacing-2);
+}
+
+.aeterni-empty--sm .aeterni-empty__title {
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.aeterni-empty--sm .aeterni-empty__description {
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-empty--lg .aeterni-empty__title {
+    font-size: var(--aeterni-font-size-lg);
+}

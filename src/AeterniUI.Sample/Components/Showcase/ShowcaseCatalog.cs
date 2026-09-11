@@ -38,8 +38,11 @@ public static class ShowcaseCatalog
             new("button-group", "ButtonGroup", "按钮组合"),
             new("surface", "Surface", "视觉容器"),
             new("card", "Card", "结构化容器"),
+            new("divider", "Divider", "分隔线"),
+            new("empty", "Empty", "空状态占位"),
             new("icon", "Icon", "SVG 图标"),
-            new("tag", "Tag", "标签状态")
+            new("tag", "Tag", "标签状态"),
+            new("badge", "Badge", "数字与圆点角标")
         ]),
         new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),
@@ -57,8 +60,10 @@ public static class ShowcaseCatalog
             new("menu", "Menu", "分组菜单"),
             new("tabs", "Tabs", "标签页导航")
         ]),
-        new("图表组件", FontAwesomeIcons.Solid.ChartColumn, [
-            new("progress", "Progress", "进度展示")
+        new("状态反馈", FontAwesomeIcons.Solid.BarsProgress, [
+            new("progress", "Progress", "进度展示"),
+            new("spinner", "Spinner", "加载指示器"),
+            new("skeleton", "Skeleton", "内容占位")
         ]),
         new("通知组件", FontAwesomeIcons.Solid.Bell, [
             new("popup", "Popup / Popover", "基础浮层"),

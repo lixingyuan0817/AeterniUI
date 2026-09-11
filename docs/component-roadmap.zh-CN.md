@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.5.0`
+文档版本：`10.6.0`
 
-状态：v0.1 与 v0.2 已完成，v0.3 规划中；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1 与 v0.2 已完成，v0.3 进行中（5/7：Divider、Empty、Spinner、Skeleton、Badge 已完成）；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -310,17 +310,19 @@ Input/Input 样式族
 
 ## 第三阶段（v0.3）计划
 
-状态：规划中。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
+状态：进行中（5/7）。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
+
+进度：15 `Divider`、16 `Empty`、17 `Spinner`、18 `Skeleton`、19 `Badge` 已完成（v10.6）；20 `Segmented`、21 `Drawer` 待开工。
 
 版本规则沿用第二阶段：功能新增递增次版本号；问题修复递增补丁版本号；破坏性公共 API 变更递增主版本号。
 
 ### TODO 总览
 
-- [ ] 15. `Divider`
-- [ ] 16. `Empty`
-- [ ] 17. `Spinner`
-- [ ] 18. `Skeleton`
-- [ ] 19. `Badge`
+- [x] 15. `Divider`
+- [x] 16. `Empty`
+- [x] 17. `Spinner`
+- [x] 18. `Skeleton`
+- [x] 19. `Badge`
 - [ ] 20. `Segmented`
 - [ ] 21. `Drawer`
 
@@ -339,7 +341,7 @@ Token 和现有基础组件
 
 ### 15. Divider
 
-状态：未开始
+状态：已完成
 
 目标：提供水平与垂直分隔线，支持中缝文字或图标。
 
@@ -349,9 +351,11 @@ Token 和现有基础组件
 
 暂不包含：渐变装饰线、可拖拽的 splitter。
 
+交付：`Orientation` + 可选中缝内容；两种形态共用同一份标记（有内容时两段线各保留最小长度），带值 ARIA 输出字符串，无 JS。示例页 `/components/divider`。
+
 ### 16. Empty
 
-状态：未开始
+状态：已完成
 
 目标：提供空状态占位，支持图标、标题、描述与操作区。
 
@@ -361,9 +365,11 @@ Token 和现有基础组件
 
 暂不包含：数据加载逻辑、插图资源包、动画插画。
 
+交付：新增核心字形 `AeterniIcons.EmptyBox`（字形数 7 → 8）；`Size` 三档同时管插画与字号；组件不绘制表面（在 `Card`/`Surface` 宿主里演示）；`Title`/`Description` 空值分别回落到文案表与不渲染；`ChildContent` 为 `null` 时不渲染操作区容器。示例页 `/components/empty`。
+
 ### 17. Spinner
 
-状态：未开始
+状态：已完成
 
 目标：提供独立加载指示器，供内容区、对话框和页面级加载复用。
 
@@ -373,9 +379,11 @@ Token 和现有基础组件
 
 暂不包含：进度百分比（使用 `Progress`）和遮罩层布局。
 
+交付：环形定义集中到 `Spinner.razor.css`，删掉 `Button.razor.css` 里的第二份 ring/keyframes；Button 改为渲染 `Spinner`，只通过 `--aeterni-spinner-size` 保留自己 14/16/20px 的档位（加载态尺寸未变）；`role="status"` + 文案表可覆盖的可访问名称；命名色取文字形态，`Default` 继承文字色。示例页 `/components/spinner`。
+
 ### 18. Skeleton
 
-状态：未开始
+状态：已完成
 
 目标：提供内容加载占位（文本行、矩形、圆形及常见组合）。
 
@@ -385,9 +393,11 @@ Token 和现有基础组件
 
 暂不包含：与具体组件绑定的骨架模板和延迟加载策略。
 
+交付：`SkeletonVariant`（`Text`/`Rectangle`/`Circle`）+ `Lines`/`Width`/`Height`；宽高走 `--aeterni-skeleton-*` 自定义属性；文本块末行按 80% 收尾，圆形宽度跟随显式高度；微光取 `--aeterni-surface-soft` 轨道 + 8% 正文墨高光，reduced-motion 下退化为静态色块。示例页 `/components/skeleton`。
+
 ### 19. Badge
 
-状态：未开始
+状态：已完成
 
 目标：提供数字或圆点角标，附着在图标、头像或按钮上。
 
@@ -396,6 +406,8 @@ Token 和现有基础组件
 验收重点：数字上限显示（如 `99+`）、圆点模式、相对父级定位、语义色、最大宽度与溢出处理；数字需要有可访问名称。
 
 暂不包含：独立堆叠布局和消息计数业务逻辑。
+
+交付：`Count`/`Max`/`Dot`/`Color`/`AriaLabel`；逻辑 `inset-*` 定位并按自身尺寸位移对准角点（RTL 自动镜像）；最小 16px 胶囊、最大宽度 40px 并做省略；圆点把可访问名称作为视觉隐藏文本输出（`AeterniUITextOptions.BadgeLabel`）；填充/墨色两角色与参数边界校验（负数、`Max < 1`）。示例页 `/components/badge`。
 
 ### 20. Segmented
 
@@ -431,10 +443,10 @@ Token 和现有基础组件
 | --- | --- |
 | ~~FocusTrap + 背景滚动锁抽取~~（v10.4 已完成：`wwwroot/js/aeterni_floating.js` 提供 `createFocusTrap` / `lockScroll`） | 21 `Drawer`，并回填 v0.2 第 12 项的 Popup 增强（已回填） |
 | ~~浮层定位能力（锚定/flip/shift/外部点击）~~（v10.4 已完成：`fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift`） | 21 `Drawer` 的遮罩、v0.2 的 Tooltip 复用（已迁移）与 ComboBox 弹层迁移（待办） |
-| 语义枚举收敛（`Color`/`Severity`） | 19 `Badge`、17 `Spinner` 等新增带色组件 |
-| 文案本地化入口 | 20 `Segmented`（含 `ThemeSwitch` 重构） |
-| 核心图标字形补充 | 16 `Empty` 及后续新增组件 |
-| 示例页拆分 | 第三阶段每个组件都需要可交互演示 |
+| ~~语义枚举收敛（`Color`/`Severity`）~~（v10.5 已完成：`ComponentClass.ForColor` / `ToColor` 是唯一映射；v10.6 的 `Spinner` 与 `Badge` 直接复用它） | 19 `Badge`、17 `Spinner` 等新增带色组件（已解决） |
+| ~~文案本地化入口~~（v10.6 已完成：`Spinner`/`Badge`/`Empty` 的可访问名称与空状态标题全部走 `AeterniUITextOptions`） | 20 `Segmented`（含 `ThemeSwitch` 重构）仍沿用同一入口 |
+| ~~核心图标字形补充~~（v10.6 已完成：新增 `AeterniIcons.EmptyBox`） | 16 `Empty`（已解决）及后续新增组件 |
+| ~~示例页拆分~~（v10.5 已完成：一个组件一个页面） | 第三阶段每个组件都需要可交互演示（已具备） |
 
 ### 第三阶段固定交付物与验收
 
@@ -444,11 +456,11 @@ Token 和现有基础组件
 
 | 任务 | 状态 | 构建 | 备注 |
 | --- | --- | --- | --- |
-| v0.3 计划 | 规划中 | 未涉及 | 仅记录计划，未修改组件代码 |
-| Divider | 未开始 | - | - |
-| Empty | 未开始 | - | - |
-| Spinner | 未开始 | - | - |
-| Skeleton | 未开始 | - | - |
-| Badge | 未开始 | - | - |
+| v0.3 计划 | 进行中 | 未涉及 | 仅记录计划，未修改组件代码；5/7 已完成 |
+| Divider | 已完成 | 通过 | `role="separator"` + 显式 `aria-orientation`、中缝内容、垂直形态贴合 flex 高度；示例已同步 |
+| Empty | 已完成 | 通过 | 新增 `AeterniIcons.EmptyBox`；`Size` 三档、自定义插画、描述与操作区插槽、无表面宿主用法；示例已同步 |
+| Spinner | 已完成 | 通过 | 环形视觉抽成共享实现并让 Button Loading 复用（删除第二份 keyframes），尺寸/语义色档位与 `role="status"`；示例已同步 |
+| Skeleton | 已完成 | 通过 | Text/Rectangle/Circle + Lines/Width/Height、末行 80%、`aria-hidden`、reduced-motion 静态降级；示例已同步 |
+| Badge | 已完成 | 通过 | 数字上限、圆点模式、逻辑定位（RTL 镜像）、最大宽度与溢出处理、可访问名称；示例已同步 |
 | Segmented | 未开始 | - | 落地后需重构 ThemeSwitch |
 | Drawer | 未开始 | - | 依赖焦点陷阱与滚动锁抽取 |

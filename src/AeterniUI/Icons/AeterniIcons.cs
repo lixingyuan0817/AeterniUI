@@ -46,6 +46,16 @@ public static class AeterniIcons
         16,
         "M8 1.6 9.6 5.8 14.09 6.02 10.59 8.84 11.76 13.18 8 10.72 4.24 13.18 5.41 8.84 1.91 6.02 6.4 5.8z");
 
+    /// <summary>Open box used as the default placeholder of the empty state.</summary>
+    public static IconDefinition EmptyBox { get; } = new(
+        "empty-box",
+        16,
+        16,
+        [
+            "M2.5 3.1 h4.2 l1.3 1.6 h5.5 v1.7 H2.5z",
+            "M2.5 6.3 h1.7 v5.5 h7.6 V6.3 h1.7 v7.2 H2.5z"
+        ]);
+
     /// <summary>Information mark used by informational notices.</summary>
     public static IconDefinition Info { get; } = new(
         "info",

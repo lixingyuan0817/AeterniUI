@@ -1,0 +1,21 @@
+@inherits AeterniComponent
+
+<span @ref="RootElement" @attributes="BuildAttributes()">
+    <span class="aeterni-badge__anchor">@ChildContent</span>
+
+    @if (HasIndicator)
+    {
+        @* A dot has no visible text, so its meaning travels as visually hidden text
+           instead of an aria-label on an empty box. *@
+        <span class="aeterni-badge__indicator" aria-label="@IndicatorAriaLabel">
+            @if (Dot)
+            {
+                <span class="aeterni-badge__sr">@DotLabel</span>
+            }
+            else
+            {
+                @CountText
+            }
+        </span>
+    }
+</span>

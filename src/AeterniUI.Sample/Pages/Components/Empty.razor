@@ -1,0 +1,84 @@
+@page "/components/empty"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · Empty</PageTitle>
+
+<ComponentPreview AnchorId="empty"
+                  Category="基础组件"
+                  Title="Empty"
+                  ComponentName="Empty"
+                  Description="空状态占位：图标、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。"
+                  Parameters="@EmptyParameters">
+    <Preview>
+        @* Real usage: the placeholder lives inside the container that owns the
+           surface, so the demo shows the host rather than a floating block. *@
+        <Surface Variant="SurfaceVariant.Elevated" Class="preview-empty-host">
+            <Empty Size="@_emptySize"
+                   Title="@_emptyTitle"
+                   Description="@_emptyDescription"
+                   Icon="@EmptyIcon"
+                   ChildContent="@EmptyActions" />
+        </Surface>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="empty-title">标题</label>
+            <input id="empty-title" @bind="_emptyTitle" />
+        </div>
+        <div class="control-field">
+            <label for="empty-description">描述</label>
+            <input id="empty-description" @bind="_emptyDescription" />
+        </div>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="empty-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_emptySize" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_emptyShowActions">操作区</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_emptyCustomIcon">自定义插画</Checkbox>
+    </Controls>
+    <Notes>
+        <span><code>Title</code> 为空时使用 <code>AeterniUITextOptions.EmptyTitle</code>；<code>Description</code> 为空时不渲染该段落。</span>
+        <span>操作区只在 <code>ChildContent</code> 为 <c>null</c> 时不渲染；用 <code>@("@if")</code> 包住全部操作时会留下空包装元素，因此示例把片段放在 <code>@("@")EmptyActions</code> 字段里按需传 null。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string _emptyTitle = "还没有项目";
+
+    private string _emptyDescription = "创建第一个项目后，这里会显示它的运行状态与最近活动。";
+
+    private Size _emptySize = Size.Default;
+
+    private bool _emptyShowActions = true;
+
+    private bool _emptyCustomIcon;
+
+    // A null fragment keeps the built-in glyph in place; a supplied fragment
+    // replaces the artwork as a whole.
+    private RenderFragment? EmptyIcon => _emptyCustomIcon
+        ? @<span class="preview-empty-illustration">
+            <Icon Definition="@FontAwesomeIcons.Solid.Cube" Color="Color.Primary" />
+        </span>
+        : null;
+
+    // Passing null instead of an always-present fragment keeps the action wrapper
+    // out of the DOM when the consumer has nothing to put in it.
+    private RenderFragment? EmptyActions => _emptyShowActions
+        ? @<text>
+            <Button Size="Size.Small" OnClick="MarkInteraction">创建项目</Button>
+            <Button Size="Size.Small" Variant="ButtonVariant.Ghost" Color="Color.Neutral" OnClick="MarkInteraction">查看文档</Button>
+        </text>
+        : null;
+
+    private static readonly ShowcaseParameter[] EmptyParameters =
+    [
+        new("Size", "Size", "插画与排版档位。", "Default"),
+        new("Icon", "RenderFragment?", "自定义图标或插画；为空时使用内置 AeterniIcons.EmptyBox。"),
+        new("Title", "string?", "标题；为空时使用文案表默认值。"),
+        new("Description", "string?", "描述段落；为空时不渲染。"),
+        new("ChildContent", "RenderFragment?", "操作区内容；为 null 时不渲染操作容器。")
+    ];
+}
