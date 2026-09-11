@@ -8,6 +8,37 @@ body {
     background: var(--aeterni-bg-primary);
 }
 
+/*
+   Sample shell metrics — one source of truth for the floating header and for
+   everything that has to line up underneath it (homepage, icons page,
+   component-page sidebar). These live in the sample's global sheet on purpose:
+   while they sat inside MainLayout's scoped stylesheet, every other consumer was
+   reading a custom property it could not see, and `width: var(--sample-shell-width)`
+   silently degraded to `auto` (full-bleed) instead of failing loudly.
+*/
+:root {
+    /* Content column: floating header, page containers and the showcase layout. */
+    --sample-shell-width: min(1440px, calc(100% - 48px));
+    /* Fixed header metrics, consumed by MainLayout and by the sticky sidebar. */
+    --sample-header-inset: 16px;
+    --sample-header-height: 64px;
+    --sample-header-gap: 16px;
+}
+
+@media (max-width: 1080px) {
+    :root {
+        --sample-shell-width: min(1440px, calc(100% - 32px));
+    }
+}
+
+@media (max-width: 600px) {
+    :root {
+        --sample-shell-width: calc(100% - 20px);
+        --sample-header-inset: 8px;
+        --sample-header-height: 56px;
+    }
+}
+
 /* Keep the compact theme control balanced with the floating header. */
 .header-theme-switch {
     width: 232px;

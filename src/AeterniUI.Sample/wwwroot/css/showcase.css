@@ -7,10 +7,11 @@
 */
 
 /*
-   AeterniUI.Sample — components showcase page (/components).
-   The shared floating header, brand and navigation live in MainLayout; this
-   page owns the left category navigation and the component previews. Component
-   colors, spacing and motion come from AeterniUI's semantic tokens.
+   AeterniUI.Sample — component page shell (/components/{id}).
+   MainLayout owns the floating header, the brand and the top-level navigation;
+   ComponentsLayout owns the left category sidebar (a Menu inside a Surface-like
+   card) and the preview column. Width comes from the shared shell token so the
+   header, the homepage and the icons page all line up with this layout.
 */
 
 .showcase-layout {
@@ -19,23 +20,27 @@
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
     gap: 32px;
-    width: calc(100% - 48px);
-    max-width: 1440px;
+    width: var(--sample-shell-width);
+    /* No extra `max-width` or inset arithmetic next to the token: a second clamp
+       here would silently shrink the shell (or, when the token is missing, blow it
+       up to full-bleed) instead of failing visibly. */
     margin: 108px auto 0;
-    box-sizing: border-box;
 }
 
 .showcase-sidebar {
     position: sticky;
-    top: 96px;
+    /* Distance from the viewport top: the fixed header plus one gap, so the
+       sidebar can never slide under the header. */
+    top: calc(var(--sample-header-inset) + var(--sample-header-height) + var(--sample-header-gap));
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
     /* Stable panel: collapsing the navigation must not resize the card; the
-       inner scroll container handles content that outgrows the viewport. */
-    height: calc(100vh - 112px);
-    max-height: calc(100vh - 112px);
+       inner scroll container handles content that outgrows the viewport.
+       Height = viewport − header block − one gap above and below. */
+    height: calc(100vh - var(--sample-header-inset) - var(--sample-header-height) - var(--sample-header-gap) * 2);
+    max-height: calc(100vh - var(--sample-header-inset) - var(--sample-header-height) - var(--sample-header-gap) * 2);
     overflow: hidden;
     padding: 18px;
     border: 1px solid var(--aeterni-border-subtle);
@@ -56,8 +61,6 @@
 .showcase-nav {
     flex: 1 1 auto;
     min-height: 0;
-    display: grid;
-    gap: 18px;
     overflow-y: auto;
     overscroll-behavior: contain;
     margin-right: -18px;
@@ -66,103 +69,15 @@
     scrollbar-gutter: stable;
 }
 
-.showcase-nav__group {
-    display: grid;
-    gap: 7px;
-    animation: showcase-fade-up var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
-}
-
-.showcase-nav__label {
-    padding: 0 8px 3px;
-    color: var(--aeterni-text-muted);
-    font-size: 10px;
-    font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-}
-
-.showcase-nav__item {
-    display: grid;
-    gap: 2px;
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid transparent;
-    border-radius: var(--aeterni-radius-md);
-    background: transparent;
-    color: var(--aeterni-text-secondary);
-    text-align: left;
-    cursor: pointer;
-    transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-transform);
-}
-
-.showcase-nav__item:hover {
-    background: var(--aeterni-state-background-hover);
-    color: var(--aeterni-text-primary);
-    transform: translateX(2px);
-}
-
-.showcase-nav__item:active {
-    background: var(--aeterni-state-background-active);
-    transform: translateX(0);
-}
-
-.showcase-nav__item:focus-visible {
-    outline: 2px solid var(--aeterni-control-focus-ring);
-    outline-offset: 2px;
-}
-
-.showcase-nav__item.is-selected {
-    border-color: var(--aeterni-color-brand-default);
-    background: var(--aeterni-state-background-selected);
-    color: var(--aeterni-state-color-selected);
-}
-
-.showcase-nav__item-name {
-    font-size: 13px;
-    font-weight: var(--aeterni-font-weight-semibold);
-}
-
-.showcase-nav__item-summary {
-    color: var(--aeterni-text-muted);
-    font-size: 11px;
-    line-height: 1.35;
-}
-
-.showcase-nav__item.is-selected .showcase-nav__item-summary {
-    color: var(--aeterni-state-color-selected);
-}
-
-.showcase-nav__item.is-selected:active {
-    background: var(--aeterni-state-background-selected);
-}
-
-.showcase-nav__group:nth-child(2) {
-    animation-delay: .06s;
-}
-
-.showcase-nav__group:nth-child(3) {
-    animation-delay: .12s;
-}
-
-.showcase-nav__group:nth-child(4) {
-    animation-delay: .18s;
-}
-
-.showcase-nav__group:nth-child(5) {
-    animation-delay: .24s;
-}
-
-.showcase-nav__group:nth-child(6) {
-    animation-delay: .30s;
-}
+/* The sidebar navigation is the library Menu component: it brings its own row
+   rhythm, selected state and disclosure behaviour, so this sheet must not define
+   a second set of nav item styles (the previous `showcase-nav__*` rules became
+   dead the moment the sidebar switched to Menu). */
 
 .showcase-main {
     grid-column: 2;
     min-width: 0;
-    width: auto;
-    max-width: 100%;
     box-sizing: border-box;
-    padding-right: 16px;
 }
 
 .showcase-preview-host {
@@ -457,12 +372,6 @@
 
     .showcase-main {
         grid-column: auto;
-        padding-right: 0;
-    }
-
-    .showcase-nav {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px 18px;
     }
 }
 
@@ -473,34 +382,6 @@
 
     .showcase-sidebar {
         padding: 14px;
-    }
-
-    .showcase-nav {
-        display: flex;
-        overflow-x: auto;
-        overflow-y: hidden;
-        gap: 8px;
-        margin: 0 -4px;
-        padding: 8px 4px 4px;
-    }
-
-    .showcase-nav__group {
-        display: contents;
-    }
-
-    .showcase-nav__label {
-        display: none;
-    }
-
-    .showcase-nav__item {
-        flex: 0 0 auto;
-        width: auto;
-        min-width: 116px;
-        padding: 8px 10px;
-    }
-
-    .showcase-nav__item-summary {
-        display: none;
     }
 
     .control-grid {
@@ -523,10 +404,6 @@
 @media (prefers-reduced-motion: reduce) {
     .showcase-sidebar {
         animation: none;
-        transition: none;
-    }
-
-    .showcase-nav__item {
         transition: none;
     }
 }
