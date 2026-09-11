@@ -1,0 +1,48 @@
+@page "/components/icon-button"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · IconButton</PageTitle>
+
+<ComponentPreview AnchorId="icon-button"
+                  Category="基础组件"
+                  Title="IconButton"
+                  ComponentName="IconButton"
+                  Description="用于单一图标动作的方形按钮，强制提供无障碍名称，并支持尺寸、语义、加载和禁用状态。"
+                  Parameters="@Parameters"
+                  Events="@Events">
+    <Preview>
+        <div class="preview-action-row">
+            <IconButton Icon="@SearchIcon" AriaLabel="搜索" OnClick="MarkInteraction" />
+            <IconButton Variant="ButtonVariant.Outline" Icon="@SettingsIcon" AriaLabel="设置" OnClick="MarkInteraction" />
+            <IconButton Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Icon="@InfoIcon" AriaLabel="查看警告" OnClick="MarkInteraction" />
+            <IconButton Loading AriaLabel="正在加载" />
+        </div>
+        <span class="preview-feedback" role="status">@_interactionNote</span>
+    </Preview>
+    <Notes>
+        <span>IconButton 默认是 <code>Ghost + Neutral</code>，适合工具栏、关闭、搜索和设置等低强调图标动作。</span>
+        <span><code>AriaLabel</code> 是必需的无障碍名称；加载时只显示 Spinner，并输出 <code>aria-busy</code>。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Variant", "ButtonVariant", "按钮视觉变体。", "Ghost"),
+        new("Intent", "ButtonIntent", "按钮语义类型。", "Neutral"),
+        new("Size", "Size", "正方形尺寸档位。", "Default"),
+        new("AriaLabel", "string", "图标动作的无障碍名称。"),
+        new("Loading", "bool", "是否显示加载状态。", "false"),
+        new("Icon", "RenderFragment?", "图标内容。")
+    ];
+
+    private static readonly ShowcaseEvent[] Events =
+    [new("OnClick", "EventCallback<MouseEventArgs>", "按钮被点击时触发。")];
+
+    private RenderFragment SearchIcon => @<Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />;
+    private RenderFragment SettingsIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;
+    private RenderFragment InfoIcon => @<Icon Definition="@FontAwesomeIcons.Solid.CircleInfo" />;
+}

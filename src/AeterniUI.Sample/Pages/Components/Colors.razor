@@ -26,8 +26,16 @@
         {
             <div class="showcase-colors__row">
                 <span class="showcase-colors__name">@family.Label</span>
-                <Button Color="family.Color">@family.Label</Button>
-                <Button Variant="ButtonVariant.Outline" Color="family.Color">Outline</Button>
+                @if (family.Color is Color.Warning or Color.Danger)
+                {
+                    <Button Intent="@(family.Color == Color.Warning ? ButtonIntent.Warning : ButtonIntent.Danger)">@family.Label</Button>
+                    <Button Variant="ButtonVariant.Outline" Intent="@(family.Color == Color.Warning ? ButtonIntent.Warning : ButtonIntent.Danger)">Outline</Button>
+                }
+                else
+                {
+                    <Button>@family.Label</Button>
+                    <Button Variant="ButtonVariant.Outline">Outline</Button>
+                }
                 <span class="showcase-colors__chips">
                     <Tag Color="family.Color">Tag</Tag>
                     <Tag Color="family.Color" Variant="TagVariant.Outline">Outline</Tag>
@@ -46,7 +54,7 @@
         @foreach (var family in SeverityFamilies)
         {
             <Button Variant="ButtonVariant.Ghost"
-                    Color="family.Color"
+                    Intent="@(family.Severity is Severity.Warning ? ButtonIntent.Warning : family.Severity is Severity.Danger ? ButtonIntent.Danger : ButtonIntent.Default)"
                     OnClick="@(args => ShowColorAlertAsync(family))">
                 @family.Label Alert
             </Button>

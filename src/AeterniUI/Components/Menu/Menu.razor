@@ -21,8 +21,14 @@
                         disabled="@groupDisabled"
                         @onfocus="() => TrackFocus(groupIndex, NoItem)"
                         @onclick="() => ToggleGroupAsync(group)">
-                    @if (group.Icon is not null) { <span class="aeterni-menu__icon">@group.Icon</span> }
-                    <span>@group.Label</span><span class="aeterni-menu__chevron" aria-hidden="true"><Icon Definition="@AeterniIcons.ChevronRight" /></span>
+                    @if (group.Icon is not null)
+                    {
+                        <span class="aeterni-menu__icon">@group.Icon</span>
+                    }
+                    <span>@group.Label</span>
+                    <span class="aeterni-menu__chevron" aria-hidden="true">
+                        <Icon Definition="@AeterniIcons.ChevronRight" />
+                    </span>
                 </button>
                 <div class="aeterni-menu__collapse @(open ? "is-open" : "")" id="@GroupRegionId(groupIndex)">
                     <ul class="aeterni-menu__items" role="list">
@@ -73,5 +79,17 @@
 
 @code {
     /// <summary>Body markup shared by the button and link variants of an entry.</summary>
-    private static RenderFragment ItemBody(MenuItem item) => @<text>@if (item.Icon is not null) { <span class="aeterni-menu__icon">@item.Icon</span> }<span class="aeterni-menu__item-copy"><span>@item.Label</span>@if (!string.IsNullOrWhiteSpace(item.Description)) { <small>@item.Description</small> }</span></text>;
+    private static RenderFragment ItemBody(MenuItem item) => @<text>
+        @if (item.Icon is not null)
+        {
+            <span class="aeterni-menu__icon">@item.Icon</span>
+        }
+        <span class="aeterni-menu__item-copy">
+            <span>@item.Label</span>
+            @if (!string.IsNullOrWhiteSpace(item.Description))
+            {
+                <small>@item.Description</small>
+            }
+        </span>
+    </text>;
 }

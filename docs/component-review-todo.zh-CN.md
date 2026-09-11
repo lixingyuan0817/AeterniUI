@@ -853,3 +853,18 @@ node --check <改动的>.razor.js
 - 修改 Token 层时额外确认 `wwwroot/css/aeterni_ui.css` 仍只包含 Token 选择器。
 - 修改图标清单或组件内字形时额外执行 `node scripts/generate-fontawesome-icons.mjs --check`。
 - 视觉类修复（P0/P1）建议在浅色与深色两种主题下各复核一次，并确认 `prefers-reduced-motion` 下动效降级仍生效。
+
+## 按钮家族重构基础交互审阅清单
+
+以下清单用于 `Button`、`IconButton`、`MenuButton` 和 `ButtonGroup` 的每次变更验收：
+
+- [ ] `ButtonIntent` 只表达 `Default`、`Neutral`、`Warning`、`Danger`；`ButtonVariant` 只表达 `Solid`、`Outline`、`Soft`、`Ghost`、`Link`。
+- [ ] `ButtonType` 继续只表达原生 `button`、`submit`、`reset`，默认输出 `type="button"`。
+- [ ] `Loading` 输出 `aria-busy="true"`、禁用交互，并保持高度、圆角和主要布局稳定；Spinner 使用 `aria-hidden="true"`。
+- [ ] `Disabled`、`Loading`、`ButtonGroup` 级联禁用的优先级一致，不会被 hover/active 覆盖。
+- [ ] `IconButton` 保持正方形尺寸，必须有 `AriaLabel`，Loading 时只显示 Spinner。
+- [ ] `MenuButton` 的 `Open` / `OpenChanged` 保持受控状态一致；Escape、外部点击、菜单选择都能正确关闭。
+- [ ] `MenuButton` 触发器与菜单共用 `PopupHost`，触发器不会被误判为外部点击；菜单支持键盘导航和视口翻转。
+- [ ] Button 家族只消费 `--aeterni-*` Token；Button、IconButton 不复制第二套颜色、尺寸、圆角体系。
+- [ ] 浅色/深色主题、`prefers-reduced-motion`、Small/Default/Large 和 FullWidth 均完成示例页验证。
+- [ ] 修改后运行 `dotnet build aeterni_ui.slnx`、`bash scripts/check-docs.sh`、`node scripts/check-css-comments.mjs`，并使用 Tauri 的 `scripts/sample-publish.sh Debug` 验证静态发布结果。

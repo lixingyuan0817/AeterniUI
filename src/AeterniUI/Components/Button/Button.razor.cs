@@ -11,10 +11,10 @@ public partial class Button : AeterniComponent
     private ButtonGroupContext? ButtonGroupContext { get; set; }
 
     [Parameter]
-    public ButtonVariant Variant { get; set; } = ButtonVariant.Default;
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Solid;
 
     [Parameter]
-    public Color Color { get; set; } = Color.Default;
+    public ButtonIntent Intent { get; set; } = ButtonIntent.Default;
 
     [Parameter]
     public Size Size { get; set; } = Size.Default;
@@ -57,7 +57,7 @@ public partial class Button : AeterniComponent
             .Add("aeterni-button")
             .Add(SizeClass)
             .Add($"aeterni-button--{VariantClass}")
-            .Add(ColorClass)
+            .Add(IntentClass)
             .Add("is-icon-only", IsIconOnly)
             .Add("is-loading", Loading)
             .Add("is-disabled", IsEffectivelyDisabled)
@@ -115,11 +115,17 @@ public partial class Button : AeterniComponent
     private string VariantClass => Variant switch
     {
         ButtonVariant.Outline => "outline",
+        ButtonVariant.Soft => "soft",
         ButtonVariant.Ghost => "ghost",
-        ButtonVariant.Text => "text",
         ButtonVariant.Link => "link",
-        _ => "default"
+        _ => "solid"
     };
 
-    private string? ColorClass => ComponentClass.ForColor("aeterni-button", Color);
+    private string IntentClass => Intent switch
+    {
+        ButtonIntent.Neutral => "aeterni-button--neutral",
+        ButtonIntent.Warning => "aeterni-button--warning",
+        ButtonIntent.Danger => "aeterni-button--danger",
+        _ => "aeterni-button--default"
+    };
 }

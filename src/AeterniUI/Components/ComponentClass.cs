@@ -55,6 +55,17 @@ internal static class ComponentClass
     /// buttons, progress bars and icons. This is the only Severity→Color mapping
     /// in the library.
     /// </summary>
+    public static ButtonIntent ToButtonIntent(this Severity severity) => severity switch
+    {
+        Severity.Warning => ButtonIntent.Warning,
+        Severity.Danger => ButtonIntent.Danger,
+        _ => ButtonIntent.Default
+    };
+
+    /// <summary>
+    /// Maps notification severities onto the shared semantic colour used by
+    /// notification cards, progress bars and icons.
+    /// </summary>
     public static Color ToColor(this Severity severity) => severity switch
     {
         Severity.Success => Color.Success,

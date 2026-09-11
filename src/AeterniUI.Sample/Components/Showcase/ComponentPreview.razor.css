@@ -138,8 +138,8 @@
 
 .component-preview__control-body {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 14px;
+    grid-template-columns: 1fr;
+    gap: 16px;
     align-content: start;
 }
 
@@ -285,9 +285,6 @@
         display: block;
     }
 
-    .component-preview__control-body {
-        grid-template-columns: 1fr;
-    }
 
     .component-preview__name {
         display: inline-block;

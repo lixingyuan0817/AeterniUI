@@ -1,0 +1,75 @@
+@inherits AeterniComponent
+
+<button @ref="RootElement" @attributes="BuildAttributes()" @onclick="HandleClickAsync">
+    @if (Loading)
+    {
+        <span class="aeterni-icon-button__loading" aria-hidden="true"><Spinner /></span>
+    }
+    else if (EffectiveIcon is not null)
+    {
+        <span class="aeterni-icon-button__icon" aria-hidden="true">@EffectiveIcon</span>
+    }
+</button>
+
+@code {
+    private async Task HandleClickAsync(MouseEventArgs args)
+    {
+        if (Disabled || Loading)
+        {
+            return;
+        }
+
+        await OnClick.InvokeAsync(args);
+    }
+
+    protected override bool SupportsDisabled => true;
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-icon-button")
+        .Add($"aeterni-button--{VariantClass}")
+        .Add(IntentClass)
+        .Add(SizeClass)
+        .Add("is-loading", Loading)
+        .Add("is-disabled", Disabled);
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
+        {
+            ["type"] = Type.ToString().ToLowerInvariant(),
+            ["aria-label"] = AriaLabel.Trim()
+        };
+
+        if (Disabled || Loading)
+        {
+            attributes["disabled"] = true;
+            attributes["aria-disabled"] = "true";
+        }
+
+        if (Loading)
+        {
+            attributes["aria-busy"] = "true";
+        }
+
+        return attributes;
+    }
+
+    private string VariantClass => Variant switch
+    {
+        ButtonVariant.Outline => "outline",
+        ButtonVariant.Soft => "soft",
+        ButtonVariant.Ghost => "ghost",
+        ButtonVariant.Link => "link",
+        _ => "solid"
+    };
+
+    private string IntentClass => Intent switch
+    {
+        ButtonIntent.Neutral => "aeterni-button--neutral",
+        ButtonIntent.Warning => "aeterni-button--warning",
+        ButtonIntent.Danger => "aeterni-button--danger",
+        _ => "aeterni-button--default"
+    };
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-icon-button", Size);
+}

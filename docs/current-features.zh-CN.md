@@ -91,27 +91,30 @@
 
 `Button` 当前支持：
 
-- `Variant`：`Default`、`Outline`、`Ghost`、`Text`、`Link`。
-- `Color`：`Default`、`Primary`、`Neutral`、`Success`、`Warning`、`Danger`、`Info`。
-- `Size`：`Small`、`Default`、`Medium`、`Large`；`Default` 和 `Medium` 使用同一默认中等尺寸。
-- `Type`：`Button`、`Submit`、`Reset`。
+- `Intent`：`Default`（主题色主操作）、`Neutral`、`Warning`、`Danger`。
+- `Variant`：`Solid`、`Outline`、`Soft`、`Ghost`、`Link`；默认是 `Solid`。
+- `Size`：`Small`、`Default`、`Large`。
+- `Type`（原生 HTML button 类型）：`Button`、`Submit`、`Reset`。
 - `StartIcon`、`EndIcon`，以及兼容旧 API 的 `Icon`。
 - `ChildContent`、`Loading`、`Disabled`、`FullWidth`。
 - `AriaLabel`、`OnClick`。
+- `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
+- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
+- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
-- 实心语义色（`Success`、`Warning`、`Danger`、`Info`）使用 `--aeterni-color-on-semantic` 前景；`Primary` 与 `Default` 共用基础品牌规则（`--primary` 与基础选择器同组）。
-- 默认档位不输出修饰类：`Size.Default` / `Size.Medium` 与 `Color.Default` 不再生成 `aeterni-button--md` / `aeterni-button--primary` 之外的空类名。
-- 禁用状态统一消费 `--aeterni-state-*` Token，保持所有颜色和变体的前景、背景可读；`Outline` 和 `Ghost` 仅保留各自的边框结构，`Link` 禁用时不会显示下划线。
-- 加载状态包含 spinner、`aria-busy` 和禁用交互。遮罩对所有变体使用同一套处理：自身表面的半透明层 + `blur(2px)`，因此文字会被模糊但仍然可见，实心变体保持自身语意底色、透明变体保持自身语意色描边。遮罩向外扩展一个边框宽度（`inset: calc(var(--aeterni-border-width) * -1)`），把控件自身的边框也盖在模糊层之下；Button 因此不再对子元素做 `overflow` 裁剪。
-- Link 变体悬浮时只显示下划线，不显示背景色。
+- `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
+- 按钮圆角使用 `--aeterni-radius-button` 系列 Token，默认值为 `0.625rem`，Small/Large 与默认保持同一圆角视觉。
+- 禁用状态统一消费 `--aeterni-state-*` Token，保持所有变体的前景、背景和边框可读；`Link` 禁用时不会显示下划线。
+- 加载状态包含 Spinner、`aria-busy` 和禁用交互。遮罩对所有变体使用同一套处理：自身表面的半透明层 + `blur(2px)`，因此文字会被模糊但仍然可见。
+- `Link` 变体悬浮时只显示下划线，不显示背景色。
 
 ### 行为与无障碍
 
-使用原生 `<button>` 语义，`Type`（`ButtonType`：`Button` / `Submit` / `Reset`）控制原生类型；`Disabled` 输出原生 `disabled` 与 `aria-disabled`，`Loading` 期间阻止重复提交并保持尺寸稳定；键盘使用原生 Enter/Space 激活，`:focus-visible` 提供清晰焦点环。
+使用原生 `<button>` 语义，`Type`（`ButtonType`：`Button` / `Submit` / `Reset`）控制原生类型；`Disabled` 输出原生 `disabled` 与 `aria-disabled`，`Loading` 期间阻止重复提交并保持尺寸稳定；键盘使用原生 Enter/Space 激活，`:focus-visible` 提供清晰焦点环。按钮语义通过 `Intent` 表达，不与原生 `ButtonType` 混淆。
 
 ### 实现边界
 
-不提供独立 `IconButton`；图标通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入。
+`Button` 仍支持通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入图标；独立图标操作使用 `IconButton`，菜单触发操作使用 `MenuButton`。
 ## 5. ButtonGroup
 
 ### 支持能力
@@ -861,7 +864,7 @@ builder.Services.AddAeterniUI(options =>
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
+- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；更复杂的 Toolbar、ToggleGroup 和 SplitButton 仍不在当前范围。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
 - `ComboBox` 的弹层仍是 trigger 锚定的 fixed 定位（有自己的翻转/贴边实现），尚未迁移到共享浮层模块；迁移时需同时保留“页面滚动即关闭”的原生 select 行为。

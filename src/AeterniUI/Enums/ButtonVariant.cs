@@ -2,9 +2,9 @@ namespace AeterniUI.Enums;
 
 public enum ButtonVariant
 {
-    Default,
+    Solid,
     Outline,
+    Soft,
     Ghost,
-    Text,
     Link
 }

@@ -83,7 +83,7 @@
                                 @if (dialog.Options.ShowCloseButton)
                                 {
                                     <Button Variant="ButtonVariant.Ghost"
-                                            Color="Color.Neutral"
+                                            Intent="ButtonIntent.Neutral"
                                             Size="Size.Small"
                                             AriaLabel="@UiText.DialogCloseLabel"
                                             OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
@@ -107,7 +107,7 @@
                         @if (dialog.Kind == DialogContentKind.Alert && dialog.Options is AlertOptions alertOptions)
                         {
                             <footer class="aeterni-dialog-provider__footer">
-                                <Button Color="@dialog.Options.Severity.ToColor()"
+                                <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
                                     @alertOptions.CloseText
                                 </Button>
@@ -117,11 +117,11 @@
                         {
                             <footer class="aeterni-dialog-provider__footer">
                                 <Button Variant="ButtonVariant.Outline"
-                                        Color="Color.Neutral"
+                                        Intent="ButtonIntent.Neutral"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Cancel()))">
                                     @confirmOptions.CancelText
                                 </Button>
-                                <Button Color="@dialog.Options.Severity.ToColor()"
+                                <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Confirm()))">
                                     @confirmOptions.ConfirmText
                                 </Button>

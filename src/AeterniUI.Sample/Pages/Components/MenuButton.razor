@@ -1,0 +1,57 @@
+@page "/components/menu-button"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · MenuButton</PageTitle>
+
+<ComponentPreview AnchorId="menu-button"
+                  Category="基础组件"
+                  Title="MenuButton"
+                  ComponentName="MenuButton"
+                  Description="将 Button、Popover 与 Menu 组合为一个带锚定下拉菜单的操作入口。"
+                  Parameters="@Parameters"
+                  Events="@Events">
+    <Preview>
+        <div class="preview-action-row">
+            <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+        </div>
+        <span class="preview-feedback" role="status">@_interactionNote</span>
+    </Preview>
+    <Notes>
+        <span>MenuButton 的菜单由现有 <code>Popover</code> 和 <code>Menu</code> 承载，支持 Escape、外部点击、键盘导航和视口翻转。</span>
+        <span>触发按钮和菜单都放在同一个 <code>PopupHost</code> 内，避免点击触发器时被误判为外部点击。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly IReadOnlyList<MenuGroup> MenuItems =
+    [
+        new MenuGroup("actions", "操作", [
+            new MenuItem("edit", "编辑", "修改当前内容", Icon: null),
+            new MenuItem("duplicate", "复制", "创建一个副本"),
+            new MenuItem("delete", "删除", "移除当前内容")
+        ])
+    ];
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Label", "string", "触发按钮文本。"),
+        new("Items", "IReadOnlyList<MenuGroup>", "下拉菜单分组和菜单项。"),
+        new("Variant", "ButtonVariant", "触发按钮视觉变体。", "Outline"),
+        new("Intent", "ButtonIntent", "触发按钮语义类型。", "Neutral"),
+        new("Placement", "PopupPlacement", "菜单弹出方向。", "BottomStart"),
+        new("Open", "bool", "受控打开状态。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] Events =
+    [new("OnItemSelected", "EventCallback<MenuItem>", "菜单项被选择时触发。")];
+
+    private Task HandleSelectedAsync(MenuItem item)
+    {
+        MarkInteraction(new MouseEventArgs());
+        return Task.CompletedTask;
+    }
+}

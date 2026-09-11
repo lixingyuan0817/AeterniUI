@@ -12,13 +12,13 @@
                   Category="基础组件"
                   Title="Button"
                   ComponentName="Button"
-                  Description="用于触发动作的原生按钮，统一承载变体、语义色、尺寸、图标、加载和禁用状态。"
+                  Description="用于触发动作的原生按钮，统一承载类型、变体、尺寸、图标、加载和禁用状态。"
                   Parameters="@ButtonParameters"
                   Events="@ButtonEvents">
     <Preview>
         <div class="preview-stack">
             <Button Variant="@_buttonVariant"
-                    Color="@_buttonColor"
+                    Intent="@_buttonIntent"
                     Size="@_buttonSize"
                     Type="@_buttonType"
                     Loading="@_buttonLoading"
@@ -31,18 +31,17 @@
             <span class="preview-feedback" role="status">@_interactionNote</span>
         </div>
         <div class="preview-state-row" aria-label="Loading 状态在各变体下的对照">
-            <Button Variant="ButtonVariant.Default" Loading="true">Default</Button>
+            <Button Variant="ButtonVariant.Solid" Loading="true">Solid</Button>
             <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
+            <Button Variant="ButtonVariant.Soft" Loading="true">Soft</Button>
             <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
-            <Button Variant="ButtonVariant.Text" Loading="true">Text</Button>
             <Button Variant="ButtonVariant.Link" Loading="true">Link</Button>
         </div>
-        <div class="preview-state-row" aria-label="实心语义色对照">
-            <Button Color="Color.Primary">Primary</Button>
-            <Button Color="Color.Success">Success</Button>
-            <Button Color="Color.Warning">Warning</Button>
-            <Button Color="Color.Danger">Danger</Button>
-            <Button Color="Color.Info">Info</Button>
+        <div class="preview-state-row" aria-label="按钮类型对照">
+            <Button Intent="ButtonIntent.Default">Default</Button>
+            <Button Intent="ButtonIntent.Neutral">Neutral</Button>
+            <Button Intent="ButtonIntent.Warning">Warning</Button>
+            <Button Intent="ButtonIntent.Danger">Danger</Button>
         </div>
     </Preview>
     <Controls>
@@ -56,8 +55,8 @@
                 <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_buttonVariant" />
             </div>
             <div class="control-field">
-                <span>Color</span>
-                <ShowcaseSelect TValue="Color" Id="button-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_buttonColor" />
+                <span>Intent</span>
+                <ShowcaseSelect TValue="ButtonIntent" Id="button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_buttonIntent" />
             </div>
             <div class="control-field">
                 <span>Size</span>
@@ -75,18 +74,18 @@
     </Controls>
     <Notes>
         <span>点击预览按钮会触发 <code>OnClick</code>，加载状态会同时输出 <code>aria-busy</code> 并阻止交互。</span>
-        <span>禁用状态会随 <code>Variant</code> 和 <code>Color</code> 保留层级与语意底色，不使用透明背景。</span>
-        <span>第一行为 <code>Loading</code> 对照：透明变体只叠加自身语意色的半透明遮罩，不会变成实心按钮。</span>
-        <span>第二行为实心语义色对照：前景使用 <code>--aeterni-color-on-semantic</code>，请在浅色与深色主题下各核对一次对比度。</span>
+        <span>按钮类型由 <code>Intent</code> 表达，视觉形式由 <code>Variant</code> 表达，两者职责分离。</span>
+        <span>禁用状态会随 <code>Variant</code> 和 <code>Intent</code> 保留层级与语义底色，不使用透明背景。</span>
+        <span>加载状态在五种变体下保持尺寸稳定，并通过 <code>aria-busy</code> 表达忙碌状态。</span>
     </Notes>
 </ComponentPreview>
 
 @code {
     private string _buttonText = "保存更改";
 
-    private ButtonVariant _buttonVariant = ButtonVariant.Default;
+    private ButtonVariant _buttonVariant = ButtonVariant.Solid;
 
-    private Color _buttonColor = Color.Primary;
+    private ButtonIntent _buttonIntent = ButtonIntent.Default;
 
     private Size _buttonSize = Size.Medium;
 
@@ -102,8 +101,8 @@
 
     private static readonly ShowcaseParameter[] ButtonParameters =
     [
-        new("Variant", "ButtonVariant", "按钮视觉变体。", "Default"),
-        new("Color", "Color", "语义颜色。", "Default"),
+        new("Variant", "ButtonVariant", "按钮视觉变体：Solid、Outline、Soft、Ghost、Link。", "Solid"),
+        new("Intent", "ButtonIntent", "按钮语义类型：Default、Neutral、Warning、Danger。", "Default"),
         new("Size", "Size", "按钮尺寸。", "Default"),
         new("Type", "ButtonType", "原生 button 类型。", "Button"),
         new("Icon", "RenderFragment?", "兼容旧 API 的起始图标。"),

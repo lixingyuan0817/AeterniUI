@@ -88,7 +88,7 @@ Input
 
 验收重点：尺寸和变体、语意色、图标布局、可关闭行为、关闭按钮无障碍名称和 reduced-motion。
 
-实现决策：关闭动作复用 Button 图标能力，不创建独立 `IconButton`。
+实现决策：关闭动作继续复用 Button 图标能力；独立图标操作使用新增的 `IconButton`，菜单触发操作使用 `MenuButton`。
 
 ### 5. List + ListItem
 

@@ -1,0 +1,164 @@
+.aeterni-icon-button {
+    --aeterni-icon-button-size: var(--aeterni-control-height-md);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-md);
+
+    position: relative;
+    box-sizing: border-box;
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: var(--aeterni-icon-button-size);
+    height: var(--aeterni-icon-button-size);
+    min-width: var(--aeterni-icon-button-size);
+    padding: 0;
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-radius-button);
+    background: var(--aeterni-button-background);
+    color: var(--aeterni-button-foreground);
+    cursor: pointer;
+    transition: var(--aeterni-transition-button), var(--aeterni-transition-transform);
+}
+
+.aeterni-icon-button:hover:not(:disabled) {
+    background: var(--aeterni-button-background-hover);
+    color: var(--aeterni-button-foreground);
+    box-shadow: var(--aeterni-shadow-sm);
+    transform: translateY(-1px);
+}
+
+.aeterni-icon-button:active:not(:disabled) {
+    background: var(--aeterni-button-background-active);
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+.aeterni-icon-button:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-icon-button:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+.aeterni-icon-button__icon,
+.aeterni-icon-button__loading {
+    --aeterni-icon-render-size: 100%;
+    display: inline-grid;
+    place-items: center;
+    width: var(--aeterni-icon-button-icon-size);
+    height: var(--aeterni-icon-button-icon-size);
+    color: inherit;
+}
+
+.aeterni-icon-button__icon > svg,
+.aeterni-icon-button__icon > img,
+.aeterni-icon-button__loading > svg,
+.aeterni-icon-button__loading > img {
+    width: 100%;
+    height: 100%;
+}
+
+.aeterni-icon-button--sm {
+    --aeterni-icon-button-size: var(--aeterni-control-height-sm);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
+    border-radius: var(--aeterni-radius-button-sm);
+}
+
+.aeterni-icon-button--lg {
+    --aeterni-icon-button-size: var(--aeterni-control-height-lg);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-lg);
+    border-radius: var(--aeterni-radius-button-lg);
+}
+
+.aeterni-icon-button--outline,
+.aeterni-icon-button--soft,
+.aeterni-icon-button--ghost,
+.aeterni-icon-button--link {
+    background: transparent;
+    color: var(--aeterni-button-color);
+}
+
+.aeterni-icon-button--outline {
+    border-color: var(--aeterni-button-color);
+}
+
+.aeterni-icon-button--outline:hover:not(:disabled),
+.aeterni-icon-button--soft:hover:not(:disabled),
+.aeterni-icon-button--ghost:hover:not(:disabled) {
+    background: var(--aeterni-button-soft);
+    color: var(--aeterni-button-color-hover);
+}
+
+.aeterni-icon-button--soft {
+    background: var(--aeterni-button-soft);
+}
+
+.aeterni-icon-button--link {
+    border-color: transparent;
+}
+
+.aeterni-icon-button--link:hover:not(:disabled) {
+    background: transparent;
+    color: var(--aeterni-button-color-hover);
+}
+
+.aeterni-icon-button--default {
+    --aeterni-button-color: var(--aeterni-color-brand-text);
+    --aeterni-button-color-hover: var(--aeterni-color-brand-text);
+    --aeterni-button-background: var(--aeterni-color-brand-default);
+    --aeterni-button-background-hover: var(--aeterni-color-brand-hover);
+    --aeterni-button-background-active: var(--aeterni-color-brand-active);
+    --aeterni-button-foreground: var(--aeterni-text-inverse);
+    --aeterni-button-soft: var(--aeterni-state-background-hover);
+}
+
+.aeterni-icon-button--neutral {
+    --aeterni-button-color: var(--aeterni-text-primary);
+    --aeterni-button-color-hover: var(--aeterni-text-primary);
+    --aeterni-button-background: var(--aeterni-bg-tertiary);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-bg-tertiary) 86%, var(--aeterni-text-primary));
+    --aeterni-button-background-active: color-mix(in srgb, var(--aeterni-bg-tertiary) 76%, var(--aeterni-text-primary));
+    --aeterni-button-foreground: var(--aeterni-text-primary);
+    --aeterni-button-soft: var(--aeterni-state-background-hover);
+}
+
+.aeterni-icon-button--warning {
+    --aeterni-button-color: var(--aeterni-color-warning-text);
+    --aeterni-button-color-hover: var(--aeterni-color-warning-text);
+    --aeterni-button-background: var(--aeterni-color-warning-default);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-warning-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-warning-default);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-soft: var(--aeterni-color-warning-soft);
+}
+
+.aeterni-icon-button--danger {
+    --aeterni-button-color: var(--aeterni-color-danger-text);
+    --aeterni-button-color-hover: var(--aeterni-color-danger-text);
+    --aeterni-button-background: var(--aeterni-color-danger-default);
+    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-danger-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-background-active: var(--aeterni-color-danger-default);
+    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-soft: var(--aeterni-color-danger-soft);
+}
+
+.aeterni-icon-button:disabled {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-icon-button--outline:disabled,
+.aeterni-icon-button--ghost:disabled,
+.aeterni-icon-button--link:disabled {
+    border-color: transparent;
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-icon-button {
+        transition: none;
+    }
+}

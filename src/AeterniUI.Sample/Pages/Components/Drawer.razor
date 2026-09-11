@@ -16,7 +16,7 @@
     <Preview>
         <div class="preview-drawer-demo">
             <div class="preview-action-row">
-                <Button Color="Color.Primary" OnClick="() => OpenDrawer(DrawerPlacement.End)">右侧（End）</Button>
+                <Button OnClick="() => OpenDrawer(DrawerPlacement.End)">右侧（End）</Button>
                 <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Start)">左侧（Start）</Button>
                 <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Top)">顶部（Top）</Button>
                 <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Bottom)">底部（Bottom）</Button>
@@ -89,8 +89,8 @@
     private string _drawerNote = "尚未打开面板";
 
     private RenderFragment DrawerActions => @<text>
-        <Button Variant="ButtonVariant.Ghost" Color="Color.Neutral" OnClick="HandleCancelClick">取消</Button>
-        <Button Color="Color.Primary" OnClick="HandleSaveClick">保存</Button>
+        <Button Variant="ButtonVariant.Ghost" Intent="ButtonIntent.Neutral" OnClick="HandleCancelClick">取消</Button>
+        <Button OnClick="HandleSaveClick">保存</Button>
     </text>;
 
     private void HandleCancelClick(MouseEventArgs _) => CloseDrawer("取消");

@@ -2,7 +2,14 @@
 
 <button @ref="RootElement" @attributes="BuildAttributes()" @onclick="HandleClickAsync">
     <span class="aeterni-button__content">
-        @if (EffectiveStartIcon is not null)
+        @if (Loading)
+        {
+            @* The button already carries aria-busy, so the nested spinner is decorative. *@
+            <span class="aeterni-button__loading" aria-hidden="true">
+                <Spinner />
+            </span>
+        }
+        else if (EffectiveStartIcon is not null)
         {
             <span class="aeterni-button__icon" aria-hidden="true">
                 @EffectiveStartIcon
@@ -11,20 +18,11 @@
 
         @ChildContent
 
-        @if (EndIcon is not null)
+        @if (!Loading && EndIcon is not null)
         {
             <span class="aeterni-button__icon" aria-hidden="true">
                 @EndIcon
             </span>
         }
     </span>
-
-    @if (Loading)
-    {
-        @* aria-hidden: the button itself already carries aria-busy, so the nested
-           status role must not announce a second time. *@
-        <span class="aeterni-button__loading" aria-hidden="true">
-            <Spinner />
-        </span>
-    }
 </button>

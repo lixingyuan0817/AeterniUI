@@ -895,15 +895,18 @@ FormField
 布局能力由 `Surface`、`Card` 与业务自身的布局样式承担。规范中不再把它们
 写成已落地能力，需要的组件应先进入 roadmap 再实现。
 
-`IconButton` 暂不纳入当前阶段。Button 已通过 `Icon`、`StartIcon` 和 `EndIcon` 支持带图标操作；只有在独立图标操作的 API 需求明确后，再单独设计 IconButton。
+`IconButton` 用于独立的方形图标操作，默认采用 `Ghost + Neutral`，必须提供 `AriaLabel`；`MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，不承担 Toolbar 或 ToggleGroup 语义。
 
 其中 `Button` 作为第一份参考实现，重点验证：
 
-- `Variant`、`Color`、`Size` 的 API 设计。
-- `ButtonVariant` 提供 `Default`、`Outline`、`Ghost`、`Text`、`Link`。
-- `Ghost` 用于保留完整控件区域的低强调操作；`Text` 用于更紧凑的文字操作，不应复用 Ghost 的边框和背景强度。
+- `Intent`、`Variant`、`Size` 的 API 设计。
+- `ButtonIntent` 提供 `Default`、`Neutral`、`Warning`、`Danger`；`Default` 使用主题品牌色。
+- `ButtonVariant` 提供 `Solid`、`Outline`、`Soft`、`Ghost`、`Link`。
+- `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可以组合，例如 `Danger + Outline`。
+- `Soft` 使用语义柔和底色，`Ghost` 默认透明并在交互时显示表面；二者不复用相同的基础状态。
 - `Link` 仅通过颜色和下划线表达悬浮、按下反馈，不显示背景色；它适合导航或文本链接语义。
-- `Color.Default` 映射到品牌主色，`Size.Default` 映射到默认中等尺寸。
+- `ButtonType` 继续表示原生 HTML `button` 类型（`Button`、`Submit`、`Reset`），不与按钮语义 `ButtonIntent` 混淆。
+- `Size.Default` 映射到默认中等尺寸，按钮圆角由 `--aeterni-radius-button*` Token 提供，当前为 `0.625rem`。
 - `FullWidth` 默认关闭，启用后按钮宽度为父容器的 100%。
 - `StartIcon` 和 `EndIcon` 使用 `RenderFragment`，分别表示内容左侧和右侧图标；`Icon` 保留为左侧图标的兼容简写。
 - 图标按钮必须通过 `AriaLabel` 提供可访问名称。

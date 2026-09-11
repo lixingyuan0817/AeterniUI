@@ -35,6 +35,8 @@ public static class ShowcaseCatalog
         ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),
+            new("icon-button", "IconButton", "图标按钮"),
+            new("menu-button", "MenuButton", "菜单按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
             new("surface", "Surface", "视觉容器"),
             new("card", "Card", "结构化容器"),

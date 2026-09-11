@@ -19,10 +19,10 @@
     <Preview>
         <div class="preview-stack preview-feedback-actions">
             <div class="preview-action-row">
-                <Button Color="@FeedbackColor" OnClick="ShowPreviewAlert">Alert</Button>
-                <Button Variant="ButtonVariant.Outline" Color="@FeedbackColor" OnClick="ShowPreviewConfirm">Confirm</Button>
-                <Button Variant="ButtonVariant.Ghost" Color="@FeedbackColor" OnClick="ShowPreviewToast">Toast</Button>
-                <Button Variant="ButtonVariant.Text" Color="@FeedbackColor" OnClick="ShowPreviewAlertAndToast">Alert + Toast</Button>
+                <Button Intent="@FeedbackIntent" OnClick="ShowPreviewAlert">Alert</Button>
+                <Button Variant="ButtonVariant.Outline" Intent="@FeedbackIntent" OnClick="ShowPreviewConfirm">Confirm</Button>
+                <Button Variant="ButtonVariant.Ghost" Intent="@FeedbackIntent" OnClick="ShowPreviewToast">Toast</Button>
+                <Button Variant="ButtonVariant.Soft" Intent="@FeedbackIntent" OnClick="ShowPreviewAlertAndToast">Alert + Toast</Button>
             </div>
             <span class="preview-feedback" role="status">@_feedbackNote</span>
         </div>
@@ -46,11 +46,11 @@
 @code {
     private Severity _feedbackSeverity = Severity.Info;    private ToastPosition _feedbackPosition = ToastPosition.TopEnd;
 
-    private Color FeedbackColor => _feedbackSeverity switch    {
-        Severity.Success => Color.Success,
-        Severity.Warning => Color.Warning,
-        Severity.Danger => Color.Danger,
-        _ => Color.Info
+    private ButtonIntent FeedbackIntent => _feedbackSeverity switch
+    {
+        Severity.Warning => ButtonIntent.Warning,
+        Severity.Danger => ButtonIntent.Danger,
+        _ => ButtonIntent.Default
     };
 
     private static readonly ShowcaseParameter[] FeedbackParameters =

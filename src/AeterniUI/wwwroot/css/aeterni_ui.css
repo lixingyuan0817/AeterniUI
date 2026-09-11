@@ -110,9 +110,10 @@
     --aeterni-radius-control-sm: var(--aeterni-radius-sm);
     --aeterni-radius-control-md: var(--aeterni-radius-md);
     --aeterni-radius-control-lg: var(--aeterni-radius-lg);
-    --aeterni-radius-button: var(--aeterni-radius-control-md);
-    --aeterni-radius-button-sm: var(--aeterni-radius-control-sm);
-    --aeterni-radius-button-lg: var(--aeterni-radius-control-lg);
+    /* Button uses the shadcn-style medium rounding requested by the public API. */
+    --aeterni-radius-button: 0.625rem;
+    --aeterni-radius-button-sm: 0.625rem;
+    --aeterni-radius-button-lg: 0.625rem;
     --aeterni-radius-input: var(--aeterni-radius-control-md);
     --aeterni-radius-input-sm: var(--aeterni-radius-control-sm);
     --aeterni-radius-input-lg: var(--aeterni-radius-control-lg);
