@@ -19,13 +19,14 @@
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
     gap: 32px;
-    width: var(--sample-shell-width);
+    width: min(var(--sample-shell-width), 100%);
+    max-width: 100%;
     margin: 108px auto 0;
+    box-sizing: border-box;
 }
 
 .showcase-sidebar {
-    position: fixed;
-    left: calc((100% - var(--sample-shell-width)) / 2);
+    position: sticky;
     top: 96px;
     display: flex;
     flex-direction: column;
@@ -158,6 +159,8 @@
 .showcase-main {
     grid-column: 2;
     min-width: 0;
+    width: auto;
+    max-width: 100%;
     box-sizing: border-box;
     padding-right: 16px;
 }
@@ -439,7 +442,6 @@
 
     .showcase-sidebar {
         position: static;
-        left: auto;
         width: auto;
         height: auto;
         max-height: none;
