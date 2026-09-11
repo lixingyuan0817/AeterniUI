@@ -11,7 +11,11 @@
     box-sizing: border-box;
     display: grid;
     gap: var(--aeterni-spacing-10);
-    padding: 128px 16px 64px;
+    /* No horizontal padding: the cards below span the same shell edges as the
+       header surface, the way the component pages and the homepage do. The top
+       padding is the shared first-content-row offset minus the shell's own top
+       inset, so this page's first row lines up with every other page. */
+    padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 var(--aeterni-spacing-16);
 }
 
 .doc-icons__intro {

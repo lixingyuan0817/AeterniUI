@@ -45,11 +45,20 @@
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
     /* Stable panel: collapsing the navigation must not resize the card; the inner
-       scroll container handles content that outgrows the viewport. The vh line is
-       the fallback: without it an engine that does not know dvh would drop the
-       declaration and let the panel grow to its content height. */
-    height: calc(100vh - var(--sample-content-top) - var(--sample-header-gap));
-    height: calc(100dvh - var(--sample-content-top) - var(--sample-header-gap));
+       scroll container handles content that outgrows the viewport.
+
+       The budget subtracts --sample-page-bottom, not --sample-header-gap, because
+       the pinned range is the row height minus the panel: with the panel sized to
+       `100dvh - top - gap` it stays taller than the page's scroll range by
+       `page-bottom - gap`, and the browser drags it up by that much in the last
+       stretch of the scroll (very visible on short pages such as the install
+       guide). Subtracting the trailing space makes pinned range = scroll range at
+       any content height.
+
+       The vh line is the fallback: without it an engine that does not know dvh
+       would drop the declaration and let the panel grow to its content height. */
+    height: calc(100vh - var(--sample-content-top) - var(--sample-page-bottom));
+    height: calc(100dvh - var(--sample-content-top) - var(--sample-page-bottom));
     overflow: hidden;
     padding: 18px;
     border: 1px solid var(--aeterni-border-subtle);

@@ -10,7 +10,7 @@
     min-height: 100vh;
     /* The top inset is the header's own inset, so the first content row lands on
        --sample-content-top (see app.css) without a second magic number here. */
-    padding: var(--sample-header-inset) 0 48px;
+    padding: var(--sample-header-inset) 0 var(--sample-page-bottom);
     background: var(--aeterni-bg-surface);
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-base);
@@ -139,10 +139,6 @@
 }
 
 @media (max-width: 600px) {
-    .sample-page {
-        padding-bottom: 28px;
-    }
-
     .sample-header__bar {
         padding: 0 12px;
     }

@@ -26,13 +26,22 @@ body {
     /* Distance from the viewport top to the first content row of a page.
 
        Sticky content (the component-page sidebar) both rests and sticks at this
-       offset and sizes itself as `viewport height - this - --sample-header-gap`,
+       offset and sizes itself as `viewport height - this - --sample-page-bottom`,
        so its bottom edge always keeps --sample-header-gap clear of the fold.
        Using one offset for the resting position, the sticky position and the
        height is what prevents the panel from hanging below the viewport: with a
        sticky `top` above the resting position, the height is only correct once
        the page has been scrolled far enough to actually stick. */
     --sample-content-top: calc(var(--sample-header-inset) + var(--sample-header-height) + var(--sample-header-gap) * 2);
+    /* Trailing space under a page's content (the shell's own padding-bottom).
+
+       The sidebar budget subtracts it as well: a panel sized to
+       `100dvh - --sample-content-top - --sample-header-gap` is exactly
+       `--sample-page-bottom - --sample-header-gap` taller than the range the
+       page can scroll, so it gets dragged out of the fold by that much at the
+       end of every scroll. Subtracting the trailing space instead makes the
+       pinned range and the scroll range equal, at any content height. */
+    --sample-page-bottom: 48px;
 }
 
 @media (max-width: 1080px) {
@@ -46,6 +55,7 @@ body {
         --sample-shell-width: calc(100% - 20px);
         --sample-header-inset: 8px;
         --sample-header-height: 56px;
+        --sample-page-bottom: 28px;
     }
 }
 
