@@ -20,6 +20,7 @@
              AriaLabel="@(AriaLabel ?? Label)">
         <Menu Items="@Items"
               AriaLabel="@(AriaLabel ?? Label)"
+              AdditionalAttributes="@MenuAttributes"
               OnItemSelected="@HandleItemSelectedAsync" />
     </Popover>
 </PopupHost>

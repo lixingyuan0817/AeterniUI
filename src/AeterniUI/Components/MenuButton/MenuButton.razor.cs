@@ -57,10 +57,18 @@ public partial class MenuButton : AeterniComponent
         .Add("is-open", EffectiveOpen)
         .Add("is-full-width", FullWidth);
 
+    private string MenuId => $"{ElementId}-menu";
+
     private IReadOnlyDictionary<string, object> TriggerAttributes => new Dictionary<string, object>
     {
         ["aria-haspopup"] = "menu",
-        ["aria-expanded"] = EffectiveOpen ? "true" : "false"
+        ["aria-expanded"] = EffectiveOpen ? "true" : "false",
+        ["aria-controls"] = MenuId
+    };
+
+    private IReadOnlyDictionary<string, object> MenuAttributes => new Dictionary<string, object>
+    {
+        ["id"] = MenuId
     };
 
     private async Task ToggleAsync(MouseEventArgs _)

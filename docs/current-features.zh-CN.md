@@ -100,7 +100,7 @@
 - `AriaLabel`、`OnClick`。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
 - `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
-- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`。
+- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
 - `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
 - 按钮圆角使用 `--aeterni-radius-button` 系列 Token，默认值为 `0.625rem`，Small/Large 与默认保持同一圆角视觉。

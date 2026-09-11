@@ -863,7 +863,7 @@ node --check <改动的>.razor.js
 - [ ] `Loading` 输出 `aria-busy="true"`、禁用交互，并保持高度、圆角和主要布局稳定；Spinner 使用 `aria-hidden="true"`。
 - [ ] `Disabled`、`Loading`、`ButtonGroup` 级联禁用的优先级一致，不会被 hover/active 覆盖。
 - [ ] `IconButton` 保持正方形尺寸，必须有 `AriaLabel`，Loading 时只显示 Spinner。
-- [ ] `MenuButton` 的 `Open` / `OpenChanged` 保持受控状态一致；Escape、外部点击、菜单选择都能正确关闭。
+- [ ] `MenuButton` 的 `Open` / `OpenChanged` 保持受控状态一致；Escape、外部点击、菜单选择都能正确关闭；触发器的 `aria-controls` 必须指向菜单根节点。
 - [ ] `MenuButton` 触发器与菜单共用 `PopupHost`，触发器不会被误判为外部点击；菜单支持键盘导航和视口翻转。
 - [ ] Button 家族只消费 `--aeterni-*` Token；Button、IconButton 不复制第二套颜色、尺寸、圆角体系。
 - [ ] 浅色/深色主题、`prefers-reduced-motion`、Small/Default/Large 和 FullWidth 均完成示例页验证。

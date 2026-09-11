@@ -105,43 +105,43 @@
 }
 
 .aeterni-icon-button--default {
-    --aeterni-button-color: var(--aeterni-color-brand-text);
-    --aeterni-button-color-hover: var(--aeterni-color-brand-text);
-    --aeterni-button-background: var(--aeterni-color-brand-default);
-    --aeterni-button-background-hover: var(--aeterni-color-brand-hover);
-    --aeterni-button-background-active: var(--aeterni-color-brand-active);
-    --aeterni-button-foreground: var(--aeterni-text-inverse);
-    --aeterni-button-soft: var(--aeterni-state-background-hover);
+    --aeterni-button-color: var(--aeterni-button-intent-default-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-default-color);
+    --aeterni-button-background: var(--aeterni-button-intent-default-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-default-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-default-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-default-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-default-soft);
 }
 
 .aeterni-icon-button--neutral {
-    --aeterni-button-color: var(--aeterni-text-primary);
-    --aeterni-button-color-hover: var(--aeterni-text-primary);
-    --aeterni-button-background: var(--aeterni-bg-tertiary);
-    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-bg-tertiary) 86%, var(--aeterni-text-primary));
-    --aeterni-button-background-active: color-mix(in srgb, var(--aeterni-bg-tertiary) 76%, var(--aeterni-text-primary));
-    --aeterni-button-foreground: var(--aeterni-text-primary);
-    --aeterni-button-soft: var(--aeterni-state-background-hover);
+    --aeterni-button-color: var(--aeterni-button-intent-neutral-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-neutral-color);
+    --aeterni-button-background: var(--aeterni-button-intent-neutral-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-neutral-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-neutral-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-neutral-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-neutral-soft);
 }
 
 .aeterni-icon-button--warning {
-    --aeterni-button-color: var(--aeterni-color-warning-text);
-    --aeterni-button-color-hover: var(--aeterni-color-warning-text);
-    --aeterni-button-background: var(--aeterni-color-warning-default);
-    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-warning-default) 88%, var(--aeterni-gray-0));
-    --aeterni-button-background-active: var(--aeterni-color-warning-default);
-    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-soft: var(--aeterni-color-warning-soft);
+    --aeterni-button-color: var(--aeterni-button-intent-warning-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-warning-color);
+    --aeterni-button-background: var(--aeterni-button-intent-warning-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-warning-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-warning-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-warning-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-warning-soft);
 }
 
 .aeterni-icon-button--danger {
-    --aeterni-button-color: var(--aeterni-color-danger-text);
-    --aeterni-button-color-hover: var(--aeterni-color-danger-text);
-    --aeterni-button-background: var(--aeterni-color-danger-default);
-    --aeterni-button-background-hover: color-mix(in srgb, var(--aeterni-color-danger-default) 88%, var(--aeterni-gray-0));
-    --aeterni-button-background-active: var(--aeterni-color-danger-default);
-    --aeterni-button-foreground: var(--aeterni-color-on-semantic);
-    --aeterni-button-soft: var(--aeterni-color-danger-soft);
+    --aeterni-button-color: var(--aeterni-button-intent-danger-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-danger-color);
+    --aeterni-button-background: var(--aeterni-button-intent-danger-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-danger-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-danger-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-danger-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-danger-soft);
 }
 
 .aeterni-icon-button:disabled {
