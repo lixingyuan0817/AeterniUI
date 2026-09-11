@@ -19,14 +19,12 @@
 
 .sample-header {
     position: fixed;
-    top: var(--sample-header-inset);
-    left: 50%;
+    inset-block-start: var(--sample-header-inset);
+    inset-inline: 0;
     z-index: var(--aeterni-z-sticky);
     width: var(--sample-shell-width);
     max-height: calc(100vh - var(--sample-header-inset) * 2);
-    transform: translateX(-50%);
-    overflow-y: auto;
-    scrollbar-gutter: stable;
+    margin-inline: auto;
 }
 
 .sample-header__bar {
