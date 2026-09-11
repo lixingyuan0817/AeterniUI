@@ -52,4 +52,26 @@ if [ ! -f "$ROOT/dist/index.html" ]; then
   exit 1
 fi
 
+# Fail loudly when a local asset referenced by index.html is missing from the
+# output. A stale dist/ that silently omitted a stylesheet (or a wwwroot file
+# the publish did not pick up) produced a page that looked "broken but styled":
+# every rule from the missing sheet did nothing, so the layout collapsed without
+# any visible error. Only same-origin relative paths are checked; _framework and
+# _content come from the runtime and package manifests.
+MISSING=0
+while IFS= read -r ref; do
+  case "$ref" in
+    http://*|https://*|//*|data:*|_framework/*|_content/*|\#*) continue ;;
+  esac
+  if [ ! -e "$ROOT/dist/${ref%%[?#]*}" ]; then
+    echo "index.html references '$ref' but dist/ does not contain it." >&2
+    MISSING=1
+  fi
+done < <(grep -oE '(href|src)="[^"]+"' "$ROOT/dist/index.html" | sed -E 's/^[a-z]+="//; s/"$//' | sort -u)
+
+if [ "$MISSING" -ne 0 ]; then
+  echo "Publish output is incomplete; the site would load without the assets above." >&2
+  exit 1
+fi
+
 echo "Done. dist/index.html is ready for Tauri."

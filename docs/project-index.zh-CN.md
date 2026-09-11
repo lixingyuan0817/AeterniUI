@@ -123,7 +123,7 @@ Components/<Component>/
 - [`src-tauri/src/main.rs`](../src-tauri/src/main.rs)：Rust 进程入口，转发到 `app_lib::run()`。
 - [`src-tauri/src/lib.rs`](../src-tauri/src/lib.rs)：Tauri Builder、窗口初始化和 `apply_window_backdrop` 命令。
 - [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json)：窗口、静态资源和发布钩子配置。
-- [`scripts/sample-publish.sh`](../scripts/sample-publish.sh)：执行 `dotnet publish` 并整理仓库根目录 `dist/`。
+- [`scripts/sample-publish.sh`](../scripts/sample-publish.sh)：执行 `dotnet publish` 并整理仓库根目录 `dist/`；发布后校验 `dist/index.html` 引用的同源本地资源都存在（例如 `css/showcase.css`），缺失时直接失败，避免产出一个「样式表没加载、布局静默崩坏」的站点。
 
 ### 图标
 
