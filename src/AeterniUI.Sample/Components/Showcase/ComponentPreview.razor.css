@@ -249,6 +249,9 @@
     font-weight: var(--aeterni-font-weight-bold);
 }
 
+/* Below this width the preview card is a single column of stacked sections, so
+   the API table collapses here too: its three tracks have a ~508px minimum, which
+   is wider than the card once the sidebar occupies a column of the shell. */
 @media (max-width: 900px) {
     .component-preview__demo-grid {
         grid-template-columns: 1fr;
@@ -259,6 +262,14 @@
         border-bottom: 1px solid var(--aeterni-border-subtle);
     }
 
+    .component-preview__api-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .component-preview__api-row--header {
+        display: none;
+    }
 }
 
 @media (max-width: 640px) {
@@ -286,15 +297,6 @@
     .component-preview__canvas {
         min-height: 190px;
         padding: 20px 14px;
-    }
-
-    .component-preview__api-row {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .component-preview__api-row--header {
-        display: none;
     }
 }
 

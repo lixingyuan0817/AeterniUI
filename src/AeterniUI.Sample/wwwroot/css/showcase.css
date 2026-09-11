@@ -354,7 +354,11 @@
     }
 }
 
-@media (max-width: 860px) {
+/* Sidebar beside the content, matching the header column, from the desktop layout
+   all the way down to tablet width. Only below 700px does the shell stack the
+   sidebar above the content, because a 240px column plus a readable preview card
+   no longer fit; the stacked block still keeps the header's width. */
+@media (max-width: 700px) {
     .showcase-layout {
         display: block;
         margin-top: 100px;
