@@ -19,8 +19,8 @@
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
     gap: 32px;
-    width: min(var(--sample-shell-width), 100%);
-    max-width: 100%;
+    width: calc(100% - 48px);
+    max-width: 1440px;
     margin: 108px auto 0;
     box-sizing: border-box;
 }
