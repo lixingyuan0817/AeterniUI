@@ -8,7 +8,9 @@
 .sample-page {
     box-sizing: border-box;
     min-height: 100vh;
-    padding: 16px 0 48px;
+    /* The top inset is the header's own inset, so the first content row lands on
+       --sample-content-top (see app.css) without a second magic number here. */
+    padding: var(--sample-header-inset) 0 48px;
     background: var(--aeterni-bg-surface);
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-base);

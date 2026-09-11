@@ -29,23 +29,27 @@
     /* No extra `max-width` or inset arithmetic next to the token: a second clamp
        here would silently shrink the shell (or, when the token is missing, blow it
        up to full-bleed) instead of failing visibly. */
-    margin: 108px auto 0;
+    /* .sample-page already contributes --sample-header-inset of top padding, so
+       the first row lands exactly on --sample-content-top. */
+    margin: calc(var(--sample-content-top) - var(--sample-header-inset)) auto 0;
 }
 
 .showcase-sidebar {
     position: sticky;
-    /* Distance from the viewport top: the fixed header plus one gap, so the
-       sidebar can never slide under the header. */
-    top: calc(var(--sample-header-inset) + var(--sample-header-height) + var(--sample-header-gap));
+    /* Rest and stick at the same offset, and measure the panel from it: the bottom
+       edge then keeps --sample-header-gap clear of the fold at every scroll
+       position, instead of only once the panel has stuck. */
+    top: var(--sample-content-top);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
-    /* Stable panel: collapsing the navigation must not resize the card; the
-       inner scroll container handles content that outgrows the viewport.
-       Height = viewport − header block − one gap above and below. */
-    height: calc(100vh - var(--sample-header-inset) - var(--sample-header-height) - var(--sample-header-gap) * 2);
-    max-height: calc(100vh - var(--sample-header-inset) - var(--sample-header-height) - var(--sample-header-gap) * 2);
+    /* Stable panel: collapsing the navigation must not resize the card; the inner
+       scroll container handles content that outgrows the viewport. The vh line is
+       the fallback: without it an engine that does not know dvh would drop the
+       declaration and let the panel grow to its content height. */
+    height: calc(100vh - var(--sample-content-top) - var(--sample-header-gap));
+    height: calc(100dvh - var(--sample-content-top) - var(--sample-header-gap));
     overflow: hidden;
     padding: 18px;
     border: 1px solid var(--aeterni-border-subtle);
@@ -361,7 +365,6 @@
 @media (max-width: 700px) {
     .showcase-layout {
         display: block;
-        margin-top: 100px;
     }
 
     .showcase-sidebar {
@@ -385,10 +388,6 @@
 }
 
 @media (max-width: 600px) {
-    .showcase-layout {
-        margin-top: 82px;
-    }
-
     .showcase-sidebar {
         padding: 14px;
     }
