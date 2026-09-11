@@ -98,7 +98,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Program.cs`](../src/AeterniUI.Sample/Program.cs)：创建 WASM Host、注册根组件和 `AddAeterniUI()`。
 - [`src/AeterniUI.Sample/App.razor`](../src/AeterniUI.Sample/App.razor)：Blazor Router 入口。
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
-- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口（含背景动效）。
+- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口；背景是铺满整个视口（含页头与外壳留白）的淡彩光晕与细网格动画。
 - [`src/AeterniUI.Sample/Layout/ComponentsLayout.razor`](../src/AeterniUI.Sample/Layout/ComponentsLayout.razor)：组件页的侧栏布局（`@layout MainLayout` 之上再嵌一层），负责分类导航、路由高亮和预览容器；页面本体是 `@Body`。
 - [`src/AeterniUI.Sample/Pages/Components/`](../src/AeterniUI.Sample/Pages/Components)：**每个组件一个独立页面**，路由形如 `/components/button`、`/components/tabs`，安装页是 `/components`，色彩页是 `/components/colors`；页面只包含该组件的演示标记与自己的 `@code` 状态。
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs)：跨页共享的少量状态（注入的服务、Button 演示的交互提示、主题订阅），其余状态都留在各自页面里。

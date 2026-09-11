@@ -1,92 +1,157 @@
 /*
    AeterniUI.Sample — 首页文档页（/）。
-   左侧为简要介绍与特性清单，右侧为基础使用代码窗口；背景为淡彩光晕漂移动画。
-   布局优先适配默认窗口（避免页面级滚动条）。颜色、间距与动效全部来自
-   AeterniUI 语义 Token。
+   左侧为简要介绍与特性清单，右侧为基础使用代码窗口；背景是铺满整个视口（含
+   页头内边距与外壳留白）的淡彩光晕与细网格。布局优先适配默认窗口（避免页面级
+   滚动条）。颜色、间距与动效全部来自 AeterniUI 语义 Token。
 */
 
 .doc-home {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
-    width: var(--sample-shell-width);
-    min-height: calc(100dvh - 112px);
-    margin: 0 auto;
+    /* The section is full-bleed and lets the decoration reach the viewport edges;
+       the shell width sits on __grid so the content keeps its centred column. */
+    width: 100%;
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    padding: 128px 16px 48px;
+    /* Sized from the same first-content-row offset the sticky sidebar uses, so
+       the hero clears the floating header without a second magic number. */
+    min-height: calc(100dvh - var(--sample-content-top));
+    padding: var(--sample-content-top) 0 var(--aeterni-spacing-6);
 }
 
-/* Decorative background orbs — pure decoration, behind the content.
+/* Decorative wash
+   Fixed to the viewport rather than to the section: that is what makes the wash
+   cover the header inset and the shell gutters as well, and its own overflow
+   keeps every orb inside so no glow can widen the page. The layer paints below
+   the content and above the page background.
+
    Each orb is a pre-softened multi-stop radial gradient rather than a blurred
    layer: without `filter` the compositor only replays transforms, and the
-   off-centre gradient hotspot can slowly orbit for a shimmer. The three loops
-   use non-harmonic durations and negative delays so the composition drifts
+   off-centre hotspot can slowly orbit for a shimmer. The four loops use
+   non-harmonic durations and negative delays so the composition drifts
    continuously and never visibly restarts. */
 
 .doc-home__bg {
-    position: absolute;
-    inset: -120px;
+    position: fixed;
+    inset: 0;
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
 }
 
+/* Fine neutral grid: a monochrome texture, masked away in the middle so the hero
+   text, the feature list and the code window never sit on top of it. */
+.doc-home__mesh {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle,
+            color-mix(in srgb, var(--aeterni-text-primary) 9%, transparent) 1px,
+            transparent 1.4px);
+    background-position: center;
+    background-size: 26px 26px;
+    opacity: .5;
+    -webkit-mask-image: radial-gradient(130% 115% at 50% 42%, transparent 0%, #000 76%);
+    mask-image: radial-gradient(130% 115% at 50% 42%, transparent 0%, #000 76%);
+}
+
 .doc-home__orb {
+    /* One falloff shape for every orb: a hotspot that is already down to a tint
+       by a third of the radius and gone by 92%, which is what keeps a coloured
+       wash from reading as a tinted page background. */
+    --doc-orb-color: var(--aeterni-color-brand-default);
+    --doc-orb-hotspot: 50% 50%;
+    --doc-orb-opacity: .5;
+
     position: absolute;
     border-radius: var(--aeterni-radius-round);
-    opacity: .55;
-    transform-origin: center;
+    background: radial-gradient(circle at var(--doc-orb-hotspot),
+            color-mix(in srgb, var(--doc-orb-color) 42%, transparent) 0%,
+            color-mix(in srgb, var(--doc-orb-color) 27%, transparent) 32%,
+            color-mix(in srgb, var(--doc-orb-color) 12%, transparent) 56%,
+            color-mix(in srgb, var(--doc-orb-color) 4%, transparent) 76%,
+            transparent 92%);
+    opacity: var(--doc-orb-opacity);
     transform: translate3d(0, 0, 0);
+    transform-origin: center;
     will-change: transform;
 }
 
+/* Violet halo bleeding in from the top-left corner, behind the headline. */
 .doc-home__orb--brand {
-    top: -150px;
-    left: -190px;
-    width: 540px;
-    height: 540px;
-    background: radial-gradient(circle at 38% 38%,
-            color-mix(in srgb, var(--aeterni-color-brand-default) 42%, transparent) 0%,
-            color-mix(in srgb, var(--aeterni-color-brand-default) 27%, transparent) 32%,
-            color-mix(in srgb, var(--aeterni-color-brand-default) 12%, transparent) 56%,
-            color-mix(in srgb, var(--aeterni-color-brand-default) 4%, transparent) 76%,
-            transparent 92%);
-    animation: doc-orb-drift-brand 34s linear -6s infinite;
+    --doc-orb-hotspot: 38% 38%;
+    --doc-orb-opacity: .6;
+
+    top: -30%;
+    left: -18%;
+    width: min(72vmax, 980px);
+    height: min(72vmax, 980px);
+    animation: doc-orb-drift-clockwise 34s linear -6s infinite;
 }
 
+/* Second violet accent on the opposite edge, so the top of a wide viewport is
+   not lopsided; softer and smaller than the main halo. */
+.doc-home__orb--glow {
+    --doc-orb-hotspot: 62% 36%;
+    --doc-orb-opacity: .34;
+
+    top: -34%;
+    right: -14%;
+    width: min(52vmax, 720px);
+    height: min(52vmax, 720px);
+    animation: doc-orb-drift-counter 42s linear -14s infinite;
+}
+
+/* Blue halo rising from the bottom-right, under the code window. */
 .doc-home__orb--info {
-    right: -170px;
-    bottom: -130px;
-    width: 560px;
-    height: 560px;
-    background: radial-gradient(circle at 58% 58%,
-            color-mix(in srgb, var(--aeterni-color-info-default) 36%, transparent) 0%,
-            color-mix(in srgb, var(--aeterni-color-info-default) 23%, transparent) 32%,
-            color-mix(in srgb, var(--aeterni-color-info-default) 10%, transparent) 56%,
-            color-mix(in srgb, var(--aeterni-color-info-default) 3%, transparent) 76%,
-            transparent 92%);
-    animation: doc-orb-drift-info 46s linear -18s infinite;
+    --doc-orb-color: var(--aeterni-color-info-default);
+    --doc-orb-hotspot: 58% 58%;
+
+    right: -16%;
+    bottom: -32%;
+    width: min(66vmax, 900px);
+    height: min(66vmax, 900px);
+    animation: doc-orb-drift-counter 46s linear -18s infinite;
+}
+
+/* Third violet accent in the bottom-left, so the wash reads as one field across
+   the whole window instead of leaving that corner bare. */
+.doc-home__orb--shade {
+    --doc-orb-hotspot: 44% 44%;
+    --doc-orb-opacity: .26;
+
+    bottom: -34%;
+    left: -12%;
+    width: min(40vmax, 560px);
+    height: min(40vmax, 560px);
+    animation: doc-orb-drift-clockwise 50s linear -34s infinite;
 }
 
 /* Sits in the gutter between the two columns, so it only warms the seam. */
 .doc-home__orb--success {
-    top: 46%;
-    left: 46%;
-    width: 320px;
-    height: 320px;
-    opacity: .32;
-    background: radial-gradient(circle at 50% 50%,
-            color-mix(in srgb, var(--aeterni-color-success-default) 34%, transparent) 0%,
-            color-mix(in srgb, var(--aeterni-color-success-default) 21%, transparent) 32%,
-            color-mix(in srgb, var(--aeterni-color-success-default) 9%, transparent) 56%,
-            color-mix(in srgb, var(--aeterni-color-success-default) 3%, transparent) 76%,
-            transparent 92%);
-    animation: doc-orb-drift-success 58s linear -26s infinite;
+    --doc-orb-color: var(--aeterni-color-success-default);
+    --doc-orb-opacity: .3;
+
+    top: 42%;
+    left: 44%;
+    width: min(34vmax, 460px);
+    height: min(34vmax, 460px);
+    animation: doc-orb-drift-wide 58s linear -26s infinite;
 }
 
-@keyframes doc-orb-drift-brand {
+/* Dark surfaces make the same glow read stronger, so every orb is scaled by one
+   factor instead of overriding its opacity one rule at a time. */
+html[data-theme="dark"] .doc-home__orb {
+    opacity: calc(var(--doc-orb-opacity) * .72);
+}
+
+/* Inside Tauri the visible sheet is the rounded #app rect over a native blur, so
+   the fixed layer takes the same radius to keep the window corners transparent. */
+html[data-tauri-host="true"] .doc-home__bg {
+    border-radius: 14px;
+}
+
+@keyframes doc-orb-drift-clockwise {
     0% {
         transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
     }
@@ -108,7 +173,7 @@
     }
 }
 
-@keyframes doc-orb-drift-info {
+@keyframes doc-orb-drift-counter {
     0% {
         transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
     }
@@ -130,7 +195,7 @@
     }
 }
 
-@keyframes doc-orb-drift-success {
+@keyframes doc-orb-drift-wide {
     0% {
         transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
     }
@@ -148,10 +213,6 @@
     }
 }
 
-html[data-theme="dark"] .doc-home__orb {
-    opacity: .42;
-}
-
 .doc-home__grid {
     position: relative;
     z-index: 1;
@@ -159,7 +220,9 @@ html[data-theme="dark"] .doc-home__orb {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
     gap: clamp(32px, 5vw, 64px);
     align-items: start;
-    width: 100%;
+    box-sizing: border-box;
+    width: var(--sample-shell-width);
+    margin: 0 auto;
 }
 
 .doc-home__grid > * {
@@ -361,7 +424,10 @@ html[data-theme="dark"] .doc-home__orb {
     font-family: inherit;
 }
 
-/* Lightweight syntax colouring on top of semantic tokens. */
+/* Lightweight syntax colouring on top of semantic tokens. The three accent
+   kinds use the families' text form: their fill stops are made for solid
+   surfaces and only reach ~2.2:1 as ink on the light code panel (dark happens to
+   be fine either way, so one role covers both themes). */
 
 .doc-code__body .tok-c {
     color: var(--aeterni-text-muted);
@@ -369,15 +435,15 @@ html[data-theme="dark"] .doc-home__orb {
 }
 
 .doc-code__body .tok-tag {
-    color: var(--aeterni-color-info-default);
+    color: var(--aeterni-color-info-text);
 }
 
 .doc-code__body .tok-fn {
-    color: var(--aeterni-color-success-default);
+    color: var(--aeterni-color-success-text);
 }
 
 .doc-code__body .tok-str {
-    color: var(--aeterni-color-warning-default);
+    color: var(--aeterni-color-warning-text);
 }
 
 .doc-code__body::-webkit-scrollbar {
@@ -410,8 +476,7 @@ html[data-theme="dark"] .doc-home__orb {
 
 @media (max-height: 760px) {
     .doc-home {
-        padding-top: 112px;
-        padding-bottom: 36px;
+        padding-bottom: var(--aeterni-spacing-2);
     }
 
     .doc-intro h1 {
@@ -432,15 +497,13 @@ html[data-theme="dark"] .doc-home__orb {
     }
 }
 
-@media (max-width: 600px) {
-    .doc-home {
-        padding: 104px 10px 36px;
-    }
-}
+/* The narrow-window gutters now come from --sample-shell-width, and the top
+   offset from --sample-content-top, so the section needs no mobile padding of its
+   own. */
 
 @media (prefers-reduced-motion: reduce) {
     .doc-home__orb {
-        opacity: .22;
+        opacity: calc(var(--doc-orb-opacity) * .4);
         animation: none;
     }
 }
