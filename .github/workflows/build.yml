@@ -34,6 +34,9 @@ jobs:
       - name: Documentation consistency check
         run: bash scripts/check-docs.sh
 
+      - name: CSS comment check
+        run: node scripts/check-css-comments.mjs
+
       - name: Token file must not contain component rules
         shell: bash
         run: |

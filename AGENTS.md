@@ -99,8 +99,12 @@ bash scripts/check-docs.sh
 ```
 
 `check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性、Tauri 路径与关键组件章节，
-修改文档或项目结构后必须执行。另外两项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
-选择器」与 `.razor.js` 语法检查（见下）。
+修改文档或项目结构后必须执行。另外三项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
+选择器」、`.razor.js` 语法检查，以及「CSS 注释不得提前闭合」（见下）。
+
+CSS 注释里不得出现字面量的注释结束符：`(... showcase-*/preview-* ...)` 这类写法会在星号加斜杠处
+提前结束注释，剩下的正文被当成选择器，解析器随即吞掉紧随其后的整条规则，而且不会报错。
+修改任何 `.css` 后运行 `node scripts/check-css-comments.mjs`。
 
 仅修改 JS 时使用：
 

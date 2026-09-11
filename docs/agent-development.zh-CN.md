@@ -27,6 +27,7 @@
 
 - [ ] `dotnet build aeterni_ui.slnx` 通过（0 error；目标 0 warning）。
 - [ ] 变更了 `.razor.js` 时 `node --check` 通过（CI 也会做）。
+- [ ] 变更了 `.css` 时 `node scripts/check-css-comments.mjs` 通过（CI 也会做）。
 - [ ] 没有向 `aeterni_ui.css` 添加组件选择器。
 - [ ] 示例页没有新的 `::deep` 或全局组件样式覆盖（除非页面自身布局必需）。
 - [ ] 没有新增“第二个尺寸/颜色/圆角体系”。
@@ -51,6 +52,7 @@ bash scripts/check-docs.sh                         # 文档一致性门禁（CI 
 ./scripts/sample-publish.sh Debug                  # 重新生成 dist/（Tauri/静态预览用）
 cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
 node --check <file>.razor.js                       # 组件 JS 语法检查
+node scripts/check-css-comments.mjs                # CSS 注释提前闭合检查（CI 同款）
 node scripts/generate-fontawesome-icons.mjs --check # 图标清单与生成文件是否一致
 ```
 
@@ -71,6 +73,7 @@ node scripts/generate-fontawesome-icons.mjs --check # 图标清单与生成文�
 
 - `dotnet build aeterni_ui.slnx`
 - 对所有 `.razor.js` 做 `node --check`
+- `node scripts/check-css-comments.mjs`（CSS 注释提前闭合检查）
 - 校验 `aeterni_ui.css` 不含组件选择器（仅允许 Token 级 `.aeterni-dark` 别名）
 
 如果本地通过但 CI 失败，先看 CI 日志；通常原因是文件/换行/编码差异或忘了同步提交新文件。

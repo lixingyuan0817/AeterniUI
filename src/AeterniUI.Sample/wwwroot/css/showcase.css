@@ -2,8 +2,13 @@
    AeterniUI.Sample — showcase styles shared by every /components page and the
    sidebar layout. These used to live in the scoped Pages/Components.razor.css,
    which cannot reach across the per-component pages, so they are a global sheet
-   now. Class names stay page-scoped by prefix (showcase-*/preview-*/control-*);
-   no `.aeterni-*` component rule is overridden here.
+   now. Class names stay page-scoped by prefix (showcase-, preview- and control-
+   prefixed names only); no `.aeterni-` component rule is overridden here.
+
+   Note: never write a comment terminator inside a comment body. A glob-looking
+   path prefix followed immediately by a star and a slash would close the comment
+   early, and the CSS parser then eats the whole next rule — which is how
+   `.showcase-layout` silently lost its grid and every token it declared.
 */
 
 /*
