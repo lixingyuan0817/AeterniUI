@@ -360,6 +360,9 @@
     --aeterni-control-padding-x-sm: var(--aeterni-spacing-3);
     --aeterni-control-padding-x-md: var(--aeterni-spacing-4);
     --aeterni-control-padding-x-lg: var(--aeterni-spacing-5);
+    --aeterni-avatar-size-sm: 32px;
+    --aeterni-avatar-size-md: 40px;
+    --aeterni-avatar-size-lg: 48px;
     --aeterni-touch-target: var(--aeterni-height-lg);
     /* Minimum pointer target size from WCAG 2.5.8, used to grow hit areas of
        small glyph buttons without changing their visual box. */

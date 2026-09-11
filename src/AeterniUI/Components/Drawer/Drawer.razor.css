@@ -59,8 +59,8 @@
     inset-block: 0;
     inset-inline-end: 0;
     width: min(var(--aeterni-drawer-size), 100%);
-    border-start-start-radius: var(--aeterni-radius-modal);
-    border-end-start-radius: var(--aeterni-radius-modal);
+    border-start-start-radius: var(--aeterni-radius-surface);
+    border-end-start-radius: var(--aeterni-radius-surface);
     animation: aeterni-drawer-in-inline var(--aeterni-duration-slow) var(--aeterni-ease-emphasized);
 }
 
@@ -70,8 +70,8 @@
     inset-block: 0;
     inset-inline-start: 0;
     width: min(var(--aeterni-drawer-size), 100%);
-    border-start-end-radius: var(--aeterni-radius-modal);
-    border-end-end-radius: var(--aeterni-radius-modal);
+    border-start-end-radius: var(--aeterni-radius-surface);
+    border-end-end-radius: var(--aeterni-radius-surface);
     animation: aeterni-drawer-in-inline var(--aeterni-duration-slow) var(--aeterni-ease-emphasized);
 }
 
@@ -81,8 +81,8 @@
     inset-inline: 0;
     inset-block-start: 0;
     height: min(var(--aeterni-drawer-size), 100%);
-    border-end-start-radius: var(--aeterni-radius-modal);
-    border-end-end-radius: var(--aeterni-radius-modal);
+    border-end-start-radius: var(--aeterni-radius-surface);
+    border-end-end-radius: var(--aeterni-radius-surface);
     animation: aeterni-drawer-in-block var(--aeterni-duration-slow) var(--aeterni-ease-emphasized);
 }
 
@@ -92,8 +92,8 @@
     inset-inline: 0;
     inset-block-end: 0;
     height: min(var(--aeterni-drawer-size), 100%);
-    border-start-start-radius: var(--aeterni-radius-modal);
-    border-start-end-radius: var(--aeterni-radius-modal);
+    border-start-start-radius: var(--aeterni-radius-surface);
+    border-start-end-radius: var(--aeterni-radius-surface);
     animation: aeterni-drawer-in-block var(--aeterni-duration-slow) var(--aeterni-ease-emphasized);
 }
 

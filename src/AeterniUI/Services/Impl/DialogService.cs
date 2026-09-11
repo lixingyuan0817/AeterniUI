@@ -386,7 +386,6 @@ public sealed class DialogService : IDialogService, IDisposable
 
     private async Task RunToastTimerAsync(ToastEntry entry, TimeSpan duration)
     {
-        // See RunAlertTimerAsync: no per-tick renders, CSS owns the ring.
         var stopwatch = Stopwatch.StartNew();
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
 

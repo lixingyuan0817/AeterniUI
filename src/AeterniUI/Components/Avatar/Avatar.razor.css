@@ -1,0 +1,9 @@
+.aeterni-avatar { display: inline-grid; place-items: center; width: var(--aeterni-avatar-render-size); height: var(--aeterni-avatar-render-size); overflow: hidden; border-radius: var(--aeterni-radius-round); background: var(--aeterni-color-brand-soft); color: var(--aeterni-color-brand-text); font-weight: var(--aeterni-font-weight-semibold); }
+.aeterni-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.aeterni-avatar--small { --aeterni-avatar-render-size: var(--aeterni-avatar-size-sm); font-size: var(--aeterni-font-size-xs); }
+.aeterni-avatar--default { --aeterni-avatar-render-size: var(--aeterni-avatar-size-md); font-size: var(--aeterni-font-size-sm); }
+.aeterni-avatar--large { --aeterni-avatar-render-size: var(--aeterni-avatar-size-lg); font-size: var(--aeterni-font-size-md); }
+.aeterni-avatar--neutral { background: var(--aeterni-color-neutral-soft); color: var(--aeterni-color-neutral-text); }
+.aeterni-avatar--warning { background: var(--aeterni-color-warning-soft); color: var(--aeterni-color-warning-text); }
+.aeterni-avatar--danger { background: var(--aeterni-color-danger-soft); color: var(--aeterni-color-danger-text); }
+.aeterni-avatar--success { background: var(--aeterni-color-success-soft); color: var(--aeterni-color-success-text); }

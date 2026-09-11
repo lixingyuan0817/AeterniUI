@@ -1,0 +1,17 @@
+@inherits AeterniComponent
+
+<nav @ref="RootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel">
+    <button type="button" disabled="@(CurrentPage == 1)" aria-label="上一页" @onclick="() => GoToAsync(CurrentPage - 1)">‹</button>
+    @{ var previous = 0; }
+    @foreach (var page in VisiblePages)
+    {
+        if (page - previous > 1)
+        {
+            <span class="aeterni-pagination__ellipsis" aria-hidden="true">…</span>
+        }
+        var value = page;
+        <button type="button" class="@(page == CurrentPage ? "is-current" : "")" aria-current="@(page == CurrentPage ? "page" : null)" aria-label="第 @value 页" @onclick="() => GoToAsync(value)">@value</button>
+        previous = page;
+    }
+    <button type="button" disabled="@(CurrentPage == TotalPages)" aria-label="下一页" @onclick="() => GoToAsync(CurrentPage + 1)">›</button>
+</nav>

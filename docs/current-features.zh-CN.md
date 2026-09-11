@@ -792,7 +792,21 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是撑开控件。
 
-## 33. Drawer
+## 33. Accordion、Pagination 和 Avatar
+
+### Accordion
+
+`Accordion` 提供可访问的折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项、唯一项 ID 校验和 `aria-expanded` / `aria-controls` 关联；展开/折叠通过 CSS grid 行高与透明度过渡实现平滑高度动画，`prefers-reduced-motion` 下自动关闭动画；交互使用原生按钮，不引入额外 JavaScript。
+
+### Pagination
+
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页通过轻微缩放和颜色过渡突出，并输出 `aria-current="page"`、上一页/下一页禁用状态和键盘可访问按钮；`prefers-reduced-motion` 下关闭过渡。分页只负责导航状态，不承担数据加载。
+
+### Avatar
+
+`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写，并输出图像语义名称。
+
+## 34. Drawer
 
 ### 支持能力
 
@@ -814,7 +828,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成；关闭只有入场动画，没有出场动画（与 `Popover` 一致）。
 
-## 34. 服务注册
+## 35. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -859,7 +873,7 @@ builder.Services.AddAeterniUI(options =>
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## 35. 当前边界
+## 36. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

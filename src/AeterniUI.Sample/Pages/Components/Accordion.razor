@@ -1,0 +1,14 @@
+@page "/components/accordion"
+@layout ComponentsLayout
+
+<ComponentPreview AnchorId="accordion" Category="基础组件" Title="Accordion" ComponentName="Accordion" Description="支持单开或多开的可访问折叠面板。">
+    <Preview><Accordion Items="@Items" Multiple AriaLabel="常见问题" /></Preview>
+</ComponentPreview>
+@code {
+    private static readonly IReadOnlyList<AccordionItem> Items =
+    [
+        new("first", "什么是 AeterniUI？", @<p>AeterniUI 是面向 Blazor 的主题化组件库。</p>),
+        new("second", "是否支持深色主题？", @<p>支持 System、Light 和 Dark 三种主题模式。</p>),
+        new("third", "可以组合使用吗？", @<p>组件可以通过 RenderFragment 和现有布局组件组合。</p>)
+    ];
+}

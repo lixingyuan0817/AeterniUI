@@ -470,3 +470,4 @@ Token 和现有基础组件
 | Badge | 已完成 | 通过 | 数字上限、圆点模式、逻辑定位（RTL 镜像）、最大宽度与溢出处理、可访问名称；示例已同步 |
 | Segmented | 已完成 | 通过 | 原生 radio 单选语义（`aria-checked` / roving tabindex / 方向键 / RTL 由浏览器提供）、数量无关的滑块几何、尺寸档位、单项与整体禁用、FormField 接入；`ThemeSwitch` 已重构为它的专用用法；顺带修复 radio 方向键不上报的问题 |
 | Drawer | 已完成 | 通过 | 四方位与 RTL 镜像、模态/非模态两态（遮罩、`aria-modal`、焦点陷阱、滚动锁、焦点回归 vs. 不抢焦点/不锁滚动）、`OpenChanged` 受控关闭、三段式内容、窄屏 100% 宽度、reduced-motion 停止动画 |
+| Accordion / Pagination / Avatar | 已完成 | 通过 | 折叠面板平滑高度动画、分页省略号与当前页过渡、图片/姓名缩写头像；示例与当前功能文档已同步 |

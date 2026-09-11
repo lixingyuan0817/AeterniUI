@@ -1,0 +1,10 @@
+@page "/components/pagination"
+@layout ComponentsLayout
+
+<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。">
+    <Preview><Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" /><span class="preview-feedback">当前第 @_page 页</span></Preview>
+</ComponentPreview>
+@code {
+    private int _page = 3;
+    private void OnPageChanged(int page) => _page = page;
+}

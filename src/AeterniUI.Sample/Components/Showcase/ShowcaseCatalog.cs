@@ -44,7 +44,10 @@ public static class ShowcaseCatalog
             new("empty", "Empty", "空状态占位"),
             new("icon", "Icon", "SVG 图标"),
             new("tag", "Tag", "标签状态"),
-            new("badge", "Badge", "数字与圆点角标")
+            new("badge", "Badge", "数字与圆点角标"),
+            new("avatar", "Avatar", "头像与姓名缩写"),
+            new("accordion", "Accordion", "折叠面板"),
+            new("pagination", "Pagination", "分页导航")
         ]),
         new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),

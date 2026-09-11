@@ -1,0 +1,22 @@
+.aeterni-accordion { display: grid; width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--aeterni-border); border-radius: var(--aeterni-radius-surface); overflow: hidden; background: var(--aeterni-bg-elevated); }
+.aeterni-accordion__item + .aeterni-accordion__item { border-top: 1px solid var(--aeterni-separator); }
+.aeterni-accordion h3 { margin: 0; }
+.aeterni-accordion__trigger { display: flex; align-items: center; justify-content: space-between; gap: var(--aeterni-spacing-3); width: 100%; box-sizing: border-box; min-width: 0; min-height: var(--aeterni-control-height-md); padding: 0 var(--aeterni-spacing-4); border: 0; background: transparent; color: var(--aeterni-text-primary); font: inherit; font-weight: var(--aeterni-font-weight-semibold); text-align: start; cursor: pointer; }
+.aeterni-accordion__trigger:hover:not(:disabled) { background: var(--aeterni-state-background-hover); }
+.aeterni-accordion__trigger:focus-visible { outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color); outline-offset: calc(var(--aeterni-focus-offset) * -1); }
+.aeterni-accordion__trigger > span:first-child { min-width: 0; flex: 1 1 auto; }
+.aeterni-accordion__chevron { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: var(--aeterni-icon-size-md); height: var(--aeterni-icon-size-md); color: var(--aeterni-text-tertiary); transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
+.aeterni-accordion__chevron svg { width: 100%; height: 100%; }
+.aeterni-accordion__item.is-open .aeterni-accordion__chevron { transform: rotate(90deg); }
+.aeterni-accordion__panel { display: grid; grid-template-rows: 0fr; box-sizing: border-box; min-width: 0; padding: 0 var(--aeterni-spacing-4); color: var(--aeterni-text-secondary); line-height: var(--aeterni-line-height-relaxed); opacity: 0; transition: grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), padding-block var(--aeterni-duration-normal) var(--aeterni-ease-emphasized); }
+.aeterni-accordion__panel.is-open { grid-template-rows: 1fr; padding-block-end: var(--aeterni-spacing-4); opacity: 1; }
+.aeterni-accordion__panel-inner { min-height: 0; overflow: hidden; }
+.aeterni-accordion__item.is-disabled .aeterni-accordion__panel { visibility: hidden; }
+
+.aeterni-accordion__item.is-disabled { color: var(--aeterni-text-disabled); }
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-accordion__chevron,
+    .aeterni-accordion__panel {
+        transition: none;
+    }
+}

@@ -1,0 +1,28 @@
+@inherits AeterniComponent
+
+<section @ref="RootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel">
+    @foreach (var item in Items)
+    {
+        var open = IsOpen(item.Id);
+        var panelId = $"{ElementId}-{item.Id}-panel";
+        <article class="aeterni-accordion__item @(open ? "is-open" : "") @(item.Disabled ? "is-disabled" : "")">
+            <h3>
+                <button type="button" class="aeterni-accordion__trigger"
+                        aria-expanded="@(open ? "true" : "false")"
+                        aria-controls="@panelId"
+                        disabled="@item.Disabled"
+                        @onclick="() => ToggleAsync(item)">
+                    <span>@item.Title</span>
+                    <span class="aeterni-accordion__chevron" aria-hidden="true">
+                        <Icon Definition="@AeterniIcons.ChevronRight" />
+                    </span>
+                </button>
+            </h3>
+            <div id="@panelId" class="aeterni-accordion__panel @(open ? "is-open" : "")" aria-hidden="@(!open)">
+                <div class="aeterni-accordion__panel-inner">
+                    @item.Content
+                </div>
+            </div>
+        </article>
+    }
+</section>
