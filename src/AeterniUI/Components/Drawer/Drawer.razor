@@ -1,0 +1,49 @@
+@inherits AeterniComponent
+
+@* The wrapper is a full-viewport, non-interactive box: only the panel and (when
+   modal) the backdrop take pointer events, so a non-modal drawer leaves the page
+   behind it usable. The panel slides with a transform, which is why the backdrop is a
+   sibling rather than a child — a transformed ancestor would become the containing
+   block of the backdrop's `position: fixed`. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @if (Modal && Open)
+    {
+        <div class="aeterni-drawer__backdrop" aria-hidden="true" @onclick="HandleBackdropClickAsync"></div>
+    }
+
+    <div @ref="_panelElement"
+         class="aeterni-drawer__panel"
+         role="@PanelRole"
+         aria-modal="@(Modal ? "true" : null)"
+         tabindex="@(Modal ? "-1" : null)"
+         aria-labelledby="@PanelLabelledBy"
+         aria-label="@PanelLabel">
+        @if (ShowHeader)
+        {
+            <header class="aeterni-drawer__header">
+                @if (!string.IsNullOrWhiteSpace(Title))
+                {
+                    <h2 class="aeterni-drawer__title" id="@TitleId">@Title</h2>
+                }
+
+                @if (ShowCloseButton)
+                {
+                    <Button Variant="ButtonVariant.Ghost"
+                            Color="Color.Neutral"
+                            Size="Size.Small"
+                            AriaLabel="@EffectiveCloseLabel"
+                            OnClick="@(args => RequestCloseAsync())">
+                        <span class="aeterni-drawer__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
+                    </Button>
+                }
+            </header>
+        }
+
+        <div class="aeterni-drawer__body">@ChildContent</div>
+
+        @if (Footer is not null)
+        {
+            <footer class="aeterni-drawer__footer">@Footer</footer>
+        }
+    </div>
+</div>

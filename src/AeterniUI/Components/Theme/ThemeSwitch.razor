@@ -1,24 +1,22 @@
 @inherits AeterniComponent
 
-@* One option template drives all three modes, so the label, the selected class and
-   the pressed state can never drift between them. The slider position is derived
-   from data-mode on the root, which is why the options carry no index of their own. *@
-<div @ref="RootElement"
-     @attributes="BuildAttributes()"
-     role="group"
-     aria-label="@GroupLabel"
-     data-mode="@ThemeService.Mode.ToString().ToLowerInvariant()">
-    <span class="aeterni-theme-switch__slider" aria-hidden="true"></span>
-
-    @foreach (var mode in Modes)
-    {
-        var selected = ThemeService.Mode == mode;
-        <button class="aeterni-theme-switch__option @(selected ? "is-selected" : string.Empty)"
-                type="button"
-                aria-pressed="@(selected ? "true" : "false")"
-                disabled="@Disabled"
-                @onclick="() => SelectModeAsync(mode)">
-            @ModeLabel(mode)
-        </button>
-    }
-</div>
+@* A dedicated usage of Segmented: the mode list, the labels from the text table and
+   the ThemeService wiring live here, while the control's single-select semantics, its
+   size tiers and the sliding indicator belong to Segmented. The DOM parameters are
+   forwarded so `Id`, `Class`, `Style`, `Disabled`, `Visible`, `Element` and the
+   unmatched attributes keep working on the control's own root element. *@
+<Segmented TValue="ThemeMode"
+           Id="@Id"
+           Class="@Class"
+           Style="@Style"
+           Visible="@Visible"
+           Disabled="@Disabled"
+           Element="@Element"
+           ElementChanged="ForwardElementChangedAsync"
+           AdditionalAttributes="@AdditionalAttributes"
+           Items="@Modes"
+           Value="@ThemeService.Mode"
+           ValueChanged="SelectModeAsync"
+           Size="@Size"
+           TextSelector="ModeLabel"
+           AriaLabel="@GroupLabel" />

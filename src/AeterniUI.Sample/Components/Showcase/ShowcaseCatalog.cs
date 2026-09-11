@@ -52,6 +52,7 @@ public static class ShowcaseCatalog
             new("label", "Label", "原生标签"),
             new("checkbox", "Checkbox", "复选框"),
             new("switch", "Switch", "二态开关"),
+            new("segmented", "Segmented", "分段单选"),
             new("rating", "Rating", "整数评分"),
             new("combobox", "ComboBox", "下拉选择")
         ]),
@@ -68,7 +69,8 @@ public static class ShowcaseCatalog
         new("通知组件", FontAwesomeIcons.Solid.Bell, [
             new("popup", "Popup / Popover", "基础浮层"),
             new("tooltip", "Tooltip", "辅助提示"),
-            new("feedback", "Dialog / Toast", "反馈与浮层")
+            new("feedback", "Dialog / Toast", "反馈与浮层"),
+            new("drawer", "Drawer", "边缘滑出面板")
         ]),
         new("主题组件", FontAwesomeIcons.Solid.Swatchbook, [
             new("theme", "Theme", "主题模式")

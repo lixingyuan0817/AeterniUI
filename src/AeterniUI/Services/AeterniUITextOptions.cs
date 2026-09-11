@@ -57,6 +57,12 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a dot-mode <c>Badge</c> indicator.</summary>
     public string BadgeLabel { get; set; } = "New";
 
+    /// <summary>Fallback name of a <c>Drawer</c> without a title.</summary>
+    public string DrawerLabel { get; set; } = "Panel";
+
+    /// <summary>Close-button label of a <c>Drawer</c>.</summary>
+    public string DrawerCloseLabel { get; set; } = "Close panel";
+
     /// <summary>
     /// Copies the defaults of a fresh instance onto this one. Used by the option
     /// validation to repair empty entries without losing the host's overrides.
@@ -79,6 +85,8 @@ public sealed class AeterniUITextOptions
         SpinnerLabel = Or(SpinnerLabel, defaults.SpinnerLabel);
         EmptyTitle = Or(EmptyTitle, defaults.EmptyTitle);
         BadgeLabel = Or(BadgeLabel, defaults.BadgeLabel);
+        DrawerLabel = Or(DrawerLabel, defaults.DrawerLabel);
+        DrawerCloseLabel = Or(DrawerCloseLabel, defaults.DrawerCloseLabel);
     }
 
     private static string Or(string? value, string fallback) =>

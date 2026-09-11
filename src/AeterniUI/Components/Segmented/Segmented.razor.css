@@ -1,0 +1,175 @@
+/* Segmented ---------------------------------------------------------------------
+   A track with one sliding pill. The options are equal-width columns and the pill is
+   one column wide, positioned from --aeterni-segmented-index / --aeterni-segmented-count
+   (set inline by the component), so nothing here assumes a fixed option count. */
+.aeterni-segmented {
+    /* One padding value feeds the track, the pill and the pill's travel, so the pill
+       always lands exactly on an option. */
+    --aeterni-segmented-padding: var(--aeterni-spacing-1);
+    --aeterni-segmented-radius: var(--aeterni-radius-full);
+    --aeterni-segmented-height: var(--aeterni-control-height-md);
+
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: stretch;
+    width: fit-content;
+    max-width: 100%;
+    min-height: var(--aeterni-segmented-height);
+    padding: var(--aeterni-segmented-padding);
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    border-radius: var(--aeterni-segmented-radius);
+    background: var(--aeterni-bg-secondary);
+}
+
+.aeterni-segmented.is-full-width {
+    display: flex;
+    width: 100%;
+}
+
+/* Decorative pill. Width = one column, offset = index columns; `count` therefore
+   scales the travel for two, three, five or any other number of options. */
+.aeterni-segmented__slider {
+    position: absolute;
+    inset-block: var(--aeterni-segmented-padding);
+    inset-inline-start: var(--aeterni-segmented-padding);
+    z-index: 0;
+    box-sizing: border-box;
+    width: calc((100% - var(--aeterni-segmented-padding) * 2) / var(--aeterni-segmented-count, 1));
+    pointer-events: none;
+    border: var(--aeterni-border-width) solid var(--aeterni-color-brand-hover);
+    border-radius: var(--aeterni-segmented-radius);
+    background: var(--aeterni-color-brand-default);
+    box-shadow: var(--aeterni-shadow-sm);
+    transform: translateX(calc(var(--aeterni-segmented-index, 0) * 100%));
+    transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    will-change: transform;
+}
+
+/* A right-to-left container lays the options out from the inline end, so the pill
+   travels the other way. :dir() reads the element's own directionality (a `dir`
+   attribute or an inherited `direction`); the attribute selector covers engines that
+   do not know :dir() yet. */
+.aeterni-segmented:dir(rtl) .aeterni-segmented__slider,
+[dir="rtl"] .aeterni-segmented__slider {
+    transform: translateX(calc(var(--aeterni-segmented-index, 0) * -100%));
+}
+
+/* No option matches the value: there is nothing for the pill to sit on. */
+.aeterni-segmented.is-empty .aeterni-segmented__slider {
+    opacity: 0;
+}
+
+.aeterni-segmented__option {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-1);
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0 var(--aeterni-spacing-3);
+    border-radius: var(--aeterni-segmented-radius);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: var(--aeterni-line-height-tight);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
+}
+
+/* Visually hide the native radio while keeping it focusable and exposed to assistive
+   technology. The 1px box plus the 50% clip below is the standard clip mechanism,
+   not a design size. */
+.aeterni-segmented__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Equal columns: a label longer than its share truncates instead of resizing the
+   control, which keeps the pill exactly one column wide. */
+.aeterni-segmented__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-segmented__option:hover {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+}
+
+/* The selected label sits on the brand pill, so it keeps the inverse ink and does not
+   pick up the hover surface (the pill already is the hover feedback). */
+.aeterni-segmented__option.is-selected,
+.aeterni-segmented__option.is-selected:hover {
+    background: transparent;
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-segmented__option:has(.aeterni-segmented__input:focus-visible) {
+    z-index: 2;
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(var(--aeterni-focus-offset) * -1);
+}
+
+/* A disabled option is parked, not interactive. */
+.aeterni-segmented__input:disabled + .aeterni-segmented__label {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+/* A disabled option that is also the current value still sits on the brand pill, so
+   it keeps the inverse ink: the value is selected, it just cannot be moved away
+   from, and grey-on-brand would be unreadable. */
+.aeterni-segmented__option.is-selected .aeterni-segmented__input:disabled + .aeterni-segmented__label {
+    color: var(--aeterni-text-inverse);
+}
+
+/* Group-level states. */
+.aeterni-segmented.is-disabled {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-segmented.is-invalid {
+    border-color: var(--aeterni-color-danger-default);
+}
+
+.aeterni-segmented--sm {
+    --aeterni-segmented-height: var(--aeterni-control-height-sm);
+}
+
+.aeterni-segmented--sm .aeterni-segmented__option {
+    padding: 0 var(--aeterni-spacing-2);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-segmented--lg {
+    --aeterni-segmented-height: var(--aeterni-control-height-lg);
+}
+
+.aeterni-segmented--lg .aeterni-segmented__option {
+    padding: 0 var(--aeterni-spacing-4);
+    font-size: var(--aeterni-font-size-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-segmented__slider,
+    .aeterni-segmented__option {
+        transition: none;
+    }
+}

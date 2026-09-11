@@ -781,3 +781,46 @@
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
 }
+
+/* Segmented preview: the control is inline, so the demo stacks several of them and
+   keeps every row centred. */
+.preview-segmented-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-segmented-option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+}
+
+/* Drawer preview: the trigger row plus the state readout; the panel itself is
+   rendered outside the preview card (a fixed panel inside the blurred card would be
+   positioned against the card). */
+.preview-drawer-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    justify-items: center;
+    width: min(100%, 560px);
+}
+
+.preview-drawer-status {
+    display: grid;
+    gap: var(--aeterni-spacing-1);
+}
+
+.preview-drawer-content {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-drawer-content p {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}

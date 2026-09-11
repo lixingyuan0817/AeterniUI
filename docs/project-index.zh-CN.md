@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.6.0`
+文档版本：`10.7.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.6.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.7.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -117,7 +117,7 @@ Components/<Component>/
 - [`src/AeterniUI/Services/Impl/ThemeService.cs`](../src/AeterniUI/Services/Impl/ThemeService.cs)：主题模式和实际主题状态。
 - [`src/AeterniUI/Services/Impl/DialogService.cs`](../src/AeterniUI/Services/Impl/DialogService.cs)：Dialog、Confirm、Alert 和 Toast 状态管理。
 - [`src/AeterniUI/Services/Impl/JsModuleManager.cs`](../src/AeterniUI/Services/Impl/JsModuleManager.cs)：组件 JS module 的扫描、加载、调用和释放。
-- [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover 和 DialogProvider 导入。
+- [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover、Drawer 和 DialogProvider 导入。
 
 ### Tauri
 
@@ -188,11 +188,11 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | 能力组 | 组件 |
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card`、`Divider` |
-| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup` |
+| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented` |
 | 内容和选择 | `Tag`、`Badge`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch` |
-| 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
+| 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。
 

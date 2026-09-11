@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Components;
 
 namespace AeterniUI.Components.Theme;
 
+/// <summary>
+/// Theme mode picker (System / Light / Dark). It is a thin adapter over
+/// <see cref="Segmented{TValue}"/>: the control owns the radiogroup semantics and the
+/// sliding indicator, this component owns the mode list, the localised labels and the
+/// ThemeService calls.
+/// </summary>
 public partial class ThemeSwitch : AeterniComponent
 {
     [Inject]
@@ -30,8 +36,8 @@ public partial class ThemeSwitch : AeterniComponent
     private string GroupLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.ThemeSwitchLabel : AriaLabel;
 
     /// <summary>
-    /// Option order of the switch. The slider offset in the stylesheet is expressed
-    /// in whole columns, so this order is part of the component contract.
+    /// Option order of the switch. The order is part of the component contract: the
+    /// mode labels follow it and so does the indicator's travel.
     /// </summary>
     private static readonly ThemeMode[] Modes = [ThemeMode.System, ThemeMode.Light, ThemeMode.Dark];
 
@@ -42,12 +48,19 @@ public partial class ThemeSwitch : AeterniComponent
         _ => UiText.ThemeSystemLabel
     };
 
-    protected override ClassBuilder BuildClass()
+    /// <summary>
+    /// Reports the control's root element as this component's own, so the base class
+    /// parameters (<c>Element</c> / <c>ElementChanged</c>) describe the same element the
+    /// consumer sees.
+    /// </summary>
+    private async Task ForwardElementChangedAsync(ElementReference element)
     {
-        return base.BuildClass()
-            .Add("aeterni-theme-switch")
-            .Add(SizeClass)
-            .Add("is-disabled", Disabled);
+        SetRootElement(element);
+
+        if (ElementChanged.HasDelegate)
+        {
+            await ElementChanged.InvokeAsync(element);
+        }
     }
 
     protected async Task SelectModeAsync(ThemeMode mode)
@@ -83,8 +96,6 @@ public partial class ThemeSwitch : AeterniComponent
         ThemeService.ThemeChanged -= HandleThemeChanged;
         return ValueTask.CompletedTask;
     }
-
-    private string? SizeClass => ComponentClass.ForSize("aeterni-theme-switch", Size);
 
     private void HandleThemeChanged(object? sender, EventArgs args)
     {

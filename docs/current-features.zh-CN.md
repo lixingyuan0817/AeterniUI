@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.6.0`
+文档版本：`10.7.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -332,7 +332,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 ### 实现边界
 
-当前不提供远程选项、虚拟化和多选行为；方向键导航沿用原生 radio 行为。
+当前不提供远程选项、虚拟化和多选行为；方向键导航沿用原生 radio 行为，选中变化通过原生 `change` 事件上报（示例中的方向键选择会同步回业务状态）。
 
 ## 14. Switch
 
@@ -559,7 +559,9 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 `ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService` 或使用 `ThemeSwitch` 修改主题模式。
 
-`ThemeProvider` 没有组件参数；`ThemeSwitch` 提供 `AriaLabel`、`Size`、`ModeChanged`，并继承 `Disabled`。`Size` 使用公共 `Size` 枚举，`System`、`Light`、`Dark` 三个按钮分别切换 `ThemeService.Mode`。
+`ThemeProvider` 没有组件参数；`ThemeSwitch` 提供 `AriaLabel`、`Size`、`ModeChanged`，并继承 `Disabled`。控件本身是 [`Segmented`](#32-segmented) 的专用用法：三个模式是它的选项，尺寸档位走同一套控件高度（32 / 40 / 48px），标签取文案表的 `ThemeSystemLabel` / `ThemeLightLabel` / `ThemeDarkLabel`。
+
+组输出 `role="radiogroup"` 与三个 `role="radio"` 选项（`aria-checked`），整组只有一个 Tab 停留点，方向键即可切换模式；滑块位置由选项数量推导，不再写死三列。
 
 主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
 
@@ -764,7 +766,52 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 只有数字与圆点两种形态，不支持自定义文本内容、独立堆叠布局和消息计数业务逻辑；指示器不自带描边，与锚点重叠处的分离由使用方决定。
 
-## 32. 服务注册
+## 32. Segmented
+
+### 支持能力
+
+`Segmented<TValue>` 提供互斥选项切换（分段控件）：
+
+- `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`。
+- `Size` 三档走统一控件高度：`Small` 32px、`Default` 40px、`Large` 48px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
+- 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供，组件没有键盘 JS。
+- 滑块（选中胶囊）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。
+- RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。
+- `DisabledSelector` 停用单个选项（原生 `disabled`，跳过方向键循环）；`Disabled` 停用整组并输出 `aria-disabled`。`Value` 不匹配任何项时控件不显示选中态与滑块（`is-empty`）。
+- 位于 `FormField` 中时采用字段的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联标签与描述；`Required` / `Invalid` 输出 `aria-required` / `aria-invalid`。
+- `ThemeSwitch` 已重构为它的专用用法（三个主题模式作为选项），两者共用同一份滑块动画与尺寸档位。
+
+### 行为与无障碍
+
+根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击与方向键都走同一条路径）。禁用项不可点、不进方向键循环，禁用且被选中的项仍保留胶囊与反色文字，表示“值已选中但不可更改”。
+
+### 实现边界
+
+暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是撑开控件。
+
+## 33. Drawer
+
+### 支持能力
+
+`Drawer` 提供从视口边缘滑出的面板：
+
+- `Open` / `OpenChanged`（受控，支持 `@bind-Open`）、`Placement`（`DrawerPlacement`：`Start` / `End` / `Top` / `Bottom`，默认 `End`）、`Modal`（默认 `true`）。
+- 模态形态：遮罩、`role="dialog"` + `aria-modal="true"`、Tab 焦点陷阱、背景滚动锁（带滚动条宽度补偿）、关闭后焦点回到打开它的元素。
+- 非模态形态：不渲染遮罩、不锁滚动、不抢焦点，输出 `role="region"`；页面保持可交互，只在面板外的指针按下或 Escape 时请求关闭。
+- 关闭路径统一由 `OpenChanged` 驱动：`CloseOnEscape`、`CloseOnOutsideClick`、内置关闭按钮（`ShowCloseButton`）都只“请求关闭”，`@bind-Open` 仍是唯一事实源；`Disabled` 会锁住所有关闭路径。
+- 内容分三段：`Title`（标题，同时作为面板的无障碍名称）、`ChildContent`（可滚动的 body）与 `Footer`（不滚动的底部操作条）；关闭按钮的无障碍名称缺省取 `AeterniUITextOptions.DrawerCloseLabel`。
+- 面板尺寸由 `--aeterni-drawer-size`（默认 `--aeterni-overlay-width-sm`，420px）决定，可用 `Style` 覆盖；`Start` / `End` 用逻辑内联边定位，RTL 下自动镜像；窄屏自动收到视口宽度（100%）。
+- 入场动画按方位（内联 / 块方向）使用 `transform` 位移，`prefers-reduced-motion: reduce` 下停止；非模态的遮罩不参与渲染，因此固定定位层不会被自身的 `transform` 影响。
+
+### 行为与无障碍
+
+面板在打开时可用 `Escape` 关闭（模态由焦点陷阱接管，非模态由文档级监听接管），关闭后如果面板是模态且焦点仍在面板内则交给焦点陷阱送回打开它的元素。
+
+### 实现边界
+
+面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成；关闭只有入场动画，没有出场动画（与 `Popover` 一致）。
+
+## 34. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -802,16 +849,18 @@ builder.Services.AddAeterniUI(options =>
     options.Text.SpinnerLabel = "加载中";
     options.Text.EmptyTitle = "暂无数据";
     options.Text.BadgeLabel = "有新内容";
+    options.Text.DrawerLabel = "面板";
+    options.Text.DrawerCloseLabel = "关闭面板";
 });
 ```
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## 33. 当前边界
+## 35. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
-- 第三阶段的 `Segmented` 与 `Drawer` 仍在路线图中：`Segmented` 落地后需要反向重构 `ThemeSwitch`，`Drawer` 复用共享浮层的焦点陷阱与滚动锁。
+- `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
 - `IconButton` 暂不纳入当前阶段；Button 已支持 `Icon`、`StartIcon` 和 `EndIcon`。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。

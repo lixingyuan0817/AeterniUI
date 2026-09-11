@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.6.0`
+文档版本：`10.7.0`
 
-状态：v0.1 与 v0.2 已完成，v0.3 进行中（5/7：Divider、Empty、Spinner、Skeleton、Badge 已完成）；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1、v0.2 与 v0.3 已完成（第三阶段 7/7：Divider、Empty、Spinner、Skeleton、Badge、Segmented、Drawer）；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -310,9 +310,9 @@ Input/Input 样式族
 
 ## 第三阶段（v0.3）计划
 
-状态：进行中（5/7）。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
+状态：已完成（7/7）。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
 
-进度：15 `Divider`、16 `Empty`、17 `Spinner`、18 `Skeleton`、19 `Badge` 已完成（v10.6）；20 `Segmented`、21 `Drawer` 待开工。
+进度：15 `Divider`、16 `Empty`、17 `Spinner`、18 `Skeleton`、19 `Badge` 已在 v10.6 交付；20 `Segmented`（含 `ThemeSwitch` 重构）与 21 `Drawer` 在 v10.7 交付。
 
 版本规则沿用第二阶段：功能新增递增次版本号；问题修复递增补丁版本号；破坏性公共 API 变更递增主版本号。
 
@@ -323,8 +323,8 @@ Input/Input 样式族
 - [x] 17. `Spinner`
 - [x] 18. `Skeleton`
 - [x] 19. `Badge`
-- [ ] 20. `Segmented`
-- [ ] 21. `Drawer`
+- [x] 20. `Segmented`
+- [x] 21. `Drawer`
 
 ### 依赖顺序
 
@@ -411,7 +411,7 @@ Token 和现有基础组件
 
 ### 20. Segmented
 
-状态：未开始
+状态：已完成
 
 目标：提供通用分段控件（互斥选项切换），并把 `ThemeSwitch` 重构为它的专用用法。
 
@@ -423,9 +423,13 @@ Token 和现有基础组件
 
 说明：公共名为 `Segmented`。落地后 `ThemeSwitch` 应改为基于该组件，并同步解决英文硬编码文案问题（见 [`component-review-todo.zh-CN.md`](component-review-todo.zh-CN.md) 的 REV-18）。
 
+交付：`Segmented<TValue>` 基于原生 radio（`Items` / `TextSelector` / `ItemTemplate` / `DisabledSelector`）；单选语义、`aria-checked`、roving tabindex、方向键与 RTL 方向交给浏览器，因此组件没有键盘 JS；滑块宽度为「一列」、位移为「index 列」，来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，2/3/5 项共用同一份几何；尺寸走控件高度阶梯（32/40/48px）；`ThemeSwitch` 重构为它的专用用法（文案仍取自文案表，不再有硬编码英文）。示例页 `/components/segmented`。
+
+顺带修复：`Radio` 的选项原来只监听 `onclick`，方向键改变原生选中态时不会上报到 C#（受控值会停在旧值）；改为监听原生 `change` 后方向键与鼠标走同一条上报路径。
+
 ### 21. Drawer
 
-状态：未开始
+状态：已完成
 
 目标：提供从视口边缘滑出的面板，支持非模态和模态两种形态。
 
@@ -434,6 +438,8 @@ Token 和现有基础组件
 验收重点：四个方向（start/end/top/bottom）；模态形态使用 `role="dialog"` + `aria-modal` + 焦点陷阱 + 背景滚动锁 + 关闭后焦点回归；非模态形态不抢焦点；Escape 与外部点击（可配置）；`prefers-reduced-motion` 下关闭滑入动效；窄屏宽度自适应。
 
 暂不包含：多抽屉堆叠、可拖拽调整宽度和路由集成。
+
+交付：`DrawerPlacement` 四方位（Start/End 用逻辑内联边，RTL 自动镜像）；模态形态复用共享模块的 `createFocusTrap` / `lockScroll`（遮罩、`aria-modal`、焦点回归、滚动条补偿）；非模态形态不渲染遮罩、不锁滚动也不抢焦点，并在面板外指针与 Escape 时请求关闭；关闭统一经 `OpenChanged`；三段式内容（Title / body / Footer）与内置关闭按钮；`--aeterni-drawer-size` 控制尺寸、窄屏收到 100%；入场动画按方位用 `transform`，reduced-motion 下停止（修正了方位规则因特异性高于媒体查询而未能被覆盖的问题）。示例页 `/components/drawer`。
 
 ### 第三阶段前置能力
 
@@ -444,7 +450,7 @@ Token 和现有基础组件
 | ~~FocusTrap + 背景滚动锁抽取~~（v10.4 已完成：`wwwroot/js/aeterni_floating.js` 提供 `createFocusTrap` / `lockScroll`） | 21 `Drawer`，并回填 v0.2 第 12 项的 Popup 增强（已回填） |
 | ~~浮层定位能力（锚定/flip/shift/外部点击）~~（v10.4 已完成：`fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift`） | 21 `Drawer` 的遮罩、v0.2 的 Tooltip 复用（已迁移）与 ComboBox 弹层迁移（待办） |
 | ~~语义枚举收敛（`Color`/`Severity`）~~（v10.5 已完成：`ComponentClass.ForColor` / `ToColor` 是唯一映射；v10.6 的 `Spinner` 与 `Badge` 直接复用它） | 19 `Badge`、17 `Spinner` 等新增带色组件（已解决） |
-| ~~文案本地化入口~~（v10.6 已完成：`Spinner`/`Badge`/`Empty` 的可访问名称与空状态标题全部走 `AeterniUITextOptions`） | 20 `Segmented`（含 `ThemeSwitch` 重构）仍沿用同一入口 |
+| ~~文案本地化入口~~（v10.6 已完成：`Spinner`/`Badge`/`Empty` 的可访问名称与空状态标题全部走 `AeterniUITextOptions`；v10.7 的 `Segmented` / `Drawer` 也沿用同一入口） | 20 `Segmented`（含 `ThemeSwitch` 重构，已解决） |
 | ~~核心图标字形补充~~（v10.6 已完成：新增 `AeterniIcons.EmptyBox`） | 16 `Empty`（已解决）及后续新增组件 |
 | ~~示例页拆分~~（v10.5 已完成：一个组件一个页面） | 第三阶段每个组件都需要可交互演示（已具备） |
 
@@ -456,11 +462,11 @@ Token 和现有基础组件
 
 | 任务 | 状态 | 构建 | 备注 |
 | --- | --- | --- | --- |
-| v0.3 计划 | 进行中 | 未涉及 | 仅记录计划，未修改组件代码；5/7 已完成 |
+| v0.3 计划 | 已完成 | 未涉及 | 仅记录计划，未修改组件代码；7/7 已完成 |
 | Divider | 已完成 | 通过 | `role="separator"` + 显式 `aria-orientation`、中缝内容、垂直形态贴合 flex 高度；示例已同步 |
 | Empty | 已完成 | 通过 | 新增 `AeterniIcons.EmptyBox`；`Size` 三档、自定义插画、描述与操作区插槽、无表面宿主用法；示例已同步 |
 | Spinner | 已完成 | 通过 | 环形视觉抽成共享实现并让 Button Loading 复用（删除第二份 keyframes），尺寸/语义色档位与 `role="status"`；示例已同步 |
 | Skeleton | 已完成 | 通过 | Text/Rectangle/Circle + Lines/Width/Height、末行 80%、`aria-hidden`、reduced-motion 静态降级；示例已同步 |
 | Badge | 已完成 | 通过 | 数字上限、圆点模式、逻辑定位（RTL 镜像）、最大宽度与溢出处理、可访问名称；示例已同步 |
-| Segmented | 未开始 | - | 落地后需重构 ThemeSwitch |
-| Drawer | 未开始 | - | 依赖焦点陷阱与滚动锁抽取 |
+| Segmented | 已完成 | 通过 | 原生 radio 单选语义（`aria-checked` / roving tabindex / 方向键 / RTL 由浏览器提供）、数量无关的滑块几何、尺寸档位、单项与整体禁用、FormField 接入；`ThemeSwitch` 已重构为它的专用用法；顺带修复 radio 方向键不上报的问题 |
+| Drawer | 已完成 | 通过 | 四方位与 RTL 镜像、模态/非模态两态（遮罩、`aria-modal`、焦点陷阱、滚动锁、焦点回归 vs. 不抢焦点/不锁滚动）、`OpenChanged` 受控关闭、三段式内容、窄屏 100% 宽度、reduced-motion 停止动画 |
