@@ -1,0 +1,66 @@
+@using System.Globalization
+@using AeterniUI.Enums
+@inherits AeterniComponent
+
+<PopupHost Class="aeterni-date-picker__host">
+    <button id="@ElementId" type="button" class="aeterni-date-picker__trigger @SizeClass" aria-label="@AriaLabel" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")" disabled="@Disabled" @onclick="ToggleAsync">
+        <span class="@(StartDate.HasValue ? string.Empty : "is-placeholder")">@(StartDate?.ToString(Format, Culture) ?? Placeholder)</span>
+        <span aria-hidden="true"> – </span>
+        <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? Placeholder)</span>
+        <span aria-hidden="true">▣</span>
+    </button>
+    <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" AriaLabel="@AriaLabel">
+        <ChildContent>
+            <DateCalendar DisplayMonth="@_displayMonth" RangeStart="@StartDate" RangeEnd="@EndDate" DisabledDate="@IsDateDisabled" DateSelected="SelectAsync" MonthChanged="SetMonthAsync" AriaLabel="@AriaLabel" />
+        </ChildContent>
+    </Popover>
+</PopupHost>
+
+@code {
+    [Parameter] public DateOnly? StartDate { get; set; }
+    [Parameter] public EventCallback<DateOnly?> StartDateChanged { get; set; }
+    [Parameter] public DateOnly? EndDate { get; set; }
+    [Parameter] public EventCallback<DateOnly?> EndDateChanged { get; set; }
+    [Parameter] public DateOnly? MinDate { get; set; }
+    [Parameter] public DateOnly? MaxDate { get; set; }
+    [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
+    [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
+    [Parameter] public string Placeholder { get; set; } = "Select date";
+    [Parameter] public string AriaLabel { get; set; } = "Date range picker";
+    [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
+    [Parameter] public Size Size { get; set; } = Size.Default;
+
+    private bool _open;
+    private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
+    private CultureInfo Culture => CultureInfo.CurrentCulture;
+    private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (StartDate.HasValue) _displayMonth = StartDate.Value.AddDays(1 - StartDate.Value.Day);
+        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+    }
+
+    private bool IsDateDisabled(DateOnly date) =>
+        (MinDate.HasValue && date < MinDate.Value) || (MaxDate.HasValue && date > MaxDate.Value) || (DisabledDate?.Invoke(date) ?? false);
+
+    private async Task SelectAsync(DateOnly date)
+    {
+        if (IsDateDisabled(date)) return;
+        if (!StartDate.HasValue || EndDate.HasValue || date < StartDate.Value)
+        {
+            StartDate = date; EndDate = null;
+            await StartDateChanged.InvokeAsync(date); await EndDateChanged.InvokeAsync(null);
+        }
+        else
+        {
+            EndDate = date; await EndDateChanged.InvokeAsync(date); _open = false;
+        }
+    }
+
+    private Task SetMonthAsync(DateOnly month) { _displayMonth = month; return InvokeAsync(StateHasChanged); }
+    private Task ToggleAsync() { _open = !_open; return InvokeAsync(StateHasChanged); }
+    private Task HandleOpenChanged(bool open) { _open = open; return InvokeAsync(StateHasChanged); }
+}

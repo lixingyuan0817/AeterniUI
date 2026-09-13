@@ -2,7 +2,7 @@
 
 文档版本：`10.7.0`
 
-状态：v0.1、v0.2 与 v0.3 已完成（第三阶段 7/7：Divider、Empty、Spinner、Skeleton、Badge、Segmented、Drawer）；组件审阅待办四轮（29 + 21 + 8 + 4 项）已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1、v0.2 与 v0.3 已完成；v0.4 正在实现 DatePicker / DateRangePicker；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -454,7 +454,7 @@ Token 和现有基础组件
 | ~~核心图标字形补充~~（v10.6 已完成：新增 `AeterniIcons.EmptyBox`） | 16 `Empty`（已解决）及后续新增组件 |
 | ~~示例页拆分~~（v10.5 已完成：一个组件一个页面） | 第三阶段每个组件都需要可交互演示（已具备） |
 
-### 第三阶段固定交付物与验收
+## 第三阶段固定交付物与验收
 
 沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/current-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
 
@@ -471,3 +471,23 @@ Token 和现有基础组件
 | Segmented | 已完成 | 通过 | 原生 radio 单选语义（`aria-checked` / roving tabindex / 方向键 / RTL 由浏览器提供）、数量无关的滑块几何、尺寸档位、单项与整体禁用、FormField 接入；`ThemeSwitch` 已重构为它的专用用法；顺带修复 radio 方向键不上报的问题 |
 | Drawer | 已完成 | 通过 | 四方位与 RTL 镜像、模态/非模态两态（遮罩、`aria-modal`、焦点陷阱、滚动锁、焦点回归 vs. 不抢焦点/不锁滚动）、`OpenChanged` 受控关闭、三段式内容、窄屏 100% 宽度、reduced-motion 停止动画 |
 | Accordion / Pagination / Avatar | 已完成 | 通过 | 折叠面板平滑高度动画、分页省略号与当前页过渡、图片/姓名缩写头像；示例与当前功能文档已同步 |
+
+## 第四阶段（v0.4）计划
+
+状态：进行中。优先补齐基于 `DateOnly` 的单日与日期范围选择，并复用 PopupHost / Popover、FormField 与现有 Token。
+
+### 22. DatePicker / DateRangePicker
+
+状态：进行中
+
+目标：提供单日和日期范围选择控件。
+
+当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义和示例页。
+
+待补齐：键盘导航、FormField / EditContext 校验、焦点回归、完整日期格式化和范围 hover 预览。
+
+实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。
+
+### 第四阶段固定交付物与验收
+
+沿用既有固定交付物；完成后同步 `current-features.zh-CN.md`、示例页、项目索引和本文档任务记录，并运行构建、文档、CSS 与 JavaScript 检查。

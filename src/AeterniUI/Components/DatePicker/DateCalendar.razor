@@ -1,0 +1,66 @@
+@using System.Globalization
+
+<div class="aeterni-date-calendar" role="application" aria-label="@AriaLabel">
+    <div class="aeterni-date-calendar__toolbar">
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="Previous month" @onclick="PreviousMonthAsync">‹</button>
+        <strong>@MonthTitle</strong>
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="Next month" @onclick="NextMonthAsync">›</button>
+    </div>
+    <div class="aeterni-date-calendar__weekdays" aria-hidden="true">
+        @foreach (var weekday in Weekdays)
+        {
+            <span>@weekday</span>
+        }
+    </div>
+    <div class="aeterni-date-calendar__grid" role="grid">
+        @foreach (var day in Days)
+        {
+            var disabled = IsDisabled(day);
+            var selected = IsSelected(day);
+            <button type="button"
+                    class="aeterni-date-calendar__day @(day.Month != DisplayMonth.Month ? "is-outside" : string.Empty) @(selected ? "is-selected" : string.Empty) @(day == DateOnly.FromDateTime(DateTime.Today) ? "is-today" : string.Empty)"
+                    role="gridcell"
+                    aria-selected="@(selected ? "true" : "false")"
+                    aria-current="@(day == DateOnly.FromDateTime(DateTime.Today) ? "date" : null)"
+                    disabled="@disabled"
+                    @onclick="@(() => SelectDayAsync(day))">
+                @day.Day
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public DateOnly DisplayMonth { get; set; }
+    [Parameter] public DateOnly? SelectedDate { get; set; }
+    [Parameter] public DateOnly? RangeStart { get; set; }
+    [Parameter] public DateOnly? RangeEnd { get; set; }
+    [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
+    [Parameter] public EventCallback<DateOnly> DateSelected { get; set; }
+    [Parameter] public EventCallback<DateOnly> MonthChanged { get; set; }
+    [Parameter] public string AriaLabel { get; set; } = "Calendar";
+
+    private CultureInfo Culture => CultureInfo.CurrentCulture;
+    private string MonthTitle => DisplayMonth.ToDateTime(TimeOnly.MinValue).ToString("yyyy MMMM", Culture);
+    private IReadOnlyList<string> Weekdays => Enumerable.Range(0, 7)
+        .Select(index => Culture.DateTimeFormat.GetAbbreviatedDayName((DayOfWeek)((index + 1) % 7)))
+        .ToArray();
+    private IEnumerable<DateOnly> Days
+    {
+        get
+        {
+            var first = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);
+            var offset = ((int)first.DayOfWeek + 6) % 7;
+            var start = first.AddDays(-offset);
+            return Enumerable.Range(0, 42).Select(start.AddDays);
+        }
+    }
+
+    private bool IsDisabled(DateOnly day) => DisabledDate?.Invoke(day) == true;
+    private bool IsSelected(DateOnly day) => SelectedDate == day ||
+        (RangeStart.HasValue && RangeEnd.HasValue && day >= RangeStart && day <= RangeEnd);
+
+    private Task SelectDayAsync(DateOnly day) => DateSelected.InvokeAsync(day);
+    private Task PreviousMonthAsync() => MonthChanged.InvokeAsync(DisplayMonth.AddMonths(-1));
+    private Task NextMonthAsync() => MonthChanged.InvokeAsync(DisplayMonth.AddMonths(1));
+}

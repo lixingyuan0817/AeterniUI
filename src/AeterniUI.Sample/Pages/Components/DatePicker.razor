@@ -1,0 +1,43 @@
+@page "/components/date-picker"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · DatePicker</PageTitle>
+
+<ComponentPreview AnchorId="date-picker" Category="表单组件" Title="DatePicker / DateRangePicker" ComponentName="DatePicker / DateRangePicker" Description="使用 DateOnly 的单日和日期范围选择控件。" Parameters="@Parameters">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" DisabledDate="IsDisabledDate" AriaLabel="选择日期" />
+            <DateRangePicker @bind-StartDate="_startDate" @bind-EndDate="_endDate" MinDate="@MinDate" MaxDate="@MaxDate" DisabledDate="IsDisabledDate" AriaLabel="选择日期范围" />
+            <span class="preview-feedback" role="status">单日：@(_date?.ToString("yyyy-MM-dd") ?? "未选择")；范围：@(_startDate?.ToString("yyyy-MM-dd") ?? "未选择") – @(_endDate?.ToString("yyyy-MM-dd") ?? "未选择")</span>
+        </div>
+    </Preview>
+    <Notes>
+        <span>值类型为 <code>DateOnly?</code>，日历通过 <code>PopupHost + Popover</code> 承载。</span>
+        <span>示例禁用了周末，并限制可选范围为今天前后 90 天。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _date = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _startDate;
+    private DateOnly? _endDate;
+    private DateOnly MinDate => _today.AddDays(-90);
+    private DateOnly MaxDate => _today.AddDays(90);
+
+    private bool IsDisabledDate(DateOnly date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Value / StartDate / EndDate", "DateOnly?", "当前日期或范围端点。"),
+        new("ValueChanged / *Changed", "EventCallback<DateOnly?>", "标准 Blazor 绑定回调。"),
+        new("MinDate / MaxDate", "DateOnly?", "可选日期边界。"),
+        new("DisabledDate", "Func<DateOnly, bool>?", "返回 true 时禁用该日期。"),
+        new("Format", "string", "显示格式。", "yyyy-MM-dd"),
+        new("Placeholder", "string", "未选择时的占位文本。", "Select date"),
+        new("Placement", "PopupPlacement", "日历弹层方位。", "BottomStart"),
+        new("Size", "Size", "控件尺寸档位。", "Default")
+    ];
+}

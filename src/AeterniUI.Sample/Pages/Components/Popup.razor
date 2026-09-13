@@ -8,7 +8,7 @@
 
 <PageTitle>Aeterni UI · PopupHost / Popover</PageTitle>
 
-<ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。" Parameters="@PopupParameters">
+<ComponentPreview AnchorId="popup" Category="通知组件" Title="PopupHost / Popover" ComponentName="Popover" Description="基础浮层容器与 dialog/region 语义。" Parameters="@PopupParameters" PreviewClass="@(_popoverModal && _popoverOpen ? "component-preview--modal-open" : null)">
     <Preview>
         <div class="preview-overlay-demo">
             <PopupHost>

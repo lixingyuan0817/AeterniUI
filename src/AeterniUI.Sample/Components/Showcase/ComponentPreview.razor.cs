@@ -23,6 +23,9 @@ public partial class ComponentPreview : ComponentBase
     public RenderFragment Preview { get; set; } = default!;
 
     [Parameter]
+    public string? PreviewClass { get; set; }
+
+    [Parameter]
     public RenderFragment? Controls { get; set; }
 
     [Parameter]

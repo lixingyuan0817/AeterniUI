@@ -1,0 +1,58 @@
+.aeterni-date-calendar {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+    min-width: 18rem;
+}
+
+.aeterni-date-calendar__toolbar,
+.aeterni-date-calendar__weekdays,
+.aeterni-date-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: center;
+    gap: 2px;
+}
+
+.aeterni-date-calendar__toolbar {
+    grid-template-columns: auto 1fr auto;
+    text-align: center;
+}
+
+.aeterni-date-calendar__nav,
+.aeterni-date-calendar__day {
+    min-width: 2rem;
+    min-height: 2rem;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-date-calendar__nav:hover,
+.aeterni-date-calendar__day:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-date-calendar__day.is-outside {
+    color: var(--aeterni-text-tertiary);
+}
+
+.aeterni-date-calendar__day.is-selected {
+    background: var(--aeterni-color-brand-default);
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-date-calendar__day.is-today {
+    box-shadow: inset 0 0 0 var(--aeterni-border-width) var(--aeterni-color-brand-text);
+}
+
+.aeterni-date-calendar__day:disabled {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-date-calendar__weekdays {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    text-align: center;
+}

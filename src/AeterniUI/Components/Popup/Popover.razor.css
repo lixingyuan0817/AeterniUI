@@ -17,13 +17,6 @@
     min-width: var(--aeterni-overlay-min-width-sm);
     max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
     margin-left: var(--aeterni-popover-shift-x);
-    padding: var(--aeterni-spacing-4);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
-    border-radius: var(--aeterni-radius-dropdown);
-    background: var(--aeterni-bg-elevated);
-    color: var(--aeterni-text-primary);
-    box-shadow: var(--aeterni-shadow-dropdown);
-    animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
 .aeterni-popover[hidden] {
@@ -53,19 +46,35 @@
 /* Modal popovers sit on the modal layer and block the page behind them. */
 .aeterni-popover.is-modal {
     z-index: var(--aeterni-z-modal);
-    box-shadow: var(--aeterni-shadow-modal);
 }
 
 .aeterni-popover__backdrop {
-    /* Behind the layer's own surface: the layer's z-index creates the stacking
-       context, so -1 paints above the page but below the popover box. */
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-sm);
     backdrop-filter: var(--aeterni-blur-sm);
     animation: aeterni-popover-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
+}
+
+.aeterni-popover__surface {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    min-width: var(--aeterni-overlay-min-width-sm);
+    max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    padding: var(--aeterni-spacing-4);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-dropdown);
+    background: var(--aeterni-bg-elevated);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-dropdown);
+    animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+.aeterni-popover.is-modal .aeterni-popover__surface {
+    box-shadow: var(--aeterni-shadow-modal);
 }
 
 .aeterni-popover__header {
@@ -101,7 +110,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .aeterni-popover,
+    .aeterni-popover__surface,
     .aeterni-popover__backdrop {
         animation: none;
     }
