@@ -34,19 +34,6 @@ fi
 
 rm -rf "$STAGE"
 
-# index.html references the library's scoped stylesheet by its logical name
-# (_content/AeterniUI/AeterniUI.styles.css), but dotnet publish only emits the
-# fingerprinted AeterniUI.<hash>.bundle.scp.css. Plain static hosts (Tauri
-# custom protocol, python/npx preview servers) do not apply the .NET static-web-
-# asset manifest, so a missing alias would 404 -> the browser then rejects the
-# response as "non CSS MIME type". Mirror the current bundle under the logical
-# name so any static host can serve it.
-LIB_BUNDLE="$(ls "$ROOT/dist/_content/AeterniUI/"AeterniUI.*.bundle.scp.css 2>/dev/null | head -n 1 || true)"
-if [ -n "$LIB_BUNDLE" ]; then
-  cp "$LIB_BUNDLE" "$ROOT/dist/_content/AeterniUI/AeterniUI.styles.css"
-  echo "Linked scoped CSS: $(basename "$LIB_BUNDLE") -> AeterniUI.styles.css"
-fi
-
 if [ ! -f "$ROOT/dist/index.html" ]; then
   echo "Expected $ROOT/dist/index.html but it was not produced." >&2
   exit 1
