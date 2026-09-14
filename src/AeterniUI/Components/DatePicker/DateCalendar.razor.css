@@ -1,7 +1,7 @@
 .aeterni-date-calendar {
     display: grid;
     gap: var(--aeterni-spacing-2);
-    min-width: 18rem;
+    min-width: 16rem;
 }
 
 .aeterni-date-calendar__toolbar,
@@ -20,8 +20,8 @@
 
 .aeterni-date-calendar__nav,
 .aeterni-date-calendar__day {
-    min-width: 2rem;
-    min-height: 2rem;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
     border: 0;
     border-radius: var(--aeterni-radius-sm);
     background: transparent;
@@ -40,6 +40,10 @@
 .aeterni-date-calendar__day.is-selected {
     background: var(--aeterni-color-brand-default);
     color: var(--aeterni-text-inverse);
+}
+
+.aeterni-date-calendar__day.is-range-preview {
+    background: var(--aeterni-state-background-hover);
 }
 
 .aeterni-date-calendar__day.is-today {

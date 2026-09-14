@@ -8,6 +8,17 @@ namespace AeterniUI.Icons;
 /// </summary>
 public static class AeterniIcons
 {
+    /// <summary>Calendar glyph used by date selection controls.</summary>
+    public static IconDefinition Calendar { get; } = new(
+        "calendar",
+        16,
+        16,
+        [
+            "M3 2.5h1.5v2H11.5v-2H13v2h1v10H2v-10h1z",
+            "M3.5 6h9v7h-9z",
+            "M4.5 7.5h1.2v1.2H4.5zM7.4 7.5h1.2v1.2H7.4zM10.3 7.5h1.2v1.2h-1.2z"
+        ]);
+
     /// <summary>Check mark used by Checkbox and success notices.</summary>
     public static IconDefinition Check { get; } = new(
         "check",

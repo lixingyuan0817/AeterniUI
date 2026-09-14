@@ -50,8 +50,9 @@
     box-shadow: var(--aeterni-shadow-modal);
     -webkit-backdrop-filter: var(--aeterni-blur-md);
     backdrop-filter: var(--aeterni-blur-md);
-    animation: aeterni-dialog-slide-in var(--aeterni-duration-normal) var(--aeterni-ease-emphasized);
+    animation: none;
 }
+
 
 .aeterni-dialog-provider__dialog--info {
     --aeterni-dialog-accent: var(--aeterni-color-info-default);

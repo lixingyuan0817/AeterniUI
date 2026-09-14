@@ -13,7 +13,7 @@
             disabled="@Disabled"
             @onclick="ToggleAsync">
         <span class="@(Value.HasValue ? string.Empty : "is-placeholder")">@(Value?.ToString(Format, Culture) ?? Placeholder)</span>
-        <span aria-hidden="true">▣</span>
+        <span class="aeterni-date-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
     </button>
     <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" AriaLabel="@AriaLabel">
         <ChildContent>

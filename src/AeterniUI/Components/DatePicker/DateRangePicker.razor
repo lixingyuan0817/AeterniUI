@@ -7,11 +7,11 @@
         <span class="@(StartDate.HasValue ? string.Empty : "is-placeholder")">@(StartDate?.ToString(Format, Culture) ?? Placeholder)</span>
         <span aria-hidden="true"> – </span>
         <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? Placeholder)</span>
-        <span aria-hidden="true">▣</span>
+        <span class="aeterni-date-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
     </button>
     <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" AriaLabel="@AriaLabel">
         <ChildContent>
-            <DateCalendar DisplayMonth="@_displayMonth" RangeStart="@StartDate" RangeEnd="@EndDate" DisabledDate="@IsDateDisabled" DateSelected="SelectAsync" MonthChanged="SetMonthAsync" AriaLabel="@AriaLabel" />
+            <DateCalendar DisplayMonth="@_displayMonth" RangeStart="@StartDate" RangeEnd="@EndDate" RangePreviewEnd="@_hoverDate" DateHovered="HandleHoverAsync" DisabledDate="@IsDateDisabled" DateSelected="SelectAsync" MonthChanged="SetMonthAsync" AriaLabel="@AriaLabel" />
         </ChildContent>
     </Popover>
 </PopupHost>
@@ -31,6 +31,7 @@
     [Parameter] public Size Size { get; set; } = Size.Default;
 
     private bool _open;
+    private DateOnly? _hoverDate;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
@@ -52,6 +53,7 @@
         if (!StartDate.HasValue || EndDate.HasValue || date < StartDate.Value)
         {
             StartDate = date; EndDate = null;
+            _hoverDate = null;
             await StartDateChanged.InvokeAsync(date); await EndDateChanged.InvokeAsync(null);
         }
         else
@@ -61,6 +63,7 @@
     }
 
     private Task SetMonthAsync(DateOnly month) { _displayMonth = month; return InvokeAsync(StateHasChanged); }
+    private Task HandleHoverAsync(DateOnly date) { _hoverDate = date; return InvokeAsync(StateHasChanged); }
     private Task ToggleAsync() { _open = !_open; return InvokeAsync(StateHasChanged); }
     private Task HandleOpenChanged(bool open) { _open = open; return InvokeAsync(StateHasChanged); }
 }

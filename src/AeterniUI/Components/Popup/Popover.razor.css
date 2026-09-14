@@ -55,6 +55,7 @@
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-sm);
     backdrop-filter: var(--aeterni-blur-sm);
+    pointer-events: auto;
     animation: aeterni-popover-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
@@ -68,6 +69,8 @@
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-dropdown);
     background: var(--aeterni-bg-elevated);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-dropdown);
     animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
@@ -113,5 +116,12 @@
     .aeterni-popover__surface,
     .aeterni-popover__backdrop {
         animation: none;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .aeterni-popover__surface {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 }

@@ -873,6 +873,13 @@ builder.Services.AddAeterniUI(options =>
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
+## DatePicker / DateRangePicker
+
+`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过
+`StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、
+`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement` 和 `Size`。
+日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。
+
 ## 36. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。

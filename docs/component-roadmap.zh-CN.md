@@ -482,9 +482,9 @@ Token 和现有基础组件
 
 目标：提供单日和日期范围选择控件。
 
-当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义和示例页。
+当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览和示例页。
 
-待补齐：键盘导航、FormField / EditContext 校验、焦点回归、完整日期格式化和范围 hover 预览。
+待补齐：FormField / EditContext 校验、焦点回归；日期格式化已支持 `Format` 与当前 Culture。
 
 实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。
 

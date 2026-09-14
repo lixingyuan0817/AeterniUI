@@ -1,7 +1,7 @@
 .aeterni-date-picker__host {
     position: relative;
     display: inline-block;
-    min-width: 12rem;
+    min-width: 10rem;
 }
 
 .aeterni-date-picker__trigger {
@@ -11,7 +11,7 @@
     gap: var(--aeterni-spacing-2);
     width: 100%;
     min-height: var(--aeterni-height-md);
-    padding: 0 var(--aeterni-spacing-3);
+    padding: 0 var(--aeterni-spacing-2);
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-input);
     background: var(--aeterni-bg-surface);
@@ -31,10 +31,16 @@
     color: var(--aeterni-text-secondary);
 }
 
+.aeterni-date-picker__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--aeterni-text-secondary);
+}
+
 .aeterni-date-calendar {
     display: grid;
     gap: var(--aeterni-spacing-2);
-    min-width: 18rem;
+    min-width: 16rem;
 }
 
 .aeterni-date-calendar__toolbar,
@@ -53,8 +59,8 @@
 
 .aeterni-date-calendar__nav,
 .aeterni-date-calendar__day {
-    min-width: 2rem;
-    min-height: 2rem;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
     border: 0;
     border-radius: var(--aeterni-radius-sm);
     background: transparent;
@@ -73,6 +79,10 @@
 .aeterni-date-calendar__day.is-selected {
     background: var(--aeterni-color-brand-default);
     color: var(--aeterni-text-inverse);
+}
+
+.aeterni-date-calendar__day.is-range-preview {
+    background: var(--aeterni-state-background-hover);
 }
 
 .aeterni-date-calendar__day.is-today {
