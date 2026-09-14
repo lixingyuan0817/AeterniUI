@@ -2,7 +2,7 @@
 
 文档版本：`10.7.0`
 
-状态：v0.1、v0.2 与 v0.3 已完成；v0.4 正在实现 DatePicker / DateRangePicker；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1、v0.2、v0.3 与 v0.4 基础交付已完成；时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -474,7 +474,7 @@ Token 和现有基础组件
 
 ## 第四阶段（v0.4）计划
 
-状态：进行中。优先补齐基于 `DateOnly` 的单日与日期范围选择，并复用 PopupHost / Popover、FormField 与现有 Token。
+状态：基础交付已完成。该阶段已交付基于 `DateOnly` 的单日与日期范围选择，并复用 PopupHost / Popover、FormField 与现有 Token。
 
 ### 22. DatePicker / DateRangePicker
 
@@ -486,7 +486,7 @@ Token 和现有基础组件
 
 待补齐：时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续范围。
 
-实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。
+实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。`DateCalendar` 仅作为 DatePicker / DateRangePicker 的内部渲染部件，不属于稳定公共 API。
 
 ### 第四阶段固定交付物与验收
 

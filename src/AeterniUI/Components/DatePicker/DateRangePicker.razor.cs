@@ -1,0 +1,112 @@
+using System.Globalization;
+using System.Linq.Expressions;
+using AeterniUI.Components.FormField;
+using AeterniUI.Enums;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+
+namespace AeterniUI.Components.DatePicker;
+
+public partial class DateRangePicker : AeterniComponent
+{
+    [CascadingParameter] private FormFieldContext? FormField { get; set; }
+    [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
+
+    [Parameter] public DateOnly? StartDate { get; set; }
+    [Parameter] public EventCallback<DateOnly?> StartDateChanged { get; set; }
+    [Parameter] public DateOnly? EndDate { get; set; }
+    [Parameter] public EventCallback<DateOnly?> EndDateChanged { get; set; }
+    [Parameter] public Expression<Func<DateOnly?>>? StartDateExpression { get; set; }
+    [Parameter] public Expression<Func<DateOnly?>>? EndDateExpression { get; set; }
+    [Parameter] public DateOnly? MinDate { get; set; }
+    [Parameter] public DateOnly? MaxDate { get; set; }
+    [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
+    [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
+    [Parameter] public string Placeholder { get; set; } = "Select date";
+    [Parameter] public string AriaLabel { get; set; } = "Date range picker";
+    [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
+    [Parameter] public Size Size { get; set; } = Size.Default;
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Invalid { get; set; }
+
+    private bool _open;
+    private ElementReference _triggerElement;
+    private DateOnly? _hoverDate;
+    private EditContext? _subscribedEditContext;
+    private FieldIdentifier _startFieldIdentifier;
+    private FieldIdentifier _endFieldIdentifier;
+    private bool _hasFieldIdentifiers;
+    private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
+    private CultureInfo Culture => CultureInfo.CurrentCulture;
+    private string TriggerId => FormField?.InputId ?? (string.IsNullOrWhiteSpace(Id) ? ElementId : Id!);
+    private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
+    private bool IsRequired => Required || FormField?.Required == true;
+    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifiers && ((_subscribedEditContext?.GetValidationMessages(_startFieldIdentifier).Any() == true) || (_subscribedEditContext?.GetValidationMessages(_endFieldIdentifier).Any() == true)));
+    private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        UpdateEditContextSubscription();
+        if (StartDate.HasValue) _displayMonth = StartDate.Value.AddDays(1 - StartDate.Value.Day);
+        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+    }
+
+    private bool IsDateDisabled(DateOnly date) =>
+        (MinDate.HasValue && date < MinDate.Value) || (MaxDate.HasValue && date > MaxDate.Value) || (DisabledDate?.Invoke(date) ?? false);
+
+    private async Task SelectAsync(DateOnly date)
+    {
+        if (IsDateDisabled(date)) return;
+        if (!StartDate.HasValue || EndDate.HasValue || date < StartDate.Value)
+        {
+            StartDate = date; EndDate = null;
+            _hoverDate = null;
+            await StartDateChanged.InvokeAsync(date); await EndDateChanged.InvokeAsync(null);
+            NotifyFieldChanged();
+        }
+        else
+        {
+            EndDate = date; await EndDateChanged.InvokeAsync(date); NotifyFieldChanged(); _open = false;
+        }
+    }
+
+    private Task SetMonthAsync(DateOnly month) { _displayMonth = month; return InvokeAsync(StateHasChanged); }
+    private Task HandleHoverAsync(DateOnly date) { _hoverDate = date; return InvokeAsync(StateHasChanged); }
+    private Task ToggleAsync() { if (IsDisabled) return Task.CompletedTask; _open = !_open; return InvokeAsync(StateHasChanged); }
+    private Task HandleOpenChanged(bool open) { _open = open; return InvokeAsync(StateHasChanged); }
+
+    private void UpdateEditContextSubscription()
+    {
+        var next = CascadedEditContext;
+        if (!ReferenceEquals(_subscribedEditContext, next))
+        {
+            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+            _subscribedEditContext = next;
+            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+        _hasFieldIdentifiers = StartDateExpression is not null || EndDateExpression is not null;
+        if (StartDateExpression is not null) _startFieldIdentifier = FieldIdentifier.Create(StartDateExpression);
+        if (EndDateExpression is not null) _endFieldIdentifier = FieldIdentifier.Create(EndDateExpression);
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
+    {
+        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void NotifyFieldChanged()
+    {
+        if (!_hasFieldIdentifiers || _subscribedEditContext is null) return;
+        if (StartDateExpression is not null) _subscribedEditContext.NotifyFieldChanged(_startFieldIdentifier);
+        if (EndDateExpression is not null) _subscribedEditContext.NotifyFieldChanged(_endFieldIdentifier);
+    }
+
+    protected override ValueTask OnComponentDisposeAsync()
+    {
+        if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        return ValueTask.CompletedTask;
+    }
+
+}

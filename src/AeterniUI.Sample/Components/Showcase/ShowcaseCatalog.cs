@@ -52,7 +52,7 @@ public static class ShowcaseCatalog
         new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),
             new("textarea", "Textarea", "多行输入"),
-            new("radio", "Radio / RadioGroup", "单选分组"),
+            new("radio", "Radio / RadioGroup", "Radio 与 RadioGroup 组合"),
             new("form-field", "FormField", "字段组合"),
             new("label", "Label", "原生标签"),
             new("checkbox", "Checkbox", "复选框"),
@@ -63,9 +63,9 @@ public static class ShowcaseCatalog
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围")
         ]),
         new("导航组件", FontAwesomeIcons.Solid.Compass, [
-            new("list", "List / ListItem", "列表选择"),
+            new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("menu", "Menu", "分组菜单"),
-            new("tabs", "Tabs", "标签页导航")
+            new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航")
         ]),
         new("状态反馈", FontAwesomeIcons.Solid.BarsProgress, [
             new("progress", "Progress", "进度展示"),
@@ -73,13 +73,13 @@ public static class ShowcaseCatalog
             new("skeleton", "Skeleton", "内容占位")
         ]),
         new("通知组件", FontAwesomeIcons.Solid.Bell, [
-            new("popup", "Popup / Popover", "基础浮层"),
+            new("popup", "PopupHost / Popover", "PopupHost 与 Popover 浮层组合"),
             new("tooltip", "Tooltip", "辅助提示"),
-            new("feedback", "Dialog / Toast", "反馈与浮层"),
+            new("feedback", "Dialog / Confirm / Alert / Toast", "DialogProvider 反馈与通知服务"),
             new("drawer", "Drawer", "边缘滑出面板")
         ]),
         new("主题组件", FontAwesomeIcons.Solid.Swatchbook, [
-            new("theme", "Theme", "主题模式")
+            new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
         ])
     ];
 
