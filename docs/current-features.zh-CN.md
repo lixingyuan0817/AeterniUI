@@ -14,6 +14,7 @@
 - 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)，不会写入已完成功能。
+- 组合组件的公开边界：`RadioGroup`、`ThemeSwitch` 可独立使用；`ListItem` 只能作为 `List` 子项，`Tab` 只能作为 `Tabs` 子项；`PopupHost` 与 `Popover` 用于自定义浮层组合，通常由 `MenuButton`、`ComboBox`、`Tooltip` 等宿主间接使用；`DialogProvider` 与 `ThemeProvider` 分别只应在应用根部注册一次。`DateCalendar` 是 `DatePicker` / `DateRangePicker` 的内部渲染部件，虽保留 Razor 类型以支持内部组合，但已标记为非稳定公共 API，不支持直接使用。
 
 ## 1. 宿主支持
 
@@ -792,21 +793,49 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是撑开控件。
 
-## 33. Accordion、Pagination 和 Avatar
+## 33. Accordion
 
-### Accordion
+### 支持能力
 
-`Accordion` 提供可访问的折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项、唯一项 ID 校验和 `aria-expanded` / `aria-controls` 关联；展开/折叠通过 CSS grid 行高与透明度过渡实现平滑高度动画，`prefers-reduced-motion` 下自动关闭动画；交互使用原生按钮，不引入额外 JavaScript。
+`Accordion` 提供可访问的折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项和唯一项 ID 校验。
 
-### Pagination
+### 行为与无障碍
 
-`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页通过轻微缩放和颜色过渡突出，并输出 `aria-current="page"`、上一页/下一页禁用状态和键盘可访问按钮；`prefers-reduced-motion` 下关闭过渡。分页只负责导航状态，不承担数据加载。
+每个面板使用原生按钮，并通过 `aria-expanded` / `aria-controls` 建立按钮与内容关联；展开/折叠通过 CSS grid 行高与透明度过渡实现，`prefers-reduced-motion` 下自动关闭动画。
 
-### Avatar
+### 实现边界
 
-`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写，并输出图像语义名称。
+组件只负责展开状态，不提供远程数据加载、虚拟化或嵌套面板管理。示例：`/components/accordion`。
 
-## 34. Drawer
+## 34. Pagination
+
+### 支持能力
+
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页通过颜色和轻微缩放突出。
+
+### 行为与无障碍
+
+输出 `aria-current="page"`、上一页/下一页禁用状态和键盘可访问按钮；`prefers-reduced-motion` 下关闭过渡。
+
+### 实现边界
+
+分页只负责导航状态，不承担数据加载、分页查询或缓存。示例：`/components/pagination`。
+
+## 35. Avatar
+
+### 支持能力
+
+`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写。
+
+### 行为与无障碍
+
+输出图像语义名称；使用 `Alt` 时优先作为可访问名称，未提供图片时使用姓名缩写或自定义内容的业务标签。
+
+### 实现边界
+
+Avatar 不负责图片加载失败后的远程重试或头像组布局。示例：`/components/avatar`。
+
+## 36. Drawer
 
 ### 支持能力
 
@@ -828,7 +857,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成；关闭只有入场动画，没有出场动画（与 `Popover` 一致）。
 
-## 35. 服务注册
+## 37. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -873,14 +902,23 @@ builder.Services.AddAeterniUI(options =>
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## DatePicker / DateRangePicker
+## 38. DatePicker / DateRangePicker
+
+### 支持能力
 
 `DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过
 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、
 `DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和对应的字段表达式参数。
-日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态；嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
 
-## 36. 当前边界
+### 行为与无障碍
+
+日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
+
+### 组合关系与实现边界
+
+两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。当前不包含时间选择、时区转换、多时区格式化、快捷范围、多月视图、虚拟化或复杂本地化日历。示例：`/components/date-picker`。
+
+## 39. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

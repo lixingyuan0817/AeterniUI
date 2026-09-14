@@ -188,7 +188,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | 能力组 | 组件 |
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card`、`Divider`、`Accordion` |
-| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented` |
+| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch` |
@@ -215,7 +215,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已完成 v0.1、v0.2、v0.3 与 v0.4 的 `DatePicker` / `DateRangePicker` 基础交付；时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续规划。
+当前路线图已完成 v0.1、v0.2、v0.3 与 v0.4 的 `DatePicker` / `DateRangePicker` 基础交付；`DateCalendar` 为仅供日期选择器使用的内部渲染部件，不属于稳定公共 API；时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续规划。
 
 当前项目没有自动化测试。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 
