@@ -318,7 +318,7 @@
 
 - **证据**：`Tooltip.razor` 输出 `role="tooltip"` 的内容节点，但触发器没有 `aria-describedby`；`Tooltip.razor.css` 只定义 `bottom: calc(100% + ...)` 一种位置，无翻转或边界避让。
 - **现象**：AT 不会朗读提示内容；触发器靠近视口边缘时提示被裁切。
-- **修复方向**：为内容生成 id 并在触发器上设置 `aria-describedby`（无文本时应完全移除节点，避免悬空引用）；定位增加翻转/位移避让，可参考 `ComboBox.razor.js` 的 flip + clamp 实现。
+- **修复方向**：为内容生成 id 并在触发器上设置 `aria-describedby`（无文本时应完全移除节点，避免悬空引用）；定位增加翻转/位移避让，可复用共享 `Popover` 的 floating 能力。
 - **验收**：读屏可朗读提示文本；视口四边触发时提示完整可见。
 
 ### REV-12 Tag 关闭按钮热区过小

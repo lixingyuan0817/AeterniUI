@@ -139,7 +139,7 @@ Input
 | Tag | 已完成 | 通过 | 三种变体 + 语意色 + 尺寸 + 可关闭（复用 Button 图标能力） |
 | List + ListItem | 已完成 | 通过 | `listbox` 容器、原生 button 选项与 `aria-selected`、单选/多选、方向键与空格回车选择；示例与文档已同步 |
 | Rating | 已完成 | 通过 | 整数评分、radiogroup 语义、方向键与 Home/End、AllowClear/ReadOnly |
-| ComboBox | 已完成 | 通过 | 交付为纯下拉选择（点击弹出、无输入搜索，方向键/Enter/Esc/外部点击/滚动关闭）；原计划中的输入筛选不适用 |
+| ComboBox | 已完成 | 通过 | 交付为纯下拉选择（点击弹出、无输入搜索，方向键/Enter/Esc/外部点击/滚动关闭）；弹层已迁移到共享 PopupHost + Popover，原计划中的输入筛选不适用 |
 
 ## 第二阶段（v0.2）计划
 
@@ -167,7 +167,7 @@ Input/Input 样式族
           |
           +--> Tooltip
           +--> Popover
-          +--> ComboBox 弹层迁移（替换内置 fixed 定位）
+          +--> ComboBox 弹层迁移（已替换内置 fixed 定位）
   |
   +--> Tabs                    （roving tabindex + 焦点控制，复用 List/Menu 的键盘约定）
 ```
@@ -238,11 +238,11 @@ Input/Input 样式族
 
 验收重点：`PopupPlacement` 四个方位；空间不足时翻转并贴回视口；Escape / 外部指针 / 遮罩通过 `OpenChanged` 请求关闭（`Open` 由使用方持有）；`:focus-visible` 焦点环不被裁切；`Modal` 提供遮罩、`aria-modal`、Tab 循环、关闭后焦点回归与背景滚动锁；`prefers-reduced-motion` 下关闭入场动画。
 
-暂不包含：多浮层堆叠、嵌套模态、相对视口的 fixed 定位（仍由 `ComboBox` 自己的弹层实现承载）。
+暂不包含：多浮层堆叠、嵌套模态和脱离宿主布局上下文的视口级 fixed 定位。
 
 基础验收重点：多实例挂载、Open/hidden 状态、Popover 的模态/非模态语义。
 
-后续影响：后续增强定位能力后再迁移 ComboBox，并供 Tooltip 使用。
+后续影响：Tooltip、MenuButton、DatePicker 和 ComboBox 统一复用共享浮层能力；ComboBox 额外启用页面滚动关闭。
 
 交付：已加入组件库和当前功能文档。
 
@@ -448,7 +448,7 @@ Token 和现有基础组件
 | 能力 | 影响的任务 |
 | --- | --- |
 | ~~FocusTrap + 背景滚动锁抽取~~（v10.4 已完成：`wwwroot/js/aeterni_floating.js` 提供 `createFocusTrap` / `lockScroll`） | 21 `Drawer`，并回填 v0.2 第 12 项的 Popup 增强（已回填） |
-| ~~浮层定位能力（锚定/flip/shift/外部点击）~~（v10.4 已完成：`fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift`） | 21 `Drawer` 的遮罩、v0.2 的 Tooltip 复用（已迁移）与 ComboBox 弹层迁移（待办） |
+| ~~浮层定位能力（锚定/flip/shift/外部点击）~~（v10.4 已完成：`fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift`） | 21 `Drawer` 的遮罩、v0.2 的 Tooltip 复用（已迁移）与 ComboBox 弹层迁移（已完成） |
 | ~~语义枚举收敛（`Color`/`Severity`）~~（v10.5 已完成：`ComponentClass.ForColor` / `ToColor` 是唯一映射；v10.6 的 `Spinner` 与 `Badge` 直接复用它） | 19 `Badge`、17 `Spinner` 等新增带色组件（已解决） |
 | ~~文案本地化入口~~（v10.6 已完成：`Spinner`/`Badge`/`Empty` 的可访问名称与空状态标题全部走 `AeterniUITextOptions`；v10.7 的 `Segmented` / `Drawer` 也沿用同一入口） | 20 `Segmented`（含 `ThemeSwitch` 重构，已解决） |
 | ~~核心图标字形补充~~（v10.6 已完成：新增 `AeterniIcons.EmptyBox`） | 16 `Empty`（已解决）及后续新增组件 |
@@ -478,13 +478,13 @@ Token 和现有基础组件
 
 ### 22. DatePicker / DateRangePicker
 
-状态：进行中
+状态：已完成
 
 目标：提供单日和日期范围选择控件。
 
-当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览和示例页。
+当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览、FormField / EditContext 校验、必填/无效状态和关闭后焦点回归；日期格式化已支持 `Format` 与当前 Culture。
 
-待补齐：FormField / EditContext 校验、焦点回归；日期格式化已支持 `Format` 与当前 Culture。
+待补齐：时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续范围。
 
 实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。
 

@@ -31,6 +31,9 @@ export function init(reference, key) {
         preferred: 'bottom-start',
         closeOnEscape: true,
         closeOnOutsideClick: true,
+        closeOnScroll: false,
+        restoreFocusOnClose: false,
+        opener: null,
         active: false,
         trap: null,
         releaseScroll: null,
@@ -46,7 +49,7 @@ export function init(reference, key) {
  * it has to be idempotent: only a change of `open` or of the modal flag performs
  * work.
  */
-export function setOpen(key, open, layer, modal, placement, closeOnEscape, closeOnOutsideClick) {
+export function setOpen(key, open, layer, modal, placement, closeOnEscape, closeOnOutsideClick, restoreFocusOnClose, closeOnScroll) {
     const instance = instances.get(key);
     if (!instance) {
         return;
@@ -56,6 +59,8 @@ export function setOpen(key, open, layer, modal, placement, closeOnEscape, close
     instance.preferred = PLACEMENTS.includes(placement) ? placement : instance.preferred;
     instance.closeOnEscape = !!closeOnEscape;
     instance.closeOnOutsideClick = !!closeOnOutsideClick;
+    instance.closeOnScroll = !!closeOnScroll;
+    instance.restoreFocusOnClose = !!restoreFocusOnClose;
 
     if (open && !instance.active) {
         activate(instance, !!modal);
@@ -82,6 +87,7 @@ export function setOpen(key, open, layer, modal, placement, closeOnEscape, close
 
 function activate(instance, modal) {
     instance.modal = modal;
+    instance.opener = instance.restoreFocusOnClose ? document.activeElement : null;
     instance.active = true;
 
     installOutsidePointer(instance);
@@ -90,7 +96,17 @@ function activate(instance, modal) {
     instance.resizeHandler = () => place(instance);
     window.addEventListener('resize', instance.resizeHandler, { passive: true });
 
-    instance.scrollHandler = () => place(instance);
+    instance.scrollHandler = event => {
+        if (instance.closeOnScroll) {
+            const target = event.target;
+            if (!(target instanceof Node) || !instance.layer.contains(target)) {
+                requestClose(instance);
+                return;
+            }
+        }
+
+        place(instance);
+    };
     document.addEventListener('scroll', instance.scrollHandler, { capture: true, passive: true });
 
     if (modal) {
@@ -128,6 +144,12 @@ function deactivate(instance) {
     instance.trap = null;
     instance.releaseScroll?.();
     instance.releaseScroll = null;
+
+    const opener = instance.opener;
+    instance.opener = null;
+    if (instance.restoreFocusOnClose && opener instanceof HTMLElement && opener.isConnected) {
+        queueMicrotask(() => opener.focus({ preventScroll: true }));
+    }
 }
 
 // A non-modal layer closes when the pointer goes down outside it.

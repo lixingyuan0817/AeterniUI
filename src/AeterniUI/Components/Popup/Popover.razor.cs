@@ -51,6 +51,16 @@ public partial class Popover : AeterniComponent
     [Parameter]
     public bool CloseOnOutsideClick { get; set; } = true;
 
+    /// <summary>
+    /// Whether a page or ancestor scroll requests a close. Scrolling inside the
+    /// popover surface is ignored so option lists can still scroll normally.
+    /// </summary>
+    [Parameter]
+    public bool CloseOnScroll { get; set; }
+
+    [Parameter]
+    public bool RestoreFocusOnClose { get; set; }
+
     [Parameter]
     public RenderFragment? Header { get; set; }
 
@@ -123,7 +133,9 @@ public partial class Popover : AeterniComponent
                 Modal,
                 PlacementClass,
                 CloseOnEscape && !Disabled,
-                CloseOnOutsideClick && !Disabled);
+                CloseOnOutsideClick && !Disabled,
+                RestoreFocusOnClose,
+                CloseOnScroll && !Disabled);
         }
         catch (JSDisconnectedException)
         {

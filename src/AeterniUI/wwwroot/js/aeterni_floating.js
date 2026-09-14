@@ -3,8 +3,7 @@
 
    One implementation of the browser behaviour that every anchored overlay needs:
    keeping a layer inside the viewport, locking page scroll, and trapping focus.
-   Tooltip and Popover consume it today; Drawer and ComboBox are the next
-   candidates (ComboBox still owns its trigger-anchored fixed positioning).
+   Tooltip, Popover, Drawer and ComboBox consume it today.
 
    This file lives in `wwwroot` because it is a shared foundation, not a
    component module: component modules are co-located `*.razor.js` files declared

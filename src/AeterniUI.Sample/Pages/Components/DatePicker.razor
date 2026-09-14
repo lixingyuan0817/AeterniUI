@@ -1,6 +1,7 @@
 @page "/components/date-picker"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
+@using System.ComponentModel.DataAnnotations
 @using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · DatePicker</PageTitle>
@@ -11,6 +12,19 @@
             <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期" />
             <DateRangePicker @bind-StartDate="_startDate" @bind-EndDate="_endDate" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期范围" />
             <span class="preview-feedback" role="status">单日：@(_date?.ToString("yyyy-MM-dd") ?? "未选择")；范围：@(_startDate?.ToString("yyyy-MM-dd") ?? "未选择") – @(_endDate?.ToString("yyyy-MM-dd") ?? "未选择")</span>
+            <EditForm Model="_validationModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <FormField Label="预约日期" For="@(() => _validationModel.RequiredDate)">
+                    <DatePicker @bind-Value="_validationModel.RequiredDate"
+                                AriaLabel="预约日期" />
+                </FormField>
+                <ValidationMessage For="@(() => _validationModel.RequiredDate)" />
+                <Button Type="ButtonType.Submit" Size="Size.Small">验证日期</Button>
+                @if (_validationSubmitted)
+                {
+                    <span class="preview-feedback" role="status">日期校验通过。</span>
+                }
+            </EditForm>
         </div>
     </Preview>
     <Notes>
@@ -27,6 +41,21 @@
     private DateOnly MinDate => _today.AddDays(-90);
     private DateOnly MaxDate => _today.AddDays(90);
 
+    private readonly DateValidationModel _validationModel = new();
+
+    private bool _validationSubmitted;
+
+    private void HandleValidSubmit()
+    {
+        _validationSubmitted = true;
+    }
+
+    private sealed class DateValidationModel
+    {
+        [Required(ErrorMessage = "请选择预约日期。")]
+        public DateOnly? RequiredDate { get; set; }
+    }
+
     private static readonly ShowcaseParameter[] Parameters =
     [
         new("Value / StartDate / EndDate", "DateOnly?", "当前日期或范围端点。"),
@@ -36,6 +65,8 @@
         new("Format", "string", "显示格式。", "yyyy-MM-dd"),
         new("Placeholder", "string", "未选择时的占位文本。", "Select date"),
         new("Placement", "PopupPlacement", "日历弹层方位。", "BottomStart"),
-        new("Size", "Size", "控件尺寸档位。", "Default")
+        new("Size", "Size", "控件尺寸档位。", "Default"),
+        new("ValueExpression / *Expression", "Expression<Func<DateOnly?>>?", "EditContext 字段表达式；配合 FormField 与 DataAnnotationsValidator 使用。"),
+        new("Required / Invalid", "bool", "必填和无效状态。", "false")
     ];
 }

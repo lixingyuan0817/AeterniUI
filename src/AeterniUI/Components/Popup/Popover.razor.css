@@ -45,13 +45,16 @@
 
 /* Modal popovers sit on the modal layer and block the page behind them. */
 .aeterni-popover.is-modal {
+    /* The backdrop must remain above the page's painted content. The component
+       preview can opt out of its own isolation while a modal is open so the
+       fixed backdrop can sample the document behind it. */
     z-index: var(--aeterni-z-modal);
 }
 
 .aeterni-popover__backdrop {
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: var(--aeterni-z-modal-backdrop);
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-sm);
     backdrop-filter: var(--aeterni-blur-sm);
@@ -77,6 +80,7 @@
 }
 
 .aeterni-popover.is-modal .aeterni-popover__surface {
+    z-index: var(--aeterni-z-modal);
     box-shadow: var(--aeterni-shadow-modal);
 }
 
