@@ -430,7 +430,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 - 选项渲染为非可聚焦的 `role="option"` 元素：打开后焦点始终留在触发器上，Tab 不会进入选项列表，键盘提示由 `is-active` 与 `aria-activedescendant` 表达。
 - 触发器采用 `FormField` 的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联字段标签、描述与错误文本。
 - 长选项列表使用细滚动条（`--aeterni-scrollbar-*`）而不是隐藏滚动条，滚动提示可见且仍可用鼠标滚轮滚动。
-- 弹层由最小 JS module（`ComboBox.razor.js`）按触发按钮锚定为 fixed 定位并自动上下翻转/贴边，避免被卡片/容器裁剪遮挡。
+- 弹层通过共享的 `PopupHost` + `Popover` 承载，由共享浮层模块负责锚定、翻转、贴边和外部点击关闭；`CloseOnScroll` 保留页面滚动即关闭的原生 select 行为，选项列表自身滚动不关闭。
 
 ### 行为与无障碍
 
@@ -460,11 +460,11 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 
 ### 支持能力
 
-`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`Header`、`ChildContent` 和 `AriaLabel`。
+`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`CloseOnScroll`、`RestoreFocusOnClose`、`Header`、`ChildContent` 和 `AriaLabel`。
 
 - `Placement`（`PopupPlacement`：`BottomStart` / `BottomEnd` / `TopStart` / `TopEnd`，默认 `BottomStart`）指定相对 `PopupHost` 的起始方位。
 - **定位与翻转**：浮层在 `PopupHost` 内绝对定位，由 `Popover.razor.js` 在打开、`resize` 与页面滚动时重算：优先使用指定方位，空间不足时翻到对侧（每次重算都从首选方位开始，所以视口变宽后能翻回），再沿交叉轴贴回视口边缘（偏移写入 `--aeterni-popover-shift-x`）。
-- **关闭**：Escape、非模态下的外部指针、模态下的遮罩点击都会通过 `OpenChanged` 请求关闭（`Open` 始终由使用方持有，与 `@bind-Open` 配套）；`CloseOnEscape` 与 `CloseOnOutsideClick` 可分别关掉。
+- **关闭**：Escape、非模态下的外部指针、模态下的遮罩点击都会通过 `OpenChanged` 请求关闭（`Open` 始终由使用方持有，与 `@bind-Open` 配套）；`CloseOnEscape`、`CloseOnOutsideClick` 与 `CloseOnScroll` 可分别关掉，滚动关闭会忽略浮层内部滚动。
 - **模态**：`Modal` 除切换到 `dialog` 语义外，还渲染遮罩、输出 `aria-modal`、把 Tab 困在层内（`tabindex="-1"` 作为无交互内容时的回退焦点）、锁定背景滚动（带滚动条宽度补偿）并在关闭后把焦点还给打开前的元素。
 
 ### 行为与无障碍
@@ -473,7 +473,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ### 实现边界
 
-浮层是在 `PopupHost` 内部定位的：**宿主就是锚点盒**，因此触发元素与浮层都应放进 `PopupHost`——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。祖先容器若带 `overflow: hidden` 仍可能裁切浮层；需要相对视口定位的场合用 `ComboBox` 那类 fixed 定位的弹层。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。多浮层堆叠、嵌套模态与 Drawer 类侧边面板留给后续组件，其中 `Drawer` 复用同一套共享能力。
+浮层是在 `PopupHost` 内部定位的：**宿主就是锚点盒**，因此触发元素与浮层都应放进 `PopupHost`——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。祖先容器若带 `overflow: hidden` 仍可能裁切浮层；需要脱离祖先裁剪时应由宿主提供合适的布局上下文。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。`CloseOnScroll` 可让非模态浮层在页面/祖先滚动时请求关闭，同时忽略浮层内部滚动。多浮层堆叠与嵌套模态留给后续组件。
 
 ## 21. Menu
 
@@ -877,8 +877,8 @@ builder.Services.AddAeterniUI(options =>
 
 `DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过
 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、
-`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement` 和 `Size`。
-日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。
+`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和对应的字段表达式参数。
+日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态；嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
 
 ## 36. 当前边界
 
@@ -888,5 +888,5 @@ builder.Services.AddAeterniUI(options =>
 - `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；更复杂的 Toolbar、ToggleGroup 和 SplitButton 仍不在当前范围。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
-- `ComboBox` 的弹层仍是 trigger 锚定的 fixed 定位（有自己的翻转/贴边实现），尚未迁移到共享浮层模块；迁移时需同时保留“页面滚动即关闭”的原生 select 行为。
+- `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。
 - `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。

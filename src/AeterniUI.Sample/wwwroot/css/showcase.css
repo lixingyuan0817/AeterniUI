@@ -118,11 +118,6 @@
 
 /* Sample content shown inside the generic preview stages. */
 
-.component-preview--modal-open {
-    position: relative;
-    z-index: var(--aeterni-z-modal);
-}
-
 .preview-overlay-demo {
     display: flex;
     flex-direction: column;

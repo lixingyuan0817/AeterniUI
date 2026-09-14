@@ -1,62 +1,69 @@
 @inherits AeterniComponent
 @typeparam TItem
 
-<div @ref="RootElement" @attributes="BuildAttributes()">
-    <button type="button"
-            class="aeterni-combobox__trigger"
-            @ref="_triggerElement"
-            id="@FormFieldInputId"
-            role="combobox"
-            aria-labelledby="@FormFieldLabelId"
-            aria-describedby="@FormFieldDescribedBy"
-            aria-expanded="@(_open ? "true" : "false")"
-            aria-controls="@ListboxId"
-            aria-haspopup="listbox"
-            aria-invalid="@(IsInvalid ? "true" : null)"
-            aria-activedescendant="@(_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
-            disabled="@Disabled"
-            @onclick="HandleTriggerClickAsync"
-            @onkeydown="HandleTriggerKeyDownAsync">
-        <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
-            @(Value is null ? PlaceholderText : DisplayText(Value))
-        </span>
-        <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-combobox__chevron" />
-    </button>
+<PopupHost Class="aeterni-combobox__host">
+    <ChildContent>
+        <div @ref="RootElement" @attributes="BuildAttributes()">
+        <button type="button"
+                class="aeterni-combobox__trigger"
+                id="@FormFieldInputId"
+                role="combobox"
+                aria-labelledby="@FormFieldLabelId"
+                aria-describedby="@FormFieldDescribedBy"
+                aria-expanded="@(_open ? "true" : "false")"
+                aria-controls="@ListboxId"
+                aria-haspopup="listbox"
+                aria-invalid="@(IsInvalid ? "true" : null)"
+                aria-activedescendant="@(_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
+                disabled="@Disabled"
+                @onclick="HandleTriggerClickAsync"
+                @onkeydown="HandleTriggerKeyDownAsync">
+            <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
+                @(Value is null ? PlaceholderText : DisplayText(Value))
+            </span>
+            <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-combobox__chevron" />
+        </button>
 
-    @if (_open)
-    {
-        <div class="aeterni-combobox__popover"
-             id="@ListboxId"
-             role="listbox"
-             aria-label="@ListLabel">
-            @if (_visibleItems.Count == 0)
-            {
-                <div class="aeterni-combobox__empty">
-                    @EmptyContent
-                </div>
-            }
-            else
-            {
-                @for (var index = 0; index < _visibleItems.Count; index++)
+        <Popover Open="@_open"
+                 OpenChanged="HandlePopoverOpenChangedAsync"
+                 Placement="@PopupPlacement.BottomStart"
+                 CloseOnScroll="true"
+                 Class="aeterni-combobox__popover"
+                 AriaLabel="@ListLabel">
+            <div class="aeterni-combobox__options"
+                 id="@ListboxId"
+                 role="listbox"
+                 aria-label="@ListLabel">
+                @if (_visibleItems.Count == 0)
                 {
-                    var item = _visibleItems[index];
-                    var selected = ValuesEqual(item, Value);
-                    <div id="@($"{ListboxId}-option-{index}")"
-                            role="option"
-                            aria-selected="@(selected ? "true" : "false")"
-                            class="aeterni-combobox__option @(index == _activeIndex ? "is-active" : string.Empty) @(selected ? "is-selected" : string.Empty)"
-                            @onclick="@(args => ChooseAsync(item))">
-                        @if (ItemTemplate is not null)
-                        {
-                            @ItemTemplate(item)
-                        }
-                        else
-                        {
-                            <span class="aeterni-combobox__option-text">@DisplayText(item)</span>
-                        }
+                    <div class="aeterni-combobox__empty">
+                        @EmptyContent
                     </div>
                 }
-            }
+                else
+                {
+                    @for (var index = 0; index < _visibleItems.Count; index++)
+                    {
+                        var item = _visibleItems[index];
+                        var selected = ValuesEqual(item, Value);
+                        <div id="@($"{ListboxId}-option-{index}")"
+                             role="option"
+                             aria-selected="@(selected ? "true" : "false")"
+                             class="aeterni-combobox__option @(index == _activeIndex ? "is-active" : string.Empty) @(selected ? "is-selected" : string.Empty)"
+                             @onclick="@(args => ChooseAsync(item))">
+                            @if (ItemTemplate is not null)
+                            {
+                                @ItemTemplate(item)
+                            }
+                            else
+                            {
+                                <span class="aeterni-combobox__option-text">@DisplayText(item)</span>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </Popover>
         </div>
-    }
-</div>
+    </ChildContent>
+</PopupHost>

@@ -1,12 +1,9 @@
 using System.Linq.Expressions;
-using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.JSInterop;
-
 namespace AeterniUI.Components.ComboBox;
 
 /// <summary>
@@ -14,7 +11,6 @@ namespace AeterniUI.Components.ComboBox;
 /// selecting (or clicking outside / pressing Escape) closes it. No free-text
 /// search is performed — the trigger behaves like a read-only select.
 /// </summary>
-[JsModule("Components/ComboBox/ComboBox.razor.js", Name = "combobox", Interactive = true)]
 public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 {
     [CascadingParameter]
@@ -66,9 +62,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public EventCallback<TItem?> OnChange { get; set; }
 
-    private ElementReference _triggerElement;
     private bool _open;
-    private bool _positionListenersActive;
     private int _activeIndex = -1;
     private readonly List<TItem> _visibleItems = [];
 
@@ -236,6 +230,8 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         await InvokeAsync(StateHasChanged);
     }
 
+    private Task HandlePopoverOpenChangedAsync(bool open) => open ? OpenAsync() : CloseAsync();
+
     private void MoveActive(int direction)
     {
         if (_visibleItems.Count == 0)
@@ -284,58 +280,6 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private static bool ValuesEqual(TItem? left, TItem? right) =>
         EqualityComparer<TItem>.Default.Equals(left!, right!);
-
-    [JSInvokable]
-    public Task OnOutsidePointerAsync() => CloseAsync();
-
-    protected override async Task OnComponentAfterRenderAsync(bool firstRender)
-    {
-        try
-        {
-            if (firstRender)
-            {
-                await JsModuleManager.InvokeModuleVoidAsync(
-                    "combobox",
-                    "attach",
-                    InstanceId,
-                    RootElement);
-            }
-
-            // While the dropdown is open, the JS module closes it as soon as
-            // the page scrolls (native select behaviour) and repositions on
-            // resize. Track the listener lifecycle here and keep the popover
-            // anchored to the trigger after each re-render.
-            if (_open && !_positionListenersActive)
-            {
-                await JsModuleManager.InvokeModuleVoidAsync(
-                    "combobox",
-                    "setOpen",
-                    InstanceId,
-                    true);
-                _positionListenersActive = true;
-            }
-            else if (!_open && _positionListenersActive)
-            {
-                await JsModuleManager.InvokeModuleVoidAsync(
-                    "combobox",
-                    "setOpen",
-                    InstanceId,
-                    false);
-                _positionListenersActive = false;
-            }
-
-            if (_open)
-            {
-                await JsModuleManager.InvokeModuleVoidAsync(
-                    "combobox",
-                    "place",
-                    InstanceId);
-            }
-        }
-        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException or TaskCanceledException)
-        {
-        }
-    }
 
     protected override ValueTask OnComponentDisposeAsync()
     {

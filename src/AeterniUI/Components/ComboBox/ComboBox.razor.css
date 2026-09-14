@@ -7,7 +7,6 @@
     --aeterni-combobox-radius: var(--aeterni-radius-input);
     --aeterni-combobox-icon-size: var(--aeterni-icon-size-sm);
 
-    position: relative;
     box-sizing: border-box;
     min-width: 0;
     color: var(--aeterni-text-primary);
@@ -117,46 +116,44 @@
     transform: rotate(180deg);
 }
 
-/* Dropdown popover -----------------------------------------------------------
-   Positioned fixed by the JS module relative to the trigger, so ancestor
-   cards/surfaces with overflow:hidden cannot clip or cover the layer. */
-.aeterni-combobox__popover {
-    position: fixed;
-    z-index: var(--aeterni-z-dropdown);
-    box-sizing: border-box;
+/* The shared Popover owns the layer, flip/shift positioning and outside/scroll
+   close behaviour. Keep the select list the same width as its trigger and let
+   the list itself, rather than the Popover surface, own scrolling. */
+::deep .aeterni-combobox__popover {
+    width: 100%;
+    min-width: 100%;
+    max-width: none;
+}
+
+::deep .aeterni-combobox__popover .aeterni-popover__surface {
+    min-width: 0;
+    max-width: none;
+    padding: var(--aeterni-spacing-2);
+    border-radius: var(--aeterni-radius-lg);
+    animation: aeterni-combobox-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+.aeterni-combobox__options {
     display: grid;
     align-content: start;
     gap: var(--aeterni-spacing-1);
     max-height: min(var(--aeterni-overlay-max-height), 45vh);
     overflow-y: auto;
-    /* Isolate the option-list scroller: reaching its edge must not chain a
-       page scroll (which would otherwise read as “page scrolled → close”). */
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
-    padding: var(--aeterni-spacing-2);
-    border: var(--aeterni-border-width) solid var(--aeterni-border);
-    border-radius: var(--aeterni-radius-lg);
-    background: var(--aeterni-bg-elevated);
-    color: var(--aeterni-text-primary);
-    box-shadow: var(--aeterni-shadow-dropdown);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-    animation: aeterni-combobox-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
-/* A thin bar instead of a hidden one: a long option list has to look scrollable
-   (and remain mouse-wheel scrollable). */
-.aeterni-combobox__popover::-webkit-scrollbar {
+.aeterni-combobox__options::-webkit-scrollbar {
     width: var(--aeterni-scrollbar-size);
 }
 
-.aeterni-combobox__popover::-webkit-scrollbar-thumb {
+.aeterni-combobox__options::-webkit-scrollbar-thumb {
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-scrollbar-thumb);
 }
 
-.aeterni-combobox__popover::-webkit-scrollbar-track {
+.aeterni-combobox__options::-webkit-scrollbar-track {
     background: var(--aeterni-scrollbar-track);
 }
 
@@ -216,7 +213,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .aeterni-combobox__popover,
+    ::deep .aeterni-combobox__popover .aeterni-popover__surface,
     .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
         transition: none;
         animation: none;

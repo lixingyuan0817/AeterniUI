@@ -22,6 +22,17 @@
     pointer-events: none;
 }
 
+/* A modal backdrop must escape the preview card's isolated stacking context so
+   backdrop-filter samples the whole page rather than only this card. */
+.component-preview.component-preview--modal-open {
+    isolation: auto;
+    animation: none;
+}
+
+.component-preview.component-preview--modal-open::before {
+    display: none;
+}
+
 .component-preview:hover {
     border-color: var(--aeterni-border-strong);
     box-shadow: var(--aeterni-shadow-md);
