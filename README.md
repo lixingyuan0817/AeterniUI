@@ -50,6 +50,20 @@ Place the providers once in the root layout:
 
 The public API and component rules are documented in the files under `docs/`.
 
+## Publish NuGet packages
+
+NuGet packages are published by GitHub Actions when a version tag matching
+`Directory.Build.props` is pushed. Configure a NuGet Trusted Publishing policy
+for this repository, then update the version in `Directory.Build.props` and
+push the matching tag:
+
+```bash
+git tag v10.7.1
+git push origin v10.7.1
+```
+
+The workflow publishes both `AeterniUI` and `AeterniUI.Icons.FontAwesome`.
+
 ## Icons
 
 Components render every internal glyph (check marks, chevrons, the rating star,

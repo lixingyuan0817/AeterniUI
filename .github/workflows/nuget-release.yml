@@ -1,0 +1,58 @@
+name: Publish NuGet packages
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version="$(dotnet msbuild Directory.Build.props -getProperty:Version -nologo | tail -n 1)"
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$tag_version" != "$version" ]; then
+            echo "::error::Release tag v$tag_version does not match Directory.Build.props version $version."
+            exit 1
+          fi
+
+      - name: Build
+        run: dotnet build aeterni_ui.slnx -c Release --nologo
+
+      - name: Pack
+        run: |
+          mkdir -p artifacts/packages
+          dotnet pack src/AeterniUI/AeterniUI.csproj -c Release --no-build --nologo --output artifacts/packages
+          dotnet pack src/AeterniUI.Icons.FontAwesome/AeterniUI.Icons.FontAwesome.csproj -c Release --no-build --nologo --output artifacts/packages
+
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: lixingyuan
+
+      - name: Publish to NuGet.org
+        run: |
+          for package in artifacts/packages/*.nupkg; do
+            dotnet nuget push "$package" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+              --skip-duplicate
+          done

@@ -5,5 +5,15 @@
     <AssemblyVersion>10.7.0.0</AssemblyVersion>
     <FileVersion>10.7.0.0</FileVersion>
     <InformationalVersion>10.7.0</InformationalVersion>
+    <Authors>AeterniUI contributors</Authors>
+    <Description>A Blazor component library for consistent user interfaces across Blazor Server, Blazor WebAssembly, and Tauri applications.</Description>
+    <PackageTags>blazor;components;ui;razor;tauri</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/lixingyuan0817/AeterniUI</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
