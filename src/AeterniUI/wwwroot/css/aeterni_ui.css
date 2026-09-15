@@ -371,7 +371,9 @@
     --aeterni-opacity-muted: .68;
     --aeterni-focus-width: 3px;
     --aeterni-focus-offset: 2px;
-    --aeterni-focus-color: rgba(139, 77, 246, .24);
+    /* Fallback only: every theme block below re-declares this from the brand
+       scale, so the value stays hue-agnostic here as well. */
+    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-brand-500) 24%, transparent);
     --aeterni-text-xs: var(--aeterni-font-size-xs);
     --aeterni-text-sm: var(--aeterni-font-size-sm);
     --aeterni-text-md: var(--aeterni-font-size-md);
@@ -394,11 +396,32 @@
 
 /* --------------------------------------------------------------------------
    Theme primitives and semantic foundation
-   Brand primitives are global; light and dark themes use the same token order.
+   Brand palettes are a hue layer that sits *below* light/dark; light and dark
+   themes use the same token order.
    -------------------------------------------------------------------------- */
 
-/* 01. Brand primitives — unchanged across color modes */
-:root {
+/* 01. Brand palette — the hue layer, deliberately independent of color mode.
+   Only the 50..900 scale is declared here. Every semantic brand alias further
+   down derives from it, so repointing the scale re-tints fills, text, focus
+   rings and interaction states at once and no semantic alias has to change.
+
+   The attribute must sit on the same element as the theme attribute (`<html>`),
+   because each semantic alias resolves `var(--aeterni-brand-*)` on the element
+   that declares it: a palette set lower in the tree would never reach them.
+
+   `:root` carries the default palette, so hosts that never opt in keep purple;
+   naming `purple` explicitly is then an exact no-op alias that also documents
+   the attribute's valid values. A host adds its own palette by declaring a
+   `[data-aeterni-brand="…"]` block after this file, or by repointing
+   `--aeterni-brand-*` on `:root` for a single one-off brand.
+
+   The 500 stop carries the solid fill, so it is the palette's real contrast
+   budget: purple keeps 4.91:1 against the inverse text, a 1.09x margin over the
+   4.5:1 body-text floor. That is thin, and `scripts/check-contrast.mjs` refuses
+   any hue layer whose fill margin falls below 1.1x without naming the figure in
+   this comment — so tightening a palette has to be a stated decision here. */
+:root,
+[data-aeterni-brand="purple"] {
     --aeterni-brand-50: #F5F4FF;
     --aeterni-brand-100: #E8E6FF;
     --aeterni-brand-200: #D4CFFF;
@@ -409,6 +432,69 @@
     --aeterni-brand-700: #54399A;
     --aeterni-brand-800: #432F7A;
     --aeterni-brand-900: #34255E;
+}
+
+/* Green hue layer. Built with the purple recipe above (same relative dL steps
+   anchored at 500, same chroma profile shape peaking at 500, same sub-degree
+   light-end hue drift), but its 500 anchor is an external reference green
+   (#1F883D, L 0.552 / C 0.145) rather than purple's own L 0.565: chromatic green
+   gains luminance with chroma while violet loses it, so a green at purple's
+   lightness reaches only 4.3:1 against white when its chroma goes up.
+   The reference anchor is the tightest gate of the whole brand set at 4.52:1
+   against white — still over the 4.5:1 body-text requirement, but with almost
+   no headroom, so the 600/700 stops that carry light-mode `brand-text` and
+   `text-link` stay deliberately lower (6.17:1 / 8.09:1 on white). Re-anchoring
+   here is a deliberate brightness choice: the previous muted 500 (#2B7B33,
+   L 0.517) left a 1.17x margin, this one leaves 1.004x.
+   Peak chroma is 0.145, up from 0.132, and it stays clear of the semantic
+   `success` token (ΔE 18.5 in OKLab).
+   The dark stops gain the same brightness without spending the same headroom:
+   dark brand text/link sit on the 300/400 stops against the dark page, so the
+   tightest dark gate is 5.95:1 (margin 1.323) — looser than the previous muted
+   palette. The 4.52:1 light-mode fill is the only near-limit gate in the set. */
+[data-aeterni-brand="green"] {
+    --aeterni-brand-50: #ECF3ED;
+    --aeterni-brand-100: #DAEADB;
+    --aeterni-brand-200: #BCDBBF;
+    --aeterni-brand-300: #90C397;
+    --aeterni-brand-400: #5DA76A;
+    --aeterni-brand-500: #1F883D;
+    --aeterni-brand-600: #05712C;
+    --aeterni-brand-700: #045D23;
+    --aeterni-brand-800: #0B4A1E;
+    --aeterni-brand-900: #0B3817;
+}
+
+/* Orange hue layer, built with the same recipe a third time (relative dL steps
+   anchored at 500, the shared chroma profile peaking at 500, the same
+   sub-degree light-end hue drift). Its 500 anchor is a burnt orange (#C2410C,
+   L 0.553 / C 0.174) rather than a vivid one, and that is the whole point of the
+   layer: a bright orange is not usable as a solid brand fill under this family's
+   inverse-text model. #E8590C and #EA580C reach only 3.58:1 and 3.56:1 against
+   white, under the 4.5:1 body-text floor; making them legible would mean
+   switching the fill to the near-black `on-semantic` ink that `warning` uses,
+   which would give up the white label the other two brands share. At L 0.553 the
+   fill keeps 5.18:1 against the inverse text (margin 1.151) and the family stays
+   on one recipe, so the three palettes are interchangeable per stop.
+   The cost is proximity to the semantic `danger` red: orange and red are
+   neighbours at this lightness, and the anchor sits 12.1 ΔE from `danger` in
+   OKLab — the tightest brand/vs-semantic pair in the set, though still a clear
+   separation for normal colour vision. `warning` is 22.4 away and every cool
+   semantic is past 34, so the pressure comes from the warm end only.
+   Dark stops gain brightness on the same steps: the tightest dark gate is 5.45:1
+   (brand-default 400 against the inverse text), and light-mode `brand-text` on
+   the 600 stop is 7.02:1 on white. */
+[data-aeterni-brand="orange"] {
+    --aeterni-brand-50: #FAEFEC;
+    --aeterni-brand-100: #F9DFD6;
+    --aeterni-brand-200: #F6C5B5;
+    --aeterni-brand-300: #EB9F86;
+    --aeterni-brand-400: #DD7250;
+    --aeterni-brand-500: #C2410C;
+    --aeterni-brand-600: #A52E00;
+    --aeterni-brand-700: #892500;
+    --aeterni-brand-800: #6C2003;
+    --aeterni-brand-900: #521905;
 }
 
 /* 02. Light semantic theme */
@@ -440,9 +526,11 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    --aeterni-surface-hover: rgba(121, 90, 217, .09);
-    --aeterni-surface-active: rgba(121, 90, 217, .15);
-    --aeterni-surface-selected: rgba(121, 90, 217, .13);
+    /* Mixed from the brand scale instead of a literal hue, so replacing the
+       brand palette re-tints every hover/pressed/selected state. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 13%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .42);
     /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
        level on the same hue, and because the levels are translucent they also adapt
@@ -509,6 +597,8 @@
     --aeterni-color-info-text: var(--aeterni-info-600);
     --aeterni-color-neutral-text: var(--aeterni-neutral-700);
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent);
     --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 24%, transparent);
@@ -539,7 +629,12 @@
     --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
     /* Shared control states keep hover, selected, checked and disabled
-       surfaces consistent across components. */
+       surfaces consistent across components. Every entry is brand driven, so
+       switching the brand hue layer re-tints selection, hover and border
+       feedback across the whole library in one step.
+       Selection controls (Checkbox, Radio, Switch, Segmented, Tabs, Menu,
+       DatePicker, Pagination) consume these aliases instead of the raw brand
+       tokens, which is what makes a host-level restyle a one-token override. */
     --aeterni-state-color-default: var(--aeterni-color-brand-default);
     --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
     --aeterni-state-color-active: var(--aeterni-color-brand-active);
@@ -555,7 +650,19 @@
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
-    --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+    /* `checked` is a fill, not a tint: it paints the whole control (checkbox box,
+       radio dot, switch track, segmented pill, tab underline, selected day), so it
+       takes the solid 500 stop. Its ink stays --aeterni-text-inverse, the same
+       pairing the raw brand fill used before this alias existed. */
+    --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+    /* A filled surface still answers the pointer: hover and press step one stop
+       further along the same 500 / 600 / 700 ramp the solid button variants use,
+       so a live control (checkbox box, radio dot, switch track, current page,
+       selected day) does not read as dead once it is filled. The ink can stay
+       --aeterni-text-inverse because each step moves the fill away from the
+       page instead of toward it. */
+    --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
     --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
     --aeterni-state-border-default: var(--aeterni-border-default);
     --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
@@ -652,9 +759,11 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    --aeterni-surface-hover: rgba(153, 133, 237, .12);
-    --aeterni-surface-active: rgba(153, 133, 237, .19);
-    --aeterni-surface-selected: rgba(121, 90, 217, .18);
+    /* Same brand-scale derivation as the light theme: the dark states ride the
+       lighter 400 stop, while `selected` keeps the 500 stop in both themes. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .64);
     --aeterni-text: rgba(255, 255, 255, .86);
     --aeterni-text-primary: var(--aeterni-text);
@@ -696,6 +805,8 @@
     --aeterni-color-brand-hover: var(--aeterni-brand-300);
     --aeterni-color-brand-active: var(--aeterni-brand-200);
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
     --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
@@ -726,7 +837,7 @@
     --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
     /* Selected/checked mirror the light theme; the accent aliases above already
-       resolve to this theme's text stop. */
+       resolve to this theme's stops, and `checked` again takes the solid fill. */
     --aeterni-state-color-default: var(--aeterni-color-brand-default);
     --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
     --aeterni-state-color-active: var(--aeterni-color-brand-active);
@@ -738,7 +849,11 @@
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
-    --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+    --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+    /* Hover/press step one stop along this theme's accent ramp; see the light
+       theme for the full rationale. */
+    --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
     --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
     --aeterni-state-border-default: var(--aeterni-border-default);
     --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
@@ -824,9 +939,9 @@
         --aeterni-bg-active: var(--aeterni-surface-active);
         --aeterni-bg-disabled: var(--aeterni-bg-secondary);
         --aeterni-surface-soft: rgba(255, 255, 255, .045);
-        --aeterni-surface-hover: rgba(153, 133, 237, .12);
-        --aeterni-surface-active: rgba(153, 133, 237, .19);
-        --aeterni-surface-selected: rgba(121, 90, 217, .18);
+        --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+        --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+        --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
         --aeterni-overlay: rgba(0, 0, 0, .64);
         --aeterni-text: rgba(255, 255, 255, .86);
         --aeterni-text-primary: var(--aeterni-text);
@@ -908,7 +1023,11 @@
         --aeterni-state-background-hover: var(--aeterni-surface-hover);
         --aeterni-state-background-active: var(--aeterni-surface-active);
         --aeterni-state-background-selected: var(--aeterni-surface-selected);
-        --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+        --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+        /* Hover/press step one stop along this theme's accent ramp; see the
+           light theme for the full rationale. */
+        --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
         --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
         --aeterni-state-border-default: var(--aeterni-border-default);
         --aeterni-state-border-hover: var(--aeterni-color-brand-hover);

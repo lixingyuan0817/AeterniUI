@@ -9,9 +9,10 @@
     <script>
         // Pre-paint theme resolution ------------------------------------------
         // Runs before the stylesheets are applied so a dark-preference visitor
-        // never sees a light flash. Keep this snippet in sync with
-        // ThemeProvider (storage key and the data-theme / data-aeterni-mode
-        // attributes are the library contract); the stylesheet also carries a
+        // never sees a light flash, and a green-brand visitor never sees a
+        // violet one. Keep this snippet in sync with ThemeProvider (storage keys
+        // and the data-theme / data-aeterni-mode / data-aeterni-brand attributes
+        // are the library contract); the stylesheet also carries a
         // prefers-color-scheme fallback for hosts that skip the snippet.
         (function () {
             const root = document.documentElement;
@@ -28,6 +29,20 @@
             root.dataset.aeterniMode = theme;
             root.dataset.theme = theme;
             root.style.colorScheme = theme;
+
+            // Brand hue layer. The `'purple'` literal must match
+            // AeterniUIOptions.DefaultBrand: this snippet cannot read the .NET
+            // option, and the provider applies the option after the first render,
+            // so a mismatch shows up as a one-frame colour flash.
+            const storedBrand = (function () {
+                try {
+                    return window.localStorage?.getItem('aeterni.theme.brand') || null;
+                } catch {
+                    return null;
+                }
+            })();
+
+            root.dataset.aeterniBrand = storedBrand || 'purple';
         })();
 
         // Tauri resets the native appearance so the webview keeps following the

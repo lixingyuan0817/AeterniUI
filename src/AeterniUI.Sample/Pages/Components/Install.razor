@@ -51,6 +51,11 @@
     : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.dataset.theme = t;
   document.documentElement.style.colorScheme = t;
+
+  // 品牌色：缺省回落到标记里钉住的色板，再回落到库默认的紫罗兰
+  const b = localStorage.getItem('aeterni.theme.brand');
+  document.documentElement.dataset.aeterniBrand =
+    b || document.documentElement.dataset.aeterniBrand || 'purple';
 &lt;/script&gt;</code></pre>
         </section>
     </div>

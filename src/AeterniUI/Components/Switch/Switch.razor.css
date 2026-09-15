@@ -62,8 +62,8 @@
 }
 
 .aeterni-switch__input:checked + .aeterni-switch__track {
-    border-color: var(--aeterni-color-brand-default);
-    background: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
 }
 
 /* Travel = track width minus the knob and the inset/border on both sides. */
@@ -71,8 +71,26 @@
     transform: translateX(calc(var(--aeterni-switch-track-width) - var(--aeterni-switch-knob-size) - var(--aeterni-switch-inset) * 2 - var(--aeterni-border-width) * 2));
 }
 
-.aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
-    border-color: var(--aeterni-color-brand-hover);
+/* Hover and press walk the brand ramp: an off track answers with its border
+   alone, while an on track is a filled pill whose whole surface steps one
+   shade. Invalid controls are scoped out so a pointer never repaints the danger
+   colour the error state is communicating (see Checkbox for the rationale). */
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:active:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-active);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:hover:not(:disabled):checked + .aeterni-switch__track {
+    border-color: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:active:not(:disabled):checked + .aeterni-switch__track {
+    border-color: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-switch__input:focus-visible + .aeterni-switch__track {
@@ -82,6 +100,14 @@
 
 .aeterni-switch.is-invalid .aeterni-switch__track {
     border-color: var(--aeterni-color-danger-default);
+}
+
+/* A checked error switch fills with the danger colour too; a danger ring around
+   a brand pill split the state in two. Disabled still wins so an inactive
+   control keeps the neutral disabled paint. */
+.aeterni-switch.is-invalid .aeterni-switch__input:checked:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-color-danger-default);
+    background: var(--aeterni-color-danger-default);
 }
 
 .aeterni-switch__input:disabled + .aeterni-switch__track {

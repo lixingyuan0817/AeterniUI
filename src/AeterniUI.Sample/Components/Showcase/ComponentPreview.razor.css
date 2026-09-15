@@ -50,7 +50,7 @@
 .component-preview__eyebrow,
 .component-preview__section-kicker {
     margin: 0;
-    color: var(--aeterni-brand-500);
+    color: var(--aeterni-color-brand-text);
     font-size: 11px;
     font-weight: var(--aeterni-font-weight-semibold);
     letter-spacing: .12em;
@@ -203,7 +203,7 @@
 
 .component-preview__api-row code,
 .component-preview__contract code {
-    color: var(--aeterni-brand-600, var(--aeterni-brand-500));
+    color: var(--aeterni-color-brand-text);
     font-family: var(--aeterni-font-family-mono);
     font-size: 11px;
     overflow-wrap: anywhere;

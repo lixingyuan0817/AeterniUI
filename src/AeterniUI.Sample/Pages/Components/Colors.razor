@@ -16,7 +16,7 @@
     <div class="showcase-colors__matrix">
         <div class="showcase-colors__head" aria-hidden="true">
             <span>色族</span>
-            <span>实心（填充 + 字色）</span>
+            <span>实心按钮（填充 + 字色）</span>
             <span>描边（文字形态）</span>
             <span>Tag（浅底深字）</span>
             <span>Icon（文字形态）</span>
@@ -26,15 +26,14 @@
         {
             <div class="showcase-colors__row">
                 <span class="showcase-colors__name">@family.Label</span>
-                @if (family.Color is Color.Warning or Color.Danger)
+                @if (ButtonIntentFor(family.Color) is { } intent)
                 {
-                    <Button Intent="@(family.Color == Color.Warning ? ButtonIntent.Warning : ButtonIntent.Danger)">@family.Label</Button>
-                    <Button Variant="ButtonVariant.Outline" Intent="@(family.Color == Color.Warning ? ButtonIntent.Warning : ButtonIntent.Danger)">Outline</Button>
+                    <Button Intent="intent">@family.Label</Button>
+                    <Button Variant="ButtonVariant.Outline" Intent="intent">Outline</Button>
                 }
                 else
                 {
-                    <Button>@family.Label</Button>
-                    <Button Variant="ButtonVariant.Outline">Outline</Button>
+                    <span class="showcase-colors__na">无按钮变体</span>
                 }
                 <span class="showcase-colors__chips">
                     <Tag Color="family.Color">Tag</Tag>
@@ -47,6 +46,8 @@
             </div>
         }
     </div>
+
+    <p class="showcase-install__note"><code>Button</code> 只有 <code>Default</code>、<code>Neutral</code>、<code>Warning</code>、<code>Danger</code> 四种 <code>Intent</code>（与 <code>/components/button</code> 一致），所以 Success 与 Info 两行留空：success 和 info 是<strong>状态色</strong>，只出现在 Alert、Toast、Tag、Icon、Progress 这类状态表面与指示元素上，不构成操作按钮的语义。Neutral 是四种 Intent 之一，因此它有自己的中性实心按钮，而不是回落到品牌填充。</p>
 
     <h2 class="showcase-colors__subtitle">语意通知</h2>
     <p class="showcase-install__note">Alert 和 Toast 的卡片底色、徽标底色与进度环取填充档，徽标内的图标取文字形态。</p>
@@ -141,7 +142,7 @@
     [
         new("语义图标与文字（-text 形态）", "4.6~6.7:1", "7.5~10.6:1", "≥ 4.5:1"),
         new("填充档当 ink 使用（已弃用）", "2.2~4.9:1", "4.8~8.6:1", "≥ 4.5:1"),
-        new("实心语意按钮正文", "4.6~8.4:1", "4.8~8.6:1", "≥ 4.5:1"),
+        new("实心按钮正文（4 个 Intent）", "4.6~8.4:1", "4.8~8.6:1", "≥ 4.5:1"),
         new("正文 / 次要 / 占位文字", "4.7~11.7:1", "4.8~13.0:1", "≥ 4.5:1"),
         new("图标级文字（tertiary）", "4.1~4.3:1", "3.8~3.8:1", "≥ 3:1"),
         new("进度条填充与轨道", "3.2~4.6:1", "5.7~7.5:1", "≥ 3:1"),
@@ -150,6 +151,20 @@
         new("Menu 选中项文字与选中底", "5.2~5.6:1", "7.2~7.4:1", "≥ 4.5:1"),
         new("结构分隔线与表面", "1.7:1", "1.5:1", "可见即边")
     ];
+
+    /// <summary>
+    /// The two button columns only exist for the intents <c>Button</c> actually
+    /// exposes; success and info are status colours, so those rows say so instead
+    /// of quietly falling back to the brand fill.
+    /// </summary>
+    private static ButtonIntent? ButtonIntentFor(Color color) => color switch
+    {
+        Color.Primary => ButtonIntent.Default,
+        Color.Neutral => ButtonIntent.Neutral,
+        Color.Warning => ButtonIntent.Warning,
+        Color.Danger => ButtonIntent.Danger,
+        _ => null
+    };
 
     private async Task ShowColorAlertAsync((string Label, Color Color, Severity Severity) family)
     {

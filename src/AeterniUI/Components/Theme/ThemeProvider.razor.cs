@@ -24,6 +24,7 @@ public partial class ThemeProvider : AeterniComponent
     protected override void OnComponentInitialized()
     {
         ThemeService.ThemeChanged += HandleThemeChanged;
+        ThemeService.BrandChanged += HandleBrandChanged;
     }
 
     protected override async Task OnComponentAfterRenderAsync(bool firstRender)
@@ -41,6 +42,9 @@ public partial class ThemeProvider : AeterniComponent
                 }
 
                 await ApplyThemeAsync(animate: false);
+
+                await RestoreStoredBrandAsync();
+                await ApplyBrandAsync(animate: false);
             }
             catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException)
             {
@@ -67,6 +71,35 @@ public partial class ThemeProvider : AeterniComponent
     private void HandleThemeChanged(object? sender, EventArgs args)
     {
         _ = InvokeAsync(HandleThemeChangedAsync);
+    }
+
+    private void HandleBrandChanged(object? sender, EventArgs args)
+    {
+        _ = InvokeAsync(HandleBrandChangedAsync);
+    }
+
+    private async Task HandleBrandChangedAsync()
+    {
+        if (_disposed || !_jsReady)
+        {
+            return;
+        }
+
+        // Shares the theme sync lock: a brand switch and a mode switch both reach
+        // the same attributes, so they must not interleave.
+        await _themeSyncLock.WaitAsync();
+        try
+        {
+            await ApplyBrandAsync();
+            await PersistBrandAsync();
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException)
+        {
+        }
+        finally
+        {
+            _themeSyncLock.Release();
+        }
     }
 
     private async Task HandleThemeChangedAsync()
@@ -168,10 +201,69 @@ public partial class ThemeProvider : AeterniComponent
             ThemeService.Mode.ToString().ToLowerInvariant());
     }
 
+    /// <summary>
+    /// Restores a previously stored brand. Absent or invalid values keep the
+    /// configured default, so a host that never opts into the brand axis is
+    /// unaffected.
+    /// </summary>
+    private async Task RestoreStoredBrandAsync()
+    {
+        var stored = await JsModuleManager.InvokeModuleAsync<string?>(
+            "theme-provider",
+            "getStoredBrand");
+
+        var brand = (stored?.ToLowerInvariant()) switch
+        {
+            "purple" => ThemeBrand.Purple,
+            "green" => ThemeBrand.Green,
+            "orange" => ThemeBrand.Orange,
+            _ => (ThemeBrand?)null
+        };
+
+        if (brand.HasValue && brand.Value != ThemeService.Brand)
+        {
+            ThemeService.SetBrand(brand.Value);
+        }
+    }
+
+    private Task ApplyBrandAsync(bool animate = true)
+    {
+        if (!_jsReady)
+        {
+            return Task.CompletedTask;
+        }
+
+        return JsModuleManager.InvokeModuleVoidAsync(
+            "theme-provider",
+            "applyBrand",
+            ThemeService.Brand.ToString().ToLowerInvariant(),
+            animate);
+    }
+
+    private async Task PersistBrandAsync()
+    {
+        if (!_jsReady)
+        {
+            return;
+        }
+
+        try
+        {
+            await JsModuleManager.InvokeModuleVoidAsync(
+                "theme-provider",
+                "persistBrand",
+                ThemeService.Brand.ToString().ToLowerInvariant());
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException)
+        {
+        }
+    }
+
     protected override ValueTask OnComponentDisposeAsync()
     {
         _disposed = true;
         ThemeService.ThemeChanged -= HandleThemeChanged;
+        ThemeService.BrandChanged -= HandleBrandChanged;
         return ValueTask.CompletedTask;
     }
 }

@@ -32,6 +32,13 @@
     font-weight: var(--aeterni-font-weight-medium);
 }
 
+/* The selection fill outranks the hover wash. Without this the row lightened the
+   moment the pointer touched it, because in the light theme the hover wash is
+   weaker than the selected one. */
+.aeterni-list--select .aeterni-list-item.is-selected:hover:not(.is-disabled) {
+    background: var(--aeterni-state-background-selected);
+}
+
 /* The container owns focus; `.is-active` mirrors the option reported through
    aria-activedescendant (see ListItem). */
 .aeterni-list--select .aeterni-list-item.is-active {

@@ -17,7 +17,11 @@
 
 容器与页面背景只能是黑、白、灰或毛玻璃（R = G = B 的无彩色）：不得给容器背景加任何彩色或色相偏移。彩色只允许出现在品牌色/语意色元素、交互状态（hover/pressed/selected）和通知卡片这类“内容表面”上。大面积上的 +2 色相偏移就会被读成品牌色底，且磨砂层的 `saturate()` 会放大它。
 
-提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`target/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
+提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；修改色阶或新增品牌色相层时运行 `node scripts/check-contrast.mjs`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`target/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
+
+交互状态（hover / pressed / selected / checked）继续消费品牌色阶，容器与页面背景仍必须无彩色。三条硬规则：① 已勾选/已选中的控件在指针下**整块换档**——用 `--aeterni-state-background-checked-hover`／`-active` 沿品牌色阶走一档，不要让边框与填充分属两档，也不要用 `--aeterni-state-background-hover` 的淡染洗浅实心块（`--aeterni-text-inverse` 的墨会因此落到浅底上）；② 指针反馈不得覆写 `invalid` 正在传达的危险色，`hover`/`active` 规则要排除错误态；③ 悬浮规则必须排除已选中态（`:not(.is-selected)`／`:not(:checked)`／`:not(.is-current)`），否则选中提示会在指针下消失。
+
+组件样式表只能约束本组件标记：传给子组件根元素（如 `PopupHost`）的类名不会带上本组件的隔离属性，写在本组件 `.razor.css` 里的 `__host` 规则永远不会命中；跨组件的外观归渲染该元素的组件所有（日历由 `DateCalendar.razor.css` 负责，`DatePicker.razor.css` 里复制一份只会在两者之间产生漂移）。
 
 ## 项目范围
 
@@ -99,8 +103,15 @@ bash scripts/check-docs.sh
 ```
 
 `check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性、Tauri 路径与关键组件章节，
-修改文档或项目结构后必须执行。另外三项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
-选择器」、`.razor.js` 语法检查，以及「CSS 注释不得提前闭合」（见下）。
+修改文档或项目结构后必须执行。另外四项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
+选择器」、`.razor.js` 语法检查、「CSS 注释不得提前闭合」（见下），以及「品牌色板对比度」
+（见下）。
+
+品牌色板只是色相层，每个语意别名都是 `var(--aeterni-brand-*)`，所以改动任何一档色阶都会同时
+改变按钮、链接与选中态的承字对比度，而构建本身不会报错。`node scripts/check-contrast.mjs`
+会重放浅色／深色／系统深色三种状态下的级联、解析 `var()` 链并实测每组前景／背景，因此
+改色阶或新增 `[data-aeterni-brand="…"]` 色相层后必须执行；余量低于 1.1× 的色相层还必须把
+该对比度写进自己的注释块，否则门禁会失败。
 
 CSS 注释里不得出现字面量的注释结束符：`(... showcase-*/preview-* ...)` 这类写法会在星号加斜杠处
 提前结束注释，剩下的正文被当成选择器，解析器随即吞掉紧随其后的整条规则，而且不会报错。

@@ -52,14 +52,14 @@
     width: 50%;
     height: 50%;
     border-radius: var(--aeterni-radius-round);
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-checked);
     opacity: 0;
     transform: scale(.4);
     transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform);
 }
 
 .aeterni-radio__input:checked + .aeterni-radio__control {
-    border-color: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
 }
 
 .aeterni-radio__input:checked + .aeterni-radio__control .aeterni-radio__dot {
@@ -67,8 +67,32 @@
     transform: scale(1);
 }
 
-.aeterni-radio__input:hover:not(:disabled) + .aeterni-radio__control {
-    border-color: var(--aeterni-color-brand-hover);
+/* Hover and press walk the brand ramp, and an invalid control is scoped out so
+   a pointer never repaints the danger colour (see Checkbox for the rationale). */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-active);
+}
+
+/* A selected radio is a ring plus a dot, so both halves step together or the
+   ornament would read as two different brand shades. */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-radio__input:focus-visible + .aeterni-radio__control {

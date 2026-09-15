@@ -38,9 +38,9 @@
     box-sizing: border-box;
     width: calc((100% - var(--aeterni-segmented-padding) * 2) / var(--aeterni-segmented-count, 1));
     pointer-events: none;
-    border: var(--aeterni-border-width) solid var(--aeterni-color-brand-hover);
+    border: var(--aeterni-border-width) solid var(--aeterni-state-background-checked);
     border-radius: var(--aeterni-segmented-radius);
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-checked);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateX(calc(var(--aeterni-segmented-index, 0) * 100%));
     transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
@@ -112,8 +112,8 @@
     color: var(--aeterni-text-primary);
 }
 
-/* The selected label sits on the brand pill, so it keeps the inverse ink and does not
-   pick up the hover surface (the pill already is the hover feedback). */
+/* The selected label sits on the brand pill, so it keeps the inverse ink and does
+   not pick up the hover surface (the pill already is the hover feedback). */
 .aeterni-segmented__option.is-selected,
 .aeterni-segmented__option.is-selected:hover {
     background: transparent;
