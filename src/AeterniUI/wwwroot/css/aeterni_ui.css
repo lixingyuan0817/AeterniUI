@@ -428,6 +428,29 @@
     --aeterni-brand-900: #34255E;
 }
 
+/* Green hue layer. Built with the purple recipe above (same relative dL steps
+   anchored at 500, same chroma profile shape peaking at 500, same sub-degree
+   light-end hue drift), but its 500 stop sits lower on the lightness axis:
+   chromatic green gains luminance with chroma while violet loses it, so a green
+   at purple's L 0.565 reaches only 4.3:1 against white. L 0.517 is the anchor
+   that keeps the solid brand fill legible under white (5.27:1) without pushing
+   the dark stops below the 4.5:1 text requirement.
+   Peak chroma is 0.132 — 78% of the sRGB gamut at that lightness, against
+   purple's 70% at its own 500 — and it stays clear of the semantic
+   `success` token (ΔE 22 in OKLab). */
+[data-aeterni-brand="green"] {
+    --aeterni-brand-50: #E2E7E1;
+    --aeterni-brand-100: #D0DED0;
+    --aeterni-brand-200: #B4CFB4;
+    --aeterni-brand-300: #8CB68D;
+    --aeterni-brand-400: #5E9A60;
+    --aeterni-brand-500: #2B7B33;
+    --aeterni-brand-600: #196522;
+    --aeterni-brand-700: #11511A;
+    --aeterni-brand-800: #0F3F14;
+    --aeterni-brand-900: #0B2E0E;
+}
+
 /* 02. Light semantic theme */
 :root,
 [data-theme="light"],

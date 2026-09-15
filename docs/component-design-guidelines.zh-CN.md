@@ -376,7 +376,7 @@ background: #8b4df6;
 
 每个颜色族都提供 `default`、`hover`、`active`、`disabled` 状态前景/边框别名，并提供 `soft` 柔和背景别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-hover` 和 `--aeterni-color-info-soft`。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
 
-品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。
+品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。库内已按该机制交付两个色相：默认紫罗兰（`:root`）与绿色（`[data-aeterni-brand="green"]`）。
 
 常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*`；焦点环使用 `--aeterni-control-focus-ring` 或现有的 focus 尺寸 Token。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
 
@@ -398,6 +398,8 @@ background: #8b4df6;
   | 柔和底 | `--aeterni-color-{role}-soft` | 选中态、Tag/Alert 底色 |
   直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
 - **每个色相层都要按本节配方完整重建**：新增品牌色相时不能只替换 500 档，也不能照抄另一色相的档位——各档明度与 `-text` 停靠档必须按该色相自身重挑，但浅端仍统一到 L 0.976、深端统一到 L 0.30，chroma 仍在中档收敛。
+- **chroma 剖面必须用绝对值，不能套用「占本色相色域宽度的比例」**：sRGB 色域宽度随色相与明度变化，绿色在 L 0.85 附近最宽（maxC ≈ 0.27），紫色恰好相反——L 0.57 附近 ≈ 0.27，到 L 0.85 只剩 ≈ 0.08。按相对比例迁移会把绿色的峰值挤到浅档并产出荧光绿（`#AEFDAB`）。正确做法是把源色相的**绝对 chroma 剖面**归一化到 500 档峰值后套用，紫罗兰即为 `50:0.081, 100:0.183, 200:0.355, 300:0.565, 400:0.807, 500:1.0, 600:0.941, 700:0.812, 800:0.656, 900:0.522`。
+- **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色取 L 0.517 才能在承白字时达到 5.27:1。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。
 - **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
 - **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。
 - **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
