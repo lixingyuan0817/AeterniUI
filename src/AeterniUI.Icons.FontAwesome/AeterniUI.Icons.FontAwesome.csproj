@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AeterniUI\AeterniUI.csproj" />
+    <None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

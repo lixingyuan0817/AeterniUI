@@ -1,19 +1,21 @@
 <Project>
   <PropertyGroup>
     <!-- AeterniUI follows SemVer through the .NET SDK version properties. -->
-    <Version>10.7.0</Version>
-    <AssemblyVersion>10.7.0.0</AssemblyVersion>
-    <FileVersion>10.7.0.0</FileVersion>
-    <InformationalVersion>10.7.0</InformationalVersion>
+    <Version>10.7.1</Version>
+    <AssemblyVersion>10.7.1.0</AssemblyVersion>
+    <FileVersion>10.7.1.0</FileVersion>
+    <InformationalVersion>10.7.1</InformationalVersion>
     <Authors>AeterniUI contributors</Authors>
     <Description>A Blazor component library for consistent user interfaces across Blazor Server, Blazor WebAssembly, and Tauri applications.</Description>
     <PackageTags>blazor;components;ui;razor;tauri</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/lixingyuan0817/AeterniUI</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
