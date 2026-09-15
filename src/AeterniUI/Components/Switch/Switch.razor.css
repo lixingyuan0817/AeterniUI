@@ -62,17 +62,22 @@
 }
 
 .aeterni-switch__input:checked + .aeterni-switch__track {
-    border-color: var(--aeterni-color-brand-default);
-    background: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
 }
 
-/* Travel = track width minus the knob and the inset/border on both sides. */
+/* Travel = track width minus the knob and the inset/border on both sides. The
+   checked track is the neutral accent fill, which is near-white in the dark
+   theme, so the knob takes the inverse ink or it disappears into the track. In
+   the light theme the fill is near-black and the inverse ink is white, so this
+   matches the untouched thumb stop. */
 .aeterni-switch__input:checked + .aeterni-switch__track .aeterni-switch__knob {
+    background: var(--aeterni-text-inverse);
     transform: translateX(calc(var(--aeterni-switch-track-width) - var(--aeterni-switch-knob-size) - var(--aeterni-switch-inset) * 2 - var(--aeterni-border-width) * 2));
 }
 
-.aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
-    border-color: var(--aeterni-color-brand-hover);
+.aeterni-switch__input:hover:not(:disabled):not(:checked) + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-hover);
 }
 
 .aeterni-switch__input:focus-visible + .aeterni-switch__track {

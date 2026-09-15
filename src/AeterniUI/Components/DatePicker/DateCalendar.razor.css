@@ -38,7 +38,7 @@
 }
 
 .aeterni-date-calendar__day.is-selected {
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-checked);
     color: var(--aeterni-text-inverse);
 }
 
@@ -47,7 +47,7 @@
 }
 
 .aeterni-date-calendar__day.is-today {
-    box-shadow: inset 0 0 0 var(--aeterni-border-width) var(--aeterni-color-brand-text);
+    box-shadow: inset 0 0 0 var(--aeterni-border-width) var(--aeterni-state-color-selected);
 }
 
 .aeterni-date-calendar__day:disabled {

@@ -76,14 +76,14 @@
 }
 
 .aeterni-menu__item.is-selected {
-    border-color: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
-    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-color-brand-default);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
 }
 
 .aeterni-menu__item.is-selected .aeterni-menu__icon {
-    color: var(--aeterni-color-brand-text);
+    color: var(--aeterni-state-color-selected);
 }
 
 /* The icon inherits its size from this box; setting the variable here reaches

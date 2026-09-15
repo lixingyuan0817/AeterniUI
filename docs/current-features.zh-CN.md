@@ -45,12 +45,12 @@
 - 提供品牌色、语意色、背景色、文字色、边框色、阴影、圆角、间距、字号和动效 Token。
 - 提供 Light 和 Dark 两套主题 Token。
 - 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 状态别名；组件无需直接选择色阶。
-- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`，其中 `selected` 与 `checked` 使用同一套表面状态。
+- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`。这一层按契约**不使用品牌色**：`default` / `hover` / `active` / `selected` 全部落在中性墨（`--aeterni-text-primary`）与无色 overlay（`--aeterni-surface-hover` / `-active` / `-selected`）上，`checked` 把同一墨色当作实心强调填充，`--aeterni-text-inverse` 是它自带的反色墨（浅色 11.7:1、深色 13.0:1）；只有 `focus` 与 `border-focus` 仍指向品牌色，焦点环是全库唯一的品牌状态。宿主若要恢复「选中态即品牌色」，在自己的样式表里重写 `--aeterni-state-background-checked`、`--aeterni-state-color-selected` 等状态 Token 即可，组件不需要改动。`selected` 与 `checked` 使用同一套表面状态。
 - 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
 - 提供通用控件组合别名：`--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*` 和 `--aeterni-control-focus-ring`，方便组件直接组合控件状态。
 - 色板按 OKLCH 重建：每个色族一条明度阶梯、固定色相（仅浅档做少量 Abney 补偿漂移）、chroma 在中档收敛成峰值，因此不再出现「阶梯忽大忽小」「同一色族色相漂移 8°」这类问题。
 - 品牌色是紫罗兰色系（浅色主题 `--aeterni-brand-500` = `#795AD9`，深色主题取 `--aeterni-brand-400` = `#9985ED`），峰值 chroma 从 0.237 降到 0.186、色相漂移从 7.8° 收到 1.7°，去掉了原来的荧光感。
-- 品牌色阶是一个独立色相层，与明暗层正交：默认紫罗兰色板声明在 `:root` 上，显式 `[data-aeterni-brand="purple"]` 与之逐字节等价；宿主可在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900`，色阶一变，品牌填充、强调文字、链接、焦点环以及悬浮/按下/选中状态同时换色，语义别名与组件都不需要改动。该属性必须与 `data-theme` 同元素（`<html>`），因为语义别名在声明元素上解析色阶。
+- 品牌色阶是一个独立色相层，与明暗层正交：默认紫罗兰色板声明在 `:root` 上，显式 `[data-aeterni-brand="purple"]` 与之逐字节等价；宿主可在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900`，色阶一变，品牌填充、强调文字、链接和焦点环同时换色，而悬浮／按下／选中状态由无色 overlay 提供，不随品牌变化，语义别名与组件都不需要改动。该属性必须与 `data-theme` 同元素（`<html>`），因为语义别名在声明元素上解析色阶。
 - 除默认紫罗兰外，色相层已交付第二套绿色板 `[data-aeterni-brand="green"]`：色阶同样按 OKLCH 从 50 到 900 完整重建，500 档锚定外部参考绿 `#1F883D`（L 0.552、C 0.145）——比紫罗兰的 L 0.565 低，因为绿色提高 chroma 会抬高明度、同一明度下承白字只有 4.3:1。该锚点承白字 4.52:1，仍满足 4.5:1 正文要求，但余量只有 1.004×，是品牌色组里最紧的一条门禁；承浅色主题正文与链接的 600/700 档因此压得更低（白字 6.17:1 / 8.09:1）。两套板在浅色、深色与系统深色下都通过全部对比度门禁，语义停靠档（浅色 500/600/700、深色 400/300/200）自动跟随切换。
 - 第三套是焦橙 `[data-aeterni-brand="orange"]`，配方与前两套逐档一致（同一组相对 ΔL、同一 chroma 剖面、同一浅端色相漂移），500 档锚定 `#C2410C`（L 0.553、C 0.174、色相 38.4°）。锚点必须是焦橙而不是鲜橙：`#E8590C` / `#EA580C` 这类亮橙承白字只有 3.58:1 / 3.56:1，低于 4.5:1 正文要求，要做成实心填充就只能改成 `warning` 那种近黑前景，等于让第三套板脱离「白字填充」这条家族约定。焦橙承白字 5.18:1（余量 1.151×），三套板的同一个停靠档因此可以直接互换。代价是与语意 `danger` 红的距离只有 OKLab ΔE 12.1——橙红在近明度下本来就是邻居，这是全库最紧的一对品牌／语意间距，但在正常色觉下仍清晰可分；`warning` 相距 22.4，冷色语意全部超过 34，压力只来自暖端。
 - 品牌色层可由 `ThemeService` 在运行时切换：`Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），`SetBrand` 校验枚举并落为 `<html>` 上的 `data-aeterni-brand`，`SetPurple()` / `SetGreen()` / `SetOrange()` 是对应的便捷方法。品牌与明暗是两个正交维度，切换品牌不会改动 `Mode` 或 `CurrentTheme`，因此品牌变化走独立的 `BrandChanged` 事件，不会重复解析系统偏好。首次访问的默认品牌由 `AeterniUIOptions.DefaultBrand` 决定（默认 `Purple`）。
@@ -62,12 +62,12 @@
 - 实心语意表面的前景 `--aeterni-color-on-semantic`（浅色 `#141414`、深色取反色墨）改为无色：原先的蓝黑 primitive `#0B0F19` 给绿/黄按钮上的文字带了蓝调。
 - 新增 `--aeterni-separator`（不透明，浅色 `#C6C6C6` / 深色 `#3A3A3A`）：卡片头/底与对话框头/底的分界线用它，不再用 7% alpha 的 `--aeterni-border-subtle`（1.17:1，看起来像污渍）。
 - 每个色族额外提供「强调文字/描边形态」的 `--aeterni-color-{brand,success,warning,danger,info,neutral}-text`：浅色主题取深档、深色主题取亮档，这解决了「亮色填充档当文字用只有 2.2:1」的老问题（描边/文字语义色按钮现在 5.0~9.5:1）。
-- 形态选择写成硬规则：填充档只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片的底色/徽标底/进度环），凡是 ink（文字、图标）或需要与浅色轨道/页面区分的实心图形（进度条填充、评分星形）均取文字形态。
-- `--aeterni-state-color-selected` 与 `--aeterni-state-color-checked` 是前景别名，已指向 `--aeterni-color-brand-text`：选中项文字画在自己的选中底上，用填充档只有 4.0~4.4:1。
+- 形态选择写成硬规则：品牌填充档只用于品牌实心表面（实心品牌按钮、通知卡片的底色/徽标底/进度环、Avatar、Tag、`Icon` 的 `Primary`），凡是 ink（文字、图标）或需要与浅色轨道/页面区分的实心图形（进度条填充、评分星形）均取文字形态；开关轨道与选中指示不再取品牌填充，而是取中性墨色填充（`--aeterni-state-background-checked`）。
+- `--aeterni-state-color-selected` 与 `--aeterni-state-color-checked` 是前景别名，已指向 `--aeterni-text-primary`：选中项文字画在中性选中底上，与底同源，因此在任何品牌色层下都是同一档墨色。需要品牌文字形态时用 `--aeterni-color-brand-text`（链接、`Icon` 的 `Primary`、Tag、Avatar、通知卡片这类身份面仍在用它）。
 - 浅色 `--aeterni-text-tertiary` 是图标/装饰级别（`rgba(0,0,0,.52)`，4.27:1）：该级别既要看清字形（≥ 3:1）又不与正文争抢，ComboBox 箭头、关闭字形、Rating 空星都用它。
 - 实心控件的字色按填充明度分两层：品牌填充走深档配 `--aeterni-text-inverse`，success/warning/danger/info 填充走亮档配 `--aeterni-color-on-semantic`；两类填充的 hover 都保持同一字色（品牌向下取档、语意向白提亮 12%），因此不再需要 `-strong` 这种按状态切换字色的 Token。`Button` 的 `--neutral` 填充则沿「向墨色收敛」方向取 hover/pressed（86% / 76%），使浅色与深色的反馈方向一致。
 - `Icon` 的六个命名色（`Primary`/`Neutral`/`Success`/`Warning`/`Danger`/`Info`）消费 `--aeterni-color-*-text`；`Color.Default` 仍为 `currentColor`。Alert/Toast 卡片同时使用两个 accent 角色：`--aeterni-dialog-accent`（卡片底色、徽标底色、进度环）与 `--aeterni-dialog-accent-ink`（徽标图标、弹窗头部图标）。
-- `FormField` 的必填星号与错误文案、`Menu` 选中项文字同样使用强调文字形态。
+- `FormField` 的必填星号与错误文案同样使用强调文字形态；`Menu` 选中项文字改用中性选中墨。
 - `Tag` 的标签文字取词族的「强调文字形态」（`--aeterni-tag-ink`）再向正文墨靠 15%，而不是把亮色填充档与近黑对半混：后者会把绿/黄族混成橄榄色、褐色，看起来脏；当前浅色 4.95~7.15:1、深色 7.35~8.78:1，且色相保持饱和。
 - 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
 - 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md` 和 `--aeterni-width-control-md`。
@@ -75,7 +75,7 @@
 - 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
 - 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
 - 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
-- 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
+- 开关类控件的指示块静止态用 `--aeterni-state-background-thumb`；选中轨道在中性化后是一块实心强调填充，深色主题下这块填充是近白色，因此在选中态把旋钮翻成 `--aeterni-text-inverse`，避免白旋钮消失在白轨道上。
 - 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。
 - 字体栈中的 Inter 与 JetBrains Mono 是可选的宿主依赖，库不随包提供 webfont；宿主未提供时回落到系统 UI 字体（等宽回落 Consolas / Courier New）。
 - 无显式主题时，`@media (prefers-color-scheme: dark)` 提供系统偏好兜底，避免深色偏好用户在脚本执行前看到浅色闪烁；一旦存在显式 `data-theme` / `data-aeterni-mode`，该兜底不再生效。
@@ -308,6 +308,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 - `Required`、`Invalid`、`Disabled`。
 - `OnChange` 回调，并在 `EditForm`/`EditContext` 中通过 `ValueExpression` 校验，同步 `aria-invalid`。
 - 支持默认、悬浮、聚焦、禁用和无效状态；三态显示通过原生 `:indeterminate` 呈现。
+- 选中/不确定填充取中性强调墨（`--aeterni-state-background-checked`），勾号线取 `--aeterni-text-inverse`，因此三套品牌色层下逐像素一致；只有悬浮边框仍走 `--aeterni-state-border-hover`（未选中时才提升一档），焦点环保持品牌色。
 - `indeterminate` 是 DOM 属性而非 HTML 属性，组件使用一个最小 JS module 将其设置到输入框；不设置 `Indeterminate` 时不产生任何浏览器副作用。
 
 ### 行为与无障碍
@@ -332,7 +333,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 - `RadioGroup<TValue>` 提供 `Value`、`ValueChanged`、`ChildContent`、`Name`、`Size`、`Orientation`（`Horizontal` / `Vertical`）、`Disabled`、`Required`、`Invalid` 和 `AriaLabel`。
 - `Radio<TValue>` 提供 `Value`、`ValueChanged`、`ValueExpression`、`ChildContent`、`Name`、`Size`、`Required`、`Invalid`、`AriaLabel` 和 `AriaDescribedBy`；`Size` 为空时继承分组值。
 - 使用原生 `<input type="radio">` 与 `fieldset` 分组语义，分组输出 `role="radiogroup"` 和与布局一致的 `aria-orientation`。
-- 视觉与 `Checkbox` 对齐：同一 `--aeterni-control-size-*` 档位、1px 边框、选中态用内圆点而不是加粗边框，并补齐悬浮、无效、禁用与“禁用 + 选中”状态。
+- 视觉与 `Checkbox` 对齐：同一 `--aeterni-control-size-*` 档位、1px 边框、选中态用内圆点而不是加粗边框，并补齐悬浮、无效、禁用与“禁用 + 选中”状态。选中圆点与选中环同样取中性强调墨，只有未选中控件的悬浮边框提升一档。
 - 根元素是 `<label>`（与 Checkbox、Switch 一致）：组件类与状态类（`aeterni-radio`、`--sm/--lg`、`is-checked`、`is-disabled`、`is-invalid`）落在根标签上，原生输入通过独立的输入属性集合渲染，因此尺寸与状态样式始终作用于可视圆圈。
 
 ### 行为与无障碍
@@ -356,6 +357,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 - `Size` 提供 `Small` / `Default` / `Large` 三档：轨道尺寸由档位推导（跑道宽 = 旋钮 × 2 + 内边距 × 2 + 边框 × 2，滑块行程恰好等于一个旋钮宽），默认档与之前的固定 38×22 完全一致；`Small` 为 34×20（旋钮 14，与同排 16px Checkbox 成比例）、`Large` 为 46×26。
 - 可从 `FormField` 级联获取标签关联、禁用与校验状态。
 - 空格/原生 checkbox 行为可切换；reduced-motion 下关闭滑块过渡动画。
+- 选中轨道取中性强调墨（`--aeterni-state-background-checked`），深色主题下该填充是近白色，因此选中态把旋钮翻成 `--aeterni-text-inverse`；未选中旋钮仍取 `--aeterni-state-background-thumb`。禁用 + 选中时轨道与旋钮回落禁用档。
 
 ### 行为与无障碍
 
@@ -512,6 +514,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`；当前项输出 `aria-current="page"`。
 - 键盘：Tab 保持原生顺序；`ArrowUp` / `ArrowDown` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环，`Home` / `End` 跳到首尾，`ArrowRight` 展开、`ArrowLeft` 折叠（RTL 下由模块读取 `direction` 自动互换），`ArrowLeft` 在展开分组内会把焦点退回分组开关，`Enter` / `Space` 保持原生行为。
 - 组件声明一个 JS module（`Components/Menu/Menu.razor.js`），只负责把焦点移到 C# 模型选中的节点、在菜单内部抑制方向键的默认页面滚动，并报告书写方向；折叠动画仍由 CSS 完成。
+- 选中项的三个提示都取中性强调墨与选中 overlay：左侧 3px 内阴影条、1px 边框与图标色用 `--aeterni-state-background-checked` / `--aeterni-state-color-selected`，底色用 `--aeterni-state-background-selected`，因此选中状态不随品牌色层变化。
 - 长菜单不强制滚动容器：把 `Menu` 放进带 `max-height` 的滚动容器（示例侧边栏即如此）即可，避免组件自己裁切焦点环。
 
 ### 实现边界
@@ -536,7 +539,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 自动激活模型：`ArrowLeft`/`ArrowRight`（RTL 下由模块报告书写方向并自动互换）与 `Home`/`End` 在可用标签之间循环，同时改变选中项并把焦点移回标签栏；`Tabs.razor.js` 只做这两件事（移动焦点、报告方向），无 JS 时标签仍可点击与 Tab 进出。
 - `Value` 未匹配任何标签（包括初始 `null`）时，组件把首个可用标签当作选中项渲染，但不会自行改写 `Value`；点击或方向键选中后才会通过 `ValueChanged` 上报。
 - 窄屏横向滚动：标签栏不换行、不压缩，使用细滚动条（`--aeterni-scrollbar-*`）横向滚动，焦点环使用外扩负偏移避免被滚动容器裁切。
-- 键盘焦点环与禁用态沿用全库 Token（`--aeterni-focus-*`、`--aeterni-state-color-disabled`）；选中标签使用品牌色的文字形态与 2px 指示条。
+- 键盘焦点环与禁用态沿用全库 Token（`--aeterni-focus-*`、`--aeterni-state-color-disabled`）；选中标签使用中性选中墨（`--aeterni-state-color-selected`）与 2px 中性指示条，选中态不随品牌色层变化。
 
 ### 实现边界
 
@@ -594,7 +597,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 <Button OnClick="@ThemeService.SetPurple">紫罗兰</Button>
 ```
 
-`SetBrand(ThemeBrand)` 会校验枚举值，非法值抛 `ArgumentOutOfRangeException`；同值调用不重复触发事件。品牌变化后 `ThemeProvider` 把 `data-aeterni-brand` 写到 `<html>` 并持久化到 `aeterni.theme.brand`，语义别名随之整体换色，组件层无需任何改动。
+`SetBrand(ThemeBrand)` 会校验枚举值，非法值抛 `ArgumentOutOfRangeException`；同值调用不重复触发事件。品牌变化后 `ThemeProvider` 把 `data-aeterni-brand` 写到 `<html>` 并持久化到 `aeterni.theme.brand`，语义别名随之整体换色，组件层无需任何改动。换色范围是身份面——品牌填充、强调文字形态、链接与焦点环；表单控件与选择态（Checkbox、Radio、Switch、Segmented、Tabs、Menu、DatePicker、Pagination 当前页）走中性状态层，三套品牌下逐像素一致。
 
 首次访问的默认品牌来自 `AeterniUIOptions.DefaultBrand`：
 
@@ -828,6 +831,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - `DisabledSelector` 停用单个选项（原生 `disabled`，跳过方向键循环）；`Disabled` 停用整组并输出 `aria-disabled`。`Value` 不匹配任何项时控件不显示选中态与滑块（`is-empty`）。
 - 位于 `FormField` 中时采用字段的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联标签与描述；`Required` / `Invalid` 输出 `aria-required` / `aria-invalid`。
 - `ThemeSwitch` 已重构为它的专用用法（三个主题模式作为选项），两者共用同一份滑块动画与尺寸档位。
+- 选中胶囊取中性强调墨；胶囊上的选中标签与「禁用 + 选中」标签都取 `--aeterni-text-inverse`，因此胶囊与标签的对比度与品牌色层无关（浅色 11.7:1、深色 13.0:1）。
 
 ### 行为与无障碍
 
@@ -855,7 +859,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页通过颜色和轻微缩放突出。
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页用中性强调填充加反色文字（`--aeterni-state-background-checked` / `--aeterni-text-inverse`）和轻微缩放突出，与品牌色层无关。
 
 ### 行为与无障碍
 
@@ -960,7 +964,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 行为与无障碍
 
-日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
+日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。选中日期取中性强调填充加反色文字，今天标记取中性选中墨（`--aeterni-state-color-selected`），都不随品牌色层变化。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
 
 ### 组合关系与实现边界
 

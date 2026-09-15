@@ -79,12 +79,14 @@
     outline-offset: calc(var(--aeterni-focus-offset) * -1);
 }
 
+/* Selection is hueless: both the label and the underline use the neutral accent,
+   so the strip reads the same in every brand. */
 .aeterni-tabs__tab[aria-selected="true"] {
-    color: var(--aeterni-color-brand-text);
+    color: var(--aeterni-state-color-selected);
 }
 
 .aeterni-tabs__tab[aria-selected="true"]::after {
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-checked);
 }
 
 .aeterni-tabs__tab:disabled {

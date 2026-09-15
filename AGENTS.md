@@ -17,6 +17,8 @@
 
 容器与页面背景只能是黑、白、灰或毛玻璃（R = G = B 的无彩色）：不得给容器背景加任何彩色或色相偏移。彩色只允许出现在品牌色/语意色元素、交互状态（hover/pressed/selected）和通知卡片这类“内容表面”上。大面积上的 +2 色相偏移就会被读成品牌色底，且磨砂层的 `saturate()` 会放大它。
 
+品牌色是**身份标识**而不是状态标识：品牌色只允许出现在身份面（品牌按钮变体、链接、焦点环、`Spinner`／`Progress`、`Avatar`、`Tag`／`Badge` 的品牌变体、通知卡片 accent）上；表单控件与选择态（`Checkbox`、`Radio`、`Switch`、`Segmented`、`Tabs`、`Menu`、`DatePicker`、`Pagination` 当前页）一律走中性状态层——填充取 `--aeterni-state-background-checked`，其上的墨取 `--aeterni-text-inverse`，悬浮/按下取无色 overlay。判定规则与两行表格见 `docs/component-design-guidelines.zh-CN.md` §5.3「品牌色面积」。宿主想让选中态跟随品牌时**不要改组件**，在自己的样式表里重写 `--aeterni-state-background-checked`／`--aeterni-state-color-selected` 即可一行恢复。另注意：已勾选控件的边框色等于填充色，`Checkbox`／`Radio`／`Switch` 的悬浮选择器必须排除 `:checked`（Checkbox 另加 `:not(:indeterminate)`），否则会在实心块上压出一圈亮边。
+
 提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；修改色阶或新增品牌色相层时运行 `node scripts/check-contrast.mjs`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`target/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
 
 ## 项目范围

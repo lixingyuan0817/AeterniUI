@@ -52,14 +52,14 @@
     width: 50%;
     height: 50%;
     border-radius: var(--aeterni-radius-round);
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-state-background-checked);
     opacity: 0;
     transform: scale(.4);
     transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform);
 }
 
 .aeterni-radio__input:checked + .aeterni-radio__control {
-    border-color: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
 }
 
 .aeterni-radio__input:checked + .aeterni-radio__control .aeterni-radio__dot {
@@ -67,8 +67,10 @@
     transform: scale(1);
 }
 
-.aeterni-radio__input:hover:not(:disabled) + .aeterni-radio__control {
-    border-color: var(--aeterni-color-brand-hover);
+/* Hover only lifts the ring of an unchecked control; a checked one already sits
+   on the strongest accent stop, so the hover border would pale it. */
+.aeterni-radio__input:hover:not(:disabled):not(:checked) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-hover);
 }
 
 .aeterni-radio__input:focus-visible + .aeterni-radio__control {

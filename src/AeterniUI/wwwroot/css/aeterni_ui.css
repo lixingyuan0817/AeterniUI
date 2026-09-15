@@ -134,8 +134,11 @@
     --aeterni-button-intent-default-background-hover: var(--aeterni-color-brand-hover);
     --aeterni-button-intent-default-background-active: var(--aeterni-color-brand-active);
     --aeterni-button-intent-default-foreground: var(--aeterni-text-inverse);
-    --aeterni-button-intent-default-soft: var(--aeterni-state-background-hover);
-    --aeterni-button-intent-default-soft-active: var(--aeterni-state-background-active);
+    /* The default (brand) soft variant tints with the brand itself. It used to
+       borrow the shared hover states, which are hueless by contract, so reusing
+       them here would have produced a grey "brand" button. */
+    --aeterni-button-intent-default-soft: var(--aeterni-color-brand-soft);
+    --aeterni-button-intent-default-soft-active: color-mix(in srgb, var(--aeterni-color-brand-default) 18%, transparent);
 
     --aeterni-button-intent-neutral-color: var(--aeterni-text-primary);
     --aeterni-button-intent-neutral-background: var(--aeterni-bg-tertiary);
@@ -526,11 +529,14 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    /* Mixed from the brand scale instead of a literal hue, so replacing the
-       brand palette re-tints every hover/pressed/selected state. */
-    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
-    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
-    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 13%, transparent);
+    /* State overlays are hueless by contract: hover, press and selection layers
+       must look identical in every brand, because they sit under ordinary text,
+       rows and controls rather than expressing the brand. The alphas are matched
+       to the perceived strength the old brand-tinted overlays had, so the step
+       between rest, hover, selected and pressed is unchanged. */
+    --aeterni-surface-hover: rgba(0, 0, 0, .06);
+    --aeterni-surface-active: rgba(0, 0, 0, .12);
+    --aeterni-surface-selected: rgba(0, 0, 0, .09);
     --aeterni-overlay: rgba(0, 0, 0, .42);
     /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
        level on the same hue, and because the levels are translucent they also adapt
@@ -597,7 +603,9 @@
     --aeterni-color-info-text: var(--aeterni-info-600);
     --aeterni-color-neutral-text: var(--aeterni-neutral-700);
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
-    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
+    --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-color-brand-default) 9%, transparent);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent);
     --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 24%, transparent);
     --aeterni-color-success-default: var(--aeterni-sem-success);
@@ -626,28 +634,32 @@
     --aeterni-color-neutral-disabled: var(--aeterni-text-disabled);
     --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
-    /* Shared control states keep hover, selected, checked and disabled
-       surfaces consistent across components. */
-    --aeterni-state-color-default: var(--aeterni-color-brand-default);
-    --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
-    --aeterni-state-color-active: var(--aeterni-color-brand-active);
+    /* Shared control states, hueless by contract: form fields and selection
+       controls signal state with neutral ink, surfaces and borders so the brand
+       never leaks into a generic control. Only `focus` stays branded — the focus
+       ring is the one brand affordance this layer keeps. `selected` and `checked`
+       paint the control ink as a strong accent fill instead of a tint, and
+       --aeterni-text-inverse is its ink, which flips with the theme and keeps the
+       fill at roughly 12:1 either way. */
+    --aeterni-state-color-default: var(--aeterni-text-primary);
+    --aeterni-state-color-hover: var(--aeterni-text-primary);
+    --aeterni-state-color-active: var(--aeterni-text-primary);
     --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-    /* Selected/checked are foreground roles: they paint labels and glyphs on the
-       tinted selection surface, so they use the accent's text form. Pointing them
-       at the fill stop dropped the selected menu label to 4.0:1 on its own
-       surface. */
-    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-selected: var(--aeterni-text-primary);
     --aeterni-state-color-checked: var(--aeterni-state-color-selected);
     --aeterni-state-color-disabled: var(--aeterni-text-disabled);
     --aeterni-state-background-default: var(--aeterni-bg-surface);
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
-    --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+    --aeterni-state-background-checked: var(--aeterni-text-primary);
     --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
     --aeterni-state-border-default: var(--aeterni-border-default);
-    --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
-    --aeterni-state-border-active: var(--aeterni-color-brand-active);
+    /* Hover and active borders need a stop above --aeterni-border-strong, because
+       the neutral controls already rest on that stop and reusing it would leave
+       hover with no visible step. */
+    --aeterni-state-border-hover: rgba(0, 0, 0, .26);
+    --aeterni-state-border-active: rgba(0, 0, 0, .38);
     --aeterni-state-border-focus: var(--aeterni-color-brand-default);
     --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
     --aeterni-state-border-disabled: var(--aeterni-border-disabled);
@@ -740,11 +752,11 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    /* Same brand-scale derivation as the light theme: the dark states ride the
-       lighter 400 stop, while `selected` keeps the 500 stop in both themes. */
-    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
-    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
-    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+    /* Hueless state overlays; the dark theme sits a step stronger than the light
+       one because the same perceived delta needs more white than black. */
+    --aeterni-surface-hover: rgba(255, 255, 255, .08);
+    --aeterni-surface-active: rgba(255, 255, 255, .16);
+    --aeterni-surface-selected: rgba(255, 255, 255, .11);
     --aeterni-overlay: rgba(0, 0, 0, .64);
     --aeterni-text: rgba(255, 255, 255, .86);
     --aeterni-text-primary: var(--aeterni-text);
@@ -786,7 +798,9 @@
     --aeterni-color-brand-hover: var(--aeterni-brand-300);
     --aeterni-color-brand-active: var(--aeterni-brand-200);
     --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
-    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
+    --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-color-brand-default) 12%, transparent);
     --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
     --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
     --aeterni-color-success-default: var(--aeterni-sem-success);
@@ -815,24 +829,25 @@
     --aeterni-color-neutral-disabled: var(--aeterni-text-disabled);
     --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
-    /* Selected/checked mirror the light theme; the accent aliases above already
-       resolve to this theme's text stop. */
-    --aeterni-state-color-default: var(--aeterni-color-brand-default);
-    --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
-    --aeterni-state-color-active: var(--aeterni-color-brand-active);
+    /* Hueless control states - the light theme block documents the contract. The
+       ink-derived values repeat the light expressions; only the border stops need
+       their own literals. */
+    --aeterni-state-color-default: var(--aeterni-text-primary);
+    --aeterni-state-color-hover: var(--aeterni-text-primary);
+    --aeterni-state-color-active: var(--aeterni-text-primary);
     --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-selected: var(--aeterni-text-primary);
     --aeterni-state-color-checked: var(--aeterni-state-color-selected);
     --aeterni-state-color-disabled: var(--aeterni-text-disabled);
     --aeterni-state-background-default: var(--aeterni-bg-surface);
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
-    --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+    --aeterni-state-background-checked: var(--aeterni-text-primary);
     --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
     --aeterni-state-border-default: var(--aeterni-border-default);
-    --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
-    --aeterni-state-border-active: var(--aeterni-color-brand-active);
+    --aeterni-state-border-hover: rgba(255, 255, 255, .26);
+    --aeterni-state-border-active: rgba(255, 255, 255, .34);
     --aeterni-state-border-focus: var(--aeterni-color-brand-default);
     --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
     --aeterni-state-border-disabled: var(--aeterni-border-disabled);
@@ -914,9 +929,9 @@
         --aeterni-bg-active: var(--aeterni-surface-active);
         --aeterni-bg-disabled: var(--aeterni-bg-secondary);
         --aeterni-surface-soft: rgba(255, 255, 255, .045);
-        --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
-        --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
-        --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+        --aeterni-surface-hover: rgba(255, 255, 255, .08);
+        --aeterni-surface-active: rgba(255, 255, 255, .16);
+        --aeterni-surface-selected: rgba(255, 255, 255, .11);
         --aeterni-overlay: rgba(0, 0, 0, .64);
         --aeterni-text: rgba(255, 255, 255, .86);
         --aeterni-text-primary: var(--aeterni-text);
@@ -958,7 +973,7 @@
         --aeterni-color-brand-hover: var(--aeterni-brand-300);
         --aeterni-color-brand-active: var(--aeterni-brand-200);
         --aeterni-color-brand-disabled: var(--aeterni-text-disabled);
-        --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+        --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-color-brand-default) 12%, transparent);
         --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
         --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
         --aeterni-color-success-default: var(--aeterni-sem-success);
@@ -987,22 +1002,22 @@
         --aeterni-color-neutral-disabled: var(--aeterni-text-disabled);
         --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
 
-        --aeterni-state-color-default: var(--aeterni-color-brand-default);
-        --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
-        --aeterni-state-color-active: var(--aeterni-color-brand-active);
+        --aeterni-state-color-default: var(--aeterni-text-primary);
+        --aeterni-state-color-hover: var(--aeterni-text-primary);
+        --aeterni-state-color-active: var(--aeterni-text-primary);
         --aeterni-state-color-focus: var(--aeterni-color-brand-default);
-        --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+        --aeterni-state-color-selected: var(--aeterni-text-primary);
         --aeterni-state-color-checked: var(--aeterni-state-color-selected);
         --aeterni-state-color-disabled: var(--aeterni-text-disabled);
         --aeterni-state-background-default: var(--aeterni-bg-surface);
         --aeterni-state-background-hover: var(--aeterni-surface-hover);
         --aeterni-state-background-active: var(--aeterni-surface-active);
         --aeterni-state-background-selected: var(--aeterni-surface-selected);
-        --aeterni-state-background-checked: var(--aeterni-state-background-selected);
+        --aeterni-state-background-checked: var(--aeterni-text-primary);
         --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
         --aeterni-state-border-default: var(--aeterni-border-default);
-        --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
-        --aeterni-state-border-active: var(--aeterni-color-brand-active);
+        --aeterni-state-border-hover: rgba(255, 255, 255, .26);
+        --aeterni-state-border-active: rgba(255, 255, 255, .34);
         --aeterni-state-border-focus: var(--aeterni-color-brand-default);
         --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
         --aeterni-state-border-disabled: var(--aeterni-border-disabled);

@@ -58,8 +58,8 @@
 }
 
 .aeterni-checkbox__input:checked + .aeterni-checkbox__control {
-    border-color: var(--aeterni-color-brand-default);
-    background: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
 }
 
 .aeterni-checkbox__input:checked + .aeterni-checkbox__control ::deep .aeterni-checkbox__check {
@@ -69,8 +69,8 @@
 
 /* Tri-state indicator: a short bar is drawn in place of the check mark. */
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control {
-    border-color: var(--aeterni-color-brand-default);
-    background: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
 }
 
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control ::deep .aeterni-checkbox__check {
@@ -87,8 +87,11 @@
     background: var(--aeterni-text-inverse);
 }
 
-.aeterni-checkbox__input:hover:not(:disabled) + .aeterni-checkbox__control {
-    border-color: var(--aeterni-color-brand-hover);
+/* Hover only steps the border of an unchecked box: a checked box is already
+   filled with the strongest accent the theme has, so a lighter border stop on
+   top of it would read as a bright rim. */
+.aeterni-checkbox__input:hover:not(:disabled):not(:checked):not(:indeterminate) + .aeterni-checkbox__control {
+    border-color: var(--aeterni-state-border-hover);
 }
 
 .aeterni-checkbox__input:focus-visible + .aeterni-checkbox__control {

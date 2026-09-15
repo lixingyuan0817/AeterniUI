@@ -343,9 +343,32 @@ background: #8b4df6;
 背景 Token 分为两类，不能混用：
 
 - 页面和容器背景使用 `--aeterni-bg-*`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 等中性背景 Token；它们不使用品牌紫色，避免 Card、Surface、Header 或侧边栏形成大面积彩色底。
-- 组件交互状态可以使用 `--aeterni-surface-hover`、`--aeterni-surface-active`、`--aeterni-surface-selected` 和 `--aeterni-focus-color` 等品牌状态 Token；它们用于选中、悬停、按下和焦点反馈，不作为页面或容器的默认背景。
+- 组件交互状态使用 `--aeterni-state-background-hover` / `--aeterni-state-background-active` / `--aeterni-state-background-selected`，三者都是**无色 overlay**（浅色黑、深色白，alpha 阶梯 `.06/.09/.12` 与 `.08/.11/.16`），因此悬浮、按下、选中反馈在三个品牌色层下逐像素一致。品牌色只保留在**焦点环**（`--aeterni-focus-color`、`--aeterni-state-color-focus`、`--aeterni-state-border-focus`）上，让键盘焦点在任何品牌下都指向「当前交互点」。
 
-组件新增背景时，先判断它是容器背景还是交互状态背景，再选择对应 Token。
+组件新增背景时，先判断它是容器背景、交互状态背景还是品牌身份面，再选择对应 Token。
+
+**品牌色面积**：品牌色是**身份标识**，不是状态标识。品牌色只允许出现在下面两类位置，其余场景一律走中性状态层：
+
+| 允许使用品牌色 | 组件与角色 |
+| --- | --- |
+| 身份面（品牌动作/品牌主体） | `Button`（`Solid`/`Outline`/`Soft`/`Ghost` 的品牌变体）、`Spinner`、`Progress` 填充与不确定轨道、`Avatar` 底、`Icon` 的 `Primary` 变体、`Tag`/`Badge` 的品牌变体、通知卡片的 accent 与 accent-ink |
+| 焦点与链接 | `--aeterni-focus-color` 系（焦点环、`state-border-focus`）、`--aeterni-text-link` |
+
+| 必须使用中性状态层 | 组件与角色 |
+| --- | --- |
+| 选择态实心填充 | `Checkbox` 勾选/不确定块、`Radio` 内圆点、`Switch` 选中轨道、`Segmented` 滑块、`Tabs` 指示条、`Menu` 选中项、`DatePicker` 选中日期、`Pagination` 当前页 —— 统一取 `--aeterni-state-background-checked`，其上的墨取 `--aeterni-text-inverse` |
+| 选中/悬浮文字 | `--aeterni-state-color-selected`、`--aeterni-state-color-checked`、`--aeterni-state-color-hover` |
+| 悬浮/按下边框 | `--aeterni-state-border-hover`、`--aeterni-state-border-active` |
+
+这条规则来自一个可复现的缺陷：如果选中块用品牌填充，把品牌从紫换成绿就会同时改掉「哪些东西被选中了」的视觉语言，而选择态本身与品牌身份无关；中性墨填充让控件在多品牌宿主里保持稳定，同时天然满足非彩色（R=G=B）的容器/状态约束。需要品牌化选中态时**不要改组件**，在宿主样式表里重写状态层即可：
+
+```css
+[data-aeterni-brand="green"] {
+  --aeterni-state-background-checked: color-mix(in srgb, var(--aeterni-color-brand-default) 9%, transparent);
+}
+```
+
+**悬浮态不得回头覆盖已勾选控件**：中性化后已勾选控件的边框色等于填充色，因此 `Checkbox`/`Radio`/`Switch` 的悬浮选择器必须是 `:hover:not(:disabled):not(:checked)`（Checkbox 还要加 `:not(:indeterminate)`），否则会在实心块上出现一圈亮边。
 
 **表面归属**：写样式前先确认这个组件**是否该自带表面**，两类组件的结论相反：
 
@@ -372,6 +395,7 @@ background: #8b4df6;
 | 占位/弱化文本 | `--aeterni-state-color-placeholder`、`--aeterni-state-color-muted` |
 | 反色内容 | `--aeterni-state-color-inverse`、`--aeterni-state-background-inverse` |
 | 品牌动作 | `--aeterni-color-brand-default`、`--aeterni-color-brand-hover`、`--aeterni-color-brand-active`、`--aeterni-color-brand-disabled`、`--aeterni-color-brand-soft` |
+| 焦点环与链接 | `--aeterni-focus-color`、`--aeterni-state-color-focus`、`--aeterni-state-border-focus`、`--aeterni-text-link` |
 | 状态反馈 | `--aeterni-color-success-*`、`--aeterni-color-warning-*`、`--aeterni-color-danger-*`、`--aeterni-color-info-*`、`--aeterni-color-neutral-*` |
 
 每个颜色族都提供 `default`、`hover`、`active`、`disabled` 状态前景/边框别名，并提供 `soft` 柔和背景别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-hover` 和 `--aeterni-color-info-soft`。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
@@ -393,10 +417,10 @@ background: #8b4df6;
 - 每族必须提供三种形态，缺一就会出现对比度问题：
   | 形态 | Token | 用途 |
   | --- | --- | --- |
-  | 填充 | `--aeterni-color-{role}-default`（500 档） | 实心按钮、开关轨道、选中指示、通知卡片底色/徽标底/进度环 |
+  | 填充 | `--aeterni-color-{role}-default`（500 档） | 品牌/语意实心按钮、通知卡片底色/徽标底/进度环 |
   | 文字/描边 | `--aeterni-color-{role}-text` | 描边/文字变体的文字与边框、图标 |
-  | 柔和底 | `--aeterni-color-{role}-soft` | 选中态、Tag/Alert 底色 |
-  直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
+  | 柔和底 | `--aeterni-color-{role}-soft` | Tag/Alert 底色 |
+  开关轨道与选中指示**不再**取填充档：它们是选择态而不是身份面，走 `--aeterni-state-background-checked`（中性墨），见 §5.3「品牌色面积」。直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
 - **每个色相层都要按本节配方完整重建**：新增品牌色相时不能只替换 500 档，也不能照抄另一色相的档位——各档明度与 `-text` 停靠档必须按该色相自身重挑，但浅端仍统一到 L 0.976、深端统一到 L 0.30，chroma 仍在中档收敛。
 - **chroma 剖面必须用绝对值，不能套用「占本色相色域宽度的比例」**：sRGB 色域宽度随色相与明度变化，绿色在 L 0.85 附近最宽（maxC ≈ 0.27），紫色恰好相反——L 0.57 附近 ≈ 0.27，到 L 0.85 只剩 ≈ 0.08。按相对比例迁移会把绿色的峰值挤到浅档并产出荧光绿（`#AEFDAB`）。正确做法是把源色相的**绝对 chroma 剖面**归一化到 500 档峰值后套用，紫罗兰即为 `50:0.081, 100:0.183, 200:0.355, 300:0.565, 400:0.807, 500:1.0, 600:0.941, 700:0.812, 800:0.656, 900:0.522`。
 - **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色锚在 L 0.552（外部参考绿 `#1F883D`）时承白字 4.52:1，刚好过 4.5:1 线。**余量低于 1.1× 的锚点必须显式记账**：绿色 500 当前的 1.004× 就是全库最紧的一条对比度门禁，任何进一步提亮、提高 chroma 或改动语义停靠档都会击穿它；换锚点或新增色相层时把门禁集合重跑一遍，并把新的最紧余量写进注释与 roadmap。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。
@@ -415,7 +439,7 @@ background: #8b4df6;
 
   用不透明度的另一个好处是文字会随所在表面自动调和（着色 chip、hover 底、毛玻璃层），不需要为每个表面另写一个 hex。
 - **结构分隔线用 `--aeterni-separator`**（不透明，浅色 1.7:1 / 深色 1.5:1），不用 7% alpha 的 `--aeterni-border-subtle`：后者在卡片头/底分界上看起来像一片污渍。
-- `--aeterni-bg-hover` 与 `--aeterni-bg-active` 是**交互态别名**（有意带品牌色），不属于上面的「中性容器背景」；组件一律使用 `--aeterni-state-background-*`。
+- `--aeterni-bg-hover` 与 `--aeterni-bg-active` 是中性 overlay 的**别名**（`--aeterni-surface-hover` / `--aeterni-surface-active`）；组件一律使用 `--aeterni-state-background-*`，不要直接消费这两个别名。
 - **实心填充的字色由填充明度决定**：深档填充（品牌）配 `--aeterni-text-inverse`，亮档填充（success/warning/danger/info）配 `--aeterni-color-on-semantic`。同一控件在 base/hover/active 三个状态必须保持同一字色，否则很容易掉到 4.5:1 以下；品牌填充向下取档，语意填充向白提亮 12%。
 - **浅底深字**：带色 chip（Tag）必须用「浅色调底 + 深色文字」，文字由强调色与正文字色按约 1:1 混合得到；只用两成墨色会让 chip 文字掉到 3:1 以下。
 
@@ -683,6 +707,8 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 
 `Brand` 与明暗是两个正交维度：明暗决定取色阶的哪几档，品牌决定用哪条色阶。品牌变化不影响 `Mode` 或 `CurrentTheme`，因此必须走独立的 `BrandChanged` 事件，不能复用 `ThemeChanged`——后者会触发系统偏好的重新解析，而品牌切换与系统偏好无关。
 
+品牌色层只负责**身份面**换色（品牌填充、强调文字形态、链接、焦点环），选择态与悬浮/按下状态走 §5.3 的中性状态层，因此 `BrandChanged` 不需要驱动任何选择态重绘。宿主想恢复品牌化选中态时，不要改组件，在自己的样式表里重写 `--aeterni-state-background-checked` 等状态 Token 即可。
+
 ### 9.2 组件约束
 
 组件不得：
@@ -856,6 +882,8 @@ Sample/
 - [ ] 变体和状态 class 命名统一。
 - [ ] 主题颜色使用 `--aeterni-*` Token。
 - [ ] 填充档只用于实心表面；ink 与需与浅色轨道/页面区分的实心图形用文字形态。
+- [ ] 已按 §5.3「品牌色面积」确认过品牌色的用法：选择态用中性状态层，品牌只出现在身份面与焦点环。
+- [ ] 已勾选控件的悬浮选择器排除了 `:checked`（按需排除 `:indeterminate`），不会在实心块上压出亮边。
 - [ ] 容器背景是无色的（R = G = B，深色 ≤ +3）。
 - [ ] 文字只用 `primary` / `secondary` / `placeholder` / `disabled`；`tertiary` 只用于图标与装饰。
 - [ ] 尺寸只用 `--aeterni-spacing-*`，不用 gap/padding/margin 别名。
