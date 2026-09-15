@@ -430,25 +430,33 @@
 
 /* Green hue layer. Built with the purple recipe above (same relative dL steps
    anchored at 500, same chroma profile shape peaking at 500, same sub-degree
-   light-end hue drift), but its 500 stop sits lower on the lightness axis:
-   chromatic green gains luminance with chroma while violet loses it, so a green
-   at purple's L 0.565 reaches only 4.3:1 against white. L 0.517 is the anchor
-   that keeps the solid brand fill legible under white (5.27:1) without pushing
-   the dark stops below the 4.5:1 text requirement.
-   Peak chroma is 0.132 — 78% of the sRGB gamut at that lightness, against
-   purple's 70% at its own 500 — and it stays clear of the semantic
-   `success` token (ΔE 22 in OKLab). */
+   light-end hue drift), but its 500 anchor is an external reference green
+   (#1F883D, L 0.552 / C 0.145) rather than purple's own L 0.565: chromatic green
+   gains luminance with chroma while violet loses it, so a green at purple's
+   lightness reaches only 4.3:1 against white when its chroma goes up.
+   The reference anchor is the tightest gate of the whole brand set at 4.52:1
+   against white — still over the 4.5:1 body-text requirement, but with almost
+   no headroom, so the 600/700 stops that carry light-mode `brand-text` and
+   `text-link` stay deliberately lower (6.17:1 / 8.09:1 on white). Re-anchoring
+   here is a deliberate brightness choice: the previous muted 500 (#2B7B33,
+   L 0.517) left a 1.17x margin, this one leaves 1.004x.
+   Peak chroma is 0.145, up from 0.132, and it stays clear of the semantic
+   `success` token (ΔE 18.5 in OKLab).
+   The dark stops gain the same brightness without spending the same headroom:
+   dark brand text/link sit on the 300/400 stops against the dark page, so the
+   tightest dark gate is 5.95:1 (margin 1.323) — looser than the previous muted
+   palette. The 4.52:1 light-mode fill is the only near-limit gate in the set. */
 [data-aeterni-brand="green"] {
-    --aeterni-brand-50: #E2E7E1;
-    --aeterni-brand-100: #D0DED0;
-    --aeterni-brand-200: #B4CFB4;
-    --aeterni-brand-300: #8CB68D;
-    --aeterni-brand-400: #5E9A60;
-    --aeterni-brand-500: #2B7B33;
-    --aeterni-brand-600: #196522;
-    --aeterni-brand-700: #11511A;
-    --aeterni-brand-800: #0F3F14;
-    --aeterni-brand-900: #0B2E0E;
+    --aeterni-brand-50: #ECF3ED;
+    --aeterni-brand-100: #DAEADB;
+    --aeterni-brand-200: #BCDBBF;
+    --aeterni-brand-300: #90C397;
+    --aeterni-brand-400: #5DA76A;
+    --aeterni-brand-500: #1F883D;
+    --aeterni-brand-600: #05712C;
+    --aeterni-brand-700: #045D23;
+    --aeterni-brand-800: #0B4A1E;
+    --aeterni-brand-900: #0B3817;
 }
 
 /* 02. Light semantic theme */
