@@ -396,11 +396,26 @@
 
 /* --------------------------------------------------------------------------
    Theme primitives and semantic foundation
-   Brand primitives are global; light and dark themes use the same token order.
+   Brand palettes are a hue layer that sits *below* light/dark; light and dark
+   themes use the same token order.
    -------------------------------------------------------------------------- */
 
-/* 01. Brand primitives — unchanged across color modes */
-:root {
+/* 01. Brand palette — the hue layer, deliberately independent of color mode.
+   Only the 50..900 scale is declared here. Every semantic brand alias further
+   down derives from it, so repointing the scale re-tints fills, text, focus
+   rings and interaction states at once and no semantic alias has to change.
+
+   The attribute must sit on the same element as the theme attribute (`<html>`),
+   because each semantic alias resolves `var(--aeterni-brand-*)` on the element
+   that declares it: a palette set lower in the tree would never reach them.
+
+   `:root` carries the default palette, so hosts that never opt in keep purple;
+   naming `purple` explicitly is then an exact no-op alias that also documents
+   the attribute's valid values. A host adds its own palette by declaring a
+   `[data-aeterni-brand="…"]` block after this file, or by repointing
+   `--aeterni-brand-*` on `:root` for a single one-off brand. */
+:root,
+[data-aeterni-brand="purple"] {
     --aeterni-brand-50: #F5F4FF;
     --aeterni-brand-100: #E8E6FF;
     --aeterni-brand-200: #D4CFFF;
