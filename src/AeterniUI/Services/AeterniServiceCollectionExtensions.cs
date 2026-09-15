@@ -22,6 +22,11 @@ public static class AeterniServiceCollectionExtensions
             throw new ArgumentOutOfRangeException(nameof(options.DefaultAlertPosition));
         }
 
+        if (!Enum.IsDefined(options.DefaultBrand))
+        {
+            throw new ArgumentOutOfRangeException(nameof(options.DefaultBrand));
+        }
+
         if (options.MaxToastCount <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options.MaxToastCount));

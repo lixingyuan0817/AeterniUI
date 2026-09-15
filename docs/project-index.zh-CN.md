@@ -112,10 +112,10 @@ Components/<Component>/
 
 - [`src/AeterniUI/Components/AeterniComponent.cs`](../src/AeterniUI/Components/AeterniComponent.cs)：所有组件的基类和公共生命周期。
 - [`src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs`](../src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs)：服务注册入口 `AddAeterniUI()`，同时校验并注册 `AeterniUIOptions`。
-- [`src/AeterniUI/Services/AeterniUIOptions.cs`](../src/AeterniUI/Services/AeterniUIOptions.cs)：弹层默认值与文案表入口。
+- [`src/AeterniUI/Services/AeterniUIOptions.cs`](../src/AeterniUI/Services/AeterniUIOptions.cs)：弹层默认值、默认品牌色层与文案表入口。
 - [`src/AeterniUI/Services/AeterniUITextOptions.cs`](../src/AeterniUI/Services/AeterniUITextOptions.cs)：库内用户可见文案的集中定义与覆写入口。
 - [`src/AeterniUI/Components/ComponentClass.cs`](../src/AeterniUI/Components/ComponentClass.cs)：尺寸、语意色与 Severity 到 CSS 修饰类的唯一映射。
-- [`src/AeterniUI/Services/Impl/ThemeService.cs`](../src/AeterniUI/Services/Impl/ThemeService.cs)：主题模式和实际主题状态。
+- [`src/AeterniUI/Services/Impl/ThemeService.cs`](../src/AeterniUI/Services/Impl/ThemeService.cs)：主题模式、实际主题与品牌色层状态。
 - [`src/AeterniUI/Services/Impl/DialogService.cs`](../src/AeterniUI/Services/Impl/DialogService.cs)：Dialog、Confirm、Alert 和 Toast 状态管理。
 - [`src/AeterniUI/Services/Impl/JsModuleManager.cs`](../src/AeterniUI/Services/Impl/JsModuleManager.cs)：组件 JS module 的扫描、加载、调用和释放。
 - [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover、Drawer 和 DialogProvider 导入。
@@ -199,8 +199,8 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ### 服务模块
 
-- `AeterniUIOptions`：Toast/Alert 默认位置、数量和时长。
-- `ThemeService`：`System`、`Light`、`Dark` 模式和当前实际主题。
+- `AeterniUIOptions`：Toast/Alert 默认位置、数量和时长，以及首访默认品牌色层。
+- `ThemeService`：`System`、`Light`、`Dark` 模式、当前实际主题，以及 `Purple`／`Green` 品牌色层。
 - `JsModuleManager`：按组件实例管理模块加载与释放。
 - `DialogService` / `IDialogService`：业务代码使用的弹层和通知 API。
 

@@ -261,7 +261,7 @@
     display: grid;
     place-items: center;
     min-height: 96px;
-    color: var(--aeterni-brand-600);
+    color: var(--aeterni-color-brand-text);
 }
 
 .preview-form-control {

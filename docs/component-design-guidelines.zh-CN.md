@@ -672,12 +672,15 @@ Tauri 能力必须是可选的：
 
 ### 9.1 状态定义
 
-主题服务中的两个概念必须区分：
+主题服务中的三个概念必须区分：
 
 - `Mode`：用户选择的来源，`System`、`Light` 或 `Dark`。
 - `CurrentTheme`：当前实际生效的主题，类型为 `ThemeKind`（`Light` 或 `Dark`）。
+- `Brand`：当前品牌色层，类型为 `ThemeBrand`（`Purple` 或 `Green`）。
 
 System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式下，`CurrentTheme` 由用户选择决定。
+
+`Brand` 与明暗是两个正交维度：明暗决定取色阶的哪几档，品牌决定用哪条色阶。品牌变化不影响 `Mode` 或 `CurrentTheme`，因此必须走独立的 `BrandChanged` 事件，不能复用 `ThemeChanged`——后者会触发系统偏好的重新解析，而品牌切换与系统偏好无关。
 
 ### 9.2 组件约束
 
@@ -685,10 +688,11 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 
 - 自己读取操作系统主题。
 - 自己修改 `data-theme`。
+- 自己修改 `data-aeterni-brand`。
 - 自己操作 titlebar 主题。
 - 直接调用 `ThemeProvider` 的内部 JS module。
 
-组件只需要消费语义 Token，或者订阅 `ThemeService.ThemeChanged` 来刷新组件自身的展示状态。
+组件只需要消费语义 Token，或者订阅 `ThemeService.ThemeChanged` / `ThemeService.BrandChanged` 来刷新组件自身的展示状态。
 
 ### 9.3 ThemeProvider
 
@@ -701,17 +705,17 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 
 它负责：
 
-- 订阅 `ThemeService`。
+- 订阅 `ThemeService` 的明暗与品牌两个维度。
 - 初始化页面主题。
 - 监听系统主题变化。
-- 应用网页主题和 Tauri 原生主题。
+- 应用网页主题、品牌色层和 Tauri 原生主题。
 - 释放 JS 监听和对象引用。
 
 它不包裹 Layout，也不承担业务布局职责。
 
-`ThemeProvider` **不渲染 DOM**：主题通过 JS module 写到 `<html>` 的 `data-theme` / `data-aeterni-mode` 上，因此基类提供的 `Id`、`Class`、`Style`、`Visible` 对它是无效参数，文档中必须这样说明，不能暗示它支持 DOM 参数。
+`ThemeProvider` **不渲染 DOM**：主题通过 JS module 写到 `<html>` 的 `data-theme` / `data-aeterni-mode` / `data-aeterni-brand` 上，因此基类提供的 `Id`、`Class`、`Style`、`Visible` 对它是无效参数，文档中必须这样说明，不能暗示它支持 DOM 参数。
 
-为避免首帧主题闪烁，宿主应在样式表之前放一段预渲染脚本（读取 `aeterni.theme.mode` 与 `prefers-color-scheme` 并写入 `<html data-theme>`）。样式表本身也提供 `prefers-color-scheme: dark` 兜底：只有在没有显式主题属性时才生效。
+为避免首帧闪烁，宿主应在样式表之前放一段预渲染脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，并写入 `<html>` 的 `data-theme` 与 `data-aeterni-brand`）。样式表本身也提供 `prefers-color-scheme: dark` 兜底：只有在没有显式主题属性时才生效；品牌没有等价的 CSS 兜底，因为 `:root` 上的默认色板就是回退。脚本读不到 `AeterniUIOptions.DefaultBrand`，所以它的品牌回退字面量必须与该选项保持一致；品牌存储值非法时属性会匹配不到任何色相层而回落到 `:root`，页面保持默认品牌而不是丢掉品牌色，因此非法值不需要在脚本里额外过滤。
 
 ### 9.4 DialogProvider 和 IDialogService
 

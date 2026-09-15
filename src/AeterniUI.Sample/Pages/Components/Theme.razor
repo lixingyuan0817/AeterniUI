@@ -12,14 +12,14 @@
                   Category="主题组件"
                   Title="ThemeProvider + ThemeSwitch"
                   ComponentName="ThemeProvider / ThemeSwitch"
-                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换。"
+                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换，ThemeService 另行维护品牌色层。"
                   Parameters="@ThemeParameters"
                   Events="@ThemeEvents"
                   Contracts="@ThemeContracts">
     <Preview>
         <div class="preview-stack">
             <ThemeSwitch Size="@_themeSwitchSize" AriaLabel="预览主题模式" ModeChanged="HandleThemeModeChanged" />
-            <span class="preview-feedback" role="status">当前模式：@ModeText(ThemeService.Mode) · 实际主题：@(ThemeService.IsDark ? "深色" : "浅色")</span>
+            <span class="preview-feedback" role="status">当前模式：@ModeText(ThemeService.Mode) · 实际主题：@(ThemeService.IsDark ? "深色" : "浅色") · 品牌：@BrandText(ThemeService.Brand)</span>
         </div>
     </Preview>
     <Controls>
@@ -27,9 +27,13 @@
             <span>ThemeSwitch Size</span>
             <ShowcaseSelect TValue="Size" Id="theme-size" AriaLabel="ThemeSwitch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_themeSwitchSize" />
         </div>
+        <div class="control-field">
+            <span>品牌色</span>
+            <ShowcaseSelect TValue="ThemeBrand" Id="theme-brand" AriaLabel="品牌色" Options="@(Enum.GetValues<ThemeBrand>())" Value="@ThemeService.Brand" ValueChanged="HandleBrandChanged" />
+        </div>
     </Controls>
     <Notes>
-        <span>页面根部已经注册一个 <code>&lt;ThemeProvider /&gt;</code>；示例只调整现有 ThemeService，不直接修改 <code>data-theme</code>。</span>
+        <span>页面根部已经注册一个 <code>&lt;ThemeProvider /&gt;</code>；示例只调整现有 ThemeService，不直接修改 <code>data-theme</code> 或 <code>data-aeterni-brand</code>。品牌切换与明暗切换互相独立，两者都写在同一组语义 Token 上，所以任何组件都会自动跟随，无需逐个适配。</span>
     </Notes>
 </ComponentPreview>
 
@@ -45,10 +49,18 @@
     ];
 
     private static readonly ShowcaseEvent[] ThemeEvents =
-    [new("ModeChanged", "EventCallback<ThemeMode>", "主题模式被用户切换时触发。")];
+    [
+        new("ModeChanged", "EventCallback<ThemeMode>", "主题模式被用户切换时触发。"),
+        new("ThemeService.BrandChanged", "event EventHandler", "品牌色层变化时触发。")
+    ];
 
     private static readonly ShowcaseContract[] ThemeContracts =
-    [new("ThemeService", "服务", "维护 System、Light、Dark 模式与当前实际主题。")];
+    [
+        new("ThemeService.Mode", "ThemeMode", "System、Light、Dark 三种模式。"),
+        new("ThemeService.CurrentTheme", "ThemeKind", "实际生效的浅色 / 深色。"),
+        new("ThemeService.Brand", "ThemeBrand", "当前品牌色层，默认 Purple。"),
+        new("ThemeService.SetBrand", "方法", "切换品牌色层，落为 <html> 上的 data-aeterni-brand。")
+    ];
 
     private static string ModeText(ThemeMode mode) => mode switch
     {
@@ -57,9 +69,22 @@
         _ => "深色"
     };
 
+    private static string BrandText(ThemeBrand brand) => brand switch
+    {
+        ThemeBrand.Green => "绿色",
+        _ => "紫罗兰"
+    };
+
     private async Task HandleThemeModeChanged(ThemeMode mode)
     {
         _feedbackNote = $"主题模式已切换为 {ModeText(mode)}。";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleBrandChanged(ThemeBrand brand)
+    {
+        ThemeService.SetBrand(brand);
+        _feedbackNote = $"品牌色已切换为{BrandText(brand)}。";
         await InvokeAsync(StateHasChanged);
     }
 }

@@ -52,7 +52,7 @@
 - 品牌色是紫罗兰色系（浅色主题 `--aeterni-brand-500` = `#795AD9`，深色主题取 `--aeterni-brand-400` = `#9985ED`），峰值 chroma 从 0.237 降到 0.186、色相漂移从 7.8° 收到 1.7°，去掉了原来的荧光感。
 - 品牌色阶是一个独立色相层，与明暗层正交：默认紫罗兰色板声明在 `:root` 上，显式 `[data-aeterni-brand="purple"]` 与之逐字节等价；宿主可在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900`，色阶一变，品牌填充、强调文字、链接、焦点环以及悬浮/按下/选中状态同时换色，语义别名与组件都不需要改动。该属性必须与 `data-theme` 同元素（`<html>`），因为语义别名在声明元素上解析色阶。
 - 除默认紫罗兰外，色相层已交付第二套绿色板 `[data-aeterni-brand="green"]`：色阶同样按 OKLCH 从 50 到 900 完整重建，但 500 档明度比紫罗兰更低（L 0.517 对 0.565），因为绿色提高 chroma 会抬高明度、同一明度下承白字只有 4.3:1，压到 0.517 后是 5.27:1 且不牺牲深档文字对比度。两套板在浅色、深色与系统深色下都通过全部对比度门禁，语义停靠档（浅色 500/600/700、深色 400/300/200）自动跟随切换。
-- 品牌切换目前只有色相层这一半：由宿主自行在 `<html>` 上设置 `data-aeterni-brand`。`ThemeService` 的品牌维度、`ThemeProvider` 的属性落盘与示例宿主的品牌控件尚未提供（见路线图）。
+- 品牌色层可由 `ThemeService` 在运行时切换：`Brand` 的类型是 `ThemeBrand`（`Purple` / `Green`），`SetBrand` 校验枚举并落为 `<html>` 上的 `data-aeterni-brand`，`SetPurple()` / `SetGreen()` 是对应的便捷方法。品牌与明暗是两个正交维度，切换品牌不会改动 `Mode` 或 `CurrentTheme`，因此品牌变化走独立的 `BrandChanged` 事件，不会重复解析系统偏好。首次访问的默认品牌由 `AeterniUIOptions.DefaultBrand` 决定（默认 `Purple`）。
 - 语意色沿用 Apple 系统色：浅色 500 档为 `#34C759` / `#FF9500` / `#FF3B30` / `#007AFF` / `#8E8E93`，深色默认值为 `#30D158` / `#FF9F0A` / `#FF453A` / `#0A84FF` / `#8E8E93`。色阶以 500 档为锚点按 OKLCH 重建：浅端统一到 L 0.976、深端统一到 L 0.30，中间的 chroma 凹形收敛，因此保住了 Apple 的观感，同时消除了原有的 `Info` 400→500 明度断层（0.111）与色相漂移（254°→265°）。
 - 中性色采用「无色容器 + 单墨色文字」的 Apple label 模型：
   - **容器表面一律无色**（浅色 `#F7F7F7 / #F0F0F0 / #E8E8E8`，R = G = B；深色统一 +3 冷偏移 `#101013 / #17171A / #202023 / #1A1A1D`）。容器带 +2 以上的彩偏移在大面积上会被读成品牌色底，磨砂层的 `saturate()` 还会放大它。
@@ -83,12 +83,14 @@
 - `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
 - `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题和 Tauri titlebar 主题。
 - `ThemeProvider` 不渲染 DOM：基类的 `Id`、`Class`、`Style` 和 `Visible` 对它无效，主题只写到 `<html>` 上。
-- 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode` 与 `prefers-color-scheme`，写入 `data-theme`），否则深色偏好用户会在 Blazor 启动前看到浅色；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。
+- 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`），否则深色偏好用户或非默认品牌用户会在 Blazor 启动前看到一帧浅色或紫罗兰；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。该脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 保持一致，脚本读不到 .NET 选项，不一致就表现为一帧闪烁。
 - 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
+- 品牌色层通过 `<html data-aeterni-brand>` 输出，与明暗维度同一元素；切换品牌会复用主题切换的过渡动画（`aeterni-theme-transitioning`）。
+- 主题模式与品牌色层分别在 `localStorage` 的 `aeterni.theme.mode` 和 `aeterni.theme.brand` 下持久化，两个键互相独立：清除其中一个不会重置另一个。
 - 主题切换包含过渡动画，并适配 reduced-motion 场景。
 
-- `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`），表示实际生效的主题。
+- `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`），表示实际生效的主题。`ThemeService.Brand` 的类型是 `ThemeBrand`（`Purple` / `Green`），不属于 `ThemeMode` 的取值空间。
 ## 4. Button
 
 ### 支持能力
@@ -572,6 +574,36 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
 
+### 品牌色层
+
+品牌与明暗是两个正交维度：明暗决定用色阶的哪几档，品牌决定用哪条色阶。切换品牌同样经过 `ThemeService`：
+
+```razor
+@inject ThemeService ThemeService
+
+<Button OnClick="@ThemeService.SetGreen">绿色</Button>
+<Button OnClick="@ThemeService.SetPurple">紫罗兰</Button>
+```
+
+`SetBrand(ThemeBrand)` 会校验枚举值，非法值抛 `ArgumentOutOfRangeException`；同值调用不重复触发事件。品牌变化后 `ThemeProvider` 把 `data-aeterni-brand` 写到 `<html>` 并持久化到 `aeterni.theme.brand`，语义别名随之整体换色，组件层无需任何改动。
+
+首次访问的默认品牌来自 `AeterniUIOptions.DefaultBrand`：
+
+```csharp
+builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green);
+```
+
+宿主要自定义第三套品牌色，只需在库样式表之后追加自己的色相层，不需要改 C#：
+
+```css
+[data-aeterni-brand="teal"] {
+    --aeterni-brand-500: #0F766E;
+    /* …其余档位… */
+}
+```
+
+此时 `ThemeService.SetBrand` 不接受未在 `ThemeBrand` 中枚举的值，需要宿主自行调用 JS 写入属性，或提交新的枚举项。
+
 ### 实现边界
 
 系统主题跟随依赖浏览器 `matchMedia`；Tauri 窗口主题由 `src-tauri` 宿主同步，浏览器中没有 Tauri API 时自动降级。
@@ -870,7 +902,7 @@ builder.Services.AddAeterniUI();
 
 注册内容包括：
 
-- `AeterniUIOptions`（含 `Text` 文案表）。
+- `AeterniUIOptions`（含 `Text` 文案表、`DefaultBrand` 品牌默认值）。
 - `JsModuleManager`。
 - `ThemeService`。
 - `DialogService`。
