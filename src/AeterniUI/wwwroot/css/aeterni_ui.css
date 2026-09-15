@@ -371,7 +371,9 @@
     --aeterni-opacity-muted: .68;
     --aeterni-focus-width: 3px;
     --aeterni-focus-offset: 2px;
-    --aeterni-focus-color: rgba(139, 77, 246, .24);
+    /* Fallback only: every theme block below re-declares this from the brand
+       scale, so the value stays hue-agnostic here as well. */
+    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-brand-500) 24%, transparent);
     --aeterni-text-xs: var(--aeterni-font-size-xs);
     --aeterni-text-sm: var(--aeterni-font-size-sm);
     --aeterni-text-md: var(--aeterni-font-size-md);
@@ -440,9 +442,11 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    --aeterni-surface-hover: rgba(121, 90, 217, .09);
-    --aeterni-surface-active: rgba(121, 90, 217, .15);
-    --aeterni-surface-selected: rgba(121, 90, 217, .13);
+    /* Mixed from the brand scale instead of a literal hue, so replacing the
+       brand palette re-tints every hover/pressed/selected state. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 13%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .42);
     /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
        level on the same hue, and because the levels are translucent they also adapt
@@ -652,9 +656,11 @@
     --aeterni-bg-active: var(--aeterni-surface-active);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    --aeterni-surface-hover: rgba(153, 133, 237, .12);
-    --aeterni-surface-active: rgba(153, 133, 237, .19);
-    --aeterni-surface-selected: rgba(121, 90, 217, .18);
+    /* Same brand-scale derivation as the light theme: the dark states ride the
+       lighter 400 stop, while `selected` keeps the 500 stop in both themes. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .64);
     --aeterni-text: rgba(255, 255, 255, .86);
     --aeterni-text-primary: var(--aeterni-text);
@@ -824,9 +830,9 @@
         --aeterni-bg-active: var(--aeterni-surface-active);
         --aeterni-bg-disabled: var(--aeterni-bg-secondary);
         --aeterni-surface-soft: rgba(255, 255, 255, .045);
-        --aeterni-surface-hover: rgba(153, 133, 237, .12);
-        --aeterni-surface-active: rgba(153, 133, 237, .19);
-        --aeterni-surface-selected: rgba(121, 90, 217, .18);
+        --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+        --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+        --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
         --aeterni-overlay: rgba(0, 0, 0, .64);
         --aeterni-text: rgba(255, 255, 255, .86);
         --aeterni-text-primary: var(--aeterni-text);
