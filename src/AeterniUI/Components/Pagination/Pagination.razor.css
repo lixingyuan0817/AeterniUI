@@ -3,6 +3,10 @@
 .aeterni-pagination button:hover:not(:disabled) { background: var(--aeterni-state-background-hover); color: var(--aeterni-text-primary); }
 .aeterni-pagination button:focus-visible { outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color); outline-offset: var(--aeterni-focus-offset); }
 .aeterni-pagination button.is-current { background: var(--aeterni-state-background-checked); color: var(--aeterni-text-inverse); transform: scale(1.03); }
+/* The current page keeps its fill under the pointer and only steps the fill, so
+   the inverse ink never lands on the translucent hover wash. */
+.aeterni-pagination button.is-current:hover:not(:disabled) { background: var(--aeterni-state-background-checked-hover); color: var(--aeterni-text-inverse); }
+.aeterni-pagination button.is-current:active:not(:disabled) { background: var(--aeterni-state-background-checked-active); color: var(--aeterni-text-inverse); }
 .aeterni-pagination button:disabled { color: var(--aeterni-text-disabled); cursor: not-allowed; }
 .aeterni-pagination__ellipsis { display: inline-grid; place-items: center; min-width: var(--aeterni-control-height-sm); height: var(--aeterni-control-height-sm); color: var(--aeterni-text-tertiary); transition: color var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 

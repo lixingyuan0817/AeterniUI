@@ -79,9 +79,15 @@
     outline-offset: calc(var(--aeterni-focus-offset) * -1);
 }
 
-/* Selection is hueless: both the label and the underline use the neutral accent,
-   so the strip reads the same in every brand. */
 .aeterni-tabs__tab[aria-selected="true"] {
+    color: var(--aeterni-state-color-selected);
+}
+
+/* A selected tab keeps its brand ink under the pointer: the plain hover ink is
+   the neutral primary label, which would drop the selection cue the underline
+   is carrying. */
+.aeterni-tabs__tab[aria-selected="true"]:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
     color: var(--aeterni-state-color-selected);
 }
 

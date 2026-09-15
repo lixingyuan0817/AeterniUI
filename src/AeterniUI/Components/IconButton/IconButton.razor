@@ -26,7 +26,7 @@
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-icon-button")
-        .Add($"aeterni-button--{VariantClass}")
+        .Add($"aeterni-icon-button--{VariantClass}")
         .Add(IntentClass)
         .Add(SizeClass)
         .Add("is-loading", Loading)
@@ -65,10 +65,10 @@
 
     private string IntentClass => Intent switch
     {
-        ButtonIntent.Neutral => "aeterni-button--neutral",
-        ButtonIntent.Warning => "aeterni-button--warning",
-        ButtonIntent.Danger => "aeterni-button--danger",
-        _ => "aeterni-button--default"
+        ButtonIntent.Neutral => "aeterni-icon-button--neutral",
+        ButtonIntent.Warning => "aeterni-icon-button--warning",
+        ButtonIntent.Danger => "aeterni-icon-button--danger",
+        _ => "aeterni-icon-button--default"
     };
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-icon-button", Size);

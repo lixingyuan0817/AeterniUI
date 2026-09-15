@@ -112,7 +112,7 @@
     color: var(--aeterni-text-primary);
 }
 
-/* The selected label sits on the accent pill, so it keeps the inverse ink and does
+/* The selected label sits on the brand pill, so it keeps the inverse ink and does
    not pick up the hover surface (the pill already is the hover feedback). */
 .aeterni-segmented__option.is-selected,
 .aeterni-segmented__option.is-selected:hover {
@@ -132,9 +132,9 @@
     cursor: not-allowed;
 }
 
-/* A disabled option that is also the current value still sits on the accent pill, so
+/* A disabled option that is also the current value still sits on the brand pill, so
    it keeps the inverse ink: the value is selected, it just cannot be moved away
-   from, and grey-on-accent would be unreadable. */
+   from, and grey-on-brand would be unreadable. */
 .aeterni-segmented__option.is-selected .aeterni-segmented__input:disabled + .aeterni-segmented__label {
     color: var(--aeterni-text-inverse);
 }

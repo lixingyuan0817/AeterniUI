@@ -186,6 +186,12 @@
     font-weight: var(--aeterni-font-weight-medium);
 }
 
+/* Keyboard cursor climbing onto the selected option: the selection fill would
+   otherwise hide it, so the cursor steps the fill one level deeper. */
+.aeterni-combobox__option.is-selected.is-active {
+    background: var(--aeterni-state-background-active);
+}
+
 /* Options are non-focusable elements inside a select-only combobox: focus stays
    on the trigger and the active option is reported with aria-activedescendant,
    so `.is-active` (not `:focus-visible`) carries the keyboard cue. */

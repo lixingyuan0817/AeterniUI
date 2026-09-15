@@ -67,10 +67,32 @@
     transform: scale(1);
 }
 
-/* Hover only lifts the ring of an unchecked control; a checked one already sits
-   on the strongest accent stop, so the hover border would pale it. */
-.aeterni-radio__input:hover:not(:disabled):not(:checked) + .aeterni-radio__control {
+/* Hover and press walk the brand ramp, and an invalid control is scoped out so
+   a pointer never repaints the danger colour (see Checkbox for the rationale). */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled) + .aeterni-radio__control {
     border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-active);
+}
+
+/* A selected radio is a ring plus a dot, so both halves step together or the
+   ornament would read as two different brand shades. */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-radio__input:focus-visible + .aeterni-radio__control {

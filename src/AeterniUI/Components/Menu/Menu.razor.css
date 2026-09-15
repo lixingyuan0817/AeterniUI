@@ -82,6 +82,19 @@
     box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
 }
 
+/* The selected row owns its fill and its brand ink: the generic hover would paint
+   the lighter hover wash over the selection and swap the label back to neutral
+   primary. Hover holds the row still and press steps the fill, so the row still
+   answers the pointer without giving up the selection. */
+.aeterni-menu__item.is-selected:hover:not(:disabled) {
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.aeterni-menu__item.is-selected:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
 .aeterni-menu__item.is-selected .aeterni-menu__icon {
     color: var(--aeterni-state-color-selected);
 }

@@ -87,11 +87,29 @@
     background: var(--aeterni-text-inverse);
 }
 
-/* Hover only steps the border of an unchecked box: a checked box is already
-   filled with the strongest accent the theme has, so a lighter border stop on
-   top of it would read as a bright rim. */
-.aeterni-checkbox__input:hover:not(:disabled):not(:checked):not(:indeterminate) + .aeterni-checkbox__control {
+/* Hover and press walk the brand ramp: an empty box answers with its border
+   alone, while a checked or indeterminate box is a filled chip whose whole
+   surface steps one shade and keeps the inverse check mark legible on every
+   step. Invalid controls are scoped out so a pointer never repaints the danger
+   colour the error state is communicating. */
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:hover:not(:disabled) + .aeterni-checkbox__control {
     border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:active:not(:disabled) + .aeterni-checkbox__control {
+    border-color: var(--aeterni-state-border-active);
+}
+
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:hover:not(:disabled):checked + .aeterni-checkbox__control,
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:hover:not(:disabled):indeterminate + .aeterni-checkbox__control {
+    border-color: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:active:not(:disabled):checked + .aeterni-checkbox__control,
+.aeterni-checkbox:not(.is-invalid) .aeterni-checkbox__input:active:not(:disabled):indeterminate + .aeterni-checkbox__control {
+    border-color: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-checkbox__input:focus-visible + .aeterni-checkbox__control {
