@@ -50,4 +50,6 @@ geometry.
 
 The adapter emits no Font Awesome CSS, web fonts, or JavaScript runtime, and the
 core library never depends on an icon vendor. See `THIRD-PARTY-NOTICES.md` for
-license information.
+license information. The adapter's own source code is released under the
+MIT License; the included Font Awesome icon path data remains subject to the
+Font Awesome Free terms described in `THIRD-PARTY-NOTICES.md`.
