@@ -37,6 +37,9 @@ jobs:
       - name: CSS comment check
         run: node scripts/check-css-comments.mjs
 
+      - name: Brand palette contrast check
+        run: node scripts/check-contrast.mjs
+
       - name: Token file must not contain component rules
         shell: bash
         run: |

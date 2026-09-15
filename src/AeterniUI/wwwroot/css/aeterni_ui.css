@@ -413,7 +413,13 @@
    naming `purple` explicitly is then an exact no-op alias that also documents
    the attribute's valid values. A host adds its own palette by declaring a
    `[data-aeterni-brand="…"]` block after this file, or by repointing
-   `--aeterni-brand-*` on `:root` for a single one-off brand. */
+   `--aeterni-brand-*` on `:root` for a single one-off brand.
+
+   The 500 stop carries the solid fill, so it is the palette's real contrast
+   budget: purple keeps 4.91:1 against the inverse text, a 1.09x margin over the
+   4.5:1 body-text floor. That is thin, and `scripts/check-contrast.mjs` refuses
+   any hue layer whose fill margin falls below 1.1x without naming the figure in
+   this comment — so tightening a palette has to be a stated decision here. */
 :root,
 [data-aeterni-brand="purple"] {
     --aeterni-brand-50: #F5F4FF;
