@@ -78,6 +78,7 @@ AeterniUI/
 │   └── tauri.conf.json
 └── .github/workflows/
     ├── build.yml                     # CI 构建、JS 和 Token 检查
+    ├── nuget-release.yml             # 版本 tag 触发 NuGet 包发布
     └── pages.yml                     # 示例项目 GitHub Pages 发布
 ```
 
@@ -168,7 +169,7 @@ node scripts/check-css-comments.mjs                    # CSS 注释是否提前�
 node scripts/generate-fontawesome-icons.mjs --check   # 图标定义是否与生成脚本清单一致
 ```
 
-CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`、`scripts/check-css-comments.mjs`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。
+CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`、`scripts/check-css-comments.mjs`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。推送匹配当前版本的 `v*.*.*` tag 时，[`.github/workflows/nuget-release.yml`](../.github/workflows/nuget-release.yml) 会通过 NuGet Trusted Publishing 发布核心包和 Font Awesome 图标包。
 
 GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `dist/404.html`，因此直接访问或刷新深链接（例如 `/components/button`）会拿到 404 状态码的完整应用外壳。应用仍会正常启动并路由到目标页面，但浏览器控制台会记录该 404；页面内部的链接点击走框架拦截，不产生文档请求。
 
