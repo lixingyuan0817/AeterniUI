@@ -465,6 +465,38 @@
     --aeterni-brand-900: #0B3817;
 }
 
+/* Orange hue layer, built with the same recipe a third time (relative dL steps
+   anchored at 500, the shared chroma profile peaking at 500, the same
+   sub-degree light-end hue drift). Its 500 anchor is a burnt orange (#C2410C,
+   L 0.553 / C 0.174) rather than a vivid one, and that is the whole point of the
+   layer: a bright orange is not usable as a solid brand fill under this family's
+   inverse-text model. #E8590C and #EA580C reach only 3.58:1 and 3.56:1 against
+   white, under the 4.5:1 body-text floor; making them legible would mean
+   switching the fill to the near-black `on-semantic` ink that `warning` uses,
+   which would give up the white label the other two brands share. At L 0.553 the
+   fill keeps 5.18:1 against the inverse text (margin 1.151) and the family stays
+   on one recipe, so the three palettes are interchangeable per stop.
+   The cost is proximity to the semantic `danger` red: orange and red are
+   neighbours at this lightness, and the anchor sits 12.1 ΔE from `danger` in
+   OKLab — the tightest brand/vs-semantic pair in the set, though still a clear
+   separation for normal colour vision. `warning` is 22.4 away and every cool
+   semantic is past 34, so the pressure comes from the warm end only.
+   Dark stops gain brightness on the same steps: the tightest dark gate is 5.45:1
+   (brand-default 400 against the inverse text), and light-mode `brand-text` on
+   the 600 stop is 7.02:1 on white. */
+[data-aeterni-brand="orange"] {
+    --aeterni-brand-50: #FAEFEC;
+    --aeterni-brand-100: #F9DFD6;
+    --aeterni-brand-200: #F6C5B5;
+    --aeterni-brand-300: #EB9F86;
+    --aeterni-brand-400: #DD7250;
+    --aeterni-brand-500: #C2410C;
+    --aeterni-brand-600: #A52E00;
+    --aeterni-brand-700: #892500;
+    --aeterni-brand-800: #6C2003;
+    --aeterni-brand-900: #521905;
+}
+
 /* 02. Light semantic theme */
 :root,
 [data-theme="light"],

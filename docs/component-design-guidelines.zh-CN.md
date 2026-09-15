@@ -376,7 +376,7 @@ background: #8b4df6;
 
 每个颜色族都提供 `default`、`hover`、`active`、`disabled` 状态前景/边框别名，并提供 `soft` 柔和背景别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-hover` 和 `--aeterni-color-info-soft`。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
 
-品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。库内已按该机制交付两个色相：默认紫罗兰（`:root`）与绿色（`[data-aeterni-brand="green"]`）。
+品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。库内已按该机制交付三个色相：默认紫罗兰（`:root`）与绿色（`[data-aeterni-brand="green"]`）、焦橙（`[data-aeterni-brand="orange"]`）。
 
 常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*`；焦点环使用 `--aeterni-control-focus-ring` 或现有的 focus 尺寸 Token。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
 
@@ -677,7 +677,7 @@ Tauri 能力必须是可选的：
 
 - `Mode`：用户选择的来源，`System`、`Light` 或 `Dark`。
 - `CurrentTheme`：当前实际生效的主题，类型为 `ThemeKind`（`Light` 或 `Dark`）。
-- `Brand`：当前品牌色层，类型为 `ThemeBrand`（`Purple` 或 `Green`）。
+- `Brand`：当前品牌色层，类型为 `ThemeBrand`（`Purple`、`Green` 或 `Orange`）。
 
 System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式下，`CurrentTheme` 由用户选择决定。
 

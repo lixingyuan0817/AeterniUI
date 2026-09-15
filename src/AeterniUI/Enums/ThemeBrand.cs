@@ -13,5 +13,8 @@ public enum ThemeBrand
     Purple,
 
     /// <summary>Green brand.</summary>
-    Green
+    Green,
+
+    /// <summary>Burnt-orange brand.</summary>
+    Orange
 }

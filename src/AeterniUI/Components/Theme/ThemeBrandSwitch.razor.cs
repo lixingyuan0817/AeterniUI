@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 namespace AeterniUI.Components.Theme;
 
 /// <summary>
-/// Brand hue picker (Purple / Green). It is a thin adapter over
+/// Brand hue picker (Purple / Green / Orange). It is a thin adapter over
 /// <see cref="Segmented{TValue}"/>, exactly like <see cref="ThemeSwitch"/>: the control
 /// owns the radiogroup semantics and the sliding indicator, this component owns the
 /// brand list, the localised labels and the ThemeService calls.
@@ -39,11 +39,12 @@ public partial class ThemeBrandSwitch : AeterniComponent
     /// Option order of the switch. The order is part of the component contract: the brand
     /// labels follow it and so does the indicator's travel.
     /// </summary>
-    private static readonly ThemeBrand[] Brands = [ThemeBrand.Purple, ThemeBrand.Green];
+    private static readonly ThemeBrand[] Brands = [ThemeBrand.Purple, ThemeBrand.Green, ThemeBrand.Orange];
 
     private string BrandLabel(ThemeBrand brand) => brand switch
     {
         ThemeBrand.Green => UiText.ThemeBrandGreenLabel,
+        ThemeBrand.Orange => UiText.ThemeBrandOrangeLabel,
         _ => UiText.ThemeBrandPurpleLabel
     };
 

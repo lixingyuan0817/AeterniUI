@@ -92,6 +92,8 @@ public sealed class ThemeService
 
     public void SetGreen() => SetBrand(ThemeBrand.Green);
 
+    public void SetOrange() => SetBrand(ThemeBrand.Orange);
+
     internal void ApplySystemTheme(bool isDark)
     {
         if (Mode != ThemeMode.System)

@@ -216,6 +216,7 @@ public partial class ThemeProvider : AeterniComponent
         {
             "purple" => ThemeBrand.Purple,
             "green" => ThemeBrand.Green,
+            "orange" => ThemeBrand.Orange,
             _ => (ThemeBrand?)null
         };
 

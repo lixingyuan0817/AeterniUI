@@ -42,6 +42,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Label of the green brand hue option.</summary>
     public string ThemeBrandGreenLabel { get; set; } = "Green";
 
+    /// <summary>Label of the orange brand hue option.</summary>
+    public string ThemeBrandOrangeLabel { get; set; } = "Orange";
+
     /// <summary>Close-button label of a non-modal Alert.</summary>
     public string AlertCloseLabel { get; set; } = "Close alert";
 
@@ -89,6 +92,7 @@ public sealed class AeterniUITextOptions
         ThemeBrandSwitchLabel = Or(ThemeBrandSwitchLabel, defaults.ThemeBrandSwitchLabel);
         ThemeBrandPurpleLabel = Or(ThemeBrandPurpleLabel, defaults.ThemeBrandPurpleLabel);
         ThemeBrandGreenLabel = Or(ThemeBrandGreenLabel, defaults.ThemeBrandGreenLabel);
+        ThemeBrandOrangeLabel = Or(ThemeBrandOrangeLabel, defaults.ThemeBrandOrangeLabel);
         AlertCloseLabel = Or(AlertCloseLabel, defaults.AlertCloseLabel);
         ToastCloseLabel = Or(ToastCloseLabel, defaults.ToastCloseLabel);
         DialogCloseLabel = Or(DialogCloseLabel, defaults.DialogCloseLabel);

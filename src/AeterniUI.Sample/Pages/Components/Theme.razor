@@ -12,7 +12,7 @@
                   Category="主题组件"
                   Title="ThemeProvider + ThemeSwitch"
                   ComponentName="ThemeProvider / ThemeSwitch / ThemeBrandSwitch"
-                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换，ThemeBrandSwitch 在紫罗兰和绿色两套品牌色层之间切换。"
+                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换，ThemeBrandSwitch 在紫罗兰、绿色和焦橙三套品牌色层之间切换。"
                   Parameters="@ThemeParameters"
                   Events="@ThemeEvents"
                   Contracts="@ThemeContracts">
@@ -77,6 +77,7 @@
     private static string BrandText(ThemeBrand brand) => brand switch
     {
         ThemeBrand.Green => "绿色",
+        ThemeBrand.Orange => "焦橙",
         _ => "紫罗兰"
     };
 
