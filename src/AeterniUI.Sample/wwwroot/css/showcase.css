@@ -484,6 +484,23 @@
     font-weight: var(--aeterni-font-weight-semibold);
 }
 
+/* Status families have no button intent, so the two button columns collapse
+   into one dashed placeholder that says why the cells are empty. */
+.showcase-colors__na {
+    grid-column: span 2;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--aeterni-control-height-md);
+    padding-inline: var(--aeterni-spacing-3);
+    border: 1px dashed var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-control-md);
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+}
+
 .showcase-colors__chips,
 .showcase-colors__icons {
     display: flex;
