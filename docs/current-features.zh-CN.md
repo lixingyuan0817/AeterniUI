@@ -86,6 +86,7 @@
 - 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`），否则深色偏好用户或非默认品牌用户会在 Blazor 启动前看到一帧浅色或紫罗兰；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。该脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 保持一致，脚本读不到 .NET 选项，不一致就表现为一帧闪烁。
 - 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
+- `ThemeBrandSwitch` 提供 Purple、Green 品牌分段切换，与 `ThemeSwitch` 是同一套结构：它是 `Segmented` 的专用用法，订阅 `BrandChanged` 在外部改动时同步选中态，尺寸档位与标签（`ThemeBrandSwitchLabel` / `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel`）都取既有约定。
 - 品牌色层通过 `<html data-aeterni-brand>` 输出，与明暗维度同一元素；切换品牌会复用主题切换的过渡动画（`aeterni-theme-transitioning`）。
 - 主题模式与品牌色层分别在 `localStorage` 的 `aeterni.theme.mode` 和 `aeterni.theme.brand` 下持久化，两个键互相独立：清除其中一个不会重置另一个。
 - 主题切换包含过渡动画，并适配 reduced-motion 场景。
@@ -557,18 +558,21 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 不提供 Escape、点击外部关闭、富交互内容和模态行为；无 JS 时视觉提示仍可用，只是缺少 `aria-describedby` 关联与翻转/偏移。
 
-## 24. ThemeProvider 和 ThemeSwitch 使用方式
+## 24. ThemeProvider、ThemeSwitch 和 ThemeBrandSwitch 使用方式
 
 ### 基础用法
 
 ```razor
 <ThemeProvider />
 <ThemeSwitch />
+<ThemeBrandSwitch />
 ```
 
-`ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService` 或使用 `ThemeSwitch` 修改主题模式。
+`ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService`、使用 `ThemeSwitch` / `ThemeBrandSwitch` 或绑定自己的控件修改主题。
 
 `ThemeProvider` 没有组件参数；`ThemeSwitch` 提供 `AriaLabel`、`Size`、`ModeChanged`，并继承 `Disabled`。控件本身是 [`Segmented`](#32-segmented) 的专用用法：三个模式是它的选项，尺寸档位走同一套控件高度（32 / 40 / 48px），标签取文案表的 `ThemeSystemLabel` / `ThemeLightLabel` / `ThemeDarkLabel`。
+
+`ThemeBrandSwitch` 是同一模式在品牌维度上的实例：`AriaLabel`、`Size`、`BrandChanged` 加继承的 `Disabled`，选项固定为 `Purple` / `Green`（顺序属组件契约，指示块行程由选项数量推导），标签取 `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel`。两个控件可以并排放置，例如示例宿主的顶栏就把它们放在同一组动作区里。
 
 组输出 `role="radiogroup"` 与三个 `role="radio"` 选项（`aria-checked`），整组只有一个 Tab 停留点，方向键即可切换模式；滑块位置由选项数量推导，不再写死三列。
 
@@ -576,9 +580,12 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ### 品牌色层
 
-品牌与明暗是两个正交维度：明暗决定用色阶的哪几档，品牌决定用哪条色阶。切换品牌同样经过 `ThemeService`：
+品牌与明暗是两个正交维度：明暗决定用色阶的哪几档，品牌决定用哪条色阶。切换品牌可以使用 `ThemeBrandSwitch`，也可以直接调用 `ThemeService`：
 
 ```razor
+<ThemeBrandSwitch Size="Size.Small" />
+
+@* 或者绑定自己的控件 *@
 @inject ThemeService ThemeService
 
 <Button OnClick="@ThemeService.SetGreen">绿色</Button>
@@ -922,6 +929,9 @@ builder.Services.AddAeterniUI(options =>
     options.Text.ThemeSystemLabel = "跟随系统";
     options.Text.ThemeLightLabel = "浅色";
     options.Text.ThemeDarkLabel = "深色";
+    options.Text.ThemeBrandSwitchLabel = "品牌色";
+    options.Text.ThemeBrandPurpleLabel = "紫罗兰";
+    options.Text.ThemeBrandGreenLabel = "绿色";
     options.Text.AlertCloseLabel = "关闭提示";
     options.Text.ToastCloseLabel = "关闭通知";
     options.Text.DialogCloseLabel = "关闭对话框";

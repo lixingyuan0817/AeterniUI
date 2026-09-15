@@ -192,7 +192,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
-| 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch` |
+| 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch`、`ThemeBrandSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`Pagination`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。
