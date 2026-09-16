@@ -23,41 +23,16 @@
     background: var(--aeterni-bg-elevated);
 }
 
+/* See Card.razor.css: the frosted recipe lives on the Glass variant alone. The
+   removed `Blur` axis could only rewrite `background` after `--subtle` and
+   `--elevated`, so any non-default tier overrode `Variant` and made the variant
+   parameter a silent no-op. The Glass variant also no longer forces an edge, so
+   `Bordered="false"` finally yields a borderless frosted surface. */
 .aeterni-surface--glass {
     background: var(--aeterni-bg-glass);
     box-shadow: var(--aeterni-glass-shadow);
     -webkit-backdrop-filter: var(--aeterni-blur-glass);
     backdrop-filter: var(--aeterni-blur-glass);
-}
-
-/* See Card.razor.css: the Glass variant no longer forces an edge, so
-   `Bordered="false"` finally yields a borderless frosted surface, and any blur
-   tier other than Default switches the fill to the frosted one as well. */
-.aeterni-surface--blur-small {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
-}
-
-.aeterni-surface--blur-medium {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-}
-
-.aeterni-surface--blur-large {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-lg);
-    backdrop-filter: var(--aeterni-blur-lg);
-}
-
-.aeterni-surface--blur-none {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
-.aeterni-surface--glass.aeterni-surface--blur-none {
-    background: var(--aeterni-bg-solid);
 }
 
 /* The frosted fill cannot carry the standard secondary ink: the dark theme lands
@@ -66,14 +41,10 @@
    `--aeterni-text-secondary`: the other names are aliases declared in the theme
    block, so their `var()` is substituted there and overriding the base role alone
    would leave captions written with `--aeterni-text-muted` on the lighter ink.
-   `--blur-none` is excluded because it drops the fill back to
-   `--aeterni-bg-solid`. The replacement is
+   The replacement is
    `color-mix(in srgb, var(--aeterni-text) 93%, transparent)`, declared once in the
    token sheet, so both themes keep the same margin. */
-.aeterni-surface--glass:not(.aeterni-surface--blur-none),
-.aeterni-surface--blur-small,
-.aeterni-surface--blur-medium,
-.aeterni-surface--blur-large {
+.aeterni-surface--glass {
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);

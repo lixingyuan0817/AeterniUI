@@ -49,48 +49,20 @@
     background: var(--aeterni-bg-elevated);
 }
 
+/* The frosted recipe lives here and nowhere else. It used to be split across an
+   independent `Blur` axis whose tiers each rewrote `background`; because they
+   were declared after `--subtle`/`--elevated`, any non-default tier silently won
+   over `Variant` and the variant control stopped working. Solid fills are the
+   other variants, so the axis carried no state the variant could not express.
+   The edge is deliberately absent here: the Glass variant used to force
+   `border-color`, so `Bordered="false"` could not produce a borderless frosted
+   card even though that is the only state the frosted look needs. The edge now
+   follows `is-bordered` like every other variant. */
 .aeterni-card--glass {
     background: var(--aeterni-bg-glass);
     box-shadow: var(--aeterni-glass-shadow);
     -webkit-backdrop-filter: var(--aeterni-blur-glass);
     backdrop-filter: var(--aeterni-blur-glass);
-}
-
-/* Blur axis. The edge is deliberately absent here: the Glass variant used to
-   force `border-color`, so `Bordered="false"` could not produce a borderless
-   frosted card even though that is the only state the frosted look needs. The
-   edge now follows `is-bordered` like every other variant.
-   A tier other than Default also switches the fill to the frosted one, so
-   `Blur` alone is enough to move a card between solid and frosted; leaving the
-   fill opaque would make the property a silent no-op. */
-.aeterni-card--blur-small {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
-}
-
-.aeterni-card--blur-medium {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-}
-
-.aeterni-card--blur-large {
-    background: var(--aeterni-bg-glass);
-    -webkit-backdrop-filter: var(--aeterni-blur-lg);
-    backdrop-filter: var(--aeterni-blur-lg);
-}
-
-.aeterni-card--blur-none {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
-/* Switching the blur off has to switch the translucency off with it, otherwise
-   the card keeps an 82% fill that hides neither the content behind it nor its
-   own edge. This pair is what makes `Blur="None"` read as "solid card". */
-.aeterni-card--glass.aeterni-card--blur-none {
-    background: var(--aeterni-bg-solid);
 }
 
 /* The frosted fill cannot carry the standard secondary ink: the dark theme lands
@@ -99,14 +71,10 @@
    `--aeterni-text-secondary`: the other names are aliases declared in the theme
    block, so their `var()` is substituted there and overriding the base role alone
    would leave captions written with `--aeterni-text-muted` on the lighter ink.
-   `--blur-none` is excluded because it drops the fill back to
-   `--aeterni-bg-solid`. The replacement is
+   The replacement is
    `color-mix(in srgb, var(--aeterni-text) 93%, transparent)`, declared once in the
    token sheet, so both themes keep the same margin. */
-.aeterni-card--glass:not(.aeterni-card--blur-none),
-.aeterni-card--blur-small,
-.aeterni-card--blur-medium,
-.aeterni-card--blur-large {
+.aeterni-card--glass {
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);

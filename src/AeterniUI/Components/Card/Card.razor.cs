@@ -13,9 +13,6 @@ public partial class Card : AeterniComponent
     public SurfaceElevation Elevation { get; set; } = SurfaceElevation.None;
 
     [Parameter]
-    public SurfaceBlur Blur { get; set; } = SurfaceBlur.Default;
-
-    [Parameter]
     public SurfacePadding Padding { get; set; } = SurfacePadding.Medium;
 
     [Parameter]
@@ -48,7 +45,6 @@ public partial class Card : AeterniComponent
             .Add("aeterni-card")
             .Add(ComponentClass.For("aeterni-card", VariantClass))
             .Add(ComponentClass.For("aeterni-card", ElevationClass))
-            .Add(ComponentClass.For("aeterni-card", BlurClass))
             .Add(ComponentClass.For("aeterni-card", PaddingClass))
             .Add("is-bordered", Bordered)
             .Add("is-full-width", FullWidth)
@@ -135,17 +131,6 @@ public partial class Card : AeterniComponent
         SurfaceElevation.Small => "elevation-small",
         SurfaceElevation.Medium => "elevation-medium",
         SurfaceElevation.Large => "elevation-large",
-        _ => null
-    };
-
-    // Default emits no class so a host can retune the frosted recipe globally
-    // through --aeterni-blur-glass; a class that always won would pin every Card.
-    private string? BlurClass => Blur switch
-    {
-        SurfaceBlur.None => "blur-none",
-        SurfaceBlur.Small => "blur-small",
-        SurfaceBlur.Medium => "blur-medium",
-        SurfaceBlur.Large => "blur-large",
         _ => null
     };
 

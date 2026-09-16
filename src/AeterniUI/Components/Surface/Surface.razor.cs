@@ -12,9 +12,6 @@ public partial class Surface : AeterniComponent
     public SurfaceElevation Elevation { get; set; } = SurfaceElevation.None;
 
     [Parameter]
-    public SurfaceBlur Blur { get; set; } = SurfaceBlur.Default;
-
-    [Parameter]
     public SurfacePadding Padding { get; set; } = SurfacePadding.Medium;
 
     [Parameter]
@@ -35,7 +32,6 @@ public partial class Surface : AeterniComponent
             .Add("aeterni-surface")
             .Add(ComponentClass.For("aeterni-surface", VariantClass))
             .Add(ComponentClass.For("aeterni-surface", ElevationClass))
-            .Add(ComponentClass.For("aeterni-surface", BlurClass))
             .Add(ComponentClass.For("aeterni-surface", PaddingClass))
             .Add(ComponentClass.For("aeterni-surface", RadiusClass))
             .Add("is-bordered", Bordered)
@@ -67,17 +63,6 @@ public partial class Surface : AeterniComponent
         SurfacePadding.Large => "padding-large",
         SurfacePadding.ExtraLarge => "padding-extra-large",
         _ => "padding-medium"
-    };
-
-    // Default emits no class so a host can retune the frosted recipe globally
-    // through --aeterni-blur-glass; a class that always won would pin every surface.
-    private string? BlurClass => Blur switch
-    {
-        SurfaceBlur.None => "blur-none",
-        SurfaceBlur.Small => "blur-small",
-        SurfaceBlur.Medium => "blur-medium",
-        SurfaceBlur.Large => "blur-large",
-        _ => null
     };
 
     private string? RadiusClass => Radius switch
