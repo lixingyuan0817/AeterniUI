@@ -207,39 +207,70 @@ h1:focus-visible {
         content: "An error has occurred."
     }
 
-.loading-progress {
-    position: absolute;
-    display: block;
-    width: 8rem;
-    height: 8rem;
-    inset: 20vh 0 auto 0;
-    margin: 0 auto 0 auto;
+/*
+   Pre-boot screen — the only thing on screen until the Blazor runtime has
+   mounted. It cannot be a <Spinner> instance: no component tree exists yet, and
+   the component's own rules are CSS-isolated, so they only match markup that
+   carries its scope attribute. The ring below therefore restates
+   Spinner.razor.css — same tokens, same transparent quarter, same opacity and
+   period — so the splash and the in-app spinner read as one control. Change one
+   spec, change the other. `--aeterni-spinner-size` is the extension point the
+   component documents, so the splash is scaled through it instead of adding a
+   second size tier.
+*/
+.sample-boot {
+    --aeterni-spinner-size: calc(var(--aeterni-icon-size-2xl) * 1.5);
+
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-4);
 }
 
-    .loading-progress circle {
-        fill: none;
-        stroke: #e0e0e0;
-        stroke-width: 0.6rem;
-        transform-origin: 50% 50%;
-        transform: rotate(-90deg);
-    }
-
-        .loading-progress circle:last-child {
-            stroke: #1b6ec2;
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
-
-.loading-progress-text {
-    position: absolute;
-    text-align: center;
-    font-weight: bold;
-    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+.sample-boot__ring {
+    box-sizing: border-box;
+    width: var(--aeterni-spinner-size);
+    height: var(--aeterni-spinner-size);
+    border: var(--aeterni-border-width-thick) solid currentColor;
+    /* The missing quarter is what reads as rotation. */
+    border-right-color: transparent;
+    border-radius: var(--aeterni-radius-round);
+    /* Named colours use the accent's text stop: the fill stops are for solid
+       surfaces and only reach ~2.2:1 as ink on a light page. */
+    color: var(--aeterni-color-brand-text);
+    opacity: .92;
+    animation: sample-boot-rotate calc(var(--aeterni-duration-slower) * 1.4) var(--aeterni-ease-linear) infinite;
 }
 
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
+@keyframes sample-boot-rotate {
+    to {
+        transform: rotate(360deg);
     }
+}
+
+/* The runtime reports download progress as a custom property on <html>; keeping
+   it as text under the ring is the only progress read-out that survives being
+   restyled, and it stops the splash from looking like a hang on slow links. */
+.sample-boot__label {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+}
+
+.sample-boot__label::after {
+    content: var(--blazor-load-percentage-text, "正在加载示例");
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* The ring stays visible as a static busy indicator. */
+    .sample-boot__ring {
+        animation: none;
+    }
+}
 
 code {
     color: #c02d76;
