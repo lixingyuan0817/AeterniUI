@@ -13,6 +13,10 @@
 .aeterni-dialog-provider__toast--primary {
     --aeterni-dialog-accent: var(--aeterni-color-brand-default);
     --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
+    /* The tint has to sit on the frosted base, and the base has to change with the
+       blur: removing backdrop-filter from a 9% tint over an 82% fill would leave
+       the same half-transparent patch the token layer's fallback exists to avoid. */
+    --aeterni-notice-fill: var(--aeterni-bg-glass);
 
     position: relative;
     display: grid;
@@ -24,11 +28,11 @@
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
     border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-dialog-accent) 20%, var(--aeterni-border-default));
     border-radius: var(--aeterni-radius-2xl);
-    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-bg-elevated));
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-notice-fill));
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-lg);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     pointer-events: auto;
     will-change: transform, opacity;
     animation: aeterni-notice-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized) both;
@@ -60,6 +64,8 @@
 
 .aeterni-dialog-provider__alert.is-no-blur,
 .aeterni-dialog-provider__toast.is-no-blur {
+    --aeterni-notice-fill: var(--aeterni-bg-solid);
+
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
 }

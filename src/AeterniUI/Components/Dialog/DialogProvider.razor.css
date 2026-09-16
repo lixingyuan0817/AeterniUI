@@ -23,8 +23,8 @@
     box-sizing: border-box;
     padding: var(--aeterni-spacing-6);
     background: var(--aeterni-overlay);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
     pointer-events: auto;
     animation: aeterni-dialog-fade-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
@@ -45,11 +45,11 @@
     overflow: hidden auto;
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
-    background: var(--aeterni-bg-elevated);
+    background: var(--aeterni-bg-glass);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-modal);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     animation: none;
 }
 

@@ -26,9 +26,9 @@
     padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
     border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
     border-radius: var(--aeterni-radius-tooltip);
-    background: var(--aeterni-bg-elevated);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-md);
     font-size: var(--aeterni-font-size-xs);
@@ -85,12 +85,5 @@
 @media (prefers-reduced-motion: reduce) {
     .aeterni-tooltip__content {
         transition: none;
-    }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-    .aeterni-tooltip__content {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
     }
 }

@@ -30,8 +30,8 @@
     inset: 0;
     pointer-events: auto;
     background: var(--aeterni-overlay);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
     animation: aeterni-drawer-fade-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
@@ -45,9 +45,9 @@
     max-width: 100%;
     max-height: 100%;
     pointer-events: auto;
-    background: var(--aeterni-bg-elevated);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-modal);
 }

@@ -24,11 +24,40 @@
 }
 
 .aeterni-surface--glass {
-    border-color: var(--aeterni-border-default);
-    background: var(--aeterni-bg-elevated);
+    background: var(--aeterni-bg-glass);
     box-shadow: var(--aeterni-glass-shadow);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+}
+
+/* See Card.razor.css: the Glass variant no longer forces an edge, so
+   `Bordered="false"` finally yields a borderless frosted surface, and any blur
+   tier other than Default switches the fill to the frosted one as well. */
+.aeterni-surface--blur-small {
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-sm);
+    backdrop-filter: var(--aeterni-blur-sm);
+}
+
+.aeterni-surface--blur-medium {
+    background: var(--aeterni-bg-glass);
     -webkit-backdrop-filter: var(--aeterni-blur-md);
     backdrop-filter: var(--aeterni-blur-md);
+}
+
+.aeterni-surface--blur-large {
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-lg);
+    backdrop-filter: var(--aeterni-blur-lg);
+}
+
+.aeterni-surface--blur-none {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.aeterni-surface--glass.aeterni-surface--blur-none {
+    background: var(--aeterni-bg-solid);
 }
 
 .aeterni-surface.is-bordered {

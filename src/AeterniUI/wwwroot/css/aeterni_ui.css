@@ -188,6 +188,17 @@
     --aeterni-blur-md: blur(16px) saturate(135%);
     --aeterni-blur-lg: blur(24px) saturate(150%);
     --aeterni-blur: var(--aeterni-blur-lg);
+    /* Role aliases for frosted content surfaces (the Card/Surface Glass variant,
+       Dialog, Drawer, Popover, Tooltip and the Alert/Toast cards). They exist so
+       the nine consumers share one knob instead of restating the recipe six times,
+       and so reduced transparency can degrade all of them from one place below.
+       The fill tracks --aeterni-bg-elevated (82%) instead of a lighter tint: at
+       82% the standard secondary ink still reaches 5.33:1 light / 4.35:1 dark,
+       while a 60% fill drops the same ink to 3.98:1 / 3.41:1 and would force the
+       on-glass ink onto every caption in the library. */
+    --aeterni-bg-glass: var(--aeterni-bg-elevated);
+    --aeterni-blur-glass: var(--aeterni-blur-md);
+    --aeterni-blur-scrim: var(--aeterni-blur-sm);
     --aeterni-backdrop-saturate: 145%;
     --aeterni-glass-border-alpha: .12;
     --aeterni-glass-highlight: rgba(255, 255, 255, .16);
@@ -1104,6 +1115,28 @@
         --aeterni-duration-normal: 0ms;
         --aeterni-duration-slow: 0ms;
         --aeterni-duration-slower: 0ms;
+    }
+}
+
+/* Frosted surfaces degrade to opaque, and they drop the translucency rather than
+   only the filter. Removing backdrop-filter alone would leave an 82% fill over
+   whatever it covers: a colour patch with no blur to explain it and no opaque
+   backing to read ink against, which is worse than a solid surface on both
+   counts. Scrims keep their dim — a scrim carries no readable content of its own,
+   and an opaque scrim would hide the page it exists to dim. */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --aeterni-bg-glass: var(--aeterni-bg-solid);
+        --aeterni-blur-glass: none;
+        --aeterni-blur-scrim: none;
+    }
+}
+
+/* No backdrop-filter support: the fill has to carry the surface on its own, so
+   the same opaque fallback applies and the blur variables stay irrelevant. */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+    :root {
+        --aeterni-bg-glass: var(--aeterni-bg-solid);
     }
 }
 
