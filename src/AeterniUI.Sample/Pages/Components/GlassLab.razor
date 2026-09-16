@@ -97,8 +97,10 @@
         <code>--aeterni-bg-elevated</code> 的角色别名，浅 <code>.82</code> / 深 <code>.82</code>），把模糊档位
         交给 <code>SurfaceBlur</code>（<code>None</code> / <code>Small</code> / <code>Medium</code> /
         <code>Large</code>），玻璃边框改由 <code>Bordered</code> 决定，「降低透明度」与不支持
-        <code>backdrop-filter</code> 的降级集中在 token 层。候选 02／03 未采用：让填充透出背景的收益
-        抵不过「次要 · 标准墨」掉到 4.5:1 以下，而把次要墨分叉成玻璃专用墨会把墨的分支变成两套。
+        <code>backdrop-filter</code> 的降级集中在 token 层，深色那一格的缺口由
+        <code>--aeterni-text-on-glass-secondary</code> 补掉 —— 它只接在玻璃表面上，标准墨留在不透明表面。
+        候选 02／03 未采用：让填充透出背景的收益抵不过「次要 · 标准墨」掉到 4.5:1 以下，而要让全库的
+        说明文字都跟着换墨才划得来。
         所以下面两张矩阵仍然有效，只是 02／03 现在是「被否决的方案」而不是待选方案。
     </p>
 
@@ -161,9 +163,10 @@
         深色 <code>rgba(255,255,255,.56)</code>）只对不透明表面成立：只要玻璃填充降到 <code>.68</code> 浅色 /
         <code>.83</code> 深色以下，它掉到 4.5:1 以下，而深色 <code>.83</code> 基本等于取消玻璃。
         所以把填充让出来，等于同时要新增一个只在玻璃上使用的次要墨 —— 也就是
-        <code>--aeterni-text-on-glass-secondary</code>。这正是候选 02／03 被否决的原因：
-        为了让背景透出来而多养一支玻璃专用墨，会把「一种次要墨」变成「两种次要墨」，
-        而 .82 的填充不需要这笔交易 —— 浅色 5.33:1、深色 4.35:1（深色这一格见下方遗留说明）。
+        <code>--aeterni-text-on-glass-secondary</code>。候选 02／03 因此被否决：与其为了让背景透出来
+        就把全库的说明文字都换成更重的墨，不如保住 <code>.82</code> 的填充（浅色 5.33:1、深色 4.35:1）。
+        库里最终走的就是这条路，并把 <code>--aeterni-text-on-glass-secondary</code> 单独接在玻璃表面上补掉
+        深色那一格低于 4.5:1 的缺口 —— 标准墨留在不透明表面上，两种墨各管各的地面，而不是全库换墨。
     </p>
 
     <h2 class="glass-lab__subtitle">02 · 次级文字：底衬比换墨管用</h2>
@@ -342,9 +345,9 @@
     <ul class="glass-lab__list">
         <li>
             本页不写入任何 token。候选矩阵里的填充与模糊只是本页的实验值，住在 <code>.razor.css</code> 的
-            <code>--glass-lab-*</code> 里；<code>--aeterni-text-on-glass-secondary</code> 没有被采用，
-            表里出现的 <code>--aeterni-*</code> 名字中只有 <code>--aeterni-bg-glass</code> 已经是真 token
-            （指候选 01 的 <code>.82</code>，见上方结论段）。
+            <code>--glass-lab-*</code> 里；表里出现的 <code>--aeterni-*</code> 名字中，<code>--aeterni-bg-glass</code>
+            （指候选 01 的 <code>.82</code>，见上方结论段）与 <code>--aeterni-text-on-glass-secondary</code>
+            已经是真 token，其余仍是实验期的叫法。
         </li>
         <li>
             背景内容层是宿主契约，不是组件。真正落地时它要铺满整个页面而不是这一块舞台，并由宿主提供
@@ -531,7 +534,7 @@
 
     private static string InkLabel(GlassInk ink) => ink is GlassInk.Standard
         ? "标准墨（现状）"
-        : "on-glass 墨（提案）";
+        : "on-glass 墨（已采用）";
 
     @* 这两个属性是给 .razor.css 用的选择器钩子，所以刻意用 kebab-case 而不是枚举名，
        免得枚举重命名时样式静默失效（CSS 属性选择器区分大小写）。 *@

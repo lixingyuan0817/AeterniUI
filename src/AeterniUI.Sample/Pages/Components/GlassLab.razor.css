@@ -4,7 +4,8 @@
    这个页面是只读的实验布景：同一块面板在四种「填充不透明度 + 模糊半径」组合下同屏出现，
    背后可以换成壁纸、细网格、App 图标墙或 12px 正文。页面不改任何库 Token，
    提案期的候选名 --aeterni-bg-glass / --aeterni-bg-glass-soft / --aeterni-text-on-glass-secondary
-   里只有 --aeterni-bg-glass 后来被库采用（指 .82 那一档），另外两个是被否决的方案名；
+   里，--aeterni-bg-glass（指 .82 那一档）与 --aeterni-text-on-glass-secondary 后来都被库采用，
+   只有 --aeterni-bg-glass-soft 是被否决的方案名；
    候选值本身只活在这一段样式和 GlassLab.razor 的读数表里，实际变量一律是 --glass-lab-*。
 
    同步契约（改一处必须改三处）：
