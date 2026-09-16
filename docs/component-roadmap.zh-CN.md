@@ -2,7 +2,7 @@
 
 文档版本：`10.8.0`
 
-状态：v0.1、v0.2、v0.3 与 v0.4 基础交付已完成；时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1、v0.2、v0.3 与 v0.4 基础交付已完成；v0.5～v0.7 进入后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -500,3 +500,95 @@ Token 和现有基础组件
 ### 第四阶段固定交付物与验收
 
 沿用既有固定交付物；完成后同步 `current-features.zh-CN.md`、示例页、项目索引和本文档任务记录，并运行构建、文档、CSS 与 JavaScript 检查。
+
+## 后续阶段规划（v0.5～v0.7）
+
+状态：规划中。本节只定义优先级、依赖和明确边界，不代表组件已经实现；进入某一阶段前，先为该阶段补充逐项 API 草案和可操作验收用例。
+
+### 规划原则
+
+- **先扩展已有组合，再引入高复杂度数据组件。** 优先复用 `PopupHost`、`Popover`、`FormField`、`Menu`、`Tabs`、`Progress` 和现有日期网格，避免复制定位、焦点和校验逻辑。
+- **每个阶段保持可独立交付。** 时间选择、动作编排和数据展示之间不互相阻塞；阶段内按依赖顺序逐项交付。
+- **默认不承担业务数据源。** 新组件只负责渲染、交互、绑定和无障碍语义；远程加载、缓存、分页请求和业务状态由宿主应用负责。
+- **复杂能力先做最小稳定公共面。** 不在第一版同时承诺虚拟化、拖拽、服务端查询、路由集成或多浮层堆叠。
+
+### v0.5 日期与时间输入
+
+目标：在现有 `DatePicker` / `DateRangePicker` 的基础上补齐常用时间输入，同时保持 `DateOnly` API 不被迫升级。
+
+建议顺序：
+
+1. `TimePicker`：`TimeOnly?` 绑定、步长、最小/最大时间、键盘编辑、12/24 小时格式、`FormField`/`EditContext` 校验。
+2. `DateTimePicker`：组合 `DatePicker` 与 `TimePicker`，优先采用 `DateTime?`；明确 Culture、Kind 和格式化规则，不做时区转换。
+3. `DateRangePicker` 增强：快捷范围、多月视图和可选的预设项；快捷范围应由参数提供，不内置业务日期规则。
+
+依赖顺序：
+
+```text
+TimePicker
+  +--> DateTimePicker
+DateCalendar 多月/快捷范围能力
+  +--> DateRangePicker 增强
+```
+
+验收边界：沿用现有 Popover、焦点回归、无效态和 reduced-motion 约定；暂不包含时区数据库、时区转换、虚拟化、复杂本地化历法和自定义日历系统。`DateCalendar` 继续保持内部部件，不直接升级为稳定公共 API。
+
+### v0.6 动作编排与导航
+
+目标：覆盖工具栏和复杂动作入口，补齐现有 Button、ButtonGroup、Segmented、MenuButton 之间的组合空白。
+
+建议顺序：
+
+1. `Toolbar`：工具栏分组、`role="toolbar"`、方向键导航、组内 Tab 停留点、溢出区域语义。
+2. `ToggleGroup`：单选/多选两种模式、方向键、`aria-pressed`/`aria-checked` 契约；与 `Segmented` 的边界必须先定为“按钮动作切换”与“表单值选择”。
+3. `SplitButton`：主动作 + 菜单动作，复用 `Button`、`MenuButton`、`PopupHost`，明确主按钮与菜单按钮的独立名称和禁用状态。
+4. `Breadcrumb` / `Stepper`：分别服务于层级导航和线性流程，不把路由跳转或流程状态管理内置到组件库。
+
+依赖顺序：
+
+```text
+Button / ButtonGroup / MenuButton
+  +--> Toolbar
+  +--> ToggleGroup
+  +--> SplitButton
+Tabs / Menu 语义与键盘模型
+  +--> Breadcrumb / Stepper
+```
+
+验收边界：第一版不包含拖拽排序、响应式自动折叠、快捷键注册中心、路由集成、异步动作编排和跨组焦点堆栈。`Toolbar` 的方向键模型需与未来 `ToggleGroup` 共享规则，但不应把普通 `ButtonGroup` 改造成方向键组件。
+
+### v0.7 搜索与数据选择
+
+目标：在完成时间和动作基础后，补齐从关键词输入到结果选择的搜索组件能力；搜索结果的数据获取、缓存和业务状态仍由宿主应用负责。
+
+建议顺序：
+
+1. `Search`：关键词输入、清除、提交、搜索状态和可访问名称；优先复用 `Input`、`Button`、`IconButton` 与现有表单校验语义。
+2. `Autocomplete`：自由输入、建议列表、键盘导航、异步结果由宿主通过参数/回调提供；复用 `Search` 的输入状态与 `PopupHost` + `List` 语义。
+3. `MultiSelect`：多值绑定、已选项展示、移除操作、全选/清空策略；与现有纯下拉 `ComboBox` 保持明确边界。
+
+依赖顺序：
+
+```text
+Input + Button + IconButton
+  +--> Search
+Search + List + PopupHost
+  +--> Autocomplete
+  +--> MultiSelect
+```
+
+验收边界：第一版不包含服务端数据源、查询缓存、搜索历史、筛选器编排、全文检索实现、树形结果、数据表格、虚拟滚动和复杂结果渲染。`Search` 负责输入与提交契约，不内置请求客户端或结果列表；`Autocomplete` 与 `MultiSelect` 的异步数据和业务筛选由宿主提供。
+
+### 后续阶段固定交付物与决策门
+
+每个新组件沿用既有固定交付物：组件源码、公开枚举/模型、可操作示例、`current-features` 更新、路线图任务记录，以及构建、文档、CSS 和 JavaScript 检查。
+
+进入实现前必须完成以下决策：
+
+| 决策门 | 通过标准 |
+| --- | --- |
+| API 边界 | 已说明与现有组件的组合关系、受控/非受控状态和不支持能力 |
+| HTML/ARIA | 已确定根元素、键盘模型、焦点模型和错误/禁用/加载语义 |
+| Token/主题 | 只消费现有 Token；没有新增第二套尺寸、颜色、圆角或动效体系 |
+| 浮层/JS | 已确认能否复用共享浮层模块；只有必要的浏览器行为才引入 `.razor.js` |
+| 示例/验收 | Light、Dark、System、窄屏、键盘和 reduced-motion 均有可操作验收路径 |
