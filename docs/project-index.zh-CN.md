@@ -107,7 +107,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs)：侧栏分类与页面清单的单一事实源，导航 Href 由条目 id 生成。
 - [`src/AeterniUI.Sample/wwwroot/css/showcase.css`](../src/AeterniUI.Sample/wwwroot/css/showcase.css)：所有组件页共享的展示样式（`showcase-*` / `preview-*` / `control-*`）；组件页拆成独立文件后，作用域 CSS 无法跨页生效，所以这里是全局表。
 - [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
-- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
+- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口；`<head>` 的预渲染主题脚本与 `#app` 内的首屏加载器（`.sample-boot`，样式在 `wwwroot/css/app.css`）都在这里。
 
 ### 组件库基础入口
 
