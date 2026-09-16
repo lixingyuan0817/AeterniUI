@@ -275,6 +275,15 @@
     user-select: none;
 }
 
+/* 背景副本是绝对定位，预览组件是静态的 flex 子项：定位元素画在普通流内容之上，
+   于是副本会把面板整个盖住。只有带 backdrop-filter 的变体自己生成层叠上下文才浮出来 ——
+   这正是「除了 Glass 其他变体都不显示」的原因。给面板一个属于自己的层，让它按 DOM 顺序
+   压在副本之上，与 GlassLab 页的 `.glass-lab__cell > .glass-lab__sample` 同一手法。 */
+.preview-glass-scene > *:not(.preview-glass-scene__backdrop) {
+    position: relative;
+    z-index: 1;
+}
+
 .preview-label,
 .preview-card-title {
     color: var(--aeterni-text-primary);
