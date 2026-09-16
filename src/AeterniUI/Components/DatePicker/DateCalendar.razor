@@ -2,9 +2,13 @@
 
 <div class="aeterni-date-calendar" role="application" aria-label="@AriaLabel">
     <div class="aeterni-date-calendar__toolbar">
-        <button type="button" class="aeterni-date-calendar__nav" aria-label="Previous month" @onclick="PreviousMonthAsync">‹</button>
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="Previous month" @onclick="PreviousMonthAsync">
+            <Icon Definition="@AeterniIcons.ChevronLeft" />
+        </button>
         <strong>@MonthTitle</strong>
-        <button type="button" class="aeterni-date-calendar__nav" aria-label="Next month" @onclick="NextMonthAsync">›</button>
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="Next month" @onclick="NextMonthAsync">
+            <Icon Definition="@AeterniIcons.ChevronRight" />
+        </button>
     </div>
     <div class="aeterni-date-calendar__weekdays" aria-hidden="true">
         @foreach (var weekday in Weekdays)
