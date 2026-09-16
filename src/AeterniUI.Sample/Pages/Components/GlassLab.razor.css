@@ -1,17 +1,30 @@
 /*
    AeterniUI.Sample — 玻璃与模糊对比页（/components/glass）。
 
-   这个页面是只读的实验布景：同一块面板在四种「填充不透明度 + 模糊半径」组合下同屏出现，
-   背后可以换成壁纸、细网格、App 图标墙或 12px 正文。页面不改任何库 Token，
+   这个页面是只读的实验布景：同一块面板在七组变量下同屏出现，背后可以换成壁纸、细网格、
+   App 图标墙或 12px 正文。页面不改任何库 Token，
    提案期的候选名 --aeterni-bg-glass / --aeterni-bg-glass-soft / --aeterni-text-on-glass-secondary
    里，--aeterni-bg-glass（指 .82 那一档）与 --aeterni-text-on-glass-secondary 后来都被库采用，
    只有 --aeterni-bg-glass-soft 是被否决的方案名；
    候选值本身只活在这一段样式和 GlassLab.razor 的读数表里，实际变量一律是 --glass-lab-*。
 
+   行与行之间只换一根轴，所以任一行的格间差异都能归因到那一根轴上：
+     01 填充不透明度（四档同屏，模糊与饱和度随候选一起变，因为候选期就是多轴一起调）
+     02 文字底衬（填充与模糊钉在候选 03）
+     03 压力板（纯黑与纯白，强制候选 02 的填充与模糊）
+     04 模糊半径（填充钉在库现值，saturate 钉在 135%）
+     05 饱和度（填充同上，模糊钉在 16px）
+     06 遮罩（压暗值四档相同，只改遮罩自己的 backdrop-filter）
+     07 边界（填充与模糊钉在候选 03，只换边框与投影）
+   04／05 两行用 --large 把面板加宽：半径与饱和度的差异都随面板面积增大才看得出来。
+
    同步契约（改一处必须改三处）：
      · 本文件下面的 --glass-lab-alpha-* 表
      · GlassLab.razor 的 _candidates
      · Components/Showcase/GlassContrast.cs 的 GlassPalette
+   另有两条两处耦合：本文件 data-blur / data-saturate 的取值 ↔ GlassLab.razor 的
+   _blurTiers / _saturateTiers（属性选择器的取值就是夹具里的 Value，改值要同步），
+   以及下面调参行的默认滤镜 ↔ GlassLab.razor 的 Library（两行的读数标注引用它，不另写数字）。
    面板的 RGB 一律从 --aeterni-bg-surface 取（浅 #FFFFFF / 深 #1A1A1D），
    所以这段样式只提供 alpha，既不新建颜色体系，也不重复深浅两套填充色。
    文字底衬多一条耦合：--glass-lab-plate 的取值要满足 α₁ + α₂ − α₁α₂ 等于候选 02 的填充，
@@ -20,9 +33,11 @@
    背景内容层是每格一份副本，不是整块舞台共用一层：共用时每格采样的是自己背后那一块图案，
    格间差异会混进「背后的图案本来就不一样」这个无关变量。
 
-   边框：01–03 三块舞台沿用项目约定的 1px --aeterni-border-default，不做液态玻璃的高光/折射描边；
-   05 把「怎么画边界」单独摊成四档（发丝线 / 加重发丝线 / 内描边 / 只靠投影）。四档一律保持 1px
+   边框：01–03 与 04–06 六块舞台沿用项目约定的 1px --aeterni-border-default，不做液态玻璃的高光/折射描边；
+   07 把「怎么画边界」单独摊成四档（发丝线 / 加重发丝线 / 内描边 / 只靠投影）。四档一律保持 1px
    边框宽度、只换颜色与投影，所以面板几何逐格相同。那里的内描边是普通的内侧实线，不是折射或高光边框。
+   06 的遮罩层自己不是玻璃表面：它的填充是 --aeterni-overlay（无彩色的黑），只负责压暗，
+   在不模糊那一档里页面保持锐利 —— 这一层不属于「容器背景可以彩色」的例外，永远只能是灰阶。
 */
 
 .glass-lab {
@@ -273,6 +288,13 @@
     gap: var(--aeterni-spacing-5);
 }
 
+/* 模糊半径与饱和度两行：面板刻意比候选矩阵宽。两个轴的差异都随面板面积增大才看得出来，
+   238px 的小面板上四档几乎一样，量不出半径。列宽放大后那两行各排成 2 × 2，
+   四格仍然等高（grid-auto-rows 继承），所以每格的背景副本照旧逐像素对齐。 */
+.glass-lab__samples--large {
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+
 /* 单元格：背景副本与玻璃面板是兄弟节点，不是父子。backdrop-filter 只采样元素「背后」的内容，
    采样不到自己的子节点，所以背景不能放进面板里面 —— 放进去了就只会被填色盖住、永远不被模糊。 */
 .glass-lab__cell {
@@ -297,10 +319,51 @@
     flex: 1 1 auto;
 }
 
+/* 遮罩那一行的单元格。面板缩到格内居中，遮罩铺满整格 —— 一格代表一整块视口，
+   所以那一行要看的是面板以外那片区域的背景还剩多少可读性。 */
+.glass-lab__cell--scrim {
+    min-height: 300px;
+}
+
+.glass-lab__cell--scrim > .glass-lab__sample {
+    flex: 0 0 auto;
+    width: 78%;
+    margin: auto;
+}
+
+/* 遮罩层自己。填充是 --aeterni-overlay（无彩色的黑，浅 42% / 深 64%），三档完全相同；
+   唯一变量是它自己的 backdrop-filter。z-index 0 让它压在背景副本之上、面板（z-index 1）之下。
+   它不消费库的 --aeterni-blur-scrim：这一行要测的正是那个值。 */
+.glass-lab__scrim {
+    --glass-lab-scrim-filter: none;
+
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: var(--aeterni-radius-surface);
+    background: var(--aeterni-overlay);
+    -webkit-backdrop-filter: var(--glass-lab-scrim-filter);
+    backdrop-filter: var(--glass-lab-scrim-filter);
+}
+
+.glass-lab__scrim[data-scrim="none"] { --glass-lab-scrim-filter: none; }
+
+/* 库现值：--aeterni-blur-scrim = --aeterni-blur-sm。 */
+.glass-lab__scrim[data-scrim="8"] { --glass-lab-scrim-filter: blur(8px) saturate(120%); }
+
+/* 本页候选：与内容表面同档（--aeterni-blur-md）。 */
+.glass-lab__scrim[data-scrim="16"] { --glass-lab-scrim-filter: blur(16px) saturate(135%); }
+
 .glass-lab__surface {
     --glass-lab-base: var(--aeterni-bg-surface);
     --glass-lab-alpha: var(--glass-lab-alpha-elevated);
     --glass-lab-filter: blur(16px) saturate(135%);
+    /* 04／05 两行的两根轴各有一个默认值，取值就是库现值（--aeterni-blur-md 的 16px 与 135%）。
+       两组夹具各自只覆盖自己要测的那一根，另一根留在默认档上，所以行内格与格的差异
+       只有被比较的那一根轴 —— 这正是 01–04 候选矩阵做不到的：那四格三根轴一起变，归因不到单根。
+       这两个数同时存在于 GlassLab.razor 的 _blurTiers / _saturateTiers 的说明里，改值要同步。 */
+    --glass-lab-tune-blur: 16px;
+    --glass-lab-tune-saturate: 135%;
     --glass-lab-ink-primary: var(--aeterni-text-primary);
     --glass-lab-ink-secondary: var(--aeterni-text-secondary);
     --glass-lab-ink-tertiary: var(--aeterni-text-tertiary);
@@ -315,32 +378,51 @@
     backdrop-filter: var(--glass-lab-filter);
 }
 
-/* 01 现状：等价于今天 Surface / Card 的 Glass 变体。
+/* 候选 01 · 现状：等价于今天 Surface / Card 的 Glass 变体。
    --aeterni-bg-surface 82% 与 --aeterni-blur-md 逐字节相同，所以这一格就是库的现状。 */
 .glass-lab__sample[data-candidate="elevated"] {
     --glass-lab-alpha: var(--glass-lab-alpha-elevated);
     --glass-lab-filter: blur(16px) saturate(135%);
 }
 
-/* 02 提案：本页推荐的落点。浅色 5.61:1 / 深色 5.60:1，正文余量都在 1.24 倍以上。 */
+/* 候选 02 · 提案：本页推荐的落点。浅色 5.61:1 / 深色 5.60:1，正文余量都在 1.24 倍以上。 */
 .glass-lab__sample[data-candidate="glass"] {
     --glass-lab-alpha: var(--glass-lab-alpha-glass);
     --glass-lab-filter: blur(24px) saturate(150%);
 }
 
-/* 03 提案：轻玻璃。只有大字号与图形元素站得住，正文需要配合 on-glass 墨。 */
+/* 候选 03 · 提案：轻玻璃。只有大字号与图形元素站得住，正文需要配合 on-glass 墨。 */
 .glass-lab__sample[data-candidate="glass-soft"] {
     --glass-lab-alpha: var(--glass-lab-alpha-glass-soft);
     --glass-lab-filter: blur(32px) saturate(150%);
 }
 
-/* 04 对照：完全不透明、不模糊。不是选项，是下限。 */
+/* 候选 04 · 对照：完全不透明、不模糊。不是选项，是下限。 */
 .glass-lab__sample[data-candidate="flat"] {
     --glass-lab-alpha: var(--glass-lab-alpha-flat);
     --glass-lab-filter: none;
 }
 
-/* 02 文字底衬三档。面板填充与模糊全部停在候选 03 上，唯一变量是文字块下面有没有东西。
+/* 模糊半径与饱和度两行的调参夹具：滤镜由两根轴拼出来，两根轴各自被单独覆盖。
+   选择器多带一个 [data-candidate] 是为了拿到第 4 个类的特异性：候选矩阵的
+   .glass-lab__sample[data-candidate="elevated"] 也是 3 个类，同分就只能靠书写顺序决胜，
+   而这两组规则的价值恰恰在于不随顺序改变 —— 上面那条 -elevated 的模糊若被后面的规则
+   悄悄盖掉，整行比较的对象就变了。 */
+.glass-lab__sample[data-candidate][data-tune="filter"] {
+    --glass-lab-filter: blur(var(--glass-lab-tune-blur)) saturate(var(--glass-lab-tune-saturate));
+}
+
+.glass-lab__sample[data-blur="8"] { --glass-lab-tune-blur: 8px; }
+.glass-lab__sample[data-blur="16"] { --glass-lab-tune-blur: 16px; }
+.glass-lab__sample[data-blur="24"] { --glass-lab-tune-blur: 24px; }
+.glass-lab__sample[data-blur="32"] { --glass-lab-tune-blur: 32px; }
+
+.glass-lab__sample[data-saturate="100"] { --glass-lab-tune-saturate: 100%; }
+.glass-lab__sample[data-saturate="120"] { --glass-lab-tune-saturate: 120%; }
+.glass-lab__sample[data-saturate="135"] { --glass-lab-tune-saturate: 135%; }
+.glass-lab__sample[data-saturate="150"] { --glass-lab-tune-saturate: 150%; }
+
+/* 文字底衬三档（填充与模糊停在候选 03）。面板填充与模糊全部停在候选 03 上，唯一变量是文字块下面有没有东西。
    底衬的 padding 用等量负 margin 抵掉，三格的文字位置逐像素相同 —— 否则「B 比 A 清楚」
    里会混进「B 的字往右挪了 12px」。 */
 .glass-lab__plate {
@@ -359,7 +441,7 @@
     --glass-lab-alpha: var(--glass-lab-alpha-glass);
 }
 
-/* 05 边界四档。填充与模糊停在候选 03 上，只换边框与投影。
+/* 边界四档（填充与模糊停在候选 03）：只换边框与投影。
    四档都保留 1px 的边框宽度，只改颜色，所以内容盒子与面板几何完全一致。 */
 .glass-lab__sample[data-edge="hairline"] {
     border-color: var(--aeterni-border-default);
@@ -440,13 +522,13 @@
     color: var(--glass-lab-ink-tertiary);
 }
 
-/* 02 与 05 里成对出现的 on-glass 墨。它与 .glass-lab__line--secondary（标准墨）并排，
+/* 文字底衬与边界两行里成对出现的 on-glass 墨。它与 .glass-lab__line--secondary（标准墨）并排，
    两行的差别只有这一条声明，所以「墨换得动换不动」是可以直接看出来的。 */
 .glass-lab__line--on-glass {
     color: var(--glass-lab-ink-secondary-on-glass);
 }
 
-/* 02 的中间一行必须永远显示标准次要墨。它的文案本身就是「.62 只对不透明表面成立」，
+/* 文字底衬那一行的中间一行必须永远显示标准次要墨。它的文案本身就是「.62 只对不透明表面成立」，
    被开关改写就不成立了。用独立的类而不是靠特异性压过开关，是为了让「这一行不参与开关」
    这件事在标记里直接可读。两行字号一致也是必须的：字号一变，「哪行更清楚」就分不清是
    墨的差别还是尺寸的差别。 */
@@ -681,13 +763,21 @@
 /* 07. 降级
    只摘掉 backdrop-filter 会留下一块半透明色斑，比不透明更糟，所以这里整块回退到
    不透明表面。压力板的两块夹具也走同一条规则：--glass-lab-base 在它们身上就是
-   写死的 #FFFFFF / #1A1A1D，正好是各自主题的表面色。 */
+   写死的 #FFFFFF / #1A1A1D，正好是各自主题的表面色。
+   遮罩是唯一的分叉：它保留压暗、只退掉模糊，理由见下面那块里的注释。 */
 
 @media (prefers-reduced-transparency: reduce) {
     .glass-lab__surface {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         background: var(--glass-lab-base);
+    }
+
+    /* 遮罩保留压暗、只退掉模糊：库侧在同一个查询里把 --aeterni-blur-scrim 退成 none 而保留
+       --aeterni-overlay，因为遮罩本身不承载可读内容，变成不透明反而会挡住它要压暗的页面。 */
+    .glass-lab__scrim {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 }
 

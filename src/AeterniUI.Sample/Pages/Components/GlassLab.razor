@@ -6,20 +6,28 @@
 
 @* 玻璃对比实验页（/components/glass）。
    每一格样本都是同一几何形状（圆角、内边距、边框、阴影全部对齐 Surface 的 Glass 变体），
-   只改两件事：填充不透明度和 backdrop-filter。所以格与格之间的差异就是这两个变量的差异。
-   面板内的三行正文 / 次要 / 三级文字沿用库里的墨值，用来验证「换掉填充之后文字还站不站得住」。
-   第二块和第三块舞台换的是另一组变量：05 只改边界（边框与投影），06 只改文字下方有没有底衬。
-   三块舞台共用候选 03 的填充与模糊，所以「填充太实」「边界太软」「文字没有底」是三个独立的问题，
-   可以分别定位。所有偏差数值来自 GlassContrast，与 scripts/check-contrast.mjs 用同一套公式。
-   本页只读，不写任何 token：填充与模糊候选值同时写在 .razor.css 的 --glass-lab-* 里，
-   改动其中一处必须同步另一处。本页的结论已经落地为候选 01（填充保持 .82、模糊固定在
+   面板内的正文 / 次要 / 三级文字沿用库里的墨值，用来验证「换掉填充之后文字还站不站得住」。
+   七块舞台各换一组变量，所以「填充太实」「字底下没东西」「半径不够」「背景被上色」「遮罩太糊」
+   「边界太软」是六个可以分别定位的问题：
+     01 填充不透明度 —— 四档同屏，模糊跟着候选一起变（候选期就是两轴一起调）。
+     02 文字底衬     —— 填充与模糊钉在候选 03 上，只改文字块下面那一层。
+     03 压力板       —— 纯黑与纯白两个最坏背景，浅色玻璃压纯黑、深色玻璃压纯白。
+     04 模糊半径     —— 只改 blur，填充停在库现值 .82、saturate 停在库现值 135%。
+     05 饱和度       —— 只改 saturate，填充同上、模糊钉在 16px。
+     06 遮罩         —— 压暗值四行相同，只改遮罩自己那层 backdrop-filter。
+     07 边界         —— 填充与模糊钉在候选 03 上，只换边框与投影。
+   04／05／06 三行的面板刻意比其余舞台宽：半径与饱和度的差异都随面板面积增大才看得出来。
+   所有偏差数值来自 GlassContrast，与 scripts/check-contrast.mjs 用同一套公式。
+   本页只读，不写任何 token：填充与滤镜候选值住在 .razor.css 的 --glass-lab-* 里，
+   读数与文案在下面的 _candidates / _plates / _edges / _blurTiers / _saturateTiers / _scrims，
+   改一处必须同步另一处。本页的结论已经落地为候选 01（填充保持 .82、模糊固定在
    Glass 变体上、边框跟随 Bordered、降级集中在 token 层），候选 02／03 作为被否决的方案
    留在表里做对照；表里的「候选名」是实验期的叫法，--aeterni-bg-glass 现在指的是 01 的 82%。 *@
 <section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
     <p class="showcase-page-eyebrow">设计基础 · 对比实验</p>
     <h1 id="glass-lab-title">玻璃与模糊对比</h1>
     <p class="showcase-install__lead">
-        把「玻璃填充不透明度 × 模糊半径」摊成一张矩阵，让同一块面板在四种填充下同屏出现。
+        把「玻璃填充不透明度 × 模糊半径 × 饱和度 × 遮罩」摊成一张矩阵，让同一块面板在七组变量下同屏出现。
         背景内容层可以切换成壁纸、细网格、App 图标墙和 12px 正文 —— 玻璃真正的短板不是模糊不够，
         而是背景里没有东西可以糊，以及填充太实把糊过的背景又盖了回去。
     </p>
@@ -287,14 +295,158 @@
 
     <h2 class="glass-lab__subtitle">04 · 模糊半径：档位够不够</h2>
     <p class="glass-lab__note">
-        把背景切到「App 图标墙」，再逐格比较 16px / 24px / 32px。iOS 面板上单个图标会被完全糊掉、
-        大色块仍然保留，等效 CSS 大约落在 <code>blur(24px)</code> 到 <code>blur(32px)</code> 之间。库里
-        <code>--aeterni-blur-lg</code> 的 <code>blur(24px)</code> 已经够用，库把 Glass 变体固定在
-        <code>--aeterni-blur-glass</code>（16px / 135%）这一档，宿主覆写该 Token 即可整体加档；真正缺的是「让背景透出来」，而不是更大的半径。
-        <code>blur(32px)</code> 在本页以候选身份出现，没有写进 token。
+        四格只差 blur 半径：填充停在库现值 <code>.82</code>、<code>saturate</code> 钉在 <code>135%</code>，
+        面板刻意做到 420px 以上。这一行<b>只有在「App 图标墙」这一档背景上才分得出</b>：实测面板内部的
+        梯度是 <code>0.249 / 0.064 / 0.061 / 0.057</code> —— <code>8 → 16</code> 一次就降掉四分之三，
+        再往上只剩 <code>5%</code> 与 <code>7%</code>；壁纸、细网格、12px 正文上从 8px 直接跳到 32px
+        也只有 <code>4%</code> 左右的像素变化，也就是文字抗锯齿的噪声底。
+        所以<b>那三档背景上四格看起来一样，是这一行的结论，不是渲染失败</b>：半径没有失效，
+        是 <code>.82</code> 的填充只放 18% 的背景进来，低对比的背景先被削薄、再被高斯核抹平就什么都不剩 ——
+        半径只作用在「背景里本来就有大色块」的地方。库把 Glass 变体固定在
+        <code>--aeterni-blur-glass</code>（<code>--aeterni-blur-md</code>，16px），
+        <code>--aeterni-blur-lg</code> 的 24px 当前<b>0 处使用</b>；从这组读数看它不是遗漏，
+        而是一个可以拍板的取舍：给大面板单独挂 24px 只影响大色块边缘，不改变任何文字的可读性。
+        32px 在本页以候选身份出现、没有写进 token。
     </p>
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples glass-lab__samples--large">
+            @foreach (var tier in _blurTiers)
+            {
+                <article class="glass-lab__cell">
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="elevated" data-tune="filter" data-blur="@tier.Value">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@tier.Index</span>
+                            <span class="glass-lab__sample-name">@tier.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@tier.Token</code>
+                            <span>填充 α @GlassContrast.AlphaLabel(Library.LightAlpha)</span>
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--primary">
+                            正文：面板应该在背景上分层，而不是盖住它
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--on-glass">
+                            次要：背后这一块还能不能认出形状
+                        </p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <ul class="glass-lab__list">
+        @foreach (var tier in _blurTiers)
+        {
+            <li>
+                <strong>@tier.Name</strong> ·
+                @tier.Note
+            </li>
+        }
+    </ul>
 
-    <h2 class="glass-lab__subtitle">05 · 边界：清晰与层次感是两个变量</h2>
+    <h2 class="glass-lab__subtitle">05 · 饱和度：模糊之外还做不做别的事</h2>
+    <p class="glass-lab__note">
+        四格只差 <code>saturate</code>：填充停在 <code>.82</code>，模糊钉在 16px。这一行只在彩色背景上有效 ——
+        把「背景内容层」切到细网格或 12px 正文（两者都是无彩色）时四格<b>逐像素相同</b>，
+        这本身就是结论的一半：<code>saturate</code> 只缩放彩度，灰阶输入的彩度是零，缩放多少都还是零。
+        实测壁纸那一档面板区域的彩度均值（<code>max − min(R,G,B)</code>）是
+        <code>5.46 / 6.50 / 7.26 / 8.06</code>：库现值 135% 比 100% 把透过来的彩度抬高三成三，
+        150% 抬高近五成。这就是「这块板在给背景上色」的量化版本 —— 玻璃自己的填充仍然无彩色
+        （R = G = B），被抬高的是背后那张壁纸的彩度，所以它在大面积低饱和背景上几乎不可见、
+        一旦碰上壁纸的径向热点就立刻读出来。库侧目前把它和模糊绑在一起卖
+        （<code>--aeterni-blur-sm/md/lg</code> 分别是 120% / 135% / 150%），
+        另有一个 <code>--aeterni-backdrop-saturate: 145%</code> 是<b>孤儿 token</b>（0 处使用）。
+    </p>
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples glass-lab__samples--large">
+            @foreach (var tier in _saturateTiers)
+            {
+                <article class="glass-lab__cell">
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="elevated" data-tune="filter" data-saturate="@tier.Value">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@tier.Index</span>
+                            <span class="glass-lab__sample-name">@tier.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@tier.Token</code>
+                            <span>填充 α @GlassContrast.AlphaLabel(Library.LightAlpha)</span>
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--primary">
+                            正文：填充仍然无彩色，被抬起来的是背景
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--on-glass">
+                            次要：这块面板有没有给背后的颜色加料
+                        </p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <ul class="glass-lab__list">
+        @foreach (var tier in _saturateTiers)
+        {
+            <li>
+                <strong>@tier.Name</strong> ·
+                @tier.Note
+            </li>
+        }
+    </ul>
+
+    <h2 class="glass-lab__subtitle">06 · 遮罩：压暗之外要不要再糊一次</h2>
+    <p class="glass-lab__note">
+        三格里，压在背景上的那层黑完全相同（<code>--aeterni-overlay</code>：浅 <code>42%</code> / 深
+        <code>64%</code>，三档都不变，库侧在「降低透明度」下也保留这层压暗），唯一变量是遮罩自己的
+        <code>backdrop-filter</code>。每格代表一整块视口：遮罩铺满，面板浮在中间 ——
+        所以这里要看的是<b>面板以外</b>那片区域。库侧三个遮罩当前都是
+        <code>--aeterni-blur-scrim</code>（= <code>--aeterni-blur-sm</code>，8px / 120%）。
+        实测面板外那片区域的相邻像素亮度梯度和：不模糊 <code>1.29</code> → 8px <code>0.19</code> →
+        16px <code>0.18</code>。也就是 8px 已经把它糊成一片平坦场，16px 只再降 <code>3%</code> ——
+        半径往上加买不到清晰度上的变化，买到的只是每帧一次更大核的全屏卷积。
+    </p>
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples">
+            @foreach (var scrim in _scrims)
+            {
+                <article class="glass-lab__cell glass-lab__cell--scrim">
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__scrim" data-scrim="@scrim.Value" aria-hidden="true"></div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="elevated">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@scrim.Index</span>
+                            <span class="glass-lab__sample-name">@scrim.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@scrim.Token</code>
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--primary">
+                            正文：遮罩只管把页面推走，不管自己长什么样
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--on-glass">
+                            次要：面板之外那片背景还剩多少可读性
+                        </p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <ul class="glass-lab__list">
+        @foreach (var scrim in _scrims)
+        {
+            <li>
+                <strong>@scrim.Name</strong> ·
+                @scrim.Note
+            </li>
+        }
+    </ul>
+
+    <h2 class="glass-lab__subtitle">07 · 边界：清晰与层次感是两个变量</h2>
     <p class="glass-lab__note">
         四格全部钉在候选 03 的填充（浅 <code>.50</code> / 深 <code>.62</code>）与 <code>blur(32px)</code> 上，
         唯一变量是边框与投影。A 与 C 的投影完全相同、只差边框画在哪，用来隔离「边框到底贡献了多少边界」；
@@ -340,7 +492,7 @@
         }
     </ul>
 
-    <h2 class="glass-lab__subtitle">06 · 本页的边界</h2>
+    <h2 class="glass-lab__subtitle">08 · 本页的边界</h2>
     <ul class="glass-lab__list">
         <li>
             本页不写入任何 token。候选矩阵里的填充与模糊只是本页的实验值，住在 <code>.razor.css</code> 的
@@ -363,8 +515,9 @@
             两支模糊退 <code>none</code>），本页的面板不消费库 token，所以自己留了一份同语义的块。
         </li>
         <li>
-            同屏玻璃面建议不超过 3 个。本页为了让差异可比，三块舞台一共摆了十一格 —— 这是实验布景，
-            不是排版建议。每格各带一份背景副本也意味着十一份渐变与十一个 <code>backdrop-filter</code>，
+            同屏玻璃面建议不超过 3 个。本页为了让差异可比，七块舞台一共摆了二十二格面板加三条遮罩 ——
+            这是实验布景，不是排版建议。每格各带一份背景副本也意味着二十二份渐变，以及二十三处同时生效的
+            <code>backdrop-filter</code>（二十一个面板加两条遮罩；不透明对照那一格与「无模糊」那一档不带），
             真实页面不会有这种密度。
         </li>
         <li>
@@ -381,6 +534,13 @@
         <li>
             四格同底是本页的实验装置，不是组件行为。组件只负责在宿主给的背景上合成，不负责让背景在
             多块面板之间保持一致；这件事在宿主排版时天然成立，不需要库介入。
+        </li>
+        <li>
+            04／05／06 三行里引用的读数都是本机实测，不是推算：「梯度」是面板内部一块无文字区域中
+            相邻像素亮度差的均值（亮度按 <code>0.2126R + 0.7152G + 0.0722B</code>，横竖各取一次绝对差），
+            百分比是同一块面板两档截图逐像素比较的结果（任一通道差超过 <code>2/255</code> 才计数）。
+            采集条件是 1440×1000 视口、设备像素比 2 的无头 Chromium；四档面板几何逐格相同，
+            所以比的是同一批像素。噪声底是同底同档相比时剩下的那约 <code>2%</code>，全部落在文字抗锯齿上。
         </li>
     </ul>
 </section>
@@ -441,7 +601,7 @@
         new("solid", "C", "整块加实", "= 候选 02 的填充", 0.60, 0.72,
             "整块面板抬到候选 02。读数与 B 完全相同，多出来的填充铺满整块，不再还给背景。"),    ];
 
-    @* 05 边界四档。填充与模糊全部钉在候选 03 上，只改边框与投影。
+    @* 07 边界四档。填充与模糊全部钉在候选 03 上，只改边框与投影。
        A 与 C 的投影相同、只差边框，用来隔离边框的贡献；D 反方向验证只靠投影行不行。 *@
     private static readonly GlassEdgeFixture[] _edges =
     [
@@ -453,6 +613,54 @@
             "把边界画进玻璃内部：一条内描边加一条上缘高光。投影与 A 完全相同，所以 A 与 C 的差别就是边框全部的贡献。"),
         new("shadow-only", "D", "只靠投影", "无边框", "--aeterni-shadow-xl",
             "去掉边框把投影提到 16% / 8%。能分出层，但边界本身没有了：投影只回答「在哪一层」，不回答「到哪里为止」。"),
+    ];
+
+    /// <summary>
+    /// 库现值那一行的夹具（填充 <c>.82</c>、<c>blur(16px) saturate(135%)</c>）。
+    /// 04／05 两行把它当作「不动的那根轴」直接引用，不再复制一份数字；
+    /// 万一候选 01 被改动，两行的填充标注会跟着一起变，不会静默漂移。
+    /// </summary>
+    private static GlassCandidate Library => _candidates[0];
+
+    @* 04 模糊半径四档。只改 blur，填充停在库现值、saturate 停在库现值的 135%。
+       面板在本行刻意加宽（.razor.css 的 --large）：半径差异随面板面积增大才看得出来。
+       每一档的 Value 同时是 CSS 属性选择器的取值（data-blur），改值必须同步 .razor.css。 *@
+    private static readonly GlassTuneFixture[] _blurTiers =
+    [
+        new("8", "A", "blur(8px)", "--aeterni-blur-sm",
+            "库内没有内容表面用它：唯一的消费者是遮罩别名 --aeterni-blur-scrim。在图标墙上，面板内部的梯度还是 16px 的 3.9 倍 —— 大色块的边缘仍然读得出来。"),
+        new("16", "B", "blur(16px) · 现状", "--aeterni-blur-md／--aeterni-blur-glass",
+            "库现值。图标墙上它已经把面板内的梯度压到 8px 的 26%；再往上加半径只再降 5%（24px）与 7%（32px），所以这一档其实是梯度的上端。"),
+        new("24", "C", "blur(24px)", "--aeterni-blur-lg",
+            "库里有这一档，但当前 0 处使用（唯一的消费者是裸别名 --aeterni-blur，而它也没有引用）。实测与 16px 只差 5% 的梯度，不是缺口。"),
+        new("32", "D", "blur(32px)", "无 token（本页候选）",
+            "与 16px 的面板内梯度只差 7%：买不到更「液态」的观感，只买到更大的卷积核。"),
+    ];
+
+    @* 05 饱和度四档。只改 saturate，填充停在库现值、模糊钉在库现值的 16px。
+       这一行只在彩色背景上有效：壁纸上分得出，细网格上四格完全一样。 *@
+    private static readonly GlassTuneFixture[] _saturateTiers =
+    [
+        new("100", "A", "saturate(100%)", "无 token",
+            "只做模糊，不碰颜色。玻璃是一块中性的磨砂，背后的彩度原样透过来。"),
+        new("120", "B", "saturate(120%)", "--aeterni-blur-sm 的档",
+            "轻微加艳，只有壁纸那一档背景分得出，细网格上完全看不出。"),
+        new("135", "C", "saturate(135%) · 现状", "--aeterni-blur-md／--aeterni-blur-glass",
+            "库现值。玻璃自身仍然无彩色，但底下的彩度被抬高了三分之一，壁纸的径向热点会被明显推艳。"),
+        new("150", "D", "saturate(150%)", "--aeterni-blur-lg 的档",
+            "最高的档。大面积上已经能读出「这块板在给背景上色」，与「只要模糊」的诉求相反。"),
+    ];
+
+    @* 06 遮罩三档。压在背景上的那层黑完全相同（--aeterni-overlay），只改遮罩自己的
+       backdrop-filter。每格代表一整块视口，面板浮在中间，要看的是面板以外那片区域。 *@
+    private static readonly GlassScrimFixture[] _scrims =
+    [
+        new("none", "A", "无模糊", "backdrop-filter: none",
+            "遮罩只压暗：42% / 64% 的黑仍然在，背后的页面保持原样的锐利。代价是浮层与页面之间少了一层「焦点转移」的暗示。"),
+        new("8", "B", "blur(8px) · 现状", "--aeterni-blur-scrim（= --aeterni-blur-sm）",
+            "库现值，三个遮罩共用。压暗与失焦同时发生，整页被糊掉一层 —— 面板外的梯度从 1.29 掉到 0.19。"),
+        new("16", "C", "blur(16px)", "无 token（本页候选）",
+            "与内容表面同档。实测只比 8px 再降 3%（0.19 → 0.18）的梯度：清晰度上买不到东西，代价却是每帧一次更大核的全屏卷积。"),
     ];
 
     /// <summary>候选 02 的填充，压力板强制使用；与 .razor.css 的 --glass-lab-alpha-glass 一致。</summary>
@@ -620,5 +828,22 @@
         string Name,
         string Border,
         string Shadow,
+        string Note);
+
+    /// <param name="Value">
+    /// 同时是 CSS 属性选择器的取值（<c>data-blur</c> / <c>data-saturate</c>），必须是纯数字字符串。
+    /// </param>
+    private sealed record GlassTuneFixture(
+        string Value,
+        string Index,
+        string Name,
+        string Token,
+        string Note);
+
+    private sealed record GlassScrimFixture(
+        string Value,
+        string Index,
+        string Name,
+        string Token,
         string Note);
 }
