@@ -79,6 +79,19 @@
     animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
+/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
+   on 4.35:1, under the 4.5:1 text floor. All four roles that carry it are
+   re-pointed, not only `--aeterni-text-secondary`, because the other names alias
+   it inside the theme block. See `Card.razor.css` for the full note. Every
+   picker flyout (ComboBox / DatePicker / DateRangePicker / MenuButton) renders
+   through this one surface, so they follow along. */
+.aeterni-popover__surface {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+}
+
 .aeterni-popover.is-modal .aeterni-popover__surface {
     z-index: var(--aeterni-z-modal);
     box-shadow: var(--aeterni-shadow-modal);

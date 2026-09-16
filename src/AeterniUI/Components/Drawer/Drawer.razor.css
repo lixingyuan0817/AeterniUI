@@ -52,6 +52,17 @@
     box-shadow: var(--aeterni-shadow-modal);
 }
 
+/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
+   on 4.35:1, under the 4.5:1 text floor. All four roles that carry it are
+   re-pointed, not only `--aeterni-text-secondary`, because the other names alias
+   it inside the theme block. See `Card.razor.css` for the full note. */
+.aeterni-drawer__panel {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+}
+
 /* Placement ---------------------------------------------------------------
    Logical insets keep Start/End correct in RTL, and the rounded corners are the two
    on the inner side — the panel is flush with the viewport edge it slides from. */

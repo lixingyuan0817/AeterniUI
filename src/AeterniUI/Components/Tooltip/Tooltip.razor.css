@@ -41,6 +41,17 @@
     transition: var(--aeterni-transition-opacity), translate var(--aeterni-duration-normal) var(--aeterni-ease-in-out), visibility var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
 }
 
+/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
+   on 4.35:1, under the 4.5:1 text floor. All four roles that carry it are
+   re-pointed, not only `--aeterni-text-secondary`, because the other names alias
+   it inside the theme block. See `Card.razor.css` for the full note. */
+.aeterni-tooltip__content {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+}
+
 /* Placement geometry. The JS layer only overrides the placement class on flip
    and the shift variables when the layer has to stay inside the viewport. */
 .aeterni-tooltip--top .aeterni-tooltip__content {

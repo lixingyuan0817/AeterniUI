@@ -38,6 +38,21 @@
     animation: aeterni-notice-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized) both;
 }
 
+/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
+   on 4.35:1, under the 4.5:1 text floor. All four roles that carry it are
+   re-pointed, not only `--aeterni-text-secondary`, because the other names alias
+   it inside the theme block. See `Card.razor.css` for the full note. `is-no-blur`
+   swaps the fill for an opaque one, so it keeps the standard ink. */
+.aeterni-dialog-provider__alert:not(.is-no-blur),
+.aeterni-dialog-provider__toast:not(.is-no-blur),
+.aeterni-dialog-provider__alert--primary:not(.is-no-blur),
+.aeterni-dialog-provider__toast--primary:not(.is-no-blur) {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+}
+
 .aeterni-dialog-provider__alert--info,
 .aeterni-dialog-provider__toast--info {
     --aeterni-dialog-accent: var(--aeterni-color-info-default);
