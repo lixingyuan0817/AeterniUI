@@ -31,7 +31,7 @@ public static class ShowcaseCatalog
             new("install", "安装", "安装与初始化") { IsComponent = false }
         ]),
         new("设计基础", FontAwesomeIcons.Solid.Palette, [
-            new("colors", "色彩与语义", "色族形态对照") { IsComponent = false }
+            new("colors", "色彩与语义", "色族、字体、圆角与阴影") { IsComponent = false }
         ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),

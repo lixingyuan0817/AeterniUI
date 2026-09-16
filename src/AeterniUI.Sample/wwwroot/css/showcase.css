@@ -115,6 +115,10 @@
 .showcase-install__steps pre { margin-top: var(--aeterni-spacing-3); }
 .showcase-install pre { margin: 0; overflow-x: auto; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); line-height: 1.6; white-space: pre-wrap; }
 .showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
+/* Page-level eyebrow. `.component-preview__eyebrow` lives in an isolated sheet and
+   only matches ComponentPreview's own markup, so pages that are rendered straight
+   into the layout shell need their own copy from this global sheet. */
+.showcase-page-eyebrow { margin: 0 0 var(--aeterni-spacing-2); color: var(--aeterni-color-brand-text); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-semibold); letter-spacing: .12em; text-transform: uppercase; }
 
 /* Sample content shown inside the generic preview stages. */
 
@@ -425,9 +429,13 @@
     }
 }
 
-/* Colour reference page (/components/colors) --------------------------------
-   Page-local layout only: every colour, radius and spacing below comes from an
-   AeterniUI token, and no `.aeterni-*` component rule is overridden. */
+/* 色彩与语义 (/components/colors) -------------------------------------------
+   页面级设计基础验收页：色族色卡、文字墨阶、字体、表面、圆角、阴影和间距全部
+   手绘，只引用 `--aeterni-*` Token，且不覆写任何 `.aeterni-*` 组件规则。
+
+   版式按设计规格表组织：每一组基础各自成卡片，卡片之间走网格，卡片内部只放
+   标尺本身（色块、形状、条形）与 Token 名。容器表面保持无彩色：彩色只出现在
+   展示色值本身的小尺寸内容表面上，不会铺满卡片或整页。 */
 .showcase-colors {
     padding: clamp(28px, 5vw, 72px);
     border: 1px solid var(--aeterni-border-subtle);
@@ -443,29 +451,304 @@
 }
 
 .showcase-colors__subtitle {
-    margin: 40px 0 10px;
+    margin: 44px 0 10px;
     color: var(--aeterni-text-primary);
     font-size: var(--aeterni-font-size-lg);
 }
 
-.showcase-colors__matrix {
-    display: grid;
-    gap: 0;
-    margin-top: 32px;
-    overflow-x: auto;
+/* 页面说明段：保留 .showcase-install__note 的基础样式，只收紧它紧跟在标题后
+   的间距并限制行长。同权重、后定义，因此这里覆盖的是示例页自己的类。 */
+.showcase-colors__note {
+    max-width: 760px;
+    margin-top: var(--aeterni-spacing-2);
 }
 
-.showcase-colors__head,
-.showcase-colors__row {
+/* 卡片基线：色卡、墨阶、字体元信息、表面与圆角卡片共用同一套边界、圆角与
+   内边距，内容不同但骨架一致，整页才读成一张规格表。 */
+.showcase-colors__card,
+.showcase-colors__type,
+.showcase-colors__meta,
+.showcase-colors__surface,
+.showcase-colors__radius-item {
     display: grid;
-    grid-template-columns: 148px repeat(5, minmax(150px, 1fr));
-    align-items: center;
+    align-content: start;
+    gap: var(--aeterni-spacing-3);
+    min-width: 0;
+    padding: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+/* Token 名一律等宽小字，只落在卡片内部，避免把页首与说明段里的行内代码缩小。 */
+.showcase-colors__card code,
+.showcase-colors__type code,
+.showcase-colors__meta code,
+.showcase-colors__surface code,
+.showcase-colors__radius-item code,
+.showcase-colors__shadow-item code,
+.showcase-colors__display code,
+.showcase-colors__scale-row code,
+.showcase-colors__spacing-row code,
+.showcase-colors__table-row code {
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+/* --- 色族色卡 ------------------------------------------------------------ */
+.showcase-colors__families {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--aeterni-spacing-4);
-    min-width: 900px;
+    margin-top: var(--aeterni-spacing-4);
 }
 
-.showcase-colors__head {
-    padding-bottom: var(--aeterni-spacing-2);
+/* 每张色卡把自己的色族收敛成三个页面局部别名，卡内所有色块都从别名取色；
+   加一个色族只需要补一个 data-family 块，色块规则一行都不用改。 */
+.showcase-colors__card {
+    --family-solid: var(--aeterni-color-neutral-default);
+    --family-solid-ink: var(--aeterni-color-on-semantic);
+    --family-ink: var(--aeterni-color-neutral-text);
+    --family-soft: var(--aeterni-color-neutral-soft);
+}
+
+.showcase-colors__card[data-family="brand"] {
+    --family-solid: var(--aeterni-color-brand-default);
+    --family-solid-ink: var(--aeterni-button-intent-default-foreground);
+    --family-ink: var(--aeterni-color-brand-text);
+    --family-soft: var(--aeterni-color-brand-soft);
+}
+
+.showcase-colors__card[data-family="success"] {
+    --family-solid: var(--aeterni-color-success-default);
+    --family-ink: var(--aeterni-color-success-text);
+    --family-soft: var(--aeterni-color-success-soft);
+}
+
+.showcase-colors__card[data-family="warning"] {
+    --family-solid: var(--aeterni-color-warning-default);
+    --family-ink: var(--aeterni-color-warning-text);
+    --family-soft: var(--aeterni-color-warning-soft);
+}
+
+.showcase-colors__card[data-family="danger"] {
+    --family-solid: var(--aeterni-color-danger-default);
+    --family-ink: var(--aeterni-color-danger-text);
+    --family-soft: var(--aeterni-color-danger-soft);
+}
+
+.showcase-colors__card[data-family="info"] {
+    --family-solid: var(--aeterni-color-info-default);
+    --family-ink: var(--aeterni-color-info-text);
+    --family-soft: var(--aeterni-color-info-soft);
+}
+
+.showcase-colors__card[data-family="neutral"] {
+    --family-solid: var(--aeterni-color-neutral-default);
+    --family-ink: var(--aeterni-color-neutral-text);
+    --family-soft: var(--aeterni-color-neutral-soft);
+}
+
+.showcase-colors__card-head {
+    display: grid;
+    gap: 2px;
+}
+
+.showcase-colors__card-name {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.showcase-colors__card-use {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-colors__swatches {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+    padding-top: var(--aeterni-spacing-3);
+    border-top: 1px solid var(--aeterni-separator);
+}
+
+.showcase-colors__swatch {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    min-width: 0;
+}
+
+.showcase-colors__swatch-fill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    border: 1px solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+}
+
+.showcase-colors__swatch-fill--solid {
+    background: var(--family-solid);
+    color: var(--family-solid-ink);
+}
+
+.showcase-colors__swatch-fill--text {
+    border-color: currentColor;
+    color: var(--family-ink);
+}
+
+.showcase-colors__swatch-fill--soft {
+    background: var(--family-soft);
+    color: var(--family-ink);
+}
+
+.showcase-colors__swatch-meta {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.showcase-colors__swatch-variant {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* --- 文字墨阶 ------------------------------------------------------------ */
+.showcase-colors__types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__type {
+    gap: var(--aeterni-spacing-2);
+}
+
+.showcase-colors__type-sample {
+    font-size: var(--aeterni-font-size-xl);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.showcase-colors__type-use {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__ink--primary {
+    color: var(--aeterni-text-primary);
+}
+
+.showcase-colors__ink--secondary {
+    color: var(--aeterni-text-secondary);
+}
+
+.showcase-colors__ink--placeholder {
+    color: var(--aeterni-text-placeholder);
+}
+
+.showcase-colors__ink--tertiary {
+    color: var(--aeterni-text-tertiary);
+}
+
+.showcase-colors__ink--disabled {
+    color: var(--aeterni-text-disabled);
+}
+
+/* --- 字体与字号 ---------------------------------------------------------- */
+.showcase-colors__typography {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__display,
+.showcase-colors__scale {
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__display {
+    display: grid;
+    align-content: end;
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__display-eyebrow {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+.showcase-colors__display-sample {
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(64px, 10vw, 148px);
+    font-weight: var(--aeterni-font-weight-bold);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+}
+
+.showcase-colors__scale {
+    display: grid;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-4);
+}
+
+.showcase-colors__scale-row {
+    display: grid;
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-1) 0;
+}
+
+.showcase-colors__scale-row + .showcase-colors__scale-row {
+    border-top: 1px solid var(--aeterni-separator);
+}
+
+.showcase-colors__scale-row span {
+    color: var(--aeterni-text-primary);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.showcase-colors__size--6xl { font-size: var(--aeterni-font-size-6xl); }
+.showcase-colors__size--5xl { font-size: var(--aeterni-font-size-5xl); }
+.showcase-colors__size--4xl { font-size: var(--aeterni-font-size-4xl); }
+.showcase-colors__size--3xl { font-size: var(--aeterni-font-size-3xl); }
+.showcase-colors__size--2xl { font-size: var(--aeterni-font-size-2xl); }
+.showcase-colors__size--xl { font-size: var(--aeterni-font-size-xl); }
+.showcase-colors__size--lg { font-size: var(--aeterni-font-size-lg); }
+.showcase-colors__size--md { font-size: var(--aeterni-font-size-md); }
+.showcase-colors__size--sm { font-size: var(--aeterni-font-size-sm); }
+.showcase-colors__size--xs { font-size: var(--aeterni-font-size-xs); }
+
+.showcase-colors__font-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__meta {
+    gap: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__meta-title {
     color: var(--aeterni-text-muted);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
@@ -473,42 +756,158 @@
     text-transform: uppercase;
 }
 
-.showcase-colors__row {
-    padding: var(--aeterni-spacing-3) 0;
-    border-top: 1px solid var(--aeterni-border-subtle);
+.showcase-colors__weight--regular { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-regular); }
+.showcase-colors__weight--medium { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-medium); }
+.showcase-colors__weight--semibold { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-semibold); }
+.showcase-colors__weight--bold { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-bold); }
+
+.showcase-colors__family--base { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-base); }
+.showcase-colors__family--mono { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-mono); }
+.showcase-colors__family--display { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-display); }
+
+.showcase-colors__leading--tight { line-height: var(--aeterni-line-height-tight); }
+.showcase-colors__leading--normal { line-height: var(--aeterni-line-height-normal); }
+.showcase-colors__leading--relaxed { line-height: var(--aeterni-line-height-relaxed); }
+
+/* --- 中性容器表面 -------------------------------------------------------- */
+.showcase-colors__surfaces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
 }
 
-.showcase-colors__name {
+.showcase-colors__surface {
+    gap: var(--aeterni-spacing-2);
+}
+
+/* 色块用「二级底打底 + 一层渐变当上层」画出来：不透明档看不到打底，两档半透明
+   （磨砂、叠色）则能看出它们叠在下方表面上之后的结果。 */
+.showcase-colors__surface-chip {
+    display: block;
+    height: 64px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background-color: var(--aeterni-bg-tertiary);
+    background-image: linear-gradient(var(--surface-layer), var(--surface-layer));
+}
+
+.showcase-colors__surface-chip--page { --surface-layer: var(--aeterni-bg-primary); }
+.showcase-colors__surface-chip--secondary { --surface-layer: var(--aeterni-bg-secondary); }
+.showcase-colors__surface-chip--tertiary { --surface-layer: var(--aeterni-bg-tertiary); }
+.showcase-colors__surface-chip--elevated { --surface-layer: var(--aeterni-bg-elevated); }
+.showcase-colors__surface-chip--soft { --surface-layer: var(--aeterni-surface-soft); }
+.showcase-colors__surface-chip--hover { --surface-layer: var(--aeterni-state-background-hover); }
+
+.showcase-colors__surface-name {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* --- 圆角阶梯 ------------------------------------------------------------ */
+.showcase-colors__radius {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__radius-item {
+    gap: var(--aeterni-spacing-2);
+}
+
+.showcase-colors__radius-name,
+.showcase-colors__shadow-name {
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);
 }
 
-/* Status families have no button intent, so the two button columns collapse
-   into one dashed placeholder that says why the cells are empty. */
-.showcase-colors__na {
-    grid-column: span 2;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: var(--aeterni-control-height-md);
-    padding-inline: var(--aeterni-spacing-3);
-    border: 1px dashed var(--aeterni-border-strong);
-    border-radius: var(--aeterni-radius-control-md);
-    color: var(--aeterni-text-muted);
-    font-size: var(--aeterni-font-size-xs);
-    letter-spacing: var(--aeterni-letter-spacing-wide);
+.showcase-colors__radius-shape {
+    display: block;
+    height: 68px;
+    border: 1px solid var(--aeterni-border-strong);
+    background: var(--aeterni-bg-tertiary);
 }
 
-.showcase-colors__chips,
-.showcase-colors__icons {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+.showcase-colors__radius-shape--xs { border-radius: var(--aeterni-radius-xs); }
+.showcase-colors__radius-shape--sm { border-radius: var(--aeterni-radius-sm); }
+.showcase-colors__radius-shape--md { border-radius: var(--aeterni-radius-md); }
+.showcase-colors__radius-shape--lg { border-radius: var(--aeterni-radius-lg); }
+.showcase-colors__radius-shape--xl { border-radius: var(--aeterni-radius-xl); }
+.showcase-colors__radius-shape--2xl { border-radius: var(--aeterni-radius-2xl); }
+.showcase-colors__radius-shape--3xl { border-radius: var(--aeterni-radius-3xl); }
+.showcase-colors__radius-shape--full { border-radius: var(--aeterni-radius-full); }
+
+/* --- 阴影层级 ------------------------------------------------------------ */
+.showcase-colors__shadows {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--aeterni-spacing-5);
+    margin-top: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-5);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-secondary);
+}
+
+.showcase-colors__shadow-item {
+    display: grid;
     gap: var(--aeterni-spacing-2);
+    min-width: 0;
 }
 
+.showcase-colors__shadow-tile {
+    display: block;
+    height: 72px;
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__shadow-tile--xs { box-shadow: var(--aeterni-shadow-xs); }
+.showcase-colors__shadow-tile--sm { box-shadow: var(--aeterni-shadow-sm); }
+.showcase-colors__shadow-tile--md { box-shadow: var(--aeterni-shadow-md); }
+.showcase-colors__shadow-tile--lg { box-shadow: var(--aeterni-shadow-lg); }
+.showcase-colors__shadow-tile--xl { box-shadow: var(--aeterni-shadow-xl); }
+
+/* --- 间距节奏 ------------------------------------------------------------ */
+.showcase-colors__spacing {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+    margin-top: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-5);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__spacing-row {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-colors__spacing-bar {
+    display: block;
+    width: var(--spacing-width);
+    max-width: 100%;
+    height: 12px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-default);
+}
+
+.showcase-colors__spacing-bar--1 { --spacing-width: var(--aeterni-spacing-1); }
+.showcase-colors__spacing-bar--2 { --spacing-width: var(--aeterni-spacing-2); }
+.showcase-colors__spacing-bar--3 { --spacing-width: var(--aeterni-spacing-3); }
+.showcase-colors__spacing-bar--4 { --spacing-width: var(--aeterni-spacing-4); }
+.showcase-colors__spacing-bar--6 { --spacing-width: var(--aeterni-spacing-6); }
+.showcase-colors__spacing-bar--8 { --spacing-width: var(--aeterni-spacing-8); }
+.showcase-colors__spacing-bar--12 { --spacing-width: var(--aeterni-spacing-12); }
+
+/* --- 对比度验收组合 ------------------------------------------------------ */
 .showcase-colors__table {
     margin-top: var(--aeterni-spacing-4);
     overflow: hidden;
@@ -518,7 +917,7 @@
 
 .showcase-colors__table-row {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 0.7fr);
     gap: var(--aeterni-spacing-3);
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
     color: var(--aeterni-text-secondary);
@@ -540,119 +939,26 @@
 
 @media (max-width: 1100px) {
     .showcase-colors__table-row {
-        grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
         font-size: var(--aeterni-font-size-xs);
     }
 }
 
-/* Neutral surface swatches: show the hueless container ramp next to the one
-   intentionally tinted interaction surface. Page-local; each swatch paints a
-   token, no `.aeterni-*` rule is touched. */
-.showcase-colors__surfaces {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--aeterni-spacing-3);
-    margin-top: var(--aeterni-spacing-4);
+@media (max-width: 1000px) {
+    .showcase-colors__typography {
+        grid-template-columns: 1fr;
+    }
 }
 
-.showcase-colors__surface {
-    display: grid;
-    align-content: end;
-    gap: var(--aeterni-spacing-1);
-    min-height: 96px;
-    padding: var(--aeterni-spacing-3);
-    border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-md);
-}
+@media (max-width: 700px) {
+    .showcase-colors__swatch {
+        grid-template-columns: 88px minmax(0, 1fr);
+    }
 
-.showcase-colors__surface span {
-    color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-}
-
-.showcase-colors__surface code {
-    color: var(--aeterni-text-muted);
-    font-family: var(--aeterni-font-family-mono);
-    font-size: var(--aeterni-font-size-xs);
-    overflow-wrap: anywhere;
-}
-
-.showcase-colors__surface--page {
-    background: var(--aeterni-bg-primary);
-}
-
-.showcase-colors__surface--secondary {
-    background: var(--aeterni-bg-secondary);
-}
-
-.showcase-colors__surface--tertiary {
-    background: var(--aeterni-bg-tertiary);
-}
-
-.showcase-colors__surface--elevated {
-    background: var(--aeterni-bg-elevated);
-}
-
-.showcase-colors__surface--soft {
-    background: var(--aeterni-surface-soft);
-}
-
-.showcase-colors__surface--hover {
-    background: var(--aeterni-state-background-hover);
-}
-
-/* Text ladder: each row paints one semantic ink token on the neutral surface, so
-   the four levels can be compared side by side in either theme. */
-.showcase-colors__type {
-    display: grid;
-    gap: 0;
-    margin-top: var(--aeterni-spacing-4);
-    border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-lg);
-    background: var(--aeterni-bg-surface);
-}
-
-.showcase-colors__type-row {
-    display: grid;
-    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-    align-items: baseline;
-    gap: var(--aeterni-spacing-4);
-    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
-}
-
-.showcase-colors__type-row + .showcase-colors__type-row {
-    border-top: 1px solid var(--aeterni-separator);
-}
-
-.showcase-colors__type-row code {
-    color: var(--aeterni-text-muted);
-    font-family: var(--aeterni-font-family-mono);
-    font-size: var(--aeterni-font-size-xs);
-    overflow-wrap: anywhere;
-}
-
-.showcase-colors__type-row span {
-    font-size: var(--aeterni-font-size-md);
-}
-
-.showcase-colors__type-primary {
-    color: var(--aeterni-text-primary);
-}
-
-.showcase-colors__type-secondary {
-    color: var(--aeterni-text-secondary);
-}
-
-.showcase-colors__type-placeholder {
-    color: var(--aeterni-text-placeholder);
-}
-
-.showcase-colors__type-tertiary {
-    color: var(--aeterni-text-tertiary);
-}
-
-.showcase-colors__type-disabled {
-    color: var(--aeterni-text-disabled);
+    .showcase-colors__scale-row,
+    .showcase-colors__spacing-row {
+        grid-template-columns: 1fr;
+        gap: var(--aeterni-spacing-1);
+    }
 }
 
 /* Tab preview: the strip should span the preview width so the horizontal scroll
