@@ -4,14 +4,14 @@
    这个页面是只读的实验布景：同一块面板在七组变量下同屏出现，背后可以换成壁纸、细网格、
    App 图标墙或 12px 正文。页面不改任何库 Token，
    提案期的候选名 --aeterni-bg-glass / --aeterni-bg-glass-soft / --aeterni-text-on-glass-secondary
-   里，--aeterni-bg-glass（指 .82 那一档）与 --aeterni-text-on-glass-secondary 后来都被库采用，
-   只有 --aeterni-bg-glass-soft 是被否决的方案名；
+   里，--aeterni-bg-glass 与 --aeterni-text-on-glass-secondary 后来都被库采用（填充落在浅 .68 / 深 .72，
+   库同时补了一支 --aeterni-text-on-glass-tertiary），只有 --aeterni-bg-glass-soft 是被否决的方案名；
    候选值本身只活在这一段样式和 GlassLab.razor 的读数表里，实际变量一律是 --glass-lab-*。
 
    行与行之间只换一根轴，所以任一行的格间差异都能归因到那一根轴上：
-     01 填充不透明度（四档同屏，模糊与饱和度随候选一起变，因为候选期就是多轴一起调）
+     01 填充不透明度（四档同屏，模糊与饱和度一律钉在 16px / 135%，所以只差填充）
      02 文字底衬（填充与模糊钉在候选 03）
-     03 压力板（纯黑与纯白，强制候选 02 的填充与模糊）
+     03 压力板（纯黑与纯白，强制候选 01 的填充与模糊）
      04 模糊半径（填充钉在库现值，saturate 钉在 135%）
      05 饱和度（填充同上，模糊钉在 16px）
      06 遮罩（压暗值四档相同，只改遮罩自己的 backdrop-filter）
@@ -27,8 +27,8 @@
    以及下面调参行的默认滤镜 ↔ GlassLab.razor 的 Library（两行的读数标注引用它，不另写数字）。
    面板的 RGB 一律从 --aeterni-bg-surface 取（浅 #FFFFFF / 深 #1A1A1D），
    所以这段样式只提供 alpha，既不新建颜色体系，也不重复深浅两套填充色。
-   文字底衬多一条耦合：--glass-lab-plate 的取值要满足 α₁ + α₂ − α₁α₂ 等于候选 02 的填充，
-   即浅 .50 + 20% → .60、深 .62 + 26.32% → .72；改它就要同步 GlassLab.razor 的 _plates。
+   文字底衬多一条耦合：--glass-lab-plate 的取值要满足 α₁ + α₂ − α₁α₂ 等于已采用那一档的填充，
+   即浅 .50 + 36% → .68、深 .62 + 26.32% → .72；改它就要同步 GlassLab.razor 的 _plates。
 
    背景内容层是每格一份副本，不是整块舞台共用一层：共用时每格采样的是自己背后那一块图案，
    格间差异会混进「背后的图案本来就不一样」这个无关变量。
@@ -42,22 +42,26 @@
 
 .glass-lab {
     /* 候选矩阵的填充不透明度。写成百分比是因为 color-mix 的占比槽位直接吃百分比，
-       省掉一层 calc；与读数表里的 .82 / .60 / .50 是同一个数。 */
+       省掉一层 calc；与读数表里的 .68 / .72 / .82 / .50 是同一个数。
+       --glass-lab-alpha-glass 就是库现值 --aeterni-bg-glass 的两档（浅 68% / 深 72%），
+       --glass-lab-alpha-elevated 是它上一版的取值（跟随 --aeterni-bg-elevated 的 82%）。 */
     --glass-lab-alpha-elevated: 82%;
-    --glass-lab-alpha-glass: 60%;
+    --glass-lab-alpha-glass: 68%;
     --glass-lab-alpha-glass-soft: 50%;
     --glass-lab-alpha-flat: 100%;
 
-    /* 玻璃上的次要墨（方案里的决策 A）：把正文墨的 alpha 打 93 折。
-       color-mix 让深浅两个主题共用一条声明，取值与 GlassTheme.OnGlassInkFraction 一致：
-       浅色落到 rgba(0, 0, 0, .7254)，深色落到 rgba(255, 255, 255, .7998)。 */
+    /* 玻璃上的墨（方案里的决策 A）：把正文墨的 alpha 打 93 折得到次要墨、打 67 折得到三级墨。
+       color-mix 让深浅两个主题共用声明，取值与 GlassTheme.OnGlassInkFraction / OnGlassTertiaryFraction
+       一致：浅色落到 rgba(0, 0, 0, .7254) 与 rgba(0, 0, 0, .5226)，
+       深色落到 rgba(255, 255, 255, .7998) 与 rgba(255, 255, 255, .5762)。 */
     --glass-lab-ink-secondary-on-glass: color-mix(in srgb, var(--aeterni-text) 93%, transparent);
+    --glass-lab-ink-tertiary-on-glass: color-mix(in srgb, var(--aeterni-text) 67%, transparent);
 
     /* 02 文字底衬那一层自己的填充。它叠在面板填充之上，两层的等效 α 是 α₁ + α₂ − α₁α₂，
-       所以 .50 + .20 → .60、.62 + .2632 → .72，正好等于候选 02 的填充。
-       也就是说底衬把文字那一小块抬到候选 02 的可读性，而面板其余部分仍是候选 03 的透出率。
+       所以 .50 + .36 → .68、.62 + .2632 → .72，正好等于已采用那一档的填充。
+       也就是说底衬把文字那一小块抬到候选 01 的可读性，而面板其余部分仍是候选 03 的透出率。
        26.32% 是 26.32 而不是 26：.62 + .38x = .72 解出 x = .2632，取整会在读数上差 0.0012。 */
-    --glass-lab-plate: 20%;
+    --glass-lab-plate: 36%;
 
     /* 05 内描边的两层：一条压在暗背景侧的内描边，一条上缘高光。两者都在玻璃内部，
        不占额外几何，所以四个边界档位的内容盒子完全一致。 */
@@ -170,8 +174,8 @@
 }
 
 /* 细网格：无彩色纹理。1px 的线在任何 blur() 下都会立刻糊成一片灰，
-   所以它测的不是模糊半径，而是填充不透明度 —— α .82 时网格几乎看不见，
-   α .50 时一眼看得到。 */
+   所以它测的不是模糊半径，而是填充不透明度 —— 候选 02 那档的 α .82 下网格几乎看不见，
+   库现值 α .68 下一线残留，候选 03 的 α .50 时一眼看得到。 */
 .glass-lab__mesh {
     position: absolute;
     inset: 0;
@@ -378,23 +382,24 @@
     backdrop-filter: var(--glass-lab-filter);
 }
 
-/* 候选 01 · 现状：等价于今天 Surface / Card 的 Glass 变体。
-   --aeterni-bg-surface 82% 与 --aeterni-blur-md 逐字节相同，所以这一格就是库的现状。 */
+/* 候选 01 · 已采用：库现值 --aeterni-bg-glass（浅 68% / 深 72%）加 --aeterni-blur-glass。
+   三格一律钉在 blur(16px) saturate(135%) 上，所以这一行的四格只差填充不透明度。 */
+.glass-lab__sample[data-candidate="glass"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-glass);
+    --glass-lab-filter: blur(16px) saturate(135%);
+}
+
+/* 候选 02 · 未采用：上一版的填充（跟随 --aeterni-bg-elevated 的 82%）。留在表里是为了让
+   「抬高一层」与「磨砂」两个用途在同一行里对照 —— 它只放 18% 的背景进来，糊过的背景又被盖回去。 */
 .glass-lab__sample[data-candidate="elevated"] {
     --glass-lab-alpha: var(--glass-lab-alpha-elevated);
     --glass-lab-filter: blur(16px) saturate(135%);
 }
 
-/* 候选 02 · 提案：本页推荐的落点。浅色 5.61:1 / 深色 5.60:1，正文余量都在 1.24 倍以上。 */
-.glass-lab__sample[data-candidate="glass"] {
-    --glass-lab-alpha: var(--glass-lab-alpha-glass);
-    --glass-lab-filter: blur(24px) saturate(150%);
-}
-
-/* 候选 03 · 提案：轻玻璃。只有大字号与图形元素站得住，正文需要配合 on-glass 墨。 */
+/* 候选 03 · 未采用：再透一档。正文靠 on-glass 墨才勉强站住，三级墨的 1.1 倍会计余量已经掉出去。 */
 .glass-lab__sample[data-candidate="glass-soft"] {
     --glass-lab-alpha: var(--glass-lab-alpha-glass-soft);
-    --glass-lab-filter: blur(32px) saturate(150%);
+    --glass-lab-filter: blur(16px) saturate(135%);
 }
 
 /* 候选 04 · 对照：完全不透明、不模糊。不是选项，是下限。 */
@@ -522,6 +527,18 @@
     color: var(--glass-lab-ink-tertiary);
 }
 
+/* 三级墨同样有玻璃专用档（正文墨的 67%）。它在库里的真实消费是图标、装饰和关闭按钮，
+   所以判据是 3:1 的图形门槛，而不是 4.5:1 —— 这也是它比次要墨更早成为浅色主题的定档者。 */
+.glass-lab__line--tertiary-on-glass {
+    color: var(--glass-lab-ink-tertiary-on-glass);
+}
+
+/* 压力板上的「三级 · 标准墨」那一行永远显示标准墨，理由与 .glass-lab__line--secondary-standard 相同：
+   文案本身在报标准墨的读数，被开关改写就不成立了。 */
+.glass-lab__line--tertiary-standard {
+    color: var(--glass-lab-ink-tertiary);
+}
+
 /* 文字底衬与边界两行里成对出现的 on-glass 墨。它与 .glass-lab__line--secondary（标准墨）并排，
    两行的差别只有这一条声明，所以「墨换得动换不动」是可以直接看出来的。 */
 .glass-lab__line--on-glass {
@@ -536,10 +553,15 @@
     color: var(--glass-lab-ink-secondary);
 }
 
-/* 次要墨开关：权重高于上面的基础规则，所以不依赖声明顺序。
-   压力板也吃这条规则，所以两块夹具在同一开关下同时换墨。 */
+/* 墨开关：权重高于上面的基础规则，所以不依赖声明顺序；两行各换到自己的玻璃专用档，
+   不会串用（次要墨的 93% 落到三级行上会偏重）。压力板也吃这条规则，
+   所以两块夹具在同一开关下同时换墨。 */
 .glass-lab[data-ink="on-glass"] .glass-lab__line--secondary {
     color: var(--glass-lab-ink-secondary-on-glass);
+}
+
+.glass-lab[data-ink="on-glass"] .glass-lab__line--tertiary {
+    color: var(--glass-lab-ink-tertiary-on-glass);
 }
 
 /* 03. 候选图例
@@ -626,22 +648,24 @@
 
 .glass-lab__stress-panel[data-forced="light"] {
     --glass-lab-base: #FFFFFF;
-    --glass-lab-alpha: 60%;
-    --glass-lab-filter: blur(24px) saturate(150%);
+    --glass-lab-alpha: 68%;
+    --glass-lab-filter: blur(16px) saturate(135%);
     --glass-lab-ink-primary: rgba(0, 0, 0, .78);
     --glass-lab-ink-secondary: rgba(0, 0, 0, .62);
     --glass-lab-ink-tertiary: rgba(0, 0, 0, .52);
     --glass-lab-ink-secondary-on-glass: color-mix(in srgb, rgba(0, 0, 0, .78) 93%, transparent);
+    --glass-lab-ink-tertiary-on-glass: color-mix(in srgb, rgba(0, 0, 0, .78) 67%, transparent);
 }
 
 .glass-lab__stress-panel[data-forced="dark"] {
     --glass-lab-base: #1A1A1D;
     --glass-lab-alpha: 72%;
-    --glass-lab-filter: blur(24px) saturate(150%);
+    --glass-lab-filter: blur(16px) saturate(135%);
     --glass-lab-ink-primary: rgba(255, 255, 255, .86);
     --glass-lab-ink-secondary: rgba(255, 255, 255, .56);
     --glass-lab-ink-tertiary: rgba(255, 255, 255, .40);
     --glass-lab-ink-secondary-on-glass: color-mix(in srgb, rgba(255, 255, 255, .86) 93%, transparent);
+    --glass-lab-ink-tertiary-on-glass: color-mix(in srgb, rgba(255, 255, 255, .86) 67%, transparent);
 }
 
 /* 05. 读数表 */

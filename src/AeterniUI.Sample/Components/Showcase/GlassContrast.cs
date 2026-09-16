@@ -108,7 +108,8 @@ internal static class GlassContrast
 /// <param name="Primary">Body ink - light <c>--aeterni-text</c>, dark its dark counterpart.</param>
 /// <param name="Secondary">Secondary ink that the library uses on opaque surfaces today.</param>
 /// <param name="Tertiary">Tertiary ink, carried for the 3:1 graphic floor.</param>
-/// <param name="OnGlassSecondary">Proposed <c>--aeterni-text-on-glass-secondary</c>.</param>
+/// <param name="OnGlassSecondary">Glass-only secondary ink, <c>--aeterni-text-on-glass-secondary</c>.</param>
+/// <param name="OnGlassTertiary">Glass-only tertiary ink, <c>--aeterni-text-on-glass-tertiary</c>.</param>
 internal sealed record GlassTheme(
     string Label,
     GlassRgba Fill,
@@ -116,13 +117,14 @@ internal sealed record GlassTheme(
     GlassRgba Primary,
     GlassRgba Secondary,
     GlassRgba Tertiary,
-    GlassRgba OnGlassSecondary)
+    GlassRgba OnGlassSecondary,
+    GlassRgba OnGlassTertiary)
 {
     /// <summary>
-    /// Fraction of the body ink's alpha that the proposed on-glass secondary ink keeps.
+    /// Fraction of the body ink's alpha that the glass-only secondary ink keeps.
     /// </summary>
     /// <remarks>
-    /// 0.93 is what makes the new role derivable rather than hand-tuned per theme. The CSS
+    /// 0.93 is what makes the role derivable rather than hand-tuned per theme. The CSS
     /// declares it as <c>color-mix(in srgb, var(--aeterni-text) 93%, transparent)</c>, so the
     /// only input is the body ink the theme already publishes: light lands on
     /// <c>rgba(0,0,0,.7254)</c> and dark on <c>rgba(255,255,255,.7998)</c>. Picking explicit
@@ -130,6 +132,19 @@ internal sealed record GlassTheme(
     /// sheet and would be free to drift away from these numbers.
     /// </remarks>
     public const double OnGlassInkFraction = 0.93;
+
+    /// <summary>
+    /// Fraction of the body ink's alpha that the glass-only tertiary ink keeps.
+    /// </summary>
+    /// <remarks>
+    /// 0.67 mirrors the library's <c>color-mix(in srgb, var(--aeterni-text) 67%, transparent)</c>.
+    /// The tertiary role only carries icons and decoration on glass, so it answers to the 3:1
+    /// graphic floor instead of 4.5:1 - but it is the role that sets the light theme's fill floor,
+    /// because 67% of the body ink is the weakest ink a pane carries and it is measured against
+    /// pure black. At the adopted 68% fill it clears that floor with 1.15x to spare; the dark theme
+    /// is bound by <see cref="OnGlassInkFraction"/> instead, at 1.14x.
+    /// </remarks>
+    public const double OnGlassTertiaryFraction = 0.67;
 }
 
 /// <summary>
@@ -137,21 +152,27 @@ internal sealed record GlassTheme(
 /// </summary>
 /// <remarks>
 /// Every ink value is copied from <c>aeterni_ui.css</c>, so the readouts describe the library as it
-/// stands rather than an invented palette. The two fills are proposals: light
-/// <c>rgba(255,255,255,.60)</c> and dark <c>rgba(26,26,29,.72)</c> against today's
-/// <c>--aeterni-bg-elevated</c> alpha of <c>.82</c>. <c>OnGlassSecondary</c> is decision A of the
-/// glass proposal: the existing secondary ink cannot clear 4.5:1 once the fill drops below roughly
-/// <c>.68</c> light / <c>.83</c> dark - and <c>.83</c> is effectively no glass at all - so the glass
-/// surface needs a second secondary ink of its own. It is derived from the body ink by
-/// <see cref="GlassTheme.OnGlassInkFraction"/> rather than written per theme, so both themes keep
-/// the same margin and the single CSS declaration cannot drift from these numbers.
+/// stands rather than an invented palette. The two fills are the adopted ones: light
+/// <c>rgba(255,255,255,.68)</c> and dark <c>rgba(26,26,29,.72)</c>, against the raised fill
+/// (<c>--aeterni-bg-elevated</c>) alpha of <c>.82</c> that they used to inherit. Lowering them
+/// only became possible once the frosted surfaces stopped borrowing the standard ink ladder, and the
+/// two limits are not the same number scaled: the standard secondary ink clears 4.5:1 down to
+/// <c>.679</c> light and <c>.834</c> dark, so light is pinned by the ink it just replaced while dark
+/// would need to stay almost opaque. The glass-only inks take over from there - 4.5:1 holds down to
+/// <c>.551</c> light / <c>.679</c> dark for the secondary ink and 3:1 down to <c>.561</c> light /
+/// <c>.656</c> dark for the tertiary one - and what the adopted fills are actually spent on is the
+/// project's 1.1x accounting margin, which puts the light floor at <c>.637</c> (tertiary, 1.15x) and
+/// the dark floor at <c>.710</c> (secondary, 1.14x). Both inks are derived from the body ink by
+/// <see cref="GlassTheme.OnGlassInkFraction"/> and <see cref="GlassTheme.OnGlassTertiaryFraction"/>
+/// rather than written per theme, so both themes keep the same margin and the single CSS declaration
+/// per ink cannot drift from these numbers.
 /// </remarks>
 internal static class GlassPalette
 {
     /// <summary>Light theme: white fill over an assumed black backdrop.</summary>
     public static GlassTheme Light { get; } = Create(
         "浅色",
-        new GlassRgba(255, 255, 255, 0.60),
+        new GlassRgba(255, 255, 255, 0.68),
         GlassRgba.Black,
         new GlassRgba(0, 0, 0, 0.78),
         new GlassRgba(0, 0, 0, 0.62),
@@ -179,19 +200,22 @@ internal static class GlassPalette
         primary,
         secondary,
         tertiary,
-        primary.AtAlpha(primary.A * GlassTheme.OnGlassInkFraction));
+        primary.AtAlpha(primary.A * GlassTheme.OnGlassInkFraction),
+        primary.AtAlpha(primary.A * GlassTheme.OnGlassTertiaryFraction));
 }
 
 /// <summary>Contrast of each ink role against one glass fill over one worst-case backdrop.</summary>
 /// <param name="Primary">Body ink against the composited glass.</param>
 /// <param name="Secondary">Secondary ink against the composited glass.</param>
-/// <param name="OnGlassSecondary">Proposed on-glass secondary ink.</param>
+/// <param name="OnGlassSecondary">Glass-only secondary ink.</param>
 /// <param name="Tertiary">Tertiary ink against the composited glass.</param>
+/// <param name="OnGlassTertiary">Glass-only tertiary ink.</param>
 internal readonly record struct GlassReadout(
     double Primary,
     double Secondary,
     double OnGlassSecondary,
-    double Tertiary);
+    double Tertiary,
+    double OnGlassTertiary);
 
 /// <summary>Turns a fill alpha into the readouts the page prints.</summary>
 internal static class GlassMeasurement
@@ -204,6 +228,7 @@ internal static class GlassMeasurement
             GlassContrast.Ratio(theme.Primary, glass),
             GlassContrast.Ratio(theme.Secondary, glass),
             GlassContrast.Ratio(theme.OnGlassSecondary, glass),
-            GlassContrast.Ratio(theme.Tertiary, glass));
+            GlassContrast.Ratio(theme.Tertiary, glass),
+            GlassContrast.Ratio(theme.OnGlassTertiary, glass));
     }
 }

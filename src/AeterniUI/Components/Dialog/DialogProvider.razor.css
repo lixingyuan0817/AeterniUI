@@ -53,10 +53,11 @@
     animation: none;
 }
 
-/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
-   on 4.35:1, under the 4.5:1 text floor. All four roles that carry it are
-   re-pointed, not only `--aeterni-text-secondary`, because the other names alias
-   it inside the theme block. See `Card.razor.css` for the full note. The scrim
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. The scrim
    is deliberately excluded: it carries no text, so the replacement would only
    darken the dimming. */
 .aeterni-dialog-provider__dialog,
@@ -65,6 +66,7 @@
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 

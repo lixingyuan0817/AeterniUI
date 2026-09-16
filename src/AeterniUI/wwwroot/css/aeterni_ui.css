@@ -190,24 +190,30 @@
     --aeterni-blur: var(--aeterni-blur-lg);
     /* Role aliases for frosted content surfaces (the Card/Surface Glass variant,
        Dialog, Drawer, Popover, Tooltip and the Alert/Toast cards). They exist so
-       the nine consumers share one knob instead of restating the recipe six times,
-       and so reduced transparency can degrade all of them from one place below.
-       The fill tracks --aeterni-bg-elevated (82%) instead of a lighter tint: at
-       82% the standard secondary ink still reaches 5.33:1 light / 4.35:1 dark,
-       while a 60% fill drops the same ink to 3.98:1 / 3.41:1 and would make every
-       caption in the library depend on the ink below.
-       --aeterni-text-on-glass-secondary is the one role the 82% fill cannot
-       rescue: the dark secondary ink lands on 4.35:1, under the 4.5:1 text floor.
-       It is declared once as a fraction of the body ink, so both themes keep the
-       same margin and the value cannot drift per theme; frosted surfaces opt in
-       by re-pointing --aeterni-text-secondary at it. */
-    --aeterni-bg-glass: var(--aeterni-bg-elevated);
+       the consumers share one knob instead of restating the recipe six times, and
+       so reduced transparency can degrade all of them from one place below.
+       --aeterni-bg-glass is declared per theme next to --aeterni-bg-elevated and
+       no longer aliases it. A raised surface and a frosted one answer to different
+       limits: the raised fill only has to sit on the page, while the frosted fill
+       is the transmission rate of a pane whose ink must stay readable over any
+       backdrop, because the pane can be dropped on a wallpaper or a photo. Sizing
+       it as the raised fill and keeping it there is what buried the blur: a
+       wallpaper behind an 82% pane is a 18% tint of itself.
+       68% light / 72% dark is the lowest fill that keeps the project's 1.1x
+       accounting margin on all three inks a pane carries (body 4.5:1, on-glass
+       secondary 4.5:1, on-glass tertiary 3:1 for icons), measured against a pure
+       black and a pure white backdrop. The two on-glass inks are what binds, and
+       they bind within a hundredth of each other (1.15x tertiary light, 1.14x
+       secondary dark), so spending more transmission buys nothing but an icon or
+       a caption under its floor. The fill is the pane's own colour at alpha, so it
+       also keeps R=G=B and the pane stays achromatic.
+       The inks are declared once here as fractions of the body ink, so both themes
+       keep the same margin and the fractions cannot drift per theme; frosted
+       surfaces opt in by re-pointing the role names at them. */
     --aeterni-blur-glass: var(--aeterni-blur-md);
     --aeterni-blur-scrim: var(--aeterni-blur-sm);
     --aeterni-text-on-glass-secondary: color-mix(in srgb, var(--aeterni-text) 93%, transparent);
-    --aeterni-backdrop-saturate: 145%;
-    --aeterni-glass-border-alpha: .12;
-    --aeterni-glass-highlight: rgba(255, 255, 255, .16);
+    --aeterni-text-on-glass-tertiary: color-mix(in srgb, var(--aeterni-text) 67%, transparent);
     --aeterni-glass-shadow: var(--aeterni-shadow-md);
     --aeterni-z-base: 0;
     --aeterni-z-raised: 10;
@@ -532,6 +538,7 @@
     --aeterni-bg-tertiary: #E8E8E8;
     --aeterni-bg-surface: #FFFFFF;
     --aeterni-bg-elevated: rgba(255, 255, 255, .82);
+    --aeterni-bg-glass: rgba(255, 255, 255, .68);
     --aeterni-bg-solid: #FFFFFF;
     /* Toggle indicator surface. The white knob keeps a readable edge on the
        light track and on the dark track, unlike the inverse-text token. */
@@ -769,6 +776,7 @@
     --aeterni-bg-tertiary: #202023;
     --aeterni-bg-surface: #1A1A1D;
     --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+    --aeterni-bg-glass: rgba(26, 26, 29, .72);
     --aeterni-bg-solid: #1A1A1D;
     --aeterni-state-background-thumb: var(--aeterni-gray-0);
     /* See the light theme block: interaction-state aliases, not container roles. */
@@ -950,6 +958,7 @@
         --aeterni-bg-tertiary: #202023;
         --aeterni-bg-surface: #1A1A1D;
         --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+        --aeterni-bg-glass: rgba(26, 26, 29, .72);
         --aeterni-bg-solid: #1A1A1D;
         --aeterni-state-background-thumb: var(--aeterni-gray-0);
         --aeterni-bg-hover: var(--aeterni-surface-hover);
@@ -1125,24 +1134,32 @@
 }
 
 /* Frosted surfaces degrade to opaque, and they drop the translucency rather than
-   only the filter. Removing backdrop-filter alone would leave an 82% fill over
-   whatever it covers: a colour patch with no blur to explain it and no opaque
+   only the filter. Removing backdrop-filter alone would leave a translucent fill
+   over whatever it covers: a colour patch with no blur to explain it and no opaque
    backing to read ink against, which is worse than a solid surface on both
-   counts. Scrims keep their dim — a scrim carries no readable content of its own,
-   and an opaque scrim would hide the page it exists to dim. */
+   counts. The on-glass inks fall back to the standard roles in the same breath:
+   they exist to survive a backdrop showing through, and once the fill is the
+   solid surface there is no backdrop left to survive. Scrims keep their dim — a
+   scrim carries no readable content of its own, and an opaque scrim would hide
+   the page it exists to dim. */
 @media (prefers-reduced-transparency: reduce) {
     :root {
         --aeterni-bg-glass: var(--aeterni-bg-solid);
         --aeterni-blur-glass: none;
         --aeterni-blur-scrim: none;
+        --aeterni-text-on-glass-secondary: var(--aeterni-text-secondary);
+        --aeterni-text-on-glass-tertiary: var(--aeterni-text-tertiary);
     }
 }
 
 /* No backdrop-filter support: the fill has to carry the surface on its own, so
-   the same opaque fallback applies and the blur variables stay irrelevant. */
+   the same opaque fallback plus the same ink fallback apply, and the blur
+   variables stay irrelevant. */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
     :root {
         --aeterni-bg-glass: var(--aeterni-bg-solid);
+        --aeterni-text-on-glass-secondary: var(--aeterni-text-secondary);
+        --aeterni-text-on-glass-tertiary: var(--aeterni-text-tertiary);
     }
 }
 

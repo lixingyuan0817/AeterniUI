@@ -35,20 +35,23 @@
     backdrop-filter: var(--aeterni-blur-glass);
 }
 
-/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
-   on 4.35:1 over a light backdrop, under the 4.5:1 text floor (light is 5.33:1).
+/* The frosted fill cannot carry the standard ink ladder: over a pure white
+   backdrop at 72% the dark theme lands on 3.41:1 for the standard secondary ink
+   (under the 4.5:1 text floor) and 2.51:1 for tertiary (under the 3:1 icon
+   floor); light is 4.51:1 and 3.43:1 over a black backdrop.
    Every role that carries that ink is re-pointed, not only
    `--aeterni-text-secondary`: the other names are aliases declared in the theme
    block, so their `var()` is substituted there and overriding the base role alone
    would leave captions written with `--aeterni-text-muted` on the lighter ink.
-   The replacement is
-   `color-mix(in srgb, var(--aeterni-text) 93%, transparent)`, declared once in the
-   token sheet, so both themes keep the same margin. */
+   The replacements are declared once in the token sheet as fractions of the body
+   ink (93% / 67%), so both themes keep the same margin, and they lift the pane to
+   5.11:1 and 3.51:1 dark / 5.94:1 and 3.46:1 light on the same backdrops. */
 .aeterni-surface--glass {
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 .aeterni-surface.is-bordered {
