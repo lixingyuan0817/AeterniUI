@@ -19,7 +19,6 @@
             <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
             <Surface Variant="@_surfaceVariant"
                      Elevation="@_surfaceElevation"
-                     Blur="@_surfaceBlur"
                      Padding="@_surfacePadding"
                      Radius="@_surfaceRadius"
                      Bordered="@_surfaceBordered"
@@ -37,10 +36,6 @@
             <div class="control-field">
                 <span>Variant</span>
                 <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_surfaceVariant" />
-            </div>
-            <div class="control-field">
-                <span>Blur</span>
-                <ShowcaseSelect TValue="SurfaceBlur" Id="surface-blur" AriaLabel="Blur" Options="@(Enum.GetValues<SurfaceBlur>())" @bind-Value="_surfaceBlur" />
             </div>
             <div class="control-field">
                 <span>Elevation</span>
@@ -63,8 +58,6 @@
 @code {
     private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
 
-    private SurfaceBlur _surfaceBlur = SurfaceBlur.Default;
-
     private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;
 
     private SurfacePadding _surfacePadding = SurfacePadding.Large;
@@ -79,7 +72,6 @@
     [
         new("Variant", "SurfaceVariant", "表面视觉变体。", "Default"),
         new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
-        new("Blur", "SurfaceBlur", "背景模糊档位；Default 跟随全局玻璃配方，None 表示实心。", "Default"),
         new("Padding", "SurfacePadding", "内容内边距。", "Medium"),
         new("Radius", "SurfaceRadius", "圆角级别。", "Default"),
         new("Bordered", "bool", "是否显示边框。", "false"),

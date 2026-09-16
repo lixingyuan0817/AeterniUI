@@ -414,7 +414,7 @@
 
 - [x] 已修复
 
-- **证据**：`Surface.razor.css` 与 `Card.razor.css` 各自实现 `--subtle/--elevated/--glass`、`is-bordered`、`--elevation-*`、`--padding-*`、`is-full-width`，后来又各自加了一套 `--blur-*`（`SurfaceBlur` 参数）；Card 额外提供 `header/body/footer`。默认值相反：`Surface.Bordered = false`，`Card.Bordered = true`。
+- **证据**：`Surface.razor.css` 与 `Card.razor.css` 各自实现 `--subtle/--elevated/--glass`、`is-bordered`、`--elevation-*`、`--padding-*`、`is-full-width`；Card 额外提供 `header/body/footer`。默认值相反：`Surface.Bordered = false`，`Card.Bordered = true`。（曾各自加过一套 `--blur-*`，即 `SurfaceBlur` 参数的载体，因与 `Variant` 争夺 `background` 已在「模糊轴撤销」一行删除。）
 - **修复方向**：抽出共享的表面修饰规则（例如让 Card 复用同一套变量映射），并明确两者默认值的差异是否有意为之。
 - **验收**：相同参数组合下 Surface 与 Card 的视觉结果一致（除 Card 的区块结构外）；默认值差异在文档中有说明。
 

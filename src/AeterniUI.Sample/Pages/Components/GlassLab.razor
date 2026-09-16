@@ -12,8 +12,8 @@
    三块舞台共用候选 03 的填充与模糊，所以「填充太实」「边界太软」「文字没有底」是三个独立的问题，
    可以分别定位。所有偏差数值来自 GlassContrast，与 scripts/check-contrast.mjs 用同一套公式。
    本页只读，不写任何 token：填充与模糊候选值同时写在 .razor.css 的 --glass-lab-* 里，
-   改动其中一处必须同步另一处。本页的结论已经落地为候选 01（填充保持 .82、模糊档位做成
-   SurfaceBlur 参数、边框跟随 Bordered、降级集中在 token 层），候选 02／03 作为被否决的方案
+   改动其中一处必须同步另一处。本页的结论已经落地为候选 01（填充保持 .82、模糊固定在
+   Glass 变体上、边框跟随 Bordered、降级集中在 token 层），候选 02／03 作为被否决的方案
    留在表里做对照；表里的「候选名」是实验期的叫法，--aeterni-bg-glass 现在指的是 01 的 82%。 *@
 <section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
     <p class="showcase-page-eyebrow">设计基础 · 对比实验</p>
@@ -94,9 +94,8 @@
 
     <p class="glass-lab__note">
         结论已落地：库采用候选 <strong>01</strong> 的填充（<code>--aeterni-bg-glass</code> 就是
-        <code>--aeterni-bg-elevated</code> 的角色别名，浅 <code>.82</code> / 深 <code>.82</code>），把模糊档位
-        交给 <code>SurfaceBlur</code>（<code>None</code> / <code>Small</code> / <code>Medium</code> /
-        <code>Large</code>），玻璃边框改由 <code>Bordered</code> 决定，「降低透明度」与不支持
+        <code>--aeterni-bg-elevated</code> 的角色别名，浅 <code>.82</code> / 深 <code>.82</code>），模糊固定由
+        Glass 变体承担（<code>--aeterni-blur-glass</code>，即 16px / 135%），玻璃边框改由 <code>Bordered</code> 决定，「降低透明度」与不支持
         <code>backdrop-filter</code> 的降级集中在 token 层，深色那一格的缺口由
         <code>--aeterni-text-on-glass-secondary</code> 补掉 —— 它只接在玻璃表面上，标准墨留在不透明表面。
         候选 02／03 未采用：让填充透出背景的收益抵不过「次要 · 标准墨」掉到 4.5:1 以下，而要让全库的
@@ -290,8 +289,8 @@
     <p class="glass-lab__note">
         把背景切到「App 图标墙」，再逐格比较 16px / 24px / 32px。iOS 面板上单个图标会被完全糊掉、
         大色块仍然保留，等效 CSS 大约落在 <code>blur(24px)</code> 到 <code>blur(32px)</code> 之间。库里
-        <code>--aeterni-blur-lg</code> 的 <code>blur(24px)</code> 已经够用，库已把它做成
-        <code>SurfaceBlur.Large</code> 档；真正缺的是「让背景透出来」，而不是更大的半径。
+        <code>--aeterni-blur-lg</code> 的 <code>blur(24px)</code> 已经够用，库把 Glass 变体固定在
+        <code>--aeterni-blur-glass</code>（16px / 135%）这一档，宿主覆写该 Token 即可整体加档；真正缺的是「让背景透出来」，而不是更大的半径。
         <code>blur(32px)</code> 在本页以候选身份出现，没有写进 token。
     </p>
 
@@ -421,7 +420,7 @@
     private static readonly GlassCandidate[] _candidates =
     [
         new("elevated", "01", "已采用 · Glass 变体", "--aeterni-bg-glass", 0.82, 0.82, 16, 135,
-            "库采用的落点：填充停在 .82，模糊档位交给 SurfaceBlur（Large = --aeterni-blur-lg = 24px），玻璃边框跟随 Bordered。填充没有再让，因为更淡会把标准次要墨拽到 4.5:1 以下。"),
+            "库采用的落点：填充停在 .82，模糊固定由 Glass 变体承担（--aeterni-blur-glass = blur(16px) saturate(1.35)），玻璃边框跟随 Bordered。填充没有再让，因为更淡会把标准次要墨拽到 4.5:1 以下。"),
         new("glass", "02", "未采用 · 玻璃填充", "提案名 --aeterni-bg-glass", 0.60, 0.72, 24, 150,
             "被否决：浅色 5.61:1、深色 5.60:1 的正文余量很好看，但标准次要墨掉到 3.98:1 / 3.41:1，要补一支玻璃专用次要墨才能收场。"),
         new("glass-soft", "03", "未采用 · 轻玻璃", "提案名 --aeterni-bg-glass-soft", 0.50, 0.62, 32, 150,

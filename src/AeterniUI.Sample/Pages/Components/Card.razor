@@ -20,7 +20,6 @@
             <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
             <Card Variant="@_cardVariant"
                   Elevation="@_cardElevation"
-                  Blur="@_cardBlur"
                   Padding="@_cardPadding"
                   Bordered="@_cardBordered"
                   Interactive="@_cardInteractive"
@@ -42,10 +41,6 @@
                 <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_cardVariant" />
             </div>
             <div class="control-field">
-                <span>Blur</span>
-                <ShowcaseSelect TValue="SurfaceBlur" Id="card-blur" AriaLabel="Blur" Options="@(Enum.GetValues<SurfaceBlur>())" @bind-Value="_cardBlur" />
-            </div>
-            <div class="control-field">
                 <span>Elevation</span>
                 <ShowcaseSelect TValue="SurfaceElevation" Id="card-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_cardElevation" />
             </div>
@@ -63,8 +58,6 @@
 @code {
     private SurfaceVariant _cardVariant = SurfaceVariant.Elevated;
 
-    private SurfaceBlur _cardBlur = SurfaceBlur.Default;
-
     private SurfaceElevation _cardElevation = SurfaceElevation.Small;
 
     private SurfacePadding _cardPadding = SurfacePadding.Medium;
@@ -79,7 +72,6 @@
     [
         new("Variant", "SurfaceVariant", "卡片视觉变体。", "Default"),
         new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
-        new("Blur", "SurfaceBlur", "背景模糊档位；Default 跟随全局玻璃配方，None 表示实心。", "Default"),
         new("Padding", "SurfacePadding", "区域内边距。", "Medium"),
         new("Bordered", "bool", "是否显示边框。", "true"),
         new("FullWidth", "bool", "是否占满父容器。", "false"),

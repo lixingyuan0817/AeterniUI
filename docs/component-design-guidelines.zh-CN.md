@@ -410,7 +410,7 @@ background: #8b4df6;
 - **上述门禁由 `node scripts/check-contrast.mjs` 实测执行，不是人工校对**：脚本解析 Token 文件、重放「品牌 × 浅色／深色／系统深色」的级联、跟随 `var()` 链解析出实际颜色，再对实心填充承字、品牌文字、链接、边框／图标与焦点环逐组测量（文字 4.5:1，非文字 3:1）。色相层增删或色阶改动后必须跑它；余量低于 1.1× 的色相层若没在自己的注释块里写明该对比度，脚本会直接失败。因为色相层是「一处改动、全站换色」的间接层，这条自动拦截是唯一能在构建期发现承字对比度被改坏的手段。
 - **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
 - **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。壁纸、背景内容层不在此列——它们是被模糊的对象，不是容器背景。
-- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是九个各自为政的配方。填充停在 82% 而不是更淡的档位，是为了让标准次要墨仍然过 4.5:1；把填充调淡就必须同时把所有说明文字换成 `--aeterni-text-on-glass-secondary`。这一支墨是给磨砂态专用的：`Card` / `Surface` 的磨砂态把次要墨的四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-state-color-muted`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。`--blur-none` 与不透明表面不接管。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`），不能只摘 `backdrop-filter`。
+- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是九个各自为政的配方。填充停在 82% 而不是更淡的档位，是为了让标准次要墨仍然过 4.5:1；把填充调淡就必须同时把所有说明文字换成 `--aeterni-text-on-glass-secondary`。这一支墨是给磨砂态专用的：`Card` / `Surface` 的磨砂态把次要墨的四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-state-color-muted`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。不透明表面不接管。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`），不能只摘 `backdrop-filter`。
 - **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
 
   | Token | 浅色 | 深色 | 允许的用法（浅色主题在页面上的对比度） |
@@ -949,7 +949,7 @@ FormField
 - `Card` 是有内容结构的容器，可提供 `Header`、主体 `ChildContent` 和 `Footer` 三个区域，默认带边框并使用卡片圆角。
 - Card 的 `Padding` 统一作用于 Header、Body 和 Footer 三个区域；设置为 `None` 才表示三个区域都采用无内边距，不能依赖业务 CSS 为各区域重复补间距。
 - 两者都使用 `SurfaceVariant`、`SurfaceElevation` 和 token 化的内边距；不要在业务页面重复实现相同的 surface CSS。
-- 两者都提供 `Blur`（`SurfaceBlur`）：这是「背景模糊」这一轴，与 `Variant` 正交——任何变体给出非 `Default` 档位都会取玻璃配方，`Blur="None"` 退回实心。`Default` 不输出修饰类，所以 `Glass` 变体的确切半径由 `--aeterni-blur-glass` 决定，宿主覆盖这一个 Token 就能统一调整全库玻璃表面。
+- 模糊属于 `Glass` 变体本身，不是独立参数：`Glass` 取 `--aeterni-bg-glass` 的 `.82` 填充加 `--aeterni-blur-glass`，其余变体就是各自的不透明填充。不要重新引入与 `Variant` 正交的模糊轴——两个参数会争夺同一个 `background`，后声明的规则静默胜出，另一个参数看起来失效。宿主覆盖 `--aeterni-blur-glass` 这一个 Token 就能统一调整全库玻璃表面的模糊。
 - `Glass` 变体的边框完全跟随 `Bordered`，不再自己写 `border-color`：玻璃配方的默认形态就是无边框，`Card` 因为默认 `Bordered=true`，无边框玻璃卡片需要显式 `Bordered="false"`。
 - `Card` 默认不是交互控件，不输出按钮或链接语义；需要整卡触发动作时使用 `Interactive="true"` 和 `OnClick`，组件会提供按钮语义、Tab 焦点以及 Enter/Space 键盘触发。
 - 交互式 Card 内不要嵌套 Button、Link 或其他可聚焦控件。如果卡片主要用于导航，优先使用页面中的 Link；如果同时存在多个独立动作，应保持 Card 为静态容器并把 Button 放在 Footer。
@@ -957,7 +957,7 @@ FormField
 基础用法：
 
 ```razor
-<Surface Variant="SurfaceVariant.Glass" Blur="SurfaceBlur.Large">
+<Surface Variant="SurfaceVariant.Glass">
     Content
 </Surface>
 
