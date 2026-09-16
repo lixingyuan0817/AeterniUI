@@ -242,6 +242,39 @@
     gap: 6px;
 }
 
+/* 玻璃演示场景。backdrop-filter 只采样元素「背后」的内容，所以在一个背景平坦的预览框里，
+   模糊与不模糊长得一模一样。这一层是「被模糊的背景内容」，不是容器背景：它带彩色、带斜纹，
+   因为彩色和高频细节才是能看出模糊对象。 */
+.preview-glass-scene {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 180px;
+    padding: var(--aeterni-spacing-4);
+}
+
+.preview-glass-scene__backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--aeterni-radius-surface);
+    background-color: var(--aeterni-bg-secondary);
+    background-image:
+        repeating-linear-gradient(112deg,
+            color-mix(in srgb, var(--aeterni-text-primary) 16%, transparent) 0 9px,
+            transparent 9px 30px),
+        radial-gradient(circle at 22% 26%,
+            color-mix(in srgb, var(--aeterni-color-brand-default) 74%, transparent) 0%,
+            transparent 64%),
+        radial-gradient(circle at 80% 74%,
+            color-mix(in srgb, var(--aeterni-color-info-default) 66%, transparent) 0%,
+            transparent 64%);
+    pointer-events: none;
+    user-select: none;
+}
+
 .preview-label,
 .preview-card-title {
     color: var(--aeterni-text-primary);

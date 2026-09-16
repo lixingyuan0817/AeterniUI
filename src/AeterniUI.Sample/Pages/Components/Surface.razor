@@ -12,27 +12,35 @@
                   Category="基础组件"
                   Title="Surface"
                   ComponentName="Surface"
-                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。"
+                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。"
                   Parameters="@SurfaceParameters">
     <Preview>
-        <Surface Variant="@_surfaceVariant"
-                 Elevation="@_surfaceElevation"
-                 Padding="@_surfacePadding"
-                 Radius="@_surfaceRadius"
-                 Bordered="@_surfaceBordered"
-                 FullWidth="@_surfaceFullWidth">
-            <div class="preview-surface-content">
-                <span class="preview-label">Surface preview</span>
-                <strong>统一的表面容器</strong>
-                <span>调整右侧属性查看视觉变化。</span>
-            </div>
-        </Surface>
+        <div class="preview-glass-scene">
+            <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
+            <Surface Variant="@_surfaceVariant"
+                     Elevation="@_surfaceElevation"
+                     Blur="@_surfaceBlur"
+                     Padding="@_surfacePadding"
+                     Radius="@_surfaceRadius"
+                     Bordered="@_surfaceBordered"
+                     FullWidth="@_surfaceFullWidth">
+                <div class="preview-surface-content">
+                    <span class="preview-label">Surface preview</span>
+                    <strong>统一的表面容器</strong>
+                    <span>调整右侧属性查看视觉变化。</span>
+                </div>
+            </Surface>
+        </div>
     </Preview>
     <Controls>
         <div class="control-grid">
             <div class="control-field">
                 <span>Variant</span>
                 <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_surfaceVariant" />
+            </div>
+            <div class="control-field">
+                <span>Blur</span>
+                <ShowcaseSelect TValue="SurfaceBlur" Id="surface-blur" AriaLabel="Blur" Options="@(Enum.GetValues<SurfaceBlur>())" @bind-Value="_surfaceBlur" />
             </div>
             <div class="control-field">
                 <span>Elevation</span>
@@ -55,13 +63,15 @@
 @code {
     private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
 
+    private SurfaceBlur _surfaceBlur = SurfaceBlur.Default;
+
     private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;
 
     private SurfacePadding _surfacePadding = SurfacePadding.Large;
 
     private SurfaceRadius _surfaceRadius = SurfaceRadius.Large;
 
-    private bool _surfaceBordered = true;
+    private bool _surfaceBordered;
 
     private bool _surfaceFullWidth;
 
@@ -69,6 +79,7 @@
     [
         new("Variant", "SurfaceVariant", "表面视觉变体。", "Default"),
         new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Blur", "SurfaceBlur", "背景模糊档位；Default 跟随全局玻璃配方，None 表示实心。", "Default"),
         new("Padding", "SurfacePadding", "内容内边距。", "Medium"),
         new("Radius", "SurfaceRadius", "圆角级别。", "Default"),
         new("Bordered", "bool", "是否显示边框。", "false"),

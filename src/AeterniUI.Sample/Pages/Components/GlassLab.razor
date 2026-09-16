@@ -1,0 +1,622 @@
+@page "/components/glass"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+<PageTitle>Aeterni UI · 玻璃与模糊</PageTitle>
+
+@* 玻璃对比实验页（/components/glass）。
+   每一格样本都是同一几何形状（圆角、内边距、边框、阴影全部对齐 Surface 的 Glass 变体），
+   只改两件事：填充不透明度和 backdrop-filter。所以格与格之间的差异就是这两个变量的差异。
+   面板内的三行正文 / 次要 / 三级文字沿用库里的墨值，用来验证「换掉填充之后文字还站不站得住」。
+   第二块和第三块舞台换的是另一组变量：05 只改边界（边框与投影），06 只改文字下方有没有底衬。
+   三块舞台共用候选 03 的填充与模糊，所以「填充太实」「边界太软」「文字没有底」是三个独立的问题，
+   可以分别定位。所有偏差数值来自 GlassContrast，与 scripts/check-contrast.mjs 用同一套公式。
+   本页只读，不写任何 token：填充与模糊候选值同时写在 .razor.css 的 --glass-lab-* 里，
+   改动其中一处必须同步另一处。本页的结论已经落地为候选 01（填充保持 .82、模糊档位做成
+   SurfaceBlur 参数、边框跟随 Bordered、降级集中在 token 层），候选 02／03 作为被否决的方案
+   留在表里做对照；表里的「候选名」是实验期的叫法，--aeterni-bg-glass 现在指的是 01 的 82%。 *@
+<section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
+    <p class="showcase-page-eyebrow">设计基础 · 对比实验</p>
+    <h1 id="glass-lab-title">玻璃与模糊对比</h1>
+    <p class="showcase-install__lead">
+        把「玻璃填充不透明度 × 模糊半径」摊成一张矩阵，让同一块面板在四种填充下同屏出现。
+        背景内容层可以切换成壁纸、细网格、App 图标墙和 12px 正文 —— 玻璃真正的短板不是模糊不够，
+        而是背景里没有东西可以糊，以及填充太实把糊过的背景又盖了回去。
+    </p>
+
+    <div class="glass-lab__controls">
+        <div class="glass-lab__control">
+            <span class="glass-lab__control-label">背景内容层</span>
+            <Segmented TValue="GlassBackdrop"
+                       Items="@_backdrops"
+                       Value="_backdrop"
+                       ValueChanged="SelectBackdrop"
+                       TextSelector="BackdropLabel"
+                       AriaLabel="背景内容层" />
+        </div>
+        <div class="glass-lab__control">
+            <span class="glass-lab__control-label">次要文字墨</span>
+            <Segmented TValue="GlassInk"
+                       Items="@_inks"
+                       Value="_ink"
+                       ValueChanged="SelectInk"
+                       TextSelector="InkLabel"
+                       AriaLabel="次要文字墨" />
+        </div>
+    </div>
+
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples">
+            @foreach (var candidate in _candidates)
+            {
+                <article class="glass-lab__cell">
+                    @* 每格一份背景层副本。原先整块舞台共用一层背景，四格各自采样自己背后那一块图案，
+                       于是格间差异里混进了「背后这块图案本来就不一样」这个无关变量。现在每格以自身盒子
+                       为参照画同一张背景，格尺寸一致就逐像素对齐，差异只剩填充与滤镜。 *@
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="@candidate.Id">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@candidate.Index</span>
+                            <span class="glass-lab__sample-name">@candidate.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@candidate.Token</code>
+                            <span>α @GlassContrast.AlphaLabel(candidate.LightAlpha) / @GlassContrast.AlphaLabel(candidate.DarkAlpha)</span>
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--primary">正文：面板应该在壁纸上分层，而不是盖住它。</p>
+                        <p class="glass-lab__line glass-lab__line--secondary">次要：这一行是面板里的说明文字。</p>
+                        <p class="glass-lab__line glass-lab__line--tertiary">三级：09:41 · 装饰性标注不承载信息</p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+
+    <p class="glass-lab__note">
+        四格不是共用幕布上的一层背景，而是各带一份背景副本。共用一层时每格都在采样自己背后那一块图案，
+        格间差异里就混进了「背后这块图案本来就不一样」这个无关变量 —— 看着像候选之间的差异，其实大半是位置差异。
+        现在每格的背景层以自身盒子为参照绘制（渐变百分比相对盒子、图标按 flex 排布），四格尺寸一致就逐像素对齐，
+        格间差异只剩填充与模糊。
+    </p>
+
+    <ul class="glass-lab__legend">
+        @foreach (var candidate in _candidates)
+        {
+            <li>
+                <span class="glass-lab__legend-key">@candidate.Index</span>
+                <span class="glass-lab__legend-name">@candidate.Name</span>
+                <span class="glass-lab__legend-note">@candidate.Note</span>
+            </li>
+        }
+    </ul>
+
+    <p class="glass-lab__note">
+        结论已落地：库采用候选 <strong>01</strong> 的填充（<code>--aeterni-bg-glass</code> 就是
+        <code>--aeterni-bg-elevated</code> 的角色别名，浅 <code>.82</code> / 深 <code>.82</code>），把模糊档位
+        交给 <code>SurfaceBlur</code>（<code>None</code> / <code>Small</code> / <code>Medium</code> /
+        <code>Large</code>），玻璃边框改由 <code>Bordered</code> 决定，「降低透明度」与不支持
+        <code>backdrop-filter</code> 的降级集中在 token 层。候选 02／03 未采用：让填充透出背景的收益
+        抵不过「次要 · 标准墨」掉到 4.5:1 以下，而把次要墨分叉成玻璃专用墨会把墨的分支变成两套。
+        所以下面两张矩阵仍然有效，只是 02／03 现在是「被否决的方案」而不是待选方案。
+    </p>
+
+    <h2 class="glass-lab__subtitle">01 · 读数：填充不透明度决定一切</h2>
+    <p class="glass-lab__note">
+        背景按最坏情况取：浅色玻璃压在纯黑上，深色玻璃压在纯白上。真实壁纸都比这两个背景更宽容，
+        所以下面任何一格不达标，在真实页面上就一定会不达标。✓ 达标 · ✗ 低于门槛。
+    </p>
+    <div class="glass-lab__table-wrap">
+        <table class="glass-lab__table">
+            <caption>
+                玻璃合成背景后的对比度。正文与次要文字要求 4.5:1，三级文字与图形元素要求 3:1。
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">候选</th>
+                    <th scope="col">填充 α<span>浅 / 深</span></th>
+                    <th scope="col">模糊<span>saturate</span></th>
+                    <th scope="col">正文<span>≥ 4.5</span></th>
+                    <th scope="col">次要 · 标准墨<span>≥ 4.5</span></th>
+                    <th scope="col">次要 · on-glass<span>≥ 4.5</span></th>
+                    <th scope="col">三级 · 标准墨<span>≥ 3</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var candidate in _candidates)
+                {
+                    <tr>
+                        <th scope="row">@candidate.Name</th>
+                        <td>
+                            <code>@GlassContrast.AlphaLabel(candidate.LightAlpha)</code>
+                            <code>@GlassContrast.AlphaLabel(candidate.DarkAlpha)</code>
+                        </td>
+                        <td>
+                            <code>@FilterLabel(candidate)</code>
+                        </td>
+                        <td>
+                            @Readout(candidate.Light.Primary, GlassContrast.TextFloor)
+                            @Readout(candidate.Dark.Primary, GlassContrast.TextFloor)
+                        </td>
+                        <td>
+                            @Readout(candidate.Light.Secondary, GlassContrast.TextFloor)
+                            @Readout(candidate.Dark.Secondary, GlassContrast.TextFloor)
+                        </td>
+                        <td>
+                            @Readout(candidate.Light.OnGlassSecondary, GlassContrast.TextFloor)
+                            @Readout(candidate.Dark.OnGlassSecondary, GlassContrast.TextFloor)
+                        </td>
+                        <td>
+                            @Readout(candidate.Light.Tertiary, GlassContrast.GraphicFloor)
+                            @Readout(candidate.Dark.Tertiary, GlassContrast.GraphicFloor)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="glass-lab__note">
+        「次要 · 标准墨」这一列是本页最重要的读数。库里今天的次要墨（浅色 <code>rgba(0,0,0,.62)</code>、
+        深色 <code>rgba(255,255,255,.56)</code>）只对不透明表面成立：只要玻璃填充降到 <code>.68</code> 浅色 /
+        <code>.83</code> 深色以下，它掉到 4.5:1 以下，而深色 <code>.83</code> 基本等于取消玻璃。
+        所以把填充让出来，等于同时要新增一个只在玻璃上使用的次要墨 —— 也就是
+        <code>--aeterni-text-on-glass-secondary</code>。这正是候选 02／03 被否决的原因：
+        为了让背景透出来而多养一支玻璃专用墨，会把「一种次要墨」变成「两种次要墨」，
+        而 .82 的填充不需要这笔交易 —— 浅色 5.33:1、深色 4.35:1（深色这一格见下方遗留说明）。
+    </p>
+
+    <h2 class="glass-lab__subtitle">02 · 次级文字：底衬比换墨管用</h2>
+    <p class="glass-lab__note">
+        三格共用候选 03 的填充（浅 <code>.50</code> / 深 <code>.62</code>）与同一张背景，唯一变量是
+        「字底下有没有一层更实的底衬」。底衬用与面板同色的填充，两层的等效 α 是
+        <code>α₁ + α₂ − α₁α₂</code>：浅色 <code>.50 + .20 → .60</code>、深色 <code>.62 + .26 → .72</code>，
+        也就是把文字那一小块抬到候选 02 的可读性，而面板其余部分照旧透出。底衬刻意只加填充、
+        不叠第二层 <code>backdrop-filter</code>：面板已经糊过一次，再糊一遍只是让本已平滑的场更平滑，
+        却给这一格引入第二个变量，而这里要问的只是「字底下有没有东西」。
+    </p>
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples">
+            @foreach (var plate in _plates)
+            {
+                <article class="glass-lab__cell">
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="glass-soft" data-plate="@plate.Id">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@plate.Index</span>
+                            <span class="glass-lab__sample-name">@plate.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@plate.Token</code>
+                            <span>文字局部 α @GlassContrast.AlphaLabel(plate.LightAlpha) / @GlassContrast.AlphaLabel(plate.DarkAlpha)</span>
+                        </p>
+                        <div class="glass-lab__plate">
+                            <p class="glass-lab__line glass-lab__line--primary">
+                                正文：面板应该在壁纸上分层，而不是盖住它。
+                            </p>
+                            <p class="glass-lab__line glass-lab__line--secondary-standard">
+                                次要 · 标准墨：rgba(0,0,0,.62) 只对不透明表面成立。
+                            </p>
+                            <p class="glass-lab__line glass-lab__line--on-glass">
+                                次要 · on-glass 墨：换墨能补一点，补不满。
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <div class="glass-lab__table-wrap">
+        <table class="glass-lab__table">
+            <caption>
+                三格的前景都压在纯黑／纯白上，读数是各自文字块所在区域的对比度。
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">底衬</th>
+                    <th scope="col">正文<span>≥ 4.5</span></th>
+                    <th scope="col">次要 · 标准墨<span>≥ 4.5</span></th>
+                    <th scope="col">次要 · on-glass<span>≥ 4.5</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var plate in _plates)
+                {
+                    <tr>
+                        <th scope="row">@plate.Name</th>
+                        <td>
+                            @Readout(plate.Light.Primary, GlassContrast.TextFloor)
+                            @Readout(plate.Dark.Primary, GlassContrast.TextFloor)
+                        </td>
+                        <td>
+                            @Readout(plate.Light.Secondary, GlassContrast.TextFloor)
+                            @Readout(plate.Dark.Secondary, GlassContrast.TextFloor)
+                        </td>
+                        <td>
+                            @Readout(plate.Light.OnGlassSecondary, GlassContrast.TextFloor)
+                            @Readout(plate.Dark.OnGlassSecondary, GlassContrast.TextFloor)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="glass-lab__note">
+        裸文字那一行的 on-glass 墨只有 3.95:1 / 3.78:1 —— 在 <code>.50</code> 的填充上换墨换不回 4.5:1，
+        因为墨的对比度上限由背景决定，不是由墨决定。底衬与整块加实两行的读数完全相同，差别只在多出来的
+        那 0.10 铺在哪：底衬只抬文字块，其余部分保留候选 03 的透出率；整块加实直接把面板推回候选 02。
+        所以「次级文字效果不明显」不是墨不够重，是字底下没有东西可衬。
+    </p>
+
+    <h2 class="glass-lab__subtitle">03 · 压力板：两个最坏背景</h2>
+    <p class="glass-lab__note">
+        固定的纯黑与纯白背景，各放一块候选面板，两块都强制使用候选 02 的填充与模糊。
+        这里没有后退的余地，所以哪一层文字先塌一眼就能看出来：三级文字浅色 3.14:1、
+        深色 2.51:1 —— 前者勉强够图形门槛，后者连图形门槛都不到。
+    </p>
+    <div class="glass-lab__stress">
+        <div class="glass-lab__stress-band glass-lab__stress-band--dark">
+            <span class="glass-lab__stress-label">纯黑背景 · 浅色玻璃 α @GlassContrast.AlphaLabel(LightStressAlpha)</span>
+            <div class="glass-lab__stress-panel glass-lab__surface" data-forced="light">
+                <p class="glass-lab__line glass-lab__line--primary">正文：这一行必须读得清</p>
+                <p class="glass-lab__line glass-lab__line--secondary">
+                    次要：@InkName 墨 @InkReadout(_lightStress):1
+                </p>
+                <p class="glass-lab__line glass-lab__line--tertiary">
+                    三级：@GlassContrast.Format(_lightStress.Tertiary):1，只剩图形门槛
+                </p>
+            </div>
+        </div>
+        <div class="glass-lab__stress-band glass-lab__stress-band--light">
+            <span class="glass-lab__stress-label">纯白背景 · 深色玻璃 α @GlassContrast.AlphaLabel(DarkStressAlpha)</span>
+            <div class="glass-lab__stress-panel glass-lab__surface" data-forced="dark">
+                <p class="glass-lab__line glass-lab__line--primary">正文：这一行必须读得清</p>
+                <p class="glass-lab__line glass-lab__line--secondary">
+                    次要：@InkName 墨 @InkReadout(_darkStress):1
+                </p>
+                <p class="glass-lab__line glass-lab__line--tertiary">
+                    三级：@GlassContrast.Format(_darkStress.Tertiary):1，连图形门槛都不到
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="glass-lab__subtitle">04 · 模糊半径：档位够不够</h2>
+    <p class="glass-lab__note">
+        把背景切到「App 图标墙」，再逐格比较 16px / 24px / 32px。iOS 面板上单个图标会被完全糊掉、
+        大色块仍然保留，等效 CSS 大约落在 <code>blur(24px)</code> 到 <code>blur(32px)</code> 之间。库里
+        <code>--aeterni-blur-lg</code> 的 <code>blur(24px)</code> 已经够用，库已把它做成
+        <code>SurfaceBlur.Large</code> 档；真正缺的是「让背景透出来」，而不是更大的半径。
+        <code>blur(32px)</code> 在本页以候选身份出现，没有写进 token。
+    </p>
+
+    <h2 class="glass-lab__subtitle">05 · 边界：清晰与层次感是两个变量</h2>
+    <p class="glass-lab__note">
+        四格全部钉在候选 03 的填充（浅 <code>.50</code> / 深 <code>.62</code>）与 <code>blur(32px)</code> 上，
+        唯一变量是边框与投影。A 与 C 的投影完全相同、只差边框画在哪，用来隔离「边框到底贡献了多少边界」；
+        D 去掉边框只加投影，验证能不能只靠投影分离。四档一律保留 <code>1px</code> 的边框宽度、只改颜色，
+        所以内容盒子与面板几何完全一致 —— 宽度一变，差的 2px 就会混进比较里。边框与投影是图形元素、
+        门槛 3:1，但墙纸自身的明暗起伏逐点不同，所以这里不报数字，只给可点选的对照。
+    </p>
+    <div class="glass-lab__stage">
+        <div class="glass-lab__samples">
+            @foreach (var edge in _edges)
+            {
+                <article class="glass-lab__cell">
+                    <div class="glass-lab__cell-bg">
+                        @Backdrop(_backdrop)
+                    </div>
+                    <div class="glass-lab__sample glass-lab__surface" data-candidate="glass-soft" data-edge="@edge.Id">
+                        <header class="glass-lab__sample-head">
+                            <span class="glass-lab__sample-index">@edge.Index</span>
+                            <span class="glass-lab__sample-name">@edge.Name</span>
+                        </header>
+                        <p class="glass-lab__sample-spec">
+                            <code>@edge.Border</code>
+                            <span>@edge.Shadow</span>
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--primary">
+                            正文：这一行读得出面板从哪里开始吗
+                        </p>
+                        <p class="glass-lab__line glass-lab__line--on-glass">
+                            次要：边界不清楚时，边框和投影就不再分工
+                        </p>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <ul class="glass-lab__list">
+        @foreach (var edge in _edges)
+        {
+            <li>
+                <strong>@edge.Name</strong> ·
+                @edge.Note
+            </li>
+        }
+    </ul>
+
+    <h2 class="glass-lab__subtitle">06 · 本页的边界</h2>
+    <ul class="glass-lab__list">
+        <li>
+            本页不写入任何 token。候选矩阵里的填充与模糊只是本页的实验值，住在 <code>.razor.css</code> 的
+            <code>--glass-lab-*</code> 里；<code>--aeterni-text-on-glass-secondary</code> 没有被采用，
+            表里出现的 <code>--aeterni-*</code> 名字中只有 <code>--aeterni-bg-glass</code> 已经是真 token
+            （指候选 01 的 <code>.82</code>，见上方结论段）。
+        </li>
+        <li>
+            背景内容层是宿主契约，不是组件。真正落地时它要铺满整个页面而不是这一块舞台，并由宿主提供
+            <code>--aeterni-backdrop</code>；组件库只负责在它上面合成，不负责画它。
+        </li>
+        <li>
+            背景内容层允许彩色，玻璃填充仍然必须无彩色（R = G = B）。本页壁纸只出现在玻璃下面，
+            从不出现在玻璃的颜色里；<code>saturate()</code> 只会把它放大成观感问题，不会变成品牌色底。
+        </li>
+        <li>
+            系统开启「降低透明度」时，本页所有面板退化为不透明表面。这不是本页的额外行为，而是玻璃组件
+            必须有的降级：只摘掉 <code>backdrop-filter</code> 会留下一块半透明色斑，比不透明更糟。
+            库侧已经把这条降级收进 token 层（<code>--aeterni-bg-glass</code> 退 <code>--aeterni-bg-solid</code>、
+            两支模糊退 <code>none</code>），本页的面板不消费库 token，所以自己留了一份同语义的块。
+        </li>
+        <li>
+            同屏玻璃面建议不超过 3 个。本页为了让差异可比，三块舞台一共摆了十一格 —— 这是实验布景，
+            不是排版建议。每格各带一份背景副本也意味着十一份渐变与十一个 <code>backdrop-filter</code>，
+            真实页面不会有这种密度。
+        </li>
+        <li>
+            每格一份背景副本的代价：背景层裁在格内，而 <code>backdrop-filter</code> 的高斯核会超出面板
+            边界（<code>blur(32px)</code> 的核半径约 48px），于是面板最外一圈的模糊会掺进格外的舞台底色。
+            四格的渗漏几何完全相同，不构成对比较的偏置，只在最外一圈隐约可见；真实宿主的背景是连续的，
+            没有这条缝。把副本向外扩、让格不裁切可以消掉它，但那会让四块背景互相重叠，收益不抵复杂度。
+        </li>
+        <li>
+            文字底衬是 <em>两层同色填充叠加</em>，等效 α 用 <code>α₁ + α₂ − α₁α₂</code> 算，所以它确实
+            踩到了「玻璃套玻璃」。这是有意的交易：拿文字那一小块区域的透出率，换那一行字读到 4.5:1。
+            合法用法是只给文字块加，不是给嵌套容器加。
+        </li>
+        <li>
+            四格同底是本页的实验装置，不是组件行为。组件只负责在宿主给的背景上合成，不负责让背景在
+            多块面板之间保持一致；这件事在宿主排版时天然成立，不需要库介入。
+        </li>
+    </ul>
+</section>
+
+@code {
+    private GlassBackdrop _backdrop = GlassBackdrop.Wallpaper;
+    private GlassInk _ink = GlassInk.OnGlass;
+
+    private static readonly GlassBackdrop[] _backdrops =
+    [
+        GlassBackdrop.Wallpaper,
+        GlassBackdrop.Mesh,
+        GlassBackdrop.AppIcons,
+        GlassBackdrop.SmallText,
+    ];
+
+    private static readonly GlassInk[] _inks = [GlassInk.OnGlass, GlassInk.Standard];
+
+    private static readonly string[] _iconNames =
+    [
+        "邮件", "日历", "照片", "音乐", "设置", "天气", "地图", "备忘", "时钟", "相机",
+    ];
+
+    private static readonly string[] _tinyTextLines =
+    [
+        "更新于 09:41 · 已同步 3 项",
+        "这一段位于玻璃后面，字号 12px，行高 1.7。",
+        "Aeterni UI 组件库 · 设计系统",
+        "订单 #48213 已发货，预计明日送达。",
+        "模糊半径越大，这一块越糊，可读性越差。",
+        "玻璃填充越不透明，这一块越看不清。",
+        "两者相减，就是这块面板还剩下多少背景。",
+        "同屏玻璃面建议不超过 3 个。",
+    ];
+
+    @* 候选矩阵。每一行的值必须与 .razor.css 里 data-candidate 的 --glass-lab-* 完全一致。 *@
+    private static readonly GlassCandidate[] _candidates =
+    [
+        new("elevated", "01", "已采用 · Glass 变体", "--aeterni-bg-glass", 0.82, 0.82, 16, 135,
+            "库采用的落点：填充停在 .82，模糊档位交给 SurfaceBlur（Large = --aeterni-blur-lg = 24px），玻璃边框跟随 Bordered。填充没有再让，因为更淡会把标准次要墨拽到 4.5:1 以下。"),
+        new("glass", "02", "未采用 · 玻璃填充", "提案名 --aeterni-bg-glass", 0.60, 0.72, 24, 150,
+            "被否决：浅色 5.61:1、深色 5.60:1 的正文余量很好看，但标准次要墨掉到 3.98:1 / 3.41:1，要补一支玻璃专用次要墨才能收场。"),
+        new("glass-soft", "03", "未采用 · 轻玻璃", "提案名 --aeterni-bg-glass-soft", 0.50, 0.62, 32, 150,
+            "被否决得更彻底：只剩大字号与图形元素站得住。浅色正文 4.28:1 已在门槛下，即使配上 on-glass 墨也换不回 4.5:1。"),
+        new("flat", "04", "对照 · 不透明表面", "--aeterni-bg-surface", 1.00, 1.00, 0, 100,
+            "完全挡住背景，不是选项而是参照：任何玻璃方案都必须比它更值得。"),
+    ];
+
+    @* 02 文字底衬三档。面板填充与模糊全部钉在候选 03 上，只改「字底下有没有东西」。
+       LightAlpha / DarkAlpha 是文字所在局部区域的等效 α，不是面板的填充值：底衬那一档的
+       面板仍然是 .50 / .62，只有文字块抬到 .60 / .72。 *@
+    private static readonly GlassPlateFixture[] _plates =
+    [
+        new("bare", "A", "裸文字（现状）", "无底衬", 0.50, 0.62,
+            "候选 03 的原样。背景透出率最高，代价是正文浅色 4.28:1 已经不达标，次要文字连 3:1 都守不住。"),
+        new("text-plate", "B", "文字底衬", "--glass-lab-plate", 0.60, 0.72,
+            "只在文字块下面再压一层同色填充。局部等效 α 抬到候选 02，面板其余部分照旧透出。"),
+        new("solid", "C", "整块加实", "= 候选 02 的填充", 0.60, 0.72,
+            "整块面板抬到候选 02。读数与 B 完全相同，多出来的填充铺满整块，不再还给背景。"),    ];
+
+    @* 05 边界四档。填充与模糊全部钉在候选 03 上，只改边框与投影。
+       A 与 C 的投影相同、只差边框，用来隔离边框的贡献；D 反方向验证只靠投影行不行。 *@
+    private static readonly GlassEdgeFixture[] _edges =
+    [
+        new("hairline", "A", "现状 · 发丝线", "1px var(--aeterni-border)", "--aeterni-shadow-md",
+            "今天的样子：边框 11% 黑，投影 9% / 6% 黑。两者都和墙纸自身的明暗起伏同量级，所以边框读不出、投影也看不见。"),
+        new("hairline-strong", "B", "加重发丝线", "1px var(--aeterni-border-strong)", "--aeterni-shadow-lg",
+            "只把边框提到 18% 黑、投影提到 12%。清晰度与层次感都上来了，代价是那条线开始被看见，离「无边框」最远。"),
+        new("edge-ring", "C", "内描边", "inset 0 0 0 1px + 上缘高光", "--aeterni-shadow-md（与 A 相同）",
+            "把边界画进玻璃内部：一条内描边加一条上缘高光。投影与 A 完全相同，所以 A 与 C 的差别就是边框全部的贡献。"),
+        new("shadow-only", "D", "只靠投影", "无边框", "--aeterni-shadow-xl",
+            "去掉边框把投影提到 16% / 8%。能分出层，但边界本身没有了：投影只回答「在哪一层」，不回答「到哪里为止」。"),
+    ];
+
+    /// <summary>候选 02 的填充，压力板强制使用；与 .razor.css 的 --glass-lab-alpha-glass 一致。</summary>
+    private const double LightStressAlpha = 0.60;
+
+    /// <inheritdoc cref="LightStressAlpha"/>
+    private const double DarkStressAlpha = 0.72;
+
+    @* 压力板的两块夹具固定走这两个读数，与主题切换无关：它们是量具，不是界面。 *@
+    private static readonly GlassReadout _lightStress =
+        GlassMeasurement.Measure(GlassPalette.Light, LightStressAlpha);
+
+    private static readonly GlassReadout _darkStress =
+        GlassMeasurement.Measure(GlassPalette.Dark, DarkStressAlpha);
+
+    private void SelectBackdrop(GlassBackdrop backdrop) => _backdrop = backdrop;
+    private void SelectInk(GlassInk ink) => _ink = ink;
+
+    /// <summary>开关当前选中的墨的名字，压力板的读数标签跟着它走。</summary>
+    private string InkName => _ink is GlassInk.OnGlass ? "on-glass" : "标准";
+
+    /// <summary>取出开关当前选中的那个次要墨的对比度，保证标签上的数字与屏幕上的墨是同一支。</summary>
+    private string InkReadout(GlassReadout readout) => GlassContrast.Format(
+        _ink is GlassInk.OnGlass ? readout.OnGlassSecondary : readout.Secondary);
+
+    /// <summary>
+    /// 背景内容层。它以自身盒子为参照定位：径向渐变的百分比相对盒子尺寸，图标按 flex 排布，
+    /// 所以只要各格尺寸一致，每格看到的图案与裁切就逐像素相同，格间差异只剩填充与滤镜。
+    /// 整块舞台共用一层背景做不到这一点 —— 那样每格采样的是自己背后那一块图案。
+    /// </summary>
+    private RenderFragment Backdrop(GlassBackdrop backdrop) => @<div class="glass-lab__backdrop" aria-hidden="true">
+        @if (backdrop is GlassBackdrop.Wallpaper)
+        {
+            <div class="glass-lab__wallpaper"></div>
+        }
+        else if (backdrop is GlassBackdrop.Mesh)
+        {
+            <div class="glass-lab__mesh"></div>
+        }
+        else if (backdrop is GlassBackdrop.AppIcons)
+        {
+            <div class="glass-lab__icons">
+                @for (var row = 0; row < 3; row++)
+                {
+                    <div class="glass-lab__icon-row">
+                        @for (var column = 0; column < 10; column++)
+                        {
+                            <span class="glass-lab__icon">
+                                <span class="glass-lab__icon-glyph"></span>
+                                <span class="glass-lab__icon-label">@_iconNames[column]</span>
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="glass-lab__tiny-text">
+                @for (var pass = 0; pass < 2; pass++)
+                {
+                    foreach (var line in _tinyTextLines)
+                    {
+                        <p>@line</p>
+                    }
+                }
+            </div>
+        }
+    </div>;
+
+    private static string BackdropLabel(GlassBackdrop backdrop) => backdrop switch
+    {
+        GlassBackdrop.Mesh => "细网格",
+        GlassBackdrop.AppIcons => "App 图标墙",
+        GlassBackdrop.SmallText => "12px 正文",
+        _ => "壁纸",
+    };
+
+    private static string InkLabel(GlassInk ink) => ink is GlassInk.Standard
+        ? "标准墨（现状）"
+        : "on-glass 墨（提案）";
+
+    @* 这两个属性是给 .razor.css 用的选择器钩子，所以刻意用 kebab-case 而不是枚举名，
+       免得枚举重命名时样式静默失效（CSS 属性选择器区分大小写）。 *@
+    private static string InkToken(GlassInk ink) => ink is GlassInk.Standard
+        ? "standard"
+        : "on-glass";
+
+    private static string BackdropToken(GlassBackdrop backdrop) => backdrop switch
+    {
+        GlassBackdrop.Mesh => "mesh",
+        GlassBackdrop.AppIcons => "app-icons",
+        GlassBackdrop.SmallText => "small-text",
+        _ => "wallpaper",
+    };
+
+    private static string FilterLabel(GlassCandidate candidate) => candidate.BlurPx is 0
+        ? "无"
+        : $"blur({candidate.BlurPx}px) saturate({candidate.Saturate}%)";
+
+    private static RenderFragment Readout(double value, double floor) => builder =>
+    {
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", value >= floor
+            ? "glass-lab__value glass-lab__value--pass"
+            : "glass-lab__value glass-lab__value--fail");
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "aria-hidden", "true");
+        builder.AddContent(4, value >= floor ? "✓" : "✗");
+        builder.CloseElement();
+        builder.AddContent(5, GlassContrast.Format(value));
+        builder.CloseElement();
+    };
+
+    public enum GlassBackdrop
+    {
+        Wallpaper,
+        Mesh,
+        AppIcons,
+        SmallText,
+    }
+
+    public enum GlassInk
+    {
+        OnGlass,
+        Standard,
+    }
+
+    private sealed record GlassCandidate(
+        string Id,
+        string Index,
+        string Name,
+        string Token,
+        double LightAlpha,
+        double DarkAlpha,
+        int BlurPx,
+        int Saturate,
+        string Note)
+    {
+        public GlassReadout Light { get; } = GlassMeasurement.Measure(GlassPalette.Light, LightAlpha);
+
+        public GlassReadout Dark { get; } = GlassMeasurement.Measure(GlassPalette.Dark, DarkAlpha);
+    }
+
+    /// <param name="LightAlpha">
+    /// 文字所在局部区域的等效 α，已把底衬那一层的叠加算进去；面板自己的填充值见 .razor.css。
+    /// </param>
+    private sealed record GlassPlateFixture(
+        string Id,
+        string Index,
+        string Name,
+        string Token,
+        double LightAlpha,
+        double DarkAlpha,
+        string Note)
+    {
+        public GlassReadout Light { get; } = GlassMeasurement.Measure(GlassPalette.Light, LightAlpha);
+
+        public GlassReadout Dark { get; } = GlassMeasurement.Measure(GlassPalette.Dark, DarkAlpha);
+    }
+
+    private sealed record GlassEdgeFixture(
+        string Id,
+        string Index,
+        string Name,
+        string Border,
+        string Shadow,
+        string Note);
+}

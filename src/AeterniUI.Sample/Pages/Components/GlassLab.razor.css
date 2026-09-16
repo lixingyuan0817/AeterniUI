@@ -1,0 +1,701 @@
+/*
+   AeterniUI.Sample — 玻璃与模糊对比页（/components/glass）。
+
+   这个页面是只读的实验布景：同一块面板在四种「填充不透明度 + 模糊半径」组合下同屏出现，
+   背后可以换成壁纸、细网格、App 图标墙或 12px 正文。页面不改任何库 Token，
+   提案期的候选名 --aeterni-bg-glass / --aeterni-bg-glass-soft / --aeterni-text-on-glass-secondary
+   里只有 --aeterni-bg-glass 后来被库采用（指 .82 那一档），另外两个是被否决的方案名；
+   候选值本身只活在这一段样式和 GlassLab.razor 的读数表里，实际变量一律是 --glass-lab-*。
+
+   同步契约（改一处必须改三处）：
+     · 本文件下面的 --glass-lab-alpha-* 表
+     · GlassLab.razor 的 _candidates
+     · Components/Showcase/GlassContrast.cs 的 GlassPalette
+   面板的 RGB 一律从 --aeterni-bg-surface 取（浅 #FFFFFF / 深 #1A1A1D），
+   所以这段样式只提供 alpha，既不新建颜色体系，也不重复深浅两套填充色。
+   文字底衬多一条耦合：--glass-lab-plate 的取值要满足 α₁ + α₂ − α₁α₂ 等于候选 02 的填充，
+   即浅 .50 + 20% → .60、深 .62 + 26.32% → .72；改它就要同步 GlassLab.razor 的 _plates。
+
+   背景内容层是每格一份副本，不是整块舞台共用一层：共用时每格采样的是自己背后那一块图案，
+   格间差异会混进「背后的图案本来就不一样」这个无关变量。
+
+   边框：01–03 三块舞台沿用项目约定的 1px --aeterni-border-default，不做液态玻璃的高光/折射描边；
+   05 把「怎么画边界」单独摊成四档（发丝线 / 加重发丝线 / 内描边 / 只靠投影）。四档一律保持 1px
+   边框宽度、只换颜色与投影，所以面板几何逐格相同。那里的内描边是普通的内侧实线，不是折射或高光边框。
+*/
+
+.glass-lab {
+    /* 候选矩阵的填充不透明度。写成百分比是因为 color-mix 的占比槽位直接吃百分比，
+       省掉一层 calc；与读数表里的 .82 / .60 / .50 是同一个数。 */
+    --glass-lab-alpha-elevated: 82%;
+    --glass-lab-alpha-glass: 60%;
+    --glass-lab-alpha-glass-soft: 50%;
+    --glass-lab-alpha-flat: 100%;
+
+    /* 玻璃上的次要墨（方案里的决策 A）：把正文墨的 alpha 打 93 折。
+       color-mix 让深浅两个主题共用一条声明，取值与 GlassTheme.OnGlassInkFraction 一致：
+       浅色落到 rgba(0, 0, 0, .7254)，深色落到 rgba(255, 255, 255, .7998)。 */
+    --glass-lab-ink-secondary-on-glass: color-mix(in srgb, var(--aeterni-text) 93%, transparent);
+
+    /* 02 文字底衬那一层自己的填充。它叠在面板填充之上，两层的等效 α 是 α₁ + α₂ − α₁α₂，
+       所以 .50 + .20 → .60、.62 + .2632 → .72，正好等于候选 02 的填充。
+       也就是说底衬把文字那一小块抬到候选 02 的可读性，而面板其余部分仍是候选 03 的透出率。
+       26.32% 是 26.32 而不是 26：.62 + .38x = .72 解出 x = .2632，取整会在读数上差 0.0012。 */
+    --glass-lab-plate: 20%;
+
+    /* 05 内描边的两层：一条压在暗背景侧的内描边，一条上缘高光。两者都在玻璃内部，
+       不占额外几何，所以四个边界档位的内容盒子完全一致。 */
+    --glass-lab-ring-inner: rgba(0, 0, 0, .14);
+    --glass-lab-ring-highlight: rgba(255, 255, 255, .42);
+}
+
+/* 深色档位。填充基色由 --aeterni-bg-surface 自己跟主题切换，所以这里只覆盖 alpha 表。
+   选择器与 aeterni_ui.css 的深色块保持一致：显式属性两个、系统深色一个。 */
+[data-theme="dark"] .glass-lab,
+[data-aeterni-mode="dark"] .glass-lab,
+.aeterni-dark .glass-lab {
+    --glass-lab-alpha-elevated: 82%;
+    --glass-lab-alpha-glass: 72%;
+    --glass-lab-alpha-glass-soft: 62%;
+    --glass-lab-alpha-flat: 100%;
+    --glass-lab-plate: 26.32%;
+    --glass-lab-ring-inner: rgba(255, 255, 255, .16);
+    --glass-lab-ring-highlight: rgba(255, 255, 255, .22);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]):not([data-aeterni-mode]):not(.aeterni-dark) .glass-lab {
+        --glass-lab-alpha-elevated: 82%;
+        --glass-lab-alpha-glass: 72%;
+        --glass-lab-alpha-glass-soft: 62%;
+        --glass-lab-alpha-flat: 100%;
+        --glass-lab-plate: 26.32%;
+        --glass-lab-ring-inner: rgba(255, 255, 255, .16);
+        --glass-lab-ring-highlight: rgba(255, 255, 255, .22);
+    }
+}
+
+/* 01. 控制条 */
+
+.glass-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-4) var(--aeterni-spacing-8);
+    margin: var(--aeterni-spacing-8) 0 var(--aeterni-spacing-5);
+}
+
+.glass-lab__control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-2);
+}
+
+.glass-lab__control-label {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .08em;
+}
+
+/* 02. 幕布、背景内容层与单元格
+   背景内容层不再铺在幕布上，而是每格各带一份副本（见 GlassLab.razor 的 Backdrop 模板）。
+   它是「内容」，不是容器背景，所以允许彩色；玻璃填充仍然无彩色，saturate() 只会把背景层的
+   色放大，不会把面板染成品牌色底。 */
+
+.glass-lab__stage {
+    position: relative;
+    isolation: isolate;
+    padding: var(--aeterni-spacing-8);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-2xl);
+    background: var(--aeterni-bg-secondary);
+    /* 刻意不用 overflow: hidden：它会把 --aeterni-shadow-xl 沿面板下缘切掉一条边，
+       而 05 那一段正在比较投影，切掉的正好是被比的对象。圆角由各格自己的背景层负责。 */
+}
+
+.glass-lab__backdrop {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 壁纸：色相全部来自语意 Token，且每个光源都是「预先柔化」的多段径向渐变 ——
+   热点在半径三分之一处就已经淡成 tint，92% 处完全消失。这样大面积上读不到色底，
+   玻璃压上去只会把它糊化，而不是变成一层带色相的板。 */
+.glass-lab__wallpaper {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 22% 28%,
+            color-mix(in srgb, var(--aeterni-color-brand-default) 62%, transparent) 0%,
+            color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent) 34%,
+            transparent 72%),
+        radial-gradient(circle at 78% 18%,
+            color-mix(in srgb, var(--aeterni-color-info-default) 56%, transparent) 0%,
+            color-mix(in srgb, var(--aeterni-color-info-default) 20%, transparent) 30%,
+            transparent 68%),
+        radial-gradient(circle at 62% 82%,
+            color-mix(in srgb, var(--aeterni-color-danger-default) 48%, transparent) 0%,
+            color-mix(in srgb, var(--aeterni-color-danger-default) 16%, transparent) 32%,
+            transparent 70%),
+        radial-gradient(circle at 18% 88%,
+            color-mix(in srgb, var(--aeterni-color-success-default) 52%, transparent) 0%,
+            color-mix(in srgb, var(--aeterni-color-success-default) 18%, transparent) 30%,
+            transparent 66%),
+        radial-gradient(circle at 92% 62%,
+            color-mix(in srgb, var(--aeterni-color-warning-default) 44%, transparent) 0%,
+            color-mix(in srgb, var(--aeterni-color-warning-default) 14%, transparent) 28%,
+            transparent 64%);
+    background-color: var(--aeterni-bg-primary);
+}
+
+/* 细网格：无彩色纹理。1px 的线在任何 blur() 下都会立刻糊成一片灰，
+   所以它测的不是模糊半径，而是填充不透明度 —— α .82 时网格几乎看不见，
+   α .50 时一眼看得到。 */
+.glass-lab__mesh {
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(to right,
+            color-mix(in srgb, var(--aeterni-text-primary) 22%, transparent) 0 1px,
+            transparent 1px 14px),
+        repeating-linear-gradient(to bottom,
+            color-mix(in srgb, var(--aeterni-text-primary) 22%, transparent) 0 1px,
+            transparent 1px 14px);
+    background-color: var(--aeterni-bg-primary);
+}
+
+/* App 图标墙：iOS 桌面的近似。图标尺寸与网格间距决定「多大细节会被糊掉」，
+   这是唯一能区分 16 / 24 / 32px 三档的布景。 */
+.glass-lab__icons {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: var(--aeterni-spacing-5);
+    background-color: var(--aeterni-bg-primary);
+}
+
+.glass-lab__icon-row {
+    display: flex;
+    gap: 14px;
+}
+
+.glass-lab__icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 52px;
+}
+
+.glass-lab__icon-glyph {
+    width: 52px;
+    height: 52px;
+    border-radius: 13px;
+    background: var(--aeterni-color-neutral-default);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #FFF 40%, transparent);
+}
+
+.glass-lab__icon-label {
+    font-size: 10px;
+    line-height: 1.2;
+    color: var(--aeterni-text-primary);
+}
+
+/* 五个图标一套色相，按 5n 循环；色相全部来自语意 Token。 */
+.glass-lab__icon:nth-child(5n + 1) .glass-lab__icon-glyph {
+    background: linear-gradient(155deg,
+        color-mix(in srgb, var(--aeterni-color-brand-default) 88%, #FFF),
+        var(--aeterni-color-brand-default));
+}
+
+.glass-lab__icon:nth-child(5n + 2) .glass-lab__icon-glyph {
+    background: linear-gradient(155deg,
+        color-mix(in srgb, var(--aeterni-color-info-default) 88%, #FFF),
+        var(--aeterni-color-info-default));
+}
+
+.glass-lab__icon:nth-child(5n + 3) .glass-lab__icon-glyph {
+    background: linear-gradient(155deg,
+        color-mix(in srgb, var(--aeterni-color-success-default) 88%, #FFF),
+        var(--aeterni-color-success-default));
+}
+
+.glass-lab__icon:nth-child(5n + 4) .glass-lab__icon-glyph {
+    background: linear-gradient(155deg,
+        color-mix(in srgb, var(--aeterni-color-warning-default) 88%, #FFF),
+        var(--aeterni-color-warning-default));
+}
+
+.glass-lab__icon:nth-child(5n + 5) .glass-lab__icon-glyph {
+    background: linear-gradient(155deg,
+        color-mix(in srgb, var(--aeterni-color-danger-default) 88%, #FFF),
+        var(--aeterni-color-danger-default));
+}
+
+/* 12px 正文：玻璃最坏的真实工况 —— 面板浮在正文上时，玻璃下面的字必须被彻底糊掉，
+   玻璃上面的字必须仍然达标。 */
+.glass-lab__tiny-text {
+    position: absolute;
+    inset: 0;
+    padding: var(--aeterni-spacing-5);
+    overflow: hidden;
+    background-color: var(--aeterni-bg-primary);
+}
+
+.glass-lab__tiny-text p {
+    margin: 0 0 8px;
+    max-width: 420px;
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* 03. 样本矩阵
+   四块面板共用一套几何：圆角、内边距、1px 边框、阴影全部对齐 Surface 的 Glass 变体。
+   只有填充与 backdrop-filter 随候选变化，所以格间差异就是这两个变量的差异。 */
+
+.glass-lab__samples {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+    /* 所有行等高。背景副本以各自的盒子为参照，盒子高一点，径向渐变的百分比落点就会整体
+       偏移，所以等高是「四格背景逐像素一致」的前提，不是排版偏好。 */
+    grid-auto-rows: 1fr;
+    gap: var(--aeterni-spacing-5);
+}
+
+/* 单元格：背景副本与玻璃面板是兄弟节点，不是父子。backdrop-filter 只采样元素「背后」的内容，
+   采样不到自己的子节点，所以背景不能放进面板里面 —— 放进去了就只会被填色盖住、永远不被模糊。 */
+.glass-lab__cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* 背景副本。裁到与面板同一个圆角，否则面板圆角外侧会露出副本的直角。 */
+.glass-lab__cell-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--aeterni-radius-surface);
+}
+
+/* 面板铺满单元格，与背景副本同尺寸同位置，于是两者像素对齐。 */
+.glass-lab__cell > .glass-lab__sample {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+}
+
+.glass-lab__surface {
+    --glass-lab-base: var(--aeterni-bg-surface);
+    --glass-lab-alpha: var(--glass-lab-alpha-elevated);
+    --glass-lab-filter: blur(16px) saturate(135%);
+    --glass-lab-ink-primary: var(--aeterni-text-primary);
+    --glass-lab-ink-secondary: var(--aeterni-text-secondary);
+    --glass-lab-ink-tertiary: var(--aeterni-text-tertiary);
+
+    margin: 0;
+    padding: var(--aeterni-spacing-5);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-surface);
+    box-shadow: var(--aeterni-glass-shadow);
+    background: color-mix(in srgb, var(--glass-lab-base) var(--glass-lab-alpha), transparent);
+    -webkit-backdrop-filter: var(--glass-lab-filter);
+    backdrop-filter: var(--glass-lab-filter);
+}
+
+/* 01 现状：等价于今天 Surface / Card 的 Glass 变体。
+   --aeterni-bg-surface 82% 与 --aeterni-blur-md 逐字节相同，所以这一格就是库的现状。 */
+.glass-lab__sample[data-candidate="elevated"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-elevated);
+    --glass-lab-filter: blur(16px) saturate(135%);
+}
+
+/* 02 提案：本页推荐的落点。浅色 5.61:1 / 深色 5.60:1，正文余量都在 1.24 倍以上。 */
+.glass-lab__sample[data-candidate="glass"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-glass);
+    --glass-lab-filter: blur(24px) saturate(150%);
+}
+
+/* 03 提案：轻玻璃。只有大字号与图形元素站得住，正文需要配合 on-glass 墨。 */
+.glass-lab__sample[data-candidate="glass-soft"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-glass-soft);
+    --glass-lab-filter: blur(32px) saturate(150%);
+}
+
+/* 04 对照：完全不透明、不模糊。不是选项，是下限。 */
+.glass-lab__sample[data-candidate="flat"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-flat);
+    --glass-lab-filter: none;
+}
+
+/* 02 文字底衬三档。面板填充与模糊全部停在候选 03 上，唯一变量是文字块下面有没有东西。
+   底衬的 padding 用等量负 margin 抵掉，三格的文字位置逐像素相同 —— 否则「B 比 A 清楚」
+   里会混进「B 的字往右挪了 12px」。 */
+.glass-lab__plate {
+    margin: 0 calc(-1 * var(--aeterni-spacing-3));
+    padding: var(--aeterni-spacing-3);
+    border-radius: var(--aeterni-radius-md);
+    background: none;
+}
+
+.glass-lab__sample[data-plate="text-plate"] .glass-lab__plate {
+    background: color-mix(in srgb, var(--glass-lab-base) var(--glass-lab-plate), transparent);
+}
+
+/* 整块加实等于候选 02，所以直接引用候选 02 的填充值，不再写第二份数字。 */
+.glass-lab__sample[data-plate="solid"] {
+    --glass-lab-alpha: var(--glass-lab-alpha-glass);
+}
+
+/* 05 边界四档。填充与模糊停在候选 03 上，只换边框与投影。
+   四档都保留 1px 的边框宽度，只改颜色，所以内容盒子与面板几何完全一致。 */
+.glass-lab__sample[data-edge="hairline"] {
+    border-color: var(--aeterni-border-default);
+    box-shadow: var(--aeterni-shadow-md);
+}
+
+.glass-lab__sample[data-edge="hairline-strong"] {
+    border-color: var(--aeterni-border-strong);
+    box-shadow: var(--aeterni-shadow-lg);
+}
+
+/* C 的投影与 A 逐字节相同，这是有意的：A 与 C 的差别就是「边框这一条线的全部贡献」。 */
+.glass-lab__sample[data-edge="edge-ring"] {
+    border-color: transparent;
+    box-shadow:
+        inset 0 0 0 1px var(--glass-lab-ring-inner),
+        inset 0 1px 0 var(--glass-lab-ring-highlight),
+        var(--aeterni-shadow-md);
+}
+
+/* D 反向验证：去掉边框，只把投影提到 xl。 */
+.glass-lab__sample[data-edge="shadow-only"] {
+    border-color: transparent;
+    box-shadow: var(--aeterni-shadow-xl);
+}
+
+.glass-lab__sample-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aeterni-spacing-2);
+}
+
+/* 面板内的元信息（序号、候选名、Token）也浮在玻璃上，所以一律使用能过门槛的 on-glass 墨，
+   否则本页自己的标签会先糊掉，反而看不出被比较的对象。 */
+.glass-lab__sample-index {
+    color: var(--glass-lab-ink-secondary-on-glass);
+    font-size: var(--aeterni-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .08em;
+}
+
+.glass-lab__sample-name {
+    color: var(--glass-lab-ink-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.glass-lab__sample-spec {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-2);
+    margin: var(--aeterni-spacing-1) 0 var(--aeterni-spacing-3);
+    color: var(--glass-lab-ink-secondary-on-glass);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.glass-lab__sample-spec code {
+    font-family: var(--aeterni-font-mono);
+    font-size: 11px;
+}
+
+.glass-lab__line {
+    margin: var(--aeterni-spacing-2) 0 0;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.glass-lab__line--primary {
+    color: var(--glass-lab-ink-primary);
+}
+
+.glass-lab__line--secondary {
+    color: var(--glass-lab-ink-secondary);
+}
+
+.glass-lab__line--tertiary {
+    color: var(--glass-lab-ink-tertiary);
+}
+
+/* 02 与 05 里成对出现的 on-glass 墨。它与 .glass-lab__line--secondary（标准墨）并排，
+   两行的差别只有这一条声明，所以「墨换得动换不动」是可以直接看出来的。 */
+.glass-lab__line--on-glass {
+    color: var(--glass-lab-ink-secondary-on-glass);
+}
+
+/* 02 的中间一行必须永远显示标准次要墨。它的文案本身就是「.62 只对不透明表面成立」，
+   被开关改写就不成立了。用独立的类而不是靠特异性压过开关，是为了让「这一行不参与开关」
+   这件事在标记里直接可读。两行字号一致也是必须的：字号一变，「哪行更清楚」就分不清是
+   墨的差别还是尺寸的差别。 */
+.glass-lab__line--secondary-standard {
+    color: var(--glass-lab-ink-secondary);
+}
+
+/* 次要墨开关：权重高于上面的基础规则，所以不依赖声明顺序。
+   压力板也吃这条规则，所以两块夹具在同一开关下同时换墨。 */
+.glass-lab[data-ink="on-glass"] .glass-lab__line--secondary {
+    color: var(--glass-lab-ink-secondary-on-glass);
+}
+
+/* 03. 候选图例
+   面板里的文字要占用玻璃空间，所以候选的取舍理由放在幕布外，不放面板里。 */
+
+.glass-lab__legend {
+    margin: var(--aeterni-spacing-5) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--aeterni-spacing-4);
+}
+
+.glass-lab__legend li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.glass-lab__legend-key {
+    grid-row: 1 / 3;
+    align-self: start;
+    min-width: 22px;
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.glass-lab__legend-name {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.glass-lab__legend-note {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+/* 04. 压力板
+   两块夹具故意脱离当前主题：左板永远是「浅色玻璃压纯黑」，右板永远是「深色玻璃压纯白」。
+   所以填充基色、alpha 与三个墨值全部写死，不引用任何主题 Token —— 它们是量具，不是界面。
+   取值等于候选 02 在两个主题下的最坏背景读数。 */
+
+.glass-lab__stress {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--aeterni-spacing-5);
+}
+
+.glass-lab__stress-band {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-5);
+    border-radius: var(--aeterni-radius-xl);
+}
+
+.glass-lab__stress-band--dark {
+    background: #000;
+}
+
+.glass-lab__stress-band--light {
+    background: #FFF;
+}
+
+.glass-lab__stress-label {
+    color: #FFF;
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .06em;
+}
+
+.glass-lab__stress-band--light .glass-lab__stress-label {
+    color: #000;
+}
+
+.glass-lab__stress-panel[data-forced="light"] {
+    --glass-lab-base: #FFFFFF;
+    --glass-lab-alpha: 60%;
+    --glass-lab-filter: blur(24px) saturate(150%);
+    --glass-lab-ink-primary: rgba(0, 0, 0, .78);
+    --glass-lab-ink-secondary: rgba(0, 0, 0, .62);
+    --glass-lab-ink-tertiary: rgba(0, 0, 0, .52);
+    --glass-lab-ink-secondary-on-glass: color-mix(in srgb, rgba(0, 0, 0, .78) 93%, transparent);
+}
+
+.glass-lab__stress-panel[data-forced="dark"] {
+    --glass-lab-base: #1A1A1D;
+    --glass-lab-alpha: 72%;
+    --glass-lab-filter: blur(24px) saturate(150%);
+    --glass-lab-ink-primary: rgba(255, 255, 255, .86);
+    --glass-lab-ink-secondary: rgba(255, 255, 255, .56);
+    --glass-lab-ink-tertiary: rgba(255, 255, 255, .40);
+    --glass-lab-ink-secondary-on-glass: color-mix(in srgb, rgba(255, 255, 255, .86) 93%, transparent);
+}
+
+/* 05. 读数表 */
+
+.glass-lab__table-wrap {
+    overflow-x: auto;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+}
+
+.glass-lab__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.glass-lab__table caption {
+    padding: var(--aeterni-spacing-4) var(--aeterni-spacing-4) 0;
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    text-align: left;
+}
+
+.glass-lab__table th,
+.glass-lab__table td {
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    text-align: left;
+    vertical-align: top;
+}
+
+.glass-lab__table thead th {
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    white-space: nowrap;
+}
+
+.glass-lab__table thead th span {
+    display: block;
+    color: var(--aeterni-text-tertiary);
+    font-weight: var(--aeterni-font-weight-regular);
+}
+
+.glass-lab__table tbody tr + tr th,
+.glass-lab__table tbody tr + tr td {
+    border-top: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+}
+
+.glass-lab__table tbody th {
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-medium);
+    white-space: nowrap;
+}
+
+.glass-lab__table code {
+    display: block;
+    font-family: var(--aeterni-font-mono);
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
+}
+
+.glass-lab__value {
+    display: block;
+    font-variant-numeric: tabular-nums;
+}
+
+.glass-lab__value--pass {
+    color: var(--aeterni-color-success-text);
+}
+
+.glass-lab__value--fail {
+    color: var(--aeterni-color-danger-text);
+}
+
+/* 06. 文本层级
+   这三段是页面自己的排版，不在玻璃上，所以它们用标准墨；玻璃上的文字全部走
+   --glass-lab-ink-*，两者不要混用。 */
+
+.glass-lab__subtitle {
+    margin: var(--aeterni-spacing-12) 0 0;
+    font-size: var(--aeterni-font-size-xl);
+    font-weight: var(--aeterni-font-weight-semibold);
+    color: var(--aeterni-text-primary);
+}
+
+.glass-lab__note {
+    margin: var(--aeterni-spacing-3) 0 var(--aeterni-spacing-5);
+    max-width: 760px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.glass-lab__subtitle + .glass-lab__note {
+    margin-top: var(--aeterni-spacing-2);
+}
+
+.glass-lab__note code,
+.glass-lab__list code {
+    font-family: var(--aeterni-font-mono);
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-primary);
+}
+
+.glass-lab__list {
+    margin: var(--aeterni-spacing-5) 0 0;
+    padding-left: var(--aeterni-spacing-5);
+    max-width: 760px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.glass-lab__list li + li {
+    margin-top: var(--aeterni-spacing-3);
+}
+
+/* 07. 降级
+   只摘掉 backdrop-filter 会留下一块半透明色斑，比不透明更糟，所以这里整块回退到
+   不透明表面。压力板的两块夹具也走同一条规则：--glass-lab-base 在它们身上就是
+   写死的 #FFFFFF / #1A1A1D，正好是各自主题的表面色。 */
+
+@media (prefers-reduced-transparency: reduce) {
+    .glass-lab__surface {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--glass-lab-base);
+    }
+}
+
+/* 完全没有滤镜支持时同一条回退，否则 color-mix 的半透明底会独立生效，
+   面板反而比现在更难读。 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-lab__surface {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--glass-lab-base);
+    }
+}

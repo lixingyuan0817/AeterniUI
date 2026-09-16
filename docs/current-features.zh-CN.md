@@ -71,6 +71,8 @@
 - `Tag` 的标签文字取词族的「强调文字形态」（`--aeterni-tag-ink`）再向正文墨靠 15%，而不是把亮色填充档与近黑对半混：后者会把绿/黄族混成橄榄色、褐色，看起来脏；当前浅色 4.95~7.15:1、深色 7.35~8.78:1，且色相保持饱和。
 - 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
 - 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md` 和 `--aeterni-width-control-md`。
+- 提供玻璃表面的角色别名：`--aeterni-bg-glass`（跟随 `--aeterni-bg-elevated`）、`--aeterni-blur-glass`（跟随 `--aeterni-blur-md`）和 `--aeterni-blur-scrim`（跟随 `--aeterni-blur-sm`）。库内九处磨砂消费者（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板与遮罩、Drawer 面板与遮罩、Popover 表面与遮罩、Tooltip、Alert/Toast 卡片）统一引用这三个别名，宿主覆盖一处就能整体调整全库玻璃配方，不必逐个组件改。值得注意的是填充停在 82% 而不是更淡的档位：更淡的填充会把标准次要墨拽到 4.5:1 以下，逼所有说明文字改用 `--aeterni-text-on-glass-secondary`。
+- 玻璃表面在 `prefers-reduced-transparency: reduce` 与「不支持 `backdrop-filter`」两种情况下退到不透明：填充改 `--aeterni-bg-solid`、模糊归 `none`。只摘模糊会留下 82% 的半透明色斑——既没有模糊解释它，也没有不透明底承字，两种读法都不如实心表面。遮罩只摘模糊、保留压暗，因此它仍然把背后的页面压下去。
 - 提供可发现滚动条 Token：`--aeterni-scrollbar-size`、`--aeterni-scrollbar-thumb`、`--aeterni-scrollbar-track`；长选项列表和长通知堆栈使用细滚动条而不是隐藏滚动条。
 - 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
 - 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
@@ -150,6 +152,7 @@
 
 - `Variant`（`Default` / `Subtle` / `Elevated` / `Glass`）。
 - `Elevation`（`None` / `Small` / `Medium` / `Large`）。
+- `Blur`（`Default` / `None` / `Small` / `Medium` / `Large`）。
 - `Padding`（`None` / `Small` / `Medium` / `Large` / `ExtraLarge`）。
 - `Radius`（`Default` / `None` / `Small` / `Medium` / `Large` / `ExtraLarge` / `Round`）。
 - `Bordered`。
@@ -159,15 +162,26 @@
 `Card` 基于 Surface 风格提供：
 
 - Header、Body 和 Footer 三个内容区域。
-- `Header`、`ChildContent`、`Footer`，以及 `Variant`、`Elevation`、`Padding`、`Bordered` 和 `FullWidth`。
+- `Header`、`ChildContent`、`Footer`，以及 `Variant`、`Elevation`、`Blur`、`Padding`、`Bordered` 和 `FullWidth`。
 - `Interactive` 和 `OnClick`。
 - `AriaLabel`。
 - 可点击状态的悬浮和按下反馈。
 - 三个内容区域使用统一的内边距和边界关系。
 
-参数类型分别为 `SurfaceVariant`、`SurfaceElevation`、`SurfacePadding` 和 `SurfaceRadius`；`Card` 复用前三个，没有独立的 `Radius` 参数。
+参数类型分别为 `SurfaceVariant`、`SurfaceElevation`、`SurfaceBlur`、`SurfacePadding` 和 `SurfaceRadius`；`Card` 复用除 `Radius` 外的全部类型，没有独立的 `Radius` 参数。
 
-两者共享同一套“选项 → 语意 Token”映射（变体、高度和内边距的每条规则指向相同 Token，评审脚本可逐条比对），默认值则有意不同：`Card` 是结构化容器（圆角 `--aeterni-radius-card`，默认带边框），`Surface` 是通用包装（圆角 `--aeterni-radius-surface`，默认无边框且支持 `Radius`）。默认档位不输出修饰类（`Variant=Default`、`Elevation=None`、`Radius=Default` 均不生成空类名）。
+### 模糊与实心
+
+`Blur` 是「背景模糊」这一轴的开关，与 `Variant` 正交：任何变体给出非 `Default` 的 `Blur` 都会取玻璃配方（`--aeterni-bg-glass` + 对应模糊半径），`Blur="None"` 则退回实心（`--aeterni-bg-solid` 且不加 `backdrop-filter`）。
+
+- `Default` 不输出修饰类。`Glass` 变体默认走的正是这条路径，所以宿主只要覆盖 `--aeterni-blur-glass` 就能一次性调整库里所有玻璃表面的模糊，而不是被组件上的默认类钉住。
+- `Small` / `Medium` / `Large` 分别取 `--aeterni-blur-sm` / `-md` / `-lg`（8 / 16 / 24px）。库内不新增模糊档位，三个档位直接复用既有模糊 Token。
+- `Glass` 变体不再自己写边框，边框完全跟随 `Bordered`，因为「不要边框的模糊」正是玻璃配方的默认形态；`Card` 默认 `Bordered=true`，所以玻璃卡片要无边框需要显式 `Bordered="false"`。
+- 容器与页面背景仍必须是无彩色（R=G=B），模糊只处理透明度与采样，不引入色相。
+
+模糊必须有东西可采样才看得出来：宿主需要在玻璃表面背后放一层背景内容，平坦背景上的模糊在视觉上与不模糊几乎一致。
+
+两者共享同一套“选项 → 语意 Token”映射（变体、模糊、高度和内边距的每条规则指向相同 Token，评审脚本可逐条比对），默认值则有意不同：`Card` 是结构化容器（圆角 `--aeterni-radius-card`，默认带边框），`Surface` 是通用包装（圆角 `--aeterni-radius-surface`，默认无边框且支持 `Radius`）。默认档位不输出修饰类（`Variant=Default`、`Blur=Default`、`Elevation=None`、`Radius=Default` 均不生成空类名）。
 
 ### 行为与无障碍
 

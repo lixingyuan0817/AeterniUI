@@ -12,30 +12,38 @@
                   Category="基础组件"
                   Title="Card"
                   ComponentName="Card"
-                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。"
+                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。"
                   Parameters="@CardParameters"
                   Events="@CardEvents">
     <Preview>
-        <Card Variant="@_cardVariant"
-              Elevation="@_cardElevation"
-              Padding="@_cardPadding"
-              Bordered="@_cardBordered"
-              Interactive="@_cardInteractive"
-              AriaLabel="预览卡片"
-              OnClick="MarkCardInteraction">
-            <Header><span class="preview-label">Card / Header</span></Header>
-            <ChildContent>
-                <h3 class="preview-card-title">一张可组合的卡片</h3>
-                <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
-            </ChildContent>
-            <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
-        </Card>
+        <div class="preview-glass-scene">
+            <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
+            <Card Variant="@_cardVariant"
+                  Elevation="@_cardElevation"
+                  Blur="@_cardBlur"
+                  Padding="@_cardPadding"
+                  Bordered="@_cardBordered"
+                  Interactive="@_cardInteractive"
+                  AriaLabel="预览卡片"
+                  OnClick="MarkCardInteraction">
+                <Header><span class="preview-label">Card / Header</span></Header>
+                <ChildContent>
+                    <h3 class="preview-card-title">一张可组合的卡片</h3>
+                    <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+                </ChildContent>
+                <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+            </Card>
+        </div>
     </Preview>
     <Controls>
         <div class="control-grid">
             <div class="control-field">
                 <span>Variant</span>
                 <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_cardVariant" />
+            </div>
+            <div class="control-field">
+                <span>Blur</span>
+                <ShowcaseSelect TValue="SurfaceBlur" Id="card-blur" AriaLabel="Blur" Options="@(Enum.GetValues<SurfaceBlur>())" @bind-Value="_cardBlur" />
             </div>
             <div class="control-field">
                 <span>Elevation</span>
@@ -55,6 +63,8 @@
 @code {
     private SurfaceVariant _cardVariant = SurfaceVariant.Elevated;
 
+    private SurfaceBlur _cardBlur = SurfaceBlur.Default;
+
     private SurfaceElevation _cardElevation = SurfaceElevation.Small;
 
     private SurfacePadding _cardPadding = SurfacePadding.Medium;
@@ -69,6 +79,7 @@
     [
         new("Variant", "SurfaceVariant", "卡片视觉变体。", "Default"),
         new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
+        new("Blur", "SurfaceBlur", "背景模糊档位；Default 跟随全局玻璃配方，None 表示实心。", "Default"),
         new("Padding", "SurfacePadding", "区域内边距。", "Medium"),
         new("Bordered", "bool", "是否显示边框。", "true"),
         new("FullWidth", "bool", "是否占满父容器。", "false"),
