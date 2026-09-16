@@ -23,8 +23,8 @@
     box-sizing: border-box;
     padding: var(--aeterni-spacing-6);
     background: var(--aeterni-overlay);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
     pointer-events: auto;
     animation: aeterni-dialog-fade-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
@@ -45,12 +45,28 @@
     overflow: hidden auto;
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
-    background: var(--aeterni-bg-elevated);
+    background: var(--aeterni-bg-glass);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-modal);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     animation: none;
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. The scrim
+   is deliberately excluded: it carries no text, so the replacement would only
+   darken the dimming. */
+.aeterni-dialog-provider__dialog,
+.aeterni-dialog-provider__dialog--primary {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 

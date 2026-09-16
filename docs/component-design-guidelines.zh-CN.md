@@ -409,7 +409,8 @@ background: #8b4df6;
 - **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色锚在 L 0.552（外部参考绿 `#1F883D`）时承白字 4.52:1，刚好过 4.5:1 线。**余量低于 1.1× 的锚点必须显式记账**：绿色 500 当前的 1.004× 就是全库最紧的一条对比度门禁，任何进一步提亮、提高 chroma 或改动语义停靠档都会击穿它；换锚点或新增色相层时把门禁集合重跑一遍，并把新的最紧余量写进注释与 roadmap。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。
 - **上述门禁由 `node scripts/check-contrast.mjs` 实测执行，不是人工校对**：脚本解析 Token 文件、重放「品牌 × 浅色／深色／系统深色」的级联、跟随 `var()` 链解析出实际颜色，再对实心填充承字、品牌文字、链接、边框／图标与焦点环逐组测量（文字 4.5:1，非文字 3:1）。色相层增删或色阶改动后必须跑它；余量低于 1.1× 的色相层若没在自己的注释块里写明该对比度，脚本会直接失败。因为色相层是「一处改动、全站换色」的间接层，这条自动拦截是唯一能在构建期发现承字对比度被改坏的手段。
 - **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
-- **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。
+- **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。壁纸、背景内容层不在此列——它们是被模糊的对象，不是容器背景。
+- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是每个组件各自为政的配方。填充是独立档位（浅 68% / 深 72%），不是「抬高一层」的别名：抬高只要求落在页面上，磨砂要按最坏背景（纯黑／纯白）保证墨可读，把两者塞进一个值就是填充曾经偏厚、糊不进背景的原因。这两支墨（`--aeterni-text-on-glass-secondary` 93%、`--aeterni-text-on-glass-tertiary` 67%，都按主体墨的比例声明一次）是给磨砂态专用的：**每一个**磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都要把这五个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-state-color-muted` 接 `--aeterni-text-on-glass-secondary`，`--aeterni-text-tertiary` 接 `--aeterni-text-on-glass-tertiary`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。新增磨砂表面时按同样五条照抄，`Card.razor.css` 是这一段的注释范本。不透明表面（例如 `is-no-blur` 的通知卡片）与遮罩不接管——遮罩不承字，改成玻璃墨只会把压暗加深。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`、两支玻璃专用墨退回标准墨），不能只摘 `backdrop-filter`。玻璃只保证中性墨：品牌墨（`--aeterni-text-link`、`--aeterni-color-brand-text`）的亮度是照着页面定的，透出来的背景一深／一浅就会掉到 4.5:1 以下（浅色最坏 2.98:1、深色 2.27:1），所以玻璃面板要么用在页面级内容之上，要么改用实心变体。
 - **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
 
   | Token | 浅色 | 深色 | 允许的用法（浅色主题在页面上的对比度） |
@@ -865,6 +866,7 @@ Sample/
 - [ ] 填充档只用于实心表面；ink 与需与浅色轨道/页面区分的实心图形用文字形态。
 - [ ] 容器背景是无色的（R = G = B，深色 ≤ +3）。
 - [ ] 文字只用 `primary` / `secondary` / `placeholder` / `disabled`；`tertiary` 只用于图标与装饰。
+- [ ] 新增磨砂表面时，已按上文「玻璃配方只有一套」把五个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-state-color-muted`、`--aeterni-text-tertiary`）一并接管到两支 on-glass 墨，而不是只改其中几个。
 - [ ] 尺寸只用 `--aeterni-spacing-*`，不用 gap/padding/margin 别名。
 - [ ] 已经按「表面归属」确认过本组件是否该自带表面，并与规范表格一致。
 - [ ] 没有覆盖其他组件或宿主项目的全局元素样式。
@@ -948,17 +950,19 @@ FormField
 - `Card` 是有内容结构的容器，可提供 `Header`、主体 `ChildContent` 和 `Footer` 三个区域，默认带边框并使用卡片圆角。
 - Card 的 `Padding` 统一作用于 Header、Body 和 Footer 三个区域；设置为 `None` 才表示三个区域都采用无内边距，不能依赖业务 CSS 为各区域重复补间距。
 - 两者都使用 `SurfaceVariant`、`SurfaceElevation` 和 token 化的内边距；不要在业务页面重复实现相同的 surface CSS。
+- 模糊属于 `Glass` 变体本身，不是独立参数：`Glass` 取 `--aeterni-bg-glass` 的 `.68`／`.72` 填充加 `--aeterni-blur-glass`，其余变体就是各自的不透明填充。不要重新引入与 `Variant` 正交的模糊轴——两个参数会争夺同一个 `background`，后声明的规则静默胜出，另一个参数看起来失效。宿主覆盖 `--aeterni-blur-glass` 这一个 Token 就能统一调整全库玻璃表面的模糊。
+- `Glass` 变体的边框完全跟随 `Bordered`，不再自己写 `border-color`：玻璃配方的默认形态就是无边框，`Card` 因为默认 `Bordered=true`，无边框玻璃卡片需要显式 `Bordered="false"`。
 - `Card` 默认不是交互控件，不输出按钮或链接语义；需要整卡触发动作时使用 `Interactive="true"` 和 `OnClick`，组件会提供按钮语义、Tab 焦点以及 Enter/Space 键盘触发。
 - 交互式 Card 内不要嵌套 Button、Link 或其他可聚焦控件。如果卡片主要用于导航，优先使用页面中的 Link；如果同时存在多个独立动作，应保持 Card 为静态容器并把 Button 放在 Footer。
 
 基础用法：
 
 ```razor
-<Surface Variant="SurfaceVariant.Glass" Elevation="SurfaceElevation.Medium">
+<Surface Variant="SurfaceVariant.Glass">
     Content
 </Surface>
 
-<Card Variant="SurfaceVariant.Elevated">
+<Card Variant="SurfaceVariant.Glass" Bordered="false">
     <Header>Title</Header>
     Content
     <Footer>Actions</Footer>

@@ -56,8 +56,8 @@
     inset: 0;
     z-index: var(--aeterni-z-modal-backdrop);
     background: var(--aeterni-overlay);
-    -webkit-backdrop-filter: var(--aeterni-blur-sm);
-    backdrop-filter: var(--aeterni-blur-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
     pointer-events: auto;
     animation: aeterni-popover-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
@@ -71,12 +71,27 @@
     padding: var(--aeterni-spacing-4);
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-dropdown);
-    background: var(--aeterni-bg-elevated);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-dropdown);
     animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. Every
+   picker flyout (ComboBox / DatePicker / DateRangePicker / MenuButton) renders
+   through this one surface, so they follow along. */
+.aeterni-popover__surface {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 .aeterni-popover.is-modal .aeterni-popover__surface {
@@ -120,12 +135,5 @@
     .aeterni-popover__surface,
     .aeterni-popover__backdrop {
         animation: none;
-    }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-    .aeterni-popover__surface {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
     }
 }

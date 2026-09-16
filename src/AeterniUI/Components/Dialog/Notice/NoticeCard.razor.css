@@ -13,6 +13,11 @@
 .aeterni-dialog-provider__toast--primary {
     --aeterni-dialog-accent: var(--aeterni-color-brand-default);
     --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
+    /* The tint has to sit on the frosted base, and the base has to change with the
+       blur: removing backdrop-filter from a 9% tint over a translucent fill would
+       leave the same half-transparent patch the token layer's fallback exists to
+       avoid. */
+    --aeterni-notice-fill: var(--aeterni-bg-glass);
 
     position: relative;
     display: grid;
@@ -24,14 +29,31 @@
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
     border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-dialog-accent) 20%, var(--aeterni-border-default));
     border-radius: var(--aeterni-radius-2xl);
-    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-bg-elevated));
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-notice-fill));
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-lg);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
     pointer-events: auto;
     will-change: transform, opacity;
     animation: aeterni-notice-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized) both;
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. `is-no-blur`
+   swaps the fill for an opaque one, so it keeps the standard ink. */
+.aeterni-dialog-provider__alert:not(.is-no-blur),
+.aeterni-dialog-provider__toast:not(.is-no-blur),
+.aeterni-dialog-provider__alert--primary:not(.is-no-blur),
+.aeterni-dialog-provider__toast--primary:not(.is-no-blur) {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 .aeterni-dialog-provider__alert--info,
@@ -60,6 +82,8 @@
 
 .aeterni-dialog-provider__alert.is-no-blur,
 .aeterni-dialog-provider__toast.is-no-blur {
+    --aeterni-notice-fill: var(--aeterni-bg-solid);
+
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
 }

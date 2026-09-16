@@ -25,10 +25,19 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-shadow), var(--aeterni-transition-transform);
 }
 
-.aeterni-card.is-interactive:hover:not(.is-disabled) {
-    border-color: var(--aeterni-border-strong);
+.aeterni-card.is-interactive:not(.is-disabled):hover {
     box-shadow: var(--aeterni-shadow-md);
     transform: translateY(-2px);
+}
+
+/* The edge is gated on `is-bordered` instead of being set unconditionally: a
+   borderless frosted card used to grow a border on hover, which is the one state
+   the frosted look is asked for. Only the edge is conditional — the lift and the
+   shadow stay, so hover still reads on every variant. 4 classes here versus the 2
+   on the `.is-bordered` rule below, which is why the gate has to live in this
+   rule. */
+.aeterni-card.is-interactive.is-bordered:not(.is-disabled):hover {
+    border-color: var(--aeterni-border-strong);
 }
 
 .aeterni-card.is-interactive:active:not(.is-disabled) {
@@ -49,12 +58,39 @@
     background: var(--aeterni-bg-elevated);
 }
 
+/* The frosted recipe lives here and nowhere else. It used to be split across an
+   independent `Blur` axis whose tiers each rewrote `background`; because they
+   were declared after `--subtle`/`--elevated`, any non-default tier silently won
+   over `Variant` and the variant control stopped working. Solid fills are the
+   other variants, so the axis carried no state the variant could not express.
+   The edge is deliberately absent here: the Glass variant used to force
+   `border-color`, so `Bordered="false"` could not produce a borderless frosted
+   card even though that is the only state the frosted look needs. The edge now
+   follows `is-bordered` like every other variant. */
 .aeterni-card--glass {
-    border-color: var(--aeterni-border-default);
-    background: var(--aeterni-bg-elevated);
+    background: var(--aeterni-bg-glass);
     box-shadow: var(--aeterni-glass-shadow);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a pure white
+   backdrop at 72% the dark theme lands on 3.41:1 for the standard secondary ink
+   (under the 4.5:1 text floor) and 2.51:1 for tertiary (under the 3:1 icon
+   floor); light is 4.51:1 and 3.43:1 over a black backdrop.
+   Every role that carries that ink is re-pointed, not only
+   `--aeterni-text-secondary`: the other names are aliases declared in the theme
+   block, so their `var()` is substituted there and overriding the base role alone
+   would leave captions written with `--aeterni-text-muted` on the lighter ink.
+   The replacements are declared once in the token sheet as fractions of the body
+   ink (93% / 67%), so both themes keep the same margin, and they lift the pane to
+   5.11:1 and 3.51:1 dark / 5.94:1 and 3.46:1 light on the same backdrops. */
+.aeterni-card--glass {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
 .aeterni-card.is-bordered {

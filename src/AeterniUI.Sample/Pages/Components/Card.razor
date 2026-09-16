@@ -12,24 +12,27 @@
                   Category="基础组件"
                   Title="Card"
                   ComponentName="Card"
-                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。"
+                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。"
                   Parameters="@CardParameters"
                   Events="@CardEvents">
     <Preview>
-        <Card Variant="@_cardVariant"
-              Elevation="@_cardElevation"
-              Padding="@_cardPadding"
-              Bordered="@_cardBordered"
-              Interactive="@_cardInteractive"
-              AriaLabel="预览卡片"
-              OnClick="MarkCardInteraction">
-            <Header><span class="preview-label">Card / Header</span></Header>
-            <ChildContent>
-                <h3 class="preview-card-title">一张可组合的卡片</h3>
-                <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
-            </ChildContent>
-            <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
-        </Card>
+        <div class="preview-glass-scene">
+            <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
+            <Card Variant="@_cardVariant"
+                  Elevation="@_cardElevation"
+                  Padding="@_cardPadding"
+                  Bordered="@_cardBordered"
+                  Interactive="@_cardInteractive"
+                  AriaLabel="预览卡片"
+                  OnClick="MarkCardInteraction">
+                <Header><span class="preview-label">Card / Header</span></Header>
+                <ChildContent>
+                    <h3 class="preview-card-title">一张可组合的卡片</h3>
+                    <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+                </ChildContent>
+                <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+            </Card>
+        </div>
     </Preview>
     <Controls>
         <div class="control-grid">
