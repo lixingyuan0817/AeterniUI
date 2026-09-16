@@ -34,15 +34,6 @@ public abstract class ShowcasePageBase : ComponentBase, IDisposable
         ("Neutral", Color.Neutral)
     ];
 
-    /// <summary>Alert and Toast only expose the four semantic severities.</summary>
-    protected static readonly (string Label, Color Color, Severity Severity)[] SeverityFamilies =
-    [
-        ("Success", Color.Success, Severity.Success),
-        ("Warning", Color.Warning, Severity.Warning),
-        ("Danger", Color.Danger, Severity.Danger),
-        ("Info", Color.Info, Severity.Info)
-    ];
-
     protected string _feedbackNote = "选择一种反馈类型查看 DialogService。";
 
     protected static readonly (Severity Severity, string Label, Color Color)[] FeedbackSeverities =

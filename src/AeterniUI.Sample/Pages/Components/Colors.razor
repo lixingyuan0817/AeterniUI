@@ -1,179 +1,489 @@
 @page "/components/colors"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
-@using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
-
 <PageTitle>Aeterni UI · 色彩与语义</PageTitle>
 
+@* 设计基础验收页（/components/colors）：按设计规格表的版式排布——每一组基础各自成
+   卡片，卡片之间走网格，卡片内部只放标尺本身（色块、形状、条形）与 Token 名。
+   整页不实例化任何组件；颜色只引用 --aeterni-* Token，容器表面保持无彩色。 *@
 <section class="showcase-colors" aria-labelledby="colors-title">
-    <p class="component-preview__eyebrow">设计基础</p>
+    <p class="showcase-page-eyebrow">设计基础</p>
     <h1 id="colors-title">色彩与语义</h1>
-    <p class="showcase-install__lead">每个色族提供三种形态：填充（<code>--aeterni-color-*-default</code>）、文字/描边（<code>--aeterni-color-*-text</code>）和柔和底（<code>--aeterni-color-*-soft</code>）。填充档只用于实心表面，不能当文字或图标使用。</p>
+    <p class="showcase-install__lead">这一页把设计基础摊成规格表：色族色卡、文字墨阶、字号字重、中性表面、圆角、阴影与间距。全部由页面级标记手绘，不使用任何组件实例；每一处颜色、圆角与阴影都只引用 <code>--aeterni-*</code> Token，所以切换主题或更换品牌色层时整页会一起变化。</p>
 
-    <div class="showcase-colors__matrix">
-        <div class="showcase-colors__head" aria-hidden="true">
-            <span>色族</span>
-            <span>实心按钮（填充 + 字色）</span>
-            <span>描边（文字形态）</span>
-            <span>Tag（浅底深字）</span>
-            <span>Icon（文字形态）</span>
-            <span>Progress（文字形态 + 色相轨道）</span>
-        </div>
-        @foreach (var family in ColorFamilies)
-        {
-            <div class="showcase-colors__row">
-                <span class="showcase-colors__name">@family.Label</span>
-                @if (ButtonIntentFor(family.Color) is { } intent)
-                {
-                    <Button Intent="intent">@family.Label</Button>
-                    <Button Variant="ButtonVariant.Outline" Intent="intent">Outline</Button>
-                }
-                else
-                {
-                    <span class="showcase-colors__na">无按钮变体</span>
-                }
-                <span class="showcase-colors__chips">
-                    <Tag Color="family.Color">Tag</Tag>
-                    <Tag Color="family.Color" Variant="TagVariant.Outline">Outline</Tag>
-                </span>
-                <span class="showcase-colors__icons">
-                    <Icon Definition="FontAwesomeIcons.Solid.CircleCheck" Color="family.Color" Size="Size.Large" />
-                </span>
-                <Progress Value="62" Color="family.Color" />
+    <h2 class="showcase-colors__subtitle">色族色卡</h2>
+    <p class="showcase-install__note showcase-colors__note">六个色族各一张色卡，卡内固定三档：<strong>填充档</strong>只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片底色与徽标底），<strong>文字形态</strong>用于描边、图标、文字，以及需要与浅色页面区分开的实心图形，<strong>柔和底</strong>是浅底深字。Success 与 Info 只出现在状态表面与指示元素上，不构成操作语义，因此没有对应的按钮 Intent，但填充档仍是它们通知卡片的底色。</p>
+    <div class="showcase-colors__families">
+        <article class="showcase-colors__card" data-family="brand">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Brand / Primary</span>
+                <span class="showcase-colors__card-use">主操作、选中态与聚焦环</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-brand-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-brand-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-brand-soft</code>
+                    </span>
+                </div>
             </div>
-        }
+        </article>
+
+        <article class="showcase-colors__card" data-family="success">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Success</span>
+                <span class="showcase-colors__card-use">完成与通过等状态表面</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-success-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-success-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-success-soft</code>
+                    </span>
+                </div>
+            </div>
+        </article>
+
+        <article class="showcase-colors__card" data-family="warning">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Warning</span>
+                <span class="showcase-colors__card-use">警示状态与需要留意的操作</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-warning-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-warning-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-warning-soft</code>
+                    </span>
+                </div>
+            </div>
+        </article>
+
+        <article class="showcase-colors__card" data-family="danger">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Danger</span>
+                <span class="showcase-colors__card-use">破坏性操作与错误状态</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-danger-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-danger-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-danger-soft</code>
+                    </span>
+                </div>
+            </div>
+        </article>
+
+        <article class="showcase-colors__card" data-family="info">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Info</span>
+                <span class="showcase-colors__card-use">说明与提示类中性状态</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-info-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-info-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-info-soft</code>
+                    </span>
+                </div>
+            </div>
+        </article>
+
+        <article class="showcase-colors__card" data-family="neutral">
+            <header class="showcase-colors__card-head">
+                <span class="showcase-colors__card-name">Neutral</span>
+                <span class="showcase-colors__card-use">次要操作与中性徽标</span>
+            </header>
+            <div class="showcase-colors__swatches">
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--solid">Default</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">填充档</span>
+                        <code>--aeterni-color-neutral-default</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--text">Text</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">文字形态</span>
+                        <code>--aeterni-color-neutral-text</code>
+                    </span>
+                </div>
+                <div class="showcase-colors__swatch">
+                    <span class="showcase-colors__swatch-fill showcase-colors__swatch-fill--soft">Soft</span>
+                    <span class="showcase-colors__swatch-meta">
+                        <span class="showcase-colors__swatch-variant">柔和底</span>
+                        <code>--aeterni-color-neutral-soft</code>
+                    </span>
+                </div>
+            </div>
+        </article>
     </div>
 
-    <p class="showcase-install__note"><code>Button</code> 只有 <code>Default</code>、<code>Neutral</code>、<code>Warning</code>、<code>Danger</code> 四种 <code>Intent</code>（与 <code>/components/button</code> 一致），所以 Success 与 Info 两行留空：success 和 info 是<strong>状态色</strong>，只出现在 Alert、Toast、Tag、Icon、Progress 这类状态表面与指示元素上，不构成操作按钮的语义。Neutral 是四种 Intent 之一，因此它有自己的中性实心按钮，而不是回落到品牌填充。</p>
+    <h2 class="showcase-colors__subtitle">文字墨阶</h2>
+    <p class="showcase-install__note showcase-colors__note">文字是一个墨色加不透明度（Apple 的 label 模型）：同一色相、随所在表面自动调和，着色 chip 与磨砂面板上都不会偏色。正文到图标级依次变浅，各司其职；<code>tertiary</code> 只用于图标与装饰，<code>disabled</code> 只用于禁用文字。</p>
+    <div class="showcase-colors__types">
+        <div class="showcase-colors__type">
+            <span class="showcase-colors__type-sample showcase-colors__ink--primary">Aa 正文</span>
+            <span class="showcase-colors__type-use">正文、标题与主要数值</span>
+            <code>--aeterni-text-primary</code>
+        </div>
+        <div class="showcase-colors__type">
+            <span class="showcase-colors__type-sample showcase-colors__ink--secondary">Aa 次要</span>
+            <span class="showcase-colors__type-use">标签、导航与说明文字</span>
+            <code>--aeterni-text-secondary</code>
+        </div>
+        <div class="showcase-colors__type">
+            <span class="showcase-colors__type-sample showcase-colors__ink--placeholder">Aa 占位</span>
+            <span class="showcase-colors__type-use">输入框占位符</span>
+            <code>--aeterni-text-placeholder</code>
+        </div>
+        <div class="showcase-colors__type">
+            <span class="showcase-colors__type-sample showcase-colors__ink--tertiary">Aa 装饰</span>
+            <span class="showcase-colors__type-use">仅图标与装饰，不承担正文</span>
+            <code>--aeterni-text-tertiary</code>
+        </div>
+        <div class="showcase-colors__type">
+            <span class="showcase-colors__type-sample showcase-colors__ink--disabled">Aa 禁用</span>
+            <span class="showcase-colors__type-use">仅禁用态文字</span>
+            <code>--aeterni-text-disabled</code>
+        </div>
+    </div>
 
-    <h2 class="showcase-colors__subtitle">语意通知</h2>
-    <p class="showcase-install__note">Alert 和 Toast 的卡片底色、徽标底色与进度环取填充档，徽标内的图标取文字形态。</p>
-    <div class="preview-action-row">
-        @foreach (var family in SeverityFamilies)
-        {
-            <Button Variant="ButtonVariant.Ghost"
-                    Intent="@(family.Severity is Severity.Warning ? ButtonIntent.Warning : family.Severity is Severity.Danger ? ButtonIntent.Danger : ButtonIntent.Default)"
-                    OnClick="@(args => ShowColorAlertAsync(family))">
-                @family.Label Alert
-            </Button>
-        }
+    <h2 class="showcase-colors__subtitle">字体与字号</h2>
+    <p class="showcase-install__note showcase-colors__note">字号阶梯 12px 到 60px，正文默认 16px。字阶与字重同样只在 Token 里维护，标题走 <code>--aeterni-typography-h*</code> 组合，正文走 <code>--aeterni-typography-body</code>。</p>
+    <div class="showcase-colors__typography">
+        <div class="showcase-colors__display">
+            <span class="showcase-colors__display-eyebrow">Display / Heading</span>
+            <span class="showcase-colors__display-sample">Aa</span>
+            <code>--aeterni-font-family-display</code>
+        </div>
+        <div class="showcase-colors__scale">
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-6xl</code>
+                <span class="showcase-colors__size--6xl">Aeterni · 60px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-5xl</code>
+                <span class="showcase-colors__size--5xl">Aeterni · 48px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-4xl</code>
+                <span class="showcase-colors__size--4xl">页面标题 · 36px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-3xl</code>
+                <span class="showcase-colors__size--3xl">二级标题 · 30px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-2xl</code>
+                <span class="showcase-colors__size--2xl">三级标题 · 24px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-xl</code>
+                <span class="showcase-colors__size--xl">卡片标题 · 20px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-lg</code>
+                <span class="showcase-colors__size--lg">引导文案 · 18px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-md</code>
+                <span class="showcase-colors__size--md">正文默认 · 16px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-sm</code>
+                <span class="showcase-colors__size--sm">控件与标签 · 14px</span>
+            </div>
+            <div class="showcase-colors__scale-row">
+                <code>--aeterni-font-size-xs</code>
+                <span class="showcase-colors__size--xs">注释与元信息 · 12px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="showcase-colors__font-meta">
+        <div class="showcase-colors__meta">
+            <span class="showcase-colors__meta-title">字重</span>
+            <span class="showcase-colors__weight--regular">Regular · 400</span>
+            <span class="showcase-colors__weight--medium">Medium · 500</span>
+            <span class="showcase-colors__weight--semibold">Semibold · 600</span>
+            <span class="showcase-colors__weight--bold">Bold · 700</span>
+            <code>--aeterni-font-weight-*</code>
+        </div>
+        <div class="showcase-colors__meta">
+            <span class="showcase-colors__meta-title">字体族</span>
+            <span class="showcase-colors__family--base">AeterniUI 正文 · Inter / 系统 UI</span>
+            <span class="showcase-colors__family--mono">const token = '--aeterni-*';</span>
+            <span class="showcase-colors__family--display">AeterniUI Display</span>
+            <code>--aeterni-font-family-*</code>
+        </div>
+        <div class="showcase-colors__meta">
+            <span class="showcase-colors__meta-title">行高</span>
+            <span class="showcase-colors__leading--tight">Tight 1.25 —— 标题与紧凑列表用这一档。</span>
+            <span class="showcase-colors__leading--normal">Normal 1.5 —— 正文默认档。</span>
+            <span class="showcase-colors__leading--relaxed">Relaxed 1.75 —— 说明文字与长段落。</span>
+            <code>--aeterni-line-height-*</code>
+        </div>
     </div>
 
     <h2 class="showcase-colors__subtitle">中性容器表面</h2>
-    <p class="showcase-install__note">大面积容器表面一律无色（R = G = B）；带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，而且磨砂层的 <code>saturate()</code> 会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。</p>
+    <p class="showcase-install__note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。</p>
     <div class="showcase-colors__surfaces">
-        <div class="showcase-colors__surface showcase-colors__surface--page">
-            <span>页面</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--page"></span>
+            <span class="showcase-colors__surface-name">页面</span>
             <code>--aeterni-bg</code>
         </div>
-        <div class="showcase-colors__surface showcase-colors__surface--secondary">
-            <span>次级底</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--secondary"></span>
+            <span class="showcase-colors__surface-name">次级底</span>
             <code>--aeterni-bg-secondary</code>
         </div>
-        <div class="showcase-colors__surface showcase-colors__surface--tertiary">
-            <span>三级底 / 轨道</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--tertiary"></span>
+            <span class="showcase-colors__surface-name">三级底 / 轨道</span>
             <code>--aeterni-bg-tertiary</code>
         </div>
-        <div class="showcase-colors__surface showcase-colors__surface--elevated">
-            <span>磨砂层</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--elevated"></span>
+            <span class="showcase-colors__surface-name">磨砂层（半透明）</span>
             <code>--aeterni-bg-elevated</code>
         </div>
-        <div class="showcase-colors__surface showcase-colors__surface--soft">
-            <span>叠色次级底</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--soft"></span>
+            <span class="showcase-colors__surface-name">叠色次级底（半透明）</span>
             <code>--aeterni-surface-soft</code>
         </div>
-        <div class="showcase-colors__surface showcase-colors__surface--hover">
-            <span>交互悬停（有意带色）</span>
+        <div class="showcase-colors__surface">
+            <span class="showcase-colors__surface-chip showcase-colors__surface-chip--hover"></span>
+            <span class="showcase-colors__surface-name">交互悬停（有意带色）</span>
             <code>--aeterni-state-background-hover</code>
         </div>
     </div>
 
-    <h2 class="showcase-colors__subtitle">文字色阶</h2>
-    <p class="showcase-install__note">文字用一个墨色加不透明度（Apple 的 label 模型）：同一色相、随表面自动调和。正文到图标级依次变浅，各司其职；<code>tertiary</code> 只用于图标与装饰。</p>
-    <div class="showcase-colors__type">
-        <div class="showcase-colors__type-row">
-            <code>--aeterni-text-primary</code>
-            <span class="showcase-colors__type-primary">正文 / 标题 · 11.7:1</span>
+    <h2 class="showcase-colors__subtitle">圆角阶梯</h2>
+    <p class="showcase-install__note showcase-colors__note">控件圆角走 <code>--aeterni-radius-control-*</code>，同一尺寸档位的按钮、输入与文本域保持一致的圆角；容器、浮层和模态另有 <code>card</code> / <code>dropdown</code> / <code>modal</code> 别名，都指向下面这条阶梯。形状本身是标尺，容器保持无色，避免和语义色互相干扰。</p>
+    <div class="showcase-colors__radius">
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--xs"></span>
+            <span class="showcase-colors__radius-name">XS</span>
+            <code>--aeterni-radius-xs</code>
         </div>
-        <div class="showcase-colors__type-row">
-            <code>--aeterni-text-secondary</code>
-            <span class="showcase-colors__type-secondary">标签 / 导航 / 说明 · 6.2:1</span>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--sm"></span>
+            <span class="showcase-colors__radius-name">SM</span>
+            <code>--aeterni-radius-sm</code>
         </div>
-        <div class="showcase-colors__type-row">
-            <code>--aeterni-text-placeholder</code>
-            <span class="showcase-colors__type-placeholder">输入占位符 · 4.9:1</span>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--md"></span>
+            <span class="showcase-colors__radius-name">MD</span>
+            <code>--aeterni-radius-md</code>
         </div>
-        <div class="showcase-colors__type-row">
-            <code>--aeterni-text-tertiary</code>
-            <span class="showcase-colors__type-tertiary">仅图标与装饰 · 4.3:1</span>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--lg"></span>
+            <span class="showcase-colors__radius-name">LG</span>
+            <code>--aeterni-radius-lg</code>
         </div>
-        <div class="showcase-colors__type-row">
-            <code>--aeterni-text-disabled</code>
-            <span class="showcase-colors__type-disabled">禁用态 · 2.5:1（WCAG 豁免）</span>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--xl"></span>
+            <span class="showcase-colors__radius-name">XL</span>
+            <code>--aeterni-radius-xl</code>
+        </div>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--2xl"></span>
+            <span class="showcase-colors__radius-name">2XL</span>
+            <code>--aeterni-radius-2xl</code>
+        </div>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--3xl"></span>
+            <span class="showcase-colors__radius-name">3XL</span>
+            <code>--aeterni-radius-3xl</code>
+        </div>
+        <div class="showcase-colors__radius-item">
+            <span class="showcase-colors__radius-shape showcase-colors__radius-shape--full"></span>
+            <span class="showcase-colors__radius-name">Full</span>
+            <code>--aeterni-radius-full</code>
         </div>
     </div>
 
-    <h2 class="showcase-colors__subtitle">对比度基线（按 Token 数值计算）</h2>
+    <h2 class="showcase-colors__subtitle">阴影层级</h2>
+    <p class="showcase-install__note showcase-colors__note">阴影只有一个方向：越高越远。卡片用 <code>--aeterni-shadow-card</code>，下拉与浮层用 <code>--aeterni-shadow-dropdown</code>，模态用 <code>--aeterni-shadow-modal</code>；深色主题下阴影整体加重，靠边界和亮度差承担层级。阴影画在次级底上，白色页面底会让浅档几乎不可见。</p>
+    <div class="showcase-colors__shadows">
+        <div class="showcase-colors__shadow-item">
+            <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--xs"></span>
+            <span class="showcase-colors__shadow-name">XS</span>
+            <code>--aeterni-shadow-xs</code>
+        </div>
+        <div class="showcase-colors__shadow-item">
+            <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--sm"></span>
+            <span class="showcase-colors__shadow-name">SM</span>
+            <code>--aeterni-shadow-sm</code>
+        </div>
+        <div class="showcase-colors__shadow-item">
+            <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--md"></span>
+            <span class="showcase-colors__shadow-name">MD</span>
+            <code>--aeterni-shadow-md</code>
+        </div>
+        <div class="showcase-colors__shadow-item">
+            <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--lg"></span>
+            <span class="showcase-colors__shadow-name">LG</span>
+            <code>--aeterni-shadow-lg</code>
+        </div>
+        <div class="showcase-colors__shadow-item">
+            <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--xl"></span>
+            <span class="showcase-colors__shadow-name">XL</span>
+            <code>--aeterni-shadow-xl</code>
+        </div>
+    </div>
+
+    <h2 class="showcase-colors__subtitle">间距节奏</h2>
+    <p class="showcase-install__note showcase-colors__note">间距是一条 4px 基数的阶梯，组件内部只消费 <code>--aeterni-spacing-*</code>；示例页与业务页也复用同一条，避免出现第二套间距。</p>
+    <div class="showcase-colors__spacing">
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-1</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--1"></span>
+            <span>4px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-2</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--2"></span>
+            <span>8px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-3</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--3"></span>
+            <span>12px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-4</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--4"></span>
+            <span>16px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-6</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--6"></span>
+            <span>24px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-8</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--8"></span>
+            <span>32px</span>
+        </div>
+        <div class="showcase-colors__spacing-row">
+            <code>--aeterni-spacing-12</code>
+            <span class="showcase-colors__spacing-bar showcase-colors__spacing-bar--12"></span>
+            <span>48px</span>
+        </div>
+    </div>
+
+    <h2 class="showcase-colors__subtitle">对比度验收组合</h2>
+    <p class="showcase-install__note showcase-colors__note">下表是品牌色层真正会被验收的 Token 组合与门槛：正文与填充控件里的标签走 4.5:1，图标、描边与聚焦环走 3:1（非文本对比度）。品牌色是可替换的色相层，因此换一层色板就可能跌破门槛——这也正是下表每一组都由 CI 门禁实测而不是靠肉眼确认的原因。</p>
     <div class="showcase-colors__table">
         <div class="showcase-colors__table-row showcase-colors__table-row--head">
-            <span>用法</span><span>浅色主题</span><span>深色主题</span><span>要求</span>
+            <span>用法</span><span>前景 Token</span><span>背景 Token</span><span>门槛</span>
         </div>
         @foreach (var check in ContrastChecks)
         {
             <div class="showcase-colors__table-row">
                 <span>@check.Usage</span>
-                <span>@check.Light</span>
-                <span>@check.Dark</span>
-                <span>@check.Requirement</span>
+                <span><code>@check.Foreground</code></span>
+                <span><code>@check.Background</code></span>
+                <span>@check.Floor</span>
             </div>
         }
     </div>
-    <p class="showcase-install__note">
-        切换主题可以对照同一组组件在两种主题下的结果；具体数值来自 Token 十六进制值按 WCAG 2.1 相对亮度公式计算，验收时仍需实测确认。
+    <p class="showcase-install__note showcase-colors__note">
+        <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。语意色族（success / warning / danger / info）沿用同一套形态与门槛约定，需要时按同样方式补测。
     </p>
 </section>
 
 @code {
-    /// <summary>Contrast baselines shown on the colour reference page.</summary>
-    private static readonly ShowcaseContrast[] ContrastChecks =
+    /// <summary>对比度验收组合，与 <c>scripts/check-contrast.mjs</c> 的 PAIRS 和门槛一一对应。</summary>
+    private static readonly ContrastBaseline[] ContrastChecks =
     [
-        new("语义图标与文字（-text 形态）", "4.6~6.7:1", "7.5~10.6:1", "≥ 4.5:1"),
-        new("填充档当 ink 使用（已弃用）", "2.2~4.9:1", "4.8~8.6:1", "≥ 4.5:1"),
-        new("实心按钮正文（4 个 Intent）", "4.6~8.4:1", "4.8~8.6:1", "≥ 4.5:1"),
-        new("正文 / 次要 / 占位文字", "4.7~11.7:1", "4.8~13.0:1", "≥ 4.5:1"),
-        new("图标级文字（tertiary）", "4.1~4.3:1", "3.8~3.8:1", "≥ 3:1"),
-        new("进度条填充与轨道", "3.2~4.6:1", "5.7~7.5:1", "≥ 3:1"),
-        new("Tag chip 文字与底色", "5.0~7.2:1", "7.4~8.8:1", "≥ 4.5:1"),
-        new("Alert/Toast 徽标图标与徽标底", "3.7~5.6:1", "6.4~8.0:1", "≥ 3:1"),
-        new("Menu 选中项文字与选中底", "5.2~5.6:1", "7.2~7.4:1", "≥ 4.5:1"),
-        new("结构分隔线与表面", "1.7:1", "1.5:1", "可见即边")
+        new("实心品牌填充上的标签", "--aeterni-text-inverse", "--aeterni-color-brand-default / -hover / -active", "≥ 4.5:1"),
+        new("品牌文字与链接", "--aeterni-color-brand-text / --aeterni-text-link", "--aeterni-bg / --aeterni-bg-surface", "≥ 4.5:1"),
+        new("品牌文字在着色表面", "--aeterni-color-brand-text", "--aeterni-bg-tertiary", "≥ 4.5:1"),
+        new("品牌描边与图标", "--aeterni-color-brand-default", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
+        new("聚焦环", "--aeterni-state-color-focus", "--aeterni-bg-surface", "≥ 3:1")
     ];
 
-    /// <summary>
-    /// The two button columns only exist for the intents <c>Button</c> actually
-    /// exposes; success and info are status colours, so those rows say so instead
-    /// of quietly falling back to the brand fill.
-    /// </summary>
-    private static ButtonIntent? ButtonIntentFor(Color color) => color switch
-    {
-        Color.Primary => ButtonIntent.Default,
-        Color.Neutral => ButtonIntent.Neutral,
-        Color.Warning => ButtonIntent.Warning,
-        Color.Danger => ButtonIntent.Danger,
-        _ => null
-    };
-
-    private async Task ShowColorAlertAsync((string Label, Color Color, Severity Severity) family)
-    {
-        await DialogService.AlertAsync(
-            $"{family.Label} 语意 Alert：卡片底色、徽标底色和进度环取填充档，徽标图标取文字形态。",
-            ToastPosition.BottomCenter,
-            new AlertOptions { Title = $"{family.Label} 预览", Severity = family.Severity });
-    }
-
-    /// <summary>One row of the contrast baseline table on the colour reference page.</summary>
-    private sealed record ShowcaseContrast(string Usage, string Light, string Dark, string Requirement);
+    /// <summary>对比度验收组合的一行。</summary>
+    private sealed record ContrastBaseline(string Usage, string Foreground, string Background, string Floor);
 }

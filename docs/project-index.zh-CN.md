@@ -102,12 +102,12 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
 - [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口；背景是铺满整个视口（含页头与外壳留白）的淡彩光晕与细网格动画。
 - [`src/AeterniUI.Sample/Layout/ComponentsLayout.razor`](../src/AeterniUI.Sample/Layout/ComponentsLayout.razor)：组件页的侧栏布局（`@layout MainLayout` 之上再嵌一层），负责分类导航、路由高亮和预览容器；页面本体是 `@Body`。
-- [`src/AeterniUI.Sample/Pages/Components/`](../src/AeterniUI.Sample/Pages/Components)：**每个组件一个独立页面**，路由形如 `/components/button`、`/components/tabs`，安装页是 `/components`，色彩页是 `/components/colors`；页面只包含该组件的演示标记与自己的 `@code` 状态。
+- [`src/AeterniUI.Sample/Pages/Components/`](../src/AeterniUI.Sample/Pages/Components)：**每个组件一个独立页面**，路由形如 `/components/button`、`/components/tabs`，安装页是 `/components`，色彩页是 `/components/colors`；组件页只包含该组件的演示标记与自己的 `@code` 状态，色彩页则不引用任何组件，只用 `showcase-*` 标记陈列语义 Token（色族、文字墨阶、字体、中性表面、圆角、阴影、间距与对比度基线）。
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs)：跨页共享的少量状态（注入的服务、Button 演示的交互提示、主题订阅），其余状态都留在各自页面里。
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs)：侧栏分类与页面清单的单一事实源，导航 Href 由条目 id 生成。
 - [`src/AeterniUI.Sample/wwwroot/css/showcase.css`](../src/AeterniUI.Sample/wwwroot/css/showcase.css)：所有组件页共享的展示样式（`showcase-*` / `preview-*` / `control-*`）；组件页拆成独立文件后，作用域 CSS 无法跨页生效，所以这里是全局表。
 - [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
-- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口。
+- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口；`<head>` 的预渲染主题脚本与 `#app` 内的首屏加载器（`.sample-boot`，样式在 `wwwroot/css/app.css`）都在这里。
 
 ### 组件库基础入口
 

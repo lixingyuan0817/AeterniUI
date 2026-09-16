@@ -85,6 +85,7 @@
 - `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题和 Tauri titlebar 主题。
 - `ThemeProvider` 不渲染 DOM：基类的 `Id`、`Class`、`Style` 和 `Visible` 对它无效，主题只写到 `<html>` 上。
 - 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`），否则深色偏好用户或非默认品牌用户会在 Blazor 启动前看到一帧浅色或紫罗兰；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。该脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 保持一致，脚本读不到 .NET 选项，不一致就表现为一帧闪烁。
+- 首屏加载器与预渲染脚本受同一条约束：这个时刻还没有组件树，组件库的隔离样式（含 `Spinner` 的 `@keyframes`）也尚未生效，所以加载器只能是宿主自己声明的静态标记，不能是组件实例。示例 `wwwroot/index.html` + `css/app.css` 的 `.sample-boot` 即按此实现：光环复刻 `Spinner` 的规格（走 `--aeterni-spinner-size` 扩展点、3px 描边、右侧缺口、`--aeterni-duration-slower × 1.4` 线性周期、`opacity .92`），颜色取 `--aeterni-color-brand-text`，文案读运行时的 `--blazor-load-percentage-text` 并在无值时回落；因此两种主题自动换档、`prefers-reduced-motion` 下自动停转。它是刻意的视觉复刻而非复用，改一侧规格必须同步另一侧。
 - 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
 - `ThemeBrandSwitch` 提供 Purple、Green、Orange 品牌分段切换，与 `ThemeSwitch` 是同一套结构：它是 `Segmented` 的专用用法，订阅 `BrandChanged` 在外部改动时同步选中态，尺寸档位与标签（`ThemeBrandSwitchLabel` / `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel` / `ThemeBrandOrangeLabel`）都取既有约定。
