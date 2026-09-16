@@ -20,12 +20,22 @@
 
 .aeterni-date-calendar__nav,
 .aeterni-date-calendar__day {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-width: 1.75rem;
     min-height: 1.75rem;
     border: 0;
     border-radius: var(--aeterni-radius-sm);
     background: transparent;
     color: var(--aeterni-text-primary);
+}
+
+.aeterni-date-calendar__nav {
+    --aeterni-icon-render-size: 1rem;
+    padding: 0;
+    color: var(--aeterni-text-secondary);
 }
 
 .aeterni-date-calendar__nav:hover,

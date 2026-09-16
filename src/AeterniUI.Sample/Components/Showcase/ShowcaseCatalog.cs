@@ -27,10 +27,10 @@ public static class ShowcaseCatalog
 {
     public static IReadOnlyList<ShowcaseNavGroup> Groups { get; } =
     [
-        new("开始", FontAwesomeIcons.Solid.Rocket, [
+        new("开始", FontAwesomeIcons.Solid.Plug, [
             new("install", "安装", "安装与初始化") { IsComponent = false }
         ]),
-        new("设计基础", FontAwesomeIcons.Solid.Palette, [
+        new("设计基础", FontAwesomeIcons.Solid.Paintbrush, [
             new("colors", "色彩与语义", "色族、字体、圆角与阴影") { IsComponent = false }
         ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
@@ -62,12 +62,12 @@ public static class ShowcaseCatalog
             new("combobox", "ComboBox", "下拉选择"),
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围")
         ]),
-        new("导航组件", FontAwesomeIcons.Solid.Compass, [
+        new("导航组件", FontAwesomeIcons.Solid.CompassDrafting, [
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("menu", "Menu", "分组菜单"),
             new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航")
         ]),
-        new("状态反馈", FontAwesomeIcons.Solid.BarsProgress, [
+        new("状态反馈", FontAwesomeIcons.Solid.ChartColumn, [
             new("progress", "Progress", "进度展示"),
             new("spinner", "Spinner", "加载指示器"),
             new("skeleton", "Skeleton", "内容占位")
@@ -78,7 +78,7 @@ public static class ShowcaseCatalog
             new("feedback", "Dialog / Confirm / Alert / Toast", "DialogProvider 反馈与通知服务"),
             new("drawer", "Drawer", "边缘滑出面板")
         ]),
-        new("主题组件", FontAwesomeIcons.Solid.Swatchbook, [
+        new("主题组件", FontAwesomeIcons.Solid.WandMagicSparkles, [
             new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
         ])
     ];

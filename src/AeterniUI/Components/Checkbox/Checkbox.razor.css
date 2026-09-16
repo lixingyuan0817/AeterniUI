@@ -34,6 +34,7 @@
 .aeterni-checkbox__control {
     box-sizing: border-box;
     display: inline-flex;
+    position: relative;
     align-items: center;
     justify-content: center;
     width: var(--aeterni-checkbox-size);
@@ -80,11 +81,15 @@
 
 .aeterni-checkbox__input:indeterminate + .aeterni-checkbox__control::after {
     content: "";
-    width: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
     /* Bar thickness is a two-pixel rule, not a layout size. */
     height: var(--aeterni-border-width-medium);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-text-inverse);
+    transform: translate(-50%, -50%);
 }
 
 /* Hover and press walk the brand ramp: an empty box answers with its border
