@@ -93,6 +93,26 @@
     background: var(--aeterni-bg-solid);
 }
 
+/* The frosted fill cannot carry the standard secondary ink: the dark theme lands
+   on 4.35:1 over a light backdrop, under the 4.5:1 text floor (light is 5.33:1).
+   Every role that carries that ink is re-pointed, not only
+   `--aeterni-text-secondary`: the other names are aliases declared in the theme
+   block, so their `var()` is substituted there and overriding the base role alone
+   would leave captions written with `--aeterni-text-muted` on the lighter ink.
+   `--blur-none` is excluded because it drops the fill back to
+   `--aeterni-bg-solid`. The replacement is
+   `color-mix(in srgb, var(--aeterni-text) 93%, transparent)`, declared once in the
+   token sheet, so both themes keep the same margin. */
+.aeterni-card--glass:not(.aeterni-card--blur-none),
+.aeterni-card--blur-small,
+.aeterni-card--blur-medium,
+.aeterni-card--blur-large {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
+}
+
 .aeterni-card.is-bordered {
     border-color: var(--aeterni-border-default);
 }

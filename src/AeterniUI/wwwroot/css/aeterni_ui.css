@@ -194,11 +194,17 @@
        and so reduced transparency can degrade all of them from one place below.
        The fill tracks --aeterni-bg-elevated (82%) instead of a lighter tint: at
        82% the standard secondary ink still reaches 5.33:1 light / 4.35:1 dark,
-       while a 60% fill drops the same ink to 3.98:1 / 3.41:1 and would force the
-       on-glass ink onto every caption in the library. */
+       while a 60% fill drops the same ink to 3.98:1 / 3.41:1 and would make every
+       caption in the library depend on the ink below.
+       --aeterni-text-on-glass-secondary is the one role the 82% fill cannot
+       rescue: the dark secondary ink lands on 4.35:1, under the 4.5:1 text floor.
+       It is declared once as a fraction of the body ink, so both themes keep the
+       same margin and the value cannot drift per theme; frosted surfaces opt in
+       by re-pointing --aeterni-text-secondary at it. */
     --aeterni-bg-glass: var(--aeterni-bg-elevated);
     --aeterni-blur-glass: var(--aeterni-blur-md);
     --aeterni-blur-scrim: var(--aeterni-blur-sm);
+    --aeterni-text-on-glass-secondary: color-mix(in srgb, var(--aeterni-text) 93%, transparent);
     --aeterni-backdrop-saturate: 145%;
     --aeterni-glass-border-alpha: .12;
     --aeterni-glass-highlight: rgba(255, 255, 255, .16);
