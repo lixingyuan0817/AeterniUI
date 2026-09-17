@@ -1,7 +1,55 @@
-.aeterni-date-picker__host {
-    position: relative;
+.aeterni-date-range-picker {
     display: inline-block;
     min-width: 14rem;
+}
+
+.aeterni-date-range-picker__panel {
+    display: flex;
+    gap: var(--aeterni-spacing-4);
+    align-items: stretch;
+}
+
+.aeterni-date-range-picker__presets {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+    min-width: 8rem;
+    padding-inline-end: var(--aeterni-spacing-3);
+    border-inline-end: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+.aeterni-date-range-picker__preset {
+    min-height: var(--aeterni-row-height-compact);
+    padding: 0 var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.aeterni-date-range-picker__preset:hover:not(:disabled):not(.is-selected) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-date-range-picker__preset:disabled {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-date-range-picker__preset.is-selected {
+    background: var(--aeterni-state-background-checked);
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-date-range-picker__preset.is-selected:hover:not(:disabled) {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-date-range-picker__preset.is-selected:active:not(:disabled) {
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-date-picker__trigger {
@@ -35,4 +83,18 @@
     display: inline-flex;
     flex: 0 0 auto;
     color: var(--aeterni-text-secondary);
+}
+
+@media (max-width: 50rem) {
+    .aeterni-date-range-picker__panel {
+        flex-direction: column;
+    }
+
+    .aeterni-date-range-picker__presets {
+        grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+        padding-inline-end: 0;
+        padding-block-end: var(--aeterni-spacing-3);
+        border-inline-end: 0;
+        border-block-end: var(--aeterni-border-width) solid var(--aeterni-separator);
+    }
 }

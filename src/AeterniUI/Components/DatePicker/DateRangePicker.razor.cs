@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
+using AeterniUI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -21,6 +22,9 @@ public partial class DateRangePicker : AeterniComponent
     [Parameter] public DateOnly? MinDate { get; set; }
     [Parameter] public DateOnly? MaxDate { get; set; }
     [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
+    [Parameter] public IReadOnlyList<DateRangePreset> Presets { get; set; } = [];
+    [Parameter] public int VisibleMonths { get; set; } = 1;
+    [Parameter] public string PresetsAriaLabel { get; set; } = "Quick ranges";
     [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
     [Parameter] public string Placeholder { get; set; } = "Select date";
     [Parameter] public string AriaLabel { get; set; } = "Date range picker";
@@ -30,7 +34,6 @@ public partial class DateRangePicker : AeterniComponent
     [Parameter] public bool Invalid { get; set; }
 
     private bool _open;
-    private ElementReference _triggerElement;
     private DateOnly? _hoverDate;
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _startFieldIdentifier;
@@ -38,17 +41,30 @@ public partial class DateRangePicker : AeterniComponent
     private bool _hasFieldIdentifiers;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
     private CultureInfo Culture => CultureInfo.CurrentCulture;
-    private string TriggerId => FormField?.InputId ?? (string.IsNullOrWhiteSpace(Id) ? ElementId : Id!);
+    private IReadOnlyList<DateRangePreset> PresetItems => Presets ?? [];
+    private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;
-    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifiers && ((_subscribedEditContext?.GetValidationMessages(_startFieldIdentifier).Any() == true) || (_subscribedEditContext?.GetValidationMessages(_endFieldIdentifier).Any() == true)));
+    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifiers &&
+        ((StartDateExpression is not null && _subscribedEditContext?.GetValidationMessages(_startFieldIdentifier).Any() == true) ||
+         (EndDateExpression is not null && _subscribedEditContext?.GetValidationMessages(_endFieldIdentifier).Any() == true)));
     private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-date-range-picker")
+        .Add("is-disabled", IsDisabled)
+        .Add("is-invalid", IsInvalid);
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
         UpdateEditContextSubscription();
         if (StartDate.HasValue) _displayMonth = StartDate.Value.AddDays(1 - StartDate.Value.Day);
+        if (VisibleMonths is < 1 or > 3)
+            throw new ArgumentOutOfRangeException(nameof(VisibleMonths), VisibleMonths, "Visible months must be between 1 and 3.");
+        if (MinDate.HasValue && MaxDate.HasValue && MinDate.Value > MaxDate.Value)
+            throw new ArgumentException("The minimum date cannot be later than the maximum date.");
+        ValidatePresets();
         if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
         if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
     }
@@ -58,7 +74,7 @@ public partial class DateRangePicker : AeterniComponent
 
     private async Task SelectAsync(DateOnly date)
     {
-        if (IsDateDisabled(date)) return;
+        if (IsDisabled || IsDateDisabled(date)) return;
         if (!StartDate.HasValue || EndDate.HasValue || date < StartDate.Value)
         {
             StartDate = date; EndDate = null;
@@ -69,6 +85,41 @@ public partial class DateRangePicker : AeterniComponent
         else
         {
             EndDate = date; await EndDateChanged.InvokeAsync(date); NotifyFieldChanged(); _open = false;
+        }
+    }
+
+    private bool IsPresetSelected(DateRangePreset preset) => StartDate == preset.StartDate && EndDate == preset.EndDate;
+
+    private async Task SelectPresetAsync(DateRangePreset preset)
+    {
+        if (IsDisabled) return;
+        StartDate = preset.StartDate;
+        EndDate = preset.EndDate;
+        _displayMonth = preset.StartDate.AddDays(1 - preset.StartDate.Day);
+        _hoverDate = null;
+        await StartDateChanged.InvokeAsync(StartDate);
+        await EndDateChanged.InvokeAsync(EndDate);
+        NotifyFieldChanged();
+        _open = false;
+    }
+
+    private void ValidatePresets()
+    {
+        foreach (var preset in PresetItems)
+        {
+            if (string.IsNullOrWhiteSpace(preset.Label))
+                throw new ArgumentException("Date range preset labels cannot be empty.", nameof(Presets));
+            if (preset.StartDate > preset.EndDate)
+                throw new ArgumentException($"The preset '{preset.Label}' starts after it ends.", nameof(Presets));
+            if (IsDateDisabled(preset.StartDate) || IsDateDisabled(preset.EndDate))
+                throw new ArgumentException($"The preset '{preset.Label}' contains a disabled or out-of-range date.", nameof(Presets));
+            if (DisabledDate is null) continue;
+            for (var date = preset.StartDate; date <= preset.EndDate; date = date.AddDays(1))
+            {
+                if (DisabledDate(date))
+                    throw new ArgumentException($"The preset '{preset.Label}' contains a disabled date.", nameof(Presets));
+                if (date == DateOnly.MaxValue) break;
+            }
         }
     }
 

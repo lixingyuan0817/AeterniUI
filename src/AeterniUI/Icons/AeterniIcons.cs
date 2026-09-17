@@ -19,6 +19,16 @@ public static class AeterniIcons
             "M4.2 7.4h1.4v1.4H4.2zm3.1 0h1.4v1.4H7.3zm3.1 0h1.4v1.4h-1.4zM4.2 10h1.4v1.4H4.2zm3.1 0h1.4v1.4H7.3zm3.1 0h1.4v1.4h-1.4z"
         ]);
 
+    /// <summary>Clock glyph used by time selection controls.</summary>
+    public static IconDefinition Clock { get; } = new(
+        "clock",
+        16,
+        16,
+        [
+            "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 1.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4z",
+            "M7.4 4.5h1.2v3.2l2.5 1.5-.6 1-3.1-1.8z"
+        ]);
+
     /// <summary>Check mark used by Checkbox and success notices.</summary>
     public static IconDefinition Check { get; } = new(
         "check",

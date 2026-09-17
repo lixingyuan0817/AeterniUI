@@ -1,39 +1,53 @@
 @inherits AeterniComponent
 
-<div class="aeterni-date-calendar" role="application" aria-label="@AriaLabel">
+<div class="aeterni-date-calendar @(VisibleMonths > 1 ? "is-multi-month" : null)" role="application" aria-label="@AriaLabel">
     <div class="aeterni-date-calendar__toolbar">
         <button type="button" class="aeterni-date-calendar__nav" aria-label="Previous month" @onclick="PreviousMonthAsync">
             <Icon Definition="@AeterniIcons.ChevronLeft" />
         </button>
-        <strong>@MonthTitle</strong>
+        <strong>@VisibleMonthTitle</strong>
         <button type="button" class="aeterni-date-calendar__nav" aria-label="Next month" @onclick="NextMonthAsync">
             <Icon Definition="@AeterniIcons.ChevronRight" />
         </button>
     </div>
-    <div class="aeterni-date-calendar__weekdays" aria-hidden="true">
-        @foreach (var weekday in Weekdays)
+    <div class="aeterni-date-calendar__months" style="--aeterni-date-calendar-months: @VisibleMonths">
+        @foreach (var month in Months)
         {
-            <span>@weekday</span>
-        }
-    </div>
-    <div class="aeterni-date-calendar__grid" role="grid">
-        @foreach (var day in Days)
-        {
-            var disabled = IsDisabled(day);
-            var selected = IsSelected(day);
-            var preview = RangeStart.HasValue && !RangeEnd.HasValue && RangePreviewEnd.HasValue && ((day >= RangeStart.Value && day <= RangePreviewEnd.Value) || (day >= RangePreviewEnd.Value && day <= RangeStart.Value));
-            <button type="button"
-                    class="aeterni-date-calendar__day @(day.Month != DisplayMonth.Month ? "is-outside" : string.Empty) @(selected ? "is-selected" : string.Empty) @(preview ? "is-range-preview" : string.Empty) @(day == DateOnly.FromDateTime(DateTime.Today) ? "is-today" : string.Empty)"
-                    role="gridcell"
-                    aria-selected="@(selected ? "true" : "false")"
-                    aria-current="@(day == DateOnly.FromDateTime(DateTime.Today) ? "date" : null)"
-                    disabled="@disabled"
-                    tabindex="@(day == FocusedDate ? 0 : -1)"
-                    @onkeydown="@(e => HandleKeyDownAsync(e, day))"
-                    @onclick="@(() => SelectDayAsync(day))"
-                    @onmouseenter="@(() => DateHovered.InvokeAsync(day))">
-                @day.Day
-            </button>
+            <section class="aeterni-date-calendar__month" aria-label="@MonthTitle(month)">
+                @if (VisibleMonths > 1)
+                {
+                    <strong class="aeterni-date-calendar__month-title">@MonthTitle(month)</strong>
+                }
+                <div class="aeterni-date-calendar__weekdays" aria-hidden="true">
+                    @foreach (var weekday in Weekdays)
+                    {
+                        <span>@weekday</span>
+                    }
+                </div>
+                <div class="aeterni-date-calendar__grid" role="grid">
+                    @foreach (var day in Days(month))
+                    {
+                        var outside = day.Month != month.Month;
+                        var hiddenDuplicate = VisibleMonths > 1 && outside;
+                        var disabled = hiddenDuplicate || IsDisabled(day);
+                        var selected = IsSelected(day);
+                        var preview = IsRangePreview(day);
+                        <button type="button"
+                                class="aeterni-date-calendar__day @(outside ? "is-outside" : string.Empty) @(selected ? "is-selected" : string.Empty) @(preview ? "is-range-preview" : string.Empty) @(day == Today ? "is-today" : string.Empty)"
+                                role="gridcell"
+                                aria-hidden="@(hiddenDuplicate ? "true" : null)"
+                                aria-selected="@(selected ? "true" : "false")"
+                                aria-current="@(day == Today ? "date" : null)"
+                                disabled="@disabled"
+                                tabindex="@(!hiddenDuplicate && day == FocusedDate ? 0 : -1)"
+                                @onkeydown="@(e => HandleKeyDownAsync(e, day))"
+                                @onclick="@(() => SelectDayAsync(day))"
+                                @onmouseenter="@(() => DateHovered.InvokeAsync(day))">
+                            @day.Day
+                        </button>
+                    }
+                </div>
+            </section>
         }
     </div>
 </div>

@@ -1,15 +1,28 @@
 @inherits AeterniComponent
 
-<PopupHost Class="aeterni-date-picker__host">
-    <button @ref="_triggerElement" id="@TriggerId" type="button" class="aeterni-date-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)" aria-label="@AriaLabel" aria-labelledby="@FormField?.LabelId" aria-describedby="@FormField?.DescribedBy" aria-invalid="@(IsInvalid ? "true" : null)" aria-required="@(IsRequired ? "true" : null)" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")" disabled="@IsDisabled" @onclick="ToggleAsync">
-        <span class="@(StartDate.HasValue ? string.Empty : "is-placeholder")">@(StartDate?.ToString(Format, Culture) ?? Placeholder)</span>
-        <span aria-hidden="true"> – </span>
-        <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? Placeholder)</span>
-        <span class="aeterni-date-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
-    </button>
-    <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@AriaLabel">
-        <ChildContent>
-            <DateCalendar DisplayMonth="@_displayMonth" RangeStart="@StartDate" RangeEnd="@EndDate" RangePreviewEnd="@_hoverDate" DateHovered="HandleHoverAsync" DisabledDate="@IsDateDisabled" DateSelected="SelectAsync" MonthChanged="SetMonthAsync" AriaLabel="@AriaLabel" />
-        </ChildContent>
-    </Popover>
-</PopupHost>
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <button id="@TriggerId" type="button" class="aeterni-date-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)" aria-label="@AriaLabel" aria-labelledby="@FormField?.LabelId" aria-describedby="@FormField?.DescribedBy" aria-invalid="@(IsInvalid ? "true" : null)" aria-required="@(IsRequired ? "true" : null)" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")" disabled="@IsDisabled" @onclick="ToggleAsync">
+            <span class="@(StartDate.HasValue ? string.Empty : "is-placeholder")">@(StartDate?.ToString(Format, Culture) ?? Placeholder)</span>
+            <span aria-hidden="true"> – </span>
+            <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? Placeholder)</span>
+            <span class="aeterni-date-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
+        </button>
+        <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@AriaLabel">
+            <ChildContent>
+                <div class="aeterni-date-range-picker__panel">
+                    @if (PresetItems.Count > 0)
+                    {
+                        <div class="aeterni-date-range-picker__presets" role="group" aria-label="@PresetsAriaLabel">
+                            @foreach (var preset in PresetItems)
+                            {
+                                <button type="button" class="aeterni-date-range-picker__preset @(IsPresetSelected(preset) ? "is-selected" : null)" aria-pressed="@(IsPresetSelected(preset) ? "true" : "false")" disabled="@IsDisabled" @onclick="@(() => SelectPresetAsync(preset))">@preset.Label</button>
+                            }
+                        </div>
+                    }
+                    <DateCalendar DisplayMonth="@_displayMonth" VisibleMonths="@VisibleMonths" RangeStart="@StartDate" RangeEnd="@EndDate" RangePreviewEnd="@_hoverDate" DateHovered="HandleHoverAsync" DisabledDate="@IsDateDisabled" DateSelected="SelectAsync" MonthChanged="SetMonthAsync" AriaLabel="@AriaLabel" />
+                </div>
+            </ChildContent>
+        </Popover>
+    </PopupHost>
+</div>

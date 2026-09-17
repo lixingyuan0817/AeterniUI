@@ -1,0 +1,50 @@
+@page "/components/time-picker"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · TimePicker</PageTitle>
+
+<ComponentPreview AnchorId="time-picker" Category="表单组件" Title="TimePicker" ComponentName="TimePicker" Description="使用 TimeOnly 的时间选择控件，支持步长、边界、禁用规则与 12/24 小时格式。" Parameters="@Parameters">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <TimePicker @bind-Value="_time"
+                        MinTime="@(new TimeOnly(8, 0))"
+                        MaxTime="@(new TimeOnly(20, 0))"
+                        Step="@TimeSpan.FromMinutes(15)"
+                        TimeFormat="@_format"
+                        DisabledTime="@(time => time.Hour == 12)"
+                        AriaLabel="选择预约时间" />
+            <span class="preview-feedback" role="status">当前时间：@(_time?.ToString("HH:mm") ?? "未选择")（12 点时段不可选）</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>TimeFormat</span>
+            <ShowcaseSelect TValue="TimeFormat" Id="time-format" AriaLabel="时间显示格式" Options="@(Enum.GetValues<TimeFormat>())" @bind-Value="_format" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>触发器支持方向键在可用时间间移动；弹层复用 <code>PopupHost + Popover</code>。</span>
+        <span><code>TimeFormat.Auto</code> 跟随当前 Culture 的短时间格式，组件不承担时区转换。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private TimeOnly? _time = new(9, 30);
+    private TimeFormat _format = TimeFormat.Auto;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Value / ValueChanged", "TimeOnly? / EventCallback<TimeOnly?>", "当前时间与标准 Blazor 绑定回调。"),
+        new("MinTime / MaxTime", "TimeOnly?", "同一天内的可选时间边界。"),
+        new("DisabledTime", "Func<TimeOnly, bool>?", "返回 true 时禁用该候选时间。"),
+        new("Step", "TimeSpan", "候选时间间隔，必须大于零且小于一天。", "00:30:00"),
+        new("TimeFormat", "TimeFormat", "自动、12 小时或 24 小时显示。", "Auto"),
+        new("Format", "string?", "可选的显式 TimeOnly 显示格式。"),
+        new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
+        new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
+        new("ValueExpression", "Expression<Func<TimeOnly?>>?", "EditContext 字段表达式。"),
+        new("Required / Invalid", "bool", "必填和无效状态。", "false")
+    ];
+}

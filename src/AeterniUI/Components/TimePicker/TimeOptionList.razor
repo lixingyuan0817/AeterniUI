@@ -1,0 +1,23 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @if (Options.Count == 0)
+    {
+        <span class="aeterni-time-option-list__empty">@EmptyText</span>
+    }
+    else
+    {
+        @foreach (var option in Options)
+        {
+            var selected = option == Value;
+            <button type="button"
+                    class="aeterni-time-option-list__option @(selected ? "is-selected" : null)"
+                    role="option"
+                    aria-selected="@(selected ? "true" : "false")"
+                    tabindex="0"
+                    @onclick="@(() => SelectAsync(option))">
+                @option.ToString(DisplayFormat, Culture)
+            </button>
+        }
+    }
+</div>

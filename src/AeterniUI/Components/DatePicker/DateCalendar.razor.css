@@ -4,6 +4,21 @@
     min-width: 16rem;
 }
 
+.aeterni-date-calendar__months {
+    display: grid;
+    grid-template-columns: repeat(var(--aeterni-date-calendar-months), minmax(16rem, 1fr));
+    gap: var(--aeterni-spacing-4);
+}
+
+.aeterni-date-calendar__month {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+}
+
+.aeterni-date-calendar__month-title {
+    text-align: center;
+}
+
 .aeterni-date-calendar__toolbar,
 .aeterni-date-calendar__weekdays,
 .aeterni-date-calendar__grid {
@@ -47,6 +62,10 @@
     color: var(--aeterni-text-tertiary);
 }
 
+.aeterni-date-calendar.is-multi-month .aeterni-date-calendar__day.is-outside {
+    visibility: hidden;
+}
+
 .aeterni-date-calendar__day.is-selected {
     background: var(--aeterni-state-background-checked);
     color: var(--aeterni-text-inverse);
@@ -80,4 +99,10 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     text-align: center;
+}
+
+@media (max-width: 50rem) {
+    .aeterni-date-calendar__months {
+        grid-template-columns: 1fr;
+    }
 }
