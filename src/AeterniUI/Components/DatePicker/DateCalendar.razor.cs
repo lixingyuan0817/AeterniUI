@@ -22,33 +22,45 @@ public partial class DateCalendar : AeterniComponent
     [Parameter] public EventCallback<DateOnly> MonthChanged { get; set; }
     [Parameter] public EventCallback<DateOnly> DateHovered { get; set; }
     [Parameter] public string AriaLabel { get; set; } = "Calendar";
+    [Parameter] public int VisibleMonths { get; set; } = 1;
 
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private DateOnly? FocusedDate { get; set; }
-    private string MonthTitle => DisplayMonth.ToDateTime(TimeOnly.MinValue).ToString("yyyy MMMM", Culture);
+    private DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+    private IReadOnlyList<DateOnly> Months => Enumerable.Range(0, VisibleMonths).Select(DisplayMonth.AddMonths).ToArray();
+    private string VisibleMonthTitle => VisibleMonths == 1
+        ? MonthTitle(DisplayMonth)
+        : $"{MonthTitle(DisplayMonth)} – {MonthTitle(DisplayMonth.AddMonths(VisibleMonths - 1))}";
     private IReadOnlyList<string> Weekdays => Enumerable.Range(0, 7)
         .Select(index => Culture.DateTimeFormat.GetAbbreviatedDayName((DayOfWeek)((index + 1) % 7)))
         .ToArray();
-    private IEnumerable<DateOnly> Days
+
+    private string MonthTitle(DateOnly month) => month.ToDateTime(TimeOnly.MinValue).ToString("yyyy MMMM", Culture);
+
+    private static IEnumerable<DateOnly> Days(DateOnly month)
     {
-        get
-        {
-            var first = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);
-            var offset = ((int)first.DayOfWeek + 6) % 7;
-            var start = first.AddDays(-offset);
-            return Enumerable.Range(0, 42).Select(start.AddDays);
-        }
+        var first = new DateOnly(month.Year, month.Month, 1);
+        var offset = ((int)first.DayOfWeek + 6) % 7;
+        var start = first.AddDays(-offset);
+        return Enumerable.Range(0, 42).Select(start.AddDays);
     }
 
     private bool IsDisabled(DateOnly day) => DisabledDate?.Invoke(day) == true;
     private bool IsSelected(DateOnly day) => SelectedDate == day ||
         (RangeStart.HasValue && RangeEnd.HasValue && day >= RangeStart && day <= RangeEnd);
+    private bool IsRangePreview(DateOnly day) => RangeStart.HasValue && !RangeEnd.HasValue && RangePreviewEnd.HasValue &&
+        ((day >= RangeStart.Value && day <= RangePreviewEnd.Value) || (day >= RangePreviewEnd.Value && day <= RangeStart.Value));
 
     protected override void OnParametersSet()
     {
-        FocusedDate ??= SelectedDate ?? RangeStart ?? DateOnly.FromDateTime(DateTime.Today);
-        if (FocusedDate.Value.Year != DisplayMonth.Year || FocusedDate.Value.Month != DisplayMonth.Month)
-            FocusedDate = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);
+        base.OnParametersSet();
+        if (VisibleMonths is < 1 or > 3)
+            throw new ArgumentOutOfRangeException(nameof(VisibleMonths), VisibleMonths, "Visible months must be between 1 and 3.");
+        FocusedDate ??= SelectedDate ?? RangeStart ?? Today;
+        var lastMonth = DisplayMonth.AddMonths(VisibleMonths - 1);
+        var focusedMonth = new DateOnly(FocusedDate.Value.Year, FocusedDate.Value.Month, 1);
+        if (focusedMonth < DisplayMonth || focusedMonth > lastMonth)
+            FocusedDate = DisplayMonth;
     }
 
     private async Task SelectDayAsync(DateOnly day)
@@ -67,8 +79,8 @@ public partial class DateCalendar : AeterniComponent
             case "ArrowRight": target = day.AddDays(1); break;
             case "ArrowUp": target = day.AddDays(-7); break;
             case "ArrowDown": target = day.AddDays(7); break;
-            case "Home": target = day.AddDays(-(int)day.DayOfWeek + 1); break;
-            case "End": target = day.AddDays(7 - (int)day.DayOfWeek); break;
+            case "Home": target = day.AddDays(-WeekdayOffset(day)); break;
+            case "End": target = day.AddDays(6 - WeekdayOffset(day)); break;
             case "PageUp": target = day.AddMonths(-1); break;
             case "PageDown": target = day.AddMonths(1); break;
             case "Enter":
@@ -78,11 +90,17 @@ public partial class DateCalendar : AeterniComponent
         if (!IsDisabled(target))
         {
             FocusedDate = target;
-            if (target.Month != DisplayMonth.Month || target.Year != DisplayMonth.Year)
-                await MonthChanged.InvokeAsync(new DateOnly(target.Year, target.Month, 1));
+            var targetMonth = new DateOnly(target.Year, target.Month, 1);
+            var lastMonth = DisplayMonth.AddMonths(VisibleMonths - 1);
+            if (targetMonth < DisplayMonth)
+                await MonthChanged.InvokeAsync(targetMonth);
+            else if (targetMonth > lastMonth)
+                await MonthChanged.InvokeAsync(targetMonth.AddMonths(1 - VisibleMonths));
             await InvokeAsync(StateHasChanged);
         }
     }
+
+    private static int WeekdayOffset(DateOnly day) => ((int)day.DayOfWeek + 6) % 7;
 
     private Task PreviousMonthAsync() => MonthChanged.InvokeAsync(DisplayMonth.AddMonths(-1));
     private Task NextMonthAsync() => MonthChanged.InvokeAsync(DisplayMonth.AddMonths(1));

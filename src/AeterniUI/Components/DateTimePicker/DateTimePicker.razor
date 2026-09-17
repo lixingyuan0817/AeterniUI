@@ -1,0 +1,30 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <button type="button"
+                class="aeterni-date-time-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)"
+                id="@TriggerId"
+                aria-label="@EffectiveAriaLabel"
+                aria-labelledby="@FormField?.LabelId"
+                aria-describedby="@FormField?.DescribedBy"
+                aria-invalid="@(IsInvalid ? "true" : null)"
+                aria-required="@(IsRequired ? "true" : null)"
+                aria-haspopup="dialog"
+                aria-expanded="@(_open ? "true" : "false")"
+                disabled="@IsDisabled"
+                @onclick="ToggleAsync">
+            <span class="@(Value.HasValue ? null : "is-placeholder")">@DisplayValue</span>
+            <span class="aeterni-date-time-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
+        </button>
+        <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
+            <ChildContent>
+                <div class="aeterni-date-time-picker__panel">
+                    <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" AriaLabel="@UiText.DatePickerCalendarLabel" />
+                    <div class="aeterni-date-time-picker__divider" aria-hidden="true"></div>
+                    <TimeOptionList Options="@TimeOptions" Value="@SelectedTime" ValueSelected="SelectTimeAsync" DisplayFormat="@ResolvedTimeFormat" AriaLabel="@UiText.TimePickerOptionsLabel" EmptyText="@UiText.TimePickerEmptyText" />
+                </div>
+            </ChildContent>
+        </Popover>
+    </PopupHost>
+</div>

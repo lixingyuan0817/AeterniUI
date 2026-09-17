@@ -15,6 +15,27 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of the <c>ComboBox</c> option list.</summary>
     public string ComboBoxListLabel { get; set; } = "Options";
 
+    /// <summary>Trigger text of a <c>TimePicker</c> that has no value yet.</summary>
+    public string TimePickerPlaceholder { get; set; } = "Select time";
+
+    /// <summary>Accessible name of a <c>TimePicker</c>.</summary>
+    public string TimePickerLabel { get; set; } = "Time picker";
+
+    /// <summary>Accessible name of the available time option list.</summary>
+    public string TimePickerOptionsLabel { get; set; } = "Available times";
+
+    /// <summary>Message shown when no time option is available.</summary>
+    public string TimePickerEmptyText { get; set; } = "No available times";
+
+    /// <summary>Trigger text of a <c>DateTimePicker</c> that has no value yet.</summary>
+    public string DateTimePickerPlaceholder { get; set; } = "Select date and time";
+
+    /// <summary>Accessible name of a <c>DateTimePicker</c>.</summary>
+    public string DateTimePickerLabel { get; set; } = "Date and time picker";
+
+    /// <summary>Accessible name of a date calendar.</summary>
+    public string DatePickerCalendarLabel { get; set; } = "Calendar";
+
     /// <summary>Accessible name of a <c>Rating</c> group.</summary>
     public string RatingLabel { get; set; } = "Rating";
 
@@ -83,6 +104,13 @@ public sealed class AeterniUITextOptions
     {
         ComboBoxPlaceholder = Or(ComboBoxPlaceholder, defaults.ComboBoxPlaceholder);
         ComboBoxListLabel = Or(ComboBoxListLabel, defaults.ComboBoxListLabel);
+        TimePickerPlaceholder = Or(TimePickerPlaceholder, defaults.TimePickerPlaceholder);
+        TimePickerLabel = Or(TimePickerLabel, defaults.TimePickerLabel);
+        TimePickerOptionsLabel = Or(TimePickerOptionsLabel, defaults.TimePickerOptionsLabel);
+        TimePickerEmptyText = Or(TimePickerEmptyText, defaults.TimePickerEmptyText);
+        DateTimePickerPlaceholder = Or(DateTimePickerPlaceholder, defaults.DateTimePickerPlaceholder);
+        DateTimePickerLabel = Or(DateTimePickerLabel, defaults.DateTimePickerLabel);
+        DatePickerCalendarLabel = Or(DatePickerCalendarLabel, defaults.DatePickerCalendarLabel);
         RatingLabel = Or(RatingLabel, defaults.RatingLabel);
         TabsLabel = Or(TabsLabel, defaults.TabsLabel);
         ThemeSwitchLabel = Or(ThemeSwitchLabel, defaults.ThemeSwitchLabel);

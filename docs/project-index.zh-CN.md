@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.9.0`
+文档版本：`10.10.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.9.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.10.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -58,9 +58,9 @@ AeterniUI/
 │   ├── AeterniUI/                    # 核心组件库
 │   │   ├── Attributes/               # JsModule 等特性
 │   │   ├── Components/               # Razor、代码后置、隔离样式和组件 JS
-│   │   ├── Enums/                    # Button、Color、Size、Theme 等公开枚举
+│   │   ├── Enums/                    # Button、Color、Size、Theme、TimeFormat 等公开枚举
 │   │   ├── Icons/                    # IconDefinition、内置 AeterniIcons 图标集
-│   │   ├── Models/Dialog/             # Dialog、Alert、Toast 配置和结果
+│   │   ├── Models/                   # DateRangePreset 与 Dialog/Alert/Toast 模型
 │   │   ├── Modules/                  # JS module 元数据和依赖信息
 │   │   ├── Services/                 # 服务接口、选项和实现
 │   │   └── wwwroot/                  # 统一 Token、主题变量与共享浏览器能力（css/、js/）
@@ -191,13 +191,19 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | 能力组 | 组件 |
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card`、`Divider`、`Accordion` |
-| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker` |
+| 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch`、`ThemeBrandSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`Pagination`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。
+
+### 日期与时间选择模块
+
+- `Components/DatePicker`：`DatePicker`、`DateRangePicker` 与内部 `DateCalendar`；范围选择支持宿主提供的 `DateRangePreset` 和 1～3 个月视图。
+- `Components/TimePicker`：`TimePicker` 与内部 `TimeOptionList`，共用 `TimePickerOptions` 生成、过滤和格式化 `TimeOnly` 候选。
+- `Components/DateTimePicker`：以单一 `DateTime?` 组合日期网格与时间列表；`TimeFormat` 定义 12/24 小时策略，组件不执行时区转换。
 
 ### 服务模块
 
@@ -218,7 +224,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已完成 v0.1、v0.2、v0.3 与 v0.4 的 `DatePicker` / `DateRangePicker` 基础交付；`DateCalendar` 为仅供日期选择器使用的内部渲染部件，不属于稳定公共 API；时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续规划。
+当前路线图已完成 v0.1～v0.5：`TimePicker`、`DateTimePicker`、`DateRangePicker` 快捷范围与 1～3 个月多月视图已经交付；`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
 当前项目没有自动化测试。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 
@@ -231,7 +237,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | `AGENTS.md` | Agent 协作、架构硬规则、验证和索引维护规范 |
 | `docs/project-index.zh-CN.md` | 项目结构、入口、启动命令和模块导航 |
 | `docs/current-features.zh-CN.md` | 已实现的公共 API 和行为 |
-| `docs/component-roadmap.zh-CN.md` | 未完成任务、依赖、验收和构建记录 |
+| `docs/component-roadmap.zh-CN.md` | 阶段任务、依赖、验收状态和构建记录 |
 | `docs/component-design-guidelines.zh-CN.md` | 组件 API、样式、可访问性和 JS 设计契约 |
 | `docs/component-review-todo.zh-CN.md` | 组件审阅发现的质量问题待办、优先级和验收条件 |
 

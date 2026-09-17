@@ -1,0 +1,45 @@
+.aeterni-date-time-picker {
+    display: inline-block;
+    min-width: 14rem;
+}
+
+.aeterni-date-time-picker__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    width: 100%;
+    min-height: var(--aeterni-height-md);
+    padding: 0 var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-radius-input);
+    background: var(--aeterni-control-background);
+    color: var(--aeterni-control-foreground);
+    font: inherit;
+    cursor: pointer;
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-date-time-picker__trigger:hover:not(:disabled):not(.is-invalid) { border-color: var(--aeterni-state-border-hover); }
+.aeterni-date-time-picker__trigger:focus-visible { outline: none; border-color: var(--aeterni-focus-color); box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-control-focus-ring); }
+.aeterni-date-time-picker__trigger.is-invalid { border-color: var(--aeterni-state-border-invalid); }
+.aeterni-date-time-picker__trigger.is-invalid:focus-visible { box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color-invalid); }
+.aeterni-date-time-picker__trigger:disabled { color: var(--aeterni-state-color-disabled); cursor: not-allowed; }
+.aeterni-date-time-picker__trigger.aeterni-date-time-picker--sm { min-height: var(--aeterni-height-sm); }
+.aeterni-date-time-picker__trigger.aeterni-date-time-picker--lg { min-height: var(--aeterni-height-lg); }
+.aeterni-date-time-picker__trigger .is-placeholder { color: var(--aeterni-state-color-placeholder); }
+.aeterni-date-time-picker__icon { --aeterni-icon-render-size: 1rem; display: inline-flex; color: var(--aeterni-text-tertiary); }
+
+.aeterni-date-time-picker__panel {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) auto minmax(8rem, auto);
+    gap: var(--aeterni-spacing-3);
+    align-items: stretch;
+}
+
+.aeterni-date-time-picker__divider { width: var(--aeterni-border-width); background: var(--aeterni-separator); }
+
+@media (max-width: 36rem) {
+    .aeterni-date-time-picker__panel { grid-template-columns: 1fr; }
+    .aeterni-date-time-picker__divider { width: auto; height: var(--aeterni-border-width); }
+}

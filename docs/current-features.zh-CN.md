@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.9.0`
+文档版本：`10.10.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -944,6 +944,13 @@ builder.Services.AddAeterniUI(options =>
 {
     options.Text.ComboBoxPlaceholder = "请选择";
     options.Text.ComboBoxListLabel = "选项";
+    options.Text.TimePickerPlaceholder = "请选择时间";
+    options.Text.TimePickerLabel = "时间选择器";
+    options.Text.TimePickerOptionsLabel = "可用时间";
+    options.Text.TimePickerEmptyText = "没有可用时间";
+    options.Text.DateTimePickerPlaceholder = "请选择日期和时间";
+    options.Text.DateTimePickerLabel = "日期时间选择器";
+    options.Text.DatePickerCalendarLabel = "日历";
     options.Text.RatingLabel = "评分";
     options.Text.ThemeSwitchLabel = "主题模式";
     options.Text.ThemeSystemLabel = "跟随系统";
@@ -972,19 +979,57 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过
-`StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、
-`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和对应的字段表达式参数。
+`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和对应的字段表达式参数。
+
+`DateRangePicker` 额外支持：
+
+- `Presets`（`IReadOnlyList<DateRangePreset>`）：宿主提供标签、开始日期和结束日期；组件不内置“最近 7 天”等业务算法。预设标签不得为空、开始不得晚于结束，整个区间必须满足边界与 `DisabledDate` 规则。
+- `VisibleMonths`：同时显示 1～3 个月，默认 1；多月模式使用共享导航栏，隐藏相邻网格重复的跨月日期。
+- `PresetsAriaLabel`：快捷范围区域的可访问名称。
 
 ### 行为与无障碍
 
-日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。
+日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
 
 ### 组合关系与实现边界
 
-两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。当前不包含时间选择、时区转换、多时区格式化、快捷范围、多月视图、虚拟化或复杂本地化日历。示例：`/components/date-picker`。
+两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
 
-## 39. 当前边界
+## 39. TimePicker
+
+### 支持能力
+
+- `Value` / `ValueChanged` / `ValueExpression` 绑定 `TimeOnly?`，并接入 `EditContext` 字段通知与验证状态。
+- `Step` 生成一天内的候选时间；必须大于零且短于一天。`MinTime` / `MaxTime` 定义同一天内的连续边界，`DisabledTime` 由宿主过滤具体候选项。
+- `TimeFormat` 支持 `Auto`、`TwelveHour`、`TwentyFourHour`；`Auto` 使用当前 Culture 的短时间模式，显式 `Format` 优先。
+- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和继承的 `Disabled`。默认文案来自 `AeterniUITextOptions`。
+
+### 行为与无障碍
+
+触发器使用 `aria-haspopup="listbox"` 与 `aria-expanded`；弹层中的候选项使用 `listbox` / `option` 语义并可通过键盘 Tab 或指针选择。触发器上的 ArrowUp/ArrowDown 直接选择前后可用时间，原生按钮的 Enter/Space 切换弹层，Escape 关闭。弹层复用 `PopupHost` + `Popover`，关闭后恢复触发器焦点。
+
+### 实现边界
+
+候选项从午夜起按固定步长生成；第一版只支持同一天内 `MinTime <= MaxTime` 的连续范围，不支持跨午夜范围、自由文本编辑、秒级专用界面、虚拟化或时区换算。示例：`/components/time-picker`。
+
+## 40. DateTimePicker
+
+### 支持能力
+
+- `Value` / `ValueChanged` / `ValueExpression` 绑定单一 `DateTime?`，在一个触发器和弹层中组合内部日期网格与时间列表。
+- `MinDateTime` / `MaxDateTime` 定义边界，`DisabledDate` 禁用整天，`DisabledDateTime` 禁用具体候选值；没有任何可用时间的日期自动不可选。
+- `TimeStep`、`TimeFormat` 控制时间候选与显示；显式 `Format` 控制完整触发器文本。
+- `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。
+
+### 行为与无障碍
+
+选择日期后弹层保持打开；如果原时间在新日期不可用，自动选择当天第一个可用候选。选择时间后提交完整值并关闭弹层。日期与时间区域分别使用日历和 `listbox` 语义，Popover 负责外部点击、Escape 与焦点回归。
+
+### 实现边界
+
+`Kind` 只通过 `DateTime.SpecifyKind` 标记组件创建的值，不做 UTC、本地时间或任意时区之间的转换；宿主应让 Value、Min/Max 与禁用规则使用一致的时间语义。当前不包含时区数据库、夏令时歧义处理、自由文本解析、秒级专用界面或多时区格式化。示例：`/components/date-time-picker`。
+
+## 41. 当前边界
 
 - 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。

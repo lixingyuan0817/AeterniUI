@@ -1,0 +1,27 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <button type="button"
+                class="aeterni-time-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)"
+                id="@TriggerId"
+                aria-label="@EffectiveAriaLabel"
+                aria-labelledby="@FormField?.LabelId"
+                aria-describedby="@FormField?.DescribedBy"
+                aria-invalid="@(IsInvalid ? "true" : null)"
+                aria-required="@(IsRequired ? "true" : null)"
+                aria-haspopup="listbox"
+                aria-expanded="@(_open ? "true" : "false")"
+                disabled="@IsDisabled"
+                @onkeydown="HandleKeyDownAsync"
+                @onclick="ToggleAsync">
+            <span class="@(Value.HasValue ? null : "is-placeholder")">@DisplayValue</span>
+            <span class="aeterni-time-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Clock" /></span>
+        </button>
+        <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
+            <ChildContent>
+                <TimeOptionList Options="@Options" Value="@Value" ValueSelected="SelectAsync" DisplayFormat="@ResolvedFormat" AriaLabel="@EffectiveOptionsLabel" EmptyText="@UiText.TimePickerEmptyText" />
+            </ChildContent>
+        </Popover>
+    </PopupHost>
+</div>

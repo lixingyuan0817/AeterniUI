@@ -61,7 +61,9 @@ public static class ShowcaseCatalog
             new("segmented", "Segmented", "分段单选"),
             new("rating", "Rating", "整数评分"),
             new("combobox", "ComboBox", "下拉选择"),
-            new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围")
+            new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
+            new("time-picker", "TimePicker", "时间选择"),
+            new("date-time-picker", "DateTimePicker", "日期与时间组合")
         ]),
         new("导航组件", FontAwesomeIcons.Solid.CompassDrafting, [
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),

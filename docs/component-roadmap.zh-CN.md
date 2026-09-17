@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.9.0`
+文档版本：`10.10.0`
 
-状态：v0.1、v0.2、v0.3 与 v0.4 基础交付已完成；v0.5～v0.7 进入后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1～v0.5 已完成；v0.6～v0.7 进入后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -11,7 +11,7 @@
 - `docs/current-features.zh-CN.md` 是当前已实现公共 API 和行为的唯一功能事实源；组件参数和行为以源码为准。
 - 本文档中的 v0.1 组件小节只保留目标、验收重点、任务状态和实现差异，不重复当前 API。
 - 当前 API 与行为以 `current-features.zh-CN.md` 和源码为准；历史计划只有在解释实现差异时才保留。
-- v0.2 及后续章节是 TODO/规划，不得在功能文档或项目索引中写成已实现能力。
+- 尚未完成的阶段是 TODO/规划，不得在功能文档或项目索引中写成已实现能力。
 
 ## v0.1 交付总览
 
@@ -323,6 +323,8 @@ Input/Input 样式族
 | 磨砂填充降档与玻璃墨阶梯（on-glass tertiary） | 已完成 | 通过 | 起因：上一轮把「填充不能低于 82%」归因于三级墨的图形门槛，但那条约束只是因为玻璃表面仍在继承标准墨阶梯——该改的是墨，不是填充。做法：①把 `--aeterni-bg-glass` 从 `--aeterni-bg-elevated` 解耦成独立 token，三个主题块各自声明（浅 `.68`／深 `.72`／系统深 `.72`），因为「升起的表面」与「磨砂表面」答的不是同一道题：前者只要求落在页面上，后者要按最坏背景（纯黑／纯白）保证墨可读，共用一个值正是填充偏厚、糊不进背景的原因；②新增 `--aeterni-text-on-glass-tertiary`（`color-mix(in srgb, var(--aeterni-text) 67%, transparent)`），把三级墨也纳入 on-glass 阶梯——三级墨在玻璃上只承图标与装饰（Dialog／Drawer／NoticeCard 的关闭按钮、日期日历的 `.is-outside`），所以按 3:1 图形门槛定档；③七处磨砂内容表面（`Card`／`Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、NoticeCard）各补一条 `--aeterni-text-tertiary`，并同步注释里「深色 4.35:1」这类旧读数；④删除三个编码被否决方向（液态玻璃高光边）的孤儿 token：`--aeterni-backdrop-saturate`、`--aeterni-glass-border-alpha`、`--aeterni-glass-highlight`，全库 0 引用；⑤两个降级块（`prefers-reduced-transparency: reduce` 与 `@supports not (backdrop-filter)`）把两支玻璃专用墨退回标准墨——墨的存在理由是顶住透出来的背景，填充一旦是实心表面就没有背景要顶；⑥修 `Bordered="false"` 的玻璃卡 hover 浮出边框：hover 规则 4 个类压过 `.is-bordered` 的 2 个类，把改边框那一条拆到 `.is-interactive.is-bordered` 上，位移与阴影仍对所有变体生效。实测口径（填充合成后的底色，最坏背景，1.1× 会计余量）：深色 `.82` → 标准次要墨 4.35:1 FAIL、标准三级墨 3.02:1 thin，`.72` → 3.41 FAIL／2.51 FAIL，接管 on-glass 后 5.11／3.51；浅色 `.82` → 5.33／3.86，`.68` → 4.51／3.43，接管后 5.94／3.46。下限由最紧的那支墨决定，两个主题不同：浅色是三级墨（1.15×）、深色是次要墨（1.14×），所以 `.68` 与 `.72` 分别是两个主题的边界值，再淡一档就掉出余量。**本条推翻的旧结论**：上一轮「填充已被三级墨钉死在 82% 以上」不成立——那是标准墨的约束。**未覆盖面（如实记录）**：品牌链接墨不在 on-glass 覆盖内，也不在任何门禁里，它本来就撑不住磨砂——深色最坏背景 `.82` 已是 3.25:1 FAIL、`.72` 掉到 2.27:1，浅色 `.82` 4.36:1 FAIL、`.68` 2.98:1；降填充把「链接可读的背景窗口」进一步收窄（浅色填充要求底色亮于 18/255 → 103/255，深色要求暗于 134/255 → 95/255），这是既有缺口而非本轮引入，已写进组件设计指南的硬规则。验证：`dotnet build aeterni_ui.slnx`、`check-docs.sh`、`check-css-comments.mjs`、`check-contrast.mjs`（99 项）、token-only grep 全过；headless Chrome 逐像素核对七处磨砂表面的墨与两个降级块。示例项目：`GlassLab` 对照页同步新填充（`GlassPalette` 的 `.68`／`.72`）、新增第五支读数「三级 · on-glass」、04／05／06 三节按新填充重测并把基于 `.82` 的旧数字全部替换（口径也改为「截图时把文字遮住」之后的面板区域统计），其中模糊半径轴由死转活、24px 从缺口变成收益最大的一档（更正见上一行）。文档同步三处：`current-features` 的玻璃角色别名条目（含十处消费者与填充下限的归因）与「模糊与实心」小节、`component-design-guidelines` 的玻璃硬规则（含新增的品牌墨警示：品牌墨浅色最坏 2.98:1／深色 2.27:1，不在门禁覆盖内）与提交检查清单新增一条「新增磨砂表面须一次接管五个角色名」、`component-roadmap` 本行。`project-index` 无需改动：本轮没有新增或移动项目、目录、入口文件、宿主、构建脚本或开发命令。版本号未递增 |
 | v10.9.0 发布（磨砂配方解耦与填充降档） | 已完成 | 通过 | 版本号在 `Directory.Build.props` 单一来源递增 `10.8.0` → `10.9.0` （`Version`／`AssemblyVersion`／`FileVersion`／`InformationalVersion` 四处齐动）， 四份门禁文档的「文档版本」与 `project-index` 的「当前版本」同步， `component-review-todo` 一并跟进，README 的发布示例改为 `v10.9.0`； `bash scripts/check-docs.sh`（版本格式 `^10\.[0-9]+\.[0-9]+$` 与四文档一致性）与 `dotnet build aeterni_ui.slnx` 通过； 在 main 上打注解 tag `v10.9.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 props 版本， 再用 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`。 按仓库约定「功能新增递增次版本号」，本批（玻璃配方三轴解耦、on-glass 墨阶梯与磨砂填充降档）为 minor： 相对已发布的 `10.8.0` 无破坏性公共 API 变更——被撤销的 `Blur` 轴是同一批内引入、从未出现在任何已发布版本里，故不递增主版本号 |
 
+| v10.10.0 / v0.5 日期与时间输入 | 已完成 | 通过 | 新增 `TimePicker`、`DateTimePicker`、`TimeFormat` 与 `DateRangePreset`；`DateRangePicker` 补充宿主定义快捷范围和 1～3 个月视图；示例、文案、功能事实源和项目索引同步。版本单一来源由 `10.9.0` 递增为 `10.10.0`。验证：`dotnet build aeterni_ui.slnx --no-restore` 0 警告/0 错误，`check-docs.sh`、`check-css-comments.mjs`（52 个 CSS 文件）、`check-contrast.mjs`（99 项）与 Font Awesome 生成一致性检查全部通过 |
+
 ## 第三阶段（v0.3）计划
 
 状态：已完成（7/7）。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
@@ -497,19 +499,17 @@ Token 和现有基础组件
 
 目标：提供单日和日期范围选择控件。
 
-当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览、FormField / EditContext 校验、必填/无效状态和关闭后焦点回归；日期格式化已支持 `Format` 与当前 Culture。
+当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览、FormField / EditContext 校验、必填/无效状态和关闭后焦点回归；日期格式化已支持 `Format` 与当前 Culture。v0.5 在此基础上补充了快捷范围和 1～3 个月视图。
 
-待补齐：时间选择、快捷范围、多月视图和复杂本地化日历仍属于后续范围。
-
-实现边界：暂不包含时间选择、时区转换、多时区格式化、快捷范围、虚拟化、多月视图和复杂本地化日历。`DateCalendar` 仅作为 DatePicker / DateRangePicker 的内部渲染部件，不属于稳定公共 API。
+后续边界：虚拟化、自定义日历系统和复杂本地化历法仍不在当前范围。`DateCalendar` 仅作为 DatePicker / DateRangePicker / DateTimePicker 的内部渲染部件，不属于稳定公共 API。
 
 ### 第四阶段固定交付物与验收
 
 沿用既有固定交付物；完成后同步 `current-features.zh-CN.md`、示例页、项目索引和本文档任务记录，并运行构建、文档、CSS 与 JavaScript 检查。
 
-## 后续阶段规划（v0.5～v0.7）
+## 第五阶段交付与后续规划（v0.5～v0.7）
 
-状态：规划中。本节只定义优先级、依赖和明确边界，不代表组件已经实现；进入某一阶段前，先为该阶段补充逐项 API 草案和可操作验收用例。
+状态：v0.5 已完成；v0.6～v0.7 仍为规划。本节中只有标记为已完成的 v0.5 能力属于当前公共表面，其余阶段不代表组件已经实现。
 
 ### 规划原则
 
@@ -522,11 +522,11 @@ Token 和现有基础组件
 
 目标：在现有 `DatePicker` / `DateRangePicker` 的基础上补齐常用时间输入，同时保持 `DateOnly` API 不被迫升级。
 
-建议顺序：
+交付状态：
 
-1. `TimePicker`：`TimeOnly?` 绑定、步长、最小/最大时间、键盘编辑、12/24 小时格式、`FormField`/`EditContext` 校验。
-2. `DateTimePicker`：组合 `DatePicker` 与 `TimePicker`，优先采用 `DateTime?`；明确 Culture、Kind 和格式化规则，不做时区转换。
-3. `DateRangePicker` 增强：快捷范围、多月视图和可选的预设项；快捷范围应由参数提供，不内置业务日期规则。
+1. [x] `TimePicker`：`TimeOnly?` 绑定、步长、最小/最大时间、禁用规则、键盘选择、12/24 小时格式、`FormField`/`EditContext` 校验。
+2. [x] `DateTimePicker`：使用单一 `DateTime?` 组合日期与时间；明确 Culture、Kind 和格式化规则，不做时区转换。
+3. [x] `DateRangePicker` 增强：宿主提供的 `DateRangePreset` 快捷范围，以及 1～3 个月的 `VisibleMonths` 多月视图。
 
 依赖顺序：
 
@@ -537,7 +537,9 @@ DateCalendar 多月/快捷范围能力
   +--> DateRangePicker 增强
 ```
 
-验收边界：沿用现有 Popover、焦点回归、无效态和 reduced-motion 约定；暂不包含时区数据库、时区转换、虚拟化、复杂本地化历法和自定义日历系统。`DateCalendar` 继续保持内部部件，不直接升级为稳定公共 API。
+验收边界：沿用现有 Popover、焦点回归和无效态约定；不包含跨午夜时间范围、时区数据库、时区转换、虚拟化、复杂本地化历法和自定义日历系统。`DateTimePicker.Kind` 只标记新建值，边界比较沿用 `DateTime` 本身的比较规则；快捷范围由宿主提供纯数据，并在应用前校验边界和禁用日期。`DateCalendar` 继续保持内部部件，不直接升级为稳定公共 API。
+
+验证：`dotnet build aeterni_ui.slnx`、`bash scripts/check-docs.sh`、CSS 注释、品牌色对比度和图标生成一致性门禁均通过；示例新增 `/components/time-picker`、`/components/date-time-picker`，日期选择页补充双月与快捷范围演示。
 
 ### v0.6 动作编排与导航
 

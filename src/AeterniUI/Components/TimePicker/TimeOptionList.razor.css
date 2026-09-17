@@ -1,0 +1,43 @@
+.aeterni-time-option-list {
+    display: grid;
+    gap: 2px;
+    min-width: 8rem;
+    max-height: var(--aeterni-overlay-max-height);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-time-option-list__option {
+    min-height: var(--aeterni-row-height-compact);
+    padding: 0 var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.aeterni-time-option-list__option:hover:not(.is-selected) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-time-option-list__option.is-selected {
+    background: var(--aeterni-state-background-checked);
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-time-option-list__option.is-selected:hover {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-time-option-list__option.is-selected:active {
+    background: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-time-option-list__empty {
+    padding: var(--aeterni-spacing-3);
+    color: var(--aeterni-text-secondary);
+}

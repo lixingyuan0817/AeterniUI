@@ -1,0 +1,47 @@
+@page "/components/date-time-picker"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · DateTimePicker</PageTitle>
+
+<ComponentPreview AnchorId="date-time-picker" Category="表单组件" Title="DateTimePicker" ComponentName="DateTimePicker" Description="使用单一 DateTime? 值组合日期网格与时间选项，不执行时区转换。" Parameters="@Parameters">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <DateTimePicker @bind-Value="_value"
+                            MinDateTime="@MinValue"
+                            MaxDateTime="@MaxValue"
+                            TimeStep="@TimeSpan.FromMinutes(30)"
+                            Kind="DateTimeKind.Local"
+                            DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
+                            AriaLabel="选择预约日期和时间" />
+            <span class="preview-feedback" role="status">当前值：@(_value?.ToString("yyyy-MM-dd HH:mm") ?? "未选择")；Kind：@(_value?.Kind.ToString() ?? "—")</span>
+        </div>
+    </Preview>
+    <Notes>
+        <span>日期和时间在一个受控弹层中完成，周末日期不可选；候选时间会同时应用日期时间边界。</span>
+        <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，不会换算时区。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private DateTime? _value = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
+    private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
+    private DateTime MaxValue => DateTime.SpecifyKind(DateTime.Today.AddDays(30).AddHours(18), DateTimeKind.Local);
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Value / ValueChanged", "DateTime? / EventCallback<DateTime?>", "当前日期时间与标准 Blazor 绑定回调。"),
+        new("MinDateTime / MaxDateTime", "DateTime?", "可选日期时间边界。"),
+        new("DisabledDate", "Func<DateOnly, bool>?", "禁用整个日期。"),
+        new("DisabledDateTime", "Func<DateTime, bool>?", "禁用具体日期时间候选项。"),
+        new("TimeStep", "TimeSpan", "时间候选项间隔。", "00:30:00"),
+        new("TimeFormat", "TimeFormat", "时间部分的 12/24 小时显示策略。", "Auto"),
+        new("Format", "string?", "完整日期时间显示格式。"),
+        new("Kind", "DateTimeKind", "新值的 Kind 标记，不执行时区转换。", "Unspecified"),
+        new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
+        new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
+        new("ValueExpression", "Expression<Func<DateTime?>>?", "EditContext 字段表达式。"),
+        new("Required / Invalid", "bool", "必填和无效状态。", "false")
+    ];
+}
