@@ -1,23 +1,44 @@
 @inherits AeterniComponent
 
-<div @ref="RootElement" @attributes="BuildAttributes()">
-    @if (Options.Count == 0)
+<div @ref="RootElement" @attributes="BuildAttributes()" @onkeydown="HandleKeyDownAsync">
+    @if (_map.Count == 0)
     {
         <span class="aeterni-time-option-list__empty">@EmptyText</span>
     }
     else
     {
-        @foreach (var option in Options)
+        @foreach (var unit in Units)
         {
-            var selected = option == Value;
-            <button type="button"
-                    class="aeterni-time-option-list__option @(selected ? "is-selected" : null)"
-                    role="option"
-                    aria-selected="@(selected ? "true" : "false")"
-                    tabindex="0"
-                    @onclick="@(() => SelectAsync(option))">
-                @option.ToString(DisplayFormat, Culture)
-            </button>
+            <div class="aeterni-time-option-list__column @(unit == ActiveUnit ? "is-active" : null)">
+                <span class="aeterni-time-option-list__heading">@ColumnLabel(unit)</span>
+                <div class="aeterni-time-option-list__wheel">
+                    <div class="aeterni-time-option-list__options"
+                         role="listbox"
+                         aria-label="@ColumnLabel(unit)"
+                         aria-orientation="vertical"
+                         data-time-unit="@unit.ToString().ToLowerInvariant()">
+                        @foreach (var value in ValuesFor(unit))
+                        {
+                            var selected = IsSelected(unit, value);
+                            var active = IsActive(unit, value);
+                            var optionUnit = unit;
+                            var optionValue = value;
+                            <div id="@OptionId(unit, value)"
+                                 class="aeterni-time-option-list__option @(selected ? "is-selected" : null) @(active ? "is-active" : null)"
+                                 role="option"
+                                 aria-selected="@(selected ? "true" : "false")"
+                                 data-time-value="@value"
+                                 @onclick="@(() => SelectUnitAsync(optionUnit, optionValue))">
+                                @OptionLabel(unit, value)
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         }
     }
+    <div class="aeterni-time-option-list__footer" @onkeydown:stopPropagation="true">
+        <Button Variant="ButtonVariant.Ghost" Size="Size.Small" OnClick="@(_ => CancelAsync())">@CancelText</Button>
+        <Button Size="Size.Small" Disabled="@(!_draftValue.HasValue)" OnClick="@(_ => ConfirmAsync())">@ConfirmText</Button>
+    </div>
 </div>

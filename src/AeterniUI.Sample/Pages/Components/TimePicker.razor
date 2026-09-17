@@ -5,17 +5,17 @@
 
 <PageTitle>Aeterni UI · TimePicker</PageTitle>
 
-<ComponentPreview AnchorId="time-picker" Category="表单组件" Title="TimePicker" ComponentName="TimePicker" Description="使用 TimeOnly 的时间选择控件，支持步长、边界、禁用规则与 12/24 小时格式。" Parameters="@Parameters">
+<ComponentPreview AnchorId="time-picker" Category="表单组件" Title="TimePicker" ComponentName="TimePicker" Description="使用 TimeOnly 的三列滚轮时间选择控件，默认以 24 小时制显示时、分、秒，并支持边界、禁用规则与 12/24 小时格式。" Parameters="@Parameters">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <TimePicker @bind-Value="_time"
-                        MinTime="@(new TimeOnly(8, 0))"
-                        MaxTime="@(new TimeOnly(20, 0))"
-                        Step="@TimeSpan.FromMinutes(15)"
                         TimeFormat="@_format"
-                        DisabledTime="@(time => time.Hour == 12)"
+                        Size="@_size"
+                        FullWidth="@_fullWidth"
+                        Disabled="@_disabled"
+                        Invalid="@_invalid"
                         AriaLabel="选择预约时间" />
-            <span class="preview-feedback" role="status">当前时间：@(_time?.ToString("HH:mm") ?? "未选择")（12 点时段不可选）</span>
+            <span class="preview-feedback" role="status">当前时间：@(_time?.ToString(TimeDisplayFormat) ?? "未选择")</span>
         </div>
     </Preview>
     <Controls>
@@ -23,27 +23,43 @@
             <span>TimeFormat</span>
             <ShowcaseSelect TValue="TimeFormat" Id="time-format" AriaLabel="时间显示格式" Options="@(Enum.GetValues<TimeFormat>())" @bind-Value="_format" />
         </div>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="time-picker-size" AriaLabel="TimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
     </Controls>
     <Notes>
-        <span>触发器支持方向键在可用时间间移动；弹层复用 <code>PopupHost + Popover</code>。</span>
-        <span><code>TimeFormat.Auto</code> 跟随当前 Culture 的短时间格式，组件不承担时区转换。</span>
+        <span>弹层采用类似系统计时器的“时 / 分 / 秒”三列滚轮：滚动时自动吸附到中心值，并以渐隐与缩放表达远近层次。</span>
+        <span>“时 / 分 / 秒”列名固定在顶部；中间选择带只有上下分隔线，不框住单列当前值。滚动只修改草稿，使用“取消 / 确定”决定是否回写。</span>
+        <span>滚轮组只有一个 Tab 停留点：左右键切换列，上下键与 Home/End 切换值，Enter/Space 确认；操作按钮保持原生 Tab 顺序。</span>
+        <span>默认采用 <code>TwentyFourHour</code> 与 <code>HH:mm:ss</code>；<code>TimeFormat.Auto</code> 仍可显式选择并跟随当前 Culture。</span>
     </Notes>
 </ComponentPreview>
 
 @code {
     private TimeOnly? _time = new(9, 30);
-    private TimeFormat _format = TimeFormat.Auto;
+    private TimeFormat _format = TimeFormat.TwentyFourHour;
+    private Size _size = Size.Default;
+    private bool _fullWidth;
+    private bool _disabled;
+    private bool _invalid;
+    private const string TimeDisplayFormat = "HH:mm:ss";
 
     private static readonly ShowcaseParameter[] Parameters =
     [
         new("Value / ValueChanged", "TimeOnly? / EventCallback<TimeOnly?>", "当前时间与标准 Blazor 绑定回调。"),
         new("MinTime / MaxTime", "TimeOnly?", "同一天内的可选时间边界。"),
         new("DisabledTime", "Func<TimeOnly, bool>?", "返回 true 时禁用该候选时间。"),
-        new("Step", "TimeSpan", "候选时间间隔，必须大于零且小于一天。", "00:30:00"),
-        new("TimeFormat", "TimeFormat", "自动、12 小时或 24 小时显示。", "Auto"),
+        new("Step", "TimeSpan", "候选时间间隔；支持 1 秒到小于一天的整秒粒度。", "00:00:01"),
+        new("TimeFormat", "TimeFormat", "自动、12 小时或 24 小时显示。", "TwentyFourHour"),
         new("Format", "string?", "可选的显式 TimeOnly 显示格式。"),
+        new("CancelText / ConfirmText", "string?", "取消与确定按钮的实例级文案。"),
         new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
         new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
+        new("FullWidth", "bool", "是否占满父容器；默认按时间文本与图标紧凑显示。", "false"),
         new("ValueExpression", "Expression<Func<TimeOnly?>>?", "EditContext 字段表达式。"),
         new("Required / Invalid", "bool", "必填和无效状态。", "false")
     ];

@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.10.0`
+文档版本：`10.11.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,17 +26,18 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.10.0`。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.11.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
-解决方案文件为 [`aeterni_ui.slnx`](../aeterni_ui.slnx)，包含三个 .NET 项目：
+解决方案文件为 [`aeterni_ui.slnx`](../aeterni_ui.slnx)，包含四个 .NET 项目：
 
 | 项目 | 类型 | 作用 | 依赖关系 |
 | --- | --- | --- | --- |
 | `src/AeterniUI` | Razor Class Library | 核心组件、服务、主题、Token 和 JS module | 引用 Blazor Web 包 |
 | `src/AeterniUI.Icons.FontAwesome` | .NET Class Library | 提供 Font Awesome `IconDefinition` | 引用 `AeterniUI` |
 | `src/AeterniUI.Sample` | Blazor WebAssembly | 可交互组件画廊和宿主示例 | 引用核心库和 Font Awesome 项目 |
+| `tests/AeterniUI.ContractChecks` | .NET Console | 使用 `HtmlRenderer` 执行关键组件渲染契约回归检查 | 引用 `AeterniUI` 与 ASP.NET Core 共享框架，不引入外部测试包 |
 
 Tauri 项目不属于 `.slnx`，位于仓库根目录 [`src-tauri`](../src-tauri)，负责将已发布的 WASM 静态站点加载到桌面窗口。
 
@@ -71,6 +72,8 @@ AeterniUI/
 │       ├── Pages/                    # 首页、图标浏览、NotFound 和页面样式
 │       │   └── Components/           # 每个组件一个独立页面（路由 /components/{id}）
 │       └── wwwroot/                  # index.html、示例宿主 JS/CSS、共享展示样式和静态资源
+├── tests/
+│   └── AeterniUI.ContractChecks/      # 根属性、ARIA、焦点停留点和公开样式契约检查
 ├── src-tauri/                        # Rust/Tauri 桌面宿主
 │   ├── capabilities/                 # Tauri 权限声明
 │   ├── icons/                        # 桌面应用图标
@@ -121,6 +124,10 @@ Components/<Component>/
 - [`src/AeterniUI/Services/Impl/JsModuleManager.cs`](../src/AeterniUI/Services/Impl/JsModuleManager.cs)：组件 JS module 的扫描、加载、调用和释放。
 - [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover、Drawer 和 DialogProvider 导入。
 
+### 渲染契约检查
+
+- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 检查 DatePicker/MenuButton 根属性、Accordion ARIA/inert、DateCalendar 网格、TimeOptionList 单一 Tab 停留点和 Avatar 公开变体。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+
 ### Tauri
 
 - [`src-tauri/src/main.rs`](../src-tauri/src/main.rs)：Rust 进程入口，转发到 `app_lib::run()`。
@@ -164,6 +171,7 @@ Tauri 开发模式加载发布后的静态站点，不启动 `dotnet watch` 或�
 
 ```bash
 dotnet build aeterni_ui.slnx -c Debug --nologo
+dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
 cargo check --manifest-path src-tauri/Cargo.toml
 node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
 node scripts/check-css-comments.mjs                    # CSS 注释是否提前闭合
@@ -171,7 +179,7 @@ node scripts/check-contrast.mjs                        # 品牌色板对比度�
 node scripts/generate-fontawesome-icons.mjs --check   # 图标定义是否与生成脚本清单一致
 ```
 
-CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、所有 `.razor.js` 的 `node --check`、`scripts/check-css-comments.mjs`、`scripts/check-contrast.mjs`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。推送匹配当前版本的 `v*.*.*` tag 时，[`.github/workflows/nuget-release.yml`](../.github/workflows/nuget-release.yml) 会通过 NuGet Trusted Publishing 发布核心包和 Font Awesome 图标包。
+CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、最小组件渲染契约检查、所有 `.razor.js` 的 `node --check`、`scripts/check-css-comments.mjs`、`scripts/check-contrast.mjs`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。推送匹配当前版本的 `v*.*.*` tag 时，[`.github/workflows/nuget-release.yml`](../.github/workflows/nuget-release.yml) 会通过 NuGet Trusted Publishing 发布核心包和 Font Awesome 图标包。
 
 GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `dist/404.html`，因此直接访问或刷新深链接（例如 `/components/button`）会拿到 404 状态码的完整应用外壳。应用仍会正常启动并路由到目标页面，但浏览器控制台会记录该 404；页面内部的链接点击走框架拦截，不产生文档请求。
 
@@ -202,13 +210,13 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 ### 日期与时间选择模块
 
 - `Components/DatePicker`：`DatePicker`、`DateRangePicker` 与内部 `DateCalendar`；范围选择支持宿主提供的 `DateRangePreset` 和 1～3 个月视图。
-- `Components/TimePicker`：`TimePicker` 与内部 `TimeOptionList`，共用 `TimePickerOptions` 生成、过滤和格式化 `TimeOnly` 候选。
-- `Components/DateTimePicker`：以单一 `DateTime?` 组合日期网格与时间列表；`TimeFormat` 定义 12/24 小时策略，组件不执行时区转换。
+- `Components/TimePicker`：`TimePicker` 与内部 `TimeOptionList`，共用 `TimePickerOptions` 的整秒可用性映射、时/分/秒滚轮、过滤和格式化能力；默认 24 小时制与 `HH:mm:ss`，1 秒步长不会展开全天 DOM 列表。
+- `Components/DateTimePicker`：以单一 `DateTime?` 组合日期网格与共享时/分/秒滚轮；`TimeFormat` 定义 12/24 小时策略，组件不执行时区转换。
 
 ### 服务模块
 
 - `AeterniUIOptions`：Toast/Alert 默认位置、数量和时长，以及首访默认品牌色层。
-- `ThemeService`：`System`、`Light`、`Dark` 模式、当前实际主题，以及 `Purple`／`Green` 品牌色层。
+- `ThemeService`：`System`、`Light`、`Dark` 模式、当前实际主题，以及 `Purple`／`Green`／`Orange` 品牌色层。
 - `JsModuleManager`：按组件实例管理模块加载与释放。
 - `DialogService` / `IDialogService`：业务代码使用的弹层和通知 API。
 
@@ -224,9 +232,9 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已完成 v0.1～v0.5：`TimePicker`、`DateTimePicker`、`DateRangePicker` 快捷范围与 1～3 个月多月视图已经交付；`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
+当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。下一实施优先级从 v0.6 `Toolbar` 开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
-当前项目没有自动化测试。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
+当前项目提供最小组件渲染契约门禁，但尚未建立完整业务测试或浏览器端到端测试套件。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 
 ## 8. 文档职责和事实源
 

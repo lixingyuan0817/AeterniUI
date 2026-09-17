@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.10.0`
+文档版本：`10.11.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -112,6 +112,7 @@
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
 - `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
 - `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
+- `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
 - `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
 - 按钮圆角使用 `--aeterni-radius-button` 系列 Token，默认值为 `0.625rem`，Small/Large 与默认保持同一圆角视觉。
@@ -152,7 +153,6 @@
 
 - `Variant`（`Default` / `Subtle` / `Elevated` / `Glass`）。
 - `Elevation`（`None` / `Small` / `Medium` / `Large`）。
-- `Blur`（`Default` / `None` / `Small` / `Medium` / `Large`）。
 - `Padding`（`None` / `Small` / `Medium` / `Large` / `ExtraLarge`）。
 - `Radius`（`Default` / `None` / `Small` / `Medium` / `Large` / `ExtraLarge` / `Round`）。
 - `Bordered`。
@@ -205,7 +205,7 @@
 ### 核心内置图标集 `AeterniIcons`
 
 - 位于 `AeterniUI/Icons/AeterniIcons.cs`，是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商。
-- 提供 `Check`、`ChevronDown`、`ChevronRight`、`Xmark`、`Star`、`Info` 和 `Exclamation`。
+- 提供 `Calendar`、`Clock`、`Check`、`ChevronDown`、`ChevronRight`、`ChevronLeft`、`Xmark`、`Star`、`EmptyBox`、`Info` 和 `Exclamation`。
 - 组件内部统一通过它渲染字形，替换了此前散落在组件中的内联 SVG 和文本字符：
   - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Rating` 星形。
   - `Menu` 分组折叠指示使用 `ChevronRight`，展开时旋转 90° 变为向下，避免 180° 翻转在中间帧退化成横线。
@@ -853,17 +853,17 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 实现边界
 
-暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是撑开控件。
+暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是无限撑开控件。非全宽模式按每项最小内容宽度建列，库内置 Orange / System 等标签在常规桌面与窄屏布局中保持完整；选中胶囊在 hover/active 时使用 checked 状态色阶整块换档，普通 hover 不覆盖选中态。
 
 ## 33. Accordion
 
 ### 支持能力
 
-`Accordion` 提供可访问的折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项和唯一项 ID 校验。
+`Accordion` 提供折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项和唯一项 ID 校验。
 
 ### 行为与无障碍
 
-每个面板使用原生按钮，并通过 `aria-expanded` / `aria-controls` 建立按钮与内容关联；展开/折叠通过 CSS grid 行高与透明度过渡实现，`prefers-reduced-motion` 下自动关闭动画。
+每个面板使用原生按钮，并通过 `aria-expanded` / `aria-controls` 建立按钮与内容关联；展开/折叠通过 CSS grid 行高与透明度过渡实现，`prefers-reduced-motion` 下自动关闭动画。关闭面板显式输出 `aria-hidden="true"` 与 `inert`，内部链接、按钮和表单控件会同时退出 Tab 顺序及辅助技术可达范围。
 
 ### 实现边界
 
@@ -873,11 +873,11 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount` 和 `AriaLabel`；页码较多时显示省略号，当前页通过颜色和轻微缩放突出。
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount`、`AriaLabel`、`PreviousLabel`、`NextLabel` 和 `PageLabelFormat`；页码较多时显示省略号，当前页通过颜色和轻微缩放突出。实例文案优先于 `AeterniUITextOptions` 的全局默认值。
 
 ### 行为与无障碍
 
-输出 `aria-current="page"`、上一页/下一页禁用状态和键盘可访问按钮；`prefers-reduced-motion` 下关闭过渡。
+输出 `aria-current="page"`、上一页/下一页禁用状态和键盘可访问按钮；`prefers-reduced-motion` 下关闭过渡。上一页、页码和下一页的可访问名称来自可覆写文案，方向字形复用核心 `ChevronLeft` / `ChevronRight` 图标。
 
 ### 实现边界
 
@@ -887,15 +887,15 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写。
+`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`AriaLabel`、公共 `Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写。默认尺寸不输出修饰类，所有公开颜色（含 `Primary` / `Info`）都有对应样式。
 
 ### 行为与无障碍
 
-输出图像语义名称；使用 `Alt` 时优先作为可访问名称，未提供图片时使用姓名缩写或自定义内容的业务标签。
+图片路径只由内部 `<img alt>` 命名，外层不重复声明图像角色；姓名缩写和自定义内容路径由根元素的 `role="img"` / `aria-label` 命名。自定义内容必须通过 `AriaLabel`、`Alt` 或 `Name` 提供可访问名称，否则组件会抛出参数异常；显式空 `Alt` 可让纯装饰图片保持静默。
 
 ### 实现边界
 
-Avatar 不负责图片加载失败后的远程重试或头像组布局。示例：`/components/avatar`。
+Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸统一使用全库公共 `Size` 枚举；原 `AvatarSize.Small/Default/Large` 仅保留为已弃用且同类型的常量别名，常见 Razor 调用可以继续编译，迁移时直接替换为 `Size`。示例：`/components/avatar`。
 
 ## 36. Drawer
 
@@ -937,7 +937,7 @@ builder.Services.AddAeterniUI();
 
 ### 文案与本地化
 
-库内所有用户可见文案集中在 `AeterniUIOptions.Text`（类型 `AeterniUITextOptions`），默认值为英文；通过 `AddAeterniUI` 覆写即可整体本地化：
+库内用户可见文案集中在 `AeterniUIOptions.Text`（类型 `AeterniUITextOptions`），默认值为英文；通过 `AddAeterniUI` 覆写即可整体本地化。日期、范围、日历导航与分页文案也使用同一入口：
 
 ```csharp
 builder.Services.AddAeterniUI(options =>
@@ -948,9 +948,24 @@ builder.Services.AddAeterniUI(options =>
     options.Text.TimePickerLabel = "时间选择器";
     options.Text.TimePickerOptionsLabel = "可用时间";
     options.Text.TimePickerEmptyText = "没有可用时间";
+    options.Text.TimePickerHourLabel = "时";
+    options.Text.TimePickerMinuteLabel = "分";
+    options.Text.TimePickerSecondLabel = "秒";
+    options.Text.TimePickerCancelText = "取消";
+    options.Text.TimePickerConfirmText = "确定";
     options.Text.DateTimePickerPlaceholder = "请选择日期和时间";
     options.Text.DateTimePickerLabel = "日期时间选择器";
+    options.Text.DatePickerPlaceholder = "请选择日期";
+    options.Text.DatePickerLabel = "日期选择器";
     options.Text.DatePickerCalendarLabel = "日历";
+    options.Text.DatePickerPreviousMonthLabel = "上个月";
+    options.Text.DatePickerNextMonthLabel = "下个月";
+    options.Text.DateRangePickerLabel = "日期范围选择器";
+    options.Text.DateRangePickerPresetsLabel = "快捷范围";
+    options.Text.PaginationLabel = "分页导航";
+    options.Text.PaginationPreviousLabel = "上一页";
+    options.Text.PaginationNextLabel = "下一页";
+    options.Text.PaginationPageLabelFormat = "第 {0} 页";
     options.Text.RatingLabel = "评分";
     options.Text.ThemeSwitchLabel = "主题模式";
     options.Text.ThemeSystemLabel = "跟随系统";
@@ -989,28 +1004,28 @@ builder.Services.AddAeterniUI(options =>
 
 ### 行为与无障碍
 
-日历支持月份切换、方向键/Home/End/PageUp/PageDown 导航、Enter/Space 选择，以及日期范围选择时的悬停预览。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
+日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
 
 ### 组合关系与实现边界
 
-两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
+两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。两者都有本组件拥有的真实根元素，基类属性完整落到 DOM；Small/Default/Large、hover、focus-visible、disabled 与 invalid 状态统一消费字段控件 Token，错误态不会被指针反馈覆盖。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
 
 ## 39. TimePicker
 
 ### 支持能力
 
 - `Value` / `ValueChanged` / `ValueExpression` 绑定 `TimeOnly?`，并接入 `EditContext` 字段通知与验证状态。
-- `Step` 生成一天内的候选时间；必须大于零且短于一天。`MinTime` / `MaxTime` 定义同一天内的连续边界，`DisabledTime` 由宿主过滤具体候选项。
-- `TimeFormat` 支持 `Auto`、`TwelveHour`、`TwentyFourHour`；`Auto` 使用当前 Culture 的短时间模式，显式 `Format` 优先。
-- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和继承的 `Disabled`。默认文案来自 `AeterniUITextOptions`。
+- `Step` 定义时间精度，默认 1 秒；支持 1 秒到小于一天的整秒步长。选择面始终显示“时 / 分 / 秒”三列，较大步长只保留实际可用的刻度；`MinTime` / `MaxTime` 定义同一天内的连续边界，`DisabledTime` 由宿主过滤具体候选值。
+- `TimeFormat` 默认 `TwentyFourHour`，默认触发器格式为 `HH:mm:ss`；也支持显式选择 `Auto` 或 `TwelveHour`，显式 `Format` 始终优先。12 小时制的小时列把 AM/PM 与小时一起显示，不额外制造一列停留点。
+- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`FullWidth`、`Required`、`Invalid` 和继承的 `Disabled`。默认宽度按 `HH:mm:ss` 文本、内边距和时钟图标紧凑计算；`FullWidth=true` 时占满父容器。默认文案来自 `AeterniUITextOptions`。
 
 ### 行为与无障碍
 
-触发器使用 `aria-haspopup="listbox"` 与 `aria-expanded`；弹层中的候选项使用 `listbox` / `option` 语义并可通过键盘 Tab 或指针选择。触发器上的 ArrowUp/ArrowDown 直接选择前后可用时间，原生按钮的 Enter/Space 切换弹层，Escape 关闭。弹层复用 `PopupHost` + `Popover`，关闭后恢复触发器焦点。
+触发器使用 `aria-haspopup="dialog"` 与 `aria-expanded`；弹层内的时/分/秒滚轮组只有一个 Tab 停留点，各列使用 `listbox` / `option` 语义，根容器通过 `aria-activedescendant` 指向活动值，取消与确定按钮保持原生 Tab 顺序。列名固定在顶部；五行视窗中的选择带固定在垂直中心且只保留上下分隔线，三个当前值不再各自画框。内容在选择带后滚动并平滑吸附，上下渐隐和近大远小表达滚轮层次；首次打开则直接定位，不播放入场滚动。鼠标滚轮、触控滚动和点击只更新草稿，“确定”才回写并关闭，“取消”丢弃草稿；Left/Right 切换列，ArrowUp/ArrowDown 与 Home/End 在当前列移动，Enter/Space 等同确定。触发器上的 ArrowUp/ArrowDown 直接选择前后可用时间，Escape 关闭；弹层复用 `PopupHost` + `Popover`，关闭后恢复触发器焦点。
 
 ### 实现边界
 
-候选项从午夜起按固定步长生成；第一版只支持同一天内 `MinTime <= MaxTime` 的连续范围，不支持跨午夜范围、自由文本编辑、秒级专用界面、虚拟化或时区换算。示例：`/components/time-picker`。
+有效时间仍以午夜为锚点按固定步长计算，但内部使用一天 86,400 个整秒槽位的可用性映射并只渲染当前时/分/秒三列：1 秒步长最多输出 144 个 `option`，不会创建 86,400 个 DOM 节点。当前只支持同一天内 `MinTime <= MaxTime` 的连续范围；步长必须是整秒，不支持亚秒精度、跨午夜范围、自由文本编辑、虚拟化或时区换算。示例：`/components/time-picker`。
 
 ## 40. DateTimePicker
 
@@ -1018,20 +1033,20 @@ builder.Services.AddAeterniUI(options =>
 
 - `Value` / `ValueChanged` / `ValueExpression` 绑定单一 `DateTime?`，在一个触发器和弹层中组合内部日期网格与时间列表。
 - `MinDateTime` / `MaxDateTime` 定义边界，`DisabledDate` 禁用整天，`DisabledDateTime` 禁用具体候选值；没有任何可用时间的日期自动不可选。
-- `TimeStep`、`TimeFormat` 控制时间候选与显示；显式 `Format` 控制完整触发器文本。
-- `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。
+- `TimeStep`、`TimeFormat` 控制共享时/分/秒滚轮的精度与显示；`TimeStep` 默认 1 秒、`TimeFormat` 默认 24 小时制，完整触发器默认显示到秒，显式 `Format` 始终优先。
+- `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。
 
 ### 行为与无障碍
 
-选择日期后弹层保持打开；如果原时间在新日期不可用，自动选择当天第一个可用候选。选择时间后提交完整值并关闭弹层。日期与时间区域分别使用日历和 `listbox` 语义，Popover 负责外部点击、Escape 与焦点回归。
+选择日期后弹层保持打开；如果原时间在新日期不可用，自动选择当天最接近原时间的可用候选。日期和滚轮修改共同保存在弹层草稿中，确定后一次性提交完整值，取消或外部关闭不会改写原值。日期与时间区域分别使用完整的日历 roving-focus 和单停留点时/分/秒滚轮语义，Popover 负责外部点击、Escape 与焦点回归。
 
 ### 实现边界
 
-`Kind` 只通过 `DateTime.SpecifyKind` 标记组件创建的值，不做 UTC、本地时间或任意时区之间的转换；宿主应让 Value、Min/Max 与禁用规则使用一致的时间语义。当前不包含时区数据库、夏令时歧义处理、自由文本解析、秒级专用界面或多时区格式化。示例：`/components/date-time-picker`。
+`Kind` 只通过 `DateTime.SpecifyKind` 标记组件创建的值，不做 UTC、本地时间或任意时区之间的转换；宿主应让 Value、Min/Max 与禁用规则使用一致的时间语义。当前不包含时区数据库、夏令时歧义处理、自由文本解析、亚秒精度或多时区格式化。示例：`/components/date-time-picker`。
 
 ## 41. 当前边界
 
-- 当前项目暂不包含自动化测试，这是当前开发阶段的明确决策。
+- 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
 - `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；更复杂的 Toolbar、ToggleGroup 和 SplitButton 仍不在当前范围。

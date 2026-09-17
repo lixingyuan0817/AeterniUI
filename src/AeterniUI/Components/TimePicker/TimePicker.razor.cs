@@ -19,14 +19,17 @@ public partial class TimePicker : AeterniComponent
     [Parameter] public TimeOnly? MinTime { get; set; }
     [Parameter] public TimeOnly? MaxTime { get; set; }
     [Parameter] public Func<TimeOnly, bool>? DisabledTime { get; set; }
-    [Parameter] public TimeSpan Step { get; set; } = TimeSpan.FromMinutes(30);
-    [Parameter] public TimeFormat TimeFormat { get; set; } = TimeFormat.Auto;
+    [Parameter] public TimeSpan Step { get; set; } = TimeSpan.FromSeconds(1);
+    [Parameter] public TimeFormat TimeFormat { get; set; } = TimeFormat.TwentyFourHour;
     [Parameter] public string? Format { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string? OptionsAriaLabel { get; set; }
+    [Parameter] public string? CancelText { get; set; }
+    [Parameter] public string? ConfirmText { get; set; }
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
+    [Parameter] public bool FullWidth { get; set; }
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool Invalid { get; set; }
 
@@ -34,12 +37,16 @@ public partial class TimePicker : AeterniComponent
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
-    private IReadOnlyList<TimeOnly> Options { get; set; } = [];
+    private TimeSelectionMap _selectionMap = default!;
     private CultureInfo Culture => CultureInfo.CurrentCulture;
-    private string ResolvedFormat => string.IsNullOrWhiteSpace(Format) ? TimePickerOptions.ResolveFormat(TimeFormat, Culture) : Format.Trim();
+    private string ResolvedFormat => string.IsNullOrWhiteSpace(Format)
+        ? TimePickerOptions.ResolveFormat(TimeFormat, Culture, includeSeconds: true)
+        : Format.Trim();
     private string DisplayValue => Value?.ToString(ResolvedFormat, Culture) ?? (string.IsNullOrWhiteSpace(Placeholder) ? UiText.TimePickerPlaceholder : Placeholder.Trim());
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.TimePickerLabel : AriaLabel.Trim();
     private string EffectiveOptionsLabel => string.IsNullOrWhiteSpace(OptionsAriaLabel) ? UiText.TimePickerOptionsLabel : OptionsAriaLabel.Trim();
+    private string EffectiveCancelText => string.IsNullOrWhiteSpace(CancelText) ? UiText.TimePickerCancelText : CancelText.Trim();
+    private string EffectiveConfirmText => string.IsNullOrWhiteSpace(ConfirmText) ? UiText.TimePickerConfirmText : ConfirmText.Trim();
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || FormField?.Disabled == true;
     private bool IsRequired => Required || FormField?.Required == true;
@@ -52,12 +59,13 @@ public partial class TimePicker : AeterniComponent
         if (!Enum.IsDefined(TimeFormat)) throw new ArgumentOutOfRangeException(nameof(TimeFormat));
         if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
         if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
-        Options = TimePickerOptions.Build(Step, MinTime, MaxTime, DisabledTime);
+        _selectionMap = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime);
         UpdateEditContextSubscription();
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-time-picker")
+        .Add("is-full-width", FullWidth)
         .Add("is-disabled", IsDisabled)
         .Add("is-invalid", IsInvalid);
 
@@ -82,12 +90,18 @@ public partial class TimePicker : AeterniComponent
         return Task.CompletedTask;
     }
 
+    private Task CancelAsync()
+    {
+        _open = false;
+        return Task.CompletedTask;
+    }
+
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
         if (IsDisabled) return;
         if (args.Key is "ArrowDown" or "ArrowUp")
         {
-            var adjacent = TimePickerOptions.FindAdjacent(Options, Value, args.Key == "ArrowDown" ? 1 : -1);
+            var adjacent = _selectionMap.FindAdjacent(Value, args.Key == "ArrowDown" ? 1 : -1);
             if (adjacent.HasValue) await SelectAsync(adjacent.Value);
         }
         else if (args.Key == "Escape")

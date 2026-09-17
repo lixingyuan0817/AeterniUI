@@ -18,7 +18,10 @@
                     </span>
                 </button>
             </h3>
-            <div id="@panelId" class="aeterni-accordion__panel @(open ? "is-open" : "")" aria-hidden="@(!open)">
+            <div id="@panelId"
+                 class="aeterni-accordion__panel @(open ? "is-open" : "")"
+                 aria-hidden="@(open ? "false" : "true")"
+                 inert="@(!open)">
                 <div class="aeterni-accordion__panel-inner">
                     @item.Content
                 </div>

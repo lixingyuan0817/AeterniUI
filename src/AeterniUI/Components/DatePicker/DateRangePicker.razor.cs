@@ -24,10 +24,10 @@ public partial class DateRangePicker : AeterniComponent
     [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
     [Parameter] public IReadOnlyList<DateRangePreset> Presets { get; set; } = [];
     [Parameter] public int VisibleMonths { get; set; } = 1;
-    [Parameter] public string PresetsAriaLabel { get; set; } = "Quick ranges";
+    [Parameter] public string? PresetsAriaLabel { get; set; }
     [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
-    [Parameter] public string Placeholder { get; set; } = "Select date";
-    [Parameter] public string AriaLabel { get; set; } = "Date range picker";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
     [Parameter] public bool Required { get; set; }
@@ -42,6 +42,9 @@ public partial class DateRangePicker : AeterniComponent
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private IReadOnlyList<DateRangePreset> PresetItems => Presets ?? [];
+    private string EffectivePlaceholder => string.IsNullOrWhiteSpace(Placeholder) ? UiText.DatePickerPlaceholder : Placeholder.Trim();
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DateRangePickerLabel : AriaLabel.Trim();
+    private string EffectivePresetsAriaLabel => string.IsNullOrWhiteSpace(PresetsAriaLabel) ? UiText.DateRangePickerPresetsLabel : PresetsAriaLabel.Trim();
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;

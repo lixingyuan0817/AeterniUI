@@ -15,6 +15,8 @@ required_files=(
   "Directory.Build.props"
   "src-tauri/tauri.conf.json"
   "scripts/sample-publish.sh"
+  "tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj"
+  "tests/AeterniUI.ContractChecks/Program.cs"
 )
 
 for file in "${required_files[@]}"; do
@@ -39,7 +41,7 @@ if [[ -z "$version" ]]; then
 fi
 
 if [[ ! "$version" =~ ^10\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Version must use the 10.x.y .NET version format; found: $version" >&2
+  echo "Version must use the 10.x.y format aligned with .NET 10; found: $version" >&2
   exit 1
 fi
 
@@ -77,5 +79,13 @@ done
 grep -qE '^## [0-9]+\. Checkbox$' docs/current-features.zh-CN.md || { echo "Checkbox is missing from current features." >&2; exit 1; }
 grep -qE '^## [0-9]+\. ComboBox$' docs/current-features.zh-CN.md || { echo "ComboBox is missing from current features." >&2; exit 1; }
 grep -qE '^## [0-9]+\. Textarea$' docs/current-features.zh-CN.md || { echo "Textarea is missing from current features." >&2; exit 1; }
+
+contract_command='dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build'
+for file in AGENTS.md docs/agent-development.zh-CN.md docs/project-index.zh-CN.md .github/workflows/build.yml; do
+  grep -Fq "$contract_command" "$file" || {
+    echo "Component contract check command is missing from $file." >&2
+    exit 1
+  }
+done
 
 echo "Documentation consistency checks passed."

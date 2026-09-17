@@ -1,6 +1,6 @@
 .aeterni-date-range-picker {
     display: inline-block;
-    min-width: 14rem;
+    min-width: var(--aeterni-width-input-md);
 }
 
 .aeterni-date-range-picker__panel {
@@ -13,7 +13,7 @@
     display: grid;
     align-content: start;
     gap: var(--aeterni-spacing-1);
-    min-width: 8rem;
+    min-width: var(--aeterni-width-input-xs);
     padding-inline-end: var(--aeterni-spacing-3);
     border-inline-end: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
@@ -60,11 +60,38 @@
     width: 100%;
     min-height: var(--aeterni-height-md);
     padding: 0 var(--aeterni-spacing-2);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
     border-radius: var(--aeterni-radius-input);
-    background: var(--aeterni-bg-surface);
-    color: var(--aeterni-text-primary);
+    background: var(--aeterni-control-background);
+    color: var(--aeterni-control-foreground);
+    font: inherit;
     cursor: pointer;
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-date-picker__trigger:hover:not(:disabled):not(.is-invalid) {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.aeterni-date-picker__trigger:focus-visible {
+    outline: none;
+    border-color: var(--aeterni-control-border-focus);
+    box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-control-focus-ring);
+}
+
+.aeterni-date-picker__trigger.is-invalid {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-date-picker__trigger.is-invalid:focus-visible {
+    box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-date-picker__trigger:disabled {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+    color: var(--aeterni-control-foreground-disabled);
+    cursor: not-allowed;
 }
 
 .aeterni-date-picker__trigger.aeterni-date-picker--sm {
@@ -76,22 +103,25 @@
 }
 
 .aeterni-date-picker__trigger .is-placeholder {
-    color: var(--aeterni-text-secondary);
+    color: var(--aeterni-control-foreground-placeholder);
 }
 
 .aeterni-date-picker__icon {
     display: inline-flex;
     flex: 0 0 auto;
-    color: var(--aeterni-text-secondary);
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+    color: var(--aeterni-text-tertiary);
 }
 
-@media (max-width: 50rem) {
+/* CSS custom properties are not valid media-query thresholds, so this responsive
+   breakpoint intentionally mirrors --aeterni-breakpoint-md (768px / 48rem). */
+@media (max-width: 48rem) {
     .aeterni-date-range-picker__panel {
         flex-direction: column;
     }
 
     .aeterni-date-range-picker__presets {
-        grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(var(--aeterni-width-input-xs), 1fr));
         padding-inline-end: 0;
         padding-block-end: var(--aeterni-spacing-3);
         border-inline-end: 0;

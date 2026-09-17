@@ -1,6 +1,13 @@
 .aeterni-time-picker {
     display: inline-block;
-    min-width: 9rem;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.aeterni-time-picker.is-full-width {
+    display: block;
+    width: 100%;
 }
 
 .aeterni-time-picker__trigger {
@@ -16,22 +23,23 @@
     background: var(--aeterni-control-background);
     color: var(--aeterni-control-foreground);
     font: inherit;
+    white-space: nowrap;
     cursor: pointer;
     transition: var(--aeterni-transition-control);
 }
 
 .aeterni-time-picker__trigger:hover:not(:disabled):not(.is-invalid) {
-    border-color: var(--aeterni-state-border-hover);
+    border-color: var(--aeterni-control-border-hover);
 }
 
 .aeterni-time-picker__trigger:focus-visible {
     outline: none;
-    border-color: var(--aeterni-focus-color);
+    border-color: var(--aeterni-control-border-focus);
     box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-control-focus-ring);
 }
 
 .aeterni-time-picker__trigger.is-invalid {
-    border-color: var(--aeterni-state-border-invalid);
+    border-color: var(--aeterni-control-border-invalid);
 }
 
 .aeterni-time-picker__trigger.is-invalid:focus-visible {
@@ -39,11 +47,13 @@
 }
 
 .aeterni-time-picker__trigger:disabled {
-    color: var(--aeterni-state-color-disabled);
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+    color: var(--aeterni-control-foreground-disabled);
     cursor: not-allowed;
 }
 
 .aeterni-time-picker__trigger.aeterni-time-picker--sm { min-height: var(--aeterni-height-sm); }
 .aeterni-time-picker__trigger.aeterni-time-picker--lg { min-height: var(--aeterni-height-lg); }
 .aeterni-time-picker__trigger .is-placeholder { color: var(--aeterni-state-color-placeholder); }
-.aeterni-time-picker__icon { --aeterni-icon-render-size: 1rem; display: inline-flex; color: var(--aeterni-text-tertiary); }
+.aeterni-time-picker__icon { --aeterni-icon-render-size: var(--aeterni-icon-size-md); display: inline-flex; color: var(--aeterni-text-tertiary); }

@@ -12,9 +12,10 @@
     position: relative;
     isolation: isolate;
     box-sizing: border-box;
-    display: inline-flex;
+    display: inline-grid;
+    grid-template-columns: repeat(var(--aeterni-segmented-count, 1), minmax(max-content, 1fr));
     align-items: stretch;
-    width: fit-content;
+    width: max-content;
     max-width: 100%;
     min-height: var(--aeterni-segmented-height);
     padding: var(--aeterni-segmented-padding);
@@ -24,8 +25,9 @@
 }
 
 .aeterni-segmented.is-full-width {
-    display: flex;
+    grid-template-columns: repeat(var(--aeterni-segmented-count, 1), minmax(0, 1fr));
     width: 100%;
+    min-width: 0;
 }
 
 /* Decorative pill. Width = one column, offset = index columns; `count` therefore
@@ -65,7 +67,6 @@
     position: relative;
     z-index: 1;
     display: inline-flex;
-    flex: 1 1 0;
     align-items: center;
     justify-content: center;
     gap: var(--aeterni-spacing-1);
@@ -107,17 +108,27 @@
     white-space: nowrap;
 }
 
-.aeterni-segmented__option:hover {
+.aeterni-segmented__option:hover:not(.is-selected):not(.is-disabled) {
     background: var(--aeterni-state-background-hover);
     color: var(--aeterni-text-primary);
 }
 
-/* The selected label sits on the brand pill, so it keeps the inverse ink and does
-   not pick up the hover surface (the pill already is the hover feedback). */
-.aeterni-segmented__option.is-selected,
-.aeterni-segmented__option.is-selected:hover {
+/* The selected option keeps a transparent local surface because the shared slider
+   paints the brand fill underneath it. The root :has() rules below move that entire
+   fill (background + border) through the checked hover/active tiers. */
+.aeterni-segmented__option.is-selected {
     background: transparent;
     color: var(--aeterni-text-inverse);
+}
+
+.aeterni-segmented:has(.aeterni-segmented__option.is-selected:not(.is-disabled):hover) .aeterni-segmented__slider {
+    border-color: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-segmented:has(.aeterni-segmented__option.is-selected:not(.is-disabled):active) .aeterni-segmented__slider {
+    border-color: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-checked-active);
 }
 
 .aeterni-segmented__option:has(.aeterni-segmented__input:focus-visible) {

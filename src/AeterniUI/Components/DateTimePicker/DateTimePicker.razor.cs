@@ -21,11 +21,13 @@ public partial class DateTimePicker : AeterniComponent
     [Parameter] public DateTime? MaxDateTime { get; set; }
     [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
     [Parameter] public Func<DateTime, bool>? DisabledDateTime { get; set; }
-    [Parameter] public TimeSpan TimeStep { get; set; } = TimeSpan.FromMinutes(30);
-    [Parameter] public TimeFormat TimeFormat { get; set; } = TimeFormat.Auto;
+    [Parameter] public TimeSpan TimeStep { get; set; } = TimeSpan.FromSeconds(1);
+    [Parameter] public TimeFormat TimeFormat { get; set; } = TimeFormat.TwentyFourHour;
     [Parameter] public string? Format { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? CancelText { get; set; }
+    [Parameter] public string? ConfirmText { get; set; }
     [Parameter] public DateTimeKind Kind { get; set; } = DateTimeKind.Unspecified;
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
@@ -33,18 +35,23 @@ public partial class DateTimePicker : AeterniComponent
     [Parameter] public bool Invalid { get; set; }
 
     private bool _open;
+    private DateTime? _draftValue;
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
+    private readonly Dictionary<DateOnly, bool> _dateDisabledCache = [];
     private DateOnly _displayMonth = FirstOfMonth(DateOnly.FromDateTime(DateTime.Today));
-    private IReadOnlyList<TimeOnly> TimeOptions { get; set; } = [];
     private CultureInfo Culture => CultureInfo.CurrentCulture;
-    private DateOnly? SelectedDate => Value.HasValue ? DateOnly.FromDateTime(Value.Value) : null;
-    private TimeOnly? SelectedTime => Value.HasValue ? TimeOnly.FromDateTime(Value.Value) : null;
-    private string ResolvedTimeFormat => TimePickerOptions.ResolveFormat(TimeFormat, Culture);
+    private DateTime? WorkingValue => _open ? _draftValue : Value;
+    private DateOnly? SelectedDate => WorkingValue.HasValue ? DateOnly.FromDateTime(WorkingValue.Value) : null;
+    private TimeOnly? SelectedTime => WorkingValue.HasValue ? TimeOnly.FromDateTime(WorkingValue.Value) : null;
+    private DateOnly TimePanelDate => SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
+    private string ResolvedTimeFormat => TimePickerOptions.ResolveFormat(TimeFormat, Culture, includeSeconds: true);
     private string ResolvedFormat => string.IsNullOrWhiteSpace(Format) ? $"yyyy-MM-dd {ResolvedTimeFormat}" : Format.Trim();
     private string DisplayValue => Value?.ToString(ResolvedFormat, Culture) ?? (string.IsNullOrWhiteSpace(Placeholder) ? UiText.DateTimePickerPlaceholder : Placeholder.Trim());
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DateTimePickerLabel : AriaLabel.Trim();
+    private string EffectiveCancelText => string.IsNullOrWhiteSpace(CancelText) ? UiText.TimePickerCancelText : CancelText.Trim();
+    private string EffectiveConfirmText => string.IsNullOrWhiteSpace(ConfirmText) ? UiText.TimePickerConfirmText : ConfirmText.Trim();
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || FormField?.Disabled == true;
     private bool IsRequired => Required || FormField?.Required == true;
@@ -61,10 +68,10 @@ public partial class DateTimePicker : AeterniComponent
         if (MinDateTime.HasValue && MaxDateTime.HasValue && MinDateTime.Value > MaxDateTime.Value)
             throw new ArgumentException("The minimum date and time cannot be later than the maximum date and time.");
         TimePickerOptions.Validate(TimeStep, null, null);
+        _dateDisabledCache.Clear();
         UpdateEditContextSubscription();
         if (Value.HasValue)
             _displayMonth = FirstOfMonth(DateOnly.FromDateTime(Value.Value));
-        RefreshTimeOptions();
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
@@ -74,24 +81,51 @@ public partial class DateTimePicker : AeterniComponent
 
     private bool IsDateDisabled(DateOnly date)
     {
-        if (DisabledDate?.Invoke(date) == true) return true;
-        return BuildTimeOptions(date).Count == 0;
+        if (_dateDisabledCache.TryGetValue(date, out var cached))
+        {
+            return cached;
+        }
+
+        var disabled = DisabledDate?.Invoke(date) == true ||
+            (MinDateTime.HasValue && date < DateOnly.FromDateTime(MinDateTime.Value)) ||
+            (MaxDateTime.HasValue && date > DateOnly.FromDateTime(MaxDateTime.Value)) ||
+            !TimePickerOptions.HasAvailable(
+                TimeStep,
+                MinimumTime(date),
+                MaximumTime(date),
+                time => DisabledDateTime?.Invoke(CreateValue(date, time)) == true);
+        _dateDisabledCache[date] = disabled;
+        return disabled;
     }
 
     private async Task SelectDateAsync(DateOnly date)
     {
         if (IsDisabled || IsDateDisabled(date)) return;
         _displayMonth = FirstOfMonth(date);
-        TimeOptions = BuildTimeOptions(date);
-        var time = SelectedTime.HasValue && TimeOptions.Contains(SelectedTime.Value) ? SelectedTime.Value : TimeOptions[0];
-        await SetValueAsync(CreateValue(date, time), close: false);
+        var map = BuildTimeMap(date);
+        var time = SelectedTime.HasValue && map.Contains(SelectedTime.Value)
+            ? SelectedTime.Value
+            : map.FindClosest(SelectedTime);
+        if (time.HasValue)
+        {
+            _draftValue = CreateValue(date, time.Value);
+        }
+
+        await Task.CompletedTask;
     }
 
     private async Task SelectTimeAsync(TimeOnly time)
     {
         var date = SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
-        if (IsDisabled || IsDateDisabled(date) || !BuildTimeOptions(date).Contains(time)) return;
+        if (IsDisabled || IsDateDisabled(date) || !BuildTimeMap(date).Contains(time)) return;
         await SetValueAsync(CreateValue(date, time), close: true);
+    }
+
+    private Task UpdateDraftTimeAsync(TimeOnly time)
+    {
+        var date = SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
+        _draftValue = CreateValue(date, time);
+        return Task.CompletedTask;
     }
 
     private async Task SetValueAsync(DateTime value, bool close)
@@ -102,19 +136,25 @@ public partial class DateTimePicker : AeterniComponent
         _open = !close;
     }
 
-    private IReadOnlyList<TimeOnly> BuildTimeOptions(DateOnly date) =>
-        TimePickerOptions.Build(TimeStep, null, null, time => IsDateTimeDisabled(CreateValue(date, time)));
+    private TimeSelectionMap BuildTimeMap(DateOnly date) =>
+        TimePickerOptions.CreateMap(
+            TimeStep,
+            MinimumTime(date),
+            MaximumTime(date),
+            time => DisabledDateTime?.Invoke(CreateValue(date, time)) == true);
 
-    private bool IsDateTimeDisabled(DateTime value) =>
-        (MinDateTime.HasValue && value < MinDateTime.Value) ||
-        (MaxDateTime.HasValue && value > MaxDateTime.Value) ||
-        DisabledDateTime?.Invoke(value) == true;
+    private TimeOnly? MinimumTime(DateOnly date) =>
+        MinDateTime.HasValue && DateOnly.FromDateTime(MinDateTime.Value) == date
+            ? TimeOnly.FromDateTime(MinDateTime.Value)
+            : null;
 
-    private void RefreshTimeOptions()
-    {
-        var date = SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
-        TimeOptions = DisabledDate?.Invoke(date) == true ? [] : BuildTimeOptions(date);
-    }
+    private TimeOnly? MaximumTime(DateOnly date) =>
+        MaxDateTime.HasValue && DateOnly.FromDateTime(MaxDateTime.Value) == date
+            ? TimeOnly.FromDateTime(MaxDateTime.Value)
+            : null;
+
+    private bool IsPanelTimeDisabled(TimeOnly time) =>
+        DisabledDate?.Invoke(TimePanelDate) == true || DisabledDateTime?.Invoke(CreateValue(TimePanelDate, time)) == true;
 
     private DateTime CreateValue(DateOnly date, TimeOnly time) => DateTime.SpecifyKind(date.ToDateTime(time), Kind);
     private static DateOnly FirstOfMonth(DateOnly date) => new(date.Year, date.Month, 1);
@@ -127,13 +167,33 @@ public partial class DateTimePicker : AeterniComponent
 
     private Task ToggleAsync()
     {
-        if (!IsDisabled) _open = !_open;
+        if (!IsDisabled)
+        {
+            if (!_open)
+            {
+                _draftValue = Value;
+            }
+
+            _open = !_open;
+        }
         return Task.CompletedTask;
     }
 
     private Task HandleOpenChanged(bool open)
     {
+        if (open && !_open)
+        {
+            _draftValue = Value;
+        }
+
         _open = open;
+        return Task.CompletedTask;
+    }
+
+    private Task CancelAsync()
+    {
+        _draftValue = Value;
+        _open = false;
         return Task.CompletedTask;
     }
 

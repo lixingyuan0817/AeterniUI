@@ -27,6 +27,21 @@ public sealed class AeterniUITextOptions
     /// <summary>Message shown when no time option is available.</summary>
     public string TimePickerEmptyText { get; set; } = "No available times";
 
+    /// <summary>Visible and accessible label of the hour column.</summary>
+    public string TimePickerHourLabel { get; set; } = "Hour";
+
+    /// <summary>Visible and accessible label of the minute column.</summary>
+    public string TimePickerMinuteLabel { get; set; } = "Minute";
+
+    /// <summary>Visible and accessible label of the second column.</summary>
+    public string TimePickerSecondLabel { get; set; } = "Second";
+
+    /// <summary>Label of the time picker's cancel action.</summary>
+    public string TimePickerCancelText { get; set; } = "Cancel";
+
+    /// <summary>Label of the time picker's confirm action.</summary>
+    public string TimePickerConfirmText { get; set; } = "Confirm";
+
     /// <summary>Trigger text of a <c>DateTimePicker</c> that has no value yet.</summary>
     public string DateTimePickerPlaceholder { get; set; } = "Select date and time";
 
@@ -35,6 +50,39 @@ public sealed class AeterniUITextOptions
 
     /// <summary>Accessible name of a date calendar.</summary>
     public string DatePickerCalendarLabel { get; set; } = "Calendar";
+
+    /// <summary>Trigger text of a <c>DatePicker</c> that has no value yet.</summary>
+    public string DatePickerPlaceholder { get; set; } = "Select date";
+
+    /// <summary>Accessible name of a <c>DatePicker</c>.</summary>
+    public string DatePickerLabel { get; set; } = "Date picker";
+
+    /// <summary>Accessible name of a <c>DateRangePicker</c>.</summary>
+    public string DateRangePickerLabel { get; set; } = "Date range picker";
+
+    /// <summary>Accessible name of the quick-range group.</summary>
+    public string DateRangePickerPresetsLabel { get; set; } = "Quick ranges";
+
+    /// <summary>Accessible name of the previous-month calendar action.</summary>
+    public string DatePickerPreviousMonthLabel { get; set; } = "Previous month";
+
+    /// <summary>Accessible name of the next-month calendar action.</summary>
+    public string DatePickerNextMonthLabel { get; set; } = "Next month";
+
+    /// <summary>Accessible name of a pagination navigation region.</summary>
+    public string PaginationLabel { get; set; } = "Pagination";
+
+    /// <summary>Accessible name of the previous-page action.</summary>
+    public string PaginationPreviousLabel { get; set; } = "Previous page";
+
+    /// <summary>Accessible name of the next-page action.</summary>
+    public string PaginationNextLabel { get; set; } = "Next page";
+
+    /// <summary>
+    /// Composite format for a page button's accessible name. Placeholder {0}
+    /// receives the one-based page number.
+    /// </summary>
+    public string PaginationPageLabelFormat { get; set; } = "Page {0}";
 
     /// <summary>Accessible name of a <c>Rating</c> group.</summary>
     public string RatingLabel { get; set; } = "Rating";
@@ -108,9 +156,24 @@ public sealed class AeterniUITextOptions
         TimePickerLabel = Or(TimePickerLabel, defaults.TimePickerLabel);
         TimePickerOptionsLabel = Or(TimePickerOptionsLabel, defaults.TimePickerOptionsLabel);
         TimePickerEmptyText = Or(TimePickerEmptyText, defaults.TimePickerEmptyText);
+        TimePickerHourLabel = Or(TimePickerHourLabel, defaults.TimePickerHourLabel);
+        TimePickerMinuteLabel = Or(TimePickerMinuteLabel, defaults.TimePickerMinuteLabel);
+        TimePickerSecondLabel = Or(TimePickerSecondLabel, defaults.TimePickerSecondLabel);
+        TimePickerCancelText = Or(TimePickerCancelText, defaults.TimePickerCancelText);
+        TimePickerConfirmText = Or(TimePickerConfirmText, defaults.TimePickerConfirmText);
         DateTimePickerPlaceholder = Or(DateTimePickerPlaceholder, defaults.DateTimePickerPlaceholder);
         DateTimePickerLabel = Or(DateTimePickerLabel, defaults.DateTimePickerLabel);
         DatePickerCalendarLabel = Or(DatePickerCalendarLabel, defaults.DatePickerCalendarLabel);
+        DatePickerPlaceholder = Or(DatePickerPlaceholder, defaults.DatePickerPlaceholder);
+        DatePickerLabel = Or(DatePickerLabel, defaults.DatePickerLabel);
+        DateRangePickerLabel = Or(DateRangePickerLabel, defaults.DateRangePickerLabel);
+        DateRangePickerPresetsLabel = Or(DateRangePickerPresetsLabel, defaults.DateRangePickerPresetsLabel);
+        DatePickerPreviousMonthLabel = Or(DatePickerPreviousMonthLabel, defaults.DatePickerPreviousMonthLabel);
+        DatePickerNextMonthLabel = Or(DatePickerNextMonthLabel, defaults.DatePickerNextMonthLabel);
+        PaginationLabel = Or(PaginationLabel, defaults.PaginationLabel);
+        PaginationPreviousLabel = Or(PaginationPreviousLabel, defaults.PaginationPreviousLabel);
+        PaginationNextLabel = Or(PaginationNextLabel, defaults.PaginationNextLabel);
+        PaginationPageLabelFormat = Or(PaginationPageLabelFormat, defaults.PaginationPageLabelFormat);
         RatingLabel = Or(RatingLabel, defaults.RatingLabel);
         TabsLabel = Or(TabsLabel, defaults.TabsLabel);
         ThemeSwitchLabel = Or(ThemeSwitchLabel, defaults.ThemeSwitchLabel);
