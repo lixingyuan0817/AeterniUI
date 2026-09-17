@@ -9,15 +9,21 @@
 <ComponentPreview AnchorId="date-picker" Category="表单组件" Title="DatePicker / DateRangePicker" ComponentName="DatePicker / DateRangePicker" Description="使用 DateOnly 的单日和日期范围选择控件。" Parameters="@Parameters">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
-            <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期" />
+            <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期" Size="@_size" Disabled="@_disabled" Invalid="@_invalid" />
             <DateRangePicker @bind-StartDate="_startDate"
                              @bind-EndDate="_endDate"
                              MinDate="@MinDate"
                              MaxDate="@MaxDate"
                              VisibleMonths="2"
-                             Presets="@Presets"
-                             PresetsAriaLabel="快捷日期范围"
-                             AriaLabel="选择日期范围" />
+                             AriaLabel="选择日期范围"
+                             Size="@_size"
+                             Disabled="@_disabled"
+                             Invalid="@_invalid" />
+            <div class="preview-state-row" aria-label="日期控件尺寸对照">
+                <DatePicker Value="@_date" Size="Size.Small" AriaLabel="小号日期选择" />
+                <DatePicker Value="@_date" AriaLabel="默认日期选择" />
+                <DatePicker Value="@_date" Size="Size.Large" AriaLabel="大号日期选择" />
+            </div>
             <span class="preview-feedback" role="status">单日：@(_date?.ToString("yyyy-MM-dd") ?? "未选择")；范围：@(_startDate?.ToString("yyyy-MM-dd") ?? "未选择") – @(_endDate?.ToString("yyyy-MM-dd") ?? "未选择")</span>
             <EditForm Model="_validationModel" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
@@ -34,9 +40,18 @@
             </EditForm>
         </div>
     </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="date-picker-size" AriaLabel="DatePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+    </Controls>
     <Notes>
         <span>值类型为 <code>DateOnly?</code>，日历通过 <code>PopupHost + Popover</code> 承载。</span>
-        <span>范围选择器以双月视图展示，并由宿主提供“未来 7 天”和“未来 30 天”快捷范围；组件不内置业务日期规则。</span>
+        <span>范围选择器以双月视图直接选择开始与结束日期，示例不提供预设快捷范围。</span>
+        <span>打开日历后可用方向键、Home/End、PageUp/PageDown 连续移动真实焦点；窄屏下双月视图会改为单列。</span>
     </Notes>
 </ComponentPreview>
 
@@ -45,14 +60,11 @@
     private DateOnly? _date = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly? _startDate;
     private DateOnly? _endDate;
+    private Size _size = Size.Default;
+    private bool _disabled;
+    private bool _invalid;
     private DateOnly MinDate => _today.AddDays(-90);
     private DateOnly MaxDate => _today.AddDays(90);
-    private IReadOnlyList<DateRangePreset> Presets =>
-    [
-        new("未来 7 天", _today, _today.AddDays(6)),
-        new("未来 30 天", _today, _today.AddDays(29))
-    ];
-
     private readonly DateValidationModel _validationModel = new();
 
     private bool _validationSubmitted;
@@ -77,7 +89,7 @@
         new("Presets", "IReadOnlyList<DateRangePreset>", "宿主提供的快捷范围；仅 DateRangePicker。"),
         new("VisibleMonths", "int", "同时显示的月份数，范围 1–3；仅 DateRangePicker。", "1"),
         new("Format", "string", "显示格式。", "yyyy-MM-dd"),
-        new("Placeholder", "string", "未选择时的占位文本。", "Select date"),
+        new("Placeholder", "string?", "未选择时的占位文本；缺省取全局文案表。"),
         new("Placement", "PopupPlacement", "日历弹层方位。", "BottomStart"),
         new("Size", "Size", "控件尺寸档位。", "Default"),
         new("ValueExpression / *Expression", "Expression<Func<DateOnly?>>?", "EditContext 字段表达式；配合 FormField 与 DataAnnotationsValidator 使用。"),

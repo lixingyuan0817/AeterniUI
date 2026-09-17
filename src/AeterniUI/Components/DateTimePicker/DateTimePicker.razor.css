@@ -1,6 +1,6 @@
 .aeterni-date-time-picker {
     display: inline-block;
-    min-width: 14rem;
+    min-width: var(--aeterni-width-input-md);
 }
 
 .aeterni-date-time-picker__trigger {
@@ -20,26 +20,28 @@
     transition: var(--aeterni-transition-control);
 }
 
-.aeterni-date-time-picker__trigger:hover:not(:disabled):not(.is-invalid) { border-color: var(--aeterni-state-border-hover); }
-.aeterni-date-time-picker__trigger:focus-visible { outline: none; border-color: var(--aeterni-focus-color); box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-control-focus-ring); }
-.aeterni-date-time-picker__trigger.is-invalid { border-color: var(--aeterni-state-border-invalid); }
+.aeterni-date-time-picker__trigger:hover:not(:disabled):not(.is-invalid) { border-color: var(--aeterni-control-border-hover); }
+.aeterni-date-time-picker__trigger:focus-visible { outline: none; border-color: var(--aeterni-control-border-focus); box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-control-focus-ring); }
+.aeterni-date-time-picker__trigger.is-invalid { border-color: var(--aeterni-control-border-invalid); }
 .aeterni-date-time-picker__trigger.is-invalid:focus-visible { box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color-invalid); }
-.aeterni-date-time-picker__trigger:disabled { color: var(--aeterni-state-color-disabled); cursor: not-allowed; }
+.aeterni-date-time-picker__trigger:disabled { border-color: var(--aeterni-control-border-disabled); background: var(--aeterni-control-background-disabled); color: var(--aeterni-control-foreground-disabled); cursor: not-allowed; }
 .aeterni-date-time-picker__trigger.aeterni-date-time-picker--sm { min-height: var(--aeterni-height-sm); }
 .aeterni-date-time-picker__trigger.aeterni-date-time-picker--lg { min-height: var(--aeterni-height-lg); }
 .aeterni-date-time-picker__trigger .is-placeholder { color: var(--aeterni-state-color-placeholder); }
-.aeterni-date-time-picker__icon { --aeterni-icon-render-size: 1rem; display: inline-flex; color: var(--aeterni-text-tertiary); }
+.aeterni-date-time-picker__icon { --aeterni-icon-render-size: var(--aeterni-icon-size-md); display: inline-flex; color: var(--aeterni-text-tertiary); }
 
 .aeterni-date-time-picker__panel {
     display: grid;
-    grid-template-columns: minmax(16rem, 1fr) auto minmax(8rem, auto);
+    grid-template-columns: minmax(var(--aeterni-width-input-md), 1fr) auto minmax(var(--aeterni-width-input-xs), auto);
     gap: var(--aeterni-spacing-3);
     align-items: stretch;
 }
 
 .aeterni-date-time-picker__divider { width: var(--aeterni-border-width); background: var(--aeterni-separator); }
 
-@media (max-width: 36rem) {
+/* CSS custom properties are not valid media-query thresholds, so this responsive
+   breakpoint intentionally mirrors --aeterni-breakpoint-sm (640px / 40rem). */
+@media (max-width: 40rem) {
     .aeterni-date-time-picker__panel { grid-template-columns: 1fr; }
     .aeterni-date-time-picker__divider { width: auto; height: var(--aeterni-border-width); }
 }

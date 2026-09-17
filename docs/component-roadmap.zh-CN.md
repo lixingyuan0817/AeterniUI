@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.10.0`
+文档版本：`10.11.0`
 
-状态：v0.1～v0.5 已完成；v0.6～v0.7 进入后续规划；组件审阅待办五轮已全部修复，见 `component-review-todo.zh-CN.md`
+状态：v0.1～v0.5 的功能清单已交付；第六轮组件审阅发现的质量缺口进入优先收口；v0.6～v0.7 保持规划中，见 `component-review-todo.zh-CN.md`
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -143,7 +143,7 @@ Input
 
 ## 第二阶段（v0.2）计划
 
-状态：规划中。功能新增将递增次版本号（例如 `10.0.0` → `10.1.0`）；问题修复递增补丁版本号（例如 `10.0.0` → `10.0.1`）；破坏性公共 API 变更递增主版本号（例如 `10.0.0` → `11.0.0`）。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐高频基础控件与浮层能力。
+状态：已完成。版本首位与目标 .NET 主版本对齐（当前固定为 `10`）；功能新增递增第二位（例如 `10.0.0` → `10.1.0`），问题修复与优化递增第三位（例如 `10.0.0` → `10.0.1`）。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐了高频基础控件与浮层能力。
 
 ### TODO 总览
 
@@ -324,6 +324,8 @@ Input/Input 样式族
 | v10.9.0 发布（磨砂配方解耦与填充降档） | 已完成 | 通过 | 版本号在 `Directory.Build.props` 单一来源递增 `10.8.0` → `10.9.0` （`Version`／`AssemblyVersion`／`FileVersion`／`InformationalVersion` 四处齐动）， 四份门禁文档的「文档版本」与 `project-index` 的「当前版本」同步， `component-review-todo` 一并跟进，README 的发布示例改为 `v10.9.0`； `bash scripts/check-docs.sh`（版本格式 `^10\.[0-9]+\.[0-9]+$` 与四文档一致性）与 `dotnet build aeterni_ui.slnx` 通过； 在 main 上打注解 tag `v10.9.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 props 版本， 再用 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`。 按仓库约定「功能新增递增次版本号」，本批（玻璃配方三轴解耦、on-glass 墨阶梯与磨砂填充降档）为 minor： 相对已发布的 `10.8.0` 无破坏性公共 API 变更——被撤销的 `Blur` 轴是同一批内引入、从未出现在任何已发布版本里，故不递增主版本号 |
 
 | v10.10.0 / v0.5 日期与时间输入 | 已完成 | 通过 | 新增 `TimePicker`、`DateTimePicker`、`TimeFormat` 与 `DateRangePreset`；`DateRangePicker` 补充宿主定义快捷范围和 1～3 个月视图；示例、文案、功能事实源和项目索引同步。版本单一来源由 `10.9.0` 递增为 `10.10.0`。验证：`dotnet build aeterni_ui.slnx --no-restore` 0 警告/0 错误，`check-docs.sh`、`check-css-comments.mjs`（52 个 CSS 文件）、`check-contrast.mjs`（99 项）与 Font Awesome 生成一致性检查全部通过 |
+| v10.10.1 / v0.5.1 质量收口 | 已完成 | 通过 | 完成 REV-64～REV-73、REV-75～REV-76：恢复 DatePicker/MenuButton 根契约，补齐 Accordion、DateCalendar、TimeOptionList 焦点与 ARIA，统一日期字段状态、Segmented 选中态、文案与尺寸 Token，扩充示例，并新增 `AeterniUI.ContractChecks` CI 门禁。按项目版本约定，本批属于现有能力修复与优化，版本单一来源由 `10.10.0` 递增为 `10.10.1`；首位继续与 .NET 10 对齐。验证：`dotnet build aeterni_ui.slnx` 0 警告/0 错误，6 组渲染契约检查、全部 `.razor.js` 语法、文档、52 个 CSS 文件注释、99 项品牌对比度、Font Awesome 343 图标一致性和 Token-only 检查全部通过；无头 Chrome 复核 1440px 浅色/深色与 390px 窄屏布局。 |
+| v10.11.0 / TimePicker 时分秒滚轮 | 已完成 | 通过 | `TimePicker` / `DateTimePicker` 默认步长由 30 分钟调整为 1 秒，默认显示策略改为 24 小时制和 `HH:mm:ss`；保留 `Step` / `TimeStep` 的 `TimeSpan` API，并支持 1 秒到小于一天的整秒步长。内部选择面从全天扁平列表改为类似系统计时器的时/分/秒三列滚轮，具有五行视窗、顶部中文单位、无圆角且无左右边框的固定中心选择带、平滑吸附、上下渐隐和近大远小反馈，并提供取消/确定按钮与不污染绑定值的草稿状态；1 秒步长最多渲染 24 + 60 + 60 个当前列选项而不是 86,400 个时间点。触发器默认按时间文本与图标紧凑显示，新增 `FullWidth` 作为显式铺满入口；DateRangePicker 示例移除“最近/未来 7 天、30 天”业务预设，仅保留直接范围选择，通用 `Presets` API 仍由宿主按业务需要提供。左右键切列，上下键/Home/End 改值，Enter/Space 确认。按版本规范属于同一批功能扩展，版本保持 `10.11.0`。验证：解决方案构建 0 警告/0 错误，6 组组件契约、全部 JS/CSS/文档/对比度/图标门禁通过；无头 Chrome 实测三列中心与选择带中心完全重合，`00:00:00`、`23:59:59` 均可滚动选中，取消不回写、确定后关闭并更新触发器。 |
 
 ## 第三阶段（v0.3）计划
 
@@ -331,7 +333,7 @@ Input/Input 样式族
 
 进度：15 `Divider`、16 `Empty`、17 `Spinner`、18 `Skeleton`、19 `Badge` 已在 v10.6 交付；20 `Segmented`（含 `ThemeSwitch` 重构）与 21 `Drawer` 在 v10.7 交付。
 
-版本规则沿用第二阶段：功能新增递增次版本号；问题修复递增补丁版本号；破坏性公共 API 变更递增主版本号。
+版本规则沿用第二阶段：首位跟随目标 .NET 主版本，功能新增递增第二位，问题修复与优化递增第三位；破坏性公共 API 变更应优先避免或提供兼容迁移。
 
 ### TODO 总览
 
@@ -509,7 +511,57 @@ Token 和现有基础组件
 
 ## 第五阶段交付与后续规划（v0.5～v0.7）
 
-状态：v0.5 已完成；v0.6～v0.7 仍为规划。本节中只有标记为已完成的 v0.5 能力属于当前公共表面，其余阶段不代表组件已经实现。
+状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6～v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
+
+### 后续计划与实施优先级
+
+以下优先级表示**实施顺序**，不替代审阅待办中的 P0～P3 严重度。原则是先恢复已发布组件的基础契约和键盘可用性，再扩充新的公共组件面。
+
+| 实施优先级 | 计划 | 当前状态 | 排序依据 |
+| --- | --- | --- | --- |
+| 优先级 0 | v0.5.1 质量收口（REV-64～REV-73、REV-75～REV-76） | 已完成 | 已恢复根属性、键盘焦点、折叠内容可达性、视觉状态和本地化契约，并加入最小渲染回归门禁 |
+| 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | 未开始 | 先沉淀共享的复合控件焦点模型；`SplitButton` 依赖 `MenuButton` 的质量收口 |
+| 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 未开始 | 两者相对独立，但需要先明确链接导航与流程状态的公共边界 |
+| 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 未开始 | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
+
+文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划从优先级 1 的 v0.6 动作编排开始。
+
+### v0.5.1 质量收口（优先级 0）
+
+目标：在新增组件前关闭第六轮审阅发现的现有组件缺口。详细证据、修复方向和逐项验收见 [`component-review-todo.zh-CN.md`](component-review-todo.zh-CN.md) 的 REV-64～REV-76。
+
+交付顺序：
+
+1. **可见视觉阻断项（P0）**
+   - [x] REV-69 `DatePicker` / `DateRangePicker`：对齐字段控件的 hover、focus-visible、disabled、invalid、过渡和 Token。
+   - [x] REV-71 `Segmented` / 主题切换：修正内置标签截断与选中态 hover/active 整块换档。
+2. **基础契约与可访问性（P1）**
+   - [x] REV-64 `DatePicker`：恢复根元素 `BuildAttributes()`、CSS isolation 和 `Element` 契约。
+   - [x] REV-65 `MenuButton`：恢复根元素 class/style/visible/disabled/full-width 等基类与组件状态契约。
+   - [x] REV-66 `Accordion`：关闭面板退出键盘与辅助技术可达范围，ARIA 布尔值输出字符串。
+   - [x] REV-67 `DateCalendar`：方向键后移动真实 DOM 焦点，并修正 grid 行/单元格语义。
+   - [x] REV-68 `TimeOptionList`：改为单一 Tab 停留点的 listbox 焦点模型，补方向键/Home/End。
+   - [x] REV-70 `Avatar`：收敛尺寸枚举、默认类和颜色变体，修正图片/容器重复命名与自定义内容名称。
+3. **一致性、示例与防回归（P1/P2）**
+   - [x] REV-72 日期、范围、日历导航和分页文案进入 `AeterniUITextOptions`；分页箭头改用核心图标。
+   - [x] REV-73 日期/时间组件裸尺寸收敛到既有 Token，必要的几何例外补注释。
+   - [x] REV-75 Accordion、Avatar、Pagination 与日期/时间示例补齐禁用、错误、键盘、窄屏和 reduced-motion 验收状态。
+   - [x] REV-76 增加最小化渲染契约回归门禁，覆盖根属性透传、ARIA 字符串、焦点停留点和公开修饰类/样式匹配；不在此阶段扩张为业务测试套件。
+
+依赖顺序：
+
+```text
+DatePicker / MenuButton 根契约
+  +--> 日期字段视觉状态
+  +--> SplitButton 的稳定组合基础
+Accordion / DateCalendar / TimeOptionList 焦点语义
+  +--> Toolbar / ToggleGroup 的共享键盘模型
+本地化 + Token 收敛
+  +--> 示例状态矩阵
+          +--> 最小化渲染契约门禁
+```
+
+完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后下一实施项为 v0.6 `Toolbar`。
 
 ### 规划原则
 
@@ -545,12 +597,15 @@ DateCalendar 多月/快捷范围能力
 
 目标：覆盖工具栏和复杂动作入口，补齐现有 Button、ButtonGroup、Segmented、MenuButton 之间的组合空白。
 
-建议顺序：
+状态：未开始（0/5）。
 
-1. `Toolbar`：工具栏分组、`role="toolbar"`、方向键导航、组内 Tab 停留点、溢出区域语义。
-2. `ToggleGroup`：单选/多选两种模式、方向键、`aria-pressed`/`aria-checked` 契约；与 `Segmented` 的边界必须先定为“按钮动作切换”与“表单值选择”。
-3. `SplitButton`：主动作 + 菜单动作，复用 `Button`、`MenuButton`、`PopupHost`，明确主按钮与菜单按钮的独立名称和禁用状态。
-4. `Breadcrumb` / `Stepper`：分别服务于层级导航和线性流程，不把路由跳转或流程状态管理内置到组件库。
+计划顺序：
+
+1. [ ] `Toolbar`：工具栏分组、`role="toolbar"`、方向键导航、组内 Tab 停留点、溢出区域语义。
+2. [ ] `ToggleGroup`：单选/多选两种模式、方向键、`aria-pressed`/`aria-checked` 契约；与 `Segmented` 的边界必须先定为“按钮动作切换”与“表单值选择”。
+3. [ ] `SplitButton`：主动作 + 菜单动作，复用 `Button`、`MenuButton`、`PopupHost`，明确主按钮与菜单按钮的独立名称和禁用状态。
+4. [ ] `Breadcrumb`：服务于层级导航，不把路由跳转内置到组件库。
+5. [ ] `Stepper`：服务于线性流程，不把业务流程状态管理内置到组件库。
 
 依赖顺序：
 
@@ -569,11 +624,13 @@ Tabs / Menu 语义与键盘模型
 
 目标：在完成时间和动作基础后，补齐从关键词输入到结果选择的搜索组件能力；搜索结果的数据获取、缓存和业务状态仍由宿主应用负责。
 
-建议顺序：
+状态：未开始（0/3）。
 
-1. `Search`：关键词输入、清除、提交、搜索状态和可访问名称；优先复用 `Input`、`Button`、`IconButton` 与现有表单校验语义。
-2. `Autocomplete`：自由输入、建议列表、键盘导航、异步结果由宿主通过参数/回调提供；复用 `Search` 的输入状态与 `PopupHost` + `List` 语义。
-3. `MultiSelect`：多值绑定、已选项展示、移除操作、全选/清空策略；与现有纯下拉 `ComboBox` 保持明确边界。
+计划顺序：
+
+1. [ ] `Search`：关键词输入、清除、提交、搜索状态和可访问名称；优先复用 `Input`、`Button`、`IconButton` 与现有表单校验语义。
+2. [ ] `Autocomplete`：自由输入、建议列表、键盘导航、异步结果由宿主通过参数/回调提供；复用 `Search` 的输入状态与 `PopupHost` + `List` 语义。
+3. [ ] `MultiSelect`：多值绑定、已选项展示、移除操作、全选/清空策略；与现有纯下拉 `ComboBox` 保持明确边界。
 
 依赖顺序：
 

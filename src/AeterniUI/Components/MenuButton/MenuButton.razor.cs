@@ -50,12 +50,22 @@ public partial class MenuButton : AeterniComponent
     [Parameter]
     public bool FullWidth { get; set; }
 
-    protected override bool SupportsDisabled => true;
-
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-menu-button")
         .Add("is-open", EffectiveOpen)
+        .Add("is-disabled", Disabled || Loading)
         .Add("is-full-width", FullWidth);
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase);
+        if (Disabled || Loading)
+        {
+            attributes["aria-disabled"] = "true";
+        }
+
+        return attributes;
+    }
 
     private string MenuId => $"{ElementId}-menu";
 

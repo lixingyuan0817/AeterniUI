@@ -26,6 +26,7 @@
 ## 3. 提交前自检清单
 
 - [ ] `dotnet build aeterni_ui.slnx` 通过（0 error；目标 0 warning）。
+- [ ] `dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build` 通过（根属性、ARIA、焦点或公开变体改动时必须运行）。
 - [ ] 变更了 `.razor.js` 时 `node --check` 通过（CI 也会做）。
 - [ ] 变更了 `.css` 时 `node scripts/check-css-comments.mjs` 通过（CI 也会做）。
 - [ ] 变更了品牌色阶或新增了 `[data-aeterni-brand="…"]` 色相层时 `node scripts/check-contrast.mjs` 通过（CI 也会做）；余量低于 1.1× 的色相层已在自己的注释块里写明该对比度。
@@ -39,9 +40,10 @@
 
 组件库版本采用 .NET SDK 版本属性统一管理，来源为根目录 `Directory.Build.props`。
 
-- 功能新增：递增次版本号，例如 `10.0.0` → `10.1.0`。
-- 问题修复：递增补丁版本号，例如 `10.0.0` → `10.0.1`。
-- 破坏性公共 API 变更：递增主版本号，例如 `10.0.0` → `11.0.0`。
+- 第一位固定与目标 .NET 主版本一致；当前目标为 .NET 10，因此保持 `10`。
+- 功能新增：递增第二位，例如 `10.0.0` → `10.1.0`。
+- 问题修复与优化：递增第三位，例如 `10.0.0` → `10.0.1`。
+- 破坏性公共 API 变更应优先避免或提供兼容迁移；版本号仍遵循上述项目规则，不能用第一位脱离目标 .NET 版本。
 - 文档、重构或内部实现变更：根据是否影响公共行为决定是否递增版本。
 - 提交功能或修复时，在提交说明或发布说明中标记版本影响；不要在各个项目文件中分别维护版本。
 
@@ -49,6 +51,7 @@
 
 ```bash
 dotnet build aeterni_ui.slnx                       # 静态检查主门禁
+dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build # 最小组件渲染契约
 bash scripts/check-docs.sh                         # 文档一致性门禁（CI 同款）
 ./scripts/sample-publish.sh Debug                  # 重新生成 dist/（Tauri/静态预览用）
 cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
@@ -67,13 +70,14 @@ node scripts/generate-fontawesome-icons.mjs --check # 图标清单与生成文�
 - `docs/component-roadmap.zh-CN.md`：完成路线图任务或改变规划时更新。
 - `docs/project-index.zh-CN.md`：仅在新增目录、服务、入口、宿主或命令时更新。
 - `README.md`：仅在安装、启动或对外入口变化时更新。
-- 版本：功能新增递增次版本，问题修复递增补丁版本；破坏性 API 递增主版本；内部文档或重构按是否影响公共行为决定。
+- 版本：首位跟随目标 .NET 主版本，功能新增递增第二位，问题修复与优化递增第三位；内部文档或重构按是否影响公共行为决定。
 
 ## 7. CI 兜底（.github/workflows/build.yml）
 
 推送/PR 时会自动执行：
 
 - `dotnet build aeterni_ui.slnx`
+- `dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build`
 - 对所有 `.razor.js` 做 `node --check`
 - `node scripts/check-css-comments.mjs`（CSS 注释提前闭合检查）
 - `node scripts/check-contrast.mjs`（品牌色板在浅色／深色／系统深色下的承字与图形对比度实测）

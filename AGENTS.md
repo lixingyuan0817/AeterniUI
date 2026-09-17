@@ -95,12 +95,15 @@ Tauri 配置文件是 `src-tauri/tauri.conf.json`，其中 `frontendDist` 指向
 
 用户可能正在运行 Tauri 热重载。未经明确批准，不要终止其进程或执行破坏性清理。
 
-针对窄范围修改，先执行静态检查。当前项目没有自动化测试。需要构建时使用：
+针对窄范围修改，先执行静态检查。当前项目只有最小组件渲染契约检查，没有完整业务或端到端测试套件。需要构建时使用：
 
 ```bash
 dotnet build aeterni_ui.slnx
+dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
 bash scripts/check-docs.sh
 ```
+
+其中 `AeterniUI.ContractChecks` 是不依赖外部浏览器服务的最小组件渲染契约门禁，不是完整业务或端到端测试套件；修改根属性、ARIA、复合控件焦点模型或公开样式变体时必须运行。
 
 `check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性、Tauri 路径与关键组件章节，
 修改文档或项目结构后必须执行。另外四项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
@@ -137,6 +140,15 @@ node scripts/generate-fontawesome-icons.mjs --check
 - 没有具体需求时，不要用新框架或依赖替换现有项目架构。
 - 不要提交生成的 `bin`、`obj`、`target`、IDE 或机器本地文件。
 - 公共 API 或组件能力变化时，更新对应的中文文档。
+
+## 版本规范
+
+- 版本号由根目录 `Directory.Build.props` 单一维护，`Version`、`AssemblyVersion`、`FileVersion` 与 `InformationalVersion` 必须同步。
+- 第一位固定与目标 .NET 主版本一致；项目当前目标为 .NET 10，因此版本第一位只能是 `10`，不得把它当作普通 SemVer 主版本擅自递增。
+- 第二位用于功能新增或功能范围扩展，例如 `10.10.0` → `10.11.0`。
+- 第三位用于问题修复、质量收口和实现优化，例如 `10.10.0` → `10.10.1`。
+- 破坏性公共 API 变更应优先避免或提供兼容迁移；它不能成为脱离目标 .NET 版本修改第一位的理由。
+- 修改版本时，同步四份带版本号的中文文档、`docs/project-index.zh-CN.md` 的当前版本、README 发布 tag 示例和路线图发布记录，并运行 `bash scripts/check-docs.sh`。
 
 ## 项目索引维护
 

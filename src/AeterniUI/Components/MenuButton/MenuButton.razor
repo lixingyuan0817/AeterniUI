@@ -1,29 +1,31 @@
 @inherits AeterniComponent
 
-<PopupHost Class="aeterni-menu-button__host">
-    <Button Variant="@Variant"
-            Intent="@Intent"
-            Size="@Size"
-            Loading="@Loading"
-            Disabled="@Disabled"
-            FullWidth="@FullWidth"
-            AriaLabel="@AriaLabel"
-            AdditionalAttributes="@TriggerAttributes"
-            OnClick="ToggleAsync"
-            EndIcon="@ChevronIcon">
-        @Label
-    </Button>
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <Button Variant="@Variant"
+                Intent="@Intent"
+                Size="@Size"
+                Loading="@Loading"
+                Disabled="@Disabled"
+                FullWidth="@FullWidth"
+                AriaLabel="@AriaLabel"
+                AdditionalAttributes="@TriggerAttributes"
+                OnClick="ToggleAsync"
+                EndIcon="@ChevronIcon">
+            @Label
+        </Button>
 
-    <Popover Open="@EffectiveOpen"
-             OpenChanged="@HandleOpenChangedAsync"
-             Placement="@Placement"
-             AriaLabel="@(AriaLabel ?? Label)">
-        <Menu Items="@Items"
-              AriaLabel="@(AriaLabel ?? Label)"
-              AdditionalAttributes="@MenuAttributes"
-              OnItemSelected="@HandleItemSelectedAsync" />
-    </Popover>
-</PopupHost>
+        <Popover Open="@EffectiveOpen"
+                 OpenChanged="@HandleOpenChangedAsync"
+                 Placement="@Placement"
+                 AriaLabel="@(AriaLabel ?? Label)">
+            <Menu Items="@Items"
+                  AriaLabel="@(AriaLabel ?? Label)"
+                  AdditionalAttributes="@MenuAttributes"
+                  OnItemSelected="@HandleItemSelectedAsync" />
+        </Popover>
+    </PopupHost>
+</div>
 
 @code {
     private RenderFragment ChevronIcon => @<Icon Definition="@AeterniIcons.ChevronDown" />;

@@ -1,14 +1,8 @@
 .aeterni-menu-button {
-    display: inline-flex;
+    display: inline-block;
     min-width: 0;
 }
 
-.aeterni-menu-button__host {
-    display: inline-flex;
-    min-width: 0;
-}
-
-.aeterni-menu-button.is-full-width,
-.aeterni-menu-button.is-full-width .aeterni-menu-button__host {
+.aeterni-menu-button.is-full-width {
     width: 100%;
 }

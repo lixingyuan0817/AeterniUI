@@ -1,10 +1,36 @@
 @page "/components/pagination"
 @layout ComponentsLayout
+@using AeterniUI.Enums
 
-<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。">
-    <Preview><Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" /><span class="preview-feedback">当前第 @_page 页</span></Preview>
+<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。" Parameters="@Parameters">
+    <Preview>
+        <div class="preview-form-control">
+            <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" />
+            <span class="preview-feedback" role="status">当前第 @_page 页</span>
+            <Pagination CurrentPage="1" TotalPages="1" AriaLabel="单页分页（前后按钮均禁用）" />
+        </div>
+    </Preview>
+    <Controls>
+        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 1)">第一页</Button>
+        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 8)">中间页</Button>
+        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 15)">最后一页</Button>
+    </Controls>
+    <Notes>
+        <span>前后操作使用核心 Chevron 图标；区域、页码和前后按钮文案都可通过组件参数或全局文案表本地化。</span>
+        <span><code>prefers-reduced-motion: reduce</code> 下关闭当前页缩放相关过渡。</span>
+    </Notes>
 </ComponentPreview>
 @code {
     private int _page = 3;
     private void OnPageChanged(int page) => _page = page;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("CurrentPage / CurrentPageChanged", "int / EventCallback<int>", "当前页和标准绑定回调。", "1"),
+        new("TotalPages", "int", "总页数，至少为 1。", "1"),
+        new("SiblingCount", "int", "当前页两侧显示的页码数量。", "1"),
+        new("AriaLabel", "string?", "分页区域名称；缺省取全局文案表。"),
+        new("PreviousLabel / NextLabel", "string?", "前后页操作的实例级名称。"),
+        new("PageLabelFormat", "string?", "页码按钮复合格式，{0} 为页码。")
+    ];
 }

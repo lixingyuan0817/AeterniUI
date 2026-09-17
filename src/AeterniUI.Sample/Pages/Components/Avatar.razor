@@ -1,7 +1,45 @@
 @page "/components/avatar"
 @layout ComponentsLayout
 @using AeterniUI.Enums
+@using AeterniUI.Icons
 
-<ComponentPreview AnchorId="avatar" Category="基础组件" Title="Avatar" ComponentName="Avatar" Description="头像、图片和姓名缩写展示。">
-    <Preview><div class="preview-action-row"><Avatar Name="Ada Lovelace" /><Avatar Name="UI" Size="AvatarSize.Small" Color="Color.Neutral" /><Avatar Name="User" Size="AvatarSize.Large" Color="Color.Warning" /></div></Preview>
+<ComponentPreview AnchorId="avatar" Category="基础组件" Title="Avatar" ComponentName="Avatar" Description="头像、图片、姓名缩写和自定义内容展示。" Parameters="@Parameters">
+    <Preview>
+        <div class="preview-state-row">
+            <Avatar Name="Ada Lovelace" />
+            <Avatar Name="UI" Size="Size.Small" Color="Color.Neutral" />
+            <Avatar Name="User" Size="Size.Large" Color="Color.Warning" />
+            <Avatar Name="Info" Color="Color.Info" />
+            <Avatar AriaLabel="自定义机器人头像" Size="@_size" Color="@_color"><Icon Definition="@AeterniIcons.Star" /></Avatar>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="avatar-size" AriaLabel="Avatar Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+        </div>
+        <div class="control-field">
+            <span>Color</span>
+            <ShowcaseSelect TValue="Color" Id="avatar-color" AriaLabel="Avatar Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_color" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>图片路径只由内部 <code>img alt</code> 命名；缩写和自定义内容由外层图像语义命名，避免重复朗读。</span>
+        <span>自定义内容必须提供 <code>AriaLabel</code>、<code>Alt</code> 或 <code>Name</code> 之一。</span>
+    </Notes>
 </ComponentPreview>
+
+@code {
+    private Size _size = Size.Default;
+    private Color _color = Color.Primary;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Src / Alt", "string?", "图片地址与替代文本；Alt 为空时使用 AriaLabel 或 Name。"),
+        new("Name", "string?", "名称及最多两个字符的缩写来源。"),
+        new("AriaLabel", "string?", "缩写或自定义内容的图像名称。"),
+        new("Size", "Size", "公共尺寸档位。", "Default"),
+        new("Color", "Color", "品牌、中性和语意色。", "Default"),
+        new("ChildContent", "RenderFragment?", "替换图片或缩写的自定义内容。")
+    ];
+}

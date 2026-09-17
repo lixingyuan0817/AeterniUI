@@ -17,6 +17,7 @@
         <div class="preview-action-row">
             <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
             <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="占满容器" FullWidth Class="preview-menu-button-contract" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
         </div>
         <span class="preview-feedback" role="status">@_interactionNote</span>
     </Preview>

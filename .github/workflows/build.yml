@@ -20,6 +20,9 @@ jobs:
       - name: Restore & build
         run: dotnet build aeterni_ui.slnx -c Debug --nologo
 
+      - name: Component contract checks
+        run: dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
+
       - name: JS syntax check (.razor.js)
         shell: bash
         run: |

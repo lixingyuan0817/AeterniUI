@@ -11,21 +11,37 @@
             <DateTimePicker @bind-Value="_value"
                             MinDateTime="@MinValue"
                             MaxDateTime="@MaxValue"
-                            TimeStep="@TimeSpan.FromMinutes(30)"
+                            TimeStep="@TimeSpan.FromSeconds(1)"
                             Kind="DateTimeKind.Local"
                             DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
+                            Size="@_size"
+                            Disabled="@_disabled"
+                            Invalid="@_invalid"
                             AriaLabel="选择预约日期和时间" />
-            <span class="preview-feedback" role="status">当前值：@(_value?.ToString("yyyy-MM-dd HH:mm") ?? "未选择")；Kind：@(_value?.Kind.ToString() ?? "—")</span>
+            <span class="preview-feedback" role="status">当前值：@(_value?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未选择")；Kind：@(_value?.Kind.ToString() ?? "—")</span>
         </div>
     </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="date-time-picker-size" AriaLabel="DateTimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+    </Controls>
     <Notes>
         <span>日期和时间在一个受控弹层中完成，周末日期不可选；候选时间会同时应用日期时间边界。</span>
+        <span>日期与滚轮值先保存在草稿中；“确定”后统一回写，“取消”不会改变原值。</span>
         <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，不会换算时区。</span>
+        <span>日期网格与时间列表共用单一焦点模型；窄屏下两栏自动改为单列，reduced-motion 不影响键盘行为。</span>
     </Notes>
 </ComponentPreview>
 
 @code {
     private DateTime? _value = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
+    private Size _size = Size.Default;
+    private bool _disabled;
+    private bool _invalid;
     private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
     private DateTime MaxValue => DateTime.SpecifyKind(DateTime.Today.AddDays(30).AddHours(18), DateTimeKind.Local);
 
@@ -35,9 +51,10 @@
         new("MinDateTime / MaxDateTime", "DateTime?", "可选日期时间边界。"),
         new("DisabledDate", "Func<DateOnly, bool>?", "禁用整个日期。"),
         new("DisabledDateTime", "Func<DateTime, bool>?", "禁用具体日期时间候选项。"),
-        new("TimeStep", "TimeSpan", "时间候选项间隔。", "00:30:00"),
-        new("TimeFormat", "TimeFormat", "时间部分的 12/24 小时显示策略。", "Auto"),
+        new("TimeStep", "TimeSpan", "时间滚轮的候选间隔；支持时、分、秒精度。", "00:00:01"),
+        new("TimeFormat", "TimeFormat", "时间部分的 12/24 小时显示策略。", "TwentyFourHour"),
         new("Format", "string?", "完整日期时间显示格式。"),
+        new("CancelText / ConfirmText", "string?", "取消与确定按钮的实例级文案。"),
         new("Kind", "DateTimeKind", "新值的 Kind 标记，不执行时区转换。", "Unspecified"),
         new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
         new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),

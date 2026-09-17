@@ -19,8 +19,8 @@ public partial class DatePicker : AeterniComponent
     [Parameter] public DateOnly? MaxDate { get; set; }
     [Parameter] public Func<DateOnly, bool>? DisabledDate { get; set; }
     [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
-    [Parameter] public string Placeholder { get; set; } = "Select date";
-    [Parameter] public string AriaLabel { get; set; } = "Date picker";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
     [Parameter] public bool Required { get; set; }
@@ -33,11 +33,18 @@ public partial class DatePicker : AeterniComponent
     private bool _hasFieldIdentifier;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
     private CultureInfo Culture => CultureInfo.CurrentCulture;
-    private string TriggerId => FormField?.InputId ?? (string.IsNullOrWhiteSpace(Id) ? ElementId : Id!);
+    private string EffectivePlaceholder => string.IsNullOrWhiteSpace(Placeholder) ? UiText.DatePickerPlaceholder : Placeholder.Trim();
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DatePickerLabel : AriaLabel.Trim();
+    private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;
     private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
     private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-date-picker")
+        .Add("is-disabled", IsDisabled)
+        .Add("is-invalid", IsInvalid);
 
     protected override void OnParametersSet()
     {

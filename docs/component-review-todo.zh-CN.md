@@ -1,10 +1,10 @@
 # AeterniUI 组件审阅待办
 
-文档版本：`10.10.0`
+文档版本：`10.11.0`
 
-文档状态：第一轮 29 项已在 v10.2.0 修复；第二轮 21 项（REV-30 ~ REV-50）、第三轮 8 项（REV-51 ~ REV-58）、第四轮 4 项（REV-59 ~ REV-62）已在 v10.4.0 修复 / 收尾；REV-13 与 REV-56 在 v10.4.0 收尾；第五轮 1 项（REV-63）在 v10.5.0 修复。当前无未完成条目。
+文档状态：第一至第六轮（REV-01～REV-76）均已修复并验收；第六轮 v0.5.1 质量收口同时加入最小组件渲染契约门禁。
 
-本文档记录五轮全量审阅发现的问题：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色；第五轮（v10.5）补充组件表面归属规范。问题按优先级排列，当前均已修复并完成验收。
+本文档记录六轮全量审阅发现的问题：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色；第五轮（v10.5）补充组件表面归属规范；第六轮在 v0.5 日期/时间组件交付后重新核对全库根属性、键盘焦点、视觉状态、本地化、示例覆盖与文档事实。全部问题已关闭，后续新工作从 roadmap 的 v0.6 开始。
 
 ## 文档边界
 
@@ -16,7 +16,7 @@
 
 ## 审阅方法与可信度
 
-- 各轮审阅均为**静态审阅**：未运行应用、未做截图比对。视觉结论来自 CSS 规则推导和 token 数值计算。
+- 第一至第五轮以静态审阅和渲染验证为主；第六轮同时运行示例并用无头 Chromium 检查 1440px 浅色/深色页面与 390px 窄屏布局，视觉结论结合真实渲染、CSS 规则推导和 token 数值计算；品牌与语意色另外通过对比度门禁复核。
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - 第二轮的**结构结论**额外用 `HtmlRenderer` 与自定义 `Renderer` 渲染真实组件做了验证：确认静态 `Card`/非选择态 `List` 的渲染树中不存在 `onclick`/`onkeydown` 帧、`NoticeCard`/`ListItem` 能接受消费者 `Class`/`Style`/`Visible`、`Progress` 不再输出 inline `width`、ARIA 状态属性输出为字符串而不是最小化布尔属性。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
@@ -707,6 +707,117 @@
 - **修复**：把判定写成规范 §5.3「表面归属」的两行表格（自带表面 vs 内容控件，判断依据是"能不能单独构成一块界面"），并进提交清单；`current-features` 的 Menu/Tabs 实现边界各补一条；示例预览改为真实语境——Menu 与 Tabs 都套 `Surface`（`Variant=Elevated` + `Bordered`，与示例侧栏同观感），两处 Notes 说明"组件不自带表面、底由宿主容器提供"。
 - **验收**：规范、功能文档、组件文档与示例四处描述一致；Menu/Tabs 的 CSS 仍无 `--aeterni-bg-*` 声明；预览在 Light/Dark 下都能看出宿主容器的边界。
 
+## 第六轮（v10.10.0 后，v0.5.1 质量收口）
+
+本轮覆盖当前全部公共组件，重点复核 v0.5 日期/时间输入、复合组件根契约、键盘焦点模型和示例可验收性。发现的 DOM、ARIA、样式隔离和文案问题已全部修复，并以最小组件渲染契约检查补上原有静态门禁的覆盖空白。
+
+| 编号 | 优先级 | 范围 | 状态 | 一句话问题 |
+| --- | --- | --- | --- | --- |
+| REV-64 | P1 | DatePicker / PopupHost | 已完成 | 根节点是子组件且未调用 `BuildAttributes()`，基类属性和本组件隔离样式失效 |
+| REV-65 | P1 | MenuButton / PopupHost | 已完成 | `BuildClass()` 生成的基础、打开和全宽类没有渲染，根属性契约整体失效 |
+| REV-66 | P1 | Accordion | 已完成 | 关闭面板仍可能进入 Tab/辅助技术可达范围，`aria-hidden` 还绑定了布尔值 |
+| REV-67 | P1 | DateCalendar | 已完成 | 方向键只改 `tabindex` 不移动真实焦点，grid 也缺少 row 层级 |
+| REV-68 | P1 | TimeOptionList | 已完成 | 每个候选都是 `tabindex="0"`，长列表产生大量 Tab 停留点且无方向键模型 |
+| REV-69 | P0 | DatePicker / DateRangePicker | 已完成 | 日期触发器缺 hover、focus-visible、disabled、invalid 守卫和统一 control Token |
+| REV-70 | P1 | Avatar | 已完成 | 第二套尺寸枚举、死颜色变体和重复图像名称使公共 API 与无障碍行为不一致 |
+| REV-71 | P0 | Segmented / ThemeSwitch | 已完成 | 内置主题标签在常规桌面宽度被截断，选中态 hover/active 没有整块换档 |
+| REV-72 | P1 | Date/Range/Pagination | 已完成 | 用户可见文案散落在组件内，Pagination 还固定为中文并使用文本箭头 |
+| REV-73 | P2 | Date/Time 组件 | 已完成 | 新组件包含多处未注释的裸尺寸与断点，未收敛到既有 Token 体系 |
+| REV-74 | P2 | 文档 | 已完成 | Surface Blur、核心图标数量和 Orange 品牌色记录与源码不一致 |
+| REV-75 | P2 | 示例页 | 已完成 | 新增组件页面多为 happy path，缺禁用、错误、键盘、窄屏和 reduced-motion 状态 |
+| REV-76 | P2 | 验证体系 | 已完成 | 没有最小化渲染契约回归门禁，现有 CI 无法发现根属性、ARIA 和死变体回归 |
+
+### REV-64 DatePicker 根属性与 CSS isolation 契约失效
+
+- [x] 已修复并验收
+- **证据**：`DatePicker.razor` 根节点是 `<PopupHost Class="aeterni-date-picker__host">`，没有 `@attributes="BuildAttributes()"`；`DatePicker.razor.css` 又直接声明 `.aeterni-date-picker__host`。子组件根元素不会获得父组件的隔离属性，因此该规则无法命中，`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` / `ElementChanged` 也没有落到 DOM 根节点。
+- **修复**：DatePicker 增加本组件拥有的真实根元素并承载 `BuildAttributes()` / `RootElement`；隔离样式只约束该根元素与组件自有标记，不再依赖传给 `PopupHost` 的 class。
+- **验收**：渲染验证覆盖 `Id`、`Class`、`Style`、`Visible`、附加属性和根引用；本组件发出的每个 class 都有可命中的样式规则；Popup 定位与焦点回归不退化。
+
+### REV-65 MenuButton 根属性、状态类与 FullWidth 失效
+
+- [x] 已修复并验收
+- **证据**：`MenuButton.razor` 同样以 `<PopupHost Class="aeterni-menu-button__host">` 为根且不调用 `BuildAttributes()`；代码后置的 `BuildClass()` 会生成 `aeterni-menu-button`、`is-open`、`is-full-width`，但这些类从未输出。`MenuButton.razor.css` 的根与全宽规则因此是死规则，基类的 `Id`、`Class`、`Style`、`Visible`、`Element` 也失效。
+- **修复**：MenuButton 增加自有根标记并合并基类属性；根容器表达打开、全宽和禁用复合状态，原生 `disabled` 仍只落在真实触发按钮。
+- **验收**：`FullWidth`、受控/非受控 Open、禁用/加载、消费者 class/style/hidden 与 `ElementChanged` 均有渲染验证；Escape、外部点击和菜单选择关闭路径保持有效。
+
+### REV-66 Accordion 关闭内容仍可达
+
+- [x] 已修复并验收
+- **证据**：面板的 `aria-hidden="@(!open)"` 直接绑定布尔值；关闭态 CSS 只把 grid row 压到 0 并设透明度，不会自动移除内部链接、按钮和表单控件的 Tab 顺序。
+- **修复**：ARIA 值显式输出字符串；关闭面板使用 `inert`、`aria-hidden="true"` 与关闭态可见性守卫，让内容同时退出视觉、键盘和辅助技术可达范围。
+- **验收**：关闭面板内所有交互子项不可 Tab 到达且不在可访问树中；展开/折叠动画和 reduced-motion 均正常；受控 `OpenKeys` 不回归。
+
+### REV-67 DateCalendar 方向键没有移动真实焦点
+
+- [x] 已修复并验收
+- **证据**：`HandleKeyDownAsync` 只更新 `FocusedDate`、月份和 `tabindex` 后重渲染，没有调用 `FocusAsync` 或等效 JS；键盘事件仍留在原按钮上。网格把 `button role="gridcell"` 直接放在 `role="grid"` 下，也缺少 row 层级。
+- **修复**：采用真实 DOM 焦点 + roving tabindex，补足 grid/row/gridcell 层级；跨月重渲染后通过保存的元素引用把焦点落到新活动日期。
+- **验收**：Arrow、Home/End、PageUp/PageDown 连续操作时浏览器焦点与视觉活动日期一致，跨月后继续可操作；读屏可获知日期、选中、今天和禁用状态。
+
+### REV-68 TimeOptionList 的 listbox 焦点模型不完整
+
+- [x] 已修复并验收
+- **证据**：每个 `role="option"` 按钮都固定 `tabindex="0"`；步长较小时会产生几十个 Tab 停留点，且列表没有 Arrow/Home/End 或 `aria-activedescendant` 行为。
+- **修复**：列表容器成为唯一 Tab 停留点并使用 `aria-activedescendant`；方向键/Home/End 更新活动项，Enter/Space 选择；后续 v10.11.0 将内部列表升级为三列滚轮，JS module 负责中心吸附、滚动停稳回调与远近视觉分层；TimePicker 与 DateTimePicker 共用该实现。
+- **验收**：整个滚轮组只有一个 Tab 停留点；方向键、Home/End、Enter/Space、Escape 和禁用候选行为明确；鼠标与触控滚动后活动项吸附到中心并保持可见。
+
+### REV-69 日期触发器没有对齐字段控件状态
+
+- [x] 已修复并验收
+- **证据**：`DatePicker.razor.css` 和 `DateRangePicker.razor.css` 只有基础、尺寸、占位和图标样式，缺少 hover、focus-visible、disabled、invalid、过渡以及无效态排除指针反馈；使用的边框、背景、占位和图标 Token 也与 Input、TimePicker、DateTimePicker 的 `--aeterni-control-*` 体系不同。
+- **修复**：日期触发器复用现有字段控件状态矩阵与复合 transition Token；hover/active 排除无效态，无效态保留危险色，禁用态不显示普通指针反馈。
+- **验收**：Small/Default/Large 在 Input、DatePicker、DateRangePicker、TimePicker、DateTimePicker 同排时高度、圆角和状态反馈一致；Light/Dark/System 与键盘焦点逐项截图复核。
+
+### REV-70 Avatar 公共变体与可访问名称不完整
+
+- [x] 已修复并验收
+- **证据**：Avatar 自建 `AvatarSize`，默认档仍输出 `--default`；默认 `Color.Primary` 和 `Color.Info` 会生成修饰类，但样式表没有对应规则，`Info` 静默回落到基础品牌色。外层 `role="img"` / `aria-label` 与内部 `<img alt>` 同时命名同一图像；只传 `ChildContent` 且没有 Name/Alt 时回退名称会变成 `?`。
+- **修复**：尺寸改用公共 `Size`，原 `AvatarSize.*` 只保留为已弃用的同类型常量别名以兼容常见 Razor 调用；颜色走集中映射并补齐 `Primary` / `Info` 样式；图片只由 `<img alt>` 命名，缩写/自定义内容由根图像语义命名，自定义内容缺少名称时直接拒绝无效参数。
+- **验收**：所有 Size/Color 组合在 Light/Dark 下有可辨结果；默认档不输出空/死修饰类；读屏不重复朗读图片且不会读出 `?`。
+
+### REV-71 Segmented 内置标签截断与选中态指针反馈
+
+- [x] 已修复并验收
+- **证据**：根宽度为 `fit-content`，选项又以等分收缩和 ellipsis 处理；1440px 示例顶栏中 ThemeBrandSwitch 的 Orange 与 ThemeSwitch 的 System 已出现截断。选中项 hover 保持透明，滑块也没有 checked-hover/active 整块换档。
+- **修复**：非全宽组件按选项最小内容宽度建列，内置标签不再被等分收缩；选中态使用 `--aeterni-state-background-checked-hover/-active` 整块换档，普通 hover 排除 `.is-selected`。
+- **验收**：库自带三语言默认标签在桌面顶栏与窄屏布局中有明确策略；选中胶囊在 hover/active 时背景、边框和反色墨作为整块换档，对比度门禁继续通过。
+
+### REV-72 用户可见文案未集中管理
+
+- [x] 已修复并验收
+- **证据**：DatePicker 默认的 “Select date” / “Date picker”、DateRangePicker 的 “Quick ranges” / “Date range picker”、DateCalendar 的 Previous/Next month，以及 Pagination 的“上一页 / 第 N 页 / 下一页”没有进入 `AeterniUITextOptions`；Pagination 还用文本 `‹` / `›` 而非核心 Chevron 图标。
+- **修复**：日期、范围、日历导航和分页文案均进入 `AeterniUITextOptions`，组件实例参数继续高于全局选项；分页方向字形改用 `AeterniIcons.ChevronLeft/Right`。
+- **验收**：库源码中无未集中管理的用户可见硬编码文案；中英文覆写示例可同时验证；空白配置按既有规则回落英文默认值。
+
+### REV-73 日期/时间组件裸尺寸没有收敛
+
+- [x] 已修复并验收
+- **证据**：v0.4/v0.5 组件样式中存在 `2px`、`8rem`、`9rem`、`10rem`、`14rem`、`16rem` 和 36/50rem 断点等未注释字面尺寸；其中部分是可复用控件、浮层或响应式角色。
+- **修复**：字段、间距与浮层尺寸改用既有 spacing/control/overlay Token；日期网格响应式断点保留必要字面值并就地注明布局原因，没有新增单组件 Token 体系。
+- **验收**：日期/时间 CSS 无未说明的裸尺寸；不向 Token 层加入只有单一规则使用、没有跨组件角色的新变量。
+
+### REV-74 文档事实与源码漂移
+
+- [x] 已完成（本轮文档同步）
+- **证据**：`current-features` 一处仍把已删除的 `Surface.Blur` 列为当前参数，核心图标清单只列 7 个而源码已有 11 个；`project-index` 的 ThemeService 品牌色层遗漏 Orange；roadmap 的 v0.2 TODO 已全部勾选但阶段状态仍写“规划中”。
+- **修复**：删除 Surface 的 Blur 参数陈述，内置图标清单补全 `Calendar`、`Clock`、`ChevronLeft`、`EmptyBox`，项目索引补 Orange，v0.2 状态改为已完成；功能文档同时显式记录第六轮尚未修复的当前实现限制。
+- **验收**：`bash scripts/check-docs.sh` 通过；三个事实点与源码逐项一致。
+
+### REV-75 示例页缺少状态矩阵
+
+- [x] 已修复并验收
+- **证据**：Accordion、Avatar、Pagination 的页面主要展示普通态；v0.5 日期/时间页以单一 happy path 为主，缺少完整的尺寸、禁用、错误、键盘、窄屏和 reduced-motion 验收路径。
+- **修复**：Accordion、Avatar、Pagination 与日期/时间页面补充参数控制、状态对照、键盘和窄屏/reduced-motion 复核说明；未使用示例页样式覆盖组件原生外观。
+- **验收**：每个本轮修复项在示例项目有可操作入口；Light/Dark/System、窄屏和 reduced-motion 能在不改源码的情况下复核。
+
+### REV-76 缺少最小化渲染契约回归门禁
+
+- [x] 已修复并验收
+- **证据**：当前没有自动化测试；构建、文档、JS、CSS 注释、对比度和图标门禁全部通过时，仍未发现 DatePicker/MenuButton 根属性失效、Accordion ARIA 布尔值、TimeOptionList 多 Tab 停留点和 Avatar 死变体。
+- **修复**：新增无外部测试依赖的 `AeterniUI.ContractChecks`，用 `HtmlRenderer` 覆盖 DatePicker/MenuButton 根属性、Accordion ARIA/inert、DateCalendar 网格、TimeOptionList 单停留点和 Avatar 公开变体，并接入解决方案与 CI。
+- **验收**：至少用反向用例证明上述四类回归会被门禁拦截；检查命令进入 AGENTS、开发入口、项目索引与 CI，且不依赖外部浏览器服务。
+
 ## 第三轮细节（v10.4.0）
 
 ### REV-51 中性容器表面重新带上蓝紫偏移
@@ -834,6 +945,9 @@
 | 批次 9（v10.4） | REV-51 ~ REV-55、REV-57、REV-58 | 中性面无彩化 + 样式体系一致性（禁用态、间距阶梯、过渡声明、角色 Token 复用） |
 | 批次 10（v10.4） | REV-56 | 新增公共 API（3 个 `Size` 档位），走 roadmap 交付，不在样式批次内实现 |
 | 批次 11（v10.4） | REV-59 ~ REV-62 | 文字色阶（Apple label 模型）、chip 混色、结构分隔线、实心语意墨色 |
+| 批次 12（v0.5.1） | REV-64 ~ REV-68 | 根属性与键盘/辅助技术契约，先恢复现有组件的正确使用能力 |
+| 批次 13（v0.5.1） | REV-69 ~ REV-73 | 日期字段、Avatar、Segmented、本地化与 Token 一致性 |
+| 批次 14（v0.5.1） | REV-75 ~ REV-76 | 示例状态矩阵与最小化渲染契约防回归；REV-74 已在规划同步时完成 |
 
 ## 每项修复的固定交付物
 
@@ -847,6 +961,9 @@
 ```bash
 dotnet build aeterni_ui.slnx
 bash scripts/check-docs.sh
+node scripts/check-css-comments.mjs
+node scripts/check-contrast.mjs
+node scripts/generate-fontawesome-icons.mjs --check
 node --check <改动的>.razor.js
 ```
 

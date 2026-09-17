@@ -4,4 +4,7 @@
     <Project Path="src/AeterniUI/AeterniUI.csproj" />
     <Project Path="src/AeterniUI.Icons.FontAwesome/AeterniUI.Icons.FontAwesome.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj" />
+  </Folder>
 </Solution>

@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
-    <!-- AeterniUI follows SemVer through the .NET SDK version properties. -->
-    <Version>10.10.0</Version>
-    <AssemblyVersion>10.10.0.0</AssemblyVersion>
-    <FileVersion>10.10.0.0</FileVersion>
-    <InformationalVersion>10.10.0</InformationalVersion>
+    <!-- First segment tracks .NET major; second adds features; third fixes or optimizes. -->
+    <Version>10.11.0</Version>
+    <AssemblyVersion>10.11.0.0</AssemblyVersion>
+    <FileVersion>10.11.0.0</FileVersion>
+    <InformationalVersion>10.11.0</InformationalVersion>
     <Authors>AeterniUI contributors</Authors>
     <Description>A Blazor component library for consistent user interfaces across Blazor Server, Blazor WebAssembly, and Tauri applications.</Description>
     <PackageTags>blazor;components;ui;razor;tauri</PackageTags>

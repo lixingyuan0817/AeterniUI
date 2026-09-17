@@ -1,9 +1,12 @@
 @inherits AeterniComponent
 
-<span @ref="RootElement" @attributes="BuildAttributes()" role="img" aria-label="@(Alt ?? Name ?? Initials)">
+<span @ref="RootElement"
+      @attributes="BuildAttributes()"
+      role="@(string.IsNullOrWhiteSpace(Src) ? "img" : null)"
+      aria-label="@(string.IsNullOrWhiteSpace(Src) ? EffectiveLabel : null)">
     @if (!string.IsNullOrWhiteSpace(Src))
     {
-        <img src="@Src" alt="@(Alt ?? Name ?? Initials)" />
+        <img src="@Src" alt="@ImageAlt" />
     }
     else if (ChildContent is not null)
     {

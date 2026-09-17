@@ -22,7 +22,19 @@
                 <div class="aeterni-date-time-picker__panel">
                     <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" AriaLabel="@UiText.DatePickerCalendarLabel" />
                     <div class="aeterni-date-time-picker__divider" aria-hidden="true"></div>
-                    <TimeOptionList Options="@TimeOptions" Value="@SelectedTime" ValueSelected="SelectTimeAsync" DisplayFormat="@ResolvedTimeFormat" AriaLabel="@UiText.TimePickerOptionsLabel" EmptyText="@UiText.TimePickerEmptyText" />
+                    <TimeOptionList Value="@SelectedTime"
+                                    ValueSelected="SelectTimeAsync"
+                                    DraftChanged="UpdateDraftTimeAsync"
+                                    Step="@TimeStep"
+                                    MinTime="@MinimumTime(TimePanelDate)"
+                                    MaxTime="@MaximumTime(TimePanelDate)"
+                                    DisabledTime="@IsPanelTimeDisabled"
+                                    TimeFormat="@TimeFormat"
+                                    AriaLabel="@UiText.TimePickerOptionsLabel"
+                                    EmptyText="@UiText.TimePickerEmptyText"
+                                    CancelText="@EffectiveCancelText"
+                                    ConfirmText="@EffectiveConfirmText"
+                                    CancelRequested="CancelAsync" />
                 </div>
             </ChildContent>
         </Popover>

@@ -1,12 +1,12 @@
 .aeterni-date-calendar {
     display: grid;
     gap: var(--aeterni-spacing-2);
-    min-width: 16rem;
+    min-width: var(--aeterni-width-input-md);
 }
 
 .aeterni-date-calendar__months {
     display: grid;
-    grid-template-columns: repeat(var(--aeterni-date-calendar-months), minmax(16rem, 1fr));
+    grid-template-columns: repeat(var(--aeterni-date-calendar-months), minmax(var(--aeterni-width-input-md), 1fr));
     gap: var(--aeterni-spacing-4);
 }
 
@@ -21,11 +21,16 @@
 
 .aeterni-date-calendar__toolbar,
 .aeterni-date-calendar__weekdays,
-.aeterni-date-calendar__grid {
+.aeterni-date-calendar__row {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     align-items: center;
-    gap: 2px;
+    gap: calc(var(--aeterni-spacing-1) / 2);
+}
+
+.aeterni-date-calendar__grid {
+    display: grid;
+    gap: calc(var(--aeterni-spacing-1) / 2);
 }
 
 .aeterni-date-calendar__toolbar {
@@ -39,8 +44,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.75rem;
-    min-height: 1.75rem;
+    min-width: calc(var(--aeterni-touch-target-min) + var(--aeterni-spacing-1));
+    min-height: calc(var(--aeterni-touch-target-min) + var(--aeterni-spacing-1));
     border: 0;
     border-radius: var(--aeterni-radius-sm);
     background: transparent;
@@ -48,7 +53,7 @@
 }
 
 .aeterni-date-calendar__nav {
-    --aeterni-icon-render-size: 1rem;
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
     padding: 0;
     color: var(--aeterni-text-secondary);
 }
@@ -101,7 +106,9 @@
     text-align: center;
 }
 
-@media (max-width: 50rem) {
+/* Custom properties cannot be consumed by media-query conditions; 48rem mirrors
+   the shared --aeterni-breakpoint-md token. */
+@media (max-width: 48rem) {
     .aeterni-date-calendar__months {
         grid-template-columns: 1fr;
     }

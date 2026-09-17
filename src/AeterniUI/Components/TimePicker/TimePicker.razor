@@ -10,7 +10,7 @@
                 aria-describedby="@FormField?.DescribedBy"
                 aria-invalid="@(IsInvalid ? "true" : null)"
                 aria-required="@(IsRequired ? "true" : null)"
-                aria-haspopup="listbox"
+                aria-haspopup="dialog"
                 aria-expanded="@(_open ? "true" : "false")"
                 disabled="@IsDisabled"
                 @onkeydown="HandleKeyDownAsync"
@@ -20,7 +20,18 @@
         </button>
         <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
             <ChildContent>
-                <TimeOptionList Options="@Options" Value="@Value" ValueSelected="SelectAsync" DisplayFormat="@ResolvedFormat" AriaLabel="@EffectiveOptionsLabel" EmptyText="@UiText.TimePickerEmptyText" />
+                <TimeOptionList Value="@Value"
+                                ValueSelected="SelectAsync"
+                                Step="@Step"
+                                MinTime="@MinTime"
+                                MaxTime="@MaxTime"
+                                DisabledTime="@DisabledTime"
+                                TimeFormat="@TimeFormat"
+                                AriaLabel="@EffectiveOptionsLabel"
+                                EmptyText="@UiText.TimePickerEmptyText"
+                                CancelText="@EffectiveCancelText"
+                                ConfirmText="@EffectiveConfirmText"
+                                CancelRequested="CancelAsync" />
             </ChildContent>
         </Popover>
     </PopupHost>
