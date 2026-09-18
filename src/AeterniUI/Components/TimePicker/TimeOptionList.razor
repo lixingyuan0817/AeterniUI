@@ -23,13 +23,13 @@
                             var active = IsActive(unit, value);
                             var optionUnit = unit;
                             var optionValue = value;
-                            <div id="@OptionId(unit, value)"
+                            <div @key="value" id="@OptionId(unit, value)"
                                  class="aeterni-time-option-list__option @(selected ? "is-selected" : null) @(active ? "is-active" : null)"
                                  role="option"
                                  aria-selected="@(selected ? "true" : "false")"
                                  data-time-value="@value"
                                  @onclick="@(() => SelectUnitAsync(optionUnit, optionValue))">
-                                @OptionLabel(unit, value)
+                                <span class="aeterni-time-option-list__label">@OptionLabel(unit, value)</span>
                             </div>
                         }
                     </div>

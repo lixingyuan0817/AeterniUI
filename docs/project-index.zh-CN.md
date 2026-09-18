@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.12.1`
+文档版本：`10.12.2`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.12.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.12.2`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -234,7 +234,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar 已交付（1/5），下一项为 `ToggleGroup`，其余四项未开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
-时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证停稳回调、重复渲染、联动居中与资源释放。
+时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证 Token 动画完成回调、重复渲染、快速改值、输入中断、不同真实行高、禁用项、边缘居中、reduced-motion 与资源释放；滚筒仅变换文字视觉层。
 
 当前项目提供最小组件渲染契约门禁，但尚未建立完整业务测试或浏览器端到端测试套件。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 

@@ -22,7 +22,7 @@
                 <div class="aeterni-date-time-picker__panel">
                     <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" AriaLabel="@UiText.DatePickerCalendarLabel" />
                     <div class="aeterni-date-time-picker__divider" aria-hidden="true"></div>
-                    <TimeOptionList Value="@SelectedTime"
+                    <TimeOptionList @key="_open" Value="@SelectedTime"
                                     ValueSelected="SelectTimeAsync"
                                     DraftChanged="UpdateDraftTimeAsync"
                                     Step="@TimeStep"

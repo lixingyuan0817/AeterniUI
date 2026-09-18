@@ -37,6 +37,7 @@ public partial class DateTimePicker : AeterniComponent
 
     private bool _open;
     private DateTime? _draftValue;
+    private DateTime? _lastParameterValue;
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
@@ -69,6 +70,8 @@ public partial class DateTimePicker : AeterniComponent
         if (MinDateTime.HasValue && MaxDateTime.HasValue && MinDateTime.Value > MaxDateTime.Value)
             throw new ArgumentException("The minimum date and time cannot be later than the maximum date and time.");
         TimePickerOptions.Validate(TimeStep, null, null);
+        if (Value != _lastParameterValue) _draftValue = Value;
+        _lastParameterValue = Value;
         _dateDisabledCache.Clear();
         UpdateEditContextSubscription();
         if (Value.HasValue)

@@ -72,8 +72,8 @@
     overscroll-behavior: contain;
     overflow-anchor: none;
     scrollbar-width: none;
-    mask-image: linear-gradient(to bottom, transparent, black 24%, black 76%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 24%, black 76%, transparent);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), black 30%, black 70%, rgb(0 0 0 / 65%));
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), black 30%, black 70%, rgb(0 0 0 / 65%));
 }
 
 .aeterni-time-option-list__options::-webkit-scrollbar {
@@ -96,26 +96,15 @@
     font-variant-numeric: tabular-nums;
     text-align: center;
     cursor: pointer;
-    opacity: 0.25;
-    transform: scale(0.86);
-    transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-standard),
-                transform var(--aeterni-duration-fast) var(--aeterni-ease-standard),
-                color var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    transition: color var(--aeterni-duration-fast) var(--aeterni-ease-standard);
 }
 
-.aeterni-time-option-list__option[data-wheel-distance="2"] {
-    opacity: 0.42;
-    transform: scale(0.9);
-}
-
-.aeterni-time-option-list__option[data-wheel-distance="1"] {
-    opacity: 0.68;
-    transform: scale(0.95);
-}
-
-.aeterni-time-option-list__option[data-wheel-distance="0"] {
-    opacity: 1;
-    transform: scale(1);
+/* The cylinder is visual only: option geometry and pointer targets stay flat. */
+.aeterni-time-option-list__label {
+    display: block;
+    pointer-events: none;
+    backface-visibility: hidden;
+    transform-origin: center;
 }
 
 .aeterni-time-option-list__option:hover:not(.is-selected) {
@@ -157,4 +146,9 @@
     .aeterni-time-option-list__option {
         transition: none;
     }
+
+    .aeterni-time-option-list__label {
+        transform: none !important;
+    }
+
 }
