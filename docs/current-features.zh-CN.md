@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.12.2`
+文档版本：`10.13.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.13.0 发布范围
+
+本次发布包含已交付的 ToggleGroup、SplitButton，以及日期/时间字段与 Segmented 的尺寸 Token 一致性收口；同时纳入 Toolbar 间距、MenuButton 专属菜单留白、菜单 ID 关联与非模态关闭焦点回归优化。公共 API、受控绑定和无障碍边界以各组件章节为准；List 功能不变。完整发布记录见 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
 ## 文档口径
 

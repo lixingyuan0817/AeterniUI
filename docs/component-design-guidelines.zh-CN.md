@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.12.2`
+文档版本：`10.13.0`
 
 状态：第一版草案
 
@@ -952,7 +952,7 @@ FormField
 - `Orientation="Orientation.Vertical"` 用于垂直组合。
 - `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
 - `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。
-- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为由 Toolbar 承担；ToggleGroup 是 v0.6 下一项，尚未实现。
+- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为由独立的 Toolbar 与 ToggleGroup 承担，后者以原生按钮 `aria-pressed` 表达单选/多选动作切换，不承担 Segmented 的表单值选择语义。
 
 `Surface` 和 `Card` 的职责需要区分：
 

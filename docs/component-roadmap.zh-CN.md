@@ -1,10 +1,18 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.12.2`
+文档版本：`10.13.0`
 
 状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton 已交付（3/5），其余两项未开始；v0.7 规划中。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
+
+## 10.13.0 功能发布
+
+- [x] 将已实现的 ToggleGroup / ToggleGroupItem 与 SplitButton 纳入本次功能发布；v0.6 累计完成 3/5，其余两项保持未开始。
+- [x] 纳入字段尺寸一致性收口、ToggleGroup 连体分段外观、SplitButton 紧凑默认外观、Toolbar 间距与 MenuButton 专属菜单留白优化，以及菜单 ID 关联和非模态关闭焦点回归修复。
+- [x] `Directory.Build.props` 四个版本属性统一为 10.13.0（程序集/文件版本为 10.13.0.0），同步功能清单、设计规范、路线图、审阅待办、项目索引与 README 发布 tag 示例；使用 `v10.13.0` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包。
+- [x] 发布前验证：Debug / Release solution build 均为 0 警告、0 错误；10 组组件契约、21 项 Node 回归、11 个组件 JS 语法、57 个 CSS 注释检查、99 项品牌对比度、343 个图标一致性、Token-only CSS 与文档门禁通过；两个 10.13.0 NuGet 包均完成本地打包验证。
+- 本次只整理已实现能力并更新发布元数据，不改动 List 功能或扩大组件实现边界；已有人工浏览器验收限制仍保留。
 
 ## 10.12.2 修复与优化
 
@@ -12,7 +20,7 @@
 - [x] 停稳吸附完成才提交草稿，输入中断、快速重选、同值回声、外部 Value、联动、reduced-motion 与释放回归；保留紧凑密度与键盘模型。
 - [x] 示例新增外部具体时分秒/延迟设置；版本统一为 10.12.2。node:test 与组件契约门禁覆盖，真实浏览器视觉和触控惯性验收仍待人工复核。
 
-## 字段尺寸一致性收口（待统一发布）
+## 字段尺寸一致性收口（纳入 10.13.0）
 
 - [x] DatePicker / DateRangePicker / TimePicker / DateTimePicker：三档横向 padding 统一为 `control-padding-x-sm/md/lg`（8/12/16px），字号对齐 Input / ComboBox（12/14/16px），保留 normal 行高、宽度 / FullWidth 和弹层布局；渲染契约检查覆盖三档触发器与样式 Token。
 - [x] Segmented：仅将选项等值的 spacing-2/3/4 替换为 control-padding-x-sm/md/lg，不改轨道与滑块几何。
@@ -683,5 +691,5 @@ Search + List + PopupHost
 | 发布 | 状态 | 验证 | 内容 |
 | --- | --- | --- | --- |
 | v10.12.0 / v0.6 Toolbar | 已完成（1/5） | 构建、渲染契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 Toolbar / ToolbarGroup、交互示例；不更改普通 ButtonGroup 语义。此版本交付时其余四项未开始。 |
-| v0.6 ToggleGroup（待统一发布） | 已完成（累计 2/5） | 构建、渲染/状态契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 ToggleGroup / ToggleGroupItem、严格受控单选/多选、单选再次点击清空、可操作示例与目录注册；默认外观改为连体分段（无 gap、单接缝、首尾圆角、横纵向/RTL 与焦点分层）；三档最小高度保持 28/36/44px，水平留白改用 control-padding-x-sm/md/lg、垂直留白归零、显式居中且字号/字重/行高对齐 Button，补充三档渲染与 CSS 尺寸契约；不改变受控状态和键盘语义，不修改其他组件尺寸或发布版本号。 |
-| v0.6 SplitButton（待统一发布） | 已完成（累计 3/5） | 构建、渲染契约、Popover 焦点回归、JS 语法、CSS 与文档门禁 | 主动作与菜单动作组合、独立名称和禁用、仅主动作加载、受控菜单、可操作示例；修复 MenuButton 菜单 ID 关联与非模态关闭焦点回归。默认外观收紧为 Small / Ghost / Neutral、窄箭头和原位高亮，保留显式尺寸/变体；Toolbar 同步缩小组间/组内间距，图标主工具栏示例不覆盖组件样式，不增加 Toolbar 与 SplitButton 焦点集成。 同批以现有 List 留白为参考（List 不变），收紧 MenuButton 专属 Popover 外围、Menu 行内；保留 Menu 的 8px 子项层级缩进，修复折叠/空组残留 gap 导致的上下留白不一致；保留行高与通用内容弹层默认留白，补充隔离渲染断言。 |
+| v0.6 ToggleGroup（纳入 10.13.0） | 已完成（累计 2/5） | 构建、渲染/状态契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 ToggleGroup / ToggleGroupItem、严格受控单选/多选、单选再次点击清空、可操作示例与目录注册；默认外观改为连体分段（无 gap、单接缝、首尾圆角、横纵向/RTL 与焦点分层）；三档最小高度保持 28/36/44px，水平留白改用 control-padding-x-sm/md/lg、垂直留白归零、显式居中且字号/字重/行高对齐 Button，补充三档渲染与 CSS 尺寸契约；不改变受控状态和键盘语义，实现阶段未修改其他组件尺寸，版本号由 10.13.0 发布批次统一递增。 |
+| v0.6 SplitButton（纳入 10.13.0） | 已完成（累计 3/5） | 构建、渲染契约、Popover 焦点回归、JS 语法、CSS 与文档门禁 | 主动作与菜单动作组合、独立名称和禁用、仅主动作加载、受控菜单、可操作示例；修复 MenuButton 菜单 ID 关联与非模态关闭焦点回归。默认外观收紧为 Small / Ghost / Neutral、窄箭头和原位高亮，保留显式尺寸/变体；Toolbar 同步缩小组间/组内间距，图标主工具栏示例不覆盖组件样式，不增加 Toolbar 与 SplitButton 焦点集成。 同批以现有 List 留白为参考（List 不变），收紧 MenuButton 专属 Popover 外围、Menu 行内；保留 Menu 的 8px 子项层级缩进，修复折叠/空组残留 gap 导致的上下留白不一致；保留行高与通用内容弹层默认留白，补充隔离渲染断言。 |
