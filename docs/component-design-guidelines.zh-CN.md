@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.11.0`
+文档版本：`10.12.1`
 
 状态：第一版草案
 
@@ -31,6 +31,14 @@ AeterniUI 同时服务于 Blazor Server、Blazor WebAssembly 和 Tauri + Blazor 
 6. 保留正确的 HTML、ARIA 和键盘语义。
 7. 公共能力同步 `docs/current-features.zh-CN.md`，任务状态同步 `docs/component-roadmap.zh-CN.md`。
 8. 完成后运行 `dotnet build aeterni_ui.slnx`。
+
+### 默认温和紧凑尺寸（10.12.1）
+
+- 全库共享控件高度 Small / Default / Large 为 28 / 36 / 44px（原 32 / 40 / 48px）；对应内联 padding 为 8 / 12 / 16px（原 12 / 16 / 20px）。Button、Input、ComboBox、日期时间字段及 IconButton 由现有高度别名派生，不新增 Density 参数。
+- 保留原始 spacing scale、正文大小/行高、颜色、圆角与焦点环。现有 padding-lg / xl / 2xl 别名改停靠 spacing-3 / 5 / 6（12 / 20 / 24px）；Surface/Card 的 None / Small / Medium / Large / ExtraLarge 留白为 0 / 8 / 12 / 20 / 24px。
+- 紧凑导航行 Token 从 36 收至 32px，Menu、Tabs、时间滚轮共用；List 保留内容自适应行高。弹层、Drawer、Dialog、通知同步收紧留白，日期单元格仍至少 28px。
+- 可点击图标与选择控件热区至少 24px；Small Segmented 以 1px 内边距保留 24px 选项高度，Rating Small 不随字形缩至 20px。多行列表和表面内容继续使用自适应高度；不通过缩小正文换取密度。
+- 时间滚轮的窗口、占位与行高同源，JS 使用真实 offsetHeight / offsetTop 和 ResizeObserver 测量，不假设旧行高；RTL、主题/品牌与 reduced-motion 原有行为不变。
 
 ## 2. 当前架构约定
 
@@ -944,7 +952,7 @@ FormField
 - `Orientation="Orientation.Vertical"` 用于垂直组合。
 - `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
 - `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。
-- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为留给后续 Toolbar 或 ToggleGroup（两者均未实现，roadmap 中无排期）。
+- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为由 Toolbar 承担；ToggleGroup 是 v0.6 下一项，尚未实现。
 
 `Surface` 和 `Card` 的职责需要区分：
 
@@ -976,3 +984,7 @@ FormField
 ```
 
 后续组件如果与本规范冲突，应优先修改规范或明确记录例外，再实现组件。不能在单个组件中悄悄形成新的命名、状态或样式体系。
+
+### Toolbar 动作容器契约
+
+`Toolbar` 是无背景、无边框的动作布局，横向/纵向仅接纳 Button、IconButton 与 MenuButton。`ToolbarGroup` 提供必填名称的 `role="group"`，不增加 Tab 停留点。整条工具栏共享一个 roving tabindex；所属轴方向键循环、Home/End 首尾、横向 RTL 反转，非所属轴与 Enter/Space 留给按钮/菜单。菜单弹层与嵌套工具栏不属于外层候选。Disabled 使用 inert 阻止后代交互；隐藏、禁用、加载项跳过。业务状态留在宿主，JS 仅负责浏览器焦点和监听器释放；不提前建立通用焦点抽象。

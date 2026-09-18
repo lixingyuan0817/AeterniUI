@@ -3,6 +3,8 @@
        tokens (which were sized for buttons/inputs). */
     --aeterni-checkbox-size: var(--aeterni-control-size-md);
     display: inline-flex;
+    min-height: var(--aeterni-touch-target-min);
+    min-width: var(--aeterni-touch-target-min);
     align-items: center;
     gap: var(--aeterni-spacing-1);
     color: var(--aeterni-text-primary);

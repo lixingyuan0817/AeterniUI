@@ -7,7 +7,7 @@
     display: block;
     box-sizing: border-box;
     min-width: 0;
-    padding: var(--aeterni-spacing-4);
+    padding: var(--aeterni-padding-lg);
     overflow: hidden;
     border: var(--aeterni-border-width) solid transparent;
     border-radius: var(--aeterni-surface-radius);
@@ -80,19 +80,19 @@
 }
 
 .aeterni-surface--padding-small {
-    padding: var(--aeterni-spacing-2);
+    padding: var(--aeterni-padding-sm);
 }
 
 .aeterni-surface--padding-medium {
-    padding: var(--aeterni-spacing-4);
+    padding: var(--aeterni-padding-lg);
 }
 
 .aeterni-surface--padding-large {
-    padding: var(--aeterni-spacing-6);
+    padding: var(--aeterni-padding-xl);
 }
 
 .aeterni-surface--padding-extra-large {
-    padding: var(--aeterni-spacing-8);
+    padding: var(--aeterni-padding-2xl);
 }
 
 .aeterni-surface--radius-none {

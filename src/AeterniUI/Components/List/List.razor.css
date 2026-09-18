@@ -4,7 +4,7 @@
     box-sizing: border-box;
     min-width: 0;
     gap: var(--aeterni-spacing-1);
-    padding: var(--aeterni-spacing-2);
+    padding: var(--aeterni-padding-xs);
     border: var(--aeterni-border-width) solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-lg);
     background: var(--aeterni-bg-surface);

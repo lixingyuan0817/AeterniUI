@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.11.0`
+文档版本：`10.12.1`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.11.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.12.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -232,7 +232,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。下一实施优先级从 v0.6 `Toolbar` 开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
+当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar 已交付（1/5），下一项为 `ToggleGroup`，其余四项未开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
 时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证停稳回调、重复渲染、联动居中与资源释放。
 
@@ -252,3 +252,9 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | `docs/component-review-todo.zh-CN.md` | 组件审阅发现的质量问题待办、优先级和验收条件 |
 
 发生冲突时，优先以实际代码、`AGENTS.md` 的硬规则和 CI 检查为准，并在同一变更中修正文档冲突。
+
+### Toolbar 模块
+
+- `src/AeterniUI/Components/Toolbar/`：Toolbar 的布局、单停留点焦点模块与命名 ToolbarGroup，归属基础动作组件。
+- `src/AeterniUI.Sample/Pages/Components/Toolbar.razor`：`/components/toolbar` 交互示例，目录由 ShowcaseCatalog 注册。
+- `tests/toolbar.test.mjs`：无依赖 node:test DOM 焦点回归，运行 `node --test tests/toolbar.test.mjs`；不代替浏览器端到端验收。

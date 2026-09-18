@@ -5,7 +5,8 @@ import { test } from 'node:test';
 const source = await readFile(new URL('../src/AeterniUI/Components/TimePicker/TimeOptionList.razor.js', import.meta.url), 'utf8');
 const { init, sync, dispose, pendingValues } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
-test('time wheels preserve continuous scrolling and notify only after settling', () => {
+for (const itemHeight of [20, 28, 32, 36, 44]) {
+test(`time wheels measure ${itemHeight}px items and notify only after settling`, () => {
     const original = { requestAnimationFrame: globalThis.requestAnimationFrame, cancelAnimationFrame: globalThis.cancelAnimationFrame, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, ResizeObserver: globalThis.ResizeObserver };
     let resize;
     let disconnected = false;
@@ -25,7 +26,7 @@ test('time wheels preserve continuous scrolling and notify only after settling',
     const calls = [];
     const listeners = new Map();
     const wheel = {
-        dataset: { timeUnit: 'minute' }, clientHeight: 100, scrollTop: 0, selected: 0,
+        dataset: { timeUnit: 'minute' }, clientHeight: itemHeight * 5, scrollTop: 0, selected: 0,
         getBoundingClientRect: () => ({ top: 0 }),
         querySelector: () => options[wheel.selected],
         querySelectorAll: () => options,
@@ -34,8 +35,8 @@ test('time wheels preserve continuous scrolling and notify only after settling',
         scrollTo: target => { calls.push(target); wheel.scrollTop = target.top; }
     };
     const options = Array.from({ length: 60 }, (_, value) => ({
-        dataset: { timeValue: String(value) }, offsetTop: 40 + value * 20, offsetHeight: 20,
-        getBoundingClientRect: () => ({ top: 40 + value * 20 - wheel.scrollTop, height: 20 })
+        dataset: { timeValue: String(value) }, offsetTop: itemHeight * (2 + value), offsetHeight: itemHeight,
+        getBoundingClientRect: () => ({ top: itemHeight * (2 + value) - wheel.scrollTop, height: itemHeight })
     }));
     const notifications = [];
     const host = { querySelectorAll: () => [wheel] };
@@ -46,13 +47,13 @@ test('time wheels preserve continuous scrolling and notify only after settling',
         sync('test', host, null, true, false);
         flush(frames);
         resize();
-        wheel.clientHeight = 100;
+        wheel.clientHeight = itemHeight * 5;
         resize();
-        assert.equal(wheel.scrollTop, 500, 'opening a hidden popup must center its existing value');
+        assert.equal(wheel.scrollTop, itemHeight * 25, 'opening a hidden popup must center its existing value');
         wheel.selected = 0;
         sync('test', host, null, true, false);
         flush(frames);
-        for (const top of [20, 45, 80]) {
+        for (const top of [itemHeight, itemHeight * 2.25, itemHeight * 4]) {
             wheel.scrollTop = top;
             listeners.get('scroll')();
             flush(frames);
@@ -71,14 +72,14 @@ test('time wheels preserve continuous scrolling and notify only after settling',
         flush(frames);
         flush(timers);
         assert.equal(notifications.length, 1, 'settling must not notify twice');
-        wheel.scrollTop = 75;
+        wheel.scrollTop = itemHeight * 3.75;
         listeners.get('scroll')();
         flush(frames);
         flush(timers);
-        wheel.scrollTop = 75;
+        wheel.scrollTop = itemHeight * 3.75;
         listeners.get('wheel')();
-        assert.deepEqual(calls.at(-1), { top: 75, behavior: 'instant' }, 'reverse input cancels the old smooth snap');
-        wheel.scrollTop = 40;
+        assert.deepEqual(calls.at(-1), { top: itemHeight * 3.75, behavior: 'instant' }, 'reverse input cancels the old smooth snap');
+        wheel.scrollTop = itemHeight * 2;
         listeners.get('scroll')();
         flush(frames);
         assert.equal(notifications.length, 1);
@@ -86,13 +87,13 @@ test('time wheels preserve continuous scrolling and notify only after settling',
         assert.deepEqual(notifications.at(-1), ['OnWheelChangedAsync', 'minute', 2]);
         wheel.selected = 12;
         sync('test', host, null, false, false);
-        assert.equal(wheel.scrollTop, 240, 'dependent selection must be centered');
+        assert.equal(wheel.scrollTop, itemHeight * 12, 'dependent selection must be centered');
         wheel.clientHeight = 0;
         resize();
         wheel.scrollTop = 0;
-        wheel.clientHeight = 100;
+        wheel.clientHeight = itemHeight * 5;
         resize();
-        assert.equal(wheel.scrollTop, 240, 'reopening must restore the current selection');
+        assert.equal(wheel.scrollTop, itemHeight * 12, 'reopening must restore the current selection');
         flush(frames);
         listeners.get('scroll')();
         dispose('test');
@@ -103,5 +104,31 @@ test('time wheels preserve continuous scrolling and notify only after settling',
     } finally {
         dispose('test');
         Object.assign(globalThis, original);
+    }
+});
+
+}
+
+test('shared density tokens retain the spacing scale and wheel geometry', async () => {
+    const css = await readFile(new URL('../src/AeterniUI/wwwroot/css/aeterni_ui.css', import.meta.url), 'utf8');
+    const tokens = new Map([...css.matchAll(/(--aeterni-[\w-]+):\s*([^;]+);/g)].map(match => [match[1], match[2]]));
+    const resolve = name => {
+        const value = tokens.get(`--aeterni-${name}`);
+        const alias = /^var\(--aeterni-([\w-]+)\)$/.exec(value);
+        return alias ? resolve(alias[1]) : value;
+    };
+    for (const [name, value] of Object.entries({
+        'control-height-sm': '28px', 'control-height-md': '36px', 'control-height-lg': '44px',
+        'control-padding-x-sm': '8px', 'control-padding-x-md': '12px', 'control-padding-x-lg': '16px',
+        'row-height-compact': '32px', 'touch-target-min': '24px', 'touch-target': '44px',
+        'padding-sm': '8px', 'padding-lg': '12px', 'padding-xl': '20px', 'padding-2xl': '24px',
+        'spacing-4': '16px', 'spacing-8': '32px', 'spacing-10': '40px', 'spacing-12': '48px',
+        'font-size-base': '16px', 'line-height-normal': '1.5'
+    })) assert.equal(resolve(name), value, name);
+    const wheel = await readFile(new URL('../src/AeterniUI/Components/TimePicker/TimeOptionList.razor.css', import.meta.url), 'utf8');
+    assert.match(wheel, /height: calc\(var\(--aeterni-row-height-compact\) \* 5\)/);
+    for (const component of ['Card', 'Surface']) {
+        const surface = await readFile(new URL(`../src/AeterniUI/Components/${component}/${component}.razor.css`, import.meta.url), 'utf8');
+        for (const tier of ['sm', 'lg', 'xl', '2xl']) assert.ok(surface.includes(`var(--aeterni-padding-${tier})`));
     }
 });

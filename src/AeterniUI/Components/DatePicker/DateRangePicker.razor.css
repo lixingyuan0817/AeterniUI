@@ -5,7 +5,7 @@
 
 .aeterni-date-range-picker__panel {
     display: flex;
-    gap: var(--aeterni-spacing-4);
+    gap: var(--aeterni-gap-md);
     align-items: stretch;
     overflow-x: auto;
 }

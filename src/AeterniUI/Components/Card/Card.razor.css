@@ -7,7 +7,7 @@
    plain wrapper (radius 8px, not bordered).
    Scoped CSS limitation: keep both files in sync when a modifier changes. */
 .aeterni-card {
-    --aeterni-card-padding: var(--aeterni-spacing-4);
+    --aeterni-card-padding: var(--aeterni-padding-lg);
 
     display: flex;
     flex-direction: column;
@@ -119,19 +119,19 @@
 }
 
 .aeterni-card--padding-small {
-    --aeterni-card-padding: var(--aeterni-spacing-2);
+    --aeterni-card-padding: var(--aeterni-padding-sm);
 }
 
 .aeterni-card--padding-medium {
-    --aeterni-card-padding: var(--aeterni-spacing-4);
+    --aeterni-card-padding: var(--aeterni-padding-lg);
 }
 
 .aeterni-card--padding-large {
-    --aeterni-card-padding: var(--aeterni-spacing-6);
+    --aeterni-card-padding: var(--aeterni-padding-xl);
 }
 
 .aeterni-card--padding-extra-large {
-    --aeterni-card-padding: var(--aeterni-spacing-8);
+    --aeterni-card-padding: var(--aeterni-padding-2xl);
 }
 
 .aeterni-card.is-interactive.is-disabled {

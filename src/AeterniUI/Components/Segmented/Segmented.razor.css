@@ -71,7 +71,8 @@
     justify-content: center;
     gap: var(--aeterni-spacing-1);
     box-sizing: border-box;
-    min-width: 0;
+    min-width: var(--aeterni-touch-target-min);
+    min-height: var(--aeterni-touch-target-min);
     padding: 0 var(--aeterni-spacing-3);
     border-radius: var(--aeterni-segmented-radius);
     color: var(--aeterni-text-secondary);
@@ -162,6 +163,7 @@
 
 .aeterni-segmented--sm {
     --aeterni-segmented-height: var(--aeterni-control-height-sm);
+    --aeterni-segmented-padding: var(--aeterni-border-width);
 }
 
 .aeterni-segmented--sm .aeterni-segmented__option {

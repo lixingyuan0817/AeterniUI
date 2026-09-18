@@ -1,0 +1,10 @@
+.aeterni-toolbar-group {
+    display: inline-flex;
+    flex-direction: inherit;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.aeterni-toolbar-group[hidden] {
+    display: none;
+}

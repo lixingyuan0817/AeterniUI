@@ -7,7 +7,7 @@
 .aeterni-date-calendar__months {
     display: grid;
     grid-template-columns: repeat(var(--aeterni-date-calendar-months), minmax(var(--aeterni-width-input-md), 1fr));
-    gap: var(--aeterni-spacing-4);
+    gap: var(--aeterni-gap-md);
 }
 
 .aeterni-date-calendar__month {
