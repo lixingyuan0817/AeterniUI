@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace AeterniUI.Components.List;
 
-public partial class ListItem : AeterniComponent
+public partial class ListItem<TItem> : AeterniComponent
 {
     [CascadingParameter]
-    private List? Owner { get; set; }
+    private List<TItem>? Owner { get; set; }
 
     [Parameter]
     public object? Value { get; set; }
@@ -20,7 +20,11 @@ public partial class ListItem : AeterniComponent
     [Parameter]
     public RenderFragment? TrailingContent { get; set; }
 
-    private ItemHandle? _handle;
+    private ItemHandle<TItem>? _handle;
+
+    private List<TItem>? _registeredOwner;
+
+    internal bool CardMode => Owner?.CardMode == true;
 
     internal bool Interactive => Owner?.IsSelectable == true;
 
@@ -57,6 +61,8 @@ public partial class ListItem : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-list-item")
+            .Add("is-interactive", Interactive)
+            .Add("is-card", CardMode)
             .Add("is-selected", Selected)
             .Add("is-active", Active)
             .Add("is-disabled", EffectiveDisabled);
@@ -104,30 +110,33 @@ public partial class ListItem : AeterniComponent
         await Owner.ToggleAsync(_handle!);
     }
 
-    protected override Task OnComponentAfterRenderAsync(bool firstRender)
+    protected override void OnParametersSet()
     {
-        if (Owner is null)
+        base.OnParametersSet();
+        if (!ReferenceEquals(_registeredOwner, Owner))
         {
-            return Task.CompletedTask;
+            if (_handle is not null) _registeredOwner?.Unregister(_handle);
+            _registeredOwner = Owner;
+            _handle = null;
         }
-
+        if (Owner is null) return;
         if (_handle is null)
         {
-            _handle = new ItemHandle(this, Value, EffectiveDisabled);
+            _handle = new ItemHandle<TItem>(this, Value, EffectiveDisabled);
             Owner.Register(_handle);
         }
-
+        if (!Equals(_handle.Value, Value) || EffectiveDisabled)
+            Owner.InvalidateActive(_handle);
+        _handle.Value = Value;
         _handle.Disabled = EffectiveDisabled;
         _handle.OptionId = OptionId;
-
-        return Task.CompletedTask;
     }
 
     protected override ValueTask OnComponentDisposeAsync()
     {
         if (_handle is not null)
         {
-            Owner?.Unregister(_handle);
+            _registeredOwner?.Unregister(_handle);
         }
 
         return ValueTask.CompletedTask;

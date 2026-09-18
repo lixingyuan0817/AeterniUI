@@ -19,7 +19,7 @@
         <div class="preview-list-wrap">
             @if (_listSelectionMode == SelectionMode.Multiple)
             {
-                <List SelectionMode="@_listSelectionMode"
+                <List TItem="string" SelectionMode="@_listSelectionMode"
                       SelectedValues="@_listSelectedValues"
                       SelectedValuesChanged="HandleListMultipleChanged"
                       AriaLabel="列表多选预览">
@@ -31,7 +31,7 @@
             }
             else
             {
-                <List SelectionMode="@_listSelectionMode"
+                <List TItem="string" SelectionMode="@_listSelectionMode"
                       AllowClear="@_listAllowClear"
                       SelectedValue="@_listSelectedValue"
                       SelectedValueChanged="HandleListSingleChanged"
@@ -60,7 +60,36 @@
     </Notes>
 </ComponentPreview>
 
+<ComponentPreview AnchorId="list-items" Category="数据展示" Title="泛型 Items 与卡片" ComponentName="List&lt;TItem&gt;"
+                  Description="Items 自动推断类型；模板只提供内容，Card 外壳由组件负责。">
+    <Preview>
+        <div class="preview-list-wrap">
+            <List Items="@_names" CardMode="@_cardMode" Disabled="@_itemsDisabled"
+                  SelectionMode="SelectionMode.Single" @bind-SelectedValue="_itemSelected" AriaLabel="字符串列表" />
+            <List Items="@_models" CardMode="@_cardMode">
+                <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
+                <CardTemplate Context="item"><h3>@item.Name</h3><p>@item.Description</p></CardTemplate>
+            </List>
+            <span role="status">当前值：@(_itemSelected ?? "未选择")</span>
+        </div>
+    </Preview>
+    <Controls>
+        <Checkbox @bind-Value="_cardMode">CardMode</Checkbox>
+        <Checkbox @bind-Value="_itemsDisabled">Disabled</Checkbox>
+        <Button OnClick="ReplaceItems">替换 / 恢复 Items</Button>
+    </Controls>
+    <Notes><span>字符串无需模板；卡片模式无 CardTemplate 时显示文本，不使用 ItemTemplate。声明式旧用法添加 TItem="string"，ListItem 自动级联推断。选择列表模板不应嵌套可聚焦操作控件。</span></Notes>
+</ComponentPreview>
+
 @code {
+    private bool _cardMode;
+    private bool _itemsDisabled;
+    private object? _itemSelected;
+    private string[] _names = ["设计", "开发", "产品"];
+    private readonly DemoItem[] _models = [new("设计", "类型化模板与默认 context"), new("开发", "卡片 Context 别名")];
+    private sealed record DemoItem(string Name, string Description);
+    private void ReplaceItems() => _names = _names.Length == 3 ? ["新项目", "开发"] : ["设计", "开发", "产品"];
+
     private SelectionMode _listSelectionMode = SelectionMode.Single;
 
     private bool _listAllowClear = true;
@@ -81,6 +110,10 @@
 
     private static readonly ShowcaseParameter[] ListParameters =
     [
+        new("List.Items", "IEnumerable<TItem>?", "自动推断类型；非 null 时优先于 ChildContent。"),
+        new("List.ItemTemplate", "RenderFragment<TItem>?", "普通行内容，默认 ToString。"),
+        new("List.CardMode", "bool", "使用 Card 外壳。", "false"),
+        new("List.CardTemplate", "RenderFragment<TItem>?", "卡片内容，无模板时显示文本。"),
         new("List.ChildContent", "RenderFragment?", "列表内容。"),
         new("List.SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
         new("List.SelectedValue", "object?", "单选当前值。"),

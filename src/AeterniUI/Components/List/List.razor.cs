@@ -4,10 +4,26 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace AeterniUI.Components.List;
 
-public partial class List : AeterniComponent
+[CascadingTypeParameter(nameof(TItem))]
+public partial class List<TItem> : AeterniComponent
 {
-    private readonly List<ItemHandle> _items = [];
-    private ItemHandle? _focusedItem;
+    private readonly System.Collections.Generic.List<ItemHandle<TItem>> _items = [];
+    private ItemHandle<TItem>? _focusedItem;
+
+    private TItem[] _dataItems = [];
+    private bool _disposed;
+
+    [Parameter]
+    public IEnumerable<TItem>? Items { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    [Parameter]
+    public bool CardMode { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem>? CardTemplate { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -47,9 +63,9 @@ public partial class List : AeterniComponent
         _ => false
     };
 
-    internal async Task ToggleAsync(ItemHandle item)
+    internal async Task ToggleAsync(ItemHandle<TItem> item)
     {
-        if (item.Disabled || !IsSelectable)
+        if (Disabled || item.Disabled || !IsSelectable || !_items.Contains(item))
         {
             return;
         }
@@ -80,8 +96,8 @@ public partial class List : AeterniComponent
                     next.Add(item.Value);
                 }
 
-                var snapshot = next as IReadOnlyList<object?>;
-                await SelectedValuesChanged.InvokeAsync(snapshot!);
+                SelectedValues = next;
+                await SelectedValuesChanged.InvokeAsync(SelectedValues);
                 break;
         }
 
@@ -93,7 +109,7 @@ public partial class List : AeterniComponent
         await InvokeAsync(StateHasChanged);
     }
 
-    internal void Register(ItemHandle item)
+    internal void Register(ItemHandle<TItem> item)
     {
         if (!_items.Contains(item))
         {
@@ -101,9 +117,22 @@ public partial class List : AeterniComponent
         }
     }
 
-    internal void Unregister(ItemHandle item) => _items.Remove(item);
+    internal void Unregister(ItemHandle<TItem> item)
+    {
+        _items.Remove(item);
+        InvalidateActive(item);
+    }
 
-    internal void SetActive(ItemHandle? item)
+    internal void InvalidateActive(ItemHandle<TItem> item)
+    {
+        if (ReferenceEquals(_focusedItem, item))
+        {
+            _focusedItem = null;
+            if (!_disposed) _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    internal void SetActive(ItemHandle<TItem>? item)
     {
         if (ReferenceEquals(_focusedItem, item))
         {
@@ -120,15 +149,39 @@ public partial class List : AeterniComponent
         }
     }
 
-    internal bool IsActive(ItemHandle item) => ReferenceEquals(_focusedItem, item);
+    internal bool IsActive(ItemHandle<TItem> item) => ReferenceEquals(_focusedItem, item);
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        base.OnParametersSet();
+        await base.OnParametersSetAsync();
 
         if (!Enum.IsDefined(SelectionMode))
         {
             throw new ArgumentOutOfRangeException(nameof(SelectionMode), SelectionMode, "Unknown list selection mode.");
+        }
+
+        var next = Items?.ToArray() ?? [];
+        if (!_dataItems.SequenceEqual(next) || Disabled || !IsSelectable)
+        {
+            _focusedItem = null;
+        }
+        _dataItems = next;
+        if (Items is not null)
+        {
+            if (SelectedValue is not null && !next.Any(item => ValuesEqual(item, SelectedValue)))
+            {
+                SelectedValue = null;
+                await SelectedValueChanged.InvokeAsync(null);
+            }
+            if (SelectedValues is not null)
+            {
+                var retained = SelectedValues.Where(value => next.Any(item => ValuesEqual(item, value))).ToArray();
+                if (retained.Length != SelectedValues.Count)
+                {
+                    SelectedValues = retained;
+                    await SelectedValuesChanged.InvokeAsync(retained);
+                }
+            }
         }
     }
 
@@ -136,7 +189,8 @@ public partial class List : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-list")
-            .Add("aeterni-list--select", IsSelectable);
+            .Add("aeterni-list--select", IsSelectable)
+            .Add("aeterni-list--cards", CardMode);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -155,7 +209,8 @@ public partial class List : AeterniComponent
             }
 
             attributes["aria-multiselectable"] = SelectionMode == SelectionMode.Multiple ? "true" : "false";
-            attributes["tabindex"] = 0;
+            attributes["tabindex"] = Disabled ? -1 : 0;
+            if (Disabled) attributes["aria-disabled"] = "true";
 
             // Tell assistive technology which option the arrow keys are on.
             if (ActiveOptionId is not null)
@@ -178,6 +233,8 @@ public partial class List : AeterniComponent
 
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
+        if (Disabled) return;
+
         if (args.Key is "ArrowDown" or "ArrowUp" or "Home" or "End")
         {
             await MoveFocusAsync(args.Key);
@@ -228,7 +285,7 @@ public partial class List : AeterniComponent
         var next = enabled[nextIndex];
         SetActive(next);
 
-        if (SelectionMode == SelectionMode.Single && next.Value is not null)
+        if (SelectionMode == SelectionMode.Single)
         {
             await ToggleAsync(next);
             return;
@@ -242,6 +299,7 @@ public partial class List : AeterniComponent
 
     protected override ValueTask OnComponentDisposeAsync()
     {
+        _disposed = true;
         _items.Clear();
         _focusedItem = null;
         return ValueTask.CompletedTask;
@@ -249,21 +307,21 @@ public partial class List : AeterniComponent
 }
 
 /// <summary>
-/// Internal registration record kept by a <see cref="List"/> for focus
+/// Internal registration record kept by a <see cref="List{TItem}"/> for focus
 /// management and keyboard navigation. Order follows DOM render order.
 /// </summary>
-internal sealed class ItemHandle
+internal sealed class ItemHandle<TItem>
 {
-    public ItemHandle(ListItem item, object? value, bool disabled)
+    public ItemHandle(ListItem<TItem> item, object? value, bool disabled)
     {
         Item = item;
         Value = value;
         Disabled = disabled;
     }
 
-    public ListItem Item { get; }
+    public ListItem<TItem> Item { get; }
 
-    public object? Value { get; }
+    public object? Value { get; set; }
 
     public string? OptionId { get; set; }
 

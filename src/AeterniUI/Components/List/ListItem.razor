@@ -1,3 +1,5 @@
+@typeparam TItem
+@using AeterniUI.Components.Card
 @inherits AeterniComponent
 
 @* A selectable ListItem renders a non-focusable `role="option"` element: the
@@ -10,15 +12,22 @@
 <div @ref="RootElement"
      @attributes="BuildAttributes()"
      @onclick="ClickHandler">
-    @if (LeadingContent is not null)
+    @if (CardMode)
     {
-        <span class="aeterni-list-item__leading">@LeadingContent</span>
+        <Card Disabled="@EffectiveDisabled">@ChildContent</Card>
     }
-
-    <span class="aeterni-list-item__content">@ChildContent</span>
-
-    @if (TrailingContent is not null)
+    else
     {
-        <span class="aeterni-list-item__trailing">@TrailingContent</span>
+        @if (LeadingContent is not null)
+        {
+            <span class="aeterni-list-item__leading">@LeadingContent</span>
+        }
+
+        <div class="aeterni-list-item__content">@ChildContent</div>
+
+        @if (TrailingContent is not null)
+        {
+            <span class="aeterni-list-item__trailing">@TrailingContent</span>
+        }
     }
 </div>

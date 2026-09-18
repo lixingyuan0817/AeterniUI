@@ -32,6 +32,7 @@ await CheckToolbarAsync();
 await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
 await CheckPaginationGeometryAsync();
+await CheckListAsync();
 
 if (failures.Count > 0)
 {
@@ -43,8 +44,73 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (10 groups).");
+Console.WriteLine("Component contract checks passed (11 groups).");
 return 0;
+
+async Task CheckListAsync()
+{
+    var args = new Dictionary<string, object?> { ["Items"] = new string?[] { "Alpha", null, "<Beta>" } };
+    var html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    Require(html.Contains("Alpha") && html.Contains("&lt;Beta&gt;") && !html.Contains("role=\"option\""), "List defaults to encoded text, empty null and display-only rows.");
+    args["ItemTemplate"] = (RenderFragment<string?>)(item => builder => builder.AddContent(0, $"row:{item}"));
+    html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    Require(html.Contains("row:Alpha"), "ItemTemplate receives the typed item.");
+    args["CardMode"] = true;
+    html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    Require(Regex.Matches(html, "class=\"aeterni-card ").Count == 3 && !html.Contains("row:"), "Default cards must own their shell and never fall back to ItemTemplate.");
+    args["CardTemplate"] = (RenderFragment<string?>)(item => builder => builder.AddContent(0, $"card:{item}"));
+    html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    Require(html.Contains("card:Alpha") && !html.Contains("row:"), "CardTemplate supplies card content only.");
+    args["SelectionMode"] = SelectionMode.Multiple;
+    args["SelectedValues"] = new object?[] { "Alpha" };
+    args["Disabled"] = true;
+    args["Id"] = "contract-list";
+    args["Class"] = "consumer-list";
+    args["Style"] = "margin: 0";
+    args["AriaLabel"] = "Cards";
+    args["AdditionalAttributes"] = new Dictionary<string, object> { ["data-contract"] = "list" };
+    html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    foreach (var expected in new[] { "role=\"listbox\"", "aria-multiselectable=\"true\"", "aria-selected=\"true\"", "aria-disabled=\"true\"", "tabindex=\"-1\"", "id=\"contract-list\"", "consumer-list", "margin: 0", "data-contract=\"list\"", "aria-label=\"Cards\"" })
+        Require(html.Contains(expected), $"Card lists must preserve {expected}.");
+    Require(Regex.Matches(html, "role=\"option\"").Count == 3, "Each Card list item must have exactly one option, not a nested interactive Card.");
+    var model = await RenderAsync<AeterniUI.Components.List.List<(string Name, int Count)>>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[] { ("Model", 7) },
+        ["ItemTemplate"] = (RenderFragment<(string Name, int Count)>)(item => builder => builder.AddContent(0, $"{item.Name}:{item.Count}"))
+    });
+    Require(model.Contains("Model:7"), "Model templates preserve their item type.");
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        ListContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<ListContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        { ["Ready"] = (Action<ListContractHost>)(value => host = value) }));
+        var keyboard = typeof(AeterniUI.Components.List.List<string?>).GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        Task Key(string key) => (Task)keyboard.Invoke(host.List, [new KeyboardEventArgs { Key = key }])!;
+        await Key("End");
+        Require(Equals(host.Selected, "Gamma") && root.ToHtmlString().Contains("aria-activedescendant"), "Keyboard selects last row and reports active option.");
+        host.Rows = ["Replacement", "Alpha"]; host.Update();
+        Require(host.Selected is null && !root.ToHtmlString().Contains("aria-activedescendant"), "Removed selection and active descendant must be cleared.");
+        await Key("Home");
+        Require(Equals(host.Selected, "Replacement"), "Reused row handles must select updated values.");
+        host.Disabled = true; host.Update(); await Key("End");
+        Require(Equals(host.Selected, "Replacement") && root.ToHtmlString().Contains("tabindex=\"-1\""), "Disabled list ignores keys and leaves Tab sequence.");
+        host.Disabled = false; host.Mode = SelectionMode.Multiple; host.SelectedMany = ["Replacement", "Alpha"]; host.Update();
+        host.Rows = ["Alpha"]; host.Update();
+        Require(host.SelectedMany.SequenceEqual(new object?[] { "Alpha" }), "Dynamic Items prune missing multi-selection values.");
+        await Key("Home"); await Key("Enter");
+        Require(host.SelectedMany.Count == 0, "Multiple keyboard activation toggles current row.");
+        host.Rows = []; host.Update(); await Key("Enter");
+        Require(!root.ToHtmlString().Contains("role=\"option\"") && !root.ToHtmlString().Contains("aria-activedescendant"), "Empty Items remove registered rows and active descendant.");
+        host.Declarative = true; host.Rows = ["Disabled", "Enabled"]; host.RowDisabled = true; host.Mode = SelectionMode.Single; host.Update();
+        await Key("Home");
+        Require(Equals(host.Selected, "Enabled") && root.ToHtmlString().Contains("aria-disabled=\"true\""), "Declarative children inherit owner and skip disabled rows.");
+        host.Rows = ["Disabled", "Changed"]; host.Update(); await Key("End");
+        Require(Equals(host.Selected, "Changed"), "Declarative handle values update when parameters change.");
+        host.Rows = []; host.Update();
+        Require(!root.ToHtmlString().Contains("aria-activedescendant"), "Disposing the focused declarative row clears its active descendant.");
+    });
+}
 
 async Task CheckToggleGroupAsync()
 {

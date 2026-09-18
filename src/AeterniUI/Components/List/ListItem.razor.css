@@ -18,15 +18,15 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
 }
 
-.aeterni-list--select .aeterni-list-item {
+.aeterni-list-item.is-interactive {
     cursor: pointer;
 }
 
-.aeterni-list--select .aeterni-list-item:hover:not(.is-disabled) {
+.aeterni-list-item.is-interactive:hover:not(.is-disabled):not(.is-selected) {
     background: var(--aeterni-state-background-hover);
 }
 
-.aeterni-list--select .aeterni-list-item.is-selected {
+.aeterni-list-item.is-interactive.is-selected {
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-text-primary);
     font-weight: var(--aeterni-font-weight-medium);
@@ -35,13 +35,13 @@
 /* The selection fill outranks the hover wash. Without this the row lightened the
    moment the pointer touched it, because in the light theme the hover wash is
    weaker than the selected one. */
-.aeterni-list--select .aeterni-list-item.is-selected:hover:not(.is-disabled) {
+.aeterni-list-item.is-interactive.is-selected:hover:not(.is-disabled) {
     background: var(--aeterni-state-background-selected);
 }
 
 /* The container owns focus; `.is-active` mirrors the option reported through
    aria-activedescendant (see ListItem). */
-.aeterni-list--select .aeterni-list-item.is-active {
+.aeterni-list-item.is-interactive.is-active:not(.is-selected):not(.is-disabled) {
     background: var(--aeterni-state-background-hover);
 }
 
@@ -77,4 +77,14 @@
     .aeterni-list-item {
         transition: none;
     }
+}
+
+.aeterni-list-item.is-card {
+    display: block;
+    padding: var(--aeterni-spacing-1);
+}
+
+.aeterni-list-item.is-card.is-active {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
 }

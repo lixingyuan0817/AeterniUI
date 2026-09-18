@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.13.0`
+文档版本：`10.14.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.14.0 发布范围
+
+本次发布将 List 改为 `List<TItem>`，新增 Items、ItemTemplate 及 CardMode / CardTemplate；声明式使用需显式指定 TItem，迁移说明见 §16。核心包与 Font Awesome 图标包统一版本为 10.14.0，使用 `v10.14.0` 触发现有 NuGet Trusted Publishing 工作流；完整发布记录见 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
 ## 10.13.0 发布范围
 
@@ -428,7 +432,10 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 ### 支持能力
 
-- `List` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
+- `List<TItem>` 的 `Items` 为 `IEnumerable<TItem>?`，可从字符串/模型集合自动推断类型，每次参数更新枚举为快照；非 null（包括空集合）优先于 `ChildContent`，null 使用声明式内容。
+- `ItemTemplate` 为 `RenderFragment<TItem>?`；默认 context 是当前 item，支持 Context 别名。无模板显示 `item?.ToString()`，null 为空，文本正常 HTML 编码。
+- `CardMode` 为 bool，默认 false（没有 Mode 参数）。true 时每项由库统一渲染现有 Card 外壳；`CardTemplate` 为 `RenderFragment<TItem>?`，只负责内容，无模板显示文本，**不回退 ItemTemplate**。普通模式忽略 CardTemplate。声明式 CardMode 包裹 ListItem.ChildContent，Leading/TrailingContent 只用于普通行。
+- `List<TItem>` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。
@@ -441,6 +448,25 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 选择模式下容器负责单点 Tab 聚焦和键盘导航，禁用项不可选择；无选择模式不伪造按钮或 listbox 交互语义。
 
 ### 实现边界
+
+Items 改变清除失效活动项；缺失单选/多选值清理后通过 Changed 回传，不触发 OnItemSelected。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
+
+### 10.14.0 迁移与用法
+
+经授权直接迁移为泛型，不保留非泛型 List/ListItem。无 Items 的 `<List>` 改为 `<List TItem="string">`（混合值可选 object）；后代 ListItem 级联推断 TItem，保留 object 单/多选 API。独立包装组件需转发同名 TItem 或显式指定子项 TItem。C# 引用改为 `List<string>` / `ListItem<string>`；集合名称冲突时写为 `System.Collections.Generic.List<T>`。
+
+```razor
+<List Items="@(new[] { "设计", "开发" })" />
+<List Items="@models">
+    <ItemTemplate><strong>@context.Name</strong></ItemTemplate>
+</List>
+<List Items="@models" CardMode="true">
+    <CardTemplate Context="item"><h3>@item.Name</h3></CardTemplate>
+</List>
+<List TItem="string" SelectionMode="SelectionMode.Single">
+    <ListItem Value="@("design")">设计</ListItem>
+</List>
+```
 
 当前不提供拖拽、虚拟化、分组和异步数据源。
 

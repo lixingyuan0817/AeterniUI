@@ -1,9 +1,40 @@
+@typeparam TItem
 @inherits AeterniComponent
 
 <div @ref="RootElement"
      @attributes="BuildAttributes()"
      @onkeydown="KeyDownHandler">
     <CascadingValue Value="this">
-        @ChildContent
+        @if (Items is not null)
+        {
+            @foreach (var item in _dataItems)
+            {
+                <ListItem TItem="TItem" Value="@item">
+                    @if (CardMode)
+                    {
+                        @if (CardTemplate is not null)
+                        {
+                            @CardTemplate(item)
+                        }
+                        else
+                        {
+                            @item?.ToString()
+                        }
+                    }
+                    else if (ItemTemplate is not null)
+                    {
+                        @ItemTemplate(item)
+                    }
+                    else
+                    {
+                        @item?.ToString()
+                    }
+                </ListItem>
+            }
+        }
+        else
+        {
+            @ChildContent
+        }
     </CascadingValue>
 </div>

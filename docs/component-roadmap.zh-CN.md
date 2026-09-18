@@ -1,10 +1,19 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.13.0`
+文档版本：`10.14.0`
 
 状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton 已交付（3/5），其余两项未开始；v0.7 规划中。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
+
+## 10.14.0 List 泛型功能发布
+
+- [x] List<TItem> / ListItem<TItem>、Items 自动推断、ItemTemplate、CardMode/CardTemplate；Card 外壳统一渲染，无模板只回退文本。
+- [x] 声明式显式 TItem，保留 object 选择 API；修正集合名称冲突、动态注册 Value、禁用继承、活动项和移除数据的选择清理。
+- [x] 交互字符串/模型/卡片/动态示例与泛型迁移说明；`Directory.Build.props` 四个版本属性统一为 10.14.0（程序集/文件版本为 10.14.0.0），同步中文文档、索引和 README，保留 10.13.0 历史发布记录。
+- [x] 发布前验证：Debug / Release solution build 均为 0 警告、0 错误；11 组契约覆盖模板、Card 回退、声明式、键盘、动态数据和禁用；21 项 Node 回归、11 个组件 JS 语法、57 个 CSS 注释检查、99 项品牌对比度、343 个图标一致性、Token-only CSS 与文档门禁通过；两个 10.14.0 NuGet 包完成本地打包验证。
+- 使用 `v10.14.0` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包；不另建 GitHub Release。
+- 尚无浏览器视觉/辅助技术实机验收；本次发布不扩大上述验收边界。
 
 ## 10.13.0 功能发布
 
