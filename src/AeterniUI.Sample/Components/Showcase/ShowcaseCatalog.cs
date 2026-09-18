@@ -39,6 +39,7 @@ public static class ShowcaseCatalog
             new("icon-button", "IconButton", "图标按钮"),
             new("menu-button", "MenuButton", "菜单按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
+            new("toolbar", "Toolbar", "单停留点动作工具栏"),
             new("surface", "Surface", "视觉容器"),
             new("card", "Card", "结构化容器"),
             new("divider", "Divider", "分隔线"),

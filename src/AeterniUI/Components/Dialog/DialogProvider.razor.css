@@ -21,7 +21,7 @@
     display: grid;
     place-items: center;
     box-sizing: border-box;
-    padding: var(--aeterni-spacing-6);
+    padding: var(--aeterni-padding-xl);
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-scrim);
     backdrop-filter: var(--aeterni-blur-scrim);
@@ -236,7 +236,7 @@
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-3);
-    padding: var(--aeterni-spacing-4) var(--aeterni-spacing-5);
+    padding: var(--aeterni-padding-md) var(--aeterni-padding-lg);
 }
 
 .aeterni-dialog-provider__header {
@@ -285,7 +285,7 @@
 
 .aeterni-dialog-provider__body {
     min-width: 0;
-    padding: var(--aeterni-spacing-5);
+    padding: var(--aeterni-padding-lg);
     overflow-wrap: anywhere;
 }
 

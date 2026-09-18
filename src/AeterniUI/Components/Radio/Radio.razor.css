@@ -6,6 +6,8 @@
     --aeterni-radio-size: var(--aeterni-control-size-md);
 
     display: inline-flex;
+    min-height: var(--aeterni-touch-target-min);
+    min-width: var(--aeterni-touch-target-min);
     align-items: center;
     gap: var(--aeterni-spacing-2);
     min-width: 0;

@@ -1,0 +1,16 @@
+.aeterni-toolbar {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    max-inline-size: 100%;
+}
+
+.aeterni-toolbar--vertical {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.aeterni-toolbar[hidden] {
+    display: none;
+}

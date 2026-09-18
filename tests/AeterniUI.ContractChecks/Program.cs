@@ -28,6 +28,7 @@ await CheckAccordionAriaAsync();
 await CheckCalendarGridAsync();
 await CheckTimeListFocusAsync();
 await CheckAvatarVariantsAsync();
+await CheckToolbarAsync();
 
 if (failures.Count > 0)
 {
@@ -39,8 +40,35 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (6 groups).");
+Console.WriteLine("Component contract checks passed (7 groups).");
 return 0;
+
+async Task CheckToolbarAsync()
+{
+    var html = await RenderAsync<AeterniUI.Components.Toolbar.Toolbar>(new Dictionary<string, object?>
+    {
+        ["AriaLabel"] = "Document actions", ["Id"] = "contract-toolbar", ["Class"] = "consumer-toolbar",
+        ["Style"] = "margin: 0", ["Visible"] = false, ["Disabled"] = true,
+        ["Orientation"] = Orientation.Vertical,
+        ["AdditionalAttributes"] = new Dictionary<string, object> { ["data-contract"] = "toolbar" }
+    });
+    foreach (var value in new[] { "role=\"toolbar\"", "aria-label=\"Document actions\"", "aria-orientation=\"vertical\"", "aria-disabled=\"true\"", "id=\"contract-toolbar\"", "consumer-toolbar", "margin: 0", "data-contract=\"toolbar\"", "hidden", "inert", "tabindex=\"-1\"" })
+        Require(html.Contains(value, StringComparison.Ordinal), $"Toolbar must render {value}.");
+    var group = await RenderAsync<AeterniUI.Components.Toolbar.ToolbarGroup>(new Dictionary<string, object?> { ["AriaLabel"] = "Editing", ["Disabled"] = true });
+    Require(group.Contains("role=\"group\"") && group.Contains("aria-label=\"Editing\"") && group.Contains("inert") && !group.Contains("tabindex"), "Named toolbar groups must not introduce tab stops.");
+    try
+    {
+        await RenderAsync<AeterniUI.Components.Toolbar.Toolbar>(new Dictionary<string, object?> { ["AriaLabel"] = "Actions", ["Orientation"] = (Orientation)99 });
+        Require(false, "Toolbar must reject invalid orientation.");
+    }
+    catch (ArgumentOutOfRangeException) { }
+    try
+    {
+        await RenderAsync<AeterniUI.Components.Toolbar.Toolbar>(new Dictionary<string, object?> { ["AriaLabel"] = " " });
+        Require(false, "Toolbar must require a name.");
+    }
+    catch (ArgumentException) { }
+}
 
 async Task CheckDatePickerRootAsync()
 {

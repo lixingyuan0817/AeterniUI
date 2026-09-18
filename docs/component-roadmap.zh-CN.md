@@ -1,10 +1,16 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.11.0`
+文档版本：`10.12.1`
 
-状态：v0.1～v0.5 的功能清单已交付；第六轮组件审阅发现的质量缺口进入优先收口；v0.6～v0.7 保持规划中，见 `component-review-todo.zh-CN.md`
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar 已交付（1/5），其余四项未开始；v0.7 规划中。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
+
+## 10.12.1 修复与优化
+
+- 已实施全库温和紧凑化：共享控件 28/36/44px、内联 padding 8/12/16px、紧凑行 32px，Surface/Card 与弹层留白同步收紧；正文、颜色、spacing 原始阶梯与焦点环不变，交互目标至少 24px。规则见设计规范与当前功能清单。
+- 保留 10.12.0 Toolbar 与交互工作区；v0.6 仍只完成 Toolbar，其余四组件未实施。
+- 验证：solution build 0 警告/0 错误，7 组渲染契约、10 项 Node 回归（含 20/28/32/36/44px 时间轮测量）、55 个 CSS 注释检查、99 项对比度与文档门禁通过。当前工作区无可用浏览器自动化依赖；已安装的 Playwright CLI 也未找到可运行的 Playwright 项目，未完成浏览器视觉验收。
 
 ## 文档边界
 
@@ -285,7 +291,7 @@ Input/Input 样式族
 
 | 任务 | 状态 | 构建 | 备注 |
 | --- | --- | --- | --- |
-| v0.2 计划 | 规划中 | 未涉及 | 仅记录计划，未修改组件代码 |
+| v0.2 计划 | 已完成 | 通过 | 高频基础控件与浮层能力已交付 |
 | Textarea | 已完成 | 通过 | 原生 `<textarea>`、标准绑定、Rows/Resize、表单校验和无障碍状态；示例已同步 |
 | Radio / RadioGroup | 已完成 | 通过 | 原生 radio/fieldset 语义、泛型绑定、禁用/必填/无效状态；示例已同步 |
 | Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
@@ -303,7 +309,7 @@ Input/Input 样式族
 | 全组件色彩与结构复核（v10.4） | 已完成 | 通过 | 把「填充档不当 ink 用」的规则落实到全部组件：Icon 命名色、Alert/Toast 徽标与弹窗头部图标、FormField 反馈文字、Menu 选中项、Progress 填充/轨道、Rating 星形共六处换上文字形态或按色相染色（最低组合从 1.78:1 提到 3.15:1，ink 类从 1.91:1 提到 3.65:1）；浅色三级文字锚到最暗中性面；中性填充按钮 hover 方向改为两个主题一致；拆出通知卡片的填充/ink 双 accent 角色，消除 `Severity.Default` 死类。结构侧：`NoticeCard`/`ListItem` 重新接入基类属性契约并合并重复标记，静态 `Card`/展示型 `List` 不再注册 DOM 事件，`Progress` 去掉 inline `width` 与 `!important`，`Tag`/`Icon`/`Radio` 的第二套映射收敛到 `ComponentClass`，图标尺寸统一走 `--aeterni-icon-render-size`，六个组件补 `@ref`，`ThemeSwitch` 选项改单一模板，五处布尔型 ARIA 状态改为字符串输出；示例新增 `/components/colors` 验收页 |
 | 样式体系一致性（v10.4） | 已完成 | 通过 | 中性容器表面去除彩偏移：浅色四个容器背景改为完全无色（v10.3 的 +2~+4 蓝紫偏移在大面积上会被读成品牌色底，且磨砂层的 `saturate()` 会放大它），深色统一 +3，规则写入 AGENTS.md、规范与提交清单（容器背景只能是黑/白/灰/毛玻璃）；Menu 禁用态由整行 `opacity` 改为 `--aeterni-state-color-disabled`；组件内间距收敛到 `--aeterni-spacing-*`（gap/padding/margin 降为宿主别名）；新增 `--aeterni-transition-control` 消除字段控件三处重复的过渡声明；`--aeterni-opacity-muted` 与 `--aeterni-radius-badge` 获得真实消费者，交互态别名 `bg-hover/-active` 补语义注释；浮层半径层级与 `surface-soft`/`bg-secondary` 分工写入规范 |
 | 文字色阶与观感清理（v10.4） | 已完成 | 通过 | 文字改为「单一墨色 + 不透明度阶梯」（Apple label 模型）：浅色 `rgba(0,0,0,.78/.62/.56/.52/.36)`、深色 `rgba(255,255,255,.86/.56/.48/.40/.28)`，主色从 17:1 降到 11.7:1（不再发硬），二级/三级不再只差 1.16:1，且文字会随所在表面自动调和；`tertiary` 降为图标/装饰级，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项与示例页元信息改用 `secondary`/`muted`；Tag 标签文字改用 accent 的 text 形态（85% + 15% 正文墨）而不是「亮填充档 52% + 近黑 48%」，绿/黄 chip 不再浑浊（4.95~7.15:1）；新增不透明的 `--aeterni-separator` 作为卡片/对话框头尾分界（1.71:1 / 1.53:1，原 7% alpha 像污渍）；`--aeterni-color-on-semantic` 从蓝黑 `#0B0F19` 改为无色 `#141414` |
-| Size 档位补齐（Switch / ComboBox / Rating） | 已完成 | 通过 | 三个控件补 `Size`（`Small`/`Default`/`Large`）：ComboBox 触发器与选项共用一套档位 Token（Small 32px，与 `Input Size="Small"` 等高）；Switch 轨道由旋钮尺寸推导（跑道 = 旋钮×2 + 内边距×2 + 边框×2，滑块行程恰好一个旋钮宽，默认档与旧值一致，Small 34×20 / Large 46×26）；Rating Small 16px 星形 + 4px 余量、Large 24px + 12px |
+| Size 档位补齐（Switch / ComboBox / Rating） | 已完成 | 通过 | 三个控件补 `Size`（`Small`/`Default`/`Large`）：ComboBox 触发器与选项共用一套档位 Token（Small 28px，与 `Input Size="Small"` 等高）；Switch 轨道由旋钮尺寸推导（跑道 = 旋钮×2 + 内边距×2 + 边框×2，滑块行程恰好一个旋钮宽，默认档与旧值一致，Small 34×20 / Large 46×26）；Rating Small 16px 星形、热区至少 24px、Large 24px + 12px |
 | 示例页拆分（v10.5） | 已完成 | 通过 | 把原来的单页 + `switch` 拆成「一个组件一个页面」：`Pages/Components/` 下 25 个页面各自带 `@page`/`@layout`/`PageTitle` 与自己的 `@code` 状态，路由 `/components/{id}` 可直接分享；新增 `Layout/ComponentsLayout.razor`（侧栏 + 路由高亮，内嵌 MainLayout）与 `Components/Showcase/ShowcasePageBase.cs`（仅保留跨页共享的注入服务、交互提示与主题订阅）；作用域 CSS 无法跨页，展示样式迁到示例全局表 `wwwroot/css/showcase.css`；安装页改为垂直单列步骤（每步独占整行代码块）；规范 §10 与项目索引同步为「一个组件一个页面」 |
 | 表面归属定案（v10.5） | 已完成 | 通过 | 把「组件是否自带表面」写成规范 §5.3 两行表格（自带表面 vs 内容控件，判断依据是“能不能单独构成一块界面”）并进提交清单；`current-features` 的 Menu/Tabs 实现边界各补一条；示例预览把 Menu/Tabs 放进 `Surface` 宿主容器（原来它们在网格画布上裸奔，看起来像漏了背景）。结论是 Menu/Tabs 按内容控件保持透明，`List` 保持自带表面 |
 | 共享浮层能力（v10.4） | 已完成 | 通过 | 新增 `wwwroot/js/aeterni_floating.js`：视口贴合计算（`fitsSide`/`oppositeSide`/`clampCenteredShift`/`clampAlignedShift`）、`createFocusTrap`、引用计数的 `lockScroll`；Tooltip 改为复用，DialogProvider 改用共享滚动锁与可聚焦元素列表（Tab/Escape 仍由对话框堆栈自己持有，因为只有最顶层应响应） |
@@ -446,7 +452,7 @@ Token 和现有基础组件
 
 说明：公共名为 `Segmented`。落地后 `ThemeSwitch` 应改为基于该组件，并同步解决英文硬编码文案问题（见 [`component-review-todo.zh-CN.md`](component-review-todo.zh-CN.md) 的 REV-18）。
 
-交付：`Segmented<TValue>` 基于原生 radio（`Items` / `TextSelector` / `ItemTemplate` / `DisabledSelector`）；单选语义、`aria-checked`、roving tabindex、方向键与 RTL 方向交给浏览器，因此组件没有键盘 JS；滑块宽度为「一列」、位移为「index 列」，来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，2/3/5 项共用同一份几何；尺寸走控件高度阶梯（32/40/48px）；`ThemeSwitch` 重构为它的专用用法（文案仍取自文案表，不再有硬编码英文）。示例页 `/components/segmented`。
+交付：`Segmented<TValue>` 基于原生 radio（`Items` / `TextSelector` / `ItemTemplate` / `DisabledSelector`）；单选语义、`aria-checked`、roving tabindex、方向键与 RTL 方向交给浏览器，因此组件没有键盘 JS；滑块宽度为「一列」、位移为「index 列」，来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，2/3/5 项共用同一份几何；尺寸走控件高度阶梯（28/36/44px）；`ThemeSwitch` 重构为它的专用用法（文案仍取自文案表，不再有硬编码英文）。示例页 `/components/segmented`。
 
 顺带修复：`Radio` 的选项原来只监听 `onclick`，方向键改变原生选中态时不会上报到 C#（受控值会停在旧值）；改为监听原生 `change` 后方向键与鼠标走同一条上报路径。
 
@@ -515,7 +521,7 @@ Token 和现有基础组件
 
 ## 第五阶段交付与后续规划（v0.5～v0.7）
 
-状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6～v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
+状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6 已交付 Toolbar（1/5），其余四项与 v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
 
 ### 后续计划与实施优先级
 
@@ -524,11 +530,11 @@ Token 和现有基础组件
 | 实施优先级 | 计划 | 当前状态 | 排序依据 |
 | --- | --- | --- | --- |
 | 优先级 0 | v0.5.1 质量收口（REV-64～REV-73、REV-75～REV-76） | 已完成 | 已恢复根属性、键盘焦点、折叠内容可达性、视觉状态和本地化契约，并加入最小渲染回归门禁 |
-| 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | 未开始 | 先沉淀共享的复合控件焦点模型；`SplitButton` 依赖 `MenuButton` 的质量收口 |
+| 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | Toolbar 已完成 | 下一项 ToggleGroup 复用键盘规则而非提前抽象；`SplitButton` 依赖 `MenuButton` 的质量收口 |
 | 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 未开始 | 两者相对独立，但需要先明确链接导航与流程状态的公共边界 |
 | 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 未开始 | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
 
-文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划从优先级 1 的 v0.6 动作编排开始。
+文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划从优先级 1 的 v0.6 ToggleGroup 开始。
 
 ### v0.5.1 质量收口（优先级 0）
 
@@ -565,7 +571,7 @@ Accordion / DateCalendar / TimeOptionList 焦点语义
           +--> 最小化渲染契约门禁
 ```
 
-完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后下一实施项为 v0.6 `Toolbar`。
+完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后下一实施项为 v0.6 `ToggleGroup`（Toolbar 已交付）。
 
 ### 规划原则
 
@@ -601,11 +607,11 @@ DateCalendar 多月/快捷范围能力
 
 目标：覆盖工具栏和复杂动作入口，补齐现有 Button、ButtonGroup、Segmented、MenuButton 之间的组合空白。
 
-状态：未开始（0/5）。
+状态：Toolbar 已交付（1/5）；其余四项未开始。
 
 计划顺序：
 
-1. [ ] `Toolbar`：工具栏分组、`role="toolbar"`、方向键导航、组内 Tab 停留点、溢出区域语义。
+1. [x] `Toolbar`：无背景动作容器、命名分组、横纵方向、RTL、方向键/Home/End、整条工具栏一个 Tab 停留点、禁用/隐藏/加载跳过；仅接纳按钮与菜单触发器，溢出由宿主显式放置 MenuButton。
 2. [ ] `ToggleGroup`：单选/多选两种模式、方向键、`aria-pressed`/`aria-checked` 契约；与 `Segmented` 的边界必须先定为“按钮动作切换”与“表单值选择”。
 3. [ ] `SplitButton`：主动作 + 菜单动作，复用 `Button`、`MenuButton`、`PopupHost`，明确主按钮与菜单按钮的独立名称和禁用状态。
 4. [ ] `Breadcrumb`：服务于层级导航，不把路由跳转内置到组件库。
@@ -661,3 +667,7 @@ Search + List + PopupHost
 | Token/主题 | 只消费现有 Token；没有新增第二套尺寸、颜色、圆角或动效体系 |
 | 浮层/JS | 已确认能否复用共享浮层模块；只有必要的浏览器行为才引入 `.razor.js` |
 | 示例/验收 | Light、Dark、System、窄屏、键盘和 reduced-motion 均有可操作验收路径 |
+
+| 发布 | 状态 | 验证 | 内容 |
+| --- | --- | --- | --- |
+| v10.12.0 / v0.6 Toolbar | 已完成（1/5） | 构建、渲染契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 Toolbar / ToolbarGroup、交互示例；不更改普通 ButtonGroup 语义。ToggleGroup、SplitButton、Breadcrumb、Stepper 均未开始。 |

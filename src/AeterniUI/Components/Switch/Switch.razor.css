@@ -9,6 +9,8 @@
     --aeterni-switch-track-height: calc(var(--aeterni-switch-knob-size) + var(--aeterni-switch-inset) * 2 + var(--aeterni-border-width) * 2);
 
     display: inline-flex;
+    min-height: var(--aeterni-touch-target-min);
+    min-width: var(--aeterni-touch-target-min);
     align-items: center;
     gap: var(--aeterni-spacing-2);
     color: var(--aeterni-text-primary);

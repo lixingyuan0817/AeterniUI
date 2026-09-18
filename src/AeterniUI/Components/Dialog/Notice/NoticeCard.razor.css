@@ -23,10 +23,10 @@
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: var(--aeterni-spacing-3);
+    column-gap: var(--aeterni-gap-sm);
     box-sizing: border-box;
     min-width: 0;
-    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    padding: var(--aeterni-padding-sm) var(--aeterni-padding-lg);
     border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-dialog-accent) 20%, var(--aeterni-border-default));
     border-radius: var(--aeterni-radius-2xl);
     background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-notice-fill));

@@ -5,7 +5,7 @@
     max-width: 100%;
     min-width: 0;
     min-height: var(--aeterni-control-height-md);
-    padding: var(--aeterni-spacing-3) var(--aeterni-control-padding-x-md);
+    padding: var(--aeterni-padding-sm) var(--aeterni-control-padding-x-md);
     border: var(--aeterni-border-width) solid var(--aeterni-control-border);
     border-radius: var(--aeterni-radius-input);
     outline: none;

@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.11.0`
+文档版本：`10.12.1`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -15,6 +15,14 @@
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)，不会写入已完成功能。
 - 组合组件的公开边界：`RadioGroup`、`ThemeSwitch` 可独立使用；`ListItem` 只能作为 `List` 子项，`Tab` 只能作为 `Tabs` 子项；`PopupHost` 与 `Popover` 用于自定义浮层组合，通常由 `MenuButton`、`ComboBox`、`Tooltip` 等宿主间接使用；`DialogProvider` 与 `ThemeProvider` 分别只应在应用根部注册一次。`DateCalendar` 是 `DatePicker` / `DateRangePicker` 的内部渲染部件，虽保留 Razor 类型以支持内部组合，但已标记为非稳定公共 API，不支持直接使用。
+
+### 默认温和紧凑尺寸（10.12.1）
+
+- 全库共享控件高度 Small / Default / Large 为 28 / 36 / 44px（原 32 / 40 / 48px）；对应内联 padding 为 8 / 12 / 16px（原 12 / 16 / 20px）。Button、Input、ComboBox、日期时间字段及 IconButton 由现有高度别名派生，不新增 Density 参数。
+- 保留原始 spacing scale、正文大小/行高、颜色、圆角与焦点环。现有 padding-lg / xl / 2xl 别名改停靠 spacing-3 / 5 / 6（12 / 20 / 24px）；Surface/Card 的 None / Small / Medium / Large / ExtraLarge 留白为 0 / 8 / 12 / 20 / 24px。
+- 紧凑导航行 Token 从 36 收至 32px，Menu、Tabs、时间滚轮共用；List 保留内容自适应行高。弹层、Drawer、Dialog、通知同步收紧留白，日期单元格仍至少 28px。
+- 可点击图标与选择控件热区至少 24px；Small Segmented 以 1px 内边距保留 24px 选项高度，Rating Small 不随字形缩至 20px。多行列表和表面内容继续使用自适应高度；不通过缩小正文换取密度。
+- 时间滚轮的窗口、占位与行高同源，JS 使用真实 offsetHeight / offsetTop 和 ResizeObserver 测量，不假设旧行高；RTL、主题/品牌与 reduced-motion 原有行为不变。
 
 ## 1. 宿主支持
 
@@ -144,7 +152,7 @@
 
 ### 实现边界
 
-不提供 Toolbar / ToggleGroup 语义（两者均未实现）。
+ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件。
 ## 6. Surface 和 Card
 
 ### 支持能力
@@ -429,7 +437,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
-- `Size` 提供三档：`Small` 为 16px 星形 + 4px 命中余量（与 Checkbox Small 同档）、`Default` 为 20px + 8px（与之前一致）、`Large` 为 24px + 12px。
+- `Size` 提供三档：`Small` 为 16px 星形，命中区域下限 24px（与 Checkbox Small 同档）、`Default` 为 20px + 8px（与之前一致）、`Large` 为 24px + 12px。
 - `aria-checked` 输出显式字符串 `"true"`/`"false"`（布尔值会被渲染成最小化属性，读屏会当成无效值）。
 - 填充星取 `--aeterni-color-warning-text`、空星取 `--aeterni-text-tertiary`：星形是实心图形，填充档在浅色下只有 2.2:1。
 - 只读或禁用时把当前值并入分组可访问名称（`aria-label`），自定义 `Icon` 与内置星形使用同一尺寸（`--aeterni-icon-size-lg`）。
@@ -450,7 +458,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
 - `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnChange`；未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
-- `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（32px，与 `Input Size="Small"` 等高）、`Default` 40px、`Large` 48px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
+- `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
 - 选项渲染为非可聚焦的 `role="option"` 元素：打开后焦点始终留在触发器上，Tab 不会进入选项列表，键盘提示由 `is-active` 与 `aria-activedescendant` 表达。
@@ -509,7 +517,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 - `MenuGroup`：`Key`、`Label`、`Items`、`Icon`、`InitiallyOpen`、`Disabled`、`Visible`。
 - `MenuItem`：`Id`、`Label`、`Description`、`Icon`、`Disabled`、`Href`、`Target`、`Visible`。
-- 标签与 `Description` 在同一行显示，空间不足时按需省略（`…`），因此分组开关与菜单项保持同高（`36px`）；菜单本身不会因父容器更高而拉伸行高。
+- 标签与 `Description` 在同一行显示，空间不足时按需省略（`…`），因此分组开关与菜单项保持同高（`32px`）；菜单本身不会因父容器更高而拉伸行高。
 - 设置 `Href` 的菜单项渲染为真实 `<a>`（保留中键新标签页、浏览器历史与链接语义），`Target="_blank"` 会自动带上 `rel="noopener noreferrer"`；未设置 `Href` 或项被禁用时渲染为原生 `<button>`。
 - `Href` + `Target` 由规范 §7.1“导航使用 `<a>`”约束；链接项仍会触发 `OnItemSelected`，只是导航交给浏览器。
 
@@ -589,7 +597,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 `ThemeProvider` 应放置在 Layout 或应用根组件中，但不包裹页面内容。业务代码通过注入 `ThemeService`、使用 `ThemeSwitch` / `ThemeBrandSwitch` 或绑定自己的控件修改主题。
 
-`ThemeProvider` 没有组件参数；`ThemeSwitch` 提供 `AriaLabel`、`Size`、`ModeChanged`，并继承 `Disabled`。控件本身是 [`Segmented`](#32-segmented) 的专用用法：三个模式是它的选项，尺寸档位走同一套控件高度（32 / 40 / 48px），标签取文案表的 `ThemeSystemLabel` / `ThemeLightLabel` / `ThemeDarkLabel`。
+`ThemeProvider` 没有组件参数；`ThemeSwitch` 提供 `AriaLabel`、`Size`、`ModeChanged`，并继承 `Disabled`。控件本身是 [`Segmented`](#32-segmented) 的专用用法：三个模式是它的选项，尺寸档位走同一套控件高度（28 / 36 / 44px），标签取文案表的 `ThemeSystemLabel` / `ThemeLightLabel` / `ThemeDarkLabel`。
 
 `ThemeBrandSwitch` 是同一模式在品牌维度上的实例：`AriaLabel`、`Size`、`BrandChanged` 加继承的 `Disabled`，选项固定为 `Purple` / `Green` / `Orange`（顺序属组件契约，指示块行程由选项数量推导），标签取 `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel` / `ThemeBrandOrangeLabel`。两个控件可以并排放置，例如示例宿主的顶栏就把它们放在同一组动作区里。
 
@@ -839,7 +847,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 `Segmented<TValue>` 提供互斥选项切换（分段控件）：
 
 - `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`。
-- `Size` 三档走统一控件高度：`Small` 32px、`Default` 40px、`Large` 48px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
+- `Size` 三档走统一控件高度：`Small` 28px、`Default` 36px、`Large` 44px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供，组件没有键盘 JS。
 - 滑块（选中胶囊）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。
 - RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。
@@ -1052,12 +1060,21 @@ builder.Services.AddAeterniUI(options =>
 
 `Kind` 只通过 `DateTime.SpecifyKind` 标记组件创建的值，不做 UTC、本地时间或任意时区之间的转换；宿主应让 Value、Min/Max 与禁用规则使用一致的时间语义。当前不包含时区数据库、夏令时歧义处理、自由文本解析、亚秒精度或多时区格式化。示例：`/components/date-time-picker`。
 
-## 41. 当前边界
+## 41. Toolbar / ToolbarGroup
+
+- `Toolbar`：`ChildContent`、`Orientation`（Horizontal 默认 / Vertical，拒绝无效枚举）、必填非空 `AriaLabel`，以及基类 `Id`、`Class`、`Style`、`Visible`、`Disabled`、`Element` / `ElementChanged`、`AdditionalAttributes`。
+- `ToolbarGroup`：必填非空 `AriaLabel`、`ChildContent` 与同一基类公共属性；命名分组不增加 Tab 停留点，布局继承工具栏方向。
+- 无背景动作容器，仅接纳 `Button`、`IconButton`、`MenuButton`；整条工具栏一个 Tab 停留点，记住最近可用项；所属轴方向键循环、Home/End 首尾、横向 RTL 反转。非所属轴、Enter/Space、菜单内部键盘不被接管。
+- 跳过隐藏、disabled、aria-disabled、加载中或 inert 后代；整条或分组 Disabled 使用 inert 禁止交互。动态卸载、重排后更新候选，必要时恢复焦点；没有可用项时可见且未禁用的根成为停留点。卸载 JS 时恢复原 tabindex。
+- 名称由宿主提供，无需新增默认文案。命名不明确时抛出参数异常。
+- 不支持输入框混合控件、自动折叠、自动溢出或业务选择状态；宿主显式放置 MenuButton。无 JS 的静态输出保留按钮原生 Tab 顺序，交互模块加载后启用 roving focus。示例：`/components/toolbar`。
+
+## 42. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；更复杂的 Toolbar、ToggleGroup 和 SplitButton 仍不在当前范围。
+- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar 已交付；ToggleGroup 和 SplitButton 仍未实现。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。

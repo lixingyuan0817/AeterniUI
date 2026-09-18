@@ -34,8 +34,8 @@
     justify-content: center;
     box-sizing: border-box;
     /* Square hit box around the glyph: the icon tier plus one spacing step. */
-    width: calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap));
-    height: calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap));
+    width: max(var(--aeterni-touch-target-min), calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap)));
+    height: max(var(--aeterni-touch-target-min), calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap)));
     padding: 0;
     border: 0;
     border-radius: var(--aeterni-radius-sm);
