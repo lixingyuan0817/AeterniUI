@@ -32,9 +32,12 @@ public partial class TimeOptionList : AeterniComponent
 
     private TimeSelectionMap _map = default!;
     private TimeOnly? _draftValue;
+    private TimeOnly? _lastParameterValue;
+    private bool _parametersInitialized;
     private int _activeUnitIndex;
     private bool _scrollActiveIntoView;
     private bool _animateActiveIntoView;
+    private long _alignmentRevision;
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private TimeUnit ActiveUnit => Units[_activeUnitIndex];
     private string? ActiveOptionId => _draftValue.HasValue
@@ -50,16 +53,19 @@ public partial class TimeOptionList : AeterniComponent
         }
 
         _map = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime);
-        var nextDraft = Value.HasValue && _map.Contains(Value.Value)
-            ? Value
-            : _map.FindClosest(Value);
+        var preferred = !_parametersInitialized || Value != _lastParameterValue ? Value : _draftValue;
+        _lastParameterValue = Value;
+        var nextDraft = preferred.HasValue && _map.Contains(preferred.Value)
+            ? preferred
+            : _map.FindClosest(preferred);
         if (_draftValue != nextDraft)
         {
             _draftValue = nextDraft;
             _activeUnitIndex = Units.Length - 1;
-            _animateActiveIntoView = false;
+            _animateActiveIntoView = _parametersInitialized;
             _scrollActiveIntoView = true;
         }
+        _parametersInitialized = true;
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
@@ -96,7 +102,8 @@ public partial class TimeOptionList : AeterniComponent
             RootElement,
             ActiveOptionId,
             shouldAlign,
-            animateAlignment);
+            animateAlignment,
+            _alignmentRevision);
     }
 
     private IReadOnlyList<int> ValuesFor(TimeUnit unit)
@@ -147,6 +154,7 @@ public partial class TimeOptionList : AeterniComponent
             return;
         }
 
+        var changed = _draftValue != candidate;
         _draftValue = candidate;
         _activeUnitIndex = unit switch
         {
@@ -157,10 +165,11 @@ public partial class TimeOptionList : AeterniComponent
         };
         if (animateAlignment)
         {
+            _alignmentRevision++;
             _scrollActiveIntoView = true;
             _animateActiveIntoView = true;
         }
-        await DraftChanged.InvokeAsync(candidate.Value);
+        if (changed) await DraftChanged.InvokeAsync(candidate.Value);
     }
 
     private async Task ConfirmAsync()
@@ -269,9 +278,7 @@ public partial class TimeOptionList : AeterniComponent
 
         if (target >= 0)
         {
-            _draftValue = ResolveCandidate(ActiveUnit, values[target]);
-            _scrollActiveIntoView = true;
-            _animateActiveIntoView = true;
+            await SelectUnitAsync(ActiveUnit, values[target]);
         }
     }
 

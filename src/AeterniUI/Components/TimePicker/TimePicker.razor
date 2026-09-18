@@ -20,7 +20,7 @@
         </button>
         <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
             <ChildContent>
-                <TimeOptionList Value="@Value"
+                <TimeOptionList @key="_open" Value="@Value"
                                 ValueSelected="SelectAsync"
                                 Step="@Step"
                                 MinTime="@MinTime"

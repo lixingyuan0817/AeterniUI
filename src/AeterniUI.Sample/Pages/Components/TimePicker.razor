@@ -27,12 +27,18 @@
             <span>Size</span>
             <ShowcaseSelect TValue="Size" Id="time-picker-size" AriaLabel="TimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
         </div>
+        <div class="control-field">
+            <span>外部设置具体时分秒（可先打开弹层，再等待更新）</span>
+            <input type="time" step="1" aria-label="外部目标时间" value="@_externalTime" @onchange="@(args => _externalTime = args.Value?.ToString() ?? string.Empty)" />
+            <Button Size="Size.Small" OnClick="@(_ => ApplyExternalTimeAsync())">立即设置</Button>
+            <Button Size="Size.Small" OnClick="@(_ => ApplyExternalTimeAsync(true))">2 秒后设置</Button>
+        </div>
         <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
     </Controls>
     <Notes>
-        <span>弹层采用类似系统计时器的“时 / 分 / 秒”三列滚轮：滚动时自动吸附到中心值，并以渐隐与缩放表达远近层次。</span>
+        <span>弹层采用类似系统计时器的“时 / 分 / 秒”三列滚轮：滚动停稳后平滑吸附到中心值，文字层按实际行高连续缩放、rotateX 与渐隐；选项点击区域不变。</span>
         <span>“时 / 分 / 秒”列名固定在顶部；中间选择带只有上下分隔线，不框住单列当前值。滚动只修改草稿，使用“取消 / 确定”决定是否回写。</span>
         <span>滚轮组只有一个 Tab 停留点：左右键切换列，上下键与 Home/End 切换值，Enter/Space 确认；操作按钮保持原生 Tab 顺序。</span>
         <span>默认采用 <code>TwentyFourHour</code> 与 <code>HH:mm:ss</code>；<code>TimeFormat.Auto</code> 仍可显式选择并跟随当前 Culture。</span>
@@ -40,6 +46,14 @@
 </ComponentPreview>
 
 @code {
+    private string _externalTime = "18:42:35";
+    private async Task ApplyExternalTimeAsync(bool delayed = false)
+    {
+        if (!TimeOnly.TryParse(_externalTime, out var target)) return;
+        if (delayed) await Task.Delay(2000);
+        _time = target;
+    }
+
     private TimeOnly? _time = new(9, 30);
     private TimeFormat _format = TimeFormat.TwentyFourHour;
     private Size _size = Size.Default;

@@ -178,6 +178,33 @@ async Task CheckTimeListFocusAsync()
     Require(pickerHtml.Contains("09:05:07", StringComparison.Ordinal), "TimePicker must default to 24-hour HH:mm:ss display.");
     Require(pickerHtml.Contains("is-full-width", StringComparison.Ordinal), "TimePicker FullWidth must emit its public modifier class.");
 
+    Require(Regex.Matches(secondsHtml, "aeterni-time-option-list__label").Count == renderedOptions,
+        "Every option must isolate its cylinder visual from its semantic hit area.");
+    var probe = new TimeOptionList();
+    const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+    var type = typeof(TimeOptionList);
+    void Set(string name, object value) => type.GetProperty(name)!.SetValue(probe, value);
+    void Parameters() => type.GetMethod("OnParametersSet", flags)!.Invoke(probe, null);
+    TimeOnly? Draft() => (TimeOnly?)type.GetField("_draftValue", flags)!.GetValue(probe);
+    Set("Value", new TimeOnly(9, 30, 15));
+    Parameters();
+    type.GetField("_draftValue", flags)!.SetValue(probe, new TimeOnly(10, 42, 35));
+    Parameters();
+    Require(Draft() == new TimeOnly(10, 42, 35), "Unchanged host parameters must preserve a local wheel draft.");
+    Set("Value", new TimeOnly(18, 12, 25));
+    Parameters();
+    Require(Draft() == new TimeOnly(18, 12, 25), "External Value must replace the draft.");
+    Require((bool)type.GetField("_animateActiveIntoView", flags)!.GetValue(probe)!, "External Value must request animated alignment.");
+    Set("TimeFormat", TimeFormat.TwelveHour);
+    Parameters();
+    Require(Draft() == new TimeOnly(18, 12, 25), "Format changes must not change the selected time.");
+    Set("Step", TimeSpan.FromSeconds(10));
+    Set("MinTime", new TimeOnly(18, 12, 30));
+    Set("MaxTime", new TimeOnly(18, 12, 50));
+    Set("DisabledTime", (Func<TimeOnly, bool>)(time => time.Second == 30));
+    Parameters();
+    Require(Draft() == new TimeOnly(18, 12, 40), "Step/bounds/disabled changes must resolve the nearest available time in C#.");
+
     var root = FindRepositoryRoot();
     var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/TimePicker/TimePicker.razor.css"));
     Require(css.Contains(".aeterni-time-picker.is-full-width", StringComparison.Ordinal), "TimePicker FullWidth class must have a matching style rule.");

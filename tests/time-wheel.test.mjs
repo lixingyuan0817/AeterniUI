@@ -5,109 +5,125 @@ import { test } from 'node:test';
 const source = await readFile(new URL('../src/AeterniUI/Components/TimePicker/TimeOptionList.razor.js', import.meta.url), 'utf8');
 const { init, sync, dispose, pendingValues } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
-for (const itemHeight of [20, 28, 32, 36, 44]) {
-test(`time wheels measure ${itemHeight}px items and notify only after settling`, () => {
-    const original = { requestAnimationFrame: globalThis.requestAnimationFrame, cancelAnimationFrame: globalThis.cancelAnimationFrame, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, ResizeObserver: globalThis.ResizeObserver };
-    let resize;
-    let disconnected = false;
-    globalThis.ResizeObserver = class {
-        constructor(callback) { resize = callback; }
-        observe() {}
-        disconnect() { disconnected = true; }
-    };
-    const frames = new Map();
-    const timers = new Map();
-    let id = 0;
-    globalThis.requestAnimationFrame = callback => { frames.set(++id, callback); return id; };
-    globalThis.cancelAnimationFrame = key => frames.delete(key);
-    globalThis.setTimeout = callback => { timers.set(++id, callback); return id; };
-    globalThis.clearTimeout = key => timers.delete(key);
-    const flush = queue => { const callbacks = [...queue.values()]; queue.clear(); callbacks.forEach(callback => callback()); };
-    const calls = [];
-    const listeners = new Map();
-    const wheel = {
-        dataset: { timeUnit: 'minute' }, clientHeight: itemHeight * 5, scrollTop: 0, selected: 0,
-        getBoundingClientRect: () => ({ top: 0 }),
-        querySelector: () => options[wheel.selected],
-        querySelectorAll: () => options,
-        addEventListener: (name, callback) => listeners.set(name, callback),
-        removeEventListener: name => listeners.delete(name),
-        scrollTo: target => { calls.push(target); wheel.scrollTop = target.top; }
-    };
+function harness(height = 32, reduced = false) {
+    const names = ['window', 'getComputedStyle', 'performance', 'requestAnimationFrame', 'cancelAnimationFrame', 'setTimeout', 'clearTimeout', 'ResizeObserver'];
+    const original = Object.fromEntries(names.map(name => [name, globalThis[name]]));
+    const frames = new Map(), timers = new Map(), listeners = new Map();
+    let id = 0, clock = 0, resize, disconnected = false, motion;
+    const media = { matches: reduced, addEventListener: (_, fn) => motion = fn, removeEventListener: () => motion = null };
+    globalThis.window = { matchMedia: () => media };
+    globalThis.getComputedStyle = () => ({ getPropertyValue: name => name.includes('duration') ? '300ms' : 'cubic-bezier(.2,.8,.2,1)' });
+    globalThis.performance = { now: () => clock };
+    globalThis.requestAnimationFrame = fn => { frames.set(++id, fn); return id; };
+    globalThis.cancelAnimationFrame = id => frames.delete(id);
+    globalThis.setTimeout = fn => { timers.set(++id, fn); return id; };
+    globalThis.clearTimeout = id => timers.delete(id);
+    globalThis.ResizeObserver = class { constructor(fn) { resize = fn; } observe() {} disconnect() { disconnected = true; } };
     const options = Array.from({ length: 60 }, (_, value) => ({
-        dataset: { timeValue: String(value) }, offsetTop: itemHeight * (2 + value), offsetHeight: itemHeight,
-        getBoundingClientRect: () => ({ top: itemHeight * (2 + value) - wheel.scrollTop, height: itemHeight })
+        dataset: { timeValue: String(value) }, offsetTop: height * (2 + value), offsetHeight: height,
+        disabled: false, label: { style: {} },
+        getAttribute() { return this.disabled ? 'true' : null; }, querySelector() { return this.label; }
     }));
-    const notifications = [];
-    const host = { querySelectorAll: () => [wheel] };
+    const wheel = { dataset: { timeUnit: 'minute' }, clientHeight: height * 5, scrollTop: 0, selected: 25,
+        querySelector: () => options[wheel.selected], querySelectorAll: () => options,
+        addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
+    const calls = [];
+    init({ invokeMethodAsync: (...args) => { calls.push(args); return Promise.resolve(); } }, 'test');
+    const render = (animate = true, revision = 0) => sync('test', { querySelectorAll: () => [wheel] }, null, true, animate, revision);
+    const flush = queue => { const work = [...queue.values()]; queue.clear(); work.forEach(fn => fn(clock)); };
+    return { wheel, options, calls, render, frames, timers, media,
+        event: name => listeners.get(name)(), resize: () => resize(),
+        tick: (ms = 300) => { clock += ms; flush(frames); }, quiet: () => flush(timers),
+        motion: () => motion(),
+        close: () => { dispose('test'); assert.equal(frames.size, 0); assert.equal(timers.size, 0); assert.equal(listeners.size, 0); assert.ok(disconnected); assert.equal(motion, null); Object.assign(globalThis, original); }
+    };
+}
+
+for (const height of [20, 28, 32, 36, 44]) {
+    test(`real module centers and animates ${height}px rows without intermediate callbacks`, () => {
+        const h = harness(height);
+        try {
+            h.wheel.clientHeight = 0; h.render();
+            h.wheel.clientHeight = height * 5; h.resize();
+            assert.equal(h.wheel.scrollTop, height * 25);
+            for (const value of [0, 59, 12]) {
+                h.wheel.selected = value; h.render();
+                assert.deepEqual(pendingValues('test'), { minute: value });
+                h.tick(100); const top = h.wheel.scrollTop;
+                h.render(); h.tick(200);
+                assert.notEqual(top, h.wheel.scrollTop);
+                assert.equal(h.wheel.scrollTop, height * value);
+                assert.equal(h.calls.length, 0, 'click/key/external alignment must not echo a draft callback');
+            }
+            h.event('wheel'); h.wheel.scrollTop = height * 4.25; h.event('scroll');
+            h.tick(16); h.quiet();
+            assert.equal(h.calls.length, 0, 'snap must finish before publishing');
+            h.tick(100); h.render(false); h.tick(200);
+            assert.equal(h.wheel.scrollTop, height * 4);
+            assert.deepEqual(h.calls, [['OnWheelChangedAsync', 'minute', 4]]);
+            h.wheel.selected = 4; h.render(); h.event('scroll'); h.quiet(); h.tick();
+            assert.equal(h.calls.length, 1);
+            assert.match(h.options[4].label.style.transform, /rotateX\(0deg\) scale\(1\)/);
+            assert.ok(Number(h.options[5].label.style.opacity) >= .8);
+        } finally { h.close(); }
+    });
+}
+
+test('rapid target replacement, user interruption, disabled rows and callback echoes', () => {
+    const h = harness();
     try {
-        init({ invokeMethodAsync: (...args) => { notifications.push(args); return Promise.resolve(); } }, 'test');
-        wheel.clientHeight = 0;
-        wheel.selected = 25;
-        sync('test', host, null, true, false);
-        flush(frames);
-        resize();
-        wheel.clientHeight = itemHeight * 5;
-        resize();
-        assert.equal(wheel.scrollTop, itemHeight * 25, 'opening a hidden popup must center its existing value');
-        wheel.selected = 0;
-        sync('test', host, null, true, false);
-        flush(frames);
-        for (const top of [itemHeight, itemHeight * 2.25, itemHeight * 4]) {
-            wheel.scrollTop = top;
-            listeners.get('scroll')();
-            flush(frames);
-            assert.equal(notifications.length, 0);
-        }
-        assert.equal(timers.size, 1);
-        assert.deepEqual(pendingValues('test'), { minute: 4 }, 'immediate confirmation reads the current center');
-        flush(timers);
-        assert.deepEqual(pendingValues('test'), {});
-        assert.deepEqual(notifications, [['OnWheelChangedAsync', 'minute', 4]]);
-        wheel.selected = 4;
-        const count = calls.length;
-        sync('test', host, null, false, false);
-        assert.equal(calls.length, count, 'render echo must not restart scrolling');
-        listeners.get('scroll')();
-        flush(frames);
-        flush(timers);
-        assert.equal(notifications.length, 1, 'settling must not notify twice');
-        wheel.scrollTop = itemHeight * 3.75;
-        listeners.get('scroll')();
-        flush(frames);
-        flush(timers);
-        wheel.scrollTop = itemHeight * 3.75;
-        listeners.get('wheel')();
-        assert.deepEqual(calls.at(-1), { top: itemHeight * 3.75, behavior: 'instant' }, 'reverse input cancels the old smooth snap');
-        wheel.scrollTop = itemHeight * 2;
-        listeners.get('scroll')();
-        flush(frames);
-        assert.equal(notifications.length, 1);
-        flush(timers);
-        assert.deepEqual(notifications.at(-1), ['OnWheelChangedAsync', 'minute', 2]);
-        wheel.selected = 12;
-        sync('test', host, null, false, false);
-        assert.equal(wheel.scrollTop, itemHeight * 12, 'dependent selection must be centered');
-        wheel.clientHeight = 0;
-        resize();
-        wheel.scrollTop = 0;
-        wheel.clientHeight = itemHeight * 5;
-        resize();
-        assert.equal(wheel.scrollTop, itemHeight * 12, 'reopening must restore the current selection');
-        flush(frames);
-        listeners.get('scroll')();
-        dispose('test');
-        assert.equal(listeners.size, 0);
-        assert.equal(disconnected, true);
-        assert.equal(frames.size, 0);
-        assert.equal(timers.size, 0);
-    } finally {
-        dispose('test');
-        Object.assign(globalThis, original);
-    }
+        h.render(); h.wheel.selected = 50; h.render(); h.tick(80);
+        h.wheel.selected = 10; h.render(); h.tick();
+        assert.equal(h.wheel.scrollTop, 320);
+        h.wheel.selected = 40; h.render(); h.tick(80); h.event('touchstart');
+        h.wheel.scrollTop = 32 * 7; h.options[7].disabled = true; h.render(false); h.event('scroll'); h.quiet(); h.tick();
+        assert.equal(h.wheel.scrollTop, 32 * 6);
+        assert.deepEqual(h.calls, [['OnWheelChangedAsync', 'minute', 6]]);
+        h.event('wheel'); h.wheel.scrollTop = 32 * 9.2; h.event('scroll');
+        h.wheel.selected = 6; h.render();
+        assert.equal(h.wheel.scrollTop, 32 * 9.2, 'async callback render cannot reset fresh input');
+        h.quiet(); h.tick();
+        assert.deepEqual(h.calls.at(-1), ['OnWheelChangedAsync', 'minute', 9]);
+    } finally { h.close(); }
 });
 
-}
+test('availability changes recenter unchanged values after rows are removed', () => {
+    const h = harness();
+    try {
+        h.render();
+        for (const option of h.options) option.offsetTop -= 32;
+        h.render(); h.tick();
+        assert.equal(h.wheel.scrollTop, 24 * 32);
+        assert.equal(h.calls.length, 0);
+    } finally { h.close(); }
+});
+
+test('explicit same-value click cancels input while duplicate renders do not restart it', () => {
+    const h = harness();
+    try {
+        h.render(); h.event('pointerdown'); h.wheel.scrollTop = 32 * 24.2; h.event('scroll');
+        h.render(true, 1); h.tick(100); const intermediate = h.wheel.scrollTop;
+        h.render(true, 1); h.tick(200);
+        assert.notEqual(intermediate, h.wheel.scrollTop);
+        assert.equal(h.wheel.scrollTop, 32 * 25);
+        assert.equal(h.calls.length, 0);
+    } finally { h.close(); }
+});
+
+test('reduced motion positions directly, commits once and cancels live animation', () => {
+    const h = harness(32, true);
+    try {
+        h.render(); h.wheel.selected = 59; h.render();
+        assert.equal(h.wheel.scrollTop, 59 * 32);
+        assert.equal(h.frames.size, 0);
+        assert.equal(h.options[59].label.style.transform, 'none');
+        h.event('wheel'); h.wheel.scrollTop = 32 * 3.2; h.event('scroll'); h.quiet();
+        assert.deepEqual(h.calls, [['OnWheelChangedAsync', 'minute', 3]]);
+        h.media.matches = false; h.wheel.selected = 20; h.render(); h.tick(50);
+        h.media.matches = true; h.motion();
+        assert.equal(h.wheel.scrollTop, 20 * 32);
+    } finally { h.close(); }
+});
 
 test('shared density tokens retain the spacing scale and wheel geometry', async () => {
     const css = await readFile(new URL('../src/AeterniUI/wwwroot/css/aeterni_ui.css', import.meta.url), 'utf8');
