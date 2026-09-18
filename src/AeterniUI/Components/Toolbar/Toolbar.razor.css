@@ -2,7 +2,7 @@
     display: inline-flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--aeterni-spacing-3);
+    gap: var(--aeterni-spacing-2);
     max-inline-size: 100%;
 }
 

@@ -17,12 +17,14 @@
     gap: var(--aeterni-spacing-2);
     width: 100%;
     min-height: var(--aeterni-height-md);
-    padding: 0 var(--aeterni-spacing-2);
+    padding: 0 var(--aeterni-control-padding-x-md);
     border: var(--aeterni-border-width) solid var(--aeterni-control-border);
     border-radius: var(--aeterni-radius-input);
     background: var(--aeterni-control-background);
     color: var(--aeterni-control-foreground);
     font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
     white-space: nowrap;
     cursor: pointer;
     transition: var(--aeterni-transition-control);
@@ -33,8 +35,16 @@
 .aeterni-date-time-picker__trigger.is-invalid { border-color: var(--aeterni-control-border-invalid); }
 .aeterni-date-time-picker__trigger.is-invalid:focus-visible { box-shadow: 0 0 0 var(--aeterni-focus-width) var(--aeterni-focus-color-invalid); }
 .aeterni-date-time-picker__trigger:disabled { border-color: var(--aeterni-control-border-disabled); background: var(--aeterni-control-background-disabled); color: var(--aeterni-control-foreground-disabled); cursor: not-allowed; }
-.aeterni-date-time-picker__trigger.aeterni-date-time-picker--sm { min-height: var(--aeterni-height-sm); }
-.aeterni-date-time-picker__trigger.aeterni-date-time-picker--lg { min-height: var(--aeterni-height-lg); }
+.aeterni-date-time-picker__trigger.aeterni-date-time-picker--sm {
+    min-height: var(--aeterni-height-sm);
+    padding-inline: var(--aeterni-control-padding-x-sm);
+    font-size: var(--aeterni-font-size-xs);
+}
+.aeterni-date-time-picker__trigger.aeterni-date-time-picker--lg {
+    min-height: var(--aeterni-height-lg);
+    padding-inline: var(--aeterni-control-padding-x-lg);
+    font-size: var(--aeterni-font-size-base);
+}
 .aeterni-date-time-picker__trigger .is-placeholder { color: var(--aeterni-state-color-placeholder); }
 .aeterni-date-time-picker__icon { --aeterni-icon-render-size: var(--aeterni-icon-size-md); display: inline-flex; color: var(--aeterni-text-tertiary); }
 

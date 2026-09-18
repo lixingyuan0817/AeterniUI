@@ -148,7 +148,16 @@ function deactivate(instance) {
     const opener = instance.opener;
     instance.opener = null;
     if (instance.restoreFocusOnClose && opener instanceof HTMLElement && opener.isConnected) {
-        queueMicrotask(() => opener.focus({ preventScroll: true }));
+        queueMicrotask(() => {
+            const active = document.activeElement;
+            // Non-modal menus must not steal focus after an outside click, Tab,
+            // or a consumer callback that deliberately focused another control.
+            if (instance.modal || active === opener || active === document.body || instance.layer?.contains(active)) {
+                if (!opener.matches(':disabled') && !opener.closest('[hidden], [inert]')) {
+                    opener.focus({ preventScroll: true });
+                }
+            }
+        });
     }
 }
 

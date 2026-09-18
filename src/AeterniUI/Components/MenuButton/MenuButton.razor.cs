@@ -76,11 +76,6 @@ public partial class MenuButton : AeterniComponent
         ["aria-controls"] = MenuId
     };
 
-    private IReadOnlyDictionary<string, object> MenuAttributes => new Dictionary<string, object>
-    {
-        ["id"] = MenuId
-    };
-
     private async Task ToggleAsync(MouseEventArgs _)
     {
         if (Disabled || Loading)

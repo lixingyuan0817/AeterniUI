@@ -126,7 +126,8 @@ Components/<Component>/
 
 ### 渲染契约检查
 
-- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 检查 DatePicker/MenuButton 根属性、Accordion ARIA/inert、DateCalendar 网格、TimeOptionList 单一 Tab 停留点和 Avatar 公开变体。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 检查 DatePicker/MenuButton 根属性、Accordion ARIA/inert、DateCalendar 网格、TimeOptionList 单一 Tab 停留点和 Avatar 公开变体。同时覆盖 SplitButton 根属性、独立名称/禁用/加载、尺寸变体、受控打开与 MenuButton 菜单 id 关联。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+- [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
 
 ### Tauri
 
@@ -198,7 +199,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 | 能力组 | 组件 |
 | --- | --- |
-| 动作和布局 | `Button`、`ButtonGroup`、`Surface`、`Card`、`Divider`、`Accordion` |
+| 动作和布局 | `Button`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Surface`、`Card`、`Divider`、`Accordion` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List`、`ListItem`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
@@ -232,7 +233,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar 已交付（1/5），下一项为 `ToggleGroup`，其余四项未开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
+当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar、ToggleGroup 与 SplitButton 已交付（3/5），下一项为 `Breadcrumb`，其余两项未开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
 时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证 Token 动画完成回调、重复渲染、快速改值、输入中断、不同真实行高、禁用项、边缘居中、reduced-motion 与资源释放；滚筒仅变换文字视觉层。
 
@@ -252,6 +253,12 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | `docs/component-review-todo.zh-CN.md` | 组件审阅发现的质量问题待办、优先级和验收条件 |
 
 发生冲突时，优先以实际代码、`AGENTS.md` 的硬规则和 CI 检查为准，并在同一变更中修正文档冲突。
+
+### ToggleGroup 模块
+
+- `src/AeterniUI/Components/ToggleGroup/`：单选/多选按钮动作、ToggleGroupItem 记录与单停留点焦点模块；复用现有 SelectionMode / Orientation / Size 枚举。完整受控绑定与语义边界见 current-features 的 ToggleGroup 章节。
+- `src/AeterniUI.Sample/Pages/Components/ToggleGroup.razor`：`/components/toggle-group` 交互示例，由 ShowcaseCatalog 注册。
+- `tests/toggle-group.test.mjs`：运行 `node --test tests/toggle-group.test.mjs` 验证焦点移动、RTL、动态修复和资源释放；`tests/AeterniUI.ContractChecks/Program.cs` 覆盖渲染、参数校验和受控状态提议。不代替浏览器端到端验收。
 
 ### Toolbar 模块
 

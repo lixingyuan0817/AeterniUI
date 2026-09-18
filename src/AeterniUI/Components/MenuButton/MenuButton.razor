@@ -2,7 +2,7 @@
 
 <div @ref="RootElement" @attributes="BuildAttributes()">
     <PopupHost>
-        <Button Variant="@Variant"
+        <Button Id="@($"{ElementId}-trigger")" Variant="@Variant"
                 Intent="@Intent"
                 Size="@Size"
                 Loading="@Loading"
@@ -15,13 +15,14 @@
             @Label
         </Button>
 
-        <Popover Open="@EffectiveOpen"
+        <Popover Style="--aeterni-popover-content-padding: var(--aeterni-spacing-1); --aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm);"
+                 Open="@EffectiveOpen"
                  OpenChanged="@HandleOpenChangedAsync"
                  Placement="@Placement"
+                 RestoreFocusOnClose="true"
                  AriaLabel="@(AriaLabel ?? Label)">
-            <Menu Items="@Items"
+            <Menu Id="@MenuId" Items="@Items"
                   AriaLabel="@(AriaLabel ?? Label)"
-                  AdditionalAttributes="@MenuAttributes"
                   OnItemSelected="@HandleItemSelectedAsync" />
         </Popover>
     </PopupHost>

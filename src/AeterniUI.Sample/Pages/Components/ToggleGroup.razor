@@ -1,0 +1,67 @@
+@page "/components/toggle-group"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+@using AeterniUI.Components.ToggleGroup
+
+<PageTitle>Aeterni UI · ToggleGroup</PageTitle>
+<ComponentPreview AnchorId="toggle-group" Category="基础组件" Title="ToggleGroup" ComponentName="ToggleGroup"
+                  Description="按钮动作切换，不是 Segmented 的表单值选择。方向键只移动焦点；Enter/Space 或点击切换动作。">
+    <Preview>
+        <Surface Bordered="true">
+            <div dir="@(_rtl ? "rtl" : "ltr")">
+                <p>单选：再次激活已选动作会清空。</p>
+                <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="对齐动作" Items="@AlignmentItems" SelectedValues="@_alignment" SelectedValuesChanged="ChangeAlignment"
+                    Disabled="@_disabled" Visible="@_visible" Orientation="@Direction" Size="@_size" />
+                <p role="status">对齐：@string.Join("、", _alignment)；最近提议：@_proposal</p>
+                <p>多选：每个格式动作独立开关。</p>
+                <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="文字格式" Items="@Formats" SelectionMode="SelectionMode.Multiple" @bind-SelectedValues="_formats"
+                    Disabled="@_disabled" Visible="@_visible" Orientation="@Direction" Size="@_size" />
+                <p role="status">格式：@string.Join("、", _formats)</p>
+                <Button OnClick="Reset">外部重置</Button>
+            </div>
+        </Surface>
+    </Preview>
+    <Controls>
+        <Checkbox @bind-Value="_vertical">纵向</Checkbox>
+        <Checkbox @bind-Value="_rtl">RTL</Checkbox>
+        <Checkbox @bind-Value="_disabled">整组禁用</Checkbox>
+        <Checkbox @bind-Value="_visible">可见</Checkbox>
+        <Checkbox @bind-Value="_disableCenter">禁用居中（保留按下状态）</Checkbox>
+        <Checkbox @bind-Value="_reverse">重排对齐动作</Checkbox>
+        <Checkbox @bind-Value="_reject">父级拒绝单选提议</Checkbox>
+        <AeterniUI.Components.Segmented.Segmented TValue="Size" Items="@Sizes" @bind-Value="_size" AriaLabel="尺寸" />
+    </Controls>
+    <Notes>
+        <span>默认连体分段外观：无项间距、共享单边接缝，仅首尾保留圆角；横向不自动换行。可切换纵向、RTL、尺寸与重排查看连接边，焦点环始终位于选中/悬浮项之上。</span>
+        <span>Small / Default / Large 最小高度为 28 / 36 / 44px，水平留白为 8 / 12 / 16px，垂直留白为 0；内容居中，字号、字重和行高与 Button 对齐。</span>
+        <span>Tab 进入一个停留点；所属方向键循环，Home/End 首尾，RTL 左右反转；禁用项跳过。Tab 离开，重新进入记住最后焦点。</span>
+        <span>SelectedValues 严格受控：父级不回写时不改变按下态；空列表有效。禁用不会清除选中值。Items 删除时必须同时移除对应选中 Id。</span>
+        <span>名称来自 AriaLabel 和每项 Text。两个模式均为按钮 aria-pressed，不使用 aria-checked 或表单 radio 语义。</span>
+        <span>不支持表单校验、图标模板、Toolbar 嵌套、自动溢出、异步动作编排或跨组焦点。主题、窄屏、reduced-motion 可通过示例宿主和系统设置验收。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private bool _vertical, _rtl, _disabled, _disableCenter, _reverse, _reject;
+    private bool _visible = true;
+    private Size _size = Size.Default;
+    private string _proposal = "无";
+    private IReadOnlyList<string> _alignment = ["center"], _formats = ["bold"];
+    private static readonly Size[] Sizes = [Size.Small, Size.Default, Size.Large];
+    private static readonly IReadOnlyList<ToggleGroupItem> Formats = [new("bold", "加粗"), new("italic", "斜体"), new("underline", "下划线")];
+    private Orientation Direction => _vertical ? Orientation.Vertical : Orientation.Horizontal;
+    private IReadOnlyList<ToggleGroupItem> AlignmentItems
+    {
+        get
+        {
+            ToggleGroupItem[] items = [new("start", "起始对齐"), new("center", "居中", _disableCenter), new("end", "末尾对齐")];
+            return _reverse ? items.Reverse().ToArray() : items;
+        }
+    }
+    private void ChangeAlignment(IReadOnlyList<string> values)
+    {
+        _proposal = values.Count == 0 ? "清空" : string.Join("、", values);
+        if (!_reject) _alignment = values;
+    }
+    private void Reset() { _alignment = []; _formats = []; }
+}

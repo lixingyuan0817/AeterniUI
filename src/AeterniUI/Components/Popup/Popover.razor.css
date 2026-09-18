@@ -68,7 +68,7 @@
     box-sizing: border-box;
     min-width: var(--aeterni-overlay-min-width-sm);
     max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
-    padding: var(--aeterni-padding-lg);
+    padding: var(--aeterni-popover-content-padding, var(--aeterni-padding-lg));
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-dropdown);
     background: var(--aeterni-bg-glass);

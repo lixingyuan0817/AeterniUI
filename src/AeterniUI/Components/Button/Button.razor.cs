@@ -10,6 +10,9 @@ public partial class Button : AeterniComponent
     [CascadingParameter]
     private ButtonGroupContext? ButtonGroupContext { get; set; }
 
+    [CascadingParameter]
+    private AeterniUI.Components.SplitButton.SplitButtonContext? SplitContext { get; set; }
+
     [Parameter]
     public ButtonVariant Variant { get; set; } = ButtonVariant.Solid;
 
@@ -55,6 +58,8 @@ public partial class Button : AeterniComponent
     {
         return base.BuildClass()
             .Add("aeterni-button")
+            .Add("aeterni-button--split-primary", SplitContext?.PrimaryId == ElementId)
+            .Add("aeterni-button--split-menu", SplitContext?.MenuTriggerId == ElementId)
             .Add(SizeClass)
             .Add($"aeterni-button--{VariantClass}")
             .Add(IntentClass)
