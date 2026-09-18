@@ -33,18 +33,21 @@ export function sync(key, host, _activeOptionId, shouldAlign, animateAlignment) 
         }
 
         const selected = wheel.querySelector('[role="option"].is-selected');
-        if (selected) {
-            state.lastNotifiedValue = selectionKey(wheel, selected);
-        }
+        const selectedKey = selected ? selectionKey(wheel, selected) : null;
+        const selectionChanged = selectedKey !== state.lastNotifiedValue;
+        state.lastNotifiedValue = selectedKey;
 
-        if (shouldAlign) {
+        // Align dependent columns, but never restart the originating wheel's momentum.
+        if (shouldAlign || selectionChanged) {
             if (selected) {
+                state.snapping = animateAlignment;
                 if (animateAlignment) {
                     centerOption(wheel, selected, 'smooth');
                 } else {
                     positionOptionImmediately(wheel, selected);
                 }
-                requestAnimationFrame(() => {
+                cancelAnimationFrame(state.frame);
+                state.frame = requestAnimationFrame(() => {
                     updateWheel(wheel);
                 });
             }
@@ -52,6 +55,24 @@ export function sync(key, host, _activeOptionId, shouldAlign, animateAlignment) 
             updateWheel(wheel);
         }
     }
+}
+
+export function pendingValues(key) {
+    const values = {};
+    const instance = instances.get(key);
+    if (!instance) {
+        return values;
+    }
+
+    for (const [wheel, state] of instance.wheels) {
+        if (state.settleTimer) {
+            const option = closestOption(wheel);
+            if (option) {
+                values[wheel.dataset.timeUnit] = Number.parseInt(option.dataset.timeValue, 10);
+            }
+        }
+    }
+    return values;
 }
 
 export function dispose(key) {
@@ -72,38 +93,74 @@ function attachWheel(instance, wheel) {
         frame: 0,
         settleTimer: 0,
         lastNotifiedValue: null,
-        scrollHandler: null
+        scrollHandler: null,
+        inputHandler: null,
+        resizeObserver: null,
+        height: 0,
+        snapping: false
     };
+
+    state.inputHandler = () => {
+        // Cancel an in-flight snap before native wheel/touch input changes direction.
+        if (state.snapping) {
+            wheel.scrollTo({ top: wheel.scrollTop, behavior: 'instant' });
+            state.snapping = false;
+        }
+        clearTimeout(state.settleTimer);
+        state.settleTimer = setTimeout(() => settleWheel(instance, wheel, state), 140);
+    };
+    state.resizeObserver = new ResizeObserver(() => {
+        const height = wheel.clientHeight;
+        if (height > 0 && height !== state.height) {
+            const selected = wheel.querySelector('[role="option"].is-selected');
+            if (selected) {
+                positionOptionImmediately(wheel, selected);
+                updateWheel(wheel);
+            }
+        }
+        state.height = height;
+    });
+    state.resizeObserver.observe(wheel);
 
     state.scrollHandler = () => {
         cancelAnimationFrame(state.frame);
         state.frame = requestAnimationFrame(() => {
             updateWheel(wheel);
-            notifyCenteredOption(instance, wheel, state);
         });
         clearTimeout(state.settleTimer);
-        state.settleTimer = setTimeout(() => settleWheel(instance, wheel), 140);
+        state.settleTimer = setTimeout(() => settleWheel(instance, wheel, state), 140);
     };
 
+    wheel.addEventListener('wheel', state.inputHandler, { passive: true });
+    wheel.addEventListener('touchstart', state.inputHandler, { passive: true });
     wheel.addEventListener('scroll', state.scrollHandler, { passive: true });
     updateWheel(wheel);
     return state;
 }
 
 function detachWheel(wheel, state) {
+    state.resizeObserver.disconnect();
+    wheel.removeEventListener('wheel', state.inputHandler);
+    wheel.removeEventListener('touchstart', state.inputHandler);
     wheel.removeEventListener('scroll', state.scrollHandler);
     cancelAnimationFrame(state.frame);
     clearTimeout(state.settleTimer);
 }
 
-function settleWheel(instance, wheel) {
+function settleWheel(instance, wheel, state) {
+    state.settleTimer = 0;
     const option = closestOption(wheel);
     if (!option) {
         return;
     }
 
-    centerOption(wheel, option, 'smooth');
+    const top = option.offsetTop - ((wheel.clientHeight - option.offsetHeight) / 2);
+    state.snapping = Math.abs(wheel.scrollTop - top) > 0.5;
+    if (state.snapping) {
+        centerOption(wheel, option, 'smooth');
+    }
     updateWheel(wheel);
+    notifyCenteredOption(instance, wheel, state);
 }
 
 function notifyCenteredOption(instance, wheel, state) {
@@ -124,22 +181,23 @@ function notifyCenteredOption(instance, wheel, state) {
 }
 
 function updateWheel(wheel) {
-    const center = wheel.getBoundingClientRect().top + (wheel.clientHeight / 2);
+    const center = wheel.scrollTop + (wheel.clientHeight / 2);
     for (const option of wheel.querySelectorAll('[role="option"]')) {
-        const rect = option.getBoundingClientRect();
-        const optionCenter = rect.top + (rect.height / 2);
-        const distance = Math.min(3, Math.round(Math.abs(optionCenter - center) / Math.max(rect.height, 1)));
+        const optionCenter = option.offsetTop + (option.offsetHeight / 2);
+        const distance = Math.min(3, Math.round(Math.abs(optionCenter - center) / Math.max(option.offsetHeight, 1)));
         option.dataset.wheelDistance = String(distance);
     }
 }
 
 function closestOption(wheel) {
-    const center = wheel.getBoundingClientRect().top + (wheel.clientHeight / 2);
+    if (wheel.clientHeight === 0) {
+        return null;
+    }
+    const center = wheel.scrollTop + (wheel.clientHeight / 2);
     let closest = null;
     let closestDistance = Number.POSITIVE_INFINITY;
     for (const option of wheel.querySelectorAll('[role="option"]')) {
-        const rect = option.getBoundingClientRect();
-        const distance = Math.abs((rect.top + (rect.height / 2)) - center);
+        const distance = Math.abs((option.offsetTop + (option.offsetHeight / 2)) - center);
         if (distance < closestDistance) {
             closest = option;
             closestDistance = distance;

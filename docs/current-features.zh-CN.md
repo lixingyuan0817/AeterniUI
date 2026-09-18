@@ -992,6 +992,8 @@ builder.Services.AddAeterniUI(options =>
 
 ## 38. DatePicker / DateRangePicker
 
+`DatePicker.FullWidth` 默认为 `false`，设为 `true` 时触发器铺满父容器，日历弹层仍按内容定宽。`DateRangePicker` 弹层按预设区与多月日历的内容宽度展开，并受视口宽度限制，保留左右一致的表面内边距；极窄视口下内容可横向滚动。
+
 ### 支持能力
 
 `DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid` 和对应的字段表达式参数。
@@ -1012,12 +1014,14 @@ builder.Services.AddAeterniUI(options =>
 
 ## 39. TimePicker
 
+滚轮连续滚动期间仅更新浏览器端的远近视觉反馈，停稳后才同步草稿并居中吸附；允许一次跨越多个候选，不再逐项强制停顿。相同选中值的重渲染不会重新定位滚轮，联动改变的其他列仍会同步居中。该行为由 `DateTimePicker` 共用。吸附仅由 JS 停稳逻辑负责，不与 CSS 强制吸附叠加；新的滚轮或触控输入会中断旧吸附动画，支持立即反向。弹层从隐藏变为可见时，按实际列高重新定位到当前选中值。
+
 ### 支持能力
 
 - `Value` / `ValueChanged` / `ValueExpression` 绑定 `TimeOnly?`，并接入 `EditContext` 字段通知与验证状态。
 - `Step` 定义时间精度，默认 1 秒；支持 1 秒到小于一天的整秒步长。选择面始终显示“时 / 分 / 秒”三列，较大步长只保留实际可用的刻度；`MinTime` / `MaxTime` 定义同一天内的连续边界，`DisabledTime` 由宿主过滤具体候选值。
 - `TimeFormat` 默认 `TwentyFourHour`，默认触发器格式为 `HH:mm:ss`；也支持显式选择 `Auto` 或 `TwelveHour`，显式 `Format` 始终优先。12 小时制的小时列把 AM/PM 与小时一起显示，不额外制造一列停留点。
-- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`FullWidth`、`Required`、`Invalid` 和继承的 `Disabled`。默认宽度按 `HH:mm:ss` 文本、内边距和时钟图标紧凑计算；`FullWidth=true` 时占满父容器。默认文案来自 `AeterniUITextOptions`。
+- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`FullWidth`、`Required`、`Invalid` 和继承的 `Disabled`。默认宽度至少使用 `--aeterni-width-input-xs`（160px，受父容器宽度限制），较长文本可继续撑开；`FullWidth=true` 时占满父容器。默认文案来自 `AeterniUITextOptions`。
 
 ### 行为与无障碍
 
@@ -1028,6 +1032,10 @@ builder.Services.AddAeterniUI(options =>
 有效时间仍以午夜为锚点按固定步长计算，但内部使用一天 86,400 个整秒槽位的可用性映射并只渲染当前时/分/秒三列：1 秒步长最多输出 144 个 `option`，不会创建 86,400 个 DOM 节点。当前只支持同一天内 `MinTime <= MaxTime` 的连续范围；步长必须是整秒，不支持亚秒精度、跨午夜范围、自由文本编辑、虚拟化或时区换算。示例：`/components/time-picker`。
 
 ## 40. DateTimePicker
+
+组合弹层按日期与时间两栏的实际内容定宽，最大宽度受视口限制；窄屏保持上下排列，极窄视口允许内容横向滚动。时间区底部操作行按按钮自然高度布局，不随日历高度拉伸；无可用时间时保留六行滚轮等高占位并居中提示，取消仍可用、确定禁用。提交行为不变：TimePicker / DateTimePicker 使用确认与取消，DatePicker / DateRangePicker 保持原有选择提交方式。
+
+`DatePicker`、`TimePicker`、`DateTimePicker` 均支持 `FullWidth`（默认 `false`），默认最小宽度统一为 `--aeterni-width-input-xs`（160px，受父容器限制），长文本可撑开；设为 `true` 时触发器铺满父容器，不改变弹层内容布局。`DateRangePicker` 不在此统一范围内。
 
 ### 支持能力
 

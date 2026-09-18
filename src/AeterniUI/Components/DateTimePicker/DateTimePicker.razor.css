@@ -1,6 +1,13 @@
 .aeterni-date-time-picker {
     display: inline-block;
-    min-width: var(--aeterni-width-input-md);
+    width: max-content;
+    max-width: 100%;
+    min-width: min(var(--aeterni-width-input-xs), 100%);
+}
+
+.aeterni-date-time-picker.is-full-width {
+    display: block;
+    width: 100%;
 }
 
 .aeterni-date-time-picker__trigger {
@@ -16,6 +23,7 @@
     background: var(--aeterni-control-background);
     color: var(--aeterni-control-foreground);
     font: inherit;
+    white-space: nowrap;
     cursor: pointer;
     transition: var(--aeterni-transition-control);
 }
@@ -32,9 +40,10 @@
 
 .aeterni-date-time-picker__panel {
     display: grid;
-    grid-template-columns: minmax(var(--aeterni-width-input-md), 1fr) auto minmax(var(--aeterni-width-input-xs), auto);
+    grid-template-columns: minmax(var(--aeterni-width-input-md), 1fr) auto minmax(var(--aeterni-width-input-md), 1fr);
     gap: var(--aeterni-spacing-3);
     align-items: stretch;
+    overflow-x: auto;
 }
 
 .aeterni-date-time-picker__divider { width: var(--aeterni-border-width); background: var(--aeterni-separator); }
