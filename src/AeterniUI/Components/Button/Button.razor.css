@@ -1,3 +1,37 @@
+/* Connected geometry belongs to the button that renders the surface. Logical
+   corners keep both focus rings and the seam correct in RTL. */
+.aeterni-button.aeterni-button--split-primary {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+.aeterni-button.aeterni-button--split-menu {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    margin-inline-start: calc(var(--aeterni-border-width) * -1);
+    padding-inline: var(--aeterni-spacing-1);
+    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-foreground) 32%, transparent);
+}
+
+.aeterni-button--split-menu.aeterni-button--outline,
+.aeterni-button--split-menu.aeterni-button--soft,
+.aeterni-button--split-menu.aeterni-button--ghost,
+.aeterni-button--split-menu.aeterni-button--link {
+    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 20%, transparent);
+}
+
+/* Connected segments highlight in place so their shared seam never splits. */
+.aeterni-button.aeterni-button--split-primary:hover:not(:disabled),
+.aeterni-button.aeterni-button--split-menu:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+}
+
+.aeterni-button--split-primary:focus-visible,
+.aeterni-button--split-menu:focus-visible {
+    z-index: 1;
+}
+
 /* The default intent uses the theme brand color. */
 .aeterni-button,
 .aeterni-button--default {

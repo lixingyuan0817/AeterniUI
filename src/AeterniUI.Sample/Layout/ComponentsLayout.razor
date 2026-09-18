@@ -34,7 +34,6 @@
                 .Select(item => new MenuItem(
                     item.Id,
                     item.Label,
-                    item.Summary,
                     Href: item.Id == "install" ? "/components" : $"/components/{item.Id}"))
                 .ToArray(),
             GroupIcon(group.Icon)))

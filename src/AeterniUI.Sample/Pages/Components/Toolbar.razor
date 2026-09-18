@@ -13,6 +13,15 @@
             <div class="@(_vertical ? "toolbar-demo__workspace is-vertical" : "toolbar-demo__workspace")">
               <div class="toolbar-demo__actions">
             <Toolbar AriaLabel="文档操作" Orientation="@(_vertical ? Orientation.Vertical : Orientation.Horizontal)" Disabled="@_disabled" Visible="@_visible">
+                <ToolbarGroup AriaLabel="文件">
+                    <IconButton Size="Size.Small" AriaLabel="打开项目" title="打开项目" OnClick="@(() => _last = "打开项目")">
+                        <ChildContent><Icon Definition="@FontAwesomeIcons.Solid.FolderOpen" Size="Size.Small" /></ChildContent>
+                    </IconButton>
+                    <IconButton Size="Size.Small" AriaLabel="保存" title="保存" Disabled="@_itemDisabled" Loading="@_loading" OnClick="Save">
+                        <ChildContent><Icon Definition="@FontAwesomeIcons.Solid.Check" Size="Size.Small" /></ChildContent>
+                    </IconButton>
+                </ToolbarGroup>
+                <Divider Orientation="@(_vertical ? Orientation.Horizontal : Orientation.Vertical)" />
                 <ToolbarGroup AriaLabel="编辑">
                     @foreach (var action in (_reverse ? _actions.Reverse() : _actions))
                     {
@@ -20,7 +29,6 @@
                             <ChildContent><Icon Definition="@(action == "撤销" ? FontAwesomeIcons.Solid.RotateLeft : FontAwesomeIcons.Solid.RotateRight)" Size="Size.Small" /></ChildContent>
                         </IconButton>
                     }
-                    <Button Size="Size.Small" Variant="ButtonVariant.Ghost" Intent="ButtonIntent.Neutral" Disabled="@_itemDisabled" Loading="@_loading" OnClick="Save">保存</Button>
                 </ToolbarGroup>
                 <Divider Orientation="@(_vertical ? Orientation.Horizontal : Orientation.Vertical)" />
                 <ToolbarGroup AriaLabel="其他操作">
@@ -62,7 +70,7 @@
     </Controls>
     <Notes>
         <span>横向左右键、纵向上下键循环移动，Home/End 到首尾；Tab 离开整条工具栏，再次进入记住最近项。Enter/Space 激活按钮。</span>
-        <span>本例通过 Small 尺寸、Ghost 变体与图标动作组合成紧凑工具栏；灰色背景与留白由示例宿主提供，不覆盖组件样式。</span>
+        <span>Toolbar 默认使用紧凑组间距与组内间距；本例用 Small 图标动作呈现 IDE 式主工具栏。容器仍无背景，灰色工作区由宿主提供，不覆盖组件样式，也不强制改写子按钮的 Size / Variant。</span>
         <span>仅接纳 Button、IconButton、MenuButton；不支持输入框、自动折叠或业务选择状态。菜单弹层自行管理键盘。</span>
     </Notes>
 </ComponentPreview>

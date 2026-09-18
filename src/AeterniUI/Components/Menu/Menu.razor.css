@@ -24,6 +24,12 @@
 .aeterni-menu__group {
     display: grid;
     align-content: start;
+    gap: 0;
+}
+
+/* A zero-height collapse still occupies a grid track; keep its gap out of
+   closed or empty groups so the final header has no trailing blank space. */
+.aeterni-menu__group.is-open.has-items {
     gap: var(--aeterni-spacing-1);
 }
 
@@ -50,13 +56,13 @@
    underline or the visited colour the browser would add. */
 .aeterni-menu__item {
     position: relative;
-    padding: 0 var(--aeterni-control-padding-x-md);
+    padding: 0 var(--aeterni-menu-item-padding, var(--aeterni-control-padding-x-md));
     text-decoration: none;
 }
 
 .aeterni-menu__group-toggle {
     justify-content: flex-start;
-    padding: 0 var(--aeterni-control-padding-x-md);
+    padding: 0 var(--aeterni-menu-item-padding, var(--aeterni-control-padding-x-md));
     /* A group title is a real label, so it uses the readable secondary ink;
        tertiary is reserved for icons and decoration. */
     color: var(--aeterni-text-secondary);
@@ -203,7 +209,7 @@
 .aeterni-menu button:focus-visible,
 .aeterni-menu a:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
-    outline-offset: var(--aeterni-focus-offset);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
 }
 
 /* Disabled rows use the shared muted ink instead of a whole-row opacity: every

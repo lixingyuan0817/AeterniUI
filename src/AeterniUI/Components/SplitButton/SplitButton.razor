@@ -1,0 +1,16 @@
+@inherits AeterniComponent
+@using AeterniUI.Components.MenuButton
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <CascadingValue Value="@Context">
+        <div class="aeterni-split-button__primary">
+            <Button Id="@PrimaryId" Variant="@Variant" Intent="@Intent" Size="@Size"
+                    AriaLabel="@AriaLabel" Disabled="@(IsDisabled || PrimaryDisabled)"
+                    Loading="@Loading" FullWidth="@FullWidth" OnClick="HandleClickAsync">@Label</Button>
+        </div>
+        <MenuButton Id="@MenuButtonId" AriaLabel="@MenuAriaLabel" Items="@Items"
+                    Variant="@Variant" Intent="@Intent" Size="@Size" Disabled="@IsMenuDisabled"
+                    Placement="@Placement" Open="@EffectiveOpen" OpenChanged="HandleOpenChangedAsync"
+                    OnItemSelected="HandleItemSelectedAsync" />
+    </CascadingValue>
+</div>

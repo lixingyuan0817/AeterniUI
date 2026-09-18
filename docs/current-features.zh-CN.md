@@ -120,6 +120,7 @@
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
 - `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
 - `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
+- MenuButton 的弹出内容使用 Menu，不使用 List；PopupHost 仅定位、无 padding。仅其 Popover 外围 padding 从 12px 收至 spacing-1（4px），Menu 行内横向 padding 从 12px 收至 control-padding-x-sm（8px），保留 Menu 的 spacing-2（8px）子项缩进表达折叠层级；参照现有 List 的 4px 外围与 8px 行内留白，Menu 根不重复加外围 padding，List 本身不变。折叠或无可见子项的分组不保留标题后的 gap，避免末组产生额外底部留白；Popover 上下各 4px。菜单行高仍为 32px，普通内容 Popover 和独立 Menu 保持原留白。SplitButton 复用此紧凑菜单。
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
 - `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
@@ -135,6 +136,16 @@
 ### 实现边界
 
 `Button` 仍支持通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入图标；独立图标操作使用 `IconButton`，菜单触发操作使用 `MenuButton`。
+### SplitButton
+
+- `SplitButton` 组合 `Button` 与 `MenuButton`，后者继续拥有 `PopupHost` / `Popover` / `Menu`，不新增 JS 或菜单状态模型。示例：`/components/split-button`。
+- `Label` 为必填主动作文本，`AriaLabel` 可单独覆盖主动作可访问名称；箭头菜单按钮的 `MenuAriaLabel` 必填且不能为空，两侧名称独立。`Items` 使用现有 `IReadOnlyList<MenuGroup>`；`OnClick` 与 `OnItemSelected` 分别通知主动作和菜单动作。
+- 两侧共享 `Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Small），默认即紧凑、弱边界外观，不需要额外变体；显式设置仍可使用全部 Button 尺寸、变体与语意色。`FullWidth` 只让主动作填满剩余宽度。箭头段使用现有 spacing-1 横向内边距，弱分隔线与连接圆角由 Button 自身隔离样式处理；两侧 hover 原位高亮、不上浮，使用逻辑方向支持 RTL，并保留独立 focus-visible。菜单复用 Menu 原有紧凑行高；普通 Button / MenuButton 默认值不变。
+- `Disabled`（含上层 ButtonGroup 禁用）优先禁用整体；`PrimaryDisabled` 和 `MenuDisabled` 独立禁用。`Loading` 仅使主动作忙碌且不可点击，不阻止菜单；需锁定两侧时使用 `Disabled`。
+- `Open` / `OpenChanged` 采用 MenuButton 的可选受控模式（绑定回调才由外部控制）；未绑定时内部维护。`MenuDisabled` / `Disabled` 强制隐藏菜单并清除内部打开状态；受控值仍归宿主所有，重新启用时按宿主值显示。`Placement` 默认 BottomEnd，相对箭头按钮定位。
+- 根容器透传 `Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` / `ElementChanged`；属性不误投到两个按钮。Tab 保留两个原生动作，Enter / Space 激活；菜单内键盘、Escape、外部点击和视口翻转沿用现有实现。MenuButton 启用 Popover 现有 `RestoreFocusOnClose`：菜单选择/Escape 关闭后回归打开时的元素；非模态关闭时若外部点击、Tab 或业务回调已将焦点移到其他控件，不抢回焦点，已禁用/隐藏的触发器也不恢复。Tab 本身不自动关闭菜单，保留现有 Popover 行为。
+- 边界：主动作只提供普通按钮，不支持提交/重置、链接、任意子内容、自动将菜单选择替换为主动作、异步编排或 Toolbar roving-focus 集成；加载与业务状态由宿主管理。
+
 ## 5. ButtonGroup
 
 ### 支持能力
@@ -538,7 +549,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`；当前项输出 `aria-current="page"`。
 - 键盘：Tab 保持原生顺序；`ArrowUp` / `ArrowDown` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环，`Home` / `End` 跳到首尾，`ArrowRight` 展开、`ArrowLeft` 折叠（RTL 下由模块读取 `direction` 自动互换），`ArrowLeft` 在展开分组内会把焦点退回分组开关，`Enter` / `Space` 保持原生行为。
 - 组件声明一个 JS module（`Components/Menu/Menu.razor.js`），只负责把焦点移到 C# 模型选中的节点、在菜单内部抑制方向键的默认页面滚动，并报告书写方向；折叠动画仍由 CSS 完成。
-- 长菜单不强制滚动容器：把 `Menu` 放进带 `max-height` 的滚动容器（示例侧边栏即如此）即可，避免组件自己裁切焦点环。
+- 长菜单不强制滚动容器：把 `Menu` 放进带 `max-height` 的滚动容器（示例侧边栏即如此）即可。分组开关与子项的 `focus-visible` 使用内收焦点环，避免折叠区域和宿主滚动容器裁切；选中态边框与侧边标记保持独立。
 
 ### 实现边界
 
@@ -881,7 +892,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount`、`AriaLabel`、`PreviousLabel`、`NextLabel` 和 `PageLabelFormat`；页码较多时显示省略号，当前页通过颜色和轻微缩放突出。实例文案优先于 `AeterniUITextOptions` 的全局默认值。
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount`、`AriaLabel`、`PreviousLabel`、`NextLabel` 和 `PageLabelFormat`；页码较多时显示省略号，当前页通过颜色突出，不缩放；按钮使用 Small 控件高度、明确的小号字号与单倍行高，等宽数字居中排列。实例文案优先于 `AeterniUITextOptions` 的全局默认值。
 
 ### 行为与无障碍
 
@@ -1000,6 +1011,8 @@ builder.Services.AddAeterniUI(options =>
 
 ## 38. DatePicker / DateRangePicker
 
+日期时间字段（`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker`）的 Small / Default / Large 触发器统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），字号与 Input / ComboBox 对齐为 12 / 14 / 16px，保持 `line-height-normal`、原有最小高度及宽度 / FullWidth 行为；不调整日历或时间面板。Segmented 选项的三档水平留白也改用同组 control Token（数值不变），轨道 padding、滑块几何与字号均不变。
+
 `DatePicker.FullWidth` 默认为 `false`，设为 `true` 时触发器铺满父容器，日历弹层仍按内容定宽。`DateRangePicker` 弹层按预设区与多月日历的内容宽度展开，并受视口宽度限制，保留左右一致的表面内边距；极窄视口下内容可横向滚动。
 
 ### 支持能力
@@ -1067,6 +1080,8 @@ builder.Services.AddAeterniUI(options =>
 
 ## 41. Toolbar / ToolbarGroup
 
+默认布局为紧凑工具栏：组间使用 `spacing-2`、组内使用 `spacing-1`，仍无背景、无边框；不覆盖子按钮显式 `Size` / `Variant`，也不改变普通 Button / MenuButton 的默认外观。示例使用 Small 图标动作展示 IDE 式文件、编辑和更多操作分组。
+
 - `Toolbar`：`ChildContent`、`Orientation`（Horizontal 默认 / Vertical，拒绝无效枚举）、必填非空 `AriaLabel`，以及基类 `Id`、`Class`、`Style`、`Visible`、`Disabled`、`Element` / `ElementChanged`、`AdditionalAttributes`。
 - `ToolbarGroup`：必填非空 `AriaLabel`、`ChildContent` 与同一基类公共属性；命名分组不增加 Tab 停留点，布局继承工具栏方向。
 - 无背景动作容器，仅接纳 `Button`、`IconButton`、`MenuButton`；整条工具栏一个 Tab 停留点，记住最近可用项；所属轴方向键循环、Home/End 首尾、横向 RTL 反转。非所属轴、Enter/Space、菜单内部键盘不被接管。
@@ -1074,12 +1089,24 @@ builder.Services.AddAeterniUI(options =>
 - 名称由宿主提供，无需新增默认文案。命名不明确时抛出参数异常。
 - 不支持输入框混合控件、自动折叠、自动溢出或业务选择状态；宿主显式放置 MenuButton。无 JS 的静态输出保留按钮原生 Tab 顺序，交互模块加载后启用 roving focus。示例：`/components/toolbar`。
 
-## 42. 当前边界
+## 42. ToggleGroup
+
+默认使用连体分段外观：项间无 gap、横向不自动换行，共享接缝重叠一个 border-width，只有外侧首尾保留圆角；逻辑方向边角兼容 RTL / 纵向，单项保留完整圆角。选中、悬浮与键盘焦点分层，focus-visible 不被邻项遮挡；选中 hover / active 继续整块沿品牌色阶换档。不改 Segmented、普通 Button 或受控选择/键盘模型。
+
+- 命名空间 `AeterniUI.Components.ToggleGroup`：`ToggleGroup` 与不可变记录 `ToggleGroupItem(string Id, string Text, bool Disabled = false)`；Id 按 Ordinal 区分大小写且稳定，Text 是按钮可访问名称，均不可空白，Id 不可重复。
+- 参数：必填 `Items`、非空 `AriaLabel`；`SelectionMode` 默认 Single，仅接受现有枚举 Single / Multiple（None 与非法枚举拒绝）；`SelectedValues`（`IReadOnlyList<string>`，默认空）及 `SelectedValuesChanged`；`Orientation`（默认 Horizontal）、`Size`（默认 Default）和全部基类根属性。枚举、null 列表、重复或未知选中 Id、Single 多值输入均抛出参数异常。
+- 严格受控：点击或 Enter/Space 只发出新列表提议，父级通过 `@bind-SelectedValues` 或回调回写；不修改参数和宿主列表，不自动选首项。Single 选择另一项会替换；再次激活已选项允许清空。Multiple 独立切换。禁用保留选择但禁止提议；动态删除动作必须同批删除对应选中 Id，切换为 Single 前必须将多值收敛到至多一个。
+- 根为具名 `role="group"`，项为原生 `type="button"` 与字符串 `aria-pressed`；两个模式都表达动作开关，不输出 `aria-checked`/radio/表单校验语义。`Segmented` 继续负责表单值单选。方向由 `data-orientation` 提供给焦点模块，不向 group 写入不支持的 `aria-orientation`。
+- JS 仅管焦点：单 Tab 停留点，初始首个可用动作；方向键只移焦点不改选择，横向 RTL 反转，纵向上下键，Home/End 首尾并循环；Enter/Space 使用原生激活，Tab 离开。跳过禁用、隐藏、inert 项，记住最后焦点；动态重排/移除/禁用后只修复所属焦点，不抢外部焦点。无可用项时可见且未禁用的根可聚焦；整组禁用移出 Tab 顺序。销毁恢复 tabindex 并释放监听器与 Observer。无 JS 时保留原生按钮 Tab 顺序。
+- 无背景容器，选中态与 checked hover/active 均使用现有品牌状态 Token；Small / Default / Large 最小高度继续为 28 / 36 / 44px，水平留白统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），垂直 padding 为 0；内容显式居中，字号、semibold 字重和 `leading-none` 行高与 Button 对齐。横向不自动换行，支持系统 reduced-motion。示例 `/components/toggle-group` 含单选清空、多选、父级拒绝提议、外部重置、动态禁用、重排、RTL/纵向和可见性。
+- 第一版不支持 FormField/EditContext、Required/Invalid、图标/内容模板、嵌套 Toolbar、跨组焦点、自动溢出、异步动作编排或快捷键注册。焦点规则与 Toolbar 一致，但模块独立，不提前抽象共享基础设施。
+
+## 43. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar 已交付；ToggleGroup 和 SplitButton 仍未实现。
+- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup 与 SplitButton 已交付。
 - `Stack` 和 `Flex` 尚未实现。
 - Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。

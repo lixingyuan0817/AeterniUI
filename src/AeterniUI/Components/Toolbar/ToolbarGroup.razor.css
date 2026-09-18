@@ -2,7 +2,7 @@
     display: inline-flex;
     flex-direction: inherit;
     align-items: center;
-    gap: var(--aeterni-spacing-2);
+    gap: var(--aeterni-spacing-1);
 }
 
 .aeterni-toolbar-group[hidden] {

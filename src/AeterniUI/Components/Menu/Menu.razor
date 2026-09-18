@@ -12,7 +12,7 @@
 
             var open = IsOpen(group.Key);
             var groupDisabled = IsGroupDisabled(group);
-            <li class="aeterni-menu__group @(open ? "is-open" : "")">
+            <li class="aeterni-menu__group @(open ? "is-open" : "") @(group.Items.Any(item => item.Visible) ? "has-items" : "")">
                 <button type="button"
                         id="@GroupToggleId(groupIndex)"
                         class="aeterni-menu__group-toggle"
