@@ -6,7 +6,8 @@
     border-radius: var(--aeterni-radius-xl);
     background: transparent;
     box-shadow: var(--aeterni-shadow-sm);
-    animation: component-preview-enter var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
+    /* Do not retain the opacity animation's compositing state around child popovers. */
+    animation: component-preview-enter var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) backwards;
     transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
 }
 

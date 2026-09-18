@@ -53,6 +53,27 @@ async Task CheckDatePickerRootAsync()
         [nameof(DatePicker.AdditionalAttributes)] = new Dictionary<string, object> { ["data-contract"] = "date" }
     });
 
+    Require(!html.Contains("is-full-width", StringComparison.Ordinal), "DatePicker must remain compact by default.");
+    var fullWidthHtml = await RenderAsync<DatePicker>(new Dictionary<string, object?>
+    {
+        [nameof(DatePicker.FullWidth)] = true
+    });
+    Require(fullWidthHtml.Contains("is-full-width", StringComparison.Ordinal), "DatePicker FullWidth must expose its root layout class.");
+
+    foreach (var fullWidth in new[] { false, true })
+    {
+        var dateTimeHtml = await RenderAsync<AeterniUI.Components.DateTimePicker.DateTimePicker>(new Dictionary<string, object?>
+        {
+            [nameof(DatePicker.FullWidth)] = fullWidth
+        });
+        var timeHtml = await RenderAsync<TimePicker>(new Dictionary<string, object?>
+        {
+            [nameof(TimePicker.FullWidth)] = fullWidth
+        });
+        Require(dateTimeHtml.Contains("is-full-width", StringComparison.Ordinal) == fullWidth, "DateTimePicker must reflect FullWidth on its root.");
+        Require(timeHtml.Contains("is-full-width", StringComparison.Ordinal) == fullWidth, "TimePicker must reflect FullWidth on its root.");
+    }
+
     Require(html.Contains("id=\"contract-date\"", StringComparison.Ordinal), "DatePicker root must forward Id.");
     Require(html.Contains("consumer-date", StringComparison.Ordinal) && html.Contains("aeterni-date-picker", StringComparison.Ordinal), "DatePicker root must merge consumer and component classes.");
     Require(html.Contains("inline-size: 12rem", StringComparison.Ordinal), "DatePicker root must forward Style.");

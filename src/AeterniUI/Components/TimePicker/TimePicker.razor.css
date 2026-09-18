@@ -2,7 +2,7 @@
     display: inline-block;
     width: max-content;
     max-width: 100%;
-    min-width: 0;
+    min-width: min(var(--aeterni-width-input-xs), 100%);
 }
 
 .aeterni-time-picker.is-full-width {

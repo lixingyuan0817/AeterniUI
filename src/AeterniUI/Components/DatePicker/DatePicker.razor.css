@@ -1,7 +1,15 @@
 .aeterni-date-picker {
     position: relative;
     display: inline-block;
-    min-width: var(--aeterni-width-input-xs);
+    width: max-content;
+    max-width: 100%;
+    min-width: min(var(--aeterni-width-input-xs), 100%);
+}
+
+.aeterni-date-picker.is-full-width {
+    display: block;
+    width: 100%;
+    min-width: 0;
 }
 
 .aeterni-date-picker__trigger {

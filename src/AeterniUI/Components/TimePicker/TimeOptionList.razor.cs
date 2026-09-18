@@ -58,8 +58,8 @@ public partial class TimeOptionList : AeterniComponent
             _draftValue = nextDraft;
             _activeUnitIndex = Units.Length - 1;
             _animateActiveIntoView = false;
+            _scrollActiveIntoView = true;
         }
-        _scrollActiveIntoView = true;
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
@@ -163,9 +163,26 @@ public partial class TimeOptionList : AeterniComponent
         await DraftChanged.InvokeAsync(candidate.Value);
     }
 
-    private Task ConfirmAsync() => _draftValue.HasValue
-        ? ValueSelected.InvokeAsync(_draftValue.Value)
-        : Task.CompletedTask;
+    private async Task ConfirmAsync()
+    {
+        // A click or Enter can arrive before the scroll debounce has published its draft.
+        var pending = await JsModuleManager.InvokeModuleAsync<Dictionary<string, int>>(
+            ModuleName, "pendingValues", InstanceId);
+        foreach (var unit in Units)
+        {
+            if (pending is not null &&
+                pending.TryGetValue(unit.ToString().ToLowerInvariant(), out var value) &&
+                ValuesFor(unit).Contains(value))
+            {
+                _draftValue = ResolveCandidate(unit, value);
+            }
+        }
+
+        if (_draftValue.HasValue)
+        {
+            await ValueSelected.InvokeAsync(_draftValue.Value);
+        }
+    }
 
     private Task CancelAsync() => CancelRequested.InvokeAsync();
 
@@ -229,7 +246,7 @@ public partial class TimeOptionList : AeterniComponent
 
         if (args.Key is "Enter" or " ")
         {
-            await ValueSelected.InvokeAsync(_draftValue.Value);
+            await ConfirmAsync();
             return;
         }
 

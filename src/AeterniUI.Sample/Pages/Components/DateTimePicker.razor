@@ -15,6 +15,7 @@
                             Kind="DateTimeKind.Local"
                             DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
                             Size="@_size"
+                            FullWidth="@_fullWidth"
                             Disabled="@_disabled"
                             Invalid="@_invalid"
                             AriaLabel="选择预约日期和时间" />
@@ -26,6 +27,7 @@
             <span>Size</span>
             <ShowcaseSelect TValue="Size" Id="date-time-picker-size" AriaLabel="DateTimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
         </div>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
     </Controls>
@@ -40,6 +42,7 @@
 @code {
     private DateTime? _value = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
     private Size _size = Size.Default;
+    private bool _fullWidth;
     private bool _disabled;
     private bool _invalid;
     private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
@@ -58,6 +61,7 @@
         new("Kind", "DateTimeKind", "新值的 Kind 标记，不执行时区转换。", "Unspecified"),
         new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
         new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
+        new("FullWidth", "bool", "触发器铺满父容器；默认最小宽度与 TimePicker 一致，长文本可撑开。", "false"),
         new("ValueExpression", "Expression<Func<DateTime?>>?", "EditContext 字段表达式。"),
         new("Required / Invalid", "bool", "必填和无效状态。", "false")
     ];

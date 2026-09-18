@@ -23,6 +23,7 @@ public partial class DatePicker : AeterniComponent
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
+    [Parameter] public bool FullWidth { get; set; }
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool Invalid { get; set; }
 
@@ -43,6 +44,7 @@ public partial class DatePicker : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-date-picker")
+        .Add("is-full-width", FullWidth)
         .Add("is-disabled", IsDisabled)
         .Add("is-invalid", IsInvalid);
 

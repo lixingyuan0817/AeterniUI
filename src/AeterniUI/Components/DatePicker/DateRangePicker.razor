@@ -8,7 +8,7 @@
             <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? EffectivePlaceholder)</span>
             <span class="aeterni-date-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
         </button>
-        <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
+        <Popover Style="width: max-content; --aeterni-overlay-max-width-sm: calc(100vw - var(--aeterni-spacing-8));" Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
             <ChildContent>
                 <div class="aeterni-date-range-picker__panel">
                     @if (PresetItems.Count > 0)

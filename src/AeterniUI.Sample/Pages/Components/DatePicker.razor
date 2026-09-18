@@ -9,7 +9,7 @@
 <ComponentPreview AnchorId="date-picker" Category="表单组件" Title="DatePicker / DateRangePicker" ComponentName="DatePicker / DateRangePicker" Description="使用 DateOnly 的单日和日期范围选择控件。" Parameters="@Parameters">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
-            <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期" Size="@_size" Disabled="@_disabled" Invalid="@_invalid" />
+            <DatePicker @bind-Value="_date" MinDate="@MinDate" MaxDate="@MaxDate" AriaLabel="选择日期" FullWidth="@_fullWidth" Size="@_size" Disabled="@_disabled" Invalid="@_invalid" />
             <DateRangePicker @bind-StartDate="_startDate"
                              @bind-EndDate="_endDate"
                              MinDate="@MinDate"
@@ -45,6 +45,7 @@
             <span>Size</span>
             <ShowcaseSelect TValue="Size" Id="date-picker-size" AriaLabel="DatePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
         </div>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth（DatePicker）</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
     </Controls>
@@ -61,6 +62,7 @@
     private DateOnly? _startDate;
     private DateOnly? _endDate;
     private Size _size = Size.Default;
+    private bool _fullWidth;
     private bool _disabled;
     private bool _invalid;
     private DateOnly MinDate => _today.AddDays(-90);
@@ -92,6 +94,7 @@
         new("Placeholder", "string?", "未选择时的占位文本；缺省取全局文案表。"),
         new("Placement", "PopupPlacement", "日历弹层方位。", "BottomStart"),
         new("Size", "Size", "控件尺寸档位。", "Default"),
+        new("FullWidth", "bool", "DatePicker 铺满父容器；不改变弹层宽度。", "false"),
         new("ValueExpression / *Expression", "Expression<Func<DateOnly?>>?", "EditContext 字段表达式；配合 FormField 与 DataAnnotationsValidator 使用。"),
         new("Required / Invalid", "bool", "必填和无效状态。", "false")
     ];

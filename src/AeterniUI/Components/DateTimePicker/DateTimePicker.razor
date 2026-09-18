@@ -17,7 +17,7 @@
             <span class="@(Value.HasValue ? null : "is-placeholder")">@DisplayValue</span>
             <span class="aeterni-date-time-picker__icon" aria-hidden="true"><Icon Definition="@AeterniIcons.Calendar" /></span>
         </button>
-        <Popover Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
+        <Popover Style="width: max-content; --aeterni-overlay-max-width-sm: calc(100vw - var(--aeterni-spacing-8));" Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
             <ChildContent>
                 <div class="aeterni-date-time-picker__panel">
                     <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" AriaLabel="@UiText.DatePickerCalendarLabel" />
