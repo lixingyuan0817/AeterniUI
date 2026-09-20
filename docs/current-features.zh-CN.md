@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.14.0`
+文档版本：`10.14.1`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.14.1 发布范围
+
+统一 List 普通行与 CardMode 的选中背景、活动项反馈和禁用文字色，示例页支持保留选择切换模式对比；选择 API 与键盘逻辑不变。核心包与 Font Awesome 图标包统一版本为 10.14.1，使用 `v10.14.1` 触发现有 NuGet 发布工作流。
 
 ## 10.14.0 发布范围
 
@@ -435,6 +439,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - `List<TItem>` 的 `Items` 为 `IEnumerable<TItem>?`，可从字符串/模型集合自动推断类型，每次参数更新枚举为快照；非 null（包括空集合）优先于 `ChildContent`，null 使用声明式内容。
 - `ItemTemplate` 为 `RenderFragment<TItem>?`；默认 context 是当前 item，支持 Context 别名。无模板显示 `item?.ToString()`，null 为空，文本正常 HTML 编码。
 - `CardMode` 为 bool，默认 false（没有 Mode 参数）。true 时每项由库统一渲染现有 Card 外壳；`CardTemplate` 为 `RenderFragment<TItem>?`，只负责内容，无模板显示文本，**不回退 ItemTemplate**。普通模式忽略 CardTemplate。声明式 CardMode 包裹 ListItem.ChildContent，Leading/TrailingContent 只用于普通行。
+- 普通行与 CardMode 共用选中底色、字重、悬停及活动项反馈；内层 Card 通过现有 Style 参数采用透明背景和继承文字色，保留卡片边框与内容留白，选中底色覆盖整张卡片。CardMode 不再添加额外的活动项描边；禁用选中项保留选择底色并使用禁用文字色。
 - `List<TItem>` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。

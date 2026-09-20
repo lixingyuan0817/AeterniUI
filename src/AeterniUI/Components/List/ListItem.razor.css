@@ -45,7 +45,8 @@
     background: var(--aeterni-state-background-hover);
 }
 
-.aeterni-list-item.is-disabled {
+.aeterni-list-item.is-disabled,
+.aeterni-list-item.is-interactive.is-selected.is-disabled {
     color: var(--aeterni-state-color-disabled);
     cursor: not-allowed;
 }
@@ -81,10 +82,6 @@
 
 .aeterni-list-item.is-card {
     display: block;
-    padding: var(--aeterni-spacing-1);
-}
-
-.aeterni-list-item.is-card.is-active {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: calc(-1 * var(--aeterni-focus-width));
+    padding: 0;
+    border-radius: var(--aeterni-radius-card);
 }

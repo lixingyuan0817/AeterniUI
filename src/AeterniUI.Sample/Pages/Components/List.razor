@@ -19,7 +19,7 @@
         <div class="preview-list-wrap">
             @if (_listSelectionMode == SelectionMode.Multiple)
             {
-                <List TItem="string" SelectionMode="@_listSelectionMode"
+                <List TItem="string" SelectionMode="@_listSelectionMode" CardMode="@_cardMode"
                       SelectedValues="@_listSelectedValues"
                       SelectedValuesChanged="HandleListMultipleChanged"
                       AriaLabel="列表多选预览">
@@ -31,7 +31,7 @@
             }
             else
             {
-                <List TItem="string" SelectionMode="@_listSelectionMode"
+                <List TItem="string" SelectionMode="@_listSelectionMode" CardMode="@_cardMode"
                       AllowClear="@_listAllowClear"
                       SelectedValue="@_listSelectedValue"
                       SelectedValueChanged="HandleListSingleChanged"
@@ -46,6 +46,7 @@
         </div>
     </Preview>
     <Controls>
+        <Checkbox Size="Size.Small" @bind-Value="_cardMode">CardMode（对比选中样式）</Checkbox>
         <div class="control-field">
             <span>SelectionMode</span>
             <ShowcaseSelect TValue="SelectionMode" Id="list-mode" AriaLabel="SelectionMode" Options="@(Enum.GetValues<SelectionMode>())" @bind-Value="_listSelectionMode" />
@@ -56,7 +57,7 @@
         }
     </Controls>
     <Notes>
-        <span><code>ListItem.Selected</code> 是 List 内部计算状态，不是可设置参数；多选模式通过再次选择已选项移除它。</span>
+        <span>切换 CardMode 保留当前选择；普通行与卡片使用相同的选中底色，悬停不覆盖选中态。可用方向键比较活动项反馈，多选通过再次选择移除。</span>
     </Notes>
 </ComponentPreview>
 
@@ -84,7 +85,7 @@
 @code {
     private bool _cardMode;
     private bool _itemsDisabled;
-    private object? _itemSelected;
+    private object? _itemSelected = "开发";
     private string[] _names = ["设计", "开发", "产品"];
     private readonly DemoItem[] _models = [new("设计", "类型化模板与默认 context"), new("开发", "卡片 Context 别名")];
     private sealed record DemoItem(string Name, string Description);

@@ -14,7 +14,8 @@
      @onclick="ClickHandler">
     @if (CardMode)
     {
-        <Card Disabled="@EffectiveDisabled">@ChildContent</Card>
+        @* The option owns state colors; the Card supplies layout and its border. *@
+        <Card Disabled="@EffectiveDisabled" Style="background: transparent; color: inherit;">@ChildContent</Card>
     }
     else
     {
