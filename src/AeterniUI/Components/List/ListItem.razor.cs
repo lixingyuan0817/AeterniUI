@@ -101,7 +101,7 @@ public partial class ListItem<TItem> : AeterniComponent
 
     private async Task HandleClickAsync(MouseEventArgs args)
     {
-        if (Owner is null || EffectiveDisabled)
+        if (Owner is null || EffectiveDisabled || !Visible)
         {
             return;
         }
@@ -125,7 +125,7 @@ public partial class ListItem<TItem> : AeterniComponent
             _handle = new ItemHandle<TItem>(this, Value, EffectiveDisabled);
             Owner.Register(_handle);
         }
-        if (!Equals(_handle.Value, Value) || EffectiveDisabled)
+        if (!Equals(_handle.Value, Value) || EffectiveDisabled || !Visible)
             Owner.InvalidateActive(_handle);
         _handle.Value = Value;
         _handle.Disabled = EffectiveDisabled;

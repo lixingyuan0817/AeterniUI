@@ -33,6 +33,10 @@ await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
 await CheckPaginationGeometryAsync();
 await CheckListAsync();
+await CheckQualityStatesAsync();
+await CheckDateBoundariesAsync();
+await CheckOverlayTransitionsAsync();
+CheckTimeMapReuse();
 
 if (failures.Count > 0)
 {
@@ -44,8 +48,143 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (11 groups).");
+Console.WriteLine("Component contract checks passed (15 groups).");
 return 0;
+
+async Task CheckQualityStatesAsync()
+{
+    var tabsModule = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(AeterniUI.Components.Tabs.Tabs), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(tabsModule.Interactive, "Tabs requires interactive module initialization before attach/focus.");
+    foreach (var type in new[] { typeof(AeterniUI.Components.Button.Button), typeof(AeterniUI.Components.Surface.Surface),
+        typeof(AeterniUI.Components.Input.Input), typeof(AeterniUI.Components.Popup.Popover) })
+    {
+        await renderer.Dispatcher.InvokeAsync(async () => {
+            var root = await renderer.RenderComponentAsync(type, ParameterView.FromDictionary(new Dictionary<string, object?>
+                { ["Visible"] = false, ["Style"] = "color: inherit" }));
+            var html = root.ToHtmlString();
+            Require(html.Contains("display: none") && html.Contains("hidden"), $"{type.Name} must enforce Visible=false over layout display rules.");
+        });
+    }
+    await renderer.Dispatcher.InvokeAsync(async () => {
+        QualityContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<QualityContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+            { ["Ready"] = (Action<QualityContractHost>)(x => host = x) }));
+        async Task Call(object component, string name, params object?[] args) =>
+            await (Task)component.GetType().GetMethod(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(component, args)!;
+        await Call(host.Combo, "OpenAsync");
+        Require(root.ToHtmlString().Contains("aria-expanded=\"true\"") && root.ToHtmlString().Contains("Empty choices"), "Empty ComboBox opens its empty content.");
+        host.Disabled = host.Invalid = host.Required = true; host.Update();
+        var html = root.ToHtmlString();
+        var trigger = Regex.Match(html, "<button[^>]*role=\"combobox\"[^>]*>").Value;
+        Require(trigger.Contains("disabled") && trigger.Contains("aria-required=\"true\"") && trigger.Contains("aria-invalid=\"true\""), "ComboBox inherits field state.");
+        Require(trigger.Contains("aria-expanded=\"false\""), "Disabling an open ComboBox closes it.");
+        await Call(host.Combo, "ChooseAsync", "blocked");
+        Require(host.Combo.Value is null, "Disabled ComboBox rejects stale option activation.");
+        var radios = Regex.Matches(html, "<input[^>]*type=\"radio\"[^>]*>");
+        Require(radios.Count == 2 && radios.All(r => r.Value.Contains("disabled") && r.Value.Contains("aria-invalid=\"true\"") && r.Value.Contains("aria-required=\"true\"")), "Grouped and standalone Radio inherit field state.");
+        host.HideFirst = true; host.Update(); html = root.ToHtmlString();
+        Require(!html.Contains("Header A") && html.Contains("Header B"), "Hidden tab is removed from strip.");
+        Require(Regex.IsMatch(html, "<div[^>]*hidden[^>]*>\\s*Panel A"), "Selected-but-hidden tab keeps its panel hidden.");
+        Require(Regex.IsMatch(html, "<button[^>]*aria-selected=\"true\"[^>]*>\\s*Header B"), "Visible fallback tab is selected without mutating controlled value.");
+        host.HideFirst = false; host.Update(); Require(root.ToHtmlString().Contains("Header A"), "Showing a tab refreshes strip.");
+        host.ShowFirst = false; host.Update(); Require(!root.ToHtmlString().Contains("Header A"), "Removing a tab refreshes strip.");
+        host.Disabled = host.Invalid = host.Required = false; host.Update();
+        trigger = Regex.Match(root.ToHtmlString(), "<button[^>]*role=\"combobox\"[^>]*>").Value;
+        Require(!trigger.Contains("disabled") && !trigger.Contains("aria-required"), "Field state can be cleared dynamically.");
+    });
+    var accordion = await RenderAsync<Accordion>(new Dictionary<string, object?> {
+        ["Items"] = new[] { new AccordionItem("locked", "Locked", b => b.AddContent(0, "Content"), true) },
+        ["OpenKeys"] = new[] { "locked" }
+    });
+    Require(accordion.Contains("aria-expanded=\"false\"") && accordion.Contains("inert"), "Disabled expanded Accordion collapses rendered state without changing controlled keys.");
+}
+
+async Task CheckDateBoundariesAsync()
+{
+    foreach (var date in new[] { DateOnly.MinValue, DateOnly.MaxValue })
+    {
+        await RenderAsync<DatePicker>(new Dictionary<string, object?> { ["Value"] = date });
+        await RenderAsync<DateRangePicker>(new Dictionary<string, object?> { ["StartDate"] = date, ["EndDate"] = date, ["VisibleMonths"] = 3 });
+        await RenderAsync<AeterniUI.Components.DateTimePicker.DateTimePicker>(new Dictionary<string, object?> { ["Value"] = date.ToDateTime(TimeOnly.MinValue) });
+        await renderer.Dispatcher.InvokeAsync(async () => {
+            ParameterContractHost<DateCalendar> host = null!;
+            var root = await renderer.RenderComponentAsync<ParameterContractHost<DateCalendar>>(ParameterView.FromDictionary(new Dictionary<string, object?> {
+                ["Ready"] = (Action<ParameterContractHost<DateCalendar>>)(x => {
+                    host = x; x.Values = new() { ["DisplayMonth"] = date, ["SelectedDate"] = date, ["VisibleMonths"] = 3 };
+                })
+            }));
+            var keyboard = typeof(DateCalendar).GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            foreach (var key in new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" })
+                await (Task)keyboard.Invoke(host.Inner, [new KeyboardEventArgs { Key = key }, date])!;
+            var html = root.ToHtmlString();
+            Require(Regex.Matches(html, "role=\"gridcell\"").Count % 42 == 0, "Boundary calendars preserve complete 6x7 grids with inert blank cells.");
+        });
+    }
+    await RenderAsync<DateRangePicker>(new Dictionary<string, object?> {
+        ["Presets"] = new[] { new AeterniUI.Models.DateRangePreset("Last day", DateOnly.MaxValue, DateOnly.MaxValue) }
+    });
+}
+
+async Task CheckOverlayTransitionsAsync()
+{
+    await Check<AeterniUI.Components.Drawer.Drawer>();
+    await Check<AeterniUI.Components.Popup.Popover>();
+    async Task Check<T>() where T : IComponent => await renderer.Dispatcher.InvokeAsync(async () => {
+        ParameterContractHost<T> host = null!;
+        var root = await renderer.RenderComponentAsync<ParameterContractHost<T>>(ParameterView.FromDictionary(new Dictionary<string, object?> {
+            ["Ready"] = (Action<ParameterContractHost<T>>)(x => { host = x; x.Values["Open"] = true; })
+        }));
+        host.Values["OpenChanged"] = EventCallback.Factory.Create<bool>(host, (bool _) => { });
+        host.Update();
+        await (Task)typeof(T).GetMethod("RequestCloseAsync")!.Invoke(host.Inner, null)!;
+        Require((bool)typeof(T).GetProperty("Open")!.GetValue(host.Inner)!, "Controlled consumer may reject close without parameter mutation.");
+        host.Values["Open"] = false; host.Update();
+        Require(root.ToHtmlString().Contains("is-closing"), $"{typeof(T).Name} keeps exit chrome while closing.");
+        var revision = (int)typeof(T).GetField("_closeRevision", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(host.Inner)!;
+        host.Values["Open"] = true; host.Update();
+        await (Task)typeof(T).GetMethod("FinalizeCloseAsync")!.Invoke(host.Inner, [revision])!;
+        Require(!root.ToHtmlString().Contains("is-closing"), "Stale exit completion cannot hide reopened overlay.");
+        host.Values["Open"] = false; host.Update();
+        revision = (int)typeof(T).GetField("_closeRevision", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(host.Inner)!;
+        await (Task)typeof(T).GetMethod("FinalizeCloseAsync")!.Invoke(host.Inner, [revision])!;
+        Require(root.ToHtmlString().Contains("hidden") && !root.ToHtmlString().Contains("is-closing"), "Completed exit hides overlay.");
+    });
+}
+
+void CheckTimeMapReuse()
+{
+    var type = typeof(TimePicker).Assembly.GetType("AeterniUI.Components.TimePicker.TimePickerOptions")!;
+    var factory = type.GetMethod("CreateMap", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+    object Map(TimeSpan step, TimeOnly? min, TimeOnly? max, Func<TimeOnly, bool>? disabled = null, object? previous = null) =>
+        factory.Invoke(null, [step, min, max, disabled, previous])!;
+    bool Contains(object map, TimeOnly time) => (bool)map.GetType().GetMethod("Contains", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(map, [time])!;
+    var step = TimeSpan.FromSeconds(1);
+    var timer = System.Diagnostics.Stopwatch.StartNew();
+    var full = Map(step, null, null); var cold = timer.Elapsed.TotalMilliseconds;
+    timer.Restart();
+    for (var i = 0; i < 100; i++) Require(ReferenceEquals(full, Map(step, null, null, previous: full)), "Unchanged predicate-free maps reuse instance.");
+    Console.WriteLine($"Time map profile: cold={cold:F2}ms; 100 reused={timer.Elapsed.TotalMilliseconds:F2}ms (informational).");
+    Require(!ReferenceEquals(full, Map(step, new TimeOnly(9, 0), null, previous: full)), "Bounds invalidate map reuse.");
+    bool blocked = false;
+    Func<TimeOnly, bool> predicate = _ => blocked;
+    var first = Map(step, new TimeOnly(9, 0), new TimeOnly(9, 1), predicate); blocked = true;
+    var next = Map(step, new TimeOnly(9, 0), new TimeOnly(9, 1), predicate, first);
+    Require(!ReferenceEquals(first, next) && !Contains(next, new TimeOnly(9, 0)), "Mutable delegate closures are recomputed.");
+    foreach (var seconds in new[] { 1, 7, 60, 3601 })
+    {
+        var min = new TimeOnly(8, 10, 20).Add(TimeSpan.FromTicks(1)); var max = new TimeOnly(8, 12, 40);
+        var map = Map(TimeSpan.FromSeconds(seconds), min, max);
+        for (var second = 0; second < 86400; second++)
+        {
+            var time = TimeOnly.FromTimeSpan(TimeSpan.FromSeconds(second));
+            if (Contains(map, time) != (second % seconds == 0 && time >= min && time <= max))
+            { Require(false, $"Bounded map differs from full enumeration at {time}, step {seconds}."); break; }
+        }
+    }
+    var finalFraction = Map(step, TimeOnly.MaxValue, TimeOnly.MaxValue);
+    Require(!Contains(finalFraction, new TimeOnly(23, 59, 59)), "Fractional minimum after final whole second yields no candidate.");
+}
 
 async Task CheckListAsync()
 {
@@ -85,8 +224,9 @@ async Task CheckListAsync()
         ListContractHost host = null!;
         var root = await renderer.RenderComponentAsync<ListContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
         { ["Ready"] = (Action<ListContractHost>)(value => host = value) }));
-        var keyboard = typeof(AeterniUI.Components.List.List<string?>).GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
-        Task Key(string key) => (Task)keyboard.Invoke(host.List, [new KeyboardEventArgs { Key = key }])!;
+        Task Key(string key) => host.List.HandleKeyFromBrowserAsync(key,
+            Regex.Matches(root.ToHtmlString(), "id=\"([^\"]+)\"[^>]*role=\"option\"")
+                .Select(match => match.Groups[1].Value).ToArray());
         await Key("End");
         Require(Equals(host.Selected, "Gamma") && root.ToHtmlString().Contains("aria-activedescendant"), "Keyboard selects last row and reports active option.");
         host.Rows = ["Replacement", "Alpha"]; host.Update();
@@ -109,6 +249,25 @@ async Task CheckListAsync()
         Require(Equals(host.Selected, "Changed"), "Declarative handle values update when parameters change.");
         host.Rows = []; host.Update();
         Require(!root.ToHtmlString().Contains("aria-activedescendant"), "Disposing the focused declarative row clears its active descendant.");
+        host.Rows = ["Alpha", "Beta", "Gamma"]; host.RowDisabled = false; host.Keyed = true; host.AllowClear = true; host.Update();
+        await Key("Home"); await Key("Home");
+        Require(Equals(host.Selected, "Alpha"), "Repeated Home preserves selection even when AllowClear is enabled.");
+        await Key("Enter");
+        Require(host.Selected is null, "Explicit activation can still clear a single selection.");
+        await Key("Home"); host.HiddenRow = "Alpha"; host.Update();
+        Require(!root.ToHtmlString().Contains("aria-activedescendant"), "Hiding the active row clears its active descendant.");
+        await Key("Home");
+        Require(Equals(host.Selected, "Beta"), "Hidden rows must be skipped by keyboard navigation.");
+        host.HiddenRow = null; host.Rows = ["Gamma", "Beta", "Alpha"]; host.Update();
+        var ids = Regex.Matches(root.ToHtmlString(), "id=\"([^\"]+)\"[^>]*role=\"option\"")
+            .Select(match => match.Groups[1].Value).ToArray();
+        Require(ids.Length == 3, "Keyed reorder exposes three DOM option ids.");
+        await host.List.HandleKeyFromBrowserAsync("Home", ids);
+        Require(Equals(host.Selected, "Gamma"), "Home follows actual DOM order after keyed reordering.");
+        await host.List.HandleKeyFromBrowserAsync("End", ids);
+        Require(Equals(host.Selected, "Alpha"), "End follows actual DOM order after keyed reordering.");
+        host.Rows = ["Alpha"]; host.Update(); await Key("Home"); await Key("ArrowDown");
+        Require(Equals(host.Selected, "Alpha"), "Wrapping a one-item list must not clear selection.");
     });
 }
 

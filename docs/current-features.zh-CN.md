@@ -1,10 +1,18 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.14.1`
+文档版本：`10.14.3`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.14.3 全组件质量修复（未发布）
+
+完成 P1–P3 质量批次：基类 `Visible=false` 通过内联隐藏样式确保不被组件布局规则覆盖；ComboBox、Rating 的键盘导航阻止默认页面滚动并同步焦点；Drawer/Popover 尊重 `CloseOnEscape` 并提供退出过渡；ComboBox、Radio/RadioGroup 继承 FormField 的 Disabled/Required/Invalid 状态；DateCalendar 保护日期最小/最大边界；Tooltip 在参数变化后重新绑定；Tabs、Accordion 修正隐藏/禁用状态；TimePicker 在有限时间范围内生成候选映射，避免无谓遍历全天。
+
+## 10.14.2 List 键盘修复（未发布）
+
+修复 AllowClear 下导航误清空、声明式 keyed 重排后导航次序错误、隐藏项仍参与导航以及方向键/空格触发页面滚动的问题。选择状态仍由 C# 管理，新增 List 主 JS module 读取可见选项的 DOM 顺序并拦截已处理按键；其余组件仅审核，不包含修复。
 
 ## 10.14.1 发布范围
 
@@ -51,7 +59,7 @@
 
 - 使用统一的 `AeterniComponent` 作为组件基类。
 - 基类提供自动生成的实例 ID 和可覆盖的 `Id`。
-- 支持 `Class`、`Style`、`AdditionalAttributes`、`Visible`、`Disabled`、`Element`（`ElementReference`）和 `ElementChanged`。
+- 支持 `Class`、`Style`、`AdditionalAttributes`、`Visible`、`Disabled`、`Element`（`ElementReference`）和 `ElementChanged`。`Visible=false` 输出 hidden 及内联 `display: none`，优先于组件布局样式；恢复 Visible 后移除库追加的隐藏样式。
 - 提供 `ClassBuilder` 和 `StyleBuilder`，组件可以在代码后置中组合 class 和 style。
 - 支持 `ElementChanged` 回调。
 - 支持组件级 `.razor.css` CSS isolation。
@@ -385,7 +393,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 ### 行为与无障碍
 
-单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填、无效和尺寸档位会传递到选项，并输出相应的原生/ARIA 语义。垂直布局时容器切换为单列，并由 `aria-orientation="vertical"` 同步表达。
+单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填、无效和尺寸档位会传递到选项，并输出相应的原生/ARIA 语义。RadioGroup 与独立 Radio 均合并 FormField 的 Disabled / Required / Invalid，动态更新可恢复正常状态。垂直布局时容器切换为单列，并由 `aria-orientation="vertical"` 同步表达。
 
 位于 `FormField` 中的独立 `Radio` 会采用字段的输入 ID（点击标签可直接聚焦），`RadioGroup` 则让 fieldset 采用该 ID 并用 `aria-labelledby` 关联字段标签。
 
@@ -444,7 +452,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。
-- 支持鼠标、方向键、Home/End 与空格/回车选择；禁用项不可选择。
+- 支持鼠标、方向键、Home/End 与空格/回车选择；禁用和隐藏项不可选择。导航不会因 AllowClear 清空已选项，点击或空格/回车仍可主动清空。交互式浏览器按当前 DOM 顺序导航，支持声明式 keyed 重排，并阻止已处理按键的默认页面滚动；不拦截 Tab、组合快捷键或后代控件事件。
 - 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id、不进 Tab 序列也不接收 DOM 焦点，由容器键盘统一驱动，当前项用 `is-active` 样式提示。
 - 无选择模式渲染为普通列表结构，不输出按钮语义。
 
@@ -480,7 +488,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 ### 支持能力
 
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
-- 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。
+- 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。Disabled 合并 FormField 状态；只读/禁用星级不进入 Tab 序列。方向键/Home/End 同步真实焦点与值、不清零、不滚动页面，空格继续激活当前聚焦星级；主 JS module 仅处理默认键盘行为。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
 - `Size` 提供三档：`Small` 为 16px 星形，命中区域下限 24px（与 Checkbox Small 同档）、`Default` 为 20px + 8px（与之前一致）、`Large` 为 24px + 12px。
@@ -514,7 +522,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 ### 行为与无障碍
 
-ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/End、Enter 和 Escape，外部点击或页面滚动会关闭选项。
+ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打开后支持 Home/End、Enter/空格确认和 Escape。已处理按键不滚动页面，Enter/空格确认不会再次产生原生点击而重新打开；Tab 和组合快捷键保留原生行为。键盘活动项只滚入选项视窗，不滚动页面。FormField 的 Disabled/Required/Invalid 合并到触发器，禁用或隐藏时关闭选项并拒绝残留点击。空 Items 仍允许打开以显示 EmptyContent。外部点击或页面滚动会关闭选项。
 
 ### 实现边界
 
@@ -537,6 +545,8 @@ ComboBox 的触发器保持 combobox 语义；打开后支持方向键、Home/En
 当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
 
 ## 20. PopupHost / Popover
+
+10.14.3：模态/非模态均遵守动态 CloseOnEscape；受控关闭只提议 OpenChanged，父级拒绝时继续显示。退出过渡等待实际 CSS 动画结束才隐藏、恢复焦点及解锁滚动；重开/销毁取消旧完成，reduced-motion 立即完成，Visible=false 不保留退出层。
 
 ### 支持能力
 
@@ -592,6 +602,8 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 不提供多于两层的嵌套、组合式子组件（`ChildContent` + 子组件）、搜索过滤和多选；长菜单不内置滚动容器，把它放进带 `max-height` 的容器即可（示例侧边栏即如此）。
 ## 22. Tabs
 
+10.14.3：Visible=false 的 Tab 不渲染标签按钮，面板保持隐藏，不参与键盘导航；选中项隐藏时显示首个可用面板作为视觉回退，不擅自回写 Value。动态显示/注销刷新标签栏；焦点模块按实际可见按钮次序移动焦点。
+
 ### 支持能力
 
 `Tabs` + `Tab` 是可组合的标签页导航（与 `List`/`RadioGroup` 同一形态：子组件注册自己，父组件渲染标签栏）：
@@ -616,6 +628,8 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 - 当前只提供水平标签栏：不支持垂直标签、懒加载面板内容、关闭按钮和拖拽排序，也不接管路由（导航用例请配合 `Menu` 的 `Href` 或页面级导航）；面板内容在首次渲染时全部构建，未选中项只是通过 `hidden` 移出无障碍树与布局。
 
 ## 23. Tooltip
+
+10.14.3：参数重渲染后同步 Placement、Disabled、Text/Id 和触发内容；禁用或移除提示时仅清理组件自己添加的 aria-describedby token，保留宿主描述关联。
 
 ### 支持能力
 
@@ -911,6 +925,8 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ## 33. Accordion
 
+10.14.3：禁用项即使仍在 OpenKeys 中也渲染为折叠、inert 状态，不保留空白展开区域；不擅自修改宿主 OpenKeys，重新启用可恢复原展开状态。标题与箭头使用禁用文字 Token。
+
 ### 支持能力
 
 `Accordion` 提供折叠面板，支持 `AccordionItem`、单开/多开模式、受控 `OpenKeys`、`OpenKeysChanged`、禁用项和唯一项 ID 校验。
@@ -971,7 +987,7 @@ Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸�
 
 ### 实现边界
 
-面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成；关闭只有入场动画，没有出场动画（与 `Popover` 一致）。
+面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成。Drawer 按方位滑出、Popover 内容淡出上移；退出复用现有动效 Token，等待浏览器实际动画结束后隐藏并释放焦点陷阱与滚动锁。快速重开/释放会取消旧完成回调；reduced-motion 不等待固定毫秒数。Visible=false 立即隐藏并释放，不保留退场。
 
 ## 37. 服务注册
 
@@ -1046,6 +1062,8 @@ builder.Services.AddAeterniUI(options =>
 
 ## 38. DatePicker / DateRangePicker
 
+10.14.3：最小/最大日期的月份导航与键盘运算不会越界；日历维持 6×7 网格，超出 DateOnly 范围的位置为空白不可操作格。最大年份不足指定月份数时只显示存在的月份，范围预设允许结束于 DateOnly.MaxValue。
+
 日期时间字段（`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker`）的 Small / Default / Large 触发器统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），字号与 Input / ComboBox 对齐为 12 / 14 / 16px，保持 `line-height-normal`、原有最小高度及宽度 / FullWidth 行为；不调整日历或时间面板。Segmented 选项的三档水平留白也改用同组 control Token（数值不变），轨道 padding、滑块几何与字号均不变。
 
 `DatePicker.FullWidth` 默认为 `false`，设为 `true` 时触发器铺满父容器，日历弹层仍按内容定宽。`DateRangePicker` 弹层按预设区与多月日历的内容宽度展开，并受视口宽度限制，保留左右一致的表面内边距；极窄视口下内容可横向滚动。
@@ -1069,6 +1087,8 @@ builder.Services.AddAeterniUI(options =>
 两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。两者都有本组件拥有的真实根元素，基类属性完整落到 DOM；Small/Default/Large、hover、focus-visible、disabled 与 invalid 状态统一消费字段控件 Token，错误态不会被指针反馈覆盖。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
 
 ## 39. TimePicker
+
+10.14.3：候选枚举只访问 MinTime/MaxTime 范围内、按午夜对齐 Step 的整秒点；小数秒下界向上取整。TimePicker 与内部滚轮按实例复用无 DisabledTime、且 Step/Min/Max 不变的不可变映射；有委托时每次重新计算，不缓存可变闭包结果。
 
 10.12.2：共享时间轮的文字视觉层采用连续 rotateX、适度缩放与渐淡，中心保持原字号与清晰度；真实行高、选项命中区及 listbox 语义不变，28/36/44 控件密度不变。首次显示直接定位，点击、键盘、外部 Value 与联动列改值沿现有 duration-slow / ease-standard Token 平滑居中；滚动停稳并完成吸附后只回调一次草稿。重复渲染与同值回声不重启动画，新输入取消旧动画，快速改值以最新目标为准。reduced-motion 直接定位并取消透视；隐藏展开与尺寸变化重新测量真实行高。TimePicker 示例支持输入目标时分秒及延迟 2 秒外部设置，便于打开弹层观察；DateTimePicker 共用视觉与动画，并同步打开期间的外部 Value。
 

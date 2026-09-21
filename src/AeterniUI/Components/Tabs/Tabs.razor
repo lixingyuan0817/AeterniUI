@@ -9,7 +9,7 @@
          aria-orientation="horizontal"
          aria-label="@EffectiveAriaLabel"
          @onkeydown="HandleKeyDownAsync">
-        @foreach (var tab in RegisteredTabs)
+        @foreach (var tab in RegisteredTabs.Where(tab => tab.Visible))
         {
             var selected = IsRenderedSelected(tab);
             <button type="button"

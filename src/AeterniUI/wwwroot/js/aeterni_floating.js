@@ -19,6 +19,19 @@ export const FOCUSABLE =
 
 const SIDE_OPPOSITE = { top: 'bottom', bottom: 'top', start: 'end', end: 'start' };
 
+/** Wait for the actual CSS exit animations, including theme/reduced-motion overrides.
+ * Returns a cancellation function; reopening/disposal must cancel stale completion.
+ * Only chrome elements are passed, never arbitrary animated child content. */
+export function waitForExit(elements, complete) {
+    let cancelled = false;
+    const animations = elements.filter(Boolean).flatMap(element => element.getAnimations?.() ?? [])
+        .filter(animation => /-(exit|fade-out)(-|$)/.test(animation.animationName ?? ''));
+    Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
+        if (!cancelled) complete();
+    });
+    return () => { cancelled = true; };
+}
+
 /** The opposite side of a placement's main axis (`bottom-start` -> `top-start`). */
 export function oppositeSide(side) {
     return SIDE_OPPOSITE[side] ?? side;

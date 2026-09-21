@@ -4,7 +4,7 @@
 <PopupHost Class="aeterni-combobox__host">
     <ChildContent>
         <div @ref="RootElement" @attributes="BuildAttributes()">
-        <button type="button"
+        <button @ref="_triggerElement" type="button"
                 class="aeterni-combobox__trigger"
                 id="@FormFieldInputId"
                 role="combobox"
@@ -13,9 +13,11 @@
                 aria-expanded="@(_open ? "true" : "false")"
                 aria-controls="@ListboxId"
                 aria-haspopup="listbox"
+                aria-label="@(FormFieldLabelId is null ? AriaLabel : null)"
+                aria-required="@(IsRequired ? "true" : null)"
                 aria-invalid="@(IsInvalid ? "true" : null)"
                 aria-activedescendant="@(_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
-                disabled="@Disabled"
+                disabled="@IsDisabled"
                 @onclick="HandleTriggerClickAsync"
                 @onkeydown="HandleTriggerKeyDownAsync">
             <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">

@@ -12,7 +12,7 @@
     <Preview>
         <div class="preview-overlay-demo">
             <p class="preview-overlay-demo__hint">将鼠标悬停在按钮上，或使用 Tab 聚焦按钮，查看 Tooltip 内容：</p>
-            <Tooltip Text="这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。" Placement="@_tooltipPlacement">
+            <Tooltip Text="这是 Tooltip 的完整说明文字，用于补充按钮的用途和操作提示。" Placement="@_tooltipPlacement" Disabled="@_tooltipDisabled">
                 <Button Variant="ButtonVariant.Outline">悬停或聚焦查看说明</Button>
             </Tooltip>
             <div class="preview-state-row" aria-label="四个方位的 Tooltip 对照">
@@ -28,6 +28,7 @@
         </div>
     </Preview>
     <Controls>
+        <Checkbox @bind-Value="_tooltipDisabled">Disabled（动态启用/禁用）</Checkbox>
         <div class="control-field">
             <span>Placement</span>
             <ShowcaseSelect TValue="TooltipPlacement" Id="tooltip-placement" AriaLabel="Placement" Options="@(Enum.GetValues<TooltipPlacement>())" @bind-Value="_tooltipPlacement" />
@@ -41,6 +42,7 @@
 
 @code {
     private TooltipPlacement _tooltipPlacement = TooltipPlacement.Top;
+    private bool _tooltipDisabled;
 
     private static readonly ShowcaseParameter[] TooltipParameters =
     [

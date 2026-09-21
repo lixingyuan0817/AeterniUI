@@ -168,6 +168,13 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
         }
 
         var style = BuildStyle().Build();
+        if (!Visible)
+        {
+            style = string.IsNullOrWhiteSpace(style)
+                ? "display: none;"
+                : $"{style.TrimEnd(';', ' ')}; display: none;";
+        }
+
         if (!string.IsNullOrWhiteSpace(style))
         {
             attributes["style"] = style;

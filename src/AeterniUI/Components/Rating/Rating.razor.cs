@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Linq.Expressions;
+using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
@@ -8,8 +9,10 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace AeterniUI.Components.Rating;
 
+[JsModule("Components/Rating/Rating.razor.js", Name = "rating", Interactive = true)]
 public partial class Rating : AeterniComponent
 {
+    private readonly Dictionary<int, ElementReference> _starElements = [];
     [CascadingParameter]
     private FormFieldContext? FormField { get; set; }
 
@@ -77,6 +80,9 @@ public partial class Rating : AeterniComponent
         }
     }
 
+    protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
+        JsModuleManager.InvokeModuleVoidAsync("rating", "sync", InstanceId, RootElement);
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
@@ -84,7 +90,7 @@ public partial class Rating : AeterniComponent
             .Add(SizeClass)
             .Add("is-readonly", ReadOnly)
             .Add("is-invalid", IsInvalid)
-            .Add("is-disabled", Disabled);
+            .Add("is-disabled", IsDisabled);
     }
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-rating", Size);
@@ -136,11 +142,12 @@ public partial class Rating : AeterniComponent
         }
     }
 
-    private bool IsInteractive => !ReadOnly && !Disabled;
+    private bool IsDisabled => Disabled || FormField?.Disabled == true;
+    private bool IsInteractive => !ReadOnly && !IsDisabled;
 
     private async Task HandleClickAsync(int index)
     {
-        if (Disabled || ReadOnly)
+        if (!IsInteractive || !Visible)
         {
             return;
         }
@@ -156,7 +163,7 @@ public partial class Rating : AeterniComponent
 
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
-        if (Disabled || ReadOnly)
+        if (!IsInteractive || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
             return;
         }
@@ -164,7 +171,7 @@ public partial class Rating : AeterniComponent
         var nextValue = args.Key switch
         {
             "ArrowRight" or "ArrowUp" => Math.Min(Value + 1, Max),
-            "ArrowLeft" or "ArrowDown" => Math.Max(Value - 1, 0),
+            "ArrowLeft" or "ArrowDown" => Math.Max(Value - 1, 1),
             "Home" => 1,
             "End" => Max,
             _ => Value
@@ -173,6 +180,10 @@ public partial class Rating : AeterniComponent
         if (nextValue != Value)
         {
             await SetValueAsync(nextValue);
+            if (_starElements.TryGetValue(nextValue == 0 ? 1 : nextValue, out var target))
+            {
+                await target.FocusAsync(preventScroll: true);
+            }
         }
     }
 

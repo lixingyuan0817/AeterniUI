@@ -14,6 +14,8 @@
 .aeterni-accordion__item.is-disabled .aeterni-accordion__panel { visibility: hidden; }
 
 .aeterni-accordion__item.is-disabled { color: var(--aeterni-text-disabled); }
+.aeterni-accordion__item.is-disabled .aeterni-accordion__trigger,
+.aeterni-accordion__item.is-disabled .aeterni-accordion__chevron { color: var(--aeterni-text-disabled); cursor: default; }
 @media (prefers-reduced-motion: reduce) {
     .aeterni-accordion__chevron,
     .aeterni-accordion__panel {

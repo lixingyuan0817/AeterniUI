@@ -9,6 +9,9 @@ internal sealed class ListContractHost : ComponentBase
     public bool Disabled { get; set; }
     public bool Declarative { get; set; }
     public bool RowDisabled { get; set; }
+    public bool AllowClear { get; set; }
+    public bool Keyed { get; set; }
+    public string? HiddenRow { get; set; }
     public SelectionMode Mode { get; set; } = SelectionMode.Single;
     public object? Selected { get; set; }
     public IReadOnlyList<object?> SelectedMany { get; set; } = [];
@@ -34,14 +37,17 @@ internal sealed class ListContractHost : ComponentBase
                 foreach (var row in Rows)
                 {
                     content.OpenComponent<AeterniUI.Components.List.ListItem<string?>>(0);
+                    if (Keyed) content.SetKey(row);
                     content.AddAttribute(1, "Value", row);
                     content.AddAttribute(2, "Disabled", RowDisabled && row == Rows[0]);
                     content.AddAttribute(3, "ChildContent", (RenderFragment)(text => text.AddContent(0, row)));
+                    content.AddAttribute(4, "Visible", row != HiddenRow);
                     content.CloseComponent();
                 }
             }));
         }
-        builder.AddComponentReferenceCapture(9, component => List = (AeterniUI.Components.List.List<string?>)component);
+        builder.AddAttribute(9, "AllowClear", AllowClear);
+        builder.AddComponentReferenceCapture(10, component => List = (AeterniUI.Components.List.List<string?>)component);
         builder.CloseComponent();
     }
 }

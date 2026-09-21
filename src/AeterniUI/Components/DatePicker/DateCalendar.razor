@@ -2,15 +2,15 @@
 
 <div class="aeterni-date-calendar @(VisibleMonths > 1 ? "is-multi-month" : null)" role="group" aria-label="@AriaLabel">
     <div class="aeterni-date-calendar__toolbar">
-        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerPreviousMonthLabel" @onclick="PreviousMonthAsync">
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerPreviousMonthLabel" disabled="@(DisplayMonth == DateOnly.MinValue)" @onclick="PreviousMonthAsync">
             <Icon Definition="@AeterniIcons.ChevronLeft" />
         </button>
         <strong>@VisibleMonthTitle</strong>
-        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerNextMonthLabel" @onclick="NextMonthAsync">
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerNextMonthLabel" disabled="@(DisplayMonth == new DateOnly(9999, 12, 1))" @onclick="NextMonthAsync">
             <Icon Definition="@AeterniIcons.ChevronRight" />
         </button>
     </div>
-    <div class="aeterni-date-calendar__months" style="--aeterni-date-calendar-months: @VisibleMonths">
+    <div class="aeterni-date-calendar__months" style="--aeterni-date-calendar-months: @RenderedMonthCount">
         @foreach (var month in Months)
         {
             <section class="aeterni-date-calendar__month" aria-label="@MonthTitle(month)">
@@ -28,8 +28,13 @@
                     @foreach (var week in Weeks(month))
                     {
                         <div class="aeterni-date-calendar__row" role="row">
-                            @foreach (var day in week)
+                            @foreach (var cell in week)
                             {
+                                if (cell is not { } day)
+                                {
+                                    <span role="gridcell" aria-disabled="true"></span>
+                                    continue;
+                                }
                                 var outside = day.Month != month.Month;
                                 var hiddenDuplicate = VisibleMonths > 1 && outside;
                                 var disabled = hiddenDuplicate || IsDisabled(day);

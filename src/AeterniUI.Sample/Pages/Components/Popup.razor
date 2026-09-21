@@ -23,7 +23,8 @@
                          OpenChanged="HandlePopoverOpenChanged"
                          Placement="_popoverPlacement"
                          Modal="@_popoverModal"
-                         CloseOnOverlayClick="@_popoverCloseOnOverlayClick"
+                         CloseOnEscape="@_popoverCloseOnEscape"
+                         CloseOnOutsideClick="@_popoverCloseOnOverlayClick"
                          RestoreFocusOnClose="true"
                          AriaLabel="示例浮层">
                     <Header>
@@ -58,7 +59,8 @@
             <ShowcaseSelect TValue="PopupPlacement" Id="popover-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_popoverPlacement" />
         </div>
         <Checkbox Size="Size.Small" @bind-Value="_popoverModal">Modal</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnOverlayClick">CloseOnOverlayClick</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnEscape">CloseOnEscape</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnOverlayClick">CloseOnOutsideClick</Checkbox>
     </Controls>
     <Notes>
         <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内，空间不足时翻到另一侧并把内容贴回视口；<code>Placement</code> 提供四个起始方位。</span>
@@ -73,6 +75,7 @@
     private PopupPlacement _popoverPlacement = PopupPlacement.BottomStart;
 
     private bool _popoverModal;
+    private bool _popoverCloseOnEscape = true;
 
     private bool _popoverCloseOnOverlayClick = true;
 

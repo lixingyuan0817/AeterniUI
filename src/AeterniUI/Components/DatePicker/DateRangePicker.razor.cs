@@ -117,8 +117,9 @@ public partial class DateRangePicker : AeterniComponent
             if (IsDateDisabled(preset.StartDate) || IsDateDisabled(preset.EndDate))
                 throw new ArgumentException($"The preset '{preset.Label}' contains a disabled or out-of-range date.", nameof(Presets));
             if (DisabledDate is null) continue;
-            for (var date = preset.StartDate; date <= preset.EndDate; date = date.AddDays(1))
+            for (var day = preset.StartDate.DayNumber; day <= preset.EndDate.DayNumber; day++)
             {
+                var date = DateOnly.FromDayNumber(day);
                 if (DisabledDate(date))
                     throw new ArgumentException($"The preset '{preset.Label}' contains a disabled date.", nameof(Presets));
                 if (date == DateOnly.MaxValue) break;

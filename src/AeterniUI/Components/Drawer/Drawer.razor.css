@@ -21,6 +21,7 @@
     z-index: var(--aeterni-z-modal);
 }
 
+
 .aeterni-drawer[hidden] {
     display: none;
 }
@@ -197,12 +198,29 @@
     }
 }
 
+.aeterni-drawer.is-closing .aeterni-drawer__panel {
+    animation: aeterni-drawer-exit-inline var(--aeterni-duration-slow) var(--aeterni-ease-in) both;
+}
+.aeterni-drawer.is-closing:is(.aeterni-drawer--top, .aeterni-drawer--bottom) .aeterni-drawer__panel {
+    animation-name: aeterni-drawer-exit-block;
+}
+.aeterni-drawer.is-closing .aeterni-drawer__backdrop {
+    animation: aeterni-drawer-fade-out var(--aeterni-duration-normal) var(--aeterni-ease-in) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
     /* The placement rules below set the entry animation on
        `.aeterni-drawer--{placement} .aeterni-drawer__panel`, so the reset needs a
        matching selector to win instead of losing on specificity. */
     .aeterni-drawer .aeterni-drawer__panel,
-    .aeterni-drawer__backdrop {
+    .aeterni-drawer.is-closing .aeterni-drawer__panel,
+    .aeterni-drawer.is-closing:is(.aeterni-drawer--top, .aeterni-drawer--bottom) .aeterni-drawer__panel,
+    .aeterni-drawer .aeterni-drawer__backdrop,
+    .aeterni-drawer.is-closing .aeterni-drawer__backdrop {
         animation: none;
     }
 }
+
+@keyframes aeterni-drawer-exit-inline { to { transform: translateX(var(--aeterni-drawer-enter-shift)); } }
+@keyframes aeterni-drawer-exit-block { to { transform: translateY(var(--aeterni-drawer-enter-shift)); } }
+@keyframes aeterni-drawer-fade-out { to { opacity: 0; } }

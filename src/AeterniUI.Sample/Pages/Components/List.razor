@@ -82,7 +82,28 @@
     <Notes><span>字符串无需模板；卡片模式无 CardTemplate 时显示文本，不使用 ItemTemplate。声明式旧用法添加 TItem="string"，ListItem 自动级联推断。选择列表模板不应嵌套可聚焦操作控件。</span></Notes>
 </ComponentPreview>
 
+<ComponentPreview AnchorId="list-keyboard" Category="交互验收" Title="动态列表与键盘" ComponentName="List / ListItem"
+                  Description="Home/End 按画面顺序导航；隐藏项不可选；允许清空时，导航仍保留选择，Enter/空格才切换。">
+    <Preview>
+        <List TItem="string" SelectionMode="SelectionMode.Single" AllowClear="true" CardMode="@_cardMode"
+              @bind-SelectedValue="_keyboardSelected" AriaLabel="动态列表键盘验收">
+            @foreach (var row in _keyboardRows)
+            {
+                <ListItem @key="row" Value="@row" Visible="@(!_hideKeyboardRow || row != "开发")">@row</ListItem>
+            }
+        </List>
+        <span role="status">当前值：@(_keyboardSelected ?? "未选择")</span>
+    </Preview>
+    <Controls>
+        <Button OnClick="@(() => Array.Reverse(_keyboardRows))">反转顺序</Button>
+        <Checkbox @bind-Value="_hideKeyboardRow">隐藏“开发”</Checkbox>
+    </Controls>
+</ComponentPreview>
+
 @code {
+    private readonly string[] _keyboardRows = ["设计", "开发", "产品"];
+    private object? _keyboardSelected;
+    private bool _hideKeyboardRow;
     private bool _cardMode;
     private bool _itemsDisabled;
     private object? _itemSelected = "开发";

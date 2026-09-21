@@ -3,7 +3,7 @@
 <section @ref="RootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel">
     @foreach (var item in Items)
     {
-        var open = IsOpen(item.Id);
+        var open = IsOpen(item);
         var panelId = $"{ElementId}-{item.Id}-panel";
         <article class="aeterni-accordion__item @(open ? "is-open" : "") @(item.Disabled ? "is-disabled" : "")">
             <h3>

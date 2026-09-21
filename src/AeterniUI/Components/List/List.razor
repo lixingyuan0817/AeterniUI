@@ -2,8 +2,7 @@
 @inherits AeterniComponent
 
 <div @ref="RootElement"
-     @attributes="BuildAttributes()"
-     @onkeydown="KeyDownHandler">
+     @attributes="BuildAttributes()">
     <CascadingValue Value="this">
         @if (Items is not null)
         {

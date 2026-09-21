@@ -23,6 +23,16 @@
     display: none;
 }
 
+.aeterni-popover.is-closing .aeterni-popover__surface {
+    animation: aeterni-popover-exit var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+}
+.aeterni-popover.is-closing .aeterni-popover__backdrop {
+    animation: aeterni-popover-fade-out var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+}
+
+@keyframes aeterni-popover-exit { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes aeterni-popover-fade-out { to { opacity: 0; } }
+
 .aeterni-popover--bottom-start,
 .aeterni-popover--bottom-end {
     top: calc(100% + var(--aeterni-popover-gap));
@@ -133,7 +143,9 @@
 
 @media (prefers-reduced-motion: reduce) {
     .aeterni-popover__surface,
-    .aeterni-popover__backdrop {
+    .aeterni-popover__backdrop,
+    .aeterni-popover.is-closing .aeterni-popover__surface,
+    .aeterni-popover.is-closing .aeterni-popover__backdrop {
         animation: none;
     }
 }

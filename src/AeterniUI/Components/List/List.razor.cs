@@ -1,10 +1,12 @@
+using AeterniUI.Attributes;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace AeterniUI.Components.List;
 
 [CascadingTypeParameter(nameof(TItem))]
+[JsModule("Components/List/List.razor.js", Name = "list", Interactive = true)]
 public partial class List<TItem> : AeterniComponent
 {
     private readonly System.Collections.Generic.List<ItemHandle<TItem>> _items = [];
@@ -63,9 +65,9 @@ public partial class List<TItem> : AeterniComponent
         _ => false
     };
 
-    internal async Task ToggleAsync(ItemHandle<TItem> item)
+    internal async Task ToggleAsync(ItemHandle<TItem> item, bool allowClear = true)
     {
-        if (Disabled || item.Disabled || !IsSelectable || !_items.Contains(item))
+        if (Disabled || !Visible || !IsEligible(item) || !IsSelectable || !_items.Contains(item))
         {
             return;
         }
@@ -73,7 +75,7 @@ public partial class List<TItem> : AeterniComponent
         switch (SelectionMode)
         {
             case SelectionMode.Single:
-                if (AllowClear && ValuesEqual(SelectedValue, item.Value))
+                if (allowClear && AllowClear && ValuesEqual(SelectedValue, item.Value))
                 {
                     SelectedValue = null;
                 }
@@ -161,7 +163,7 @@ public partial class List<TItem> : AeterniComponent
         }
 
         var next = Items?.ToArray() ?? [];
-        if (!_dataItems.SequenceEqual(next) || Disabled || !IsSelectable)
+        if (!_dataItems.SequenceEqual(next) || Disabled || !Visible || !IsSelectable)
         {
             _focusedItem = null;
         }
@@ -223,36 +225,48 @@ public partial class List<TItem> : AeterniComponent
     }
 
     /// <summary>
-    /// Keyboard handler that is only bound for a selectable list. A default
-    /// <see cref="EventCallback{T}" /> renders no attribute at all, so a display-only
-    /// list registers no DOM listener.
+    /// Handles browser navigation in current DOM order. The module only installs
+    /// a listener on selectable lists; business selection remains in C#.
     /// </summary>
-    private EventCallback<KeyboardEventArgs> KeyDownHandler => IsSelectable
-        ? EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDownAsync)
-        : default;
-
-    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    // DOM order is supplied by the browser, including keyed/moved declarative rows.
+    // Only registered, currently available options may participate in selection.
+    [JSInvokable]
+    public Task HandleKeyFromBrowserAsync(string key, string[] optionIds)
     {
-        if (Disabled) return;
+        var byId = _items.Where(IsEligible).Where(item => item.OptionId is not null)
+            .ToDictionary(item => item.OptionId!);
+        var enabled = optionIds.Distinct().Where(byId.ContainsKey).Select(id => byId[id]).ToArray();
+        return HandleKeyAsync(key, enabled);
+    }
 
-        if (args.Key is "ArrowDown" or "ArrowUp" or "Home" or "End")
+    private static bool IsEligible(ItemHandle<TItem> item) => !item.Disabled && item.Item.Visible;
+
+    protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
+        JsModuleManager.InvokeModuleVoidAsync("list", "sync", InstanceId, RootElement);
+
+    private async Task HandleKeyAsync(string key, ItemHandle<TItem>[] enabled)
+    {
+        if (_disposed || Disabled || !Visible || !IsSelectable) return;
+
+        if (key is "ArrowDown" or "ArrowUp" or "Home" or "End")
         {
-            await MoveFocusAsync(args.Key);
+            await MoveFocusAsync(key, enabled);
             return;
         }
 
-        if (args.Key is " " or "Enter")
+        if (key is " " or "Enter")
         {
-            if (_focusedItem is not null)
+            if (_focusedItem is not null && enabled.Contains(_focusedItem))
             {
                 await ToggleAsync(_focusedItem);
             }
             else if (SelectionMode == SelectionMode.Single)
             {
                 // No active option yet: start from the first enabled item.
-                var first = _items.FirstOrDefault(item => !item.Disabled);
+                var first = enabled.FirstOrDefault();
                 if (first is not null)
                 {
+                    SetActive(first);
                     await ToggleAsync(first);
                 }
             }
@@ -261,9 +275,8 @@ public partial class List<TItem> : AeterniComponent
         }
     }
 
-    private async Task MoveFocusAsync(string key)
+    private async Task MoveFocusAsync(string key, ItemHandle<TItem>[] enabled)
     {
-        var enabled = _items.Where(item => !item.Disabled).ToArray();
         if (enabled.Length == 0)
         {
             return;
@@ -287,7 +300,7 @@ public partial class List<TItem> : AeterniComponent
 
         if (SelectionMode == SelectionMode.Single)
         {
-            await ToggleAsync(next);
+            await ToggleAsync(next, allowClear: false);
             return;
         }
 
@@ -308,7 +321,7 @@ public partial class List<TItem> : AeterniComponent
 
 /// <summary>
 /// Internal registration record kept by a <see cref="List{TItem}"/> for focus
-/// management and keyboard navigation. Order follows DOM render order.
+/// management and keyboard navigation. Browser navigation supplies current DOM order.
 /// </summary>
 internal sealed class ItemHandle<TItem>
 {

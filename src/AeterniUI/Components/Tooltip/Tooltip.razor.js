@@ -29,7 +29,7 @@ export function attach(instanceId, root, contentId, placement) {
         placement: PLACEMENTS.includes(placement) ? placement : 'top',
         preferred: PLACEMENTS.includes(placement) ? placement : 'top',
         describedByTarget: null,
-        previousDescribedBy: null
+        contentId: null
     };
 
     instances.set(instanceId, entry);
@@ -82,10 +82,10 @@ function detach(instanceId) {
 function linkDescription(entry, contentId) {
     const target = entry.trigger.querySelector(FOCUSABLE) ?? entry.trigger;
     entry.describedByTarget = target;
-    entry.previousDescribedBy = target.getAttribute('aria-describedby');
-
-    const ids = [entry.previousDescribedBy, contentId].filter(value => !!value && value.trim().length > 0);
-    target.setAttribute('aria-describedby', ids.join(' '));
+    const ids = new Set((target.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean));
+    entry.contentId = ids.has(contentId) ? null : contentId;
+    ids.add(contentId);
+    target.setAttribute('aria-describedby', [...ids].join(' '));
 }
 
 function unlinkDescription(entry) {
@@ -94,8 +94,10 @@ function unlinkDescription(entry) {
         return;
     }
 
-    if (entry.previousDescribedBy) {
-        target.setAttribute('aria-describedby', entry.previousDescribedBy);
+    const ids = (target.getAttribute('aria-describedby') ?? '').split(/\s+/)
+        .filter(id => id && id !== entry.contentId);
+    if (ids.length) {
+        target.setAttribute('aria-describedby', ids.join(' '));
     } else {
         target.removeAttribute('aria-describedby');
     }

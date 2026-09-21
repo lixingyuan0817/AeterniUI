@@ -29,9 +29,12 @@ internal static class TimePickerOptions
         TimeSpan step,
         TimeOnly? minTime,
         TimeOnly? maxTime,
-        Func<TimeOnly, bool>? disabledTime = null)
+        Func<TimeOnly, bool>? disabledTime = null,
+        TimeSelectionMap? previous = null)
     {
         Validate(step, minTime, maxTime);
+        // Delegates can close over mutable state: never reuse their results.
+        if (disabledTime is null && previous?.Matches(step, minTime, maxTime) == true) return previous;
         return new TimeSelectionMap(step, minTime, maxTime, disabledTime);
     }
 
@@ -43,7 +46,9 @@ internal static class TimePickerOptions
     {
         Validate(step, minTime, maxTime);
         var stepSeconds = checked((int)(step.Ticks / TimeSpan.TicksPerSecond));
-        for (var secondOfDay = 0; secondOfDay < SecondsPerDay; secondOfDay += stepSeconds)
+        var start = FirstStepAtOrAfter(minTime, stepSeconds);
+        var end = LastStepAtOrBefore(maxTime, stepSeconds);
+        for (var secondOfDay = start; secondOfDay <= end; secondOfDay += stepSeconds)
         {
             var value = new TimeOnly(secondOfDay / 3600, (secondOfDay / 60) % 60, secondOfDay % 60);
             if ((!minTime.HasValue || value >= minTime.Value) &&
@@ -72,11 +77,28 @@ internal static class TimePickerOptions
             throw new ArgumentException("The minimum time cannot be later than the maximum time.");
         }
     }
+
+    internal static int FirstStepAtOrAfter(TimeOnly? minTime, int stepSeconds)
+    {
+        var minimum = minTime.HasValue
+            ? (int)((minTime.Value.Ticks + TimeSpan.TicksPerSecond - 1) / TimeSpan.TicksPerSecond) : 0;
+        return Math.Min(SecondsPerDay, ((minimum + stepSeconds - 1) / stepSeconds) * stepSeconds);
+    }
+
+    internal static int LastStepAtOrBefore(TimeOnly? maxTime, int stepSeconds) =>
+        Math.Min(SecondsPerDay - 1, maxTime.HasValue ? ToSecondOfDay(maxTime.Value) / stepSeconds * stepSeconds : SecondsPerDay - 1);
+
+    private static int ToSecondOfDay(TimeOnly value) =>
+        checked((int)(value.Ticks / TimeSpan.TicksPerSecond));
 }
 
 internal sealed class TimeSelectionMap
 {
     private readonly BitArray _available = new(TimePickerOptions.SecondsPerDay);
+    private readonly (TimeSpan Step, TimeOnly? Min, TimeOnly? Max, bool Cacheable) _configuration;
+
+    internal bool Matches(TimeSpan step, TimeOnly? min, TimeOnly? max) =>
+        _configuration == (step, min, max, true);
 
     internal TimeSelectionMap(
         TimeSpan step,
@@ -84,8 +106,11 @@ internal sealed class TimeSelectionMap
         TimeOnly? maxTime,
         Func<TimeOnly, bool>? disabledTime)
     {
+        _configuration = (step, minTime, maxTime, disabledTime is null);
         var stepSeconds = checked((int)(step.Ticks / TimeSpan.TicksPerSecond));
-        for (var secondOfDay = 0; secondOfDay < TimePickerOptions.SecondsPerDay; secondOfDay += stepSeconds)
+        var start = TimePickerOptions.FirstStepAtOrAfter(minTime, stepSeconds);
+        var end = TimePickerOptions.LastStepAtOrBefore(maxTime, stepSeconds);
+        for (var secondOfDay = start; secondOfDay <= end; secondOfDay += stepSeconds)
         {
             var value = FromSecondOfDay(secondOfDay);
             if ((!minTime.HasValue || value >= minTime.Value) &&

@@ -52,7 +52,7 @@ public partial class TimeOptionList : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(TimeFormat));
         }
 
-        _map = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime);
+        _map = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime, _map);
         var preferred = !_parametersInitialized || Value != _lastParameterValue ? Value : _draftValue;
         _lastParameterValue = Value;
         var nextDraft = preferred.HasValue && _map.Contains(preferred.Value)

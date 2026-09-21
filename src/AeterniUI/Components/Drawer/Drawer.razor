@@ -6,7 +6,7 @@
    sibling rather than a child — a transformed ancestor would become the containing
    block of the backdrop's `position: fixed`. *@
 <div @ref="RootElement" @attributes="BuildAttributes()">
-    @if (Modal && Open)
+    @if (Modal && (Open || _closing))
     {
         <div class="aeterni-drawer__backdrop" aria-hidden="true" @onclick="HandleBackdropClickAsync"></div>
     }

@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.14.1`
+文档版本：`10.14.3`
 
 状态：第一版草案
 
@@ -237,7 +237,7 @@ public RenderFragment? ChildContent { get; set; }
 
 - 先复制 `AdditionalAttributes`。
 - 基类统一写入 `id`、`class`、`style`。
-- `Visible == false` 时写入 `hidden`。
+- `Visible == false` 时写入 `hidden`，并追加内联 `display: none`，避免组件的 flex/grid 布局覆盖原生隐藏规则；恢复可见时不保留该内联声明。
 - 组件通过重写 `SupportsDisabled` 后，才由基类写入 `disabled` 和 `aria-disabled`。
 
 因此，组件不要自行生成第二套根元素属性合并逻辑。

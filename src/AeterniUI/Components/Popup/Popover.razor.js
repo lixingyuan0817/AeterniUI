@@ -16,7 +16,8 @@ import {
     createFocusTrap,
     fitsSide,
     lockScroll,
-    oppositeSide
+    oppositeSide,
+    waitForExit
 } from '../../js/aeterni_floating.js';
 
 const PLACEMENTS = ['bottom-start', 'bottom-end', 'top-start', 'top-end'];
@@ -40,7 +41,9 @@ export function init(reference, key) {
         pointerHandler: null,
         keyHandler: null,
         resizeHandler: null,
-        scrollHandler: null
+        scrollHandler: null,
+        cancelExit: null,
+        closingRevision: null
     });
 }
 
@@ -49,7 +52,7 @@ export function init(reference, key) {
  * it has to be idempotent: only a change of `open` or of the modal flag performs
  * work.
  */
-export function setOpen(key, open, layer, modal, placement, closeOnEscape, closeOnOutsideClick, restoreFocusOnClose, closeOnScroll) {
+export function setOpen(key, open, layer, modal, placement, closeOnEscape, closeOnOutsideClick, restoreFocusOnClose, closeOnScroll, closing = false, revision = 0) {
     const instance = instances.get(key);
     if (!instance) {
         return;
@@ -62,17 +65,30 @@ export function setOpen(key, open, layer, modal, placement, closeOnEscape, close
     instance.closeOnScroll = !!closeOnScroll;
     instance.restoreFocusOnClose = !!restoreFocusOnClose;
 
+    if (open || !closing) {
+        instance.cancelExit?.();
+        instance.cancelExit = null;
+        instance.closingRevision = null;
+    }
+
     if (open && !instance.active) {
         activate(instance, !!modal);
         return;
     }
 
-    if (!open && instance.active) {
-        deactivate(instance);
-        return;
-    }
-
     if (!open) {
+        if (closing && instance.closingRevision !== revision) {
+            instance.cancelExit?.();
+            instance.closingRevision = revision;
+            instance.cancelExit = waitForExit([
+                instance.layer?.querySelector('.aeterni-popover__surface'),
+                instance.layer?.querySelector('.aeterni-popover__backdrop')], () => {
+                instance.cancelExit = null;
+                deactivate(instance);
+                instance.reference.invokeMethodAsync('FinalizeCloseAsync', revision).catch(() => {});
+            });
+        }
+        if (!closing && instance.active) deactivate(instance);
         return;
     }
 
@@ -111,13 +127,19 @@ function activate(instance, modal) {
 
     if (modal) {
         instance.releaseScroll = lockScroll();
-        instance.trap = createFocusTrap(instance.layer, { onEscape: () => requestClose(instance) });
+        instance.trap = createFocusTrap(instance.layer, {
+            onEscape: () => {
+                if (instance.closeOnEscape) requestClose(instance);
+            }
+        });
     }
 
     place(instance);
 }
 
 function deactivate(instance) {
+    instance.cancelExit?.();
+    instance.cancelExit = null;
     instance.active = false;
 
     if (instance.pointerHandler) {
@@ -210,7 +232,7 @@ function installEscape(instance) {
 }
 
 function requestClose(instance) {
-    if (!instance.active) {
+    if (!instance.active || instance.closingRevision !== null) {
         return;
     }
 

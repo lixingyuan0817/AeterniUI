@@ -18,6 +18,7 @@
         <div class="preview-glass-scene">
             <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
             <Surface Variant="@_surfaceVariant"
+                     Visible="@_surfaceVisible"
                      Elevation="@_surfaceElevation"
                      Padding="@_surfacePadding"
                      Radius="@_surfaceRadius"
@@ -52,10 +53,12 @@
         </div>
         <Checkbox Size="Size.Small" @bind-Value="_surfaceBordered">Bordered</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_surfaceFullWidth">FullWidth</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_surfaceVisible">Visible</Checkbox>
     </Controls>
 </ComponentPreview>
 
 @code {
+    private bool _surfaceVisible = true;
     private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
 
     private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;

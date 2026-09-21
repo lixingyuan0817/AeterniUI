@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.14.1`
+文档版本：`10.14.3`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -26,7 +26,7 @@
 | Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.14.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.14.3`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
 
 ## 2. 解决方案和项目
 
@@ -125,11 +125,14 @@ Components/<Component>/
 - [`src/AeterniUI/wwwroot/js/aeterni_floating.js`](../src/AeterniUI/wwwroot/js/aeterni_floating.js)：共享浮层能力（视口贴合与翻转、`createFocusTrap`、引用计数的 `lockScroll`），由 Tooltip、Popover、Drawer 和 DialogProvider 导入。
 
 - `Components/List`：泛型数据/声明式列表、普通模板与统一 Card 外壳；ListItem 级联类型及选择注册。迁移说明见功能清单 §16。
+- `Components/ComboBox/ComboBox.razor.js`、`Components/Rating/Rating.razor.js`：选择/评分控件的默认按键行为与选项视窗滚动；业务值保留在 C#，各组件仍只有一个主 module。
+- `wwwroot/js/aeterni_floating.js` 的 `waitForExit`：Drawer/Popover 共用的可取消退出动画完成通知，复用实际 CSS 动画与 reduced-motion 设置。
 
 ### 渲染契约检查
 
 - [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 检查 DatePicker/MenuButton 根属性、Accordion ARIA/inert、DateCalendar 网格、TimeOptionList 单一 Tab 停留点和 Avatar 公开变体。同时覆盖 SplitButton 根属性、独立名称/禁用/加载、尺寸变体、受控打开与 MenuButton 菜单 id 关联。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
 - [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
+- [`tests/quality-interactions.test.mjs`](../tests/quality-interactions.test.mjs)：模态 Esc 策略、可取消退出、reduced-motion、键盘与 Tooltip 动态关联的浏览器行为回归；C# 的 `QualityContractHost.cs` 配合 15 组渲染契约覆盖状态、日期极值与时间映射复用。
 
 ### Tauri
 
@@ -175,6 +178,8 @@ Tauri 开发模式加载发布后的静态站点，不启动 `dotnet watch` 或�
 ```bash
 dotnet build aeterni_ui.slnx -c Debug --nologo
 dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
+node --test tests/list-keyboard.test.mjs          # Components/List/List.razor.js 的 DOM 次序、按键拦截与释放回归
+node --test tests/*.test.mjs                     # CI 同步执行全部浏览器行为单元回归
 cargo check --manifest-path src-tauri/Cargo.toml
 node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
 node scripts/check-css-comments.mjs                    # CSS 注释是否提前闭合

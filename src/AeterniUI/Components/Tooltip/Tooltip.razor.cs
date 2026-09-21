@@ -51,7 +51,7 @@ public partial class Tooltip : AeterniComponent
 
     protected override async Task OnComponentAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || IsDisposed)
+        if (IsDisposed)
         {
             return;
         }

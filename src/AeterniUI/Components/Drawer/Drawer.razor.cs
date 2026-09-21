@@ -84,6 +84,21 @@ public partial class Drawer : AeterniComponent
 
     /// <summary>Referenced by the JS module for the focus trap and outside-pointer test.</summary>
     private ElementReference _panelElement;
+    private bool _closing;
+    private bool _wasOpen;
+    private int _closeRevision;
+
+    private void UpdateVisibility()
+    {
+        var next = Open && Visible;
+        if (next != _wasOpen)
+        {
+            _closeRevision++;
+            _closing = !next && _wasOpen && Visible;
+            _wasOpen = next;
+        }
+        if (!Visible) _closing = false;
+    }
 
     private bool ShowHeader => !string.IsNullOrWhiteSpace(Title) || ShowCloseButton;
 
@@ -105,6 +120,8 @@ public partial class Drawer : AeterniComponent
     {
         base.OnParametersSet();
 
+        UpdateVisibility();
+
         if (!Enum.IsDefined(Placement))
         {
             throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown drawer placement.");
@@ -115,7 +132,8 @@ public partial class Drawer : AeterniComponent
         .Add("aeterni-drawer")
         .Add($"aeterni-drawer--{Placement.ToString().ToLowerInvariant()}")
         .Add("is-modal", Modal)
-        .Add("is-open", Open);
+        .Add("is-open", Open)
+        .Add("is-closing", _closing);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
@@ -123,7 +141,7 @@ public partial class Drawer : AeterniComponent
 
         // The panel is removed from the layout when closed instead of being kept
         // around: nothing about a closed drawer should be focusable or clickable.
-        if (!Open)
+        if (!Open && !_closing)
         {
             attributes["hidden"] = true;
         }
@@ -144,11 +162,13 @@ public partial class Drawer : AeterniComponent
                 ModuleName,
                 "setOpen",
                 InstanceId,
-                Open,
+                Open && Visible,
                 _panelElement,
                 Modal,
                 CloseOnEscape && !Disabled,
-                CloseOnOutsideClick && !Disabled);
+                CloseOnOutsideClick && !Disabled,
+                _closing,
+                _closeRevision);
         }
         catch (JSDisconnectedException)
         {
@@ -167,6 +187,14 @@ public partial class Drawer : AeterniComponent
     [JSInvokable]
     public Task RequestCloseAsync() => CloseAsync();
 
+    [JSInvokable]
+    public async Task FinalizeCloseAsync(int revision)
+    {
+        if (IsDisposed || Open || !_closing || revision != _closeRevision) return;
+        _closing = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
     internal async Task HandleBackdropClickAsync()
     {
         if (Modal && CloseOnOutsideClick && !Disabled)
@@ -179,16 +207,20 @@ public partial class Drawer : AeterniComponent
     {
         // A disabled drawer keeps its state: every close path (button, Escape,
         // backdrop, outside pointer) funnels through here, so the lock is one guard.
-        if (!Open || Disabled)
+        if (!Open || Disabled || _closing)
         {
             return;
         }
-
-        Open = false;
 
         if (OpenChanged.HasDelegate)
         {
             await OpenChanged.InvokeAsync(false);
         }
+        else
+        {
+            Open = false;
+            UpdateVisibility();
+        }
+        await InvokeAsync(StateHasChanged);
     }
 }

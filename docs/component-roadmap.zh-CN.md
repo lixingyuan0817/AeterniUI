@@ -1,10 +1,27 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.14.1`
+文档版本：`10.14.3`
 
 状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton 已交付（3/5），其余两项未开始；v0.7 规划中。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
+
+## 10.14.3 全组件质量修复
+
+- [x] P1：统一 `Visible=false` 隐藏契约；修复 ComboBox/Rating 键盘默认滚动与焦点；修复 Drawer/Popover `CloseOnEscape=false`；补齐 ComboBox、Radio/RadioGroup 的 FormField 状态继承。
+- [x] P2：允许 ComboBox 展示 EmptyContent；修复 DateCalendar 在 `DateOnly.MinValue/MaxValue` 边界溢出；Tooltip 每次参数更新重新绑定；Tabs 动态注销与隐藏过滤；Accordion 禁用项不再保持展开布局；修正 Popup 示例参数。
+- [x] P3：Drawer/Popover 增加退出过渡并等待实际 CSS 动画，适配 reduced-motion、快速重开和释放；不改变 Dialog/Notice。TimePicker 映射按 Min/Max 限定候选范围，并按实例复用无自定义委托、参数未变的映射。
+- 构建与静态门禁：Debug / Release 解决方案构建均 0 警告/0 错误，15 组组件契约、30 项 Node 回归、组件/共享浮层 JS 语法、57 个 CSS 文件注释、99 项品牌对比度与文档一致性检查通过。
+- 验证：15 组组件契约覆盖字段状态、隐藏/动态标签、日期极值、受控关闭与陈旧退场完成、时间映射复用和完整枚举等价性；Node 行为回归已接入 CI。独立无头 Edge 的 27 项重点交互（含窄屏深色模态关闭策略/快速重开）及 41 页 × 1440px 浅色/390px 深色共 82 个基础场景通过，未发现页面异常或横向溢出。浏览器验证退场资源释放与 reduced-motion；真实读屏和触控设备验收仍不在本次自动化覆盖范围。
+- 发布范围包含下述 10.14.2 List 修复批次；统一使用 `v10.14.3` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包，不单独发布 10.14.2，也不另建 GitHub Release。
+
+## 10.14.2 List 键盘修复（合入 10.14.3）
+
+- [x] AllowClear 仅允许主动激活清空；重复 Home/End、单项循环导航不再清空选择。
+- [x] 新增单一 List JS module，按当前可见 DOM 顺序导航，覆盖 keyed 重排；隐藏或禁用项不参与选择，隐藏活动项时清理引用。补齐 List/ListItem 的 hidden 隔离样式。
+- [x] 只拦截容器自身已处理的导航/选择键，阻止默认页面滚动；保留 Tab、组合快捷键、输入法和后代控件行为，串行处理快速按键并释放监听。
+- [x] 补充 C# 渲染契约、Node 键盘回归及可操作的重排/隐藏示例；其他组件仅进行审核，不在本批修复。
+- 验证：Debug 解决方案构建 0 警告/0 错误、11 组组件契约、2 项 List Node 回归、JS 语法、57 个 CSS 文件注释及文档门禁通过；独立无头 Edge 验证重复 Home 不清空、Space 不滚页、keyed 重排后 Home 按画面次序选择，以及隐藏活动项后清理活动引用并跳过导航。本批次合入 10.14.3 统一发布。
 
 ## 10.14.1 List 选中样式修复
 

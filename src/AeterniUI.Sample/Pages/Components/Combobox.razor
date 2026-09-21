@@ -18,16 +18,17 @@
                   Contracts="@ComboBoxContracts">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
-            <ComboBox TItem="string"
+            <FormField Label="城市" Disabled="@_comboDisabled" Required="@_comboRequired" Invalid="@_comboInvalid">
+            <ComboBox TItem="string" Visible="@_comboVisible"
                       Size="@_comboSize"
-                      Items="@Cities"
+                      Items="@(_emptyItems ? Array.Empty<string>() : Cities)"
                       Value="@_cityValue"
                       ValueChanged="@((string? value) => HandleCityChanged(value))"
                       Placeholder="@_comboPlaceholder"
-                      Required="@_comboRequired"
-                      Invalid="@_comboInvalid"
-                      Disabled="@_comboDisabled"
-                      AriaLabel="城市选择预览" />
+                      AriaLabel="城市选择预览">
+                <EmptyContent>暂无可选城市</EmptyContent>
+            </ComboBox>
+            </FormField>
             <span class="preview-feedback" role="status">当前选择：@(_cityValue ?? "（空）")</span>
         </div>
     </Preview>
@@ -39,6 +40,8 @@
         <Checkbox Size="Size.Small" @bind-Value="_comboRequired">Required</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_comboInvalid">Invalid</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_comboDisabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_comboVisible">Visible</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_emptyItems">空集合</Checkbox>
         <div class="control-field">
             <span>Size</span>
             <ShowcaseSelect TValue="Size" Id="combo-size" AriaLabel="ComboBox Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_comboSize" />
@@ -46,6 +49,7 @@
     </Controls>
     <Notes>
         <span>当前实现是纯下拉选择：点击触发器打开选项，支持方向键、Home/End、Enter、Escape 和外部关闭。</span>
+        <span>Required / Invalid / Disabled 只设置在 FormField 上，验证子控件继承状态；空集合仍可打开查看空状态。</span>
     </Notes>
 </ComponentPreview>
 
@@ -61,6 +65,8 @@
     private bool _comboInvalid;
 
     private bool _comboDisabled;
+    private bool _comboVisible = true;
+    private bool _emptyItems;
 
     private Size _comboSize = Size.Default;
 

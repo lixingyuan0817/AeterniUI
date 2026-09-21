@@ -12,7 +12,7 @@
    open.
 */
 
-import { createFocusTrap, lockScroll } from '../../js/aeterni_floating.js';
+import { createFocusTrap, lockScroll, waitForExit } from '../../js/aeterni_floating.js';
 
 const instances = new Map();
 
@@ -28,7 +28,9 @@ export function init(reference, key) {
         trap: null,
         releaseScroll: null,
         keyHandler: null,
-        pointerHandler: null
+        pointerHandler: null,
+        cancelExit: null,
+        closingRevision: null
     });
 }
 
@@ -42,7 +44,7 @@ export function dispose(key) {
     instances.delete(key);
 }
 
-export function setOpen(key, open, panel, modal, closeOnEscape, closeOnOutsideClick) {
+export function setOpen(key, open, panel, modal, closeOnEscape, closeOnOutsideClick, closing = false, revision = 0) {
     const instance = instances.get(key);
     if (!instance) {
         return;
@@ -59,8 +61,24 @@ export function setOpen(key, open, panel, modal, closeOnEscape, closeOnOutsideCl
     instance.closeOnEscape = !!closeOnEscape;
     instance.closeOnOutsideClick = !!closeOnOutsideClick;
 
+    if (open || !closing) {
+        instance.cancelExit?.();
+        instance.cancelExit = null;
+        instance.closingRevision = null;
+    }
+
     if (!open) {
-        deactivate(instance);
+        if (closing && instance.closingRevision !== revision) {
+            instance.cancelExit?.();
+            instance.closingRevision = revision;
+            instance.cancelExit = waitForExit([instance.panel,
+                instance.panel?.parentElement?.querySelector('.aeterni-drawer__backdrop')], () => {
+                instance.cancelExit = null;
+                deactivate(instance);
+                instance.reference.invokeMethodAsync('FinalizeCloseAsync', revision).catch(() => {});
+            });
+        }
+        if (!closing) deactivate(instance);
         return;
     }
 
@@ -92,12 +110,18 @@ function activate(instance) {
         instance.releaseScroll = lockScroll();
 
         if (instance.panel) {
-            instance.trap = createFocusTrap(instance.panel, { onEscape: () => requestClose(instance) });
+            instance.trap = createFocusTrap(instance.panel, {
+                onEscape: () => {
+                    if (instance.closeOnEscape) requestClose(instance);
+                }
+            });
         }
     }
 }
 
 function deactivate(instance) {
+    instance.cancelExit?.();
+    instance.cancelExit = null;
     instance.active = false;
 
     uninstallEscape(instance);
@@ -161,7 +185,7 @@ function uninstallOutsidePointer(instance) {
 // Closing is always the consumer's decision: the module only reports the request,
 // so `@bind-Open` stays the single source of truth.
 function requestClose(instance) {
-    if (!instance.active) {
+    if (!instance.active || instance.closingRevision !== null) {
         return;
     }
 

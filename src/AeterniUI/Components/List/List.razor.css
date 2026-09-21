@@ -15,3 +15,7 @@
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
 }
+
+.aeterni-list[hidden] {
+    display: none;
+}

@@ -28,6 +28,7 @@
 - [ ] `dotnet build aeterni_ui.slnx` 通过（0 error；目标 0 warning）。
 - [ ] `dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build` 通过（根属性、ARIA、焦点或公开变体改动时必须运行）。
 - [ ] 变更了 `.razor.js` 时 `node --check` 通过（CI 也会做）。
+- [ ] 变更了浏览器行为时 `node --test tests/*.test.mjs` 通过（覆盖退出生命周期、焦点、键盘和时间轮；CI 同步运行）。
 - [ ] 变更了 `.css` 时 `node scripts/check-css-comments.mjs` 通过（CI 也会做）。
 - [ ] 变更了品牌色阶或新增了 `[data-aeterni-brand="…"]` 色相层时 `node scripts/check-contrast.mjs` 通过（CI 也会做）；余量低于 1.1× 的色相层已在自己的注释块里写明该对比度。
 - [ ] 没有向 `aeterni_ui.css` 添加组件选择器。
@@ -79,6 +80,7 @@ node scripts/generate-fontawesome-icons.mjs --check # 图标清单与生成文�
 - `dotnet build aeterni_ui.slnx`
 - `dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build`
 - 对所有 `.razor.js` 做 `node --check`
+- `node --test tests/*.test.mjs`
 - `node scripts/check-css-comments.mjs`（CSS 注释提前闭合检查）
 - `node scripts/check-contrast.mjs`（品牌色板在浅色／深色／系统深色下的承字与图形对比度实测）
 - 校验 `aeterni_ui.css` 不含组件选择器（仅允许 Token 级 `.aeterni-dark` 别名）

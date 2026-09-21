@@ -59,7 +59,7 @@ public partial class TimePicker : AeterniComponent
         if (!Enum.IsDefined(TimeFormat)) throw new ArgumentOutOfRangeException(nameof(TimeFormat));
         if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
         if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
-        _selectionMap = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime);
+        _selectionMap = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime, _selectionMap);
         UpdateEditContextSubscription();
     }
 

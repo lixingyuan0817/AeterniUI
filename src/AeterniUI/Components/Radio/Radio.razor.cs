@@ -47,10 +47,10 @@ public partial class Radio<TValue> : AeterniComponent
     // resolves to the input.
     private string InputId => (Group is null ? FormField?.InputId : null) ?? $"{ElementId}-input";
     private bool IsChecked => Group?.IsSelected(Value) ?? false;
-    private bool IsDisabled => Disabled || (Group?.Disabled ?? false);
+    private bool IsDisabled => Disabled || (Group?.Disabled ?? false) || (FormField?.Disabled ?? false);
     private string? EffectiveName => Name ?? Group?.Name;
-    private bool EffectiveRequired => Required || (Group?.Required ?? false);
-    private bool EffectiveInvalid => Invalid || (Group?.Invalid ?? false);
+    private bool EffectiveRequired => Required || (Group?.Required ?? false) || (FormField?.Required ?? false);
+    private bool EffectiveInvalid => Invalid || (Group?.Invalid ?? false) || (FormField?.Invalid ?? false);
     private Size EffectiveSize => Size ?? Group?.Size ?? SizeValue.Default;
 
     protected override bool SupportsDisabled => true;

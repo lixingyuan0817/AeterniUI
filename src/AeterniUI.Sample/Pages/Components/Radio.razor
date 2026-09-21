@@ -29,11 +29,13 @@
     </Controls>
     <Preview>
         <div class="preview-stack">
-            <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Size="_radioSize" Orientation="_radioOrientation" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
+            <FormField Label="部门" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
+            <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Size="_radioSize" Orientation="_radioOrientation">
                 <Radio TValue="string" Value="@("设计")">设计</Radio>
                 <Radio TValue="string" Value="@("开发")">开发</Radio>
                 <Radio TValue="string" Value="@("产品")">产品</Radio>
             </RadioGroup>
+            </FormField>
             <div class="preview-state-row" aria-label="Radio 与 Checkbox 视觉重量对照">
                 <Radio TValue="string" Value="@("独立")" Size="_radioSize">独立 Radio</Radio>
                 <Checkbox Size="_radioSize">同尺寸 Checkbox</Checkbox>

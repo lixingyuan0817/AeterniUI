@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
@@ -11,6 +12,7 @@ namespace AeterniUI.Components.ComboBox;
 /// selecting (or clicking outside / pressing Escape) closes it. No free-text
 /// search is performed — the trigger behaves like a read-only select.
 /// </summary>
+[JsModule("Components/ComboBox/ComboBox.razor.js", Name = "combobox", Interactive = true)]
 public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 {
     [CascadingParameter]
@@ -65,6 +67,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     private bool _open;
     private int _activeIndex = -1;
     private readonly List<TItem> _visibleItems = [];
+    private ElementReference _triggerElement;
 
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
@@ -89,17 +92,25 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         (_hasFieldIdentifier &&
          _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
 
+    private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
+    private bool IsRequired => Required || (FormField?.Required ?? false);
+
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
         UpdateEditContextSubscription();
         RebuildVisibleItems();
+        if (IsDisabled || !Visible) _open = false;
+        if (_open) _activeIndex = _visibleItems.Count == 0 ? -1 : Math.Clamp(_activeIndex, 0, _visibleItems.Count - 1);
 
         if (!Enum.IsDefined(Size))
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown combo box size.");
         }
     }
+
+    protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
+        JsModuleManager.InvokeModuleVoidAsync("combobox", "sync", InstanceId, _triggerElement);
 
     protected override ClassBuilder BuildClass()
     {
@@ -108,7 +119,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
             .Add(SizeClass)
             .Add("is-open", _open)
             .Add("is-invalid", IsInvalid)
-            .Add("is-disabled", Disabled);
+            .Add("is-disabled", IsDisabled);
     }
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-combobox", Size);
@@ -119,7 +130,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase);
 
-        if (Disabled)
+        if (IsDisabled)
         {
             attributes["aria-disabled"] = "true";
         }
@@ -129,7 +140,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleTriggerClickAsync(MouseEventArgs args)
     {
-        if (Disabled)
+        if (IsDisabled)
         {
             return;
         }
@@ -146,7 +157,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleTriggerKeyDownAsync(KeyboardEventArgs args)
     {
-        if (Disabled)
+        if (IsDisabled || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
             return;
         }
@@ -167,7 +178,11 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
                 break;
 
             case "ArrowUp":
-                if (_open)
+                if (!_open)
+                {
+                    await OpenAsync();
+                }
+                else
                 {
                     MoveActive(-1);
                     await InvokeAsync(StateHasChanged);
@@ -194,6 +209,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
                 break;
 
             case "Enter":
+            case " ":
                 if (_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count)
                 {
                     await ChooseAsync(_visibleItems[_activeIndex]);
@@ -213,13 +229,9 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private Task OpenAsync()
     {
-        if (_visibleItems.Count == 0)
-        {
-            return Task.CompletedTask;
-        }
-
+        if (IsDisabled || !Visible) return Task.CompletedTask;
         _open = true;
-        _activeIndex = Math.Max(0, _visibleItems.FindIndex(item => ValuesEqual(item, Value)));
+        _activeIndex = _visibleItems.Count == 0 ? -1 : Math.Max(0, _visibleItems.FindIndex(item => ValuesEqual(item, Value)));
         return InvokeAsync(StateHasChanged);
     }
 
@@ -245,6 +257,11 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private async Task ChooseAsync(TItem item)
     {
+        if (IsDisabled)
+        {
+            return;
+        }
+
         Value = item;
         await ValueChanged.InvokeAsync(item);
         await OnChange.InvokeAsync(item);

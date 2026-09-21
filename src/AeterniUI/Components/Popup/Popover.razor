@@ -5,7 +5,7 @@
    backdrop can fall behind the host's painted background while page text remains
    visible above it; explicit 0/1 layers avoid that browser-dependent ordering. *@
 <div @ref="RootElement" @attributes="BuildAttributes()">
-    @if (Modal && Open)
+    @if (Modal && (Open || _closing))
     {
         <div class="aeterni-popover__backdrop" aria-hidden="true" @onclick="HandleBackdropClickAsync"></div>
     }

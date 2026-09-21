@@ -16,6 +16,21 @@ namespace AeterniUI.Components.Popup;
 public partial class Popover : AeterniComponent
 {
     private const string ModuleName = "popover";
+    private bool _closing;
+    private bool _wasOpen;
+    private int _closeRevision;
+
+    private void UpdateVisibility()
+    {
+        var next = Open && Visible;
+        if (next != _wasOpen)
+        {
+            _closeRevision++;
+            _closing = !next && _wasOpen && Visible;
+            _wasOpen = next;
+        }
+        if (!Visible) _closing = false;
+    }
 
     /// <summary>
     /// Whether the layer is visible. The parameter is controlled: closing (Escape,
@@ -82,7 +97,8 @@ public partial class Popover : AeterniComponent
         .Add("aeterni-popover")
         .Add($"aeterni-popover--{PlacementClass}")
         .Add("is-open", Open)
-        .Add("is-modal", Modal);
+        .Add("is-modal", Modal)
+        .Add("is-closing", _closing);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
@@ -91,7 +107,7 @@ public partial class Popover : AeterniComponent
             StringComparer.OrdinalIgnoreCase)
         {
             ["role"] = Modal ? "dialog" : "region",
-            ["hidden"] = !Open
+            ["hidden"] = !Visible || (!Open && !_closing)
         };
 
         if (Modal)
@@ -113,6 +129,7 @@ public partial class Popover : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        UpdateVisibility();
 
         if (!Enum.IsDefined(Placement))
         {
@@ -128,14 +145,16 @@ public partial class Popover : AeterniComponent
                 ModuleName,
                 "setOpen",
                 InstanceId,
-                Open,
+                Open && Visible,
                 RootElement,
                 Modal,
                 PlacementClass,
                 CloseOnEscape && !Disabled,
                 CloseOnOutsideClick && !Disabled,
                 RestoreFocusOnClose,
-                CloseOnScroll && !Disabled);
+                CloseOnScroll && !Disabled,
+                _closing,
+                _closeRevision);
         }
         catch (JSDisconnectedException)
         {
@@ -154,6 +173,14 @@ public partial class Popover : AeterniComponent
     [JSInvokable]
     public Task RequestCloseAsync() => CloseAsync();
 
+    [JSInvokable]
+    public async Task FinalizeCloseAsync(int revision)
+    {
+        if (IsDisposed || Open || !_closing || revision != _closeRevision) return;
+        _closing = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
     internal async Task HandleBackdropClickAsync()
     {
         if (Modal && CloseOnOutsideClick && !Disabled)
@@ -164,16 +191,20 @@ public partial class Popover : AeterniComponent
 
     private async Task CloseAsync()
     {
-        if (!Open)
+        if (!Open || Disabled || _closing)
         {
             return;
         }
-
-        Open = false;
 
         if (OpenChanged.HasDelegate)
         {
             await OpenChanged.InvokeAsync(false);
         }
+        else
+        {
+            Open = false;
+            UpdateVisibility();
+        }
+        await InvokeAsync(StateHasChanged);
     }
 }

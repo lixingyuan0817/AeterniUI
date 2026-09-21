@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
     <!-- First segment tracks .NET major; second adds features; third fixes or optimizes. -->
-    <Version>10.14.1</Version>
-    <AssemblyVersion>10.14.1.0</AssemblyVersion>
-    <FileVersion>10.14.1.0</FileVersion>
-    <InformationalVersion>10.14.1</InformationalVersion>
+    <Version>10.14.3</Version>
+    <AssemblyVersion>10.14.3.0</AssemblyVersion>
+    <FileVersion>10.14.3.0</FileVersion>
+    <InformationalVersion>10.14.3</InformationalVersion>
     <Authors>AeterniUI contributors</Authors>
     <Description>A Blazor component library for consistent user interfaces across Blazor Server, Blazor WebAssembly, and Tauri applications.</Description>
     <PackageTags>blazor;components;ui;razor;tauri</PackageTags>

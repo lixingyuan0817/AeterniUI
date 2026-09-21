@@ -37,6 +37,9 @@ jobs:
       - name: Documentation consistency check
         run: bash scripts/check-docs.sh
 
+      - name: Browser behavior unit checks
+        run: node --test tests/*.test.mjs
+
       - name: CSS comment check
         run: node scripts/check-css-comments.mjs
 

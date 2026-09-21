@@ -33,12 +33,13 @@ public partial class Accordion : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-accordion");
 
-    private bool IsOpen(string id) => IsControlled ? OpenKeys!.Contains(id) : _open.Contains(id);
+    private bool IsOpen(AccordionItem item) => !item.Disabled &&
+        (IsControlled ? OpenKeys!.Contains(item.Id) : _open.Contains(item.Id));
 
     private async Task ToggleAsync(AccordionItem item)
     {
         if (item.Disabled) return;
-        var next = IsOpen(item.Id);
+        var next = IsOpen(item);
         var keys = IsControlled ? OpenKeys!.ToHashSet() : _open.ToHashSet();
         if (next) keys.Remove(item.Id);
         else

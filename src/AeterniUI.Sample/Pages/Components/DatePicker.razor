@@ -56,7 +56,20 @@
     </Notes>
 </ComponentPreview>
 
+<ComponentPreview AnchorId="date-boundary" Category="交互验收" Title="日期边界" ComponentName="DatePicker / DateRangePicker"
+                  Description="最小与最大日期保持完整日历网格，边界翻页不抛异常；最大年份仅显示存在的月份。">
+    <Preview>
+        <DatePicker @bind-Value="_boundaryDate" AriaLabel="边界日期" />
+        <DateRangePicker StartDate="@_boundaryDate" VisibleMonths="3" AriaLabel="边界范围" />
+    </Preview>
+    <Controls>
+        <Button OnClick="@(() => _boundaryDate = DateOnly.MinValue)">最小日期</Button>
+        <Button OnClick="@(() => _boundaryDate = DateOnly.MaxValue)">最大日期</Button>
+    </Controls>
+</ComponentPreview>
+
 @code {
+    private DateOnly? _boundaryDate = DateOnly.MaxValue;
     private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly? _date = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly? _startDate;

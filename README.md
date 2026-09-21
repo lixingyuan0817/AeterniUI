@@ -66,8 +66,8 @@ builder.Services.AddAeterniUI();
 修改 `Directory.Build.props` 中的版本并推送对应 tag：
 
 ```bash
-git tag v10.14.1
-git push origin v10.14.1
+git tag v10.14.3
+git push origin v10.14.3
 ```
 
 发布流程会同时发布：

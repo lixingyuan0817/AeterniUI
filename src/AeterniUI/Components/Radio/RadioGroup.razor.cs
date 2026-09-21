@@ -44,6 +44,9 @@ public partial class RadioGroup<TValue> : AeterniComponent
     // aria-labelledby because a fieldset has no implicit label association.
     private string GroupId => Id ?? FormField?.InputId ?? InstanceId;
     private string EffectiveName => Name ?? GroupId;
+    private bool EffectiveDisabled => Disabled || (FormField?.Disabled ?? false);
+    private bool EffectiveRequired => Required || (FormField?.Required ?? false);
+    private bool EffectiveInvalid => Invalid || (FormField?.Invalid ?? false);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-radio-group")
@@ -80,21 +83,23 @@ public partial class RadioGroup<TValue> : AeterniComponent
             attributes["aria-describedby"] = describedBy;
         }
 
+        if (EffectiveDisabled) attributes["aria-disabled"] = "true";
+
         return attributes;
     }
 
     private RadioGroupContext Context => new(
         value => EqualityComparer<TValue?>.Default.Equals(Value, (TValue?)value),
         SelectAsync,
-        Disabled,
-        Required,
-        Invalid,
+        EffectiveDisabled,
+        EffectiveRequired,
+        EffectiveInvalid,
         EffectiveName,
         Size);
 
     private async Task SelectAsync(object? value)
     {
-        if (!Disabled && ValueChanged.HasDelegate)
+        if (!EffectiveDisabled && ValueChanged.HasDelegate)
             await ValueChanged.InvokeAsync((TValue?)value);
     }
 }

@@ -29,6 +29,18 @@ public partial class Tab : AeterniComponent
     public RenderFragment? ChildContent { get; set; }
 
     private bool Selected => Owner?.IsRenderedSelected(this) == true;
+    private (string Value, bool Visible, bool Disabled)? _lastState;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        var next = (Value, Visible, Disabled);
+        if (_lastState != next)
+        {
+            _lastState = next;
+            Owner?.RefreshTab(this);
+        }
+    }
 
     protected override void OnComponentInitialized()
     {
@@ -56,10 +68,10 @@ public partial class Tab : AeterniComponent
             // Panels without focusable content still need a Tab stop; the ARIA tabs
             // pattern covers both cases with a focusable panel.
             ["tabindex"] = "0",
-            ["hidden"] = !Selected
+            ["hidden"] = !Visible || !Selected
         };
 
-        if (Selected)
+        if (Visible && Selected)
         {
             attributes.Remove("hidden");
         }

@@ -17,10 +17,11 @@
                 class="aeterni-rating__item @(rating <= Value ? "is-filled" : string.Empty)"
                 role="radio"
                 aria-checked="@(rating == Value ? "true" : "false")"
-                tabindex="@(rating == TabStop ? 0 : -1)"
+                tabindex="@(IsInteractive && rating == TabStop ? 0 : -1)"
+                @ref="_starElements[rating]"
                 aria-label="@(rating.ToString(CultureInfo.InvariantCulture))"
                 title="@(rating.ToString(CultureInfo.InvariantCulture)) / @(Max.ToString(CultureInfo.InvariantCulture))"
-                disabled="@(Disabled ? "true" : null)"
+                disabled="@IsDisabled"
                 @onclick="@(args => HandleClickAsync(rating))">
             @if (Icon is not null)
             {

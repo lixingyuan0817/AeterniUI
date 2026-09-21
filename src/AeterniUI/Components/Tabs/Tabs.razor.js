@@ -21,7 +21,13 @@ export function attach(key, host) {
         return;
     }
 
+    instance.host?.removeEventListener('keydown', instance.keydown);
     instance.host = host;
+    instance.keydown = event => {
+        if (event.target?.getAttribute?.('role') !== 'tab' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) event.preventDefault();
+    };
+    host.addEventListener('keydown', instance.keydown);
 }
 
 /**
@@ -46,5 +52,7 @@ export function isRtl(key) {
 }
 
 export function dispose(key) {
+    const instance = instances.get(key);
+    instance?.host?.removeEventListener('keydown', instance.keydown);
     instances.delete(key);
 }

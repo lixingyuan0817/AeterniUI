@@ -12,7 +12,7 @@ namespace AeterniUI.Components.Tabs;
 /// tabindex model: one Tab stop for the whole strip, arrow keys move (and activate)
 /// inside it.
 /// </summary>
-[JsModule("Components/Tabs/Tabs.razor.js", Name = "tabs")]
+[JsModule("Components/Tabs/Tabs.razor.js", Name = "tabs", Interactive = true)]
 public partial class Tabs : AeterniComponent
 {
     private const string ModuleName = "tabs";
@@ -55,7 +55,7 @@ public partial class Tabs : AeterniComponent
     /// initial null included — the first enabled tab is shown, so the simplest usage
     /// still renders a usable panel without the consumer setting a value first.
     /// </summary>
-    internal Tab? SelectedTab => _tabs.FirstOrDefault(IsSelected) ?? FirstEnabledTab;
+    internal Tab? SelectedTab => _tabs.FirstOrDefault(tab => tab.Visible && IsSelected(tab)) ?? FirstEnabledTab;
 
     /// <summary>True when this tab is the one rendered as selected.</summary>
     internal bool IsRenderedSelected(Tab tab) => ReferenceEquals(tab, SelectedTab);
@@ -66,7 +66,7 @@ public partial class Tabs : AeterniComponent
     /// </summary>
     internal Tab? TabStop => SelectedTab is { Disabled: false } ? SelectedTab : FirstEnabledTab;
 
-    private Tab? FirstEnabledTab => _tabs.FirstOrDefault(tab => !tab.Disabled) ?? _tabs.FirstOrDefault();
+    private Tab? FirstEnabledTab => _tabs.FirstOrDefault(tab => tab.Visible && !tab.Disabled);
 
     internal int IndexOf(Tab tab) => _tabs.IndexOf(tab);
 
@@ -90,18 +90,32 @@ public partial class Tabs : AeterniComponent
         _ = InvokeAsync(StateHasChanged);
     }
 
-    internal void Unregister(Tab tab) => _tabs.Remove(tab);
+    internal void Unregister(Tab tab)
+    {
+        if (_tabs.Remove(tab) && !IsDisposed)
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    internal void RefreshTab(Tab tab)
+    {
+        if (string.IsNullOrWhiteSpace(tab.Value) ||
+            _tabs.Any(other => !ReferenceEquals(other, tab) && other.Value == tab.Value))
+            throw new InvalidOperationException("Tab values must be non-empty and unique.");
+        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
+    }
 
     internal async Task SelectAsync(Tab tab, bool moveFocus = false)
     {
-        if (tab.Disabled)
+        if (tab.Disabled || !tab.Visible)
         {
             return;
         }
 
         if (moveFocus)
         {
-            _pendingFocusIndex = IndexOf(tab);
+            _pendingFocusIndex = _tabs.Where(item => item.Visible).ToList().IndexOf(tab);
         }
 
         if (!IsSelected(tab))
@@ -140,12 +154,13 @@ public partial class Tabs : AeterniComponent
     /// </summary>
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
-        if (args.Key is not ("ArrowRight" or "ArrowLeft" or "Home" or "End"))
+        if (args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey ||
+            args.Key is not ("ArrowRight" or "ArrowLeft" or "Home" or "End"))
         {
             return;
         }
 
-        var enabled = _tabs.Where(tab => !tab.Disabled).ToList();
+        var enabled = _tabs.Where(tab => tab.Visible && !tab.Disabled).ToList();
         if (enabled.Count == 0)
         {
             return;
