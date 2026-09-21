@@ -1,17 +1,14 @@
 # AeterniUI
 
-AeterniUI 是一个 Blazor 组件库，面向 Blazor Server、Blazor WebAssembly
-以及 Tauri + Blazor WebAssembly 应用，提供一致的用户界面。
+AeterniUI 是一个 Blazor 组件库，面向 Blazor Server 和 Blazor WebAssembly
+应用，提供一致的用户界面。
 
 ## 环境要求
 
 - .NET SDK 10.0 或兼容的 .NET 10 SDK
-- Rust 工具链
-- Tauri CLI 2.x
-- Tauri 支持的平台 WebView
 
 项目使用 .NET 10，并面向 `net10.0`。在新计算机上请重新还原 NuGet
-和 Cargo 依赖，不要复制旧计算机生成的构建输出。
+依赖，不要复制旧计算机生成的构建输出。
 
 ## 项目组成
 
@@ -20,26 +17,21 @@ AeterniUI 是一个 Blazor 组件库，面向 Blazor Server、Blazor WebAssembly
 - `src/AeterniUI.Icons.FontAwesome`：可选的 Font Awesome Free 7.3.1
   图标定义，由 `scripts/generate-fontawesome-icons.mjs` 生成。
 - `src/AeterniUI.Sample`：Blazor WebAssembly 示例项目。
-- `src-tauri`：Tauri 桌面宿主。
 - `docs/project-index.zh-CN.md`：项目结构、入口、启动命令和模块索引。
 - `docs/component-design-guidelines.zh-CN.md`：组件设计约束。
 - `docs/current-features.zh-CN.md`：当前已实现的功能清单。
 
-## 启动 Tauri 示例
+## 启动浏览器示例
 
 ```bash
-cd src-tauri
-cargo tauri dev
+dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http
 ```
 
-该命令通过配置的 `beforeDevCommand` 将 Blazor 示例发布到仓库根目录的
-`dist/`，然后由 Tauri 直接加载 `dist/index.html`。项目不使用
-`dotnet watch` 或独立开发服务器。修改界面后，重新运行
-`cargo tauri dev` 或执行 `scripts/sample-publish.sh` 刷新页面。
+访问 `http://localhost:5178` 查看 Blazor WebAssembly 交互示例。
 
-仓库根目录的 `dist/` 由脚本生成并已被 Git 忽略，请勿直接编辑或提交。
-如果启动时报错，请确认 `dist/index.html` 已生成。`bin`、`obj` 和
-`target` 目录不应在计算机之间复制。
+静态发布使用 `./scripts/sample-publish.sh Release`，GitHub Pages 工作流也使用
+该脚本。仓库根目录的 `dist/` 由脚本生成并已被 Git 忽略，请勿直接编辑或提交。
+`bin`、`obj` 目录不应在计算机之间复制。
 
 ## 使用组件库
 
@@ -120,11 +112,10 @@ Font Awesome 的版权和许可说明。详情请参阅：
 ## 迁移到其他计算机
 
 1. 复制或克隆源代码，排除生成输出和 IDE 元数据。
-2. 安装所需的 .NET SDK、Rust 工具链和 Tauri CLI。
+2. 安装所需的 .NET SDK。
 3. 执行 `dotnet restore aeterni_ui.slnx`。
-4. 执行 `cargo fetch --manifest-path src-tauri/Cargo.toml`。
-5. 从 `src-tauri` 目录运行 `cargo tauri dev`。
-6. 在请求其他代码 Agent 修改项目之前，先阅读 `AGENTS.md`。
+4. 执行 `dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http`。
+5. 在请求其他代码 Agent 修改项目之前，先阅读 `AGENTS.md`。
 
 计算机相关的代理设置应放在本机 Shell 或 Agent 配置中，不要提交到仓库。
 配置 HTTPS 代理时，请使用正确命名的 `HTTPS_PROXY` 环境变量。

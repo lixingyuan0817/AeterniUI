@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Publishes the AeterniUI Blazor sample so the repo-root "dist" folder directly
-# contains the deployable site (index.html at its root). Tauri loads ../dist
-# from the root-level src-tauri configuration.
+# contains the deployable site (index.html at its root) for static hosting,
+# including the GitHub Pages workflow.
 #
 # Usage: sample-publish.sh [Debug|Release]
 #
 # Blazor WASM's `dotnet publish` places the deployable site under <out>/wwwroot.
 # We move that wwwroot content up to <repo>/dist and discard the runtime/transport
-# metadata files, so `dist/index.html` is the web root Tauri serves directly.
+# metadata files, so `dist/index.html` is the static site's entry point.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -61,4 +61,4 @@ if [ "$MISSING" -ne 0 ]; then
   exit 1
 fi
 
-echo "Done. dist/index.html is ready for Tauri."
+echo "Done. dist/index.html is ready for static hosting."

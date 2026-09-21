@@ -49,9 +49,7 @@
 - 支持 Blazor Server 使用组件库。
 - 支持 Blazor WebAssembly 使用组件库。
 - 示例项目 `AeterniUI.Sample` 为 Blazor WebAssembly 项目。
-- 已配置 Tauri + Blazor WebAssembly 开发模式。
-- Tauri 开发模式直接加载发布到仓库根目录 `dist/` 的静态站点（`scripts/sample-publish.sh` 负责发布），不再是 `dotnet watch` 热重载；使用透明窗口、原生窗口阴影和 macOS Vibrancy 配置。
-- 在 Tauri 宿主中，原生窗口背景（macOS vibrancy / Windows acrylic-blur）会随页面明暗主题切换色调；该能力由示例宿主层（`index.html` + `js/host-backdrop.js` + Tauri 命令 `apply_window_backdrop`）实现，组件库保持宿主无关。
+- `scripts/sample-publish.sh` 将示例发布到仓库根目录 `dist/`，供静态部署及 GitHub Pages 使用。
 - 示例项目包含文档首页（路由 `/`，品牌介绍与基础使用代码窗口）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
 - 组件 API 不依赖具体宿主，浏览器能力通过 JS isolation 提供。
 
@@ -112,11 +110,11 @@
 - 支持系统主题跟随。
 - 主题切换由 `ThemeService` 管理。
 - `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
-- `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题和 Tauri titlebar 主题。
+- `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题。
 - `ThemeProvider` 不渲染 DOM：基类的 `Id`、`Class`、`Style` 和 `Visible` 对它无效，主题只写到 `<html>` 上。
 - 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`），否则深色偏好用户或非默认品牌用户会在 Blazor 启动前看到一帧浅色或紫罗兰；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。该脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 保持一致，脚本读不到 .NET 选项，不一致就表现为一帧闪烁。
 - 首屏加载器与预渲染脚本受同一条约束：这个时刻还没有组件树，组件库的隔离样式（含 `Spinner` 的 `@keyframes`）也尚未生效，所以加载器只能是宿主自己声明的静态标记，不能是组件实例。示例 `wwwroot/index.html` + `css/app.css` 的 `.sample-boot` 即按此实现：光环复刻 `Spinner` 的规格（走 `--aeterni-spinner-size` 扩展点、3px 描边、右侧缺口、`--aeterni-duration-slower × 1.4` 线性周期、`opacity .92`），颜色取 `--aeterni-color-brand-text`，文案读运行时的 `--blazor-load-percentage-text` 并在无值时回落；因此两种主题自动换档、`prefers-reduced-motion` 下自动停转。它是刻意的视觉复刻而非复用，改一侧规格必须同步另一侧。
-- 页面主题通过 `<html data-theme>` 输出；Tauri 示例宿主监听该属性并调用 `apply_window_backdrop`，让原生窗口背景模糊/色调跟随 System、Light、Dark 三种模式。
+- 页面主题通过 `<html data-theme>` 输出；示例保留浏览器预渲染主题脚本与明暗、品牌色切换。
 - `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
 - `ThemeBrandSwitch` 提供 Purple、Green、Orange 品牌分段切换，与 `ThemeSwitch` 是同一套结构：它是 `Segmented` 的专用用法，订阅 `BrandChanged` 在外部改动时同步选中态，尺寸档位与标签（`ThemeBrandSwitchLabel` / `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel` / `ThemeBrandOrangeLabel`）都取既有约定。
 - 品牌色层通过 `<html data-aeterni-brand>` 输出，与明暗维度同一元素；切换品牌会复用主题切换的过渡动画（`aeterni-theme-transitioning`）。
@@ -663,7 +661,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 组输出 `role="radiogroup"` 与三个 `role="radio"` 选项（`aria-checked`），整组只有一个 Tab 停留点，方向键即可切换模式；滑块位置由选项数量推导，不再写死三列。
 
-主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次启动（浏览器或 Tauri webview 均支持）自动恢复；存储不可用或值非法时回退到默认的 System 模式。
+主题模式（System / Light / Dark）会在每次切换时通过 `localStorage`（键 `aeterni.theme.mode`）持久化，下次在浏览器中启动时自动恢复；存储不可用或值非法时回退到默认的 System 模式。
 
 ### 品牌色层
 
@@ -701,7 +699,7 @@ builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green
 
 ### 实现边界
 
-系统主题跟随依赖浏览器 `matchMedia`；Tauri 窗口主题由 `src-tauri` 宿主同步，浏览器中没有 Tauri API 时自动降级。
+系统主题跟随依赖浏览器 `matchMedia`；`ThemeProvider` 仅管理页面主题与品牌色层。
 ## 25. DialogProvider
 
 ### 支持能力
@@ -1163,6 +1161,5 @@ builder.Services.AddAeterniUI(options =>
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
 - `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup 与 SplitButton 已交付。
 - `Stack` 和 `Flex` 尚未实现。
-- Tauri 开发模式依赖本机 Rust、Tauri CLI 和 .NET SDK 环境。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。
 - `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。

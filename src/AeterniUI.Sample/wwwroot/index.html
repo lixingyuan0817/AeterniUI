@@ -44,22 +44,6 @@
 
             root.dataset.aeterniBrand = storedBrand || 'purple';
         })();
-
-        // Tauri resets the native appearance so the webview keeps following the
-        // operating system instead of a previously set native theme.
-        if (window.__TAURI__ || window.__TAURI_INTERNALS__) {
-            const root = document.documentElement;
-            root.dataset.tauriHost = "true";
-
-            const tauri = window.__TAURI__;
-            const tauriWindow = tauri?.window?.getCurrentWindow?.();
-            const nativeThemeTask = tauri?.app?.setTheme
-                ? tauri.app.setTheme(null)
-                : tauriWindow?.setTheme
-                    ? tauriWindow.setTheme(null)
-                    : window.__TAURI_INTERNALS__?.invoke?.('plugin:app|set_app_theme', { theme: null });
-            nativeThemeTask?.catch(() => undefined);
-        }
     </script>
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" />
@@ -67,8 +51,6 @@
     <link rel="stylesheet" href="css/showcase.css" />
     <link href="AeterniUI.Sample.styles.css" rel="stylesheet" />
     <script type="importmap"></script>
-    <script src="js/host-backdrop.js" defer></script>
-    <script src="js/startup-recovery.js" defer></script>
 </head>
 
 <body>

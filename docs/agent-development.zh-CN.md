@@ -35,7 +35,7 @@
 - [ ] 示例页没有新的 `::deep` 或全局组件样式覆盖（除非页面自身布局必需）。
 - [ ] 没有新增“第二个尺寸/颜色/圆角体系”。
 - [ ] 公共 API/行为变更已同步 `current-features`，示例可操作演示，roadmap 勾选/记录同步。
-- [ ] 未提交 `bin/ obj/ target/ dist/ .sample-publish/` 与 IDE/OS 文件。
+- [ ] 未提交 `bin/ obj/ dist/ .sample-publish/` 与 IDE/OS 文件。
 
 ## 4. 版本与变更记录
 
@@ -54,8 +54,8 @@
 dotnet build aeterni_ui.slnx                       # 静态检查主门禁
 dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build # 最小组件渲染契约
 bash scripts/check-docs.sh                         # 文档一致性门禁（CI 同款）
-./scripts/sample-publish.sh Debug                  # 重新生成 dist/（Tauri/静态预览用）
-cargo check --manifest-path src-tauri/Cargo.toml   # Rust 宿主编译检查
+dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http # 浏览器示例
+./scripts/sample-publish.sh Debug                  # 重新生成 dist/（静态预览和 GitHub Pages）
 node --check <file>.razor.js                       # 组件 JS 语法检查
 node scripts/check-css-comments.mjs                # CSS 注释提前闭合检查（CI 同款）
 node scripts/check-contrast.mjs                    # 品牌色板对比度实测（CI 同款）

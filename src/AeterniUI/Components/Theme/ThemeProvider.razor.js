@@ -2,8 +2,7 @@ const instances = new Map();
 let transitionTimer;
 const transitionClass = 'aeterni-theme-transitioning';
 
-// Theme-mode persistence. localStorage is available in the browser and inside
-// the Tauri webview (persisted per app identifier); failures fall back to no
+// Theme-mode persistence uses browser localStorage; failures fall back to no
 // persistence instead of breaking theme handling.
 const storageKey = 'aeterni.theme.mode';
 const brandStorageKey = 'aeterni.theme.brand';
@@ -59,10 +58,7 @@ export function init(reference, key) {
     return notify(reference, mediaQuery.matches);
 }
 
-export async function getSystemTheme() {
-    // An explicit Tauri light/dark override can otherwise make the webview
-    // keep reporting the previous effective theme.
-    await syncNativeTheme('system');
+export function getSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
@@ -70,14 +66,13 @@ function notify(reference, isDark) {
     return reference.invokeMethodAsync('OnSystemThemeChanged', isDark).catch(() => undefined);
 }
 
-export function applyTheme(theme, animate = true, mode = 'explicit') {
+export function applyTheme(theme, animate = true) {
     const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
     const root = beginTransition(animate);
 
     root.dataset.theme = normalizedTheme;
     root.dataset.aeterniMode = normalizedTheme;
     root.style.colorScheme = normalizedTheme;
-    syncNativeTheme(normalizedTheme, mode);
 
     endTransition(animate);
 }
@@ -126,32 +121,6 @@ function endTransition(animate) {
         document.documentElement.classList.remove(transitionClass);
         transitionTimer = undefined;
     }, 620);
-}
-
-async function syncNativeTheme(theme, mode = 'explicit') {
-    const tauri = window.__TAURI__;
-    const tauriApp = tauri?.app;
-    const tauriWindow = tauri?.window?.getCurrentWindow?.();
-    const invoke = window.__TAURI_INTERNALS__?.invoke;
-    const nativeTheme = mode === 'system' ? null : theme;
-
-    if (!tauriApp?.setTheme && !tauriWindow?.setTheme && !invoke) {
-        return;
-    }
-
-    // macOS applies appearance at the app level. Keep the window call as a
-    // fallback for platforms where the titlebar is window-scoped.
-    const nativeThemeTask = tauriApp?.setTheme
-        ? tauriApp.setTheme(nativeTheme)
-        : tauriWindow?.setTheme
-            ? tauriWindow.setTheme(nativeTheme)
-            : invoke('plugin:app|set_app_theme', { theme: nativeTheme });
-
-    await Promise.resolve(nativeThemeTask).catch(async () => {
-        if (tauriWindow?.setTheme && tauriApp?.setTheme) {
-            await tauriWindow.setTheme(nativeTheme).catch(() => undefined);
-        }
-    });
 }
 
 export function dispose(key) {

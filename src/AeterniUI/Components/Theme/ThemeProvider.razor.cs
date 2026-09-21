@@ -142,10 +142,8 @@ public partial class ThemeProvider : AeterniComponent
     }
 
     /// <summary>
-    /// Restores a previously stored theme mode (localStorage works both in a
-    /// regular browser and inside the Tauri webview, where the storage is
-    /// persisted for the app identifier). Invalid/absent values fall back to
-    /// the configured default, i.e. System.
+    /// Restores a previously stored theme mode from browser localStorage.
+    /// Invalid/absent values fall back to the configured default, i.e. System.
     /// </summary>
     private async Task RestoreStoredModeAsync()
     {
@@ -197,8 +195,7 @@ public partial class ThemeProvider : AeterniComponent
             "theme-provider",
             "applyTheme",
             ThemeService.CurrentTheme.ToString().ToLowerInvariant(),
-            animate,
-            ThemeService.Mode.ToString().ToLowerInvariant());
+            animate);
     }
 
     /// <summary>

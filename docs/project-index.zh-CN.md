@@ -18,15 +18,13 @@
 | 组件库 | C#、.NET 10、Razor Class Library、Blazor Components |
 | 组件项目 | `Microsoft.NET.Sdk.Razor`，目标框架 `net10.0` |
 | 示例宿主 | Blazor WebAssembly，目标框架 `net10.0` |
-| 桌面宿主 | Tauri 2、Rust 2021、原生 WebView |
 | 样式 | CSS Isolation（`.razor.css`）+ AeterniUI 语义 Token |
 | 浏览器行为 | 原生 ES Module（组件旁的 `.razor.js`），由 `JsModuleManager` 管理 |
 | 图标 | 核心 `Icon` 与内置 `AeterniIcons`；`AeterniUI.Icons.FontAwesome` 适配包提供 343 个精选图标 |
 | .NET 依赖管理 | NuGet `PackageReference` |
-| Rust 依赖管理 | Cargo `Cargo.toml` + 提交的 `Cargo.lock` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.14.3`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`；Tauri Rust 依赖版本见 [`src-tauri/Cargo.toml`](../src-tauri/Cargo.toml)。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.14.3`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -39,7 +37,7 @@
 | `src/AeterniUI.Sample` | Blazor WebAssembly | 可交互组件画廊和宿主示例 | 引用核心库和 Font Awesome 项目 |
 | `tests/AeterniUI.ContractChecks` | .NET Console | 使用 `HtmlRenderer` 执行关键组件渲染契约回归检查 | 引用 `AeterniUI` 与 ASP.NET Core 共享框架，不引入外部测试包 |
 
-Tauri 项目不属于 `.slnx`，位于仓库根目录 [`src-tauri`](../src-tauri)，负责将已发布的 WASM 静态站点加载到桌面窗口。
+仓库提供 Blazor WebAssembly 示例宿主。
 
 ## 3. 目录结构
 
@@ -71,15 +69,9 @@ AeterniUI/
 │       ├── Layout/                   # MainLayout（固定头部 + 全局 Provider）与组件页侧栏布局
 │       ├── Pages/                    # 首页、图标浏览、NotFound 和页面样式
 │       │   └── Components/           # 每个组件一个独立页面（路由 /components/{id}）
-│       └── wwwroot/                  # index.html、示例宿主 JS/CSS、共享展示样式和静态资源
+│       └── wwwroot/                  # index.html、示例 CSS、共享展示样式和静态资源
 ├── tests/
 │   └── AeterniUI.ContractChecks/      # 根属性、ARIA、焦点停留点和公开样式契约检查
-├── src-tauri/                        # Rust/Tauri 桌面宿主
-│   ├── capabilities/                 # Tauri 权限声明
-│   ├── icons/                        # 桌面应用图标
-│   ├── src/                          # main.rs、lib.rs
-│   ├── Cargo.toml / Cargo.lock
-│   └── tauri.conf.json
 └── .github/workflows/
     ├── build.yml                     # CI 构建、JS 和 Token 检查
     ├── nuget-release.yml             # 版本 tag 触发 NuGet 包发布
@@ -110,7 +102,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcaseCatalog.cs)：侧栏分类与页面清单的单一事实源，导航 Href 由条目 id 生成。
 - [`src/AeterniUI.Sample/wwwroot/css/showcase.css`](../src/AeterniUI.Sample/wwwroot/css/showcase.css)：所有组件页共享的展示样式（`showcase-*` / `preview-*` / `control-*`）；组件页拆成独立文件后，作用域 CSS 无法跨页生效，所以这里是全局表。
 - [`src/AeterniUI.Sample/Pages/Icons.razor`](../src/AeterniUI.Sample/Pages/Icons.razor)：图标浏览页（路由 `/icons`），展示内置 `AeterniIcons` 与 Font Awesome 精选集，支持按名称搜索和 Size/Color 预览。
-- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和宿主脚本入口；`<head>` 的预渲染主题脚本与 `#app` 内的首屏加载器（`.sample-boot`，样式在 `wwwroot/css/app.css`）都在这里。
+- [`src/AeterniUI.Sample/wwwroot/index.html`](../src/AeterniUI.Sample/wwwroot/index.html)：静态 HTML、CSS、Blazor runtime 和预渲染主题脚本入口；`<head>` 的预渲染主题脚本与 `#app` 内的首屏加载器（`.sample-boot`，样式在 `wwwroot/css/app.css`）都在这里。
 
 ### 组件库基础入口
 
@@ -134,11 +126,8 @@ Components/<Component>/
 - [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
 - [`tests/quality-interactions.test.mjs`](../tests/quality-interactions.test.mjs)：模态 Esc 策略、可取消退出、reduced-motion、键盘与 Tooltip 动态关联的浏览器行为回归；C# 的 `QualityContractHost.cs` 配合 15 组渲染契约覆盖状态、日期极值与时间映射复用。
 
-### Tauri
+### 静态发布
 
-- [`src-tauri/src/main.rs`](../src-tauri/src/main.rs)：Rust 进程入口，转发到 `app_lib::run()`。
-- [`src-tauri/src/lib.rs`](../src-tauri/src/lib.rs)：Tauri Builder、窗口初始化和 `apply_window_backdrop` 命令。
-- [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json)：窗口、静态资源和发布钩子配置。
 - [`scripts/sample-publish.sh`](../scripts/sample-publish.sh)：执行 `dotnet publish` 并整理仓库根目录 `dist/`；发布后校验 `dist/index.html` 引用的同源本地资源都存在（例如 `css/showcase.css`），缺失时直接失败，避免产出一个「样式表没加载、布局静默崩坏」的站点。
 
 ### 图标
@@ -158,29 +147,22 @@ dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profi
 
 默认开发地址为 `http://localhost:5178`，端口配置位于 `src/AeterniUI.Sample/Properties/launchSettings.json`。
 
-### Tauri 桌面版
+### 静态站点发布
 
 ```bash
-dotnet restore aeterni_ui.slnx
-cargo fetch --manifest-path src-tauri/Cargo.toml
-cd src-tauri
-cargo tauri dev
+./scripts/sample-publish.sh Release
 ```
 
-Tauri 开发模式加载发布后的静态站点，不启动 `dotnet watch` 或独立前端开发服务器。修改 UI 后通常需要重新运行 `cargo tauri dev`，或者从仓库根目录单独执行：
-
-```bash
-./scripts/sample-publish.sh Debug
-```
+脚本将示例发布到仓库根目录 `dist/`，供静态托管及 GitHub Pages 工作流使用。
 
 ### 构建和检查
 
 ```bash
 dotnet build aeterni_ui.slnx -c Debug --nologo
+bash scripts/check-docs.sh
 dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
 node --test tests/list-keyboard.test.mjs          # Components/List/List.razor.js 的 DOM 次序、按键拦截与释放回归
 node --test tests/*.test.mjs                     # CI 同步执行全部浏览器行为单元回归
-cargo check --manifest-path src-tauri/Cargo.toml
 node --check src/AeterniUI/Components/<Component>/<Component>.razor.js
 node scripts/check-css-comments.mjs                    # CSS 注释是否提前闭合
 node scripts/check-contrast.mjs                        # 品牌色板对比度是否达标
@@ -190,8 +172,6 @@ node scripts/generate-fontawesome-icons.mjs --check   # 图标定义是否与生
 CI 位于 [`.github/workflows/build.yml`](../.github/workflows/build.yml)，执行 .NET 构建、最小组件渲染契约检查、所有 `.razor.js` 的 `node --check`、`scripts/check-css-comments.mjs`、`scripts/check-contrast.mjs`，以及全局 Token CSS 检查。示例项目由 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) 在 `main` 推送后发布到 GitHub Pages。推送匹配当前版本的 `v*.*.*` tag 时，[`.github/workflows/nuget-release.yml`](../.github/workflows/nuget-release.yml) 会通过 NuGet Trusted Publishing 发布核心包和 Font Awesome 图标包。
 
 GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `dist/404.html`，因此直接访问或刷新深链接（例如 `/components/button`）会拿到 404 状态码的完整应用外壳。应用仍会正常启动并路由到目标页面，但浏览器控制台会记录该 404；页面内部的链接点击走框架拦截，不产生文档请求。
-
-当前配置中，`src-tauri/tauri.conf.json` 的 `frontendDist` 为 `../dist`，它由 Tauri 按配置目录解析；`beforeDevCommand` / `beforeBuildCommand` 为 `scripts/sample-publish.sh ...`，Tauri CLI 从配置目录的父目录（仓库根目录）执行这两个命令。两类配置的相对路径基准不同，不能同时添加 `../`。
 
 ## 6. 核心模块索引
 
@@ -228,11 +208,10 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 - `JsModuleManager`：按组件实例管理模块加载与释放。
 - `DialogService` / `IDialogService`：业务代码使用的弹层和通知 API。
 
-### 宿主模块
+### 宿主边界
 
-- 示例宿主的 `host-backdrop.js`：处理 Tauri 原生窗口背景同步。
-- Rust `lib.rs`：处理窗口初始化、原生背景和 IPC 命令。
-- 组件库不直接依赖 Tauri API，浏览器环境应继续正常运行。
+- 示例为标准 Blazor WebAssembly 应用，预渲染主题脚本位于 `wwwroot/index.html`。
+- 组件库面向 Blazor Server 与 Blazor WebAssembly；`ThemeProvider` 通过浏览器 API 管理页面主题与品牌色层。
 
 组件当前能力：见 [`current-features.zh-CN.md`](current-features.zh-CN.md)。
 

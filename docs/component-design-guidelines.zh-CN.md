@@ -8,7 +8,7 @@
 
 ## 1. 目标
 
-AeterniUI 同时服务于 Blazor Server、Blazor WebAssembly 和 Tauri + Blazor WebAssembly。组件必须尽量保持以下特征：
+AeterniUI 同时服务于 Blazor Server 和 Blazor WebAssembly。组件必须尽量保持以下特征：
 
 - 在不同宿主中拥有一致的 API、语义和视觉结果。
 - 默认不依赖 JavaScript，只有浏览器能力无法由 CSS 或 Blazor 完成时才使用 JS isolation。
@@ -604,7 +604,6 @@ ARIA 用来补充语义，不用来替代正确的 HTML 元素。每个 ARIA 属
 - 点击外部关闭。
 - 滚动锁定。
 - ResizeObserver、IntersectionObserver 等浏览器观察器。
-- Tauri 窗口或原生宿主 API。
 - CSS 和 Blazor 无法可靠完成的浏览器行为。
 
 以下场景不要使用 JS：
@@ -666,16 +665,7 @@ export function dispose(key) {
 - JS 不直接保存组件业务状态，状态源仍是 C# 或 DOM 原生状态。
 - 不为了绕过静态资源完整性问题而关闭 integrity 校验。
 
-### 8.4 Tauri 兼容
-
-Tauri 能力必须是可选的：
-
-- 浏览器中没有 `window.__TAURI__` 时，组件仍然正常运行。
-- Tauri API 调用需要捕获失败并允许 Web 环境继续使用。
-- 页面主题和 titlebar 主题必须由同一个 `ThemeService` 状态驱动。
-- 不把 Tauri 专用代码写入普通组件的核心渲染逻辑。
-
-### 8.5 共享浮层能力
+### 8.4 共享浮层能力
 
 锚定浮层（Tooltip、Popover、后续的 Drawer）共用 `wwwroot/js/aeterni_floating.js`，不得各自重写视口贴合、焦点陷阱与滚动锁：
 
@@ -708,7 +698,6 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 - 自己读取操作系统主题。
 - 自己修改 `data-theme`。
 - 自己修改 `data-aeterni-brand`。
-- 自己操作 titlebar 主题。
 - 直接调用 `ThemeProvider` 的内部 JS module。
 
 组件只需要消费语义 Token，或者订阅 `ThemeService.ThemeChanged` / `ThemeService.BrandChanged` 来刷新组件自身的展示状态。
@@ -727,7 +716,7 @@ System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式�
 - 订阅 `ThemeService` 的明暗与品牌两个维度。
 - 初始化页面主题。
 - 监听系统主题变化。
-- 应用网页主题、品牌色层和 Tauri 原生主题。
+- 应用网页主题和品牌色层。
 - 释放 JS 监听和对象引用。
 
 它不包裹 Layout，也不承担业务布局职责。
@@ -804,7 +793,7 @@ Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要�
 - Hover、Focus、Disabled、Loading 等适用状态。
 - 键盘行为。
 - 主题切换后的结果。
-- Web 和 Tauri 环境下的降级行为。
+- 浏览器能力不可用时的降级行为。
 
 示例页面中的样式可以用于展示，但不能反向成为组件库的实现依赖。示例项目可以使用自己的页面 class，但不得覆盖 `.aeterni-*` 的核心规则来伪造组件效果。
 
@@ -844,7 +833,7 @@ Sample/
 9. 使用 `@attributes="BuildAttributes()"` 渲染根元素。
 10. 只有确有必要时添加 JS module，并导出符合约定的 `dispose(instanceId)`。
 11. 在示例项目中展示默认、变体、尺寸和状态。
-12. 进行人工检查，确认 Web、主题切换和 Tauri 降级行为。
+12. 进行人工检查，确认浏览器交互、主题切换和能力降级行为。
 
 ## 12. 组件提交检查清单
 
@@ -897,7 +886,6 @@ Sample/
 
 - [ ] JS 只用于必要的浏览器行为。
 - [ ] JS module 的监听器和定时器可以释放。
-- [ ] 浏览器没有 Tauri API 时仍能工作。
 - [ ] 组件没有自己修改主题根节点。
 - [ ] 主题切换后组件状态仍然正确。
 

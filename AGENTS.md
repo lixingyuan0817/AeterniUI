@@ -17,7 +17,7 @@
 
 容器与页面背景只能是黑、白、灰或毛玻璃（R = G = B 的无彩色）：不得给容器背景加任何彩色或色相偏移。彩色只允许出现在品牌色/语意色元素、交互状态（hover/pressed/selected）和通知卡片这类“内容表面”上。大面积上的 +2 色相偏移就会被读成品牌色底，且磨砂层的 `saturate()` 会放大它。
 
-提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；修改色阶或新增品牌色相层时运行 `node scripts/check-contrast.mjs`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`target/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
+提交前自检：`dotnet build aeterni_ui.slnx` 通过；修改 `.razor.js` 时运行 `node --check`；修改色阶或新增品牌色相层时运行 `node scripts/check-contrast.mjs`；同步 `current-features` 与 roadmap 状态；示例页有可交互演示；不提交 `bin/`、`obj/`、`dist/`、`.sample-publish/` 及 IDE/OS 文件。
 
 交互状态（hover / pressed / selected / checked）继续消费品牌色阶，容器与页面背景仍必须无彩色。三条硬规则：① 已勾选/已选中的控件在指针下**整块换档**——用 `--aeterni-state-background-checked-hover`／`-active` 沿品牌色阶走一档，不要让边框与填充分属两档，也不要用 `--aeterni-state-background-hover` 的淡染洗浅实心块（`--aeterni-text-inverse` 的墨会因此落到浅底上）；② 指针反馈不得覆写 `invalid` 正在传达的危险色，`hover`/`active` 规则要排除错误态；③ 悬浮规则必须排除已选中态（`:not(.is-selected)`／`:not(:checked)`／`:not(.is-current)`），否则选中提示会在指针下消失。
 
@@ -25,13 +25,12 @@
 
 ## 项目范围
 
-AeterniUI 是一个 Blazor 组件库，支持以下三类宿主：
+AeterniUI 是一个 Blazor 组件库，支持以下两类宿主：
 
 - Blazor Server 应用。
 - Blazor WebAssembly 应用。
-- 承载 Blazor WebAssembly 示例项目的 Tauri 桌面应用。
 
-示例项目位于 `src/AeterniUI.Sample`。Tauri 开发宿主位于根目录 `src-tauri`。
+Blazor WebAssembly 示例项目位于 `src/AeterniUI.Sample`。
 
 ## 编辑前
 
@@ -72,28 +71,19 @@ AeterniUI 是一个 Blazor 组件库，支持以下三类宿主：
 - `Toast` 是非阻塞通知，支持全部八个 `ToastPosition` 位置。
 - Alert 和 Toast 使用 Button 的语义颜色映射、可选模糊、四边进度边框和退出动效。
 
-## Tauri 开发
+## 示例开发
 
-Tauri 宿主加载示例项目发布后的静态构建，不使用开发服务器：
-
-```bash
-cd src-tauri
-cargo tauri dev
-```
-
-`src-tauri/tauri.conf.json` 中的 `beforeDevCommand` 会运行 `scripts/sample-publish.sh Debug`，将 Blazor 示例发布到仓库根目录的 `dist/`，使 `dist/index.html` 成为 Web 根目录。Tauri CLI 从配置目录的父目录（仓库根目录）运行前置命令；不要给脚本路径添加 `../`。不存在 `dotnet watch` 或独立前端开发服务器。不要手动发布或编辑 `dist/`；它由脚本重新生成并已被 Git 忽略。
-
-刷新 UI 时重新运行 `cargo tauri dev`，或从仓库根目录直接运行：
+浏览器示例使用以下命令启动，默认地址为 `http://localhost:5178`：
 
 ```bash
-./scripts/sample-publish.sh Debug
+dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http
 ```
 
-Tauri 配置文件是 `src-tauri/tauri.conf.json`，其中 `frontendDist` 指向 `../dist`。
+静态站点使用 `./scripts/sample-publish.sh Debug` 或 `Release` 发布到仓库根目录 `dist/`；GitHub Pages 工作流复用该脚本。不要手动编辑或提交 `dist/`，它由脚本重新生成并已被 Git 忽略。
 
 ## 验证
 
-用户可能正在运行 Tauri 热重载。未经明确批准，不要终止其进程或执行破坏性清理。
+用户可能正在运行示例应用。未经明确批准，不要终止其进程或执行破坏性清理。
 
 针对窄范围修改，先执行静态检查。当前项目只有最小组件渲染契约检查，没有完整业务或端到端测试套件。需要构建时使用：
 
@@ -105,7 +95,7 @@ bash scripts/check-docs.sh
 
 其中 `AeterniUI.ContractChecks` 是不依赖外部浏览器服务的最小组件渲染契约门禁，不是完整业务或端到端测试套件；修改根属性、ARIA、复合控件焦点模型或公开样式变体时必须运行。
 
-`check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性、Tauri 路径与关键组件章节，
+`check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性与关键组件章节，
 修改文档或项目结构后必须执行。另外四项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token
 选择器」、`.razor.js` 语法检查、「CSS 注释不得提前闭合」（见下），以及「品牌色板对比度」
 （见下）。
@@ -132,8 +122,6 @@ node --check path/to/module.razor.js
 node scripts/generate-fontawesome-icons.mjs --check
 ```
 
-如果静态 Web 资源错误指向 `obj\\Debug`，先停止运行中的 Tauri 进程，再清理生成的 `bin`/`obj`，然后通过 `scripts/sample-publish.sh` 或 `cargo tauri dev` 重新构建。
-
 ## 修改纪律
 
 - 修改范围应聚焦于用户要求的行为。
@@ -154,8 +142,8 @@ node scripts/generate-fontawesome-icons.mjs --check
 
 - `docs/project-index.zh-CN.md` 是项目结构、项目入口、启动命令、构建工具和核心模块的导航索引。
 - 新增、删除、重命名或移动项目、目录、入口文件、宿主、构建脚本、公开模块或开发命令时，必须在同一变更中同步更新索引。
-- 修改 Tauri 静态发布流程、`beforeDevCommand`/`beforeBuildCommand`、解决方案项目列表或 CI 门禁时，必须检查索引中的命令和路径仍然有效。
+- 修改示例静态发布流程、解决方案项目列表或 CI 门禁时，必须检查索引中的命令和路径仍然有效。
 - 新增公共组件或服务时，在索引中补充模块归属和简短职责；完整参数、行为和示例继续分别维护在 `current-features`、组件文档和示例页中，避免复制整套 API。
 - 功能尚未完成时，索引只能标记为“规划中/未完成”或链接到 roadmap，不得把计划能力写成已实现能力。
 - 文档中的路径、命令和入口必须以仓库当前文件为准；不要记录本机代理、缓存、生成目录或临时环境状态。
-- 提交前如果变更触及上述范围，应检查 `git diff --name-status`，确认索引、`current-features` 和 roadmap 的职责没有遗漏或重复，并确认没有加入 `bin/`、`obj/`、`target/`、`dist/` 或 `.sample-publish/`。
+- 提交前如果变更触及上述范围，应检查 `git diff --name-status`，确认索引、`current-features` 和 roadmap 的职责没有遗漏或重复，并确认没有加入 `bin/`、`obj/`、`dist/` 或 `.sample-publish/`。

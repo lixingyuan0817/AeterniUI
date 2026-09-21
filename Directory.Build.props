@@ -6,8 +6,8 @@
     <FileVersion>10.14.3.0</FileVersion>
     <InformationalVersion>10.14.3</InformationalVersion>
     <Authors>AeterniUI contributors</Authors>
-    <Description>A Blazor component library for consistent user interfaces across Blazor Server, Blazor WebAssembly, and Tauri applications.</Description>
-    <PackageTags>blazor;components;ui;razor;tauri</PackageTags>
+    <Description>A Blazor component library for consistent user interfaces across Blazor Server and Blazor WebAssembly applications.</Description>
+    <PackageTags>blazor;components;ui;razor</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/lixingyuan0817/AeterniUI</RepositoryUrl>

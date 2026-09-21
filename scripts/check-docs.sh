@@ -13,7 +13,6 @@ required_files=(
   "docs/current-features.zh-CN.md"
   "docs/project-index.zh-CN.md"
   "Directory.Build.props"
-  "src-tauri/tauri.conf.json"
   "scripts/sample-publish.sh"
   "tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj"
   "tests/AeterniUI.ContractChecks/Program.cs"
@@ -22,17 +21,6 @@ required_files=(
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || { echo "Missing required file: $file" >&2; exit 1; }
 done
-
-if grep -RniE 'tauri/src-tauri|before(Dev|Build)Command[^\n]*\.\./scripts/sample-publish\.sh' \
-  AGENTS.md README.md docs src-tauri --include='*.md' --include='*.json'; then
-  echo "Found stale Tauri path reference." >&2
-  exit 1
-fi
-
-if ! grep -q 'scripts/sample-publish.sh Debug' src-tauri/tauri.conf.json; then
-  echo "Tauri beforeDevCommand is not aligned with the repository root command path." >&2
-  exit 1
-fi
 
 version=$(sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' Directory.Build.props | head -n 1)
 if [[ -z "$version" ]]; then

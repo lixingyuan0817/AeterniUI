@@ -451,7 +451,7 @@
 
 - [x] 已修复
 
-- **证据**：`src/AeterniUI.Sample/wwwroot/index.html` 的早期主题脚本只在检测到 `__TAURI__` 时执行；`wwwroot/css/aeterni_ui.css` 中 `:root` 默认浅色，没有 `prefers-color-scheme` 兜底；`ThemeProvider.razor` 无任何标记，基类提供的 `Id/Class/Style` 参数被静默忽略。
+- **证据**：`src/AeterniUI.Sample/wwwroot/index.html` 的早期主题脚本没有在普通浏览器中执行；`wwwroot/css/aeterni_ui.css` 中 `:root` 默认浅色，没有 `prefers-color-scheme` 兜底；`ThemeProvider.razor` 无任何标记，基类提供的 `Id/Class/Style` 参数被静默忽略。
 - **现象**：普通浏览器下深色偏好用户会先看到浅色再切深色；`localStorage` 中记录的显式模式不参与早期应用；`ThemeProvider` 的参数契约与"继承 `AeterniComponent` 即拥有 DOM 参数"的约定不符。
 - **修复方向**：把早期脚本移到库自身（CSS `prefers-color-scheme` 兜底 + 可选的内联脚本钩子）；并在文档中说明 `ThemeProvider` 不渲染 DOM、DOM 参数无效。
 - **验收**：深色偏好下刷新无可见闪烁；`ThemeProvider` 的参数行为有文档说明。
@@ -502,7 +502,7 @@
 - [x] 已处理
 
 - **证据**：`DialogProvider.razor.js` 通过 `document.body.style.overflow = 'hidden'` 锁定滚动，未补偿滚动条占位。
-- **现象**：在经典滚动条平台（Windows/Linux，含 Windows 下的 Tauri）打开对话框时页面内容会横向位移。
+- **现象**：在经典滚动条平台（Windows/Linux）打开对话框时页面内容会横向位移。
 - **验收**：打开/关闭对话框时背景内容不发生横向跳动。
 
 ### REV-29 Button 禁用态变量与 ButtonGroup 分隔线
@@ -1004,4 +1004,4 @@ node --check <改动的>.razor.js
 - [ ] `MenuButton` 触发器与菜单共用 `PopupHost`，触发器不会被误判为外部点击；菜单支持键盘导航和视口翻转。
 - [ ] Button 家族只消费 `--aeterni-*` Token；Button、IconButton 不复制第二套颜色、尺寸、圆角体系。
 - [ ] 浅色/深色主题、`prefers-reduced-motion`、Small/Default/Large 和 FullWidth 均完成示例页验证。
-- [ ] 修改后运行 `dotnet build aeterni_ui.slnx`、`bash scripts/check-docs.sh`、`node scripts/check-css-comments.mjs`，并使用 Tauri 的 `scripts/sample-publish.sh Debug` 验证静态发布结果。
+- [ ] 修改后运行 `dotnet build aeterni_ui.slnx`、`bash scripts/check-docs.sh`、`node scripts/check-css-comments.mjs`，并使用 `scripts/sample-publish.sh Debug` 验证静态发布结果。

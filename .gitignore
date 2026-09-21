@@ -6,9 +6,6 @@
 /dist/
 /.sample-publish/
 
-# Rust generated output
-src-tauri/target/
-
 # IDE and OS files
 .DS_Store
 .idea/

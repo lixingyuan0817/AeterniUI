@@ -145,12 +145,6 @@ html[data-theme="dark"] .doc-home__orb {
     opacity: calc(var(--doc-orb-opacity) * .72);
 }
 
-/* Inside Tauri the visible sheet is the rounded #app rect over a native blur, so
-   the fixed layer takes the same radius to keep the window corners transparent. */
-html[data-tauri-host="true"] .doc-home__bg {
-    border-radius: 14px;
-}
-
 @keyframes doc-orb-drift-clockwise {
     0% {
         transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
@@ -458,8 +452,7 @@ html[data-tauri-host="true"] .doc-home__bg {
     background-clip: padding-box;
 }
 
-/* Responsive: collapse to one column only on narrow widths (the Tauri default
-   window is 800px wide and keeps the two-column layout so no page scrollbar). */
+/* Responsive: collapse to one column only on narrow widths. */
 
 @media (max-width: 720px) {
     .doc-home__grid {
