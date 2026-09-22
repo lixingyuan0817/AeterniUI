@@ -251,6 +251,11 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 - `src/AeterniUI/Components/Toolbar/`：Toolbar 的布局、单停留点焦点模块与命名 ToolbarGroup，归属基础动作组件。
 - `src/AeterniUI.Sample/Pages/Components/Toolbar.razor`：`/components/toolbar` 交互示例，目录由 ShowcaseCatalog 注册。
+
+### Breadcrumb 模块
+
+- `src/AeterniUI/Components/Breadcrumb/`：Breadcrumb 与 BreadcrumbItem 层级导航、原生链接和当前页 ARIA 语义；不内置路由跳转。
+- `src/AeterniUI.Sample/Pages/Components/Breadcrumb.razor`：`/components/breadcrumb` 交互示例，由 ShowcaseCatalog 注册。
 - `tests/toolbar.test.mjs`：无依赖 node:test DOM 焦点回归，运行 `node --test tests/toolbar.test.mjs`；不代替浏览器端到端验收。
 
 ### Breadcrumb 模块
