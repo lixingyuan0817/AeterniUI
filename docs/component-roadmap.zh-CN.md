@@ -1,8 +1,14 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.14.3`
+文档版本：`10.15.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton 已交付（3/5），其余两项未开始；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb 已交付（4/5），Stepper 未开始；v0.7 规划中。
+
+## 10.15.0 Breadcrumb 功能发布
+
+- [x] 新增 `Breadcrumb` / `BreadcrumbItem`，交付原生链接、当前页 ARIA 语义、禁用/隐藏过滤和可替换分隔符。
+- [x] 新增 `/components/breadcrumb` 可操作示例、组件渲染契约和导航模块索引；不内置路由、自动折叠或异步导航。
+- [x] 版本属性统一为 10.15.0；同步当前功能、设计规范、项目索引、README 发布 tag 示例，并通过构建、文档、CSS 检查。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
 
@@ -49,7 +55,7 @@
 
 ## 10.13.0 功能发布
 
-- [x] 将已实现的 ToggleGroup / ToggleGroupItem 与 SplitButton 纳入本次功能发布；v0.6 累计完成 3/5，其余两项保持未开始。
+- [x] 将已实现的 ToggleGroup / ToggleGroupItem 与 SplitButton 纳入本次功能发布；v0.6 当时累计完成 3/5，Breadcrumb 在后续 10.15.0 批次交付。
 - [x] 纳入字段尺寸一致性收口、ToggleGroup 连体分段外观、SplitButton 紧凑默认外观、Toolbar 间距与 MenuButton 专属菜单留白优化，以及菜单 ID 关联和非模态关闭焦点回归修复。
 - [x] `Directory.Build.props` 四个版本属性统一为 10.13.0（程序集/文件版本为 10.13.0.0），同步功能清单、设计规范、路线图、审阅待办、项目索引与 README 发布 tag 示例；使用 `v10.13.0` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包。
 - [x] 发布前验证：Debug / Release solution build 均为 0 警告、0 错误；10 组组件契约、21 项 Node 回归、11 个组件 JS 语法、57 个 CSS 注释检查、99 项品牌对比度、343 个图标一致性、Token-only CSS 与文档门禁通过；两个 10.13.0 NuGet 包均完成本地打包验证。
@@ -582,7 +588,7 @@ Token 和现有基础组件
 
 ## 第五阶段交付与后续规划（v0.5～v0.7）
 
-状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6 已交付 Toolbar、ToggleGroup、SplitButton（3/5），其余两项与 v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
+状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6 已交付 Toolbar、ToggleGroup、SplitButton、Breadcrumb（4/5），Stepper 与 v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
 
 ### 后续计划与实施优先级
 
@@ -592,10 +598,10 @@ Token 和现有基础组件
 | --- | --- | --- | --- |
 | 优先级 0 | v0.5.1 质量收口（REV-64～REV-73、REV-75～REV-76） | 已完成 | 已恢复根属性、键盘焦点、折叠内容可达性、视觉状态和本地化契约，并加入最小渲染回归门禁 |
 | 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | 三项均已完成 | ToggleGroup 复用键盘规则；SplitButton 复用 MenuButton 浮层与键盘实现 |
-| 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 未开始 | 两者相对独立，但需要先明确链接导航与流程状态的公共边界 |
+| 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | Breadcrumb 已完成（4/5） | Breadcrumb 先明确链接导航边界；Stepper 后续复用线性状态语义 |
 | 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 未开始 | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
 
-文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划从优先级 2 的 v0.6 Breadcrumb 开始。
+文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划从优先级 2 的 v0.6 Stepper 开始。
 
 ### v0.5.1 质量收口（优先级 0）
 
@@ -632,7 +638,7 @@ Accordion / DateCalendar / TimeOptionList 焦点语义
           +--> 最小化渲染契约门禁
 ```
 
-完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup 与 SplitButton 已交付，下一实施项为 v0.6 `Breadcrumb`。
+完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup、SplitButton 与 Breadcrumb 已交付，下一实施项为 v0.6 `Stepper`。
 
 ### 规划原则
 
@@ -668,14 +674,14 @@ DateCalendar 多月/快捷范围能力
 
 目标：覆盖工具栏和复杂动作入口，补齐现有 Button、ButtonGroup、Segmented、MenuButton 之间的组合空白。
 
-状态：Toolbar、ToggleGroup 与 SplitButton 已交付（3/5）；其余两项未开始。
+状态：Toolbar、ToggleGroup、SplitButton 与 Breadcrumb 已交付（4/5）；Stepper 未开始。
 
 计划顺序：
 
 1. [x] `Toolbar`：无背景动作容器、命名分组、横纵方向、RTL、方向键/Home/End、整条工具栏一个 Tab 停留点、禁用/隐藏/加载跳过；仅接纳按钮与菜单触发器，溢出由宿主显式放置 MenuButton。
 2. [x] `ToggleGroup`：单选/多选动作切换，单选再次激活允许清空；严格受控 SelectedValues，合法且唯一 Id 校验。具名 group / 原生按钮 aria-pressed（不使用 aria-checked），与 Segmented 表单值选择明确分离；方向键/Home/End 只移焦点、RTL/纵向、禁用跳过与参数更新焦点修复；交互示例、渲染/状态契约及 JS 回归已覆盖。
 3. [x] `SplitButton`：主动作 + 菜单动作，复用 `Button`、`MenuButton`、`PopupHost`；独立名称与禁用、整体禁用优先、仅主动作 Loading、受控菜单、按钮尺寸/变体与 RTL 连接样式、根属性透传已交付。包含 `/components/split-button` 可交互示例及渲染契约回归。主动作不支持提交/链接/自动替换，无异步编排或 Toolbar 焦点集成；关闭焦点回归复用 Popover。
-4. [ ] `Breadcrumb`：服务于层级导航，不把路由跳转内置到组件库。
+4. [x] `Breadcrumb`：服务于层级导航，不把路由跳转内置到组件库；提供可见/禁用项过滤、当前页 ARIA 语义、原生链接与可替换分隔符。
 5. [ ] `Stepper`：服务于线性流程，不把业务流程状态管理内置到组件库。
 
 依赖顺序：
@@ -734,3 +740,4 @@ Search + List + PopupHost
 | v10.12.0 / v0.6 Toolbar | 已完成（1/5） | 构建、渲染契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 Toolbar / ToolbarGroup、交互示例；不更改普通 ButtonGroup 语义。此版本交付时其余四项未开始。 |
 | v0.6 ToggleGroup（纳入 10.13.0） | 已完成（累计 2/5） | 构建、渲染/状态契约、JS 焦点回归、语法、CSS 与文档门禁 | 新增 ToggleGroup / ToggleGroupItem、严格受控单选/多选、单选再次点击清空、可操作示例与目录注册；默认外观改为连体分段（无 gap、单接缝、首尾圆角、横纵向/RTL 与焦点分层）；三档最小高度保持 28/36/44px，水平留白改用 control-padding-x-sm/md/lg、垂直留白归零、显式居中且字号/字重/行高对齐 Button，补充三档渲染与 CSS 尺寸契约；不改变受控状态和键盘语义，实现阶段未修改其他组件尺寸，版本号由 10.13.0 发布批次统一递增。 |
 | v0.6 SplitButton（纳入 10.13.0） | 已完成（累计 3/5） | 构建、渲染契约、Popover 焦点回归、JS 语法、CSS 与文档门禁 | 主动作与菜单动作组合、独立名称和禁用、仅主动作加载、受控菜单、可操作示例；修复 MenuButton 菜单 ID 关联与非模态关闭焦点回归。默认外观收紧为 Small / Ghost / Neutral、窄箭头和原位高亮，保留显式尺寸/变体；Toolbar 同步缩小组间/组内间距，图标主工具栏示例不覆盖组件样式，不增加 Toolbar 与 SplitButton 焦点集成。 同批以现有 List 留白为参考（List 不变），收紧 MenuButton 专属 Popover 外围、Menu 行内；保留 Menu 的 8px 子项层级缩进，修复折叠/空组残留 gap 导致的上下留白不一致；保留行高与通用内容弹层默认留白，补充隔离渲染断言。 |
+| v0.6 Breadcrumb | 已完成（累计 4/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Breadcrumb` 与 `BreadcrumbItem`，原生链接、最后可见项当前页语义、禁用/隐藏过滤、自定义分隔符与 `/components/breadcrumb` 交互示例；不包含路由集成或自动折叠。 |

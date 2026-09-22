@@ -1,0 +1,93 @@
+.aeterni-breadcrumb {
+    display: block;
+    min-width: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-1) var(--aeterni-spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aeterni-breadcrumb__item {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.aeterni-breadcrumb__link,
+.aeterni-breadcrumb__label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    box-sizing: border-box;
+    min-height: var(--aeterni-row-height-compact);
+    border-radius: var(--aeterni-radius-sm);
+    color: inherit;
+    font: inherit;
+    text-decoration: none;
+}
+
+.aeterni-breadcrumb__link {
+    color: var(--aeterni-text-link);
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
+}
+
+.aeterni-breadcrumb__link:hover {
+    color: var(--aeterni-state-color-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+}
+
+.aeterni-breadcrumb__link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-breadcrumb__label {
+    color: var(--aeterni-text-secondary);
+}
+
+.aeterni-breadcrumb__item.is-current .aeterni-breadcrumb__label {
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+.aeterni-breadcrumb__label.is-disabled {
+    color: var(--aeterni-text-disabled);
+}
+
+.aeterni-breadcrumb__separator {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--aeterni-text-tertiary);
+}
+
+.aeterni-breadcrumb__icon {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.aeterni-breadcrumb__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-breadcrumb__link {
+        transition: none;
+    }
+}
