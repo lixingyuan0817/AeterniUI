@@ -1,0 +1,43 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <ol class="aeterni-stepper__list">
+        @{ var visibleItems = VisibleItems; }
+        @for (var index = 0; index < visibleItems.Count; index++)
+        {
+            var item = visibleItems[index];
+            var current = IsCurrent(item);
+            var disabled = IsItemDisabled(item);
+            var descriptionId = string.IsNullOrWhiteSpace(item.Description) ? null : DescriptionId(index);
+            <li class="aeterni-stepper__item @(current ? "is-current" : "") @(item.Completed ? "is-completed" : "") @(disabled ? "is-disabled" : "")"
+                aria-posinset="@(index + 1)"
+                aria-setsize="@visibleItems.Count">
+                <button type="button"
+                        id="@ItemId(index)"
+                        class="aeterni-stepper__button"
+                        disabled="@disabled"
+                        aria-current="@(current ? "step" : null)"
+                        aria-describedby="@descriptionId"
+                        @onclick="() => SelectAsync(item)">
+                    <span class="aeterni-stepper__marker" aria-hidden="true">
+                        @if (item.Completed)
+                        {
+                            <Icon Definition="@AeterniIcons.Check" />
+                        }
+                        else
+                        {
+                            <span class="aeterni-stepper__number">@(index + 1)</span>
+                        }
+                    </span>
+                    <span class="aeterni-stepper__copy">
+                        <span class="aeterni-stepper__label">@item.Label</span>
+                        @if (descriptionId is not null)
+                        {
+                            <span id="@descriptionId" class="aeterni-stepper__description">@item.Description</span>
+                        }
+                    </span>
+                </button>
+            </li>
+        }
+    </ol>
+</div>

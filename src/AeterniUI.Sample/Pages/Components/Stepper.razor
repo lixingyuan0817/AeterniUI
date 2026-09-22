@@ -1,0 +1,88 @@
+@page "/components/stepper"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Stepper</PageTitle>
+
+<ComponentPreview AnchorId="stepper"
+                  Category="导航组件"
+                  Title="Stepper"
+                  ComponentName="Stepper"
+                  Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。"
+                  Parameters="@Parameters"
+                  Events="@Events">
+    <Preview>
+        <div class="preview-stack preview-stack--fill">
+            <Stepper Items="@Items"
+                     Value="@_current"
+                     ValueChanged="OnStepChanged"
+                     Orientation="@_orientation"
+                     AriaLabel="结账流程" />
+            <span class="preview-feedback" role="status">当前步骤：@Items.First(item => item.Id == _current).Label</span>
+        </div>
+    </Preview>
+    <Controls>
+        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Previous">上一步</Button>
+        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Next">下一步</Button>
+        <Checkbox @bind-Value="_vertical">纵向</Checkbox>
+        <Checkbox @bind-Value="_lockPayment">禁用付款步骤</Checkbox>
+    </Controls>
+    <Notes>
+        <span><code>Value</code>、<code>Completed</code> 和 <code>Disabled</code> 都由宿主控制；Stepper 不自动推进流程，也不推断完成状态。</span>
+        <span>点击可用步骤会触发 <code>ValueChanged</code> 与 <code>OnStepClick</code>；横向和纵向布局都保留原生按钮键盘行为。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string _current = "shipping";
+    private bool _vertical;
+    private bool _lockPayment;
+
+    private Orientation _orientation => _vertical ? Orientation.Vertical : Orientation.Horizontal;
+
+    private IReadOnlyList<StepperItem> Items =>
+    [
+        new("cart", "购物车", "确认商品与数量", Completed: true),
+        new("shipping", "配送", "填写收货地址"),
+        new("payment", "付款", "选择支付方式", Disabled: _lockPayment),
+        new("done", "完成", "查看订单结果")
+    ];
+
+    private Task OnStepChanged(string? value)
+    {
+        if (value is not null)
+        {
+            _current = value;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void Previous()
+    {
+        var index = Math.Max(0, Items.ToList().FindIndex(item => item.Id == _current) - 1);
+        _current = Items[index].Id;
+    }
+
+    private void Next()
+    {
+        var index = Math.Min(Items.Count - 1, Items.ToList().FindIndex(item => item.Id == _current) + 1);
+        _current = Items[index].Id;
+    }
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Items", "IReadOnlyList<StepperItem>", "按流程顺序提供步骤，Id 必须唯一。", "必填"),
+        new("Value / ValueChanged", "string? / EventCallback<string?>", "受控当前步骤标识。"),
+        new("StepperItem.Completed", "bool", "由宿主显式表示完成状态。", "false"),
+        new("StepperItem.Disabled / Visible", "bool", "禁用或隐藏单个步骤。", "false / true"),
+        new("Orientation", "Orientation", "横向或纵向布局。", "Horizontal"),
+        new("AriaLabel", "string?", "流程指示器的可访问名称；缺省使用全局文案表。")
+    ];
+
+    private static readonly ShowcaseEvent[] Events =
+    [
+        new("ValueChanged", "EventCallback<string?>", "激活可用步骤时提出新的当前步骤。"),
+        new("OnStepClick", "EventCallback<StepperItem>", "激活步骤后通知宿主。")
+    ];
+}

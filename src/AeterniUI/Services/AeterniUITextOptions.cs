@@ -93,6 +93,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a <c>Breadcrumb</c> navigation trail.</summary>
     public string BreadcrumbLabel { get; set; } = "Breadcrumb";
 
+    /// <summary>Accessible name of a <c>Stepper</c> process indicator.</summary>
+    public string StepperLabel { get; set; } = "Progress steps";
+
     /// <summary>Accessible name of the <c>ThemeSwitch</c> group.</summary>
     public string ThemeSwitchLabel { get; set; } = "Theme mode";
 
@@ -180,6 +183,7 @@ public sealed class AeterniUITextOptions
         RatingLabel = Or(RatingLabel, defaults.RatingLabel);
         TabsLabel = Or(TabsLabel, defaults.TabsLabel);
         BreadcrumbLabel = Or(BreadcrumbLabel, defaults.BreadcrumbLabel);
+        StepperLabel = Or(StepperLabel, defaults.StepperLabel);
         ThemeSwitchLabel = Or(ThemeSwitchLabel, defaults.ThemeSwitchLabel);
         ThemeSystemLabel = Or(ThemeSystemLabel, defaults.ThemeSystemLabel);
         ThemeLightLabel = Or(ThemeLightLabel, defaults.ThemeLightLabel);
