@@ -1,0 +1,169 @@
+.aeterni-stepper {
+    display: block;
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-stepper__list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aeterni-stepper__item {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.aeterni-stepper__item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset-inline: calc(var(--aeterni-control-height-sm) / 2 + var(--aeterni-spacing-2)) calc(var(--aeterni-control-height-sm) / -2);
+    top: calc(var(--aeterni-control-height-sm) / 2);
+    height: var(--aeterni-border-width);
+    background: var(--aeterni-separator);
+}
+
+.aeterni-stepper__button {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    min-height: var(--aeterni-control-height-sm);
+    padding: 0 var(--aeterni-spacing-2);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
+}
+
+.aeterni-stepper__button:hover:not(:disabled),
+.aeterni-stepper__button:focus-visible {
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-stepper__button:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-stepper__marker {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+    display: inline-grid;
+    flex: 0 0 var(--aeterni-control-height-sm);
+    width: var(--aeterni-control-height-sm);
+    height: var(--aeterni-control-height-sm);
+    place-items: center;
+    box-sizing: border-box;
+    border: var(--aeterni-border-width-medium) solid var(--aeterni-separator);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: var(--aeterni-leading-none);
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-border);
+}
+
+.aeterni-stepper__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+    padding-top: var(--aeterni-spacing-1);
+}
+
+.aeterni-stepper__label,
+.aeterni-stepper__description {
+    overflow-wrap: anywhere;
+}
+
+.aeterni-stepper__label {
+    color: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-stepper__description {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.aeterni-stepper__item.is-current .aeterni-stepper__marker,
+.aeterni-stepper__item.is-completed .aeterni-stepper__marker {
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
+    color: var(--aeterni-text-inverse);
+}
+
+.aeterni-stepper__item.is-current .aeterni-stepper__label {
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-stepper__item.is-completed:not(.is-current)::after {
+    background: var(--aeterni-state-background-checked);
+}
+
+.aeterni-stepper__item.is-current .aeterni-stepper__button:hover:not(:disabled) .aeterni-stepper__marker,
+.aeterni-stepper__item.is-completed .aeterni-stepper__button:hover:not(:disabled) .aeterni-stepper__marker {
+    border-color: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-stepper__item.is-current .aeterni-stepper__button:active:not(:disabled) .aeterni-stepper__marker,
+.aeterni-stepper__item.is-completed .aeterni-stepper__button:active:not(:disabled) .aeterni-stepper__marker {
+    border-color: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-stepper__item.is-disabled .aeterni-stepper__button {
+    color: var(--aeterni-text-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-stepper__item.is-disabled .aeterni-stepper__marker {
+    border-color: var(--aeterni-border-disabled);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-disabled);
+}
+
+.aeterni-stepper--vertical .aeterni-stepper__list {
+    flex-direction: column;
+}
+
+.aeterni-stepper--vertical .aeterni-stepper__item {
+    flex: 0 0 auto;
+    min-height: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-4));
+}
+
+.aeterni-stepper--vertical .aeterni-stepper__item:not(:last-child)::after {
+    inset: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-1)) auto 0 calc(var(--aeterni-control-height-sm) / 2);
+    width: var(--aeterni-border-width);
+    height: auto;
+}
+
+.aeterni-stepper--vertical .aeterni-stepper__button {
+    width: fit-content;
+    max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-stepper__button,
+    .aeterni-stepper__marker {
+        transition: none;
+    }
+}

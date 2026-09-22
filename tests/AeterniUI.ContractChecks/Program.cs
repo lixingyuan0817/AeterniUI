@@ -5,6 +5,7 @@ using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
+using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
 using AeterniUI.Enums;
 using AeterniUI.Services;
@@ -34,6 +35,7 @@ await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
 await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
+await CheckStepperAsync();
 await CheckListAsync();
 await CheckQualityStatesAsync();
 await CheckDateBoundariesAsync();
@@ -50,7 +52,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (16 groups).");
+Console.WriteLine("Component contract checks passed (17 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -119,6 +121,27 @@ async Task CheckBreadcrumbAsync()
     Require(html.Contains("<nav") && html.Contains("id=\"contract-breadcrumb\"") && html.Contains("consumer-breadcrumb"), "Breadcrumb preserves root attributes.");
     Require(html.Contains("aria-label=\"Breadcrumb\"") && html.Contains("aria-current=\"page\""), "Breadcrumb exposes a named navigation region and current page.");
     Require(html.Contains("href=\"/\"") && !html.Contains("Hidden") && !html.Contains("href=\"\""), "Breadcrumb renders visible destinations as links and filters hidden items.");
+}
+
+async Task CheckStepperAsync()
+{
+    var html = await RenderAsync<Stepper>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-stepper",
+        ["Items"] = new[]
+        {
+            new StepperItem("one", "One", Completed: true),
+            new StepperItem("two", "Two", "Current step"),
+            new StepperItem("three", "Three", Disabled: true, Visible: false)
+        },
+        ["Value"] = "two",
+        ["Orientation"] = Orientation.Vertical
+    });
+
+    Require(html.Contains("id=\"contract-stepper\"") && html.Contains("class=\"aeterni-stepper aeterni-stepper--vertical\""), "Stepper preserves root attributes and orientation.");
+    Require(html.Contains("role=\"group\"") && html.Contains("aria-label=\"Progress steps\"") && html.Contains("aria-current=\"step\""), "Stepper exposes a named group and current step semantics.");
+    Require(html.Contains("aria-posinset=\"2\"") && html.Contains("aria-setsize=\"2\"") && html.Contains("Current step"), "Stepper reports visible position and description relationships.");
+    Require(html.Contains("is-completed") && !html.Contains("Three"), "Stepper renders explicit completion and filters hidden steps.");
 }
 
 async Task CheckDateBoundariesAsync()

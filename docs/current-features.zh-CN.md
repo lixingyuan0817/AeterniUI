@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.15.0`
+文档版本：`10.16.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.16.0 Stepper 功能发布
+
+新增 `Stepper` / `StepperItem` 线性流程指示组件；支持受控当前步骤、宿主显式完成/禁用状态、横纵向布局、位置 ARIA 语义和键盘可激活步骤。示例与渲染契约已纳入本版本。
 
 ## 10.15.0 Breadcrumb 功能发布
 
@@ -1176,12 +1180,30 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供路由集成、自动折叠/省略、拖拽排序和异步导航；响应式换行与层级可见性由组件样式和宿主数据控制。示例：`/components/breadcrumb`。
 
-## 44. 当前边界
+## 44. Stepper
+
+### 支持能力
+
+`Stepper` 使用 `IReadOnlyList<StepperItem>` 按顺序表达线性流程。`StepperItem` 包含稳定 `Id`、`Label`、可选 `Description`、`Completed`、`Disabled` 和 `Visible`；Stepper 通过 `Value` / `ValueChanged` 受控当前步骤，并支持 `Orientation.Horizontal` / `Vertical`、`AriaLabel` 和 `OnStepClick`。
+
+### 行为与无障碍
+
+- 根元素是带名称的 `role="group"`，步骤使用有序列表和原生按钮，保留浏览器 Tab、Enter 和 Space 行为。
+- 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，描述文本通过 `aria-describedby` 关联。
+- 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
+- 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
+- 隐藏项不参与编号、连接线和位置计算；根属性沿用 `AeterniComponent` 公共契约。
+
+### 实现边界
+
+第一版不提供异步编排、路由集成、自动推进、步骤内容面板、拖拽排序或复杂流程校验；步骤完成与是否可跳转由宿主提供。示例：`/components/stepper`。
+
+## 45. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton 与 Breadcrumb 已交付。
+- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付。
 - `Stack` 和 `Flex` 尚未实现。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。
 - `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。
