@@ -69,6 +69,7 @@ public static class ShowcaseCatalog
             new("date-time-picker", "DateTimePicker", "日期与时间组合")
         ]),
         new("导航组件", FontAwesomeIcons.Solid.CompassDrafting, [
+            new("breadcrumb", "Breadcrumb", "层级导航路径"),
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("menu", "Menu", "分组菜单"),
             new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航")

@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.14.3`
+文档版本：`10.15.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.14.3`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.15.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -188,7 +188,8 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | --- | --- |
 | 动作和布局 | `Button`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Surface`、`Card`、`Divider`、`Accordion` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
-| 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List<TItem>`、`ListItem<TItem>`、`Rating`、`ComboBox`、`Menu`、`Tabs`、`Tab` |
+| 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List<TItem>`、`ListItem<TItem>`、`Rating`、`ComboBox` |
+| 导航 | `Breadcrumb`、`Menu`、`Tabs`、`Tab` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch`、`ThemeBrandSwitch` |
 | 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`Pagination`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
@@ -219,7 +220,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar、ToggleGroup 与 SplitButton 已交付（3/5），下一项为 `Breadcrumb`，其余两项未开始；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
+当前路线图已交付 v0.1～v0.5 的功能清单、v0.5.1 第六轮质量收口和 v10.11.0 时间选择增强：`TimePicker` / `DateTimePicker` 已支持高效的时/分/秒滚轮并默认使用 24 小时制 `HH:mm:ss`，`DateRangePicker` 已支持快捷范围与 1～3 个月多月视图，根属性、键盘焦点、视觉状态、本地化和示例覆盖缺口已关闭。`DateCalendar` 与 `TimeOptionList` 是选择器内部渲染部件，不属于稳定公共 API。v0.6 Toolbar、ToggleGroup、SplitButton 与 Breadcrumb 已交付（4/5），下一项为 `Stepper`；时区转换、跨午夜时间范围、虚拟化与复杂本地化日历仍不在当前范围。
 
 时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证 Token 动画完成回调、重复渲染、快速改值、输入中断、不同真实行高、禁用项、边缘居中、reduced-motion 与资源释放；滚筒仅变换文字视觉层。
 
@@ -250,4 +251,9 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 - `src/AeterniUI/Components/Toolbar/`：Toolbar 的布局、单停留点焦点模块与命名 ToolbarGroup，归属基础动作组件。
 - `src/AeterniUI.Sample/Pages/Components/Toolbar.razor`：`/components/toolbar` 交互示例，目录由 ShowcaseCatalog 注册。
+
+### Breadcrumb 模块
+
+- `src/AeterniUI/Components/Breadcrumb/`：Breadcrumb 与 BreadcrumbItem 层级导航、原生链接和当前页 ARIA 语义；不内置路由跳转。
+- `src/AeterniUI.Sample/Pages/Components/Breadcrumb.razor`：`/components/breadcrumb` 交互示例，由 ShowcaseCatalog 注册。
 - `tests/toolbar.test.mjs`：无依赖 node:test DOM 焦点回归，运行 `node --test tests/toolbar.test.mjs`；不代替浏览器端到端验收。

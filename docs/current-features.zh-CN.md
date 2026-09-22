@@ -1,12 +1,16 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.14.3`
+文档版本：`10.15.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
-## 10.14.3 全组件质量修复（未发布）
+## 10.15.0 Breadcrumb 功能发布
+
+新增 `Breadcrumb` / `BreadcrumbItem` 层级导航组件；支持原生链接、最后可见项当前页语义、禁用/隐藏过滤、可替换分隔符和组件级 ARIA 名称。示例与渲染契约已纳入本版本。
+
+## 10.14.3 全组件质量修复（已纳入本版本基线）
 
 完成 P1–P3 质量批次：基类 `Visible=false` 通过内联隐藏样式确保不被组件布局规则覆盖；ComboBox、Rating 的键盘导航阻止默认页面滚动并同步焦点；Drawer/Popover 尊重 `CloseOnEscape` 并提供退出过渡；ComboBox、Radio/RadioGroup 继承 FormField 的 Disabled/Required/Invalid 状态；DateCalendar 保护日期最小/最大边界；Tooltip 在参数变化后重新绑定；Tabs、Accordion 修正隐藏/禁用状态；TimePicker 在有限时间范围内生成候选映射，避免无谓遍历全天。
 
@@ -1154,12 +1158,30 @@ builder.Services.AddAeterniUI(options =>
 - 无背景容器，选中态与 checked hover/active 均使用现有品牌状态 Token；Small / Default / Large 最小高度继续为 28 / 36 / 44px，水平留白统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），垂直 padding 为 0；内容显式居中，字号、semibold 字重和 `leading-none` 行高与 Button 对齐。横向不自动换行，支持系统 reduced-motion。示例 `/components/toggle-group` 含单选清空、多选、父级拒绝提议、外部重置、动态禁用、重排、RTL/纵向和可见性。
 - 第一版不支持 FormField/EditContext、Required/Invalid、图标/内容模板、嵌套 Toolbar、跨组焦点、自动溢出、异步动作编排或快捷键注册。焦点规则与 Toolbar 一致，但模块独立，不提前抽象共享基础设施。
 
-## 43. 当前边界
+## 43. Breadcrumb
+
+### 支持能力
+
+`Breadcrumb` 使用 `IReadOnlyList<BreadcrumbItem>` 渲染层级导航路径。每项包含 `Label`、可选 `Href`、可选装饰 `Icon`、`Disabled` 和 `Visible`；可通过 `AriaLabel` 指定导航区域名称，也可用 `Separator` 替换默认 Chevron 分隔图标。
+
+### 行为与无障碍
+
+- 根元素是带名称的 `<nav>`，内部使用有序列表表达阅读顺序。
+- 非当前、非禁用且有 `Href` 的项渲染为原生链接，保留浏览器的中键、新标签和历史行为；组件不注入路由或导航服务。
+- 最后一个可见项自动标记为当前页（`aria-current="page"`）；当前项和禁用项不会渲染为链接。
+- 隐藏项不参与分隔符和当前项判断；图标与分隔符为装饰内容并标记 `aria-hidden`。
+- 根属性沿用 `AeterniComponent` 的 `Id`、`Class`、`Style`、`Visible`、`Element`、`ElementChanged` 和 `AdditionalAttributes`。
+
+### 实现边界
+
+第一版不提供路由集成、自动折叠/省略、拖拽排序和异步导航；响应式换行与层级可见性由组件样式和宿主数据控制。示例：`/components/breadcrumb`。
+
+## 44. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup 与 SplitButton 已交付。
+- `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton 与 Breadcrumb 已交付。
 - `Stack` 和 `Flex` 尚未实现。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。
 - `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。

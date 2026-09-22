@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using AeterniUI.Components.Accordion;
 using AeterniUI.Components.Avatar;
+using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
@@ -32,6 +33,7 @@ await CheckToolbarAsync();
 await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
 await CheckPaginationGeometryAsync();
+await CheckBreadcrumbAsync();
 await CheckListAsync();
 await CheckQualityStatesAsync();
 await CheckDateBoundariesAsync();
@@ -48,7 +50,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (15 groups).");
+Console.WriteLine("Component contract checks passed (16 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -98,6 +100,25 @@ async Task CheckQualityStatesAsync()
         ["OpenKeys"] = new[] { "locked" }
     });
     Require(accordion.Contains("aria-expanded=\"false\"") && accordion.Contains("inert"), "Disabled expanded Accordion collapses rendered state without changing controlled keys.");
+}
+
+async Task CheckBreadcrumbAsync()
+{
+    var html = await RenderAsync<Breadcrumb>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-breadcrumb",
+        ["Class"] = "consumer-breadcrumb",
+        ["Items"] = new[]
+        {
+            new BreadcrumbItem("Home", "/"),
+            new BreadcrumbItem("Hidden", "/hidden", Visible: false),
+            new BreadcrumbItem("Current")
+        }
+    });
+
+    Require(html.Contains("<nav") && html.Contains("id=\"contract-breadcrumb\"") && html.Contains("consumer-breadcrumb"), "Breadcrumb preserves root attributes.");
+    Require(html.Contains("aria-label=\"Breadcrumb\"") && html.Contains("aria-current=\"page\""), "Breadcrumb exposes a named navigation region and current page.");
+    Require(html.Contains("href=\"/\"") && !html.Contains("Hidden") && !html.Contains("href=\"\""), "Breadcrumb renders visible destinations as links and filters hidden items.");
 }
 
 async Task CheckDateBoundariesAsync()
