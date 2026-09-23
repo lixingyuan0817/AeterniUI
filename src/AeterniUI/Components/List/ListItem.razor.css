@@ -40,8 +40,11 @@
 }
 
 /* The container owns focus; `.is-active` mirrors the option reported through
-   aria-activedescendant (see ListItem). */
-.aeterni-list-item.is-interactive.is-active:not(.is-selected):not(.is-disabled) {
+   aria-activedescendant (see ListItem). The cue is scoped to a keyboard-focused
+   listbox, because a click also activates its target: an unscoped rule left the
+   row tinted after that same click cleared the selection, since the active
+   option is not cleared when the pointer moves away. */
+.aeterni-list:focus-visible .aeterni-list-item.is-interactive.is-active:not(.is-selected):not(.is-disabled) {
     background: var(--aeterni-state-background-hover);
 }
 

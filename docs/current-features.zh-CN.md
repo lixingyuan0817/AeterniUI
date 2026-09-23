@@ -459,7 +459,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。
 - 支持鼠标、方向键、Home/End 与空格/回车选择；禁用和隐藏项不可选择。导航不会因 AllowClear 清空已选项，点击或空格/回车仍可主动清空。交互式浏览器按当前 DOM 顺序导航，支持声明式 keyed 重排，并阻止已处理按键的默认页面滚动；不拦截 Tab、组合快捷键或后代控件事件。
-- 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id、不进 Tab 序列也不接收 DOM 焦点，由容器键盘统一驱动，当前项用 `is-active` 样式提示。
+- 无障碍：容器保持 `role="listbox"` 单点 Tab 聚焦，并用 `aria-activedescendant` 指向当前高亮选项；选项本身带稳定 id、不进 Tab 序列也不接收 DOM 焦点，由容器键盘统一驱动，当前项只在列表持有键盘焦点时以 `is-active` 背景提示（点击产生的活动项不会留下底色）。
 - 无选择模式渲染为普通列表结构，不输出按钮语义。
 
 ### 行为与无障碍
