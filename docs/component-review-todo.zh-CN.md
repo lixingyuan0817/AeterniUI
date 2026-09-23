@@ -2,9 +2,23 @@
 
 文档版本：`10.17.2`
 
-文档状态：第一至第六轮（REV-01～REV-76）均已修复并验收；第七轮 P1～P3（REV-77～REV-89）已实现并回归，纳入 10.14.3 发布范围。List 键盘修复记录见 roadmap 的 10.14.2 批次，一并合入 10.14.3。
+文档状态：第一至第六轮（REV-01～REV-76）均已修复并验收；第七轮 P1～P3（REV-77～REV-89）已实现并回归，纳入 10.14.3 发布范围；第八轮（REV-90～REV-96）已修复并随 10.17.1 / 10.17.2 交付。List 键盘修复记录见 roadmap 的 10.14.2 批次，一并合入 10.14.3。
 
 前六轮全量审阅记录：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色；第五轮（v10.5）补充组件表面归属规范；第六轮在 v0.5 日期/时间组件交付后重新核对全库根属性、键盘焦点、视觉状态、本地化、示例覆盖与文档事实。前六轮问题均已关闭；本次新增第七轮修复记录如下，功能扩展规划继续以 roadmap 为准。
+
+## 第八轮：Breadcrumb / Stepper / List 审阅收口（10.17.1 / 10.17.2）
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-90 / P2 | `Breadcrumb.IsCurrent` 在渲染循环中按项重新展开 `VisibleItems`，n 个可见项产生 n+1 次数组分配 | 改为接收已缓存的可见项计数；渲染契约与构建通过 |
+| REV-91 / P1 | `BreadcrumbItem` 缺 `Target`，导航项无法安全地在新标签打开 | 新增 `Target`，取 `_blank` 时自动补 `rel="noopener noreferrer"`，对齐 `Menu`；契约覆盖 target/rel |
+| REV-92 / P1 | 禁用层级把 `aria-disabled` 挂在无角色的 `<span>` 上，读屏无法播报，同时丢失链接语义 | 保留原生链接、标记 `aria-disabled`、`tabindex="-1"` 移出 Tab 序列，并由样式阻断指针导航；契约断言 `aria-disabled` 仅出现在禁用链接上 |
+| REV-93 / P1 | `Stepper` 当前步骤不可重新激活，却提供 hover/active 换档与 `pointer` 光标 | 去掉该步骤的指针反馈，`.is-completed` 换档限定 `:not(.is-current)`；`SetActive` 与 `aria-activedescendant` 未改动 |
+| REV-94 / P2 | `Stepper` 步骤描述使用 `--aeterni-text-tertiary`，该 Token 规范上仅供图标与装饰 | 改用 `--aeterni-text-secondary`；品牌对比度门禁通过 |
+| REV-95 / P2 | `project-index` 存在重复的 Breadcrumb 模块章节，且 `tests/toolbar.test.mjs` 被误置其中 | 删除重复章节并把测试条目归回 Toolbar 模块；文档门禁通过 |
+| REV-96 / P1 | `List` 多选与 `AllowClear` 下取消选中后遗留底色：活动项由点击设置，且不随指针移开清除 | 把 `.is-active` 底色限定为列表持有键盘焦点时生效；未选中与取消选中的行不再有底色，List 键盘回归通过 |
+
+以上修复进入 `AeterniUI.ContractChecks` 与 `tests/list-keyboard.test.mjs`。未处理的遗留项（`Stepper` 的键盘模型与根元素语义、步骤按钮缺少 hover 背景、`li` 上的 `aria-posinset` / `aria-setsize`、两个组件缺少 `Items` 参数校验）记入 roadmap 的 10.17.1 批次。
 
 ## 第七轮：P1～P3 修复验收（10.14.3）
 
