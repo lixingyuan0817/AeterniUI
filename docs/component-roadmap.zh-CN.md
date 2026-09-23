@@ -1,8 +1,13 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.17.1`
+文档版本：`10.17.2`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；v0.7 规划中。
+
+## 10.17.2 补发完整发布
+
+- [x] `10.17.1` 的发布 tag 曾打在侧分支 `fd9c606` 上，其基线为 #17 之后的代码，未包含 #18 的 Breadcrumb / Stepper 修复；现从 main 补发 10.17.2，使 NuGet 上的最新版本与 main 一致。
+- [x] 版本属性统一为 10.17.2；同步当前功能、设计规范、审阅待办、项目索引与 README 发布 tag 示例，并通过构建、文档、CSS 注释与品牌对比度检查。
 
 ## 10.17.1 组件审查收口
 
@@ -763,3 +768,4 @@ Search + List + PopupHost
 | v0.6 Breadcrumb | 已完成（累计 4/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Breadcrumb` 与 `BreadcrumbItem`，原生链接、最后可见项当前页语义、禁用/隐藏过滤、自定义分隔符与 `/components/breadcrumb` 交互示例；不包含路由集成或自动折叠。 |
 | v0.6 Stepper | 已完成（累计 5/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Stepper` 与 `StepperItem`，受控当前步骤、宿主显式完成/禁用状态、横纵向布局、位置 ARIA 语义与 `/components/stepper` 交互示例；不包含路由集成、异步编排或业务状态管理。 |
 | v10.17.1 组件审查收口 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 修复 `Breadcrumb.IsCurrent` 的重复展开；补齐 `BreadcrumbItem.Target` 与 `_blank` 的 `rel="noopener noreferrer"`；把禁用层级上无效的 `aria-disabled` 改为保留链接语义并移出 Tab 序列；移除 `Stepper` 当前步骤的误导性指针反馈，描述文字色改用 `--aeterni-text-secondary`；清理 project-index 重复章节与错位的 toolbar 测试归属；把 `List` 的活动项底色限定为列表持有键盘焦点时生效，修复取消选中后遗留底色。 |
+| v10.17.2 补发完整发布 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 从 main 补发完整包：`10.17.1` 的发布 tag 打在侧分支 `fd9c606` 上，未包含 #18 的 Breadcrumb / Stepper 修复，故递增到 `10.17.2` 并同步全部发布元数据。 |
