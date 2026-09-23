@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.16.0`
+文档版本：`10.17.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.16.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.17.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -251,11 +251,6 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 - `src/AeterniUI/Components/Toolbar/`：Toolbar 的布局、单停留点焦点模块与命名 ToolbarGroup，归属基础动作组件。
 - `src/AeterniUI.Sample/Pages/Components/Toolbar.razor`：`/components/toolbar` 交互示例，目录由 ShowcaseCatalog 注册。
-
-### Breadcrumb 模块
-
-- `src/AeterniUI/Components/Breadcrumb/`：Breadcrumb 与 BreadcrumbItem 层级导航、原生链接和当前页 ARIA 语义；不内置路由跳转。
-- `src/AeterniUI.Sample/Pages/Components/Breadcrumb.razor`：`/components/breadcrumb` 交互示例，由 ShowcaseCatalog 注册。
 - `tests/toolbar.test.mjs`：无依赖 node:test DOM 焦点回归，运行 `node --test tests/toolbar.test.mjs`；不代替浏览器端到端验收。
 
 ### Breadcrumb 模块

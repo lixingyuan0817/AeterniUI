@@ -6,7 +6,7 @@
         @for (var index = 0; index < visibleItems.Count; index++)
         {
             var item = visibleItems[index];
-            var current = IsCurrent(index);
+            var current = IsCurrent(index, visibleItems.Count);
             <li class="aeterni-breadcrumb__item @(current ? "is-current" : "")">
                 @if (index > 0)
                 {
@@ -22,17 +22,21 @@
                     </span>
                 }
 
-                @if (!current && !item.Disabled && !string.IsNullOrWhiteSpace(item.Href))
+                @if (!current && !string.IsNullOrWhiteSpace(item.Href))
                 {
-                    <a class="aeterni-breadcrumb__link" href="@item.Href">
+                    <a class="aeterni-breadcrumb__link @(item.Disabled ? "is-disabled" : "")"
+                       href="@item.Href"
+                       target="@item.Target"
+                       rel="@LinkRel(item)"
+                       aria-disabled="@(item.Disabled ? "true" : null)"
+                       tabindex="@(item.Disabled ? "-1" : null)">
                         @ItemContent(item)
                     </a>
                 }
                 else
                 {
                     <span class="aeterni-breadcrumb__label @(item.Disabled ? "is-disabled" : "")"
-                          aria-current="@(current ? "page" : null)"
-                          aria-disabled="@(item.Disabled ? "true" : null)">
+                          aria-current="@(current ? "page" : null)">
                         @ItemContent(item)
                     </span>
                 }

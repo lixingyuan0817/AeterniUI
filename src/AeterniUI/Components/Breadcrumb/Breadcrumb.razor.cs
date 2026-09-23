@@ -8,12 +8,14 @@ namespace AeterniUI.Components.Breadcrumb;
 /// <param name="Icon">Optional decorative icon rendered before the label.</param>
 /// <param name="Disabled">Whether this level is presented as unavailable.</param>
 /// <param name="Visible">Whether this level is rendered.</param>
+/// <param name="Target">Optional browsing context, matching <c>MenuItem.Target</c>.</param>
 public sealed record BreadcrumbItem(
     string Label,
     string? Href = null,
     RenderFragment? Icon = null,
     bool Disabled = false,
-    bool Visible = true);
+    bool Visible = true,
+    string? Target = null);
 
 /// <summary>
 /// Renders a hierarchical navigation trail. Links are deliberately left to the
@@ -39,6 +41,8 @@ public partial class Breadcrumb : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-breadcrumb");
 
-    internal bool IsCurrent(int index) => index == VisibleItems.Count - 1;
+    internal static bool IsCurrent(int index, int visibleCount) => index == visibleCount - 1;
 
+    internal static string? LinkRel(BreadcrumbItem item) =>
+        string.Equals(item.Target, "_blank", StringComparison.OrdinalIgnoreCase) ? "noopener noreferrer" : null;
 }

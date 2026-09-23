@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.16.0`
+文档版本：`10.17.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -1166,13 +1166,14 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`Breadcrumb` 使用 `IReadOnlyList<BreadcrumbItem>` 渲染层级导航路径。每项包含 `Label`、可选 `Href`、可选装饰 `Icon`、`Disabled` 和 `Visible`；可通过 `AriaLabel` 指定导航区域名称，也可用 `Separator` 替换默认 Chevron 分隔图标。
+`Breadcrumb` 使用 `IReadOnlyList<BreadcrumbItem>` 渲染层级导航路径。每项包含 `Label`、可选 `Href`、可选装饰 `Icon`、`Disabled`、`Visible` 和可选 `Target`（取 `_blank` 时自动补 `rel="noopener noreferrer"`，与 `Menu` 一致）；可通过 `AriaLabel` 指定导航区域名称，也可用 `Separator` 替换默认 Chevron 分隔图标。
 
 ### 行为与无障碍
 
 - 根元素是带名称的 `<nav>`，内部使用有序列表表达阅读顺序。
-- 非当前、非禁用且有 `Href` 的项渲染为原生链接，保留浏览器的中键、新标签和历史行为；组件不注入路由或导航服务。
-- 最后一个可见项自动标记为当前页（`aria-current="page"`）；当前项和禁用项不会渲染为链接。
+- 非当前且有 `Href` 的项渲染为原生链接，保留浏览器的中键、新标签和历史行为；组件不注入路由或导航服务。
+- 最后一个可见项自动标记为当前页（`aria-current="page"`）；当前项回退为纯文本。
+- 被禁用的层级保留链接语义并标记 `aria-disabled="true"`，移出 Tab 序列，并由样式阻断指针导航；没有 `Href` 的禁用层级只呈现禁用文字，不再输出无对应交互状态的 `aria-disabled`。
 - 隐藏项不参与分隔符和当前项判断；图标与分隔符为装饰内容并标记 `aria-hidden`。
 - 根属性沿用 `AeterniComponent` 的 `Id`、`Class`、`Style`、`Visible`、`Element`、`ElementChanged` 和 `AdditionalAttributes`。
 
@@ -1192,6 +1193,7 @@ builder.Services.AddAeterniUI(options =>
 - 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，描述文本通过 `aria-describedby` 关联。
 - 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
 - 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
+- 当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标，只有可激活的已完成步骤保留指针反馈。
 - 隐藏项不参与编号、连接线和位置计算；根属性沿用 `AeterniComponent` 公共契约。
 
 ### 实现边界

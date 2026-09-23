@@ -97,7 +97,7 @@
 }
 
 .aeterni-stepper__description {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     line-height: var(--aeterni-line-height-tight);
 }
@@ -118,14 +118,17 @@
     background: var(--aeterni-state-background-checked);
 }
 
-.aeterni-stepper__item.is-current .aeterni-stepper__button:hover:not(:disabled) .aeterni-stepper__marker,
-.aeterni-stepper__item.is-completed .aeterni-stepper__button:hover:not(:disabled) .aeterni-stepper__marker {
+/* The current step cannot be re-activated, so it must not offer pointer feedback. */
+.aeterni-stepper__item.is-current .aeterni-stepper__button {
+    cursor: default;
+}
+
+.aeterni-stepper__item.is-completed:not(.is-current) .aeterni-stepper__button:hover:not(:disabled) .aeterni-stepper__marker {
     border-color: var(--aeterni-state-background-checked-hover);
     background: var(--aeterni-state-background-checked-hover);
 }
 
-.aeterni-stepper__item.is-current .aeterni-stepper__button:active:not(:disabled) .aeterni-stepper__marker,
-.aeterni-stepper__item.is-completed .aeterni-stepper__button:active:not(:disabled) .aeterni-stepper__marker {
+.aeterni-stepper__item.is-completed:not(.is-current) .aeterni-stepper__button:active:not(:disabled) .aeterni-stepper__marker {
     border-color: var(--aeterni-state-background-checked-active);
     background: var(--aeterni-state-background-checked-active);
 }
