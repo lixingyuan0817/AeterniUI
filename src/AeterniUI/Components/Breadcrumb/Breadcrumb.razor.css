@@ -62,8 +62,15 @@
     font-weight: var(--aeterni-font-weight-medium);
 }
 
+.aeterni-breadcrumb__link.is-disabled,
 .aeterni-breadcrumb__label.is-disabled {
     color: var(--aeterni-text-disabled);
+}
+
+/* A disabled level keeps its native link semantics for assistive tech, so pointer
+   navigation is blocked here instead of removing the href. */
+.aeterni-breadcrumb__link.is-disabled {
+    pointer-events: none;
 }
 
 .aeterni-breadcrumb__separator {

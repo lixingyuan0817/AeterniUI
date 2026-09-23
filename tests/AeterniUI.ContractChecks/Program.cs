@@ -113,6 +113,9 @@ async Task CheckBreadcrumbAsync()
         ["Items"] = new[]
         {
             new BreadcrumbItem("Home", "/"),
+            new BreadcrumbItem("Docs", "/docs", Target: "_blank"),
+            new BreadcrumbItem("Archive", "/archive", Disabled: true),
+            new BreadcrumbItem("Locked", Disabled: true),
             new BreadcrumbItem("Hidden", "/hidden", Visible: false),
             new BreadcrumbItem("Current")
         }
@@ -121,6 +124,9 @@ async Task CheckBreadcrumbAsync()
     Require(html.Contains("<nav") && html.Contains("id=\"contract-breadcrumb\"") && html.Contains("consumer-breadcrumb"), "Breadcrumb preserves root attributes.");
     Require(html.Contains("aria-label=\"Breadcrumb\"") && html.Contains("aria-current=\"page\""), "Breadcrumb exposes a named navigation region and current page.");
     Require(html.Contains("href=\"/\"") && !html.Contains("Hidden") && !html.Contains("href=\"\""), "Breadcrumb renders visible destinations as links and filters hidden items.");
+    Require(html.Contains("target=\"_blank\"") && html.Contains("rel=\"noopener noreferrer\""), "Breadcrumb renders the browsing context and a safe rel for _blank destinations.");
+    Require(html.Contains("href=\"/archive\"") && html.Contains("tabindex=\"-1\""), "Breadcrumb keeps disabled destinations as links outside the tab order.");
+    Require(html.Split("aria-disabled=\"true\"").Length == 2, "Breadcrumb marks only disabled links, not disabled plain text, with aria-disabled.");
 }
 
 async Task CheckStepperAsync()

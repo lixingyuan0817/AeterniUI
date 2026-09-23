@@ -20,7 +20,7 @@
         <Checkbox @bind-Value="_disableProjects">禁用项目层级</Checkbox>
     </Controls>
     <Notes>
-        <span>只有非当前、非禁用项渲染为原生 <code>a</code> 链接；最后一个可见项自动带 <code>aria-current="page"</code>。</span>
+        <span>只有非当前项渲染为原生 <code>a</code> 链接；最后一个可见项自动带 <code>aria-current="page"</code>，被禁用的层级保留链接并标记 <code>aria-disabled</code>。</span>
         <span>组件不内置路由、折叠或响应式自动省略；窄屏下路径换行，宿主可通过 <code>Visible</code> 控制层级。</span>
     </Notes>
 </ComponentPreview>
@@ -41,9 +41,10 @@
     [
         new("Items", "IReadOnlyList<BreadcrumbItem>", "按层级顺序提供导航项；空项和不可见项不会被组件补写。", "必填"),
         new("BreadcrumbItem.Label", "string", "层级文本。", "必填"),
-        new("BreadcrumbItem.Href", "string?", "非当前项的浏览器链接地址；组件不注入路由。"),
+        new("BreadcrumbItem.Href", "string?", "非当前且未被禁用时的浏览器链接地址；组件不注入路由。"),
+        new("BreadcrumbItem.Target", "string?", "可选浏览上下文；取 _blank 时自动补 rel=\"noopener noreferrer\"。"),
         new("BreadcrumbItem.Icon", "RenderFragment?", "可选装饰图标。"),
-        new("BreadcrumbItem.Disabled / Visible", "bool", "禁用或隐藏层级；隐藏项不参与当前项判断。", "false / true"),
+        new("BreadcrumbItem.Disabled / Visible", "bool", "禁用或隐藏层级；禁用项保留链接但移出 Tab 序列，隐藏项不参与当前项判断。", "false / true"),
         new("AriaLabel", "string?", "导航区域名称；缺省使用全局文案表。"),
         new("Separator", "RenderFragment?", "自定义分隔内容，缺省使用核心 Chevron 图标。")
     ];
