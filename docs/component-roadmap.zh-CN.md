@@ -1,17 +1,18 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.17.0`
+文档版本：`10.17.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.0 完成 Breadcrumb / Stepper 审查收口；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；v0.7 规划中。
 
-## 10.17.0 Breadcrumb / Stepper 审查收口
+## 10.17.1 组件审查收口
 
 - [x] 修复 `Breadcrumb.IsCurrent` 在渲染循环中重复展开可见项列表的问题，渲染改用已缓存的可见项计数。
 - [x] 补齐 `BreadcrumbItem.Target`，并在取 `_blank` 时自动输出 `rel="noopener noreferrer"`，对齐 `Menu` 的既有约定。
 - [x] 移除无角色 `<span>` 上无效的 `aria-disabled`：被禁用层级保留链接语义、标记 `aria-disabled="true"`、移出 Tab 序列，并由样式阻断指针导航。
 - [x] 移除 `Stepper` 当前步骤的 hover/active 换档与 `pointer` 光标，避免为不可重新激活的步骤提供可点击反馈；步骤描述文字色从 `--aeterni-text-tertiary` 改为 `--aeterni-text-secondary`。
 - [x] 删除 `docs/project-index.zh-CN.md` 中重复的 Breadcrumb 模块章节，并把误置于其中的 `tests/toolbar.test.mjs` 归回 Toolbar 模块；扩展渲染契约覆盖 `Target`/`rel`、禁用链接的 Tab 序列位置与 `aria-disabled` 唯一性。
-- [x] 版本属性统一为 10.17.0；同步当前功能、设计规范、审阅待办、项目索引与 README 发布 tag 示例，并通过构建、文档、CSS 注释与品牌对比度检查。
+- [x] 修复 `List` 多选与 `AllowClear` 下取消选中后遗留底色：点击在切换选中之前先把目标设为活动项，而活动项不随指针移开清除，于是 `.is-active` 的背景留在了已取消选中的行上；现把该提示限定为列表持有键盘焦点时生效，未选中与取消选中的行不再有底色。
+- [x] 版本属性统一为 10.17.1；同步当前功能、设计规范、审阅待办、项目索引与 README 发布 tag 示例，并通过构建、文档、CSS 注释与品牌对比度检查。
 - [ ] 遗留：`Stepper` 的键盘模型（当前每个步骤一个 Tab 停留点，与 `ButtonGroup` 一致）与根元素语义（`div role="group"` 而非 `ol`）本次保持不变，需先确定交互契约再实现。
 - [ ] 遗留：`Stepper` 的步骤按钮已保留 `padding` 与 `border-radius` 但没有 hover 背景反馈；`li` 上的 `aria-posinset` / `aria-setsize` 与列表结构重复。
 - [ ] 遗留：`Breadcrumb` 缺少 `Items` 参数校验，与 `Stepper` 的校验强度不一致；`StepperItem` 的 null 元素校验在 NRT 下不可达，两者都没有校验 `Items` 为 null。契约检查对两个组件的禁用、横向布局和回调分支仍无覆盖。
@@ -30,11 +31,6 @@
 - [x] 版本属性统一为 10.15.0；同步当前功能、设计规范、项目索引、README 发布 tag 示例，并通过构建、文档、CSS 检查。
 
 本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
-
-## List 活动项底色修复（未发布）
-
-- [x] 修复多选与 `AllowClear` 下取消选中后遗留底色的问题：点击在切换选中之前先把目标设为活动项，而活动项不随指针移开清除，于是 `.is-active` 的背景留在了已取消选中的行上；现把该提示限定为列表持有键盘焦点时生效，未选中与取消选中的行不再有底色。
-- 版本号与发布记录待定，未随本次修复调整。
 
 ## 宿主范围收敛（未发布）
 
@@ -766,4 +762,4 @@ Search + List + PopupHost
 | v0.6 SplitButton（纳入 10.13.0） | 已完成（累计 3/5） | 构建、渲染契约、Popover 焦点回归、JS 语法、CSS 与文档门禁 | 主动作与菜单动作组合、独立名称和禁用、仅主动作加载、受控菜单、可操作示例；修复 MenuButton 菜单 ID 关联与非模态关闭焦点回归。默认外观收紧为 Small / Ghost / Neutral、窄箭头和原位高亮，保留显式尺寸/变体；Toolbar 同步缩小组间/组内间距，图标主工具栏示例不覆盖组件样式，不增加 Toolbar 与 SplitButton 焦点集成。 同批以现有 List 留白为参考（List 不变），收紧 MenuButton 专属 Popover 外围、Menu 行内；保留 Menu 的 8px 子项层级缩进，修复折叠/空组残留 gap 导致的上下留白不一致；保留行高与通用内容弹层默认留白，补充隔离渲染断言。 |
 | v0.6 Breadcrumb | 已完成（累计 4/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Breadcrumb` 与 `BreadcrumbItem`，原生链接、最后可见项当前页语义、禁用/隐藏过滤、自定义分隔符与 `/components/breadcrumb` 交互示例；不包含路由集成或自动折叠。 |
 | v0.6 Stepper | 已完成（累计 5/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Stepper` 与 `StepperItem`，受控当前步骤、宿主显式完成/禁用状态、横纵向布局、位置 ARIA 语义与 `/components/stepper` 交互示例；不包含路由集成、异步编排或业务状态管理。 |
-| v10.17.0 审查收口 | 已完成 | 构建、渲染契约、CSS 注释、文档与品牌对比度门禁 | 修复 `Breadcrumb.IsCurrent` 的重复展开；补齐 `BreadcrumbItem.Target` 与 `_blank` 的 `rel="noopener noreferrer"`；把禁用层级上无效的 `aria-disabled` 改为保留链接语义并移出 Tab 序列；移除 `Stepper` 当前步骤的误导性指针反馈，描述文字色改用 `--aeterni-text-secondary`；清理 project-index 重复章节与错位的 toolbar 测试归属，并扩展 Breadcrumb 渲染契约。 |
+| v10.17.1 组件审查收口 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 修复 `Breadcrumb.IsCurrent` 的重复展开；补齐 `BreadcrumbItem.Target` 与 `_blank` 的 `rel="noopener noreferrer"`；把禁用层级上无效的 `aria-disabled` 改为保留链接语义并移出 Tab 序列；移除 `Stepper` 当前步骤的误导性指针反馈，描述文字色改用 `--aeterni-text-secondary`；清理 project-index 重复章节与错位的 toolbar 测试归属；把 `List` 的活动项底色限定为列表持有键盘焦点时生效，修复取消选中后遗留底色。 |
