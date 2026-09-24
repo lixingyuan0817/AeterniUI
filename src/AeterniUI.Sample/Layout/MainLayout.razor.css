@@ -11,7 +11,7 @@
     /* The top inset is the header's own inset, so the first content row lands on
        --sample-content-top (see app.css) without a second magic number here. */
     padding: var(--sample-header-inset) 0 var(--sample-page-bottom);
-    background: var(--aeterni-bg-surface);
+    background: var(--aeterni-bg-primary);
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-base);
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);

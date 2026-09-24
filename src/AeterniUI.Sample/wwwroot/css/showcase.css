@@ -26,6 +26,8 @@
     align-items: start;
     gap: 32px;
     width: var(--sample-shell-width);
+    /* Keep the same neutral page canvas as 首页 and 图标页; surfaces below remain
+       responsible for grouping content without introducing a second page background. */
     /* No extra `max-width` or inset arithmetic next to the token: a second clamp
        here would silently shrink the shell (or, when the token is missing, blow it
        up to full-bleed) instead of failing visibly. */
