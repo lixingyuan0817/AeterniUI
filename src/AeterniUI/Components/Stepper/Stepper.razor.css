@@ -48,8 +48,8 @@
     transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
 }
 
-.aeterni-stepper__button:hover:not(:disabled),
-.aeterni-stepper__button:focus-visible {
+.aeterni-stepper__button:focus-visible,
+.aeterni-stepper__item.is-completed:not(.is-current) .aeterni-stepper__button:hover:not(:disabled) {
     color: var(--aeterni-text-primary);
 }
 

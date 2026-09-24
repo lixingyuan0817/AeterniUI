@@ -60,6 +60,11 @@ public partial class Stepper : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown stepper orientation.");
         }
 
+        if (Items is null)
+        {
+            throw new ArgumentNullException(nameof(Items));
+        }
+
         if (Items.Any(item => item is null))
         {
             throw new ArgumentException("Stepper items cannot be null.", nameof(Items));

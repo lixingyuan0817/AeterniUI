@@ -110,12 +110,14 @@ async Task CheckBreadcrumbAsync()
     {
         ["Id"] = "contract-breadcrumb",
         ["Class"] = "consumer-breadcrumb",
+        ["Separator"] = (RenderFragment)(builder => builder.AddContent(0, "/")),
         ["Items"] = new[]
         {
             new BreadcrumbItem("Home", "/"),
             new BreadcrumbItem("Docs", "/docs", Target: "_blank"),
             new BreadcrumbItem("Archive", "/archive", Disabled: true),
             new BreadcrumbItem("Locked", Disabled: true),
+            new BreadcrumbItem("Disabled", "/disabled", Disabled: true),
             new BreadcrumbItem("Hidden", "/hidden", Visible: false),
             new BreadcrumbItem("Current")
         }
@@ -126,7 +128,25 @@ async Task CheckBreadcrumbAsync()
     Require(html.Contains("href=\"/\"") && !html.Contains("Hidden") && !html.Contains("href=\"\""), "Breadcrumb renders visible destinations as links and filters hidden items.");
     Require(html.Contains("target=\"_blank\"") && html.Contains("rel=\"noopener noreferrer\""), "Breadcrumb renders the browsing context and a safe rel for _blank destinations.");
     Require(html.Contains("href=\"/archive\"") && html.Contains("tabindex=\"-1\""), "Breadcrumb keeps disabled destinations as links outside the tab order.");
-    Require(html.Split("aria-disabled=\"true\"").Length == 2, "Breadcrumb marks only disabled links, not disabled plain text, with aria-disabled.");
+    Require(html.Split("aria-disabled=\"true\"").Length == 3, "Breadcrumb marks disabled links, not disabled plain text, with aria-disabled.");
+    Require(Regex.Matches(html, "<span class=\"aeterni-breadcrumb__separator\" aria-hidden=\"true\"[^>]*>/</span>").Count == 5, "Breadcrumb renders a custom aria-hidden separator between visible items.");
+
+    async Task RequireInvalidItems(object? invalidItems, Type exceptionType)
+    {
+        try
+        {
+            await RenderAsync<Breadcrumb>(new Dictionary<string, object?> { ["Items"] = invalidItems });
+            Require(false, "Breadcrumb must reject null items and empty labels.");
+        }
+        catch (ArgumentException exception)
+        {
+            Require(exception.GetType() == exceptionType && exception.ParamName == "Items", "Breadcrumb invalid item errors must identify Items with the expected exception type.");
+        }
+    }
+
+    await RequireInvalidItems(null, typeof(ArgumentNullException));
+    await RequireInvalidItems(new BreadcrumbItem?[] { null }, typeof(ArgumentException));
+    await RequireInvalidItems(new[] { new BreadcrumbItem(" ") }, typeof(ArgumentException));
 }
 
 async Task CheckStepperAsync()
@@ -148,6 +168,66 @@ async Task CheckStepperAsync()
     Require(html.Contains("role=\"group\"") && html.Contains("aria-label=\"Progress steps\"") && html.Contains("aria-current=\"step\""), "Stepper exposes a named group and current step semantics.");
     Require(html.Contains("aria-posinset=\"2\"") && html.Contains("aria-setsize=\"2\"") && html.Contains("Current step"), "Stepper reports visible position and description relationships.");
     Require(html.Contains("is-completed") && !html.Contains("Three"), "Stepper renders explicit completion and filters hidden steps.");
+    var describedButton = Regex.Match(html, "<button[^>]*aria-describedby=\"([^\"]+)\"[^>]*>").Groups[1].Value;
+    Require(!string.IsNullOrEmpty(describedButton)
+        && Regex.IsMatch(html, $"<span id=\"{Regex.Escape(describedButton)}\"[^>]*>Current step</span>"),
+        "Stepper buttons must point aria-describedby at their rendered description.");
+
+    var disabledHtml = await RenderAsync<Stepper>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[] { new StepperItem("one", "One", Disabled: true) },
+        ["Disabled"] = true,
+        ["AriaLabel"] = "Checkout steps"
+    });
+    Require(disabledHtml.Contains("aria-label=\"Checkout steps\"")
+        && disabledHtml.Contains("aria-disabled=\"true\"")
+        && disabledHtml.Contains("inert")
+        && Regex.IsMatch(disabledHtml, "<button[^>]*disabled"),
+        "Stepper root and item disabled states must retain their native and composite semantics.");
+
+    async Task RequireInvalidItems(object? invalidItems, Type exceptionType)
+    {
+        try
+        {
+            await RenderAsync<Stepper>(new Dictionary<string, object?> { ["Items"] = invalidItems });
+            Require(false, "Stepper must reject null items and invalid item fields.");
+        }
+        catch (ArgumentException exception)
+        {
+            Require(exception.GetType() == exceptionType && exception.ParamName == "Items",
+                "Stepper invalid item errors must identify Items with the expected exception type.");
+        }
+    }
+
+    await RequireInvalidItems(null, typeof(ArgumentNullException));
+    await RequireInvalidItems(new StepperItem?[] { null }, typeof(ArgumentException));
+    await RequireInvalidItems(new[] { new StepperItem(" ", "Step") }, typeof(ArgumentException));
+    await RequireInvalidItems(new[] { new StepperItem("step", " ") }, typeof(ArgumentException));
+    await RequireInvalidItems(new[] { new StepperItem("step", "One"), new StepperItem("step", "Duplicate") }, typeof(ArgumentException));
+
+    var first = new StepperItem("one", "One");
+    var second = new StepperItem("two", "Two");
+    var disabled = new StepperItem("disabled", "Disabled", Disabled: true);
+    var component = new Stepper
+    {
+        Items = [first, second, disabled],
+        Value = first.Id
+    };
+    var events = new List<string>();
+    var callbackReceiver = new object();
+    component.ValueChanged = EventCallback.Factory.Create<string?>(callbackReceiver, value => events.Add($"value:{value}"));
+    component.OnStepClick = EventCallback.Factory.Create<StepperItem>(callbackReceiver, item => events.Add($"click:{item.Id}"));
+    var select = typeof(Stepper).GetMethod("SelectAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+    async Task Select(StepperItem item) => await (Task)select.Invoke(component, [item])!;
+
+    await Select(second);
+    Require(events.SequenceEqual(["value:two", "click:two"]) && component.Value == first.Id, "Stepper proposes ValueChanged before OnStepClick without mutating controlled Value.");
+    events.Clear();
+    await Select(first);
+    await Select(disabled);
+    component.Disabled = true;
+    await Select(second);
+    Require(events.Count == 0, "Stepper ignores current, item-disabled, and root-disabled activation.");
 }
 
 async Task CheckDateBoundariesAsync()

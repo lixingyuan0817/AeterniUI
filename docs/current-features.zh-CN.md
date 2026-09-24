@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.17.2`
+文档版本：`10.17.3`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -1166,7 +1166,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`Breadcrumb` 使用 `IReadOnlyList<BreadcrumbItem>` 渲染层级导航路径。每项包含 `Label`、可选 `Href`、可选装饰 `Icon`、`Disabled`、`Visible` 和可选 `Target`（取 `_blank` 时自动补 `rel="noopener noreferrer"`，与 `Menu` 一致）；可通过 `AriaLabel` 指定导航区域名称，也可用 `Separator` 替换默认 Chevron 分隔图标。
+`Breadcrumb` 使用非 null 的 `IReadOnlyList<BreadcrumbItem>` 渲染层级导航路径，拒绝 null 列表项与空白 `Label`。每项包含 `Label`、可选 `Href`、可选装饰 `Icon`、`Disabled`、`Visible` 和可选 `Target`（取 `_blank` 时自动补 `rel="noopener noreferrer"`，与 `Menu` 一致）；可通过 `AriaLabel` 指定导航区域名称，也可用 `Separator` 替换默认 Chevron 分隔图标。
 
 ### 行为与无障碍
 
@@ -1193,8 +1193,8 @@ builder.Services.AddAeterniUI(options =>
 - 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，描述文本通过 `aria-describedby` 关联。
 - 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
 - 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
-- 当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标，只有可激活的已完成步骤保留指针反馈。
-- 隐藏项不参与编号、连接线和位置计算；根属性沿用 `AeterniComponent` 公共契约。
+- 当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标；只有可激活的已完成步骤提供 hover/active 反馈，未完成步骤不额外提供指针反馈。
+- `Items` 不可为 null；列表项不可为 null，`Id`、`Label` 不可为空白且 `Id` 不可重复。隐藏项不参与编号、连接线和位置计算；根属性沿用 `AeterniComponent` 公共契约。
 
 ### 实现边界
 
@@ -1203,7 +1203,7 @@ builder.Services.AddAeterniUI(options =>
 ## 45. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
-- 组件库目前优先完善基础组件和基础服务，复杂表单、数据展示和导航组件尚未纳入已完成清单。
+- 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
 - `Button`、`IconButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付。
 - `Stack` 和 `Flex` 尚未实现。

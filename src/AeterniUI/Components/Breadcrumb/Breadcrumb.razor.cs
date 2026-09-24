@@ -37,6 +37,26 @@ public partial class Breadcrumb : AeterniComponent
         ? UiText.BreadcrumbLabel
         : AriaLabel.Trim();
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Items is null)
+        {
+            throw new ArgumentNullException(nameof(Items));
+        }
+
+        if (Items.Any(item => item is null))
+        {
+            throw new ArgumentException("Breadcrumb items cannot be null.", nameof(Items));
+        }
+
+        if (Items.Any(item => string.IsNullOrWhiteSpace(item.Label)))
+        {
+            throw new ArgumentException("Breadcrumb item labels cannot be empty.", nameof(Items));
+        }
+    }
+
     private IReadOnlyList<BreadcrumbItem> VisibleItems => Items.Where(item => item.Visible).ToArray();
 
     protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-breadcrumb");

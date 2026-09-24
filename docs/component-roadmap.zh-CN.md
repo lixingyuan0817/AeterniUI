@@ -1,8 +1,14 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.17.2`
+文档版本：`10.17.3`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；v0.7 规划中。
+
+## 10.17.3 Stepper 修复发布
+
+- [x] 修复 Stepper `Items` null 参数异常、补齐参数与 ARIA 渲染契约，并使示例 Previous/Next 跳过隐藏和禁用步骤。
+- [x] 收窄 Stepper hover 反馈，仅对可激活的已完成步骤提供 hover/active 状态；同步当前功能、设计规范、审阅待办、项目索引与 README 版本示例。
+- [ ] 待发布：通过构建、ContractChecks、文档一致性和最终差异审查后推送 `v10.17.3`。
 
 ## 10.17.2 补发完整发布
 
@@ -17,10 +23,12 @@
 - [x] 移除 `Stepper` 当前步骤的 hover/active 换档与 `pointer` 光标，避免为不可重新激活的步骤提供可点击反馈；步骤描述文字色从 `--aeterni-text-tertiary` 改为 `--aeterni-text-secondary`。
 - [x] 删除 `docs/project-index.zh-CN.md` 中重复的 Breadcrumb 模块章节，并把误置于其中的 `tests/toolbar.test.mjs` 归回 Toolbar 模块；扩展渲染契约覆盖 `Target`/`rel`、禁用链接的 Tab 序列位置与 `aria-disabled` 唯一性。
 - [x] 修复 `List` 多选与 `AllowClear` 下取消选中后遗留底色：点击在切换选中之前先把目标设为活动项，而活动项不随指针移开清除，于是 `.is-active` 的背景留在了已取消选中的行上；现把该提示限定为列表持有键盘焦点时生效，未选中与取消选中的行不再有底色。
+- [x] 交付后 P0 收口：Breadcrumb 现在拒绝 null `Items`、null item 和空白 `Label`；禁用项、自定义分隔符与 `aria-hidden` 已纳入契约检查；Stepper 的 `ValueChanged` → `OnStepClick` 顺序、受控值和禁用分支已纳入检查，示例同步展示事件序列。
 - [x] 版本属性统一为 10.17.1；同步当前功能、设计规范、审阅待办、项目索引与 README 发布 tag 示例，并通过构建、文档、CSS 注释与品牌对比度检查。
 - [ ] 遗留：`Stepper` 的键盘模型（当前每个步骤一个 Tab 停留点，与 `ButtonGroup` 一致）与根元素语义（`div role="group"` 而非 `ol`）本次保持不变，需先确定交互契约再实现。
-- [ ] 遗留：`Stepper` 的步骤按钮已保留 `padding` 与 `border-radius` 但没有 hover 背景反馈；`li` 上的 `aria-posinset` / `aria-setsize` 与列表结构重复。
-- [ ] 遗留：`Breadcrumb` 缺少 `Items` 参数校验，与 `Stepper` 的校验强度不一致；`StepperItem` 的 null 元素校验在 NRT 下不可达，两者都没有校验 `Items` 为 null。契约检查对两个组件的禁用、横向布局和回调分支仍无覆盖。
+- [ ] 遗留：`Stepper` 的步骤位置属性仍挂在 `li` 上，与有序列表结构的重复语义及最佳挂载位置尚未最终确认。
+- [x] 补齐 Stepper `Items`、null item、空白 `Id`/`Label` 和重复 Id 的参数契约，并增加 `aria-describedby`、根级/项级禁用语义的渲染检查；示例 Previous/Next 跳过隐藏和禁用步骤。
+- [ ] 遗留：Breadcrumb 与 Stepper 的横向布局契约尚未单独覆盖。
 - 本批只收口审查确认的缺陷，除 `BreadcrumbItem.Target` 外不新增公共参数、事件或枚举，也不改变 Stepper 的键盘模型。
 
 ## 10.16.0 Stepper 功能发布

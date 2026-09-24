@@ -16,9 +16,10 @@
             <Stepper Items="@Items"
                      Value="@_current"
                      ValueChanged="OnStepChanged"
+                     OnStepClick="OnStepClicked"
                      Orientation="@_orientation"
                      AriaLabel="结账流程" />
-            <span class="preview-feedback" role="status">当前步骤：@Items.First(item => item.Id == _current).Label</span>
+            <span class="preview-feedback" role="status">当前步骤：@Items.First(item => item.Id == _current).Label；最近事件：@_lastEvent</span>
         </div>
     </Preview>
     <Controls>
@@ -35,6 +36,8 @@
 
 @code {
     private string _current = "shipping";
+    private string _lastEvent = "尚未激活步骤";
+    private readonly System.Collections.Generic.List<string> _eventSequence = [];
     private bool _vertical;
     private bool _lockPayment;
 
@@ -53,21 +56,45 @@
         if (value is not null)
         {
             _current = value;
+            _eventSequence.Clear();
+            _eventSequence.Add($"ValueChanged({value})");
+            _lastEvent = string.Join(" → ", _eventSequence);
         }
 
         return Task.CompletedTask;
     }
 
+    private Task OnStepClicked(StepperItem item)
+    {
+        _eventSequence.Add($"OnStepClick({item.Id})");
+        _lastEvent = string.Join(" → ", _eventSequence);
+        return Task.CompletedTask;
+    }
+
     private void Previous()
     {
-        var index = Math.Max(0, Items.ToList().FindIndex(item => item.Id == _current) - 1);
-        _current = Items[index].Id;
+        MoveToSibling(-1);
     }
 
     private void Next()
     {
-        var index = Math.Min(Items.Count - 1, Items.ToList().FindIndex(item => item.Id == _current) + 1);
-        _current = Items[index].Id;
+        MoveToSibling(1);
+    }
+
+    private void MoveToSibling(int direction)
+    {
+        var navigableItems = Items.Where(item => item.Visible && !item.Disabled).ToList();
+        var currentIndex = navigableItems.FindIndex(item => item.Id == _current);
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        var targetIndex = currentIndex + direction;
+        if (targetIndex >= 0 && targetIndex < navigableItems.Count)
+        {
+            _current = navigableItems[targetIndex].Id;
+        }
     }
 
     private static readonly ShowcaseParameter[] Parameters =
