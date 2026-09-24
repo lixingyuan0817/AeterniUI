@@ -16,6 +16,10 @@
        the hero clears the floating header without a second magic number. */
     min-height: calc(100dvh - var(--sample-content-top));
     padding: var(--sample-content-top) 0 var(--aeterni-spacing-6);
+    background-image:
+        radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--aeterni-text-primary) 4%, transparent), transparent 27%),
+        radial-gradient(circle at 88% 78%, color-mix(in srgb, var(--aeterni-text-primary) 4%, transparent), transparent 31%),
+        linear-gradient(112deg, transparent 0 48%, color-mix(in srgb, var(--aeterni-text-primary) 2%, transparent) 48.1% 48.25%, transparent 48.35% 100%);
 }
 
 /* 仅使用无彩色层次构成页面底色，避免大面积彩色背景干扰内容阅读。 */
@@ -29,6 +33,7 @@
     border-radius: var(--aeterni-radius-round);
     pointer-events: none;
     content: "";
+    animation: doc-home-drift 18s var(--aeterni-ease-in-out) infinite alternate;
 }
 
 .doc-home::before {
@@ -49,7 +54,18 @@
         transparent 0 17px,
         color-mix(in srgb, var(--aeterni-text-primary) 5%, transparent) 18px 19px);
     opacity: .7;
+    animation-delay: -9s;
     transform: rotate(14deg);
+}
+
+@keyframes doc-home-drift {
+    from {
+        translate: 0 0;
+    }
+
+    to {
+        translate: 16px -12px;
+    }
 }
 
 .doc-home__grid {
@@ -340,8 +356,8 @@
    own. */
 
 @media (prefers-reduced-motion: reduce) {
-    .doc-home__orb {
-        opacity: calc(var(--doc-orb-opacity) * .4);
+    .doc-home::before,
+    .doc-home::after {
         animation: none;
     }
 }
