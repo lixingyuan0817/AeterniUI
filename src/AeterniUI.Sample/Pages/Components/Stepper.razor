@@ -1,6 +1,7 @@
 @page "/components/stepper"
 @layout ComponentsLayout
 @using AeterniUI.Enums
+@using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Stepper</PageTitle>
 
@@ -18,6 +19,7 @@
                      ValueChanged="OnStepChanged"
                      OnStepClick="OnStepClicked"
                      Orientation="@_orientation"
+                     ItemTemplate="@StepTemplate"
                      AriaLabel="结账流程" />
             <span class="preview-feedback" role="status">当前步骤：@Items.First(item => item.Id == _current).Label；最近事件：@_lastEvent</span>
         </div>
@@ -27,10 +29,12 @@
         <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Next">下一步</Button>
         <Checkbox @bind-Value="_vertical">纵向</Checkbox>
         <Checkbox @bind-Value="_lockPayment">禁用付款步骤</Checkbox>
+        <Checkbox @bind-Value="_useTemplate">自定义模板</Checkbox>
     </Controls>
     <Notes>
         <span><code>Value</code>、<code>Completed</code> 和 <code>Disabled</code> 都由宿主控制；Stepper 不自动推进流程，也不推断完成状态。</span>
         <span>点击可用步骤会触发 <code>ValueChanged</code> 与 <code>OnStepClick</code>；横向和纵向布局都保留原生按钮键盘行为。</span>
+        <span><code>StepperItem.Icon</code> 让单个步骤使用自己的标记图标，<code>ItemTemplate</code> 则是每步唯一的内容区，接管按钮内的全部内容（含图标），可按步骤渲染不同内容。</span>
     </Notes>
 </ComponentPreview>
 
@@ -40,16 +44,52 @@
     private readonly System.Collections.Generic.List<string> _eventSequence = [];
     private bool _vertical;
     private bool _lockPayment;
+    private bool _useTemplate;
 
     private Orientation _orientation => _vertical ? Orientation.Vertical : Orientation.Horizontal;
 
     private IReadOnlyList<StepperItem> Items =>
     [
         new("cart", "购物车", "确认商品与数量", Completed: true),
-        new("shipping", "配送", "填写收货地址"),
+        new("shipping", "配送", "填写收货地址", Icon: AeterniIcons.Clock),
         new("payment", "付款", "选择支付方式", Disabled: _lockPayment),
         new("done", "完成", "查看订单结果")
     ];
+
+    private RenderFragment<StepperItem>? StepTemplate
+    {
+        get
+        {
+            if (!_useTemplate)
+            {
+                return null;
+            }
+
+            return step => @<span class="step-template">
+                <span class="step-template__marker">
+                    <Icon Definition="@TemplateIcon(step)" Size="Size.Small" />
+                </span>
+                <span class="step-template__label">@step.Label</span>
+                <span class="step-template__meta">@TemplateMeta(step)</span>
+            </span>;
+        }
+    }
+
+    private static IconDefinition TemplateIcon(StepperItem step) => step.Id switch
+    {
+        "cart" => AeterniIcons.Star,
+        "shipping" => AeterniIcons.Clock,
+        "payment" => AeterniIcons.Calendar,
+        _ => AeterniIcons.Check
+    };
+
+    private static string TemplateMeta(StepperItem step) => step.Id switch
+    {
+        "cart" => "3 件商品",
+        "shipping" => "预计明天送达",
+        "payment" => "支持分期付款",
+        _ => "查看订单结果"
+    };
 
     private Task OnStepChanged(string? value)
     {
@@ -103,6 +143,8 @@
         new("Value / ValueChanged", "string? / EventCallback<string?>", "受控当前步骤标识。"),
         new("StepperItem.Completed", "bool", "由宿主显式表示完成状态。", "false"),
         new("StepperItem.Disabled / Visible", "bool", "禁用或隐藏单个步骤。", "false / true"),
+        new("StepperItem.Icon", "IconDefinition?", "单个步骤的标记图标；完成步骤仍显示勾选字形。", "null"),
+        new("ItemTemplate", "RenderFragment<StepperItem>?", "每步唯一的内容区，接管按钮内全部内容（含图标）；Label 仍是无障碍名称。", "null"),
         new("Orientation", "Orientation", "横向或纵向布局。", "Horizontal"),
         new("AriaLabel", "string?", "流程指示器的可访问名称；缺省使用全局文案表。")
     ];

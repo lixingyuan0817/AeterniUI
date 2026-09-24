@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.17.3`
+文档版本：`10.18.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.17.2`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.18.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -260,5 +260,5 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ### Stepper 模块
 
-- `src/AeterniUI/Components/Stepper/`：Stepper 与 StepperItem 线性流程指示、受控当前步骤和横纵向布局；不管理业务流程状态。
-- `src/AeterniUI.Sample/Pages/Components/Stepper.razor`：`/components/stepper` 交互示例，由 ShowcaseCatalog 注册。
+- `src/AeterniUI/Components/Stepper/`：Stepper 与 StepperItem 线性流程指示、受控当前步骤、横纵向布局、单步标记图标与可选 `ItemTemplate` 单一内容区；不管理业务流程状态。
+- `src/AeterniUI.Sample/Pages/Components/Stepper.razor`、`Stepper.razor.css`：`/components/stepper` 交互示例（含自定义模板演示），由 ShowcaseCatalog 注册。

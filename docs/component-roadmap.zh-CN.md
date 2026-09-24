@@ -1,8 +1,16 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.17.3`
+文档版本：`10.18.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；v0.7 规划中。
+
+## 10.18.0 Stepper 模板与布局扩展
+
+- [x] 新增 `StepperItem.Icon`：单个步骤可指定标记图标，完成步骤仍显示勾选字形；未指定时回落到序号。
+- [x] 新增 `Stepper.ItemTemplate`（`RenderFragment<StepperItem>`）：每步唯一的内容区，接管按钮内全部内容（含图标），可按步骤渲染不同内容；模板模式下 `Label` 继续作为按钮的无障碍名称，`Description` 不再关联 `aria-describedby`。
+- [x] 横向布局改为标记在上、标题与描述在下方居中，连线沿标记行贯通且不再穿过文字；纵向布局保持标记在左、文字在右，两种情况共用同一套连线端点（两端各留一个 `--aeterni-spacing-1`）。
+- [x] `aeterni_ui.slnx` 构建、`AeterniUI.ContractChecks`（新增单步图标与模板渲染断言）、`check-css-comments.mjs`、`check-contrast.mjs` 与 `check-docs.sh` 均通过；版本属性统一为 10.18.0，同步当前功能、设计规范、审阅待办、项目索引、roadmap 与 README 发布 tag 示例。
+- [ ] 待发布：通过最终差异审查后推送 `v10.18.0`。
 
 ## 10.17.3 Stepper 修复发布
 
@@ -777,3 +785,4 @@ Search + List + PopupHost
 | v0.6 Stepper | 已完成（累计 5/5） | 构建、渲染契约、CSS 与文档门禁 | 新增 `Stepper` 与 `StepperItem`，受控当前步骤、宿主显式完成/禁用状态、横纵向布局、位置 ARIA 语义与 `/components/stepper` 交互示例；不包含路由集成、异步编排或业务状态管理。 |
 | v10.17.1 组件审查收口 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 修复 `Breadcrumb.IsCurrent` 的重复展开；补齐 `BreadcrumbItem.Target` 与 `_blank` 的 `rel="noopener noreferrer"`；把禁用层级上无效的 `aria-disabled` 改为保留链接语义并移出 Tab 序列；移除 `Stepper` 当前步骤的误导性指针反馈，描述文字色改用 `--aeterni-text-secondary`；清理 project-index 重复章节与错位的 toolbar 测试归属；把 `List` 的活动项底色限定为列表持有键盘焦点时生效，修复取消选中后遗留底色。 |
 | v10.17.2 补发完整发布 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 从 main 补发完整包：`10.17.1` 的发布 tag 打在侧分支 `fd9c606` 上，未包含 #18 的 Breadcrumb / Stepper 修复，故递增到 `10.17.2` 并同步全部发布元数据。 |
+| v10.18.0 Stepper 模板与布局扩展 | 已完成 | 构建、渲染契约、CSS 注释、文档与品牌对比度门禁 | `StepperItem` 新增 `Icon`、`Stepper` 新增 `ItemTemplate` 单一内容区（每步可渲染不同内容，模板接管按钮内全部内容）；横向布局改为标记在上、文字在下居中，连线沿标记行贯通且在两端各留一个 inset，纵向保持标记在左、文字在右。按仓库约定「功能新增递增次版本号」由 `10.17.3` 递增为 `10.18.0`。 |

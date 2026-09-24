@@ -8,7 +8,8 @@
             var item = visibleItems[index];
             var current = IsCurrent(item);
             var disabled = IsItemDisabled(item);
-            var descriptionId = string.IsNullOrWhiteSpace(item.Description) ? null : DescriptionId(index);
+            var templated = ItemTemplate is not null;
+            var descriptionId = !templated && !string.IsNullOrWhiteSpace(item.Description) ? DescriptionId(index) : null;
             <li class="aeterni-stepper__item @(current ? "is-current" : "") @(item.Completed ? "is-completed" : "") @(disabled ? "is-disabled" : "")"
                 aria-posinset="@(index + 1)"
                 aria-setsize="@visibleItems.Count">
@@ -17,25 +18,37 @@
                         class="aeterni-stepper__button"
                         disabled="@disabled"
                         aria-current="@(current ? "step" : null)"
+                        aria-label="@(templated ? item.Label : null)"
                         aria-describedby="@descriptionId"
                         @onclick="() => SelectAsync(item)">
-                    <span class="aeterni-stepper__marker" aria-hidden="true">
-                        @if (item.Completed)
-                        {
-                            <Icon Definition="@AeterniIcons.Check" />
-                        }
-                        else
-                        {
-                            <span class="aeterni-stepper__number">@(index + 1)</span>
-                        }
-                    </span>
-                    <span class="aeterni-stepper__copy">
-                        <span class="aeterni-stepper__label">@item.Label</span>
-                        @if (descriptionId is not null)
-                        {
-                            <span id="@descriptionId" class="aeterni-stepper__description">@item.Description</span>
-                        }
-                    </span>
+                    @if (ItemTemplate is not null)
+                    {
+                        <span class="aeterni-stepper__template">@ItemTemplate(item)</span>
+                    }
+                    else
+                    {
+                        <span class="aeterni-stepper__marker" aria-hidden="true">
+                            @if (item.Completed)
+                            {
+                                <Icon Definition="@AeterniIcons.Check" />
+                            }
+                            else if (item.Icon is not null)
+                            {
+                                <Icon Definition="@item.Icon" />
+                            }
+                            else
+                            {
+                                <span class="aeterni-stepper__number">@(index + 1)</span>
+                            }
+                        </span>
+                        <span class="aeterni-stepper__copy">
+                            <span class="aeterni-stepper__label">@item.Label</span>
+                            @if (descriptionId is not null)
+                            {
+                                <span id="@descriptionId" class="aeterni-stepper__description">@item.Description</span>
+                            }
+                        </span>
+                    }
                 </button>
             </li>
         }

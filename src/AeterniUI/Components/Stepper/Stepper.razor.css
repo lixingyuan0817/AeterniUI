@@ -11,18 +11,27 @@
     list-style: none;
 }
 
+/* Horizontal steps stack the marker above the copy and centre both in the
+   column: the connector then runs between markers through empty space instead
+   of crossing the label, and a wrapping description only grows the step down. */
 .aeterni-stepper__item {
     position: relative;
+    display: flex;
     flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
     min-width: 0;
 }
 
+/* Runs along the marker row from this column's centre to the next column's
+   centre; the markers paint over it, so only the gap between them stays
+   visible. */
 .aeterni-stepper__item:not(:last-child)::after {
     content: "";
     position: absolute;
     z-index: 0;
-    inset-inline: calc(var(--aeterni-control-height-sm) / 2 + var(--aeterni-spacing-2)) calc(var(--aeterni-control-height-sm) / -2);
-    top: calc(var(--aeterni-control-height-sm) / 2);
+    inset-inline: 50% -50%;
+    top: calc(var(--aeterni-control-height-sm) / 2 - var(--aeterni-border-width) / 2);
     height: var(--aeterni-border-width);
     background: var(--aeterni-separator);
 }
@@ -31,10 +40,11 @@
     position: relative;
     z-index: 1;
     display: flex;
-    width: 100%;
-    min-width: 0;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     gap: var(--aeterni-spacing-2);
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
     min-height: var(--aeterni-control-height-sm);
     padding: 0 var(--aeterni-spacing-2);
@@ -43,7 +53,7 @@
     background: transparent;
     color: var(--aeterni-text-secondary);
     font: inherit;
-    text-align: start;
+    text-align: center;
     cursor: pointer;
     transition: var(--aeterni-transition-color), var(--aeterni-transition-background);
 }
@@ -76,12 +86,25 @@
     transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-border);
 }
 
+/* Horizontal steps centre the copy under the marker; the vertical layout
+   overrides both back to a leading alignment. */
 .aeterni-stepper__copy {
     display: flex;
     min-width: 0;
+    max-width: 100%;
     flex-direction: column;
+    align-items: center;
     gap: var(--aeterni-spacing-1);
-    padding-top: var(--aeterni-spacing-1);
+    text-align: center;
+}
+
+/* The single custom content area. It replaces the marker and the copy, so the
+   host owns everything inside the button and can render something different per
+   step. */
+.aeterni-stepper__template {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .aeterni-stepper__label,
@@ -150,18 +173,37 @@
 
 .aeterni-stepper--vertical .aeterni-stepper__item {
     flex: 0 0 auto;
+    flex-direction: row;
+    align-items: flex-start;
     min-height: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-4));
 }
 
-.aeterni-stepper--vertical .aeterni-stepper__item:not(:last-child)::after {
-    inset: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-1)) auto 0 calc(var(--aeterni-control-height-sm) / 2);
-    width: var(--aeterni-border-width);
-    height: auto;
+/* Vertical steps keep the marker beside the copy, so the copy is pushed down
+   until the label line is centred on the marker:
+   (marker height - label line height) / 2. Descriptions then hang below the
+   label without moving the marker. */
+.aeterni-stepper--vertical .aeterni-stepper__button {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: start;
 }
 
-.aeterni-stepper--vertical .aeterni-stepper__button {
-    width: fit-content;
-    max-width: 100%;
+.aeterni-stepper--vertical .aeterni-stepper__copy {
+    align-items: flex-start;
+    text-align: start;
+    padding-top: calc((var(--aeterni-control-height-sm) - var(--aeterni-font-size-sm) * var(--aeterni-line-height-normal)) / 2);
+}
+
+/* Taken out of the item's flow: the vertical connector must not stretch the
+   step. Logical insets keep it on the marker axis in both writing directions,
+   and it starts below the marker and stops one inset short of the next marker's
+   top edge, matching the horizontal gap on both ends. */
+.aeterni-stepper--vertical .aeterni-stepper__item:not(:last-child)::after {
+    margin: 0;
+    inset-block: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-1)) var(--aeterni-spacing-1);
+    inset-inline: calc(var(--aeterni-spacing-2) + var(--aeterni-control-height-sm) / 2) auto;
+    width: var(--aeterni-border-width);
+    height: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

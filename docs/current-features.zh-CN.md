@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.17.3`
+文档版本：`10.18.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.18.0 Stepper 模板与布局扩展
+
+`StepperItem` 新增可选 `Icon`（`IconDefinition?`），`Stepper` 新增可选 `ItemTemplate`（`RenderFragment<StepperItem>?`）：单个步骤可以使用自己的标记图标，也可以把整个按钮内容交给每步唯一的内容区，从而按步骤渲染不同内容。横向布局改为标记在上、标题与描述在下方居中，连线沿标记行贯通；纵向布局保持标记在左、文字在右。示例与渲染契约已纳入本版本。
 
 ## 10.16.0 Stepper 功能发布
 
@@ -1185,12 +1189,16 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`Stepper` 使用 `IReadOnlyList<StepperItem>` 按顺序表达线性流程。`StepperItem` 包含稳定 `Id`、`Label`、可选 `Description`、`Completed`、`Disabled` 和 `Visible`；Stepper 通过 `Value` / `ValueChanged` 受控当前步骤，并支持 `Orientation.Horizontal` / `Vertical`、`AriaLabel` 和 `OnStepClick`。
+`Stepper` 使用 `IReadOnlyList<StepperItem>` 按顺序表达线性流程。`StepperItem` 包含稳定 `Id`、`Label`、可选 `Description`、`Completed`、`Disabled`、`Visible` 和可选 `Icon`；Stepper 通过 `Value` / `ValueChanged` 受控当前步骤，并支持 `Orientation.Horizontal` / `Vertical`、`AriaLabel`、`OnStepClick` 和可选的 `ItemTemplate`。
+
+- 横向布局把标记放在步骤上方、标题与描述在下方居中，连线沿标记行从本列中心贯通到下一列中心；纵向布局保持标记在左、标题与描述在右，连接线两端同样各留一个 `--aeterni-spacing-1` 的间隙。
+- `StepperItem.Icon` 为单个步骤提供标记图标；完成步骤始终显示勾选字形，未完成且未指定图标的步骤回落为序号。
+- `ItemTemplate`（`RenderFragment<StepperItem>`）是每步唯一的内容区，提供后接管按钮内的全部内容（含图标），因此不同步骤可以渲染不同内容；模板模式下组件不再渲染默认标记与描述，`Label` 继续作为按钮的无障碍名称。
 
 ### 行为与无障碍
 
 - 根元素是带名称的 `role="group"`，步骤使用有序列表和原生按钮，保留浏览器 Tab、Enter 和 Space 行为。
-- 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，描述文本通过 `aria-describedby` 关联。
+- 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，默认渲染的描述文本通过 `aria-describedby` 关联；使用 `ItemTemplate` 时组件不再输出描述元素，`aria-label` 由 `Label` 提供。
 - 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
 - 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
 - 当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标；只有可激活的已完成步骤提供 hover/active 反馈，未完成步骤不额外提供指针反馈。

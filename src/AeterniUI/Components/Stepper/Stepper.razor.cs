@@ -1,4 +1,5 @@
 using AeterniUI.Enums;
+using AeterniUI.Icons;
 using Microsoft.AspNetCore.Components;
 
 namespace AeterniUI.Components.Stepper;
@@ -10,13 +11,18 @@ namespace AeterniUI.Components.Stepper;
 /// <param name="Completed">Whether the host has completed this step.</param>
 /// <param name="Disabled">Whether this step cannot be activated.</param>
 /// <param name="Visible">Whether this step is rendered.</param>
+/// <param name="Icon">
+/// Optional marker glyph, so one process can show a different icon per step.
+/// It replaces the step number; a completed step still shows the check glyph.
+/// </param>
 public sealed record StepperItem(
     string Id,
     string Label,
     string? Description = null,
     bool Completed = false,
     bool Disabled = false,
-    bool Visible = true);
+    bool Visible = true,
+    IconDefinition? Icon = null);
 
 /// <summary>
 /// Displays the current position in a host-owned linear process. The component
@@ -44,6 +50,16 @@ public partial class Stepper : AeterniComponent
     /// <summary>Raised after an enabled step is activated.</summary>
     [Parameter]
     public EventCallback<StepperItem> OnStepClick { get; set; }
+
+    /// <summary>
+    /// Optional single content area for a step. When set it takes over the whole
+    /// button body — marker included — so the host decides what each step shows
+    /// and can render different content per <see cref="StepperItem"/>. The step
+    /// keeps its native button, <c>aria-current</c> and position semantics, and
+    /// <see cref="StepperItem.Label"/> remains the accessible name.
+    /// </summary>
+    [Parameter]
+    public RenderFragment<StepperItem>? ItemTemplate { get; set; }
 
     private IReadOnlyList<StepperItem> VisibleItems => Items.Where(item => item.Visible).ToArray();
 

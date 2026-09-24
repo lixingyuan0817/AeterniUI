@@ -8,6 +8,7 @@ using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
 using AeterniUI.Enums;
+using AeterniUI.Icons;
 using AeterniUI.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -198,6 +199,33 @@ async Task CheckStepperAsync()
                 "Stepper invalid item errors must identify Items with the expected exception type.");
         }
     }
+
+    var customIcon = new IconDefinition("contract-step-icon", 16, 16, "M0 0h16v16H0z");
+    var iconHtml = await RenderAsync<Stepper>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[]
+        {
+            new StepperItem("one", "One", Completed: true, Icon: customIcon),
+            new StepperItem("two", "Two", "Current step", Icon: customIcon)
+        },
+        ["Value"] = "two"
+    });
+    Require(iconHtml.Contains($"d=\"{customIcon.Paths[0]}\"") && iconHtml.Contains($"d=\"{AeterniIcons.Check.Paths[0]}\""),
+        "Stepper renders a per-step marker icon and keeps the check glyph for completed steps.");
+
+    var templatedHtml = await RenderAsync<Stepper>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[] { new StepperItem("one", "One", "Current step"), new StepperItem("two", "Two") },
+        ["Value"] = "one",
+        ["ItemTemplate"] = (RenderFragment<StepperItem>)(item => builder => builder.AddContent(0, $"step-content:{item.Id}"))
+    });
+    Require(templatedHtml.Contains("aeterni-stepper__template")
+        && templatedHtml.Contains("step-content:one")
+        && templatedHtml.Contains("step-content:two")
+        && templatedHtml.Contains("aria-label=\"One\""),
+        "Stepper ItemTemplate renders the single content area and the accessible name for every step.");
+    Require(!templatedHtml.Contains("aeterni-stepper__marker") && !templatedHtml.Contains("aria-describedby"),
+        "Templated steps drop the default marker and the description relationship.");
 
     await RequireInvalidItems(null, typeof(ArgumentNullException));
     await RequireInvalidItems(new StepperItem?[] { null }, typeof(ArgumentException));

@@ -1,0 +1,32 @@
+/* Styles for the custom ItemTemplate demo on this page only. The template owns
+   the whole step body, so the marker look is reproduced here to show that a
+   host can replace it without losing the step rhythm. */
+.step-template {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    text-align: center;
+}
+
+.step-template__marker {
+    display: inline-grid;
+    width: var(--aeterni-control-height-sm);
+    height: var(--aeterni-control-height-sm);
+    place-items: center;
+    box-sizing: border-box;
+    border: var(--aeterni-border-width-medium) dashed var(--aeterni-separator);
+    border-radius: var(--aeterni-radius-full);
+    color: var(--aeterni-text-secondary);
+}
+
+.step-template__label {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+.step-template__meta {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
