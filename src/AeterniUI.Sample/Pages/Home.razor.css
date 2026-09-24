@@ -16,57 +16,9 @@
        the hero clears the floating header without a second magic number. */
     min-height: calc(100dvh - var(--sample-content-top));
     padding: var(--sample-content-top) 0 var(--aeterni-spacing-6);
-    background-image:
-        radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--aeterni-text-primary) 4%, transparent), transparent 27%),
-        radial-gradient(circle at 88% 78%, color-mix(in srgb, var(--aeterni-text-primary) 4%, transparent), transparent 31%),
-        linear-gradient(112deg, transparent 0 48%, color-mix(in srgb, var(--aeterni-text-primary) 2%, transparent) 48.1% 48.25%, transparent 48.35% 100%);
 }
 
-/* 仅使用无彩色层次构成页面底色，避免大面积彩色背景干扰内容阅读。 */
-.doc-home::before,
-.doc-home::after {
-    position: absolute;
-    z-index: 0;
-    width: clamp(260px, 34vw, 520px);
-    height: clamp(260px, 34vw, 520px);
-    border: 1px solid color-mix(in srgb, var(--aeterni-text-primary) 7%, transparent);
-    border-radius: var(--aeterni-radius-round);
-    pointer-events: none;
-    content: "";
-    animation: doc-home-drift 18s var(--aeterni-ease-in-out) infinite alternate;
-}
-
-.doc-home::before {
-    top: clamp(110px, 16vh, 180px);
-    left: -14%;
-    background: radial-gradient(circle,
-        color-mix(in srgb, var(--aeterni-text-primary) 5%, transparent) 0%,
-        transparent 68%);
-    box-shadow: 0 0 0 24px color-mix(in srgb, var(--aeterni-text-primary) 2%, transparent),
-                0 0 0 48px color-mix(in srgb, var(--aeterni-text-primary) 1%, transparent);
-    transform: rotate(-18deg);
-}
-
-.doc-home::after {
-    right: -12%;
-    bottom: -20%;
-    background: repeating-linear-gradient(135deg,
-        transparent 0 17px,
-        color-mix(in srgb, var(--aeterni-text-primary) 5%, transparent) 18px 19px);
-    opacity: .7;
-    animation-delay: -9s;
-    transform: rotate(14deg);
-}
-
-@keyframes doc-home-drift {
-    from {
-        translate: 0 0;
-    }
-
-    to {
-        translate: 16px -12px;
-    }
-}
+/* 首页内容保持在共享动态背景之上。 */
 
 .doc-home__grid {
     position: relative;

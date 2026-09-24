@@ -6,6 +6,8 @@
 */
 
 .sample-page {
+    position: relative;
+    isolation: isolate;
     box-sizing: border-box;
     min-height: 100vh;
     /* The top inset is the header's own inset, so the first content row lands on
@@ -15,6 +17,78 @@
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-base);
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
+}
+
+.sample-page__ambient {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sample-page__ambient::before {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(115deg,
+        color-mix(in srgb, var(--aeterni-color-brand-default) 4%, transparent),
+        transparent 42%,
+        color-mix(in srgb, var(--aeterni-color-info-default) 3%, transparent));
+    content: "";
+}
+
+.sample-page__orb {
+    --sample-orb-color: var(--aeterni-color-brand-default);
+    --sample-orb-size: clamp(300px, 42vw, 680px);
+    --sample-orb-opacity: .24;
+
+    position: absolute;
+    width: var(--sample-orb-size);
+    height: var(--sample-orb-size);
+    border-radius: var(--aeterni-radius-round);
+    background: radial-gradient(circle at 45% 45%,
+        color-mix(in srgb, var(--sample-orb-color) 36%, transparent),
+        color-mix(in srgb, var(--sample-orb-color) 13%, transparent) 42%,
+        transparent 72%);
+    opacity: var(--sample-orb-opacity);
+    filter: blur(2px);
+    animation: sample-orb-drift 28s var(--aeterni-ease-in-out) infinite alternate;
+    will-change: transform;
+}
+
+.sample-page__orb--brand {
+    top: -22%;
+    left: -12%;
+}
+
+.sample-page__orb--info {
+    --sample-orb-color: var(--aeterni-color-info-default);
+    --sample-orb-size: clamp(260px, 36vw, 580px);
+    --sample-orb-opacity: .18;
+
+    right: -10%;
+    bottom: -18%;
+    animation-delay: -9s;
+}
+
+.sample-page__orb--success {
+    --sample-orb-color: var(--aeterni-color-success-default);
+    --sample-orb-size: clamp(180px, 24vw, 380px);
+    --sample-orb-opacity: .12;
+
+    top: 38%;
+    left: 42%;
+    animation-delay: -17s;
+}
+
+@keyframes sample-orb-drift {
+    from {
+        transform: translate3d(-18px, 12px, 0) scale(.96);
+    }
+
+    to {
+        transform: translate3d(28px, -24px, 0) scale(1.08);
+    }
 }
 
 .sample-header {
@@ -127,6 +201,12 @@
     text-decoration-color: var(--aeterni-color-brand-default);
     text-underline-offset: 5px;
     text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sample-page__orb {
+        animation: none;
+    }
 }
 
 @media (max-width: 700px) {
