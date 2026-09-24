@@ -8,6 +8,7 @@
 .doc-home {
     position: relative;
     width: 100%;
+    overflow: hidden;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -15,6 +16,40 @@
        the hero clears the floating header without a second magic number. */
     min-height: calc(100dvh - var(--sample-content-top));
     padding: var(--sample-content-top) 0 var(--aeterni-spacing-6);
+}
+
+/* 仅使用无彩色层次构成页面底色，避免大面积彩色背景干扰内容阅读。 */
+.doc-home::before,
+.doc-home::after {
+    position: absolute;
+    z-index: 0;
+    width: clamp(260px, 34vw, 520px);
+    height: clamp(260px, 34vw, 520px);
+    border: 1px solid color-mix(in srgb, var(--aeterni-text-primary) 7%, transparent);
+    border-radius: var(--aeterni-radius-round);
+    pointer-events: none;
+    content: "";
+}
+
+.doc-home::before {
+    top: clamp(110px, 16vh, 180px);
+    left: -14%;
+    background: radial-gradient(circle,
+        color-mix(in srgb, var(--aeterni-text-primary) 5%, transparent) 0%,
+        transparent 68%);
+    box-shadow: 0 0 0 24px color-mix(in srgb, var(--aeterni-text-primary) 2%, transparent),
+                0 0 0 48px color-mix(in srgb, var(--aeterni-text-primary) 1%, transparent);
+    transform: rotate(-18deg);
+}
+
+.doc-home::after {
+    right: -12%;
+    bottom: -20%;
+    background: repeating-linear-gradient(135deg,
+        transparent 0 17px,
+        color-mix(in srgb, var(--aeterni-text-primary) 5%, transparent) 18px 19px);
+    opacity: .7;
+    transform: rotate(14deg);
 }
 
 .doc-home__grid {
