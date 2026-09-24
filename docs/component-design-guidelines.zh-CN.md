@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.18.0`
+文档版本：`10.19.0`
 
 状态：第一版草案
 
@@ -976,3 +976,14 @@ FormField
 ### Toolbar 动作容器契约
 
 `Toolbar` 是无背景、无边框的动作布局，横向/纵向仅接纳 Button、IconButton 与 MenuButton。`ToolbarGroup` 提供必填名称的 `role="group"`，不增加 Tab 停留点。整条工具栏共享一个 roving tabindex；所属轴方向键循环、Home/End 首尾、横向 RTL 反转，非所属轴与 Enter/Space 留给按钮/菜单。菜单弹层与嵌套工具栏不属于外层候选。Disabled 使用 inert 阻止后代交互；隐藏、禁用、加载项跳过。业务状态留在宿主，JS 仅负责浏览器焦点和监听器释放；不提前建立通用焦点抽象。
+
+### FlashCard 媒体卡契约
+
+`FlashCard` 把整个 3D 舞台收在组件内部：根元素只承载透视，`.aeterni-flash-card__tilt` 负责指针旋转与悬停缩放，`.aeterni-flash-card__inner` 负责翻面，两面绝对定位于同一个 `aspect-ratio` 盒子，因此两侧尺寸永远一致。
+
+- 指针跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`），不在 JS 里直接改 `transform`：旋转组合、悬停缩放、翻面与过渡全部留在隔离样式表，module 只负责指针位置与监听器释放。
+- 透视放在根元素、而不是旋转元素上：旋转根元素会连焦点轮廓和透视原点一起旋转，既毁掉焦点环，也让倾斜状态下的指针换算持续漂移。
+- 卡片只在提供 `Back` 内容时才是控件，输出按钮语义与 `aria-pressed`；未翻出的一面必须用 `aria-hidden` 与 `inert` 退出无障碍树，不能用视觉翻转替代该状态。
+- 翻转是组件状态而非 CSS 悬浮：`FlipTrigger="Click"` 时 `IsFlipped` 受控，键盘 Enter/Space 与指针点击走同一个回调，回调前先更新非受控状态；`FlipTrigger="Hover"` 是由样式表驱动的指针预览，组件不再输出控件语义，也不隐藏任何一面——浏览器拥有的状态不能变成 ARIA 谎报，需要键盘等价操作时用默认的 `Click`。
+- 容器背景保持无彩色，只消费 `--aeterni-bg-surface`、`--aeterni-border-default`、`--aeterni-shadow-*` 与 `--aeterni-state-*`。`Sheen` 是这条规则里唯一被允许的彩色表面，而且必须保持为**铺满媒体区的光学装饰**：只在有 `ImageSrc` 时渲染、只覆盖图片、不覆盖图文说明区，也不参与容器背景填充，所以它不会把卡片本身染成品牌色底，也不会压低说明文字的对比度。混合模式要按效果选：彩虹镭射用 `color`（替换色相与饱和度、保留图片明度），白光反光用 `screen`（提亮）——用 `screen` 做彩虹会让浅色图片完全看不出闪光，因为只对暗像素生效。炫光必须整面铺满——指针位置只用来偏移渐变相位，不允许退化成"指针下面一块高光"。
+- `Tilt="false"`、`Disabled` 与减少动态效果时都不得注册指针跟随，也不得保留过渡；光泽层在这些情况下停在默认位置，而不是消失或改用手动动画。

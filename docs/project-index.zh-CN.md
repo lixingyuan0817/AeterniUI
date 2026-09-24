@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.18.0`
+文档版本：`10.19.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.18.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.19.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -122,9 +122,10 @@ Components/<Component>/
 
 ### 渲染契约检查
 
-- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 17 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 18 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义、FlashCard 的翻转与隐藏面语义。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
 - [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
 - [`tests/quality-interactions.test.mjs`](../tests/quality-interactions.test.mjs)：模态 Esc 策略、可取消退出、reduced-motion、键盘与 Tooltip 动态关联的浏览器行为回归；C# 的 `QualityContractHost.cs` 配合渲染契约覆盖状态、日期极值与时间映射复用。
+- [`tests/flash-card.test.mjs`](../tests/flash-card.test.mjs)：`node --test tests/flash-card.test.mjs`，用 DOM 替身验证 FlashCard 指针跟随写入的旋转与高光变量、越界收敛、`Tilt="false"` / `Disabled` / reduced-motion 不注册监听器，以及重复挂载后的监听器释放；不是浏览器端到端测试。
 
 ### 静态发布
 
@@ -186,7 +187,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 | 能力组 | 组件 |
 | --- | --- |
-| 动作和布局 | `Button`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Toolbar`、`ToolbarGroup`、`ToggleGroup`、`Surface`、`Card`、`Divider`、`Accordion` |
+| 动作和布局 | `Button`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Toolbar`、`ToolbarGroup`、`ToggleGroup`、`Surface`、`Card`、`FlashCard`、`Divider`、`Accordion` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List<TItem>`、`ListItem<TItem>`、`Rating`、`ComboBox` |
 | 导航 | `Breadcrumb`、`Stepper`、`Menu`、`Tabs`、`Tab` |
@@ -262,3 +263,10 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 - `src/AeterniUI/Components/Stepper/`：Stepper 与 StepperItem 线性流程指示、受控当前步骤、横纵向布局、单步标记图标与可选 `ItemTemplate` 单一内容区；不管理业务流程状态。
 - `src/AeterniUI.Sample/Pages/Components/Stepper.razor`、`Stepper.razor.css`：`/components/stepper` 交互示例（含自定义模板演示），由 ShowcaseCatalog 注册。
+
+### FlashCard 模块
+
+- `src/AeterniUI/Components/FlashCard/`：FlashCard 图片闪卡、可选背面内容、`Sheen`（`Holo` / `Shine` / `None`）光泽层、`FlipTrigger`（`Click` / `Hover`）与受控翻转、3D 指针跟随 module（`FlashCard.razor.js` 只写旋转与光泽位置变量并释放监听器）；视觉、光泽配方与翻面规则全部留在 `FlashCard.razor.css`。
+- `src/AeterniUI.Sample/Pages/Components/FlashCard.razor`、`FlashCard.razor.css`：`/components/flash-card` 交互示例（一张完整闪现卡与一张只传 `ImageSrc` 的纯图片卡），由 ShowcaseCatalog 注册。
+- `src/AeterniUI.Sample/wwwroot/images/flash-card/magician.jpg`：示例卡面（800×800 JPEG，约 200KB），由示例页以相对路径引用，因此 GitHub Pages 的 base href 子路径部署同样有效。
+- `tests/flash-card.test.mjs`：`node --test tests/flash-card.test.mjs` 覆盖指针跟随、越界收敛、关闭与减少动画时不注册监听器以及重复挂载的释放；不代替浏览器端到端验收。

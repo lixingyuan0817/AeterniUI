@@ -44,6 +44,7 @@ public static class ShowcaseCatalog
             new("toggle-group", "ToggleGroup", "单选与多选动作切换"),
             new("surface", "Surface", "视觉容器"),
             new("card", "Card", "结构化容器"),
+            new("flash-card", "FlashCard", "图片闪卡与 3D 跟随"),
             new("divider", "Divider", "分隔线"),
             new("empty", "Empty", "空状态占位"),
             new("icon", "Icon", "SVG 图标"),

@@ -1,0 +1,50 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onclick="ClickHandler"
+     @onkeydown="KeyDownHandler">
+    <div class="aeterni-flash-card__tilt">
+        <div class="aeterni-flash-card__inner">
+            <div class="aeterni-flash-card__face aeterni-flash-card__face--front"
+                 aria-hidden="@(IsBackVisible ? "true" : null)"
+                 inert="@(IsBackVisible ? true : null)">
+                @if (HasImage)
+                {
+                    <div class="aeterni-flash-card__media">
+                        <img src="@ImageSrc" alt="@ImageAltValue" />
+
+                        @if (HasSheen)
+                        {
+                            <span class="aeterni-flash-card__sheen" aria-hidden="true"></span>
+                        }
+                    </div>
+                }
+
+                @if (HasCaption)
+                {
+                    <div class="aeterni-flash-card__caption @(HasImage ? "is-media" : null)">
+                        @if (HasTitle)
+                        {
+                            <span class="aeterni-flash-card__title">@Title</span>
+                        }
+
+                        @if (HasDescription)
+                        {
+                            <span class="aeterni-flash-card__description">@Description</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (Back is not null)
+            {
+                <div class="aeterni-flash-card__face aeterni-flash-card__face--back"
+                     aria-hidden="@(IsBackHidden ? "true" : null)"
+                     inert="@(IsBackHidden ? true : null)">
+                    @Back
+                </div>
+            }
+        </div>
+    </div>
+</div>

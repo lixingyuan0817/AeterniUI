@@ -3,6 +3,7 @@ using AeterniUI.Components.Accordion;
 using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
+using AeterniUI.Components.FlashCard;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.Stepper;
@@ -31,6 +32,7 @@ await CheckAccordionAriaAsync();
 await CheckCalendarGridAsync();
 await CheckTimeListFocusAsync();
 await CheckAvatarVariantsAsync();
+await CheckFlashCardAsync();
 await CheckToolbarAsync();
 await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
@@ -53,7 +55,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (17 groups).");
+Console.WriteLine("Component contract checks passed (18 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -827,6 +829,165 @@ async Task CheckAvatarVariantsAsync()
     var root = FindRepositoryRoot();
     var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Avatar/Avatar.razor.css"));
     Require(css.Contains(".aeterni-avatar--info", StringComparison.Ordinal), "Avatar Info class must have a matching style rule.");
+}
+
+async Task CheckFlashCardAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(FlashCard), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Name == "flash-card", "FlashCard must declare its pointer following module.");
+
+    RenderFragment back = builder => builder.AddContent(0, "Back side");
+
+    var flippable = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.ImageSrc)] = "/cover.svg",
+        [nameof(FlashCard.ImageAlt)] = "Cover",
+        [nameof(FlashCard.Title)] = "Cover title",
+        [nameof(FlashCard.Back)] = back
+    });
+
+    Require(flippable.Contains("role=\"button\"", StringComparison.Ordinal)
+        && flippable.Contains("aria-pressed=\"false\"", StringComparison.Ordinal)
+        && flippable.Contains("tabindex=\"0\"", StringComparison.Ordinal),
+        "A flippable FlashCard must expose button semantics and its pressed state.");
+    Require(flippable.Contains("aria-label=\"Cover title\"", StringComparison.Ordinal), "FlashCard must fall back to Title as its accessible name.");
+    Require(flippable.Contains("is-flippable", StringComparison.Ordinal), "A flippable FlashCard must advertise its pointer cursor class.");
+    Require(flippable.Contains("alt=\"Cover\"", StringComparison.Ordinal), "FlashCard must render the supplied alternative text.");
+    Require(flippable.Contains("--aeterni-flash-card-perspective: 800px", StringComparison.Ordinal)
+        && flippable.Contains("--aeterni-flash-card-scale: 1.02", StringComparison.Ordinal),
+        "Tilt parameters must reach the isolated stylesheet through the card's custom properties.");
+    Require(flippable.Contains("aeterni-flash-card--sheen-holo", StringComparison.Ordinal)
+        && flippable.Contains("aeterni-flash-card__sheen", StringComparison.Ordinal)
+        && flippable.Contains("--aeterni-flash-card-sheen-opacity: 0.6", StringComparison.Ordinal),
+        "The default finish must render the holographic overlay with its strength token.");
+
+    var hiddenBackTag = Regex.Match(flippable, "<div[^>]*aeterni-flash-card__face--back[^>]*>").Value;
+    Require(hiddenBackTag.Contains("aria-hidden=\"true\"", StringComparison.Ordinal) && hiddenBackTag.Contains("inert", StringComparison.Ordinal),
+        "The back face of an unflipped FlashCard must leave the accessibility tree.");
+    var frontTag = Regex.Match(flippable, "<div[^>]*aeterni-flash-card__face--front[^>]*>").Value;
+    Require(frontTag.Length > 0 && !frontTag.Contains("aria-hidden", StringComparison.Ordinal) && !frontTag.Contains("inert", StringComparison.Ordinal),
+        "The visible front face must stay exposed while the card is unflipped.");
+
+    var flipped = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.ImageSrc)] = "/cover.svg",
+        [nameof(FlashCard.Back)] = back,
+        [nameof(FlashCard.IsFlipped)] = true
+    });
+
+    Require(flipped.Contains("aria-pressed=\"true\"", StringComparison.Ordinal) && flipped.Contains("is-flipped", StringComparison.Ordinal),
+        "IsFlipped must reach both the rendered state and the pressed state.");
+    frontTag = Regex.Match(flipped, "<div[^>]*aeterni-flash-card__face--front[^>]*>").Value;
+    Require(frontTag.Contains("aria-hidden=\"true\"", StringComparison.Ordinal) && frontTag.Contains("inert", StringComparison.Ordinal),
+        "The front face must leave the accessibility tree once the card shows its back.");
+    var visibleBackTag = Regex.Match(flipped, "<div[^>]*aeterni-flash-card__face--back[^>]*>").Value;
+    Require(!visibleBackTag.Contains("aria-hidden", StringComparison.Ordinal) && !visibleBackTag.Contains("inert", StringComparison.Ordinal),
+        "The visible back face must stay exposed while the card is flipped.");
+
+    var staticCard = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.Title)] = "Static card"
+    });
+
+    Require(!staticCard.Contains("role=\"button\"", StringComparison.Ordinal) && !staticCard.Contains("tabindex", StringComparison.Ordinal),
+        "A FlashCard without Back content must stay a static container.");
+    Require(!staticCard.Contains("aeterni-flash-card__face--back", StringComparison.Ordinal), "A static FlashCard must not render a back face.");
+    Require(!staticCard.Contains("aeterni-flash-card__sheen", StringComparison.Ordinal), "A card without media has no surface for the finish overlay.");
+
+    var imageOnly = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.ImageSrc)] = "/cover.svg",
+        [nameof(FlashCard.ImageAlt)] = "Cover"
+    });
+
+    Require(imageOnly.Contains("aeterni-flash-card__media", StringComparison.Ordinal)
+        && !imageOnly.Contains("aeterni-flash-card__caption", StringComparison.Ordinal),
+        "An image only FlashCard must render its media without a caption area.");
+    Require(!imageOnly.Contains("role=\"button\"", StringComparison.Ordinal), "An image only FlashCard is not flippable.");
+
+    var noSheen = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.ImageSrc)] = "/cover.svg",
+        [nameof(FlashCard.Sheen)] = FlashCardSheen.None
+    });
+
+    Require(!noSheen.Contains("aeterni-flash-card__sheen", StringComparison.Ordinal)
+        && !noSheen.Contains("--sheen-holo", StringComparison.Ordinal),
+        "Sheen=None must render no finish overlay at all.");
+
+    var hoverPreview = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.Back)] = back,
+        [nameof(FlashCard.FlipTrigger)] = FlashCardFlipTrigger.Hover
+    });
+
+    Require(hoverPreview.Contains("is-flip-hover", StringComparison.Ordinal), "The Hover trigger must emit its public modifier class.");
+    Require(!hoverPreview.Contains("role=\"button\"", StringComparison.Ordinal)
+        && !hoverPreview.Contains("tabindex", StringComparison.Ordinal)
+        && !hoverPreview.Contains("aria-pressed", StringComparison.Ordinal),
+        "A hover preview is pointer-only and must not present itself as a control.");
+    Require(!hoverPreview.Contains("aria-hidden", StringComparison.Ordinal) && !hoverPreview.Contains("inert", StringComparison.Ordinal),
+        "A hover preview keeps both faces readable, because the browser owns the flipped state.");
+
+    var disabled = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.Back)] = back,
+        [nameof(FlashCard.Title)] = "Disabled card",
+        [nameof(FlashCard.Disabled)] = true
+    });
+
+    Require(disabled.Contains("aria-disabled=\"true\"", StringComparison.Ordinal) && !disabled.Contains("tabindex", StringComparison.Ordinal),
+        "A disabled FlashCard must announce its state and leave the tab sequence.");
+
+    const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+    var onParametersSet = typeof(FlashCard).GetMethod("OnParametersSet", flags)!;
+    // Parameters are assigned reflectively so the contract host stays a plain
+    // consumer without triggering the BL0005 analyzer.
+    var invalidRatio = new FlashCard();
+    typeof(FlashCard).GetProperty(nameof(FlashCard.ImageSrc))!.SetValue(invalidRatio, "/cover.svg");
+    typeof(FlashCard).GetProperty(nameof(FlashCard.AspectRatio))!.SetValue(invalidRatio, 0d);
+    Require(Throws(onParametersSet, invalidRatio), "AspectRatio must reject non-positive values.");
+    Require(Throws(onParametersSet, new FlashCard()), "A FlashCard without any content must be rejected.");
+
+    var saturatedSheen = new FlashCard();
+    typeof(FlashCard).GetProperty(nameof(FlashCard.ImageSrc))!.SetValue(saturatedSheen, "/cover.svg");
+    typeof(FlashCard).GetProperty(nameof(FlashCard.SheenIntensity))!.SetValue(saturatedSheen, 1.5d);
+    Require(Throws(onParametersSet, saturatedSheen), "SheenIntensity must reject values above 1.");
+
+    var root = FindRepositoryRoot();
+    var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/FlashCard/FlashCard.razor.css"));
+    Require(css.Contains("perspective: var(--aeterni-flash-card-perspective)", StringComparison.Ordinal), "FlashCard must expose the perspective token of its tilt stage.");
+    Require(css.Contains(".aeterni-flash-card.is-flipped .aeterni-flash-card__inner", StringComparison.Ordinal), "The flipped state must have a matching style rule.");
+    Require(css.Contains(".aeterni-flash-card.is-flip-hover:not(.is-disabled):hover .aeterni-flash-card__inner", StringComparison.Ordinal),
+        "The Hover trigger must have a matching style rule.");
+    Require(css.Contains(".aeterni-flash-card--sheen-shine .aeterni-flash-card__sheen", StringComparison.Ordinal)
+        && css.Contains(".aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen", StringComparison.Ordinal)
+        && css.Contains("mix-blend-mode: color", StringComparison.Ordinal)
+        && css.Contains("mix-blend-mode: screen", StringComparison.Ordinal),
+        "The holographic finish must keep the image lightness with `color` and the metallic finish must lift it with `screen`.");
+    Require(!css.Contains("radial-gradient", StringComparison.Ordinal),
+        "The finish covers the whole card surface; a pointer-local spotlight would turn it into a cursor highlight.");
+    Require(css.Contains("@media (prefers-reduced-motion: reduce)", StringComparison.Ordinal), "FlashCard must honour the reduced motion preference.");
+
+    var script = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/FlashCard/FlashCard.razor.js"));
+    Require(script.Contains("export function dispose", StringComparison.Ordinal) && script.Contains("removeEventListener", StringComparison.Ordinal),
+        "The FlashCard module must release its pointer listeners.");
+    Require(script.Contains("--aeterni-flash-card-sheen-x", StringComparison.Ordinal),
+        "The module must drive the sheen position together with the rotation.");
+
+    static bool Throws(System.Reflection.MethodInfo method, object target)
+    {
+        try
+        {
+            method.Invoke(target, null);
+            return false;
+        }
+        catch (System.Reflection.TargetInvocationException)
+        {
+            return true;
+        }
+    }
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)

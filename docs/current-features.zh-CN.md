@@ -1,10 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.18.0`
+文档版本：`10.19.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
+
+## 10.19.0 FlashCard 功能发布
+
+新增 `FlashCard` 图片闪卡组件：卡面可以只有图片，也可以补上图文说明与背面内容；表面叠着一层随指针滑动的光泽（`Sheen` 镭射彩虹 / 金属白光 / 关闭，`SheenIntensity` 控制强度），整张卡同时随指针做 3D 倾斜。倾斜与光泽位置由独立 JS module 写入旋转与位置变量，视觉全部留在隔离样式表；`Tilt="false"`、`Disabled` 与系统「减少动态效果」下完全不注册指针监听。示例 `/components/flash-card`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
 
 ## 10.18.0 Stepper 模板与布局扩展
 
@@ -1208,7 +1212,38 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供异步编排、路由集成、自动推进、步骤内容面板、拖拽排序或复杂流程校验；步骤完成与是否可跳转由宿主提供。示例：`/components/stepper`。
 
-## 45. 当前边界
+## 45. FlashCard
+
+### 支持能力
+
+`FlashCard` 是一张带媒体的闪卡：正面由图片和可选图文说明组成，卡面可以只有图片，图片上叠着一层随指针滑动的光泽（镭射彩虹或金属白光），整张卡同时随指针做 3D 倾斜；再提供 `Back` 内容时卡片还可以翻面。
+
+- 正面媒体：`ImageSrc` / `ImageAlt`；`ImageAlt` 为空时输出 `alt=""`，即把图片标记为装饰内容。只传 `ImageSrc` 就是一张纯图片闪卡：正面只有图片，光泽与 3D 跟随照旧生效。
+- 正面说明：`Title` 与 `Description`，两者都省略时不渲染说明区。
+- 背面：`Back`（`RenderFragment?`）。未提供时卡片是静态容器：不渲染背面、不输出按钮语义，也不注册点击或键盘处理器。
+- 卡面比例：`AspectRatio`，必须为正的有限数，默认 `1`。
+- 卡面光泽：`Sheen`（`FlashCardSheen.Holo` / `Shine` / `None`，默认 `Holo`）与 `SheenIntensity`（`0`～`1`，默认 `0.6`）。
+- 翻转状态：`IsFlipped` / `IsFlippedChanged`。只设置 `IsFlipped` 时组件自己维护内部状态，绑定回调后完全受控。
+- 翻面触发：`FlipTrigger`（`FlashCardFlipTrigger.Click` 或 `Hover`）。`Click` 是可聚焦控件，`Hover` 是由样式表驱动的纯指针预览，默认 `Click`。
+- 3D 跟随：`Tilt`（默认 `true`）、`MaxTiltAngle`（默认 `16`，单位度）、`TiltScale`（默认 `1.02`）与 `Perspective`（默认 `800`，单位像素）。
+- 可访问名称：`AriaLabel`，缺省使用 `Title`。
+
+### 行为与无障碍
+
+- `FlipTrigger="Click"`（默认）时卡片是控件：根元素输出 `role="button"`、`aria-pressed`（当前是否显示背面）和 `tabindex="0"`；点击、Enter 与 Space 都通过 `IsFlippedChanged` 提出新状态，非受控模式下组件先更新自身状态再回调。
+- `FlipTrigger="Hover"` 只是指针预览：样式表在 `:hover` 时翻面，卡片不可聚焦、不输出按钮语义、不改变 `IsFlipped`，也不隐藏任何一面（浏览器拥有该状态，组件无从得知），因此没有键盘等价操作；需要在背面提供操作时应使用默认的 `Click` 触发。
+- 未翻出的一面标记 `aria-hidden="true"` 并输出 `inert`，屏幕阅读器与 Tab 序列因此只面对当前可见的一面；静态卡片与 Hover 预览都不输出这两类语义。
+- `Disabled` 时根元素输出 `aria-disabled="true"`、移出 Tab 序列、不注册指针跟随，并消费 `--aeterni-state-*` 禁用 Token。
+- 3D 跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`）与光泽位置（`Sheen` 不为 `None` 时另写 `--aeterni-flash-card-sheen-x` / `-y`）并在跟随期间标记 `is-tilting`；旋转、悬停缩放、光泽配方、翻面与全部过渡都留在 `FlashCard.razor.css`。
+- 光泽层是叠在媒体区之上的装饰（`Holo` 走 `mix-blend-mode: color`：替换色相与饱和度、保留图片自身明度；`Shine` 走 `mix-blend-mode: screen`：提亮），只覆盖图片、不覆盖图文说明区，也不参与容器背景填充：容器背景仍是无色 `--aeterni-bg-surface`，`Sheen` 关闭或没有 `ImageSrc` 时这一层完全不渲染。**炫光铺满整张卡面**，指针位置只改变渐变的相位（整片光纹流动），不在指针处单独生成一块光斑。静止时按 50% 强度呈现，指针移入、聚焦或卡片倾斜时升到 `SheenIntensity` 全强度。
+- `Tilt="false"`、`Disabled` 与系统「减少动态效果」都不注册指针监听器：卡片保持平整、光泽停在原位（默认居中），但仍可翻面；减少动态效果同时移除过渡。
+- 参数校验：`AspectRatio`、`Perspective` 与 `TiltScale` 必须为正的有限数，`MaxTiltAngle` 必须为非负有限数，`SheenIntensity` 必须落在 `0`～`1`；正面与背面内容全部缺省时抛出异常。
+
+### 实现边界
+
+第一版不提供视频等任意媒体、覆盖式图文排版、触摸手势、自动轮播或翻转编排；卡面宽度由宿主容器决定，组件不提供尺寸档位。示例：`/components/flash-card`。
+
+## 46. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

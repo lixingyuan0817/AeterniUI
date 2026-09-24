@@ -1,8 +1,16 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.18.0`
+文档版本：`10.19.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；v0.7 规划中。
+
+## 10.19.0 FlashCard 功能发布
+
+- [x] 新增 `FlashCard` 图片闪卡：正面图片与可选图文说明、可选 `Back` 背面内容、`Sheen` 卡面光泽（`Holo` 镭射彩虹 / `Shine` 金属白光 / `None`）、`FlipTrigger`（默认 `Click` 可聚焦控件，`Hover` 为纯指针预览）、受控与非受控翻转，以及 `AriaLabel` / `Title` 提供的可访问名称；只传 `ImageSrc` 即为纯图片闪卡（不渲染说明区、不可翻转，仍保留光泽与 3D 跟随）。
+- [x] 指针跟随的 3D 倾斜与光泽位置由独立 `.razor.js` 写入 `--aeterni-flash-card-rotate-*` 与 `--aeterni-flash-card-sheen-*` 变量实现，并由 `Tilt` / `MaxTiltAngle`（默认 16°）/ `TiltScale` / `Perspective` / `Sheen`（默认 `Holo`）/ `SheenIntensity` 参数化；`Tilt="false"`、`Disabled` 与 reduced-motion 下不注册指针监听器，光泽停在默认位置。
+- [x] 新增 `/components/flash-card` 可操作示例（完整闪卡 + 纯图片卡，示例卡面为随示例站点发布的 `wwwroot/images/flash-card/magician.jpg`）、`tests/flash-card.test.mjs` 指针跟随与监听器释放回归，以及 `AeterniUI.ContractChecks` 的第 18 组渲染契约（按钮语义、`aria-pressed`、隐藏面 `aria-hidden` + `inert`、Hover 预览不冒充控件、禁用分支、参数校验与自定义属性）。
+- [x] `aeterni_ui.slnx` 构建、`AeterniUI.ContractChecks`、`node --check`、`node --test tests/*.test.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 与 `check-docs.sh` 均通过；版本属性统一为 10.19.0，同步当前功能、设计规范、审阅待办、项目索引、roadmap 与 README 发布 tag 示例。
+- [ ] 待发布：通过最终差异审查后推送 `v10.19.0`。
 
 ## 10.18.0 Stepper 模板与布局扩展
 
@@ -786,3 +794,4 @@ Search + List + PopupHost
 | v10.17.1 组件审查收口 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 修复 `Breadcrumb.IsCurrent` 的重复展开；补齐 `BreadcrumbItem.Target` 与 `_blank` 的 `rel="noopener noreferrer"`；把禁用层级上无效的 `aria-disabled` 改为保留链接语义并移出 Tab 序列；移除 `Stepper` 当前步骤的误导性指针反馈，描述文字色改用 `--aeterni-text-secondary`；清理 project-index 重复章节与错位的 toolbar 测试归属；把 `List` 的活动项底色限定为列表持有键盘焦点时生效，修复取消选中后遗留底色。 |
 | v10.17.2 补发完整发布 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 从 main 补发完整包：`10.17.1` 的发布 tag 打在侧分支 `fd9c606` 上，未包含 #18 的 Breadcrumb / Stepper 修复，故递增到 `10.17.2` 并同步全部发布元数据。 |
 | v10.18.0 Stepper 模板与布局扩展 | 已完成 | 构建、渲染契约、CSS 注释、文档与品牌对比度门禁 | `StepperItem` 新增 `Icon`、`Stepper` 新增 `ItemTemplate` 单一内容区（每步可渲染不同内容，模板接管按钮内全部内容）；横向布局改为标记在上、文字在下居中，连线沿标记行贯通且在两端各留一个 inset，纵向保持标记在左、文字在右。按仓库约定「功能新增递增次版本号」由 `10.17.3` 递增为 `10.18.0`。 |
+| v10.19.0 FlashCard 功能发布 | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 新增 `FlashCard` 图片闪卡：卡面可只有图片或补上图文说明与背面内容，`Sheen` 提供整面铺满、随指针相位流动的镭射彩虹／金属白光光泽（`SheenIntensity` 控制强度，只覆盖媒体区），`FlipTrigger`（默认 `Click` 可聚焦控件，`Hover` 为纯指针预览）与受控/非受控翻转，以及可参数化的 3D 指针跟随（`Tilt` / `MaxTiltAngle` 默认 16° / `TiltScale` / `Perspective`）；附 `/components/flash-card` 示例、`tests/flash-card.test.mjs` 与第 18 组渲染契约。倾斜与光泽位置只在 JS 里写变量，视觉留在隔离样式表。按仓库约定「功能新增递增次版本号」由 `10.18.0` 递增为 `10.19.0`。 |

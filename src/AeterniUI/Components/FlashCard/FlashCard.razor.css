@@ -1,0 +1,237 @@
+/* FlashCard keeps the whole 3D stage in this file: the root owns the perspective,
+   the tilt wrapper owns the pointer rotation and the hover scale, and the inner
+   wrapper owns the flip. Both faces are absolutely positioned inside an
+   aspect-ratio box, so the two sides always share one size.
+   The root element never carries the rotation itself: rotating the root would
+   also rotate the focus outline and the perspective origin, which breaks the
+   focus ring and makes the pointer maths drift while the card is tilted.
+   The sheen overlay is the "flash card" finish: a screen-blended optical layer
+   over the media area only. It is decoration on top of an image, never a second
+   container background, and it deliberately stays off the caption so the text it
+   carries keeps its contrast. */
+.aeterni-flash-card {
+    --aeterni-flash-card-radius: var(--aeterni-radius-card);
+    --aeterni-flash-card-aspect: 1;
+    --aeterni-flash-card-perspective: 800px;
+    --aeterni-flash-card-scale: 1.02;
+    --aeterni-flash-card-hover-scale: 1;
+    --aeterni-flash-card-rotate-x: 0deg;
+    --aeterni-flash-card-rotate-y: 0deg;
+    --aeterni-flash-card-sheen-opacity: 0.6;
+    --aeterni-flash-card-sheen-x: 50%;
+    --aeterni-flash-card-sheen-y: 50%;
+
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    min-width: 0;
+    border-radius: var(--aeterni-flash-card-radius);
+    perspective: var(--aeterni-flash-card-perspective);
+}
+
+.aeterni-flash-card.is-flippable:not(.is-flip-hover):not(.is-disabled) {
+    cursor: pointer;
+}
+
+.aeterni-flash-card:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-flash-card__tilt {
+    position: relative;
+    transform: rotateX(var(--aeterni-flash-card-rotate-x)) rotateY(var(--aeterni-flash-card-rotate-y)) scale(var(--aeterni-flash-card-hover-scale));
+    transform-style: preserve-3d;
+    transition: var(--aeterni-transition-transform);
+}
+
+/* The hover scale is applied through the same transform rule as the rotation, so
+   a card can never end up scaling without tilting or vice versa. `is-tilting` is
+   written by the JS module, which also skips the whole effect for reduced motion
+   and for `Tilt="false"`; the flat state therefore needs no extra reset rule. */
+.aeterni-flash-card.is-tilting .aeterni-flash-card__tilt {
+    --aeterni-flash-card-hover-scale: var(--aeterni-flash-card-scale);
+}
+
+.aeterni-flash-card__inner {
+    position: relative;
+    aspect-ratio: var(--aeterni-flash-card-aspect);
+    transform-style: preserve-3d;
+    transition: var(--aeterni-transition-transform);
+}
+
+.aeterni-flash-card.is-flipped .aeterni-flash-card__inner {
+    transform: rotateY(180deg);
+}
+
+/* The Hover trigger flips from the stylesheet instead of from component state.
+   It is a pointer-only preview: the card stays unfocusable and neither face is
+   hidden from assistive technology, because the browser owns this state and the
+   component never learns about it. */
+.aeterni-flash-card.is-flip-hover:not(.is-disabled):hover .aeterni-flash-card__inner {
+    transform: rotateY(180deg);
+}
+
+.aeterni-flash-card__face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-flash-card-radius);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-card);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: var(--aeterni-transition-shadow);
+}
+
+.aeterni-flash-card.is-tilting .aeterni-flash-card__face {
+    box-shadow: var(--aeterni-shadow-lg);
+}
+
+/* The back face is pre-rotated so it reads upright once the inner wrapper flips:
+   leaving it unrotated would mirror its content. */
+.aeterni-flash-card__face--back {
+    justify-content: center;
+    padding: var(--aeterni-padding-lg);
+    transform: rotateY(180deg);
+}
+
+.aeterni-flash-card__media {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    /* The sheen is screen-blended, so the media layer has to be its own blending
+       root: without this the overlay would blend against the card, the page and
+       whatever sits behind it instead of against the image it is finishing. */
+    isolation: isolate;
+}
+
+.aeterni-flash-card__media > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Opacity is deliberately low at rest: a foil card already shimmers at a glance,
+   and the overlay only earns full strength while the pointer is on it (or the card
+   is tilted or focused), so the image stays readable when the user is not
+   interacting with it. */
+.aeterni-flash-card__sheen {
+    position: absolute;
+    inset: 0;
+    opacity: calc(var(--aeterni-flash-card-sheen-opacity) * 0.5);
+    pointer-events: none;
+    background-repeat: no-repeat;
+    transition: var(--aeterni-transition-opacity);
+}
+
+.aeterni-flash-card:hover .aeterni-flash-card__sheen,
+.aeterni-flash-card:focus-visible .aeterni-flash-card__sheen,
+.aeterni-flash-card.is-tilting .aeterni-flash-card__sheen {
+    opacity: var(--aeterni-flash-card-sheen-opacity);
+}
+
+/* The finish covers the whole media area. A foil card throws its reflection
+   across the entire surface, so the overlay is a full-bleed gradient stack and
+   the pointer only shifts its phase: the whole rainbow ripples as the card is
+   tilted, instead of a spotlight appearing under the cursor. */
+.aeterni-flash-card--sheen-shine .aeterni-flash-card__sheen {
+    /* White light lifts the image, so the metallic finish stays on `screen`. */
+    mix-blend-mode: screen;
+    background-image: linear-gradient(112deg,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(255, 255, 255, 0.42) 22%,
+        rgba(255, 255, 255, 0.08) 44%,
+        rgba(255, 255, 255, 0.5) 66%,
+        rgba(255, 255, 255, 0.1) 86%,
+        rgba(255, 255, 255, 0.36) 100%);
+    background-size: 320% 320%;
+    background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+}
+
+/* Holographic finish: the diffraction grating of a foil card. Narrow rainbow bands
+   and brushed lines are fixed to the surface, and a broad light phase slides
+   across the whole face with the pointer — the card keeps its full-bleed rainbow
+   at rest and the whole pattern ripples while it is tilted.
+   `color` is the load-bearing part: it replaces hue and saturation while keeping
+   the image's own lightness, which is what real foil does. `screen` was tried
+   first and left a bright image (a pale illustration, a product shot on white)
+   visibly untouched — the overlay only shows up on dark pixels, so the "flash"
+   disappeared exactly where a card is usually brightest. */
+.aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen {
+    mix-blend-mode: color;
+    background-image:
+        repeating-linear-gradient(112deg,
+            rgba(255, 0, 128, 0.22) 0 30px,
+            rgba(255, 176, 0, 0.22) 30px 60px,
+            rgba(120, 255, 130, 0.22) 60px 90px,
+            rgba(0, 220, 255, 0.22) 90px 120px,
+            rgba(140, 90, 255, 0.22) 120px 150px),
+        repeating-linear-gradient(112deg,
+            rgba(255, 255, 255, 0) 0 4px, rgba(255, 255, 255, 0.18) 4px 5px, rgba(255, 255, 255, 0) 5px 9px),
+        linear-gradient(112deg,
+            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 255, 255, 0.42) 32%,
+            rgba(255, 255, 255, 0.1) 58%,
+            rgba(255, 255, 255, 0.38) 86%,
+            rgba(255, 255, 255, 0.14) 100%);
+    background-size: 100% 100%, 100% 100%, 320% 320%;
+    background-position: 0 0, 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+}
+
+.aeterni-flash-card__caption {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+    padding: var(--aeterni-padding-lg);
+}
+
+.aeterni-flash-card__caption.is-media {
+    border-block-start: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+.aeterni-flash-card__title {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.aeterni-flash-card__description {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-flash-card.is-disabled .aeterni-flash-card__face {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    color: var(--aeterni-state-color-disabled);
+    box-shadow: none;
+}
+
+.aeterni-flash-card.is-disabled .aeterni-flash-card__title,
+.aeterni-flash-card.is-disabled .aeterni-flash-card__description {
+    color: var(--aeterni-state-color-disabled);
+}
+
+/* Reduced motion keeps the flip: it is a state change, not decoration. Only the
+   transitions and the pointer following are dropped, and the sheen keeps its
+   resting position. */
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-flash-card__tilt,
+    .aeterni-flash-card__inner,
+    .aeterni-flash-card__face,
+    .aeterni-flash-card__sheen {
+        transition: none;
+    }
+}
