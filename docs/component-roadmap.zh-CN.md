@@ -9,14 +9,14 @@
 - [x] 修复 FlashCardGroup 隔离 CSS 对子组件根元素的作用域匹配，牌堆卡片现在能正确显示宽度、叠放和扇形展开布局。
 - [x] 优化牌堆交互：收拢状态增加轻微错位与旋转，展开后悬浮或聚焦的卡片抬升到最上层并完整显示卡面。
 - [x] 用无头浏览器验证 `/components/flash-card-group` 实际预览已显示卡片；构建、契约检查和 CSS/文档门禁通过。
-- [ ] 待发布：通过最终差异审查后推送 `v10.20.2`。
+- [x] 已完成最终差异审查、Release 构建、双包打包和 19 组契约检查，准备推送 `v10.20.2`；该版本同时收纳 10.20.0 与 10.20.1 的累计变更。
 
 ## 10.20.1 FlashCardGroup 示例补充
 
 - [x] 新增 `/components/flash-card-group` 独立示例页，并在 ShowcaseCatalog 注册导航入口。示例包含悬浮/聚焦展开、保持展开、禁用、卡片宽度/间距调整和“抽一张卡”宿主交互。
 - [x] 修正 FlashCard 示例页职责：只展示 FlashCard，自成页面的牌堆示例移至 FlashCardGroup 页面。
 - [x] 通过构建与文档一致性检查；版本属性更新为 10.20.1。
-- [ ] 待发布：通过最终差异审查后推送 `v10.20.1`。
+- [x] 已并入 `v10.20.2`，不单独创建 `v10.20.1` tag。
 
 ## 10.20.0 FlashCard 光泽优化与 FlashCardGroup
 
@@ -24,7 +24,7 @@
 - [x] 新增 `FlashCardGroup`：多张 FlashCard 默认折叠叠放，悬浮或 `focus-within` 扇形展开；支持 `Expanded`、`HoverExpand`、`CardWidth`、`ExpandedSpacing`、`CollapsedOffset` 与根级无障碍/禁用语义。
 - [x] `/components/flash-card` 增加抽卡牌堆交互示例；契约检查扩展为第 19 组，保留 `tests/flash-card.test.mjs` 指针跟随与资源释放回归。
 - [x] `aeterni_ui.slnx` 构建、`AeterniUI.ContractChecks`、`node --check`、`node --test tests/*.test.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 与 `check-docs.sh` 通过；版本属性统一为 10.20.0。
-- [ ] 待发布：通过最终差异审查后推送 `v10.20.0`。
+- [x] 已并入 `v10.20.2`，不单独创建 `v10.20.0` tag。
 
 ## 10.18.0 Stepper 模板与布局扩展
 
