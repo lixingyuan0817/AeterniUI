@@ -1,8 +1,15 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.20.0`
+文档版本：`10.20.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；v0.7 规划中。
+
+## 10.20.1 FlashCardGroup 示例补充
+
+- [x] 新增 `/components/flash-card-group` 独立示例页，并在 ShowcaseCatalog 注册导航入口。示例包含悬浮/聚焦展开、保持展开、禁用、卡片宽度/间距调整和“抽一张卡”宿主交互。
+- [x] 修正 FlashCard 示例页职责：只展示 FlashCard，自成页面的牌堆示例移至 FlashCardGroup 页面。
+- [x] 通过构建与文档一致性检查；版本属性更新为 10.20.1。
+- [ ] 待发布：通过最终差异审查后推送 `v10.20.1`。
 
 ## 10.20.0 FlashCard 光泽优化与 FlashCardGroup
 
@@ -795,4 +802,5 @@ Search + List + PopupHost
 | v10.17.2 补发完整发布 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 从 main 补发完整包：`10.17.1` 的发布 tag 打在侧分支 `fd9c606` 上，未包含 #18 的 Breadcrumb / Stepper 修复，故递增到 `10.17.2` 并同步全部发布元数据。 |
 | v10.18.0 Stepper 模板与布局扩展 | 已完成 | 构建、渲染契约、CSS 注释、文档与品牌对比度门禁 | `StepperItem` 新增 `Icon`、`Stepper` 新增 `ItemTemplate` 单一内容区（每步可渲染不同内容，模板接管按钮内全部内容）；横向布局改为标记在上、文字在下居中，连线沿标记行贯通且在两端各留一个 inset，纵向保持标记在左、文字在右。按仓库约定「功能新增递增次版本号」由 `10.17.3` 递增为 `10.18.0`。 |
 | v10.19.0 FlashCard 功能发布 | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 新增 `FlashCard` 图片闪卡、光泽层、Click/Hover 翻面与 3D 指针跟随；附 `/components/flash-card` 示例、`tests/flash-card.test.mjs` 与第 18 组渲染契约。 |
+| v10.20.1 FlashCardGroup 示例补充 | 已完成 | 构建、文档一致性门禁 | 新增独立 `/components/flash-card-group` 示例页并注册侧栏导航，补充抽卡宿主交互；按修复版本规则由 `10.20.0` 递增为 `10.20.1`。 |
 | v10.20.0 FlashCard 光泽优化与 FlashCardGroup | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 优化 FlashCard 的光泽高光与 3D 同步、翻面缓动；新增默认叠放、悬浮/聚焦扇形展开的 FlashCardGroup 与抽卡示例。按仓库约定「功能新增递增次版本号」由 `10.19.0` 递增为 `10.20.0`。 |

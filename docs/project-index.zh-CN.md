@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.20.0`
+文档版本：`10.20.1`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.20.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.20.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -273,5 +273,5 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ### FlashCardGroup 模块
 
-- `src/AeterniUI/Components/FlashCardGroup/`：FlashCardGroup 牌堆容器，直接组合多张 FlashCard，默认叠放，悬浮或键盘聚焦时扇形展开；支持受控保持展开、布局尺寸和根级无障碍/禁用语义。
-- `src/AeterniUI.Sample/Pages/Components/FlashCard.razor`、`FlashCard.razor.css`：同一示例页中的抽卡牌堆交互演示。
+- `src/AeterniUI/Components/FlashCardGroup/`：FlashCardGroup 牌堆容器，直接组合多张 FlashCard，默认叠放，悬浮或键盘聚焦时扇形展开；支持保持展开、布局尺寸和根级无障碍/禁用语义。
+- `src/AeterniUI.Sample/Pages/Components/FlashCardGroup.razor`、`FlashCardGroup.razor.css`：`/components/flash-card-group` 独立抽卡牌堆交互示例，由 ShowcaseCatalog 注册。
