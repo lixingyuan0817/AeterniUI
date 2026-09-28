@@ -55,11 +55,11 @@
 - [x] 修复 `List` 多选与 `AllowClear` 下取消选中后遗留底色：点击在切换选中之前先把目标设为活动项，而活动项不随指针移开清除，于是 `.is-active` 的背景留在了已取消选中的行上；现把该提示限定为列表持有键盘焦点时生效，未选中与取消选中的行不再有底色。
 - [x] 交付后 P0 收口：Breadcrumb 现在拒绝 null `Items`、null item 和空白 `Label`；禁用项、自定义分隔符与 `aria-hidden` 已纳入契约检查；Stepper 的 `ValueChanged` → `OnStepClick` 顺序、受控值和禁用分支已纳入检查，示例同步展示事件序列。
 - [x] 版本属性统一为 10.17.1；同步当前功能、设计规范、审阅待办、项目索引与 README 发布 tag 示例，并通过构建、文档、CSS 注释与品牌对比度检查。
-- [ ] 遗留：`Stepper` 的键盘模型（当前每个步骤一个 Tab 停留点，与 `ButtonGroup` 一致）与根元素语义（`div role="group"` 而非 `ol`）本次保持不变，需先确定交互契约再实现。
-- [ ] 遗留：`Stepper` 的步骤位置属性仍挂在 `li` 上，与有序列表结构的重复语义及最佳挂载位置尚未最终确认。
+- [x] 契约收口：Stepper 保留每个步骤一个原生按钮 Tab 停留点，不引入 Toolbar 式 roving-focus；命名 `div role="group"` 包裹原生 `ol/li`，避免把流程状态误标成导航或复合选择控件。
+- [x] 位置语义收口：`aria-posinset` / `aria-setsize` 继续挂在原生 `li` 列表项上，与可见步骤序列一致；渲染契约覆盖横向/纵向根类、位置计数和隐藏项过滤。
 - [x] 补齐 Stepper `Items`、null item、空白 `Id`/`Label` 和重复 Id 的参数契约，并增加 `aria-describedby`、根级/项级禁用语义的渲染检查；示例 Previous/Next 跳过隐藏和禁用步骤。
-- [ ] 遗留：Breadcrumb 与 Stepper 的横向布局契约尚未单独覆盖。
-- 本批只收口审查确认的缺陷，除 `BreadcrumbItem.Target` 外不新增公共参数、事件或枚举，也不改变 Stepper 的键盘模型。
+- [x] 补齐 Breadcrumb / Stepper 横向布局契约：Breadcrumb 保留可换行的原生有序路径，Stepper 保留等分横向步骤和可见位置计数；契约检查覆盖两者的有序结构。
+- 本批只收口审查确认的缺陷，除 `BreadcrumbItem.Target` 外不新增公共参数、事件或枚举；Stepper 的原生按钮键盘模型已明确为稳定契约。
 
 ## 10.16.0 Stepper 功能发布
 

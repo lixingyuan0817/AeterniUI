@@ -18,7 +18,7 @@
 | REV-95 / P2 | `project-index` 存在重复的 Breadcrumb 模块章节，且 `tests/toolbar.test.mjs` 被误置其中 | 删除重复章节并把测试条目归回 Toolbar 模块；文档门禁通过 |
 | REV-96 / P1 | `List` 多选与 `AllowClear` 下取消选中后遗留底色：活动项由点击设置，且不随指针移开清除 | 把 `.is-active` 底色限定为列表持有键盘焦点时生效；未选中与取消选中的行不再有底色，List 键盘回归通过 |
 
-以上修复进入 `AeterniUI.ContractChecks` 与 `tests/list-keyboard.test.mjs`。随后 P0 收口补齐了 Breadcrumb 的 `Items` 参数校验、禁用项与自定义分隔符验收，以及 Stepper 的受控回调顺序和禁用分支检查；仍未处理的遗留项（`Stepper` 的键盘模型与根元素语义、`li` 上 `aria-posinset` / `aria-setsize` 的挂载语义、Breadcrumb 与 Stepper 的横向布局契约）继续记入 roadmap；Stepper 的可激活步骤 hover 反馈、参数校验、示例导航和相关渲染契约已补齐。
+以上修复进入 `AeterniUI.ContractChecks` 与 `tests/list-keyboard.test.mjs`。随后 P0 收口补齐了 Breadcrumb 的 `Items` 参数校验、禁用项与自定义分隔符验收，以及 Stepper 的受控回调顺序、禁用分支、键盘/根语义契约和横向结构检查；Stepper 的可激活步骤 hover 反馈、参数校验、示例导航和相关渲染契约已补齐。
 
 ## 第七轮：P1～P3 修复验收（10.14.3）
 

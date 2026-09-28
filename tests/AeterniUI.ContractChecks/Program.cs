@@ -130,6 +130,7 @@ async Task CheckBreadcrumbAsync()
 
     Require(html.Contains("<nav") && html.Contains("id=\"contract-breadcrumb\"") && html.Contains("consumer-breadcrumb"), "Breadcrumb preserves root attributes.");
     Require(html.Contains("aria-label=\"Breadcrumb\"") && html.Contains("aria-current=\"page\""), "Breadcrumb exposes a named navigation region and current page.");
+    Require(html.Contains("<ol") && html.Contains("aeterni-breadcrumb__list"), "Breadcrumb keeps its ordered list structure for the horizontal trail.");
     Require(html.Contains("href=\"/\"") && !html.Contains("Hidden") && !html.Contains("href=\"\""), "Breadcrumb renders visible destinations as links and filters hidden items.");
     Require(html.Contains("target=\"_blank\"") && html.Contains("rel=\"noopener noreferrer\""), "Breadcrumb renders the browsing context and a safe rel for _blank destinations.");
     Require(html.Contains("href=\"/archive\"") && html.Contains("tabindex=\"-1\""), "Breadcrumb keeps disabled destinations as links outside the tab order.");
@@ -261,6 +262,19 @@ async Task CheckStepperAsync()
     component.Disabled = true;
     await Select(second);
     Require(events.Count == 0, "Stepper ignores current, item-disabled, and root-disabled activation.");
+
+    var horizontalHtml = await RenderAsync<Stepper>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[] { new StepperItem("one", "One"), new StepperItem("two", "Two") },
+        ["Orientation"] = Orientation.Horizontal,
+        ["AriaLabel"] = "Horizontal steps"
+    });
+    Require(horizontalHtml.Contains("class=\"aeterni-stepper\"") && !horizontalHtml.Contains("aeterni-stepper--vertical"),
+        "Stepper horizontal rendering keeps the horizontal root class contract.");
+    Require(Regex.Matches(horizontalHtml, "<li class=\"aeterni-stepper__item").Count == 2
+        && horizontalHtml.Contains("aria-posinset=\"1\"")
+        && horizontalHtml.Contains("aria-setsize=\"2\""),
+        "Stepper horizontal rendering preserves ordered visible positions.");
 }
 
 #pragma warning restore BL0005

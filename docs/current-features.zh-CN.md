@@ -1172,6 +1172,7 @@ builder.Services.AddAeterniUI(options =>
 ### 行为与无障碍
 
 - 根元素是带名称的 `role="group"`，步骤使用有序列表和原生按钮，保留浏览器 Tab、Enter 和 Space 行为。
+- 每个步骤是独立原生按钮，因此每步各有一个 Tab 停留点；Stepper 不采用 Toolbar/ToggleGroup 式 roving-focus，也不接管方向键。
 - 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，默认渲染的描述文本通过 `aria-describedby` 关联；使用 `ItemTemplate` 时组件不再输出描述元素，`aria-label` 由 `Label` 提供。
 - 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
 - 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
