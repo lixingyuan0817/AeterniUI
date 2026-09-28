@@ -1245,7 +1245,7 @@ builder.Services.AddAeterniUI(options =>
 
 ## 46. FlashCardGroup
 
-`FlashCardGroup` 是用于抽卡式展示的牌堆容器：直接把多张 `FlashCard` 放入 `ChildContent`，默认以轻微错位叠放；指针悬浮或组内卡片获得焦点时展开为扇形，离开后重新收拢。
+`FlashCardGroup` 是用于抽卡式展示的牌堆容器：直接把多张 `FlashCard` 放入 `ChildContent`，默认以轻微横向偏移、上下错位和小角度旋转形成自然牌堆；指针悬浮或组内卡片获得焦点时展开为扇形，离开后重新收拢。展开后，当前悬浮或键盘聚焦的卡片会抬起并升到牌堆最上层，使完整卡面不再被相邻卡片遮挡。
 
 ### 支持能力
 

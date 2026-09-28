@@ -25,64 +25,100 @@
 }
 
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card {
+    --aeterni-flash-card-group-x: 0px;
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: 0deg;
+    --aeterni-flash-card-group-lift: 0px;
+    --aeterni-flash-card-group-scale: 1;
+
     grid-area: 1 / 1;
     width: min(100%, var(--aeterni-flash-card-group-card-width));
-    transform: translateY(var(--aeterni-flash-card-group-collapsed-offset));
+    transform:
+        translate(
+            var(--aeterni-flash-card-group-x),
+            calc(var(--aeterni-flash-card-group-y) + var(--aeterni-flash-card-group-lift)))
+        rotate(var(--aeterni-flash-card-group-rotation))
+        scale(var(--aeterni-flash-card-group-scale));
     transform-origin: center bottom;
     transition: var(--aeterni-transition-transform), var(--aeterni-transition-shadow);
     will-change: transform;
 }
 
-/* The last card sits on top of the stack. A small offset preserves the deck
-   silhouette while keeping every card discoverable as the pointer enters it. */
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) { z-index: 1; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 0)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) { z-index: 2; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 0.5)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) { z-index: 3; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 1)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) { z-index: 4; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 1.5)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) { z-index: 5; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 2)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) { z-index: 6; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 2.5)); }
-.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) { z-index: 7; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 3)); }
+/* The loose x/y offsets and small rotations make the resting stack read like a
+   handled deck instead of a set of perfectly aligned copies. The values stay
+   deliberately small so the top card remains the clear entry target. */
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) { z-index: 1; --aeterni-flash-card-group-x: -4px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 0); --aeterni-flash-card-group-rotation: -2.5deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) { z-index: 2; --aeterni-flash-card-group-x: 3px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 0.5); --aeterni-flash-card-group-rotation: 1.5deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) { z-index: 3; --aeterni-flash-card-group-x: -2px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 1); --aeterni-flash-card-group-rotation: -1deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) { z-index: 4; --aeterni-flash-card-group-x: 4px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 1.5); --aeterni-flash-card-group-rotation: 2deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) { z-index: 5; --aeterni-flash-card-group-x: 0px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 2); --aeterni-flash-card-group-rotation: -0.75deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) { z-index: 6; --aeterni-flash-card-group-x: 2px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 2.5); --aeterni-flash-card-group-rotation: 1deg; }
+.aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) { z-index: 7; --aeterni-flash-card-group-x: 0px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 3); --aeterni-flash-card-group-rotation: 0deg; }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) {
-    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -2), 0) rotate(-12deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) {
+    --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -2);
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: -12deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) {
-    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -1), 0) rotate(-7deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) {
+    --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -1);
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: -7deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) {
-    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -0.5), 0) rotate(-3deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) {
+    --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -0.5);
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: -3deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) {
-    transform: translate(0, -2px) rotate(0deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) {
+    --aeterni-flash-card-group-x: 0px;
+    --aeterni-flash-card-group-y: -2px;
+    --aeterni-flash-card-group-rotation: 0deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) {
-    transform: translate(var(--aeterni-flash-card-group-expanded-spacing), 0) rotate(7deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) {
+    --aeterni-flash-card-group-x: var(--aeterni-flash-card-group-expanded-spacing);
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: 7deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) {
-    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * 2), 0) rotate(12deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) {
+    --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * 2);
+    --aeterni-flash-card-group-y: 0px;
+    --aeterni-flash-card-group-rotation: 12deg;
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7),
-.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7),
-.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) {
-    transform: translate(0, -4px) rotate(0deg);
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7),
+.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) {
+    --aeterni-flash-card-group-x: 0px;
+    --aeterni-flash-card-group-y: -4px;
+    --aeterni-flash-card-group-rotation: 0deg;
+}
+
+/* Once the fan is open, the active card rises above its neighbours like a card
+   game hand. Raising its stacking order reveals the complete face even though
+   the fan deliberately keeps neighbouring cards overlapped. */
+.aeterni-flash-card-group:not(.is-disabled) .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:hover,
+.aeterni-flash-card-group:not(.is-disabled) .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:focus-visible {
+    --aeterni-flash-card-group-lift: -24px;
+    --aeterni-flash-card-group-scale: 1.04;
+    z-index: 10;
 }
 
 .aeterni-flash-card-group.is-disabled .aeterni-flash-card-group__cards ::deep .aeterni-flash-card {
