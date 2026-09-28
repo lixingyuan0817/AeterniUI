@@ -1,8 +1,14 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.20.1`
+文档版本：`10.20.2`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；v0.7 规划中。
+
+## 10.20.2 FlashCardGroup 牌堆布局修复
+
+- [x] 修复 FlashCardGroup 隔离 CSS 对子组件根元素的作用域匹配，牌堆卡片现在能正确显示宽度、叠放和扇形展开布局。
+- [x] 用无头浏览器验证 `/components/flash-card-group` 实际预览已显示卡片；构建、契约检查和 CSS/文档门禁通过。
+- [ ] 待发布：通过最终差异审查后推送 `v10.20.2`。
 
 ## 10.20.1 FlashCardGroup 示例补充
 
@@ -802,5 +808,6 @@ Search + List + PopupHost
 | v10.17.2 补发完整发布 | 已完成 | 构建、渲染契约、List 键盘回归、CSS 注释、文档与品牌对比度门禁 | 从 main 补发完整包：`10.17.1` 的发布 tag 打在侧分支 `fd9c606` 上，未包含 #18 的 Breadcrumb / Stepper 修复，故递增到 `10.17.2` 并同步全部发布元数据。 |
 | v10.18.0 Stepper 模板与布局扩展 | 已完成 | 构建、渲染契约、CSS 注释、文档与品牌对比度门禁 | `StepperItem` 新增 `Icon`、`Stepper` 新增 `ItemTemplate` 单一内容区（每步可渲染不同内容，模板接管按钮内全部内容）；横向布局改为标记在上、文字在下居中，连线沿标记行贯通且在两端各留一个 inset，纵向保持标记在左、文字在右。按仓库约定「功能新增递增次版本号」由 `10.17.3` 递增为 `10.18.0`。 |
 | v10.19.0 FlashCard 功能发布 | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 新增 `FlashCard` 图片闪卡、光泽层、Click/Hover 翻面与 3D 指针跟随；附 `/components/flash-card` 示例、`tests/flash-card.test.mjs` 与第 18 组渲染契约。 |
+| v10.20.2 FlashCardGroup 牌堆布局修复 | 已完成 | 构建、无头浏览器预览、渲染契约、CSS 注释与文档门禁 | 修复隔离 CSS 无法匹配子 FlashCard 根元素导致牌堆预览空白的问题；按修复版本规则由 `10.20.1` 递增为 `10.20.2`。 |
 | v10.20.1 FlashCardGroup 示例补充 | 已完成 | 构建、文档一致性门禁 | 新增独立 `/components/flash-card-group` 示例页并注册侧栏导航，补充抽卡宿主交互；按修复版本规则由 `10.20.0` 递增为 `10.20.1`。 |
 | v10.20.0 FlashCard 光泽优化与 FlashCardGroup | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 优化 FlashCard 的光泽高光与 3D 同步、翻面缓动；新增默认叠放、悬浮/聚焦扇形展开的 FlashCardGroup 与抽卡示例。按仓库约定「功能新增递增次版本号」由 `10.19.0` 递增为 `10.20.0`。 |

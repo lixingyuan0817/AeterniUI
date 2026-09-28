@@ -1,14 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.20.1`
+文档版本：`10.20.2`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
-## 10.20.1 FlashCardGroup 示例补充
+## 10.20.2 FlashCardGroup 牌堆布局修复
 
-优化 `FlashCard` 的光泽与翻转：媒体区同时使用随指针相位移动的高光、指针跟随的彩色反射和一次性的扫光层，扫光位置与 3D 倾斜使用同一套指针变量；翻面使用独立的强调缓动和稳定的 3D 变换。新增 `FlashCardGroup`，支持将多张不同闪卡组合成默认叠放的牌堆，悬浮或键盘聚焦时扇形展开，也可通过 `Expanded` 保持展开。示例 `/components/flash-card` 与 `/components/flash-card-group`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
+修复 `FlashCardGroup` 牌堆子卡片的隔离样式作用域，使独立示例页能够正确显示叠放卡片；优化 `FlashCard` 的光泽与翻转：媒体区同时使用随指针相位移动的高光、指针跟随的彩色反射和一次性的扫光层，扫光位置与 3D 倾斜使用同一套指针变量；翻面使用独立的强调缓动和稳定的 3D 变换。新增 `FlashCardGroup`，支持将多张不同闪卡组合成默认叠放的牌堆，悬浮或键盘聚焦时扇形展开，也可通过 `Expanded` 保持展开。示例 `/components/flash-card` 与 `/components/flash-card-group`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
 
 ## 10.18.0 Stepper 模板与布局扩展
 
