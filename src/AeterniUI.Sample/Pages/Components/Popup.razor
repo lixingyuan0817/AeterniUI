@@ -25,7 +25,8 @@
                          Modal="@_popoverModal"
                          CloseOnEscape="@_popoverCloseOnEscape"
                          CloseOnOutsideClick="@_popoverCloseOnOverlayClick"
-                         RestoreFocusOnClose="true"
+                         CloseOnScroll="@_popoverCloseOnScroll"
+                         RestoreFocusOnClose="@_popoverRestoreFocus"
                          AriaLabel="示例浮层">
                     <Header>
                         <div class="preview-overlay-demo__popover-title">
@@ -61,6 +62,8 @@
         <Checkbox Size="Size.Small" @bind-Value="_popoverModal">Modal</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnEscape">CloseOnEscape</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnOverlayClick">CloseOnOutsideClick</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverCloseOnScroll">CloseOnScroll</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_popoverRestoreFocus">RestoreFocusOnClose</Checkbox>
     </Controls>
     <Notes>
         <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内，空间不足时翻到另一侧并把内容贴回视口；<code>Placement</code> 提供四个起始方位。</span>
@@ -78,6 +81,8 @@
     private bool _popoverCloseOnEscape = true;
 
     private bool _popoverCloseOnOverlayClick = true;
+    private bool _popoverCloseOnScroll;
+    private bool _popoverRestoreFocus = true;
 
     private string _popoverNote = "浮层当前为关闭状态，点击「打开 Popover」查看内容。";
 
@@ -90,6 +95,8 @@
         new("Popover.Modal", "bool", "模态层：遮罩、aria-modal、焦点陷阱、背景滚动锁。", "false"),
         new("Popover.CloseOnEscape", "bool", "Escape 是否请求关闭。", "true"),
         new("Popover.CloseOnOutsideClick", "bool", "点击浮层外部（Modal 时为遮罩）是否请求关闭。", "true"),
+        new("Popover.CloseOnScroll", "bool", "页面或祖先滚动时请求关闭；浮层内部滚动被忽略。", "false"),
+        new("Popover.RestoreFocusOnClose", "bool", "关闭后将焦点恢复到打开前的触发元素。", "false"),
         new("Popover.Header", "RenderFragment?", "浮层标题区域。"),
         new("Popover.ChildContent", "RenderFragment?", "浮层主体内容。"),
         new("Popover.AriaLabel", "string?", "浮层无障碍名称。")

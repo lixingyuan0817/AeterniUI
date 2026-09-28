@@ -187,13 +187,13 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 | 能力组 | 组件 |
 | --- | --- |
-| 动作和布局 | `Button`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Toolbar`、`ToolbarGroup`、`ToggleGroup`、`Surface`、`Card`、`FlashCard`、`Divider`、`Accordion` |
+| 动作和布局 | `Button`、`IconButton`、`MenuButton`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Toolbar`、`ToolbarGroup`、`ToggleGroup`、`Surface`、`Card`、`FlashCard`、`FlashCardGroup`、`Divider`、`Accordion` |
 | 表单基础 | `Input`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List<TItem>`、`ListItem<TItem>`、`Rating`、`ComboBox` |
-| 导航 | `Breadcrumb`、`Stepper`、`Menu`、`Tabs`、`Tab` |
+| 导航 | `Breadcrumb`、`Stepper`、`Menu`、`Tabs`、`Tab`、`Pagination` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
 | 图标和主题 | `Icon`、`AeterniIcons`、`ThemeProvider`、`ThemeSwitch`、`ThemeBrandSwitch` |
-| 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`Pagination`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
+| 浮层和反馈 | `PopupHost`、`Popover`、`Tooltip`、`Drawer`、`DialogProvider`、Dialog、Confirm、Alert、Toast |
 
 详细参数、ARIA 约定和交互行为以 [`current-features.zh-CN.md`](current-features.zh-CN.md) 为准。
 

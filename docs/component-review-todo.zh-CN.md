@@ -764,14 +764,14 @@
 ### REV-64 DatePicker 根属性与 CSS isolation 契约失效
 
 - [x] 已修复并验收
-- **证据**：`DatePicker.razor` 根节点是 `<PopupHost Class="aeterni-date-picker__host">`，没有 `@attributes="BuildAttributes()"`；`DatePicker.razor.css` 又直接声明 `.aeterni-date-picker__host`。子组件根元素不会获得父组件的隔离属性，因此该规则无法命中，`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` / `ElementChanged` 也没有落到 DOM 根节点。
+- **历史证据（修复前）**：`DatePicker.razor` 根节点曾是 `<PopupHost Class="aeterni-date-picker__host">`，没有 `@attributes="BuildAttributes()"`；`DatePicker.razor.css` 曾直接声明 `.aeterni-date-picker__host`。子组件根元素不会获得父组件的隔离属性，因此当时该规则无法命中，`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` / `ElementChanged` 也没有落到 DOM 根节点。
 - **修复**：DatePicker 增加本组件拥有的真实根元素并承载 `BuildAttributes()` / `RootElement`；隔离样式只约束该根元素与组件自有标记，不再依赖传给 `PopupHost` 的 class。
 - **验收**：渲染验证覆盖 `Id`、`Class`、`Style`、`Visible`、附加属性和根引用；本组件发出的每个 class 都有可命中的样式规则；Popup 定位与焦点回归不退化。
 
 ### REV-65 MenuButton 根属性、状态类与 FullWidth 失效
 
 - [x] 已修复并验收
-- **证据**：`MenuButton.razor` 同样以 `<PopupHost Class="aeterni-menu-button__host">` 为根且不调用 `BuildAttributes()`；代码后置的 `BuildClass()` 会生成 `aeterni-menu-button`、`is-open`、`is-full-width`，但这些类从未输出。`MenuButton.razor.css` 的根与全宽规则因此是死规则，基类的 `Id`、`Class`、`Style`、`Visible`、`Element` 也失效。
+- **历史证据（修复前）**：`MenuButton.razor` 同样曾以 `<PopupHost Class="aeterni-menu-button__host">` 为根且不调用 `BuildAttributes()`；代码后置的 `BuildClass()` 会生成 `aeterni-menu-button`、`is-open`、`is-full-width`，但这些类当时从未输出。`MenuButton.razor.css` 的根与全宽规则因此曾是死规则，基类的 `Id`、`Class`、`Style`、`Visible`、`Element` 也曾失效。
 - **修复**：MenuButton 增加自有根标记并合并基类属性；根容器表达打开、全宽和禁用复合状态，原生 `disabled` 仍只落在真实触发按钮。
 - **验收**：`FullWidth`、受控/非受控 Open、禁用/加载、消费者 class/style/hidden 与 `ElementChanged` 均有渲染验证；Escape、外部点击和菜单选择关闭路径保持有效。
 

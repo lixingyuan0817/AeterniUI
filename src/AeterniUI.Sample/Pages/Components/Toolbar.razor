@@ -5,7 +5,8 @@
 
 <PageTitle>Aeterni UI · Toolbar</PageTitle>
 <ComponentPreview AnchorId="toolbar" Category="基础组件" Title="Toolbar" ComponentName="Toolbar"
-                  Description="无背景动作容器：跨命名分组共享一个 Tab 停留点。溢出菜单由宿主明确放置。">
+                  Description="无背景动作容器：跨命名分组共享一个 Tab 停留点。溢出菜单由宿主明确放置。"
+                  Parameters="@Parameters">
     <Preview>
         <Surface Bordered="true" FullWidth="true" Padding="SurfacePadding.None">
           <div class="toolbar-demo" dir="@(_rtl ? "rtl" : "ltr")">
@@ -76,6 +77,16 @@
 </ComponentPreview>
 
 @code {
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Toolbar.ChildContent", "RenderFragment?", "工具栏内的动作和 ToolbarGroup。"),
+        new("Toolbar.Orientation", "Orientation", "焦点移动和布局方向。", "Horizontal"),
+        new("Toolbar.AriaLabel", "string", "工具栏无障碍名称。"),
+        new("Toolbar.Disabled / Visible", "bool", "整条工具栏禁用或隐藏。", "false / true"),
+        new("ToolbarGroup.ChildContent", "RenderFragment?", "分组内的 Button、IconButton 或 MenuButton。"),
+        new("ToolbarGroup.AriaLabel", "string", "动作分组无障碍名称。")
+    ];
+
     private bool _vertical, _rtl, _disabled, _itemDisabled, _loading, _reverse;
     private bool _visible = true, _extra = true;
     private string _last = "无";

@@ -52,8 +52,7 @@ public static class ShowcaseCatalog
             new("tag", "Tag", "标签状态"),
             new("badge", "Badge", "数字与圆点角标"),
             new("avatar", "Avatar", "头像与姓名缩写"),
-            new("accordion", "Accordion", "折叠面板"),
-            new("pagination", "Pagination", "分页导航")
+            new("accordion", "Accordion", "折叠面板")
         ]),
         new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),
@@ -75,7 +74,8 @@ public static class ShowcaseCatalog
             new("stepper", "Stepper", "线性流程步骤"),
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("menu", "Menu", "分组菜单"),
-            new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航")
+            new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航"),
+            new("pagination", "Pagination", "分页导航")
         ]),
         new("状态反馈", FontAwesomeIcons.Solid.ChartColumn, [
             new("progress", "Progress", "进度展示"),
@@ -102,7 +102,7 @@ public static class ShowcaseCatalog
     public static int GroupCount => Groups.Count;
 
     /// <summary>Hosted application types covered by the library.</summary>
-    public const int HostCount = 3;
+    public const int HostCount = 2;
 
     /// <summary>Supported theme modes: System / Light / Dark.</summary>
     public const int ThemeModeCount = 3;

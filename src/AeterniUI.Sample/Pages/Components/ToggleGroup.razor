@@ -5,7 +5,8 @@
 
 <PageTitle>Aeterni UI · ToggleGroup</PageTitle>
 <ComponentPreview AnchorId="toggle-group" Category="基础组件" Title="ToggleGroup" ComponentName="ToggleGroup"
-                  Description="按钮动作切换，不是 Segmented 的表单值选择。方向键只移动焦点；Enter/Space 或点击切换动作。">
+                  Description="按钮动作切换，不是 Segmented 的表单值选择。方向键只移动焦点；Enter/Space 或点击切换动作。"
+                  Parameters="@Parameters" Events="@Events">
     <Preview>
         <Surface Bordered="true">
             <div dir="@(_rtl ? "rtl" : "ltr")">
@@ -42,6 +43,20 @@
 </ComponentPreview>
 
 @code {
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Items", "IReadOnlyList<ToggleGroupItem>", "可用动作及其禁用状态。"),
+        new("SelectionMode", "SelectionMode", "单选或多选。", "Single"),
+        new("SelectedValues", "IReadOnlyList<string>", "当前选中动作 Id 列表。"),
+        new("Orientation", "Orientation", "焦点移动和布局方向。", "Horizontal"),
+        new("Size", "Size", "动作按钮尺寸档位。", "Default"),
+        new("AriaLabel", "string", "整组无障碍名称。"),
+        new("Disabled / Visible", "bool", "整组禁用或隐藏。", "false / true")
+    ];
+
+    private static readonly ShowcaseEvent[] Events =
+    [new("SelectedValuesChanged", "EventCallback<IReadOnlyList<string>>", "选中动作提议变化时触发。")];
+
     private bool _vertical, _rtl, _disabled, _disableCenter, _reverse, _reject;
     private bool _visible = true;
     private Size _size = Size.Default;

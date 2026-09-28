@@ -34,9 +34,10 @@
         new("Variant", "ButtonVariant", "按钮视觉变体。", "Ghost"),
         new("Intent", "ButtonIntent", "按钮语义类型。", "Neutral"),
         new("Size", "Size", "正方形尺寸档位。", "Default"),
+        new("Type", "ButtonType", "原生 button 类型。", "Button"),
         new("AriaLabel", "string", "图标动作的无障碍名称。"),
         new("Loading", "bool", "是否显示加载状态。", "false"),
-        new("Icon", "RenderFragment?", "图标内容。")
+        new("Icon / ChildContent", "RenderFragment?", "图标内容；二选一，ChildContent 是兼容的默认内容插槽。")
     ];
 
     private static readonly ShowcaseEvent[] Events =

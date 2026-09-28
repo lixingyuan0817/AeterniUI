@@ -105,9 +105,11 @@
         new("VisibleMonths", "int", "同时显示的月份数，范围 1–3；仅 DateRangePicker。", "1"),
         new("Format", "string", "显示格式。", "yyyy-MM-dd"),
         new("Placeholder", "string?", "未选择时的占位文本；缺省取全局文案表。"),
+        new("AriaLabel", "string?", "控件无障碍名称；缺省取全局文案表。"),
         new("Placement", "PopupPlacement", "日历弹层方位。", "BottomStart"),
         new("Size", "Size", "控件尺寸档位。", "Default"),
         new("FullWidth", "bool", "DatePicker 铺满父容器；不改变弹层宽度。", "false"),
+        new("PresetsAriaLabel", "string?", "DateRangePicker 快捷范围区域的无障碍名称。"),
         new("ValueExpression / *Expression", "Expression<Func<DateOnly?>>?", "EditContext 字段表达式；配合 FormField 与 DataAnnotationsValidator 使用。"),
         new("Required / Invalid", "bool", "必填和无效状态。", "false")
     ];

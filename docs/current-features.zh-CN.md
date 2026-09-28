@@ -6,41 +6,11 @@
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
-## 10.20.2 FlashCardGroup 牌堆布局修复
+## 当前版本变更摘要
 
-修复 `FlashCardGroup` 牌堆子卡片的隔离样式作用域，使独立示例页能够正确显示叠放卡片；优化 `FlashCard` 的光泽与翻转：媒体区同时使用随指针相位移动的高光、指针跟随的彩色反射和一次性的扫光层，扫光位置与 3D 倾斜使用同一套指针变量；翻面使用独立的强调缓动和稳定的 3D 变换。新增 `FlashCardGroup`，支持将多张不同闪卡组合成默认叠放的牌堆，悬浮或键盘聚焦时扇形展开，也可通过 `Expanded` 保持展开。示例 `/components/flash-card` 与 `/components/flash-card-group`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
+当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-## 10.18.0 Stepper 模板与布局扩展
-
-`StepperItem` 新增可选 `Icon`（`IconDefinition?`），`Stepper` 新增可选 `ItemTemplate`（`RenderFragment<StepperItem>?`）：单个步骤可以使用自己的标记图标，也可以把整个按钮内容交给每步唯一的内容区，从而按步骤渲染不同内容。横向布局改为标记在上、标题与描述在下方居中，连线沿标记行贯通；纵向布局保持标记在左、文字在右。示例与渲染契约已纳入本版本。
-
-## 10.16.0 Stepper 功能发布
-
-新增 `Stepper` / `StepperItem` 线性流程指示组件；支持受控当前步骤、宿主显式完成/禁用状态、横纵向布局、位置 ARIA 语义和键盘可激活步骤。示例与渲染契约已纳入本版本。
-
-## 10.15.0 Breadcrumb 功能发布
-
-新增 `Breadcrumb` / `BreadcrumbItem` 层级导航组件；支持原生链接、最后可见项当前页语义、禁用/隐藏过滤、可替换分隔符和组件级 ARIA 名称。示例与渲染契约已纳入本版本。
-
-## 10.14.3 全组件质量修复（已纳入本版本基线）
-
-完成 P1–P3 质量批次：基类 `Visible=false` 通过内联隐藏样式确保不被组件布局规则覆盖；ComboBox、Rating 的键盘导航阻止默认页面滚动并同步焦点；Drawer/Popover 尊重 `CloseOnEscape` 并提供退出过渡；ComboBox、Radio/RadioGroup 继承 FormField 的 Disabled/Required/Invalid 状态；DateCalendar 保护日期最小/最大边界；Tooltip 在参数变化后重新绑定；Tabs、Accordion 修正隐藏/禁用状态；TimePicker 在有限时间范围内生成候选映射，避免无谓遍历全天。
-
-## 10.14.2 List 键盘修复（未发布）
-
-修复 AllowClear 下导航误清空、声明式 keyed 重排后导航次序错误、隐藏项仍参与导航以及方向键/空格触发页面滚动的问题。选择状态仍由 C# 管理，新增 List 主 JS module 读取可见选项的 DOM 顺序并拦截已处理按键；其余组件仅审核，不包含修复。
-
-## 10.14.1 发布范围
-
-统一 List 普通行与 CardMode 的选中背景、活动项反馈和禁用文字色，示例页支持保留选择切换模式对比；选择 API 与键盘逻辑不变。核心包与 Font Awesome 图标包统一版本为 10.14.1，使用 `v10.14.1` 触发现有 NuGet 发布工作流。
-
-## 10.14.0 发布范围
-
-本次发布将 List 改为 `List<TItem>`，新增 Items、ItemTemplate 及 CardMode / CardTemplate；声明式使用需显式指定 TItem，迁移说明见 §16。核心包与 Font Awesome 图标包统一版本为 10.14.0，使用 `v10.14.0` 触发现有 NuGet Trusted Publishing 工作流；完整发布记录见 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
-
-## 10.13.0 发布范围
-
-本次发布包含已交付的 ToggleGroup、SplitButton，以及日期/时间字段与 Segmented 的尺寸 Token 一致性收口；同时纳入 Toolbar 间距、MenuButton 专属菜单留白、菜单 ID 关联与非模态关闭焦点回归优化。公共 API、受控绑定和无障碍边界以各组件章节为准；List 功能不变。完整发布记录见 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
+`10.20.2` 已包含 `FlashCardGroup` 牌堆布局修复、FlashCard 光泽/翻转优化及对应示例与渲染契约。其余组件的现行能力以本文档后续章节和源码为准。
 
 ## 文档口径
 
@@ -152,8 +122,8 @@
 - `ChildContent`、`Loading`、`Disabled`、`FullWidth`。
 - `AriaLabel`、`OnClick`。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
-- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
-- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`OnItemSelected`、`Loading` 和 `FullWidth`；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
+- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
+- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Label`、`Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`AriaLabel`、`OnItemSelected`、`Loading` 和 `FullWidth`；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
 - MenuButton 的弹出内容使用 Menu，不使用 List；PopupHost 仅定位、无 padding。仅其 Popover 外围 padding 从 12px 收至 spacing-1（4px），Menu 行内横向 padding 从 12px 收至 control-padding-x-sm（8px），保留 Menu 的 spacing-2（8px）子项缩进表达折叠层级；参照现有 List 的 4px 外围与 8px 行内留白，Menu 根不重复加外围 padding，List 本身不变。折叠或无可见子项的分组不保留标题后的 gap，避免末组产生额外底部留白；Popover 上下各 4px。菜单行高仍为 32px，普通内容 Popover 和独立 Menu 保持原留白。SplitButton 复用此紧凑菜单。
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
@@ -782,7 +752,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 
 - 非模态、不阻塞页面、不显示模态遮罩的单条提示，默认底部居中；消息内容最多显示两行，超出部分截断。
 - 支持 Toast 的八个位置，可通过 `AlertOptions.Position` 或 Service 的位置重载覆盖，也可在全局配置中修改默认位置，便于避开顶部页面元素。
-- `AlertOptions` 支持 `Position`、`Duration`、`Blur`、`OnClosedAsync`，并继承 `DialogOptions` 的语意色、图标和关闭设置。
+- `AlertOptions` 支持 `Position`、`Duration`、`Blur`、`CloseText`、`OnClosedAsync`，并继承 `DialogOptions` 的语意色、图标和关闭设置。
 - 使用 Button 相同的 `Info`、`Success`、`Warning`、`Danger` 语意色映射。
 - 语意背景使用浅色混合，去除左侧语意边框。
 - 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并上下居中。

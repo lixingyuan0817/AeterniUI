@@ -154,6 +154,7 @@ async Task CheckBreadcrumbAsync()
     await RequireInvalidItems(new[] { new BreadcrumbItem(" ") }, typeof(ArgumentException));
 }
 
+#pragma warning disable BL0005 // Contract checks intentionally assign component parameters directly.
 async Task CheckStepperAsync()
 {
     var html = await RenderAsync<Stepper>(new Dictionary<string, object?>
@@ -261,6 +262,8 @@ async Task CheckStepperAsync()
     await Select(second);
     Require(events.Count == 0, "Stepper ignores current, item-disabled, and root-disabled activation.");
 }
+
+#pragma warning restore BL0005
 
 async Task CheckDateBoundariesAsync()
 {

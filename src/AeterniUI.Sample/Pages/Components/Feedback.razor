@@ -61,13 +61,17 @@
         new("DialogOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
         new("DialogOptions.CloseOnEscape", "bool", "是否响应 Escape。", "true"),
         new("DialogOptions.CloseOnOverlayClick", "bool", "是否允许点击遮罩关闭。", "false"),
+        new("DialogOptions.Footer", "RenderFragment?", "对话框底部操作区。"),
+        new("ConfirmOptions.ConfirmText / CancelText", "string", "确认与取消按钮文案。", "Confirm / Cancel"),
         new("AlertOptions.Position", "ToastPosition?", "Alert 位置。"),
         new("AlertOptions.Duration", "TimeSpan?", "自动关闭时长。"),
         new("AlertOptions.Blur", "bool", "是否启用自身背景模糊。", "true"),
+        new("AlertOptions.CloseText", "string", "Alert 关闭按钮的无障碍名称。", "Close"),
         new("ToastOptions.Position", "ToastPosition?", "Toast 位置。"),
         new("ToastOptions.Duration", "TimeSpan?", "自动关闭时长。"),
         new("ToastOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
-        new("ToastOptions.Blur", "bool", "是否启用自身背景模糊。", "true")
+        new("ToastOptions.Blur", "bool", "是否启用自身背景模糊。", "true"),
+        new("ToastOptions.Title / Severity / Icon", "string? / Severity / RenderFragment?", "Toast 标题、语义色和自定义图标。")
     ];
 
     private static readonly ShowcaseEvent[] FeedbackEvents =

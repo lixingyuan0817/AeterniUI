@@ -45,12 +45,20 @@
         new("Items", "IReadOnlyList<MenuGroup>", "下拉菜单分组和菜单项。"),
         new("Variant", "ButtonVariant", "触发按钮视觉变体。", "Outline"),
         new("Intent", "ButtonIntent", "触发按钮语义类型。", "Neutral"),
+        new("Size", "Size", "触发按钮尺寸。", "Default"),
         new("Placement", "PopupPlacement", "菜单弹出方向。", "BottomStart"),
-        new("Open", "bool", "受控打开状态。", "false")
+        new("Open", "bool", "受控打开状态。", "false"),
+        new("OpenChanged", "EventCallback<bool>", "受控打开状态变化回调。"),
+        new("AriaLabel", "string?", "触发按钮无障碍名称；缺省由 Label 命名。"),
+        new("Loading", "bool", "加载状态并阻止打开。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false")
     ];
 
     private static readonly ShowcaseEvent[] Events =
-    [new("OnItemSelected", "EventCallback<MenuItem>", "菜单项被选择时触发。")];
+    [
+        new("OpenChanged", "EventCallback<bool>", "受控打开状态变化时触发。"),
+        new("OnItemSelected", "EventCallback<MenuItem>", "菜单项被选择时触发。")
+    ];
 
     private Task HandleSelectedAsync(MenuItem item)
     {
