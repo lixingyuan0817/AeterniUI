@@ -45,6 +45,17 @@
                        TiltScale="@_tiltScale"
                        Tilt="@_tilt" />
         </div>
+        <div class="preview-flash-card-group-wrap">
+            <FlashCardGroup AriaLabel="抽卡示例"
+                            Expanded="@_groupExpanded"
+                            HoverExpand="@_groupHoverExpand">
+                <FlashCard ImageSrc="@CoverImage" ImageAlt="魔法师卡一" Title="火焰法阵" Description="第一张卡" />
+                <FlashCard ImageSrc="@CoverImage" ImageAlt="魔法师卡二" Title="星尘秘术" Description="第二张卡" />
+                <FlashCard ImageSrc="@CoverImage" ImageAlt="魔法师卡三" Title="月影咒语" Description="第三张卡" />
+                <FlashCard ImageSrc="@CoverImage" ImageAlt="魔法师卡四" Title="风暴召唤" Description="第四张卡" />
+                <FlashCard ImageSrc="@CoverImage" ImageAlt="魔法师卡五" Title="未知奖励" Description="第五张卡" />
+            </FlashCardGroup>
+        </div>
         <span class="preview-feedback" role="status">当前显示：@(_flipped ? "背面" : "正面")；最近事件：@_lastEvent</span>
     </Preview>
     <Controls>
@@ -70,6 +81,8 @@
         </div>
         <Checkbox Size="Size.Small" @bind-Value="_tilt">Tilt</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_groupHoverExpand">抽卡悬浮展开</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_groupExpanded">保持展开</Checkbox>
         <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="FlipFromHost">从宿主翻面</Button>
     </Controls>
     <Notes>
@@ -85,6 +98,8 @@
     private bool _flipped;
     private bool _tilt = true;
     private bool _disabled;
+    private bool _groupHoverExpand = true;
+    private bool _groupExpanded;
     private FlashCardSheen _sheen = FlashCardSheen.Holo;
     private double _sheenIntensity = 0.6;
     private FlashCardFlipTrigger _flipTrigger = FlashCardFlipTrigger.Click;

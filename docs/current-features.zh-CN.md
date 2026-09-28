@@ -1,14 +1,14 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.19.0`
+文档版本：`10.20.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
-## 10.19.0 FlashCard 功能发布
+## 10.20.0 FlashCard 与 FlashCardGroup 功能发布
 
-新增 `FlashCard` 图片闪卡组件：卡面可以只有图片，也可以补上图文说明与背面内容；表面叠着一层随指针滑动的光泽（`Sheen` 镭射彩虹 / 金属白光 / 关闭，`SheenIntensity` 控制强度），整张卡同时随指针做 3D 倾斜。倾斜与光泽位置由独立 JS module 写入旋转与位置变量，视觉全部留在隔离样式表；`Tilt="false"`、`Disabled` 与系统「减少动态效果」下完全不注册指针监听。示例 `/components/flash-card`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
+优化 `FlashCard` 的光泽与翻转：媒体区同时使用随指针相位移动的高光、指针跟随的彩色反射和一次性的扫光层，扫光位置与 3D 倾斜使用同一套指针变量；翻面使用独立的强调缓动和稳定的 3D 变换。新增 `FlashCardGroup`，支持将多张不同闪卡组合成默认叠放的牌堆，悬浮或键盘聚焦时扇形展开，也可通过 `Expanded` 保持展开。示例 `/components/flash-card`、`tests/flash-card.test.mjs` 与渲染契约已纳入本版本。
 
 ## 10.18.0 Stepper 模板与布局扩展
 
@@ -1234,8 +1234,8 @@ builder.Services.AddAeterniUI(options =>
 - `FlipTrigger="Hover"` 只是指针预览：样式表在 `:hover` 时翻面，卡片不可聚焦、不输出按钮语义、不改变 `IsFlipped`，也不隐藏任何一面（浏览器拥有该状态，组件无从得知），因此没有键盘等价操作；需要在背面提供操作时应使用默认的 `Click` 触发。
 - 未翻出的一面标记 `aria-hidden="true"` 并输出 `inert`，屏幕阅读器与 Tab 序列因此只面对当前可见的一面；静态卡片与 Hover 预览都不输出这两类语义。
 - `Disabled` 时根元素输出 `aria-disabled="true"`、移出 Tab 序列、不注册指针跟随，并消费 `--aeterni-state-*` 禁用 Token。
-- 3D 跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`）与光泽位置（`Sheen` 不为 `None` 时另写 `--aeterni-flash-card-sheen-x` / `-y`）并在跟随期间标记 `is-tilting`；旋转、悬停缩放、光泽配方、翻面与全部过渡都留在 `FlashCard.razor.css`。
-- 光泽层是叠在媒体区之上的装饰（`Holo` 走 `mix-blend-mode: color`：替换色相与饱和度、保留图片自身明度；`Shine` 走 `mix-blend-mode: screen`：提亮），只覆盖图片、不覆盖图文说明区，也不参与容器背景填充：容器背景仍是无色 `--aeterni-bg-surface`，`Sheen` 关闭或没有 `ImageSrc` 时这一层完全不渲染。**炫光铺满整张卡面**，指针位置只改变渐变的相位（整片光纹流动），不在指针处单独生成一块光斑。静止时按 50% 强度呈现，指针移入、聚焦或卡片倾斜时升到 `SheenIntensity` 全强度。
+- 3D 跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`）、光泽位置（`--aeterni-flash-card-sheen-x` / `-y`）和扫光位移（`--aeterni-flash-card-glint-x` / `-y`），并在跟随期间标记 `is-tilting`；旋转、悬停缩放、光泽配方、扫光动画、翻面与全部过渡都留在 `FlashCard.razor.css`。
+- 光泽层是叠在媒体区之上的装饰：`Holo` 与 `Shine` 都以 `screen` 叠加，前者使用彩色衍射纹和随指针移动的径向高光，后者使用金属白光；另有一次性的扫光层在进入、聚焦或倾斜时划过。所有层只覆盖图片、不覆盖图文说明区，也不参与容器背景填充；`Sheen` 关闭或没有 `ImageSrc` 时完全不渲染。指针位置同时改变 3D 旋转、光泽相位和扫光位移，因此反射会跟随卡面倾斜。
 - `Tilt="false"`、`Disabled` 与系统「减少动态效果」都不注册指针监听器：卡片保持平整、光泽停在原位（默认居中），但仍可翻面；减少动态效果同时移除过渡。
 - 参数校验：`AspectRatio`、`Perspective` 与 `TiltScale` 必须为正的有限数，`MaxTiltAngle` 必须为非负有限数，`SheenIntensity` 必须落在 `0`～`1`；正面与背面内容全部缺省时抛出异常。
 
@@ -1243,7 +1243,25 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供视频等任意媒体、覆盖式图文排版、触摸手势、自动轮播或翻转编排；卡面宽度由宿主容器决定，组件不提供尺寸档位。示例：`/components/flash-card`。
 
-## 46. 当前边界
+## 46. FlashCardGroup
+
+`FlashCardGroup` 是用于抽卡式展示的牌堆容器：直接把多张 `FlashCard` 放入 `ChildContent`，默认以轻微错位叠放；指针悬浮或组内卡片获得焦点时展开为扇形，离开后重新收拢。
+
+### 支持能力
+
+- 内容与语义：`ChildContent`、`AriaLabel`（默认 `Flash cards`），根元素输出带名称的 `role="group"`。
+- 展开方式：`HoverExpand`（默认 `true`）控制悬浮/`focus-within` 展开；`Expanded` 可让宿主保持展开。
+- 牌堆布局：`CardWidth`（默认 `220` 像素）、`ExpandedSpacing`（默认 `72` 像素）和 `CollapsedOffset`（默认 `5` 像素）只控制牌堆几何，不改变 FlashCard 自身尺寸体系。
+- `Disabled` 会在根元素输出 `aria-disabled` 与 `inert`，并阻止牌堆内卡片的指针交互。
+
+### 行为与无障碍
+
+- 组本身不是额外的可操作控件，不抢占 Tab 停留点；组内 FlashCard 仍按自身的 Click/Hover 触发方式提供语义。
+- 扇形布局通过容器隔离样式作用于子项，保留 FlashCard 自己的翻面、光泽与焦点环；系统启用 reduced-motion 时只取消展开过渡，不改变牌堆结构。
+
+示例：`/components/flash-card` 中的“抽卡示例”。
+
+## 47. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

@@ -20,6 +20,8 @@
     --aeterni-flash-card-sheen-opacity: 0.6;
     --aeterni-flash-card-sheen-x: 50%;
     --aeterni-flash-card-sheen-y: 50%;
+    --aeterni-flash-card-glint-x: 0%;
+    --aeterni-flash-card-glint-y: 0%;
 
     position: relative;
     display: block;
@@ -43,6 +45,7 @@
     transform: rotateX(var(--aeterni-flash-card-rotate-x)) rotateY(var(--aeterni-flash-card-rotate-y)) scale(var(--aeterni-flash-card-hover-scale));
     transform-style: preserve-3d;
     transition: var(--aeterni-transition-transform);
+    will-change: transform;
 }
 
 /* The hover scale is applied through the same transform rule as the rotation, so
@@ -57,7 +60,9 @@
     position: relative;
     aspect-ratio: var(--aeterni-flash-card-aspect);
     transform-style: preserve-3d;
-    transition: var(--aeterni-transition-transform);
+    transform-origin: center center;
+    transition: transform var(--aeterni-duration-slower) var(--aeterni-ease-emphasized);
+    will-change: transform;
 }
 
 .aeterni-flash-card.is-flipped .aeterni-flash-card__inner {
@@ -130,6 +135,7 @@
     pointer-events: none;
     background-repeat: no-repeat;
     transition: var(--aeterni-transition-opacity);
+    will-change: opacity, background-position;
 }
 
 .aeterni-flash-card:hover .aeterni-flash-card__sheen,
@@ -156,24 +162,21 @@
     background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
 }
 
-/* Holographic finish: the diffraction grating of a foil card. Narrow rainbow bands
-   and brushed lines are fixed to the surface, and a broad light phase slides
-   across the whole face with the pointer — the card keeps its full-bleed rainbow
-   at rest and the whole pattern ripples while it is tilted.
-   `color` is the load-bearing part: it replaces hue and saturation while keeping
-   the image's own lightness, which is what real foil does. `screen` was tried
-   first and left a bright image (a pale illustration, a product shot on white)
-   visibly untouched — the overlay only shows up on dark pixels, so the "flash"
-   disappeared exactly where a card is usually brightest. */
+/* Holographic finish: the diffraction grating of a foil card. Narrow rainbow bands,
+   brushed lines and a pointer-phased radial reflection sit over the media, while
+   the separate glint layer provides the brief white sweep on pointer entry. The
+   screen blend keeps the reflection visible on both dark and bright artwork. */
 .aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen {
-    mix-blend-mode: color;
+    mix-blend-mode: screen;
     background-image:
+        radial-gradient(circle at var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y),
+            rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.2) 16%, transparent 42%),
         repeating-linear-gradient(112deg,
-            rgba(255, 0, 128, 0.22) 0 30px,
-            rgba(255, 176, 0, 0.22) 30px 60px,
-            rgba(120, 255, 130, 0.22) 60px 90px,
-            rgba(0, 220, 255, 0.22) 90px 120px,
-            rgba(140, 90, 255, 0.22) 120px 150px),
+            rgba(255, 0, 128, 0.2) 0 30px,
+            rgba(255, 176, 0, 0.2) 30px 60px,
+            rgba(120, 255, 130, 0.2) 60px 90px,
+            rgba(0, 220, 255, 0.2) 90px 120px,
+            rgba(140, 90, 255, 0.2) 120px 150px),
         repeating-linear-gradient(112deg,
             rgba(255, 255, 255, 0) 0 4px, rgba(255, 255, 255, 0.18) 4px 5px, rgba(255, 255, 255, 0) 5px 9px),
         linear-gradient(112deg,
@@ -182,8 +185,46 @@
             rgba(255, 255, 255, 0.1) 58%,
             rgba(255, 255, 255, 0.38) 86%,
             rgba(255, 255, 255, 0.14) 100%);
-    background-size: 100% 100%, 100% 100%, 320% 320%;
-    background-position: 0 0, 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 320% 320%;
+    background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y), 0 0, 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+}
+
+/* A narrow moving reflection gives the card a readable flash when the pointer
+   enters, while the sheen underneath continues to follow the pointer. Keeping
+   this as a separate content-surface layer avoids tinting the caption or page. */
+.aeterni-flash-card__glint {
+    position: absolute;
+    inset: -30% -65%;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    transform: translate3d(var(--aeterni-flash-card-glint-x), var(--aeterni-flash-card-glint-y), 0) rotate(8deg);
+}
+
+.aeterni-flash-card__glint-sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(108deg, transparent 40%, rgba(255, 255, 255, 0.68) 49%, rgba(255, 255, 255, 0.12) 53%, transparent 62%);
+    transform: translateX(-70%);
+}
+
+.aeterni-flash-card:hover .aeterni-flash-card__glint,
+.aeterni-flash-card:focus-visible .aeterni-flash-card__glint,
+.aeterni-flash-card.is-tilting .aeterni-flash-card__glint {
+    opacity: 1;
+}
+
+.aeterni-flash-card:hover .aeterni-flash-card__glint-sweep,
+.aeterni-flash-card:focus-visible .aeterni-flash-card__glint-sweep,
+.aeterni-flash-card.is-tilting .aeterni-flash-card__glint-sweep {
+    animation: aeterni-flash-card-glint 900ms var(--aeterni-ease-out) both;
+}
+
+@keyframes aeterni-flash-card-glint {
+    0% { opacity: 0; transform: translateX(-70%); }
+    18% { opacity: 0.9; }
+    100% { opacity: 0; transform: translateX(70%); }
 }
 
 .aeterni-flash-card__caption {
@@ -231,7 +272,10 @@
     .aeterni-flash-card__tilt,
     .aeterni-flash-card__inner,
     .aeterni-flash-card__face,
-    .aeterni-flash-card__sheen {
+    .aeterni-flash-card__sheen,
+    .aeterni-flash-card__glint,
+    .aeterni-flash-card__glint-sweep {
         transition: none;
+        animation: none;
     }
 }

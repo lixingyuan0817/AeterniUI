@@ -101,6 +101,11 @@ function track(state, event) {
     if (state.sheen) {
         state.root.style.setProperty('--aeterni-flash-card-sheen-x', `${((x + 0.5) * 100).toFixed(1)}%`);
         state.root.style.setProperty('--aeterni-flash-card-sheen-y', `${((y + 0.5) * 100).toFixed(1)}%`);
+        // The glint is a separate sweep layer, but it shares the same pointer
+        // phase as the 3D rotation so the reflection appears attached to the
+        // tilted surface rather than sliding independently over it.
+        state.root.style.setProperty('--aeterni-flash-card-glint-x', `${(x * 34).toFixed(1)}%`);
+        state.root.style.setProperty('--aeterni-flash-card-glint-y', `${(y * 24).toFixed(1)}%`);
     }
 
     state.root.classList.add('is-tilting');
@@ -111,6 +116,8 @@ function reset(state) {
     state.root.classList.remove('is-tilting');
     state.root.style.setProperty('--aeterni-flash-card-rotate-x', '0deg');
     state.root.style.setProperty('--aeterni-flash-card-rotate-y', '0deg');
+    state.root.style.setProperty('--aeterni-flash-card-glint-x', '0%');
+    state.root.style.setProperty('--aeterni-flash-card-glint-y', '0%');
 }
 
 function clamp(value) {

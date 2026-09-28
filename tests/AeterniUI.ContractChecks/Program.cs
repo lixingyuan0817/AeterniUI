@@ -4,6 +4,7 @@ using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.FlashCard;
+using AeterniUI.Components.FlashCardGroup;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.Stepper;
@@ -33,6 +34,7 @@ await CheckCalendarGridAsync();
 await CheckTimeListFocusAsync();
 await CheckAvatarVariantsAsync();
 await CheckFlashCardAsync();
+await CheckFlashCardGroupAsync();
 await CheckToolbarAsync();
 await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
@@ -55,7 +57,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (18 groups).");
+Console.WriteLine("Component contract checks passed (19 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -963,11 +965,12 @@ async Task CheckFlashCardAsync()
         "The Hover trigger must have a matching style rule.");
     Require(css.Contains(".aeterni-flash-card--sheen-shine .aeterni-flash-card__sheen", StringComparison.Ordinal)
         && css.Contains(".aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen", StringComparison.Ordinal)
-        && css.Contains("mix-blend-mode: color", StringComparison.Ordinal)
+        && css.Contains("mix-blend-mode: screen", StringComparison.Ordinal)
         && css.Contains("mix-blend-mode: screen", StringComparison.Ordinal),
-        "The holographic finish must keep the image lightness with `color` and the metallic finish must lift it with `screen`.");
-    Require(!css.Contains("radial-gradient", StringComparison.Ordinal),
-        "The finish covers the whole card surface; a pointer-local spotlight would turn it into a cursor highlight.");
+        "Both finish layers must use the screen blend recipe so the reflection remains visible on light and dark images.");
+    Require(css.Contains("radial-gradient", StringComparison.Ordinal)
+        && css.Contains("aeterni-flash-card__glint-sweep", StringComparison.Ordinal),
+        "The finish must combine a pointer-phased highlight with a separate moving glint.");
     Require(css.Contains("@media (prefers-reduced-motion: reduce)", StringComparison.Ordinal), "FlashCard must honour the reduced motion preference.");
 
     var script = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/FlashCard/FlashCard.razor.js"));
@@ -987,6 +990,54 @@ async Task CheckFlashCardAsync()
         {
             return true;
         }
+    }
+}
+
+async Task CheckFlashCardGroupAsync()
+{
+    RenderFragment cards = builder =>
+    {
+        builder.OpenComponent<FlashCard>(0);
+        builder.AddAttribute(1, nameof(FlashCard.Title), "First");
+        builder.CloseComponent();
+        builder.OpenComponent<FlashCard>(2);
+        builder.AddAttribute(3, nameof(FlashCard.Title), "Second");
+        builder.CloseComponent();
+    };
+
+    var html = await RenderAsync<FlashCardGroup>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCardGroup.ChildContent)] = cards,
+        [nameof(FlashCardGroup.AriaLabel)] = "Deck",
+        [nameof(FlashCardGroup.Expanded)] = true,
+        [nameof(FlashCardGroup.CardWidth)] = 240d,
+        [nameof(FlashCardGroup.ExpandedSpacing)] = 80d,
+        [nameof(FlashCardGroup.CollapsedOffset)] = 6d,
+        [nameof(FlashCardGroup.Id)] = "contract-deck"
+    });
+
+    Require(html.Contains("id=\"contract-deck\"", StringComparison.Ordinal)
+        && html.Contains("role=\"group\"", StringComparison.Ordinal)
+        && html.Contains("aria-label=\"Deck\"", StringComparison.Ordinal)
+        && html.Contains("is-expanded", StringComparison.Ordinal)
+        && html.Contains("--aeterni-flash-card-group-card-width: 240px", StringComparison.Ordinal),
+        "FlashCardGroup must preserve its root semantics, expanded state and layout properties.");
+    Require(html.Contains("aeterni-flash-card-group__cards", StringComparison.Ordinal)
+        && html.Contains("First", StringComparison.Ordinal)
+        && html.Contains("Second", StringComparison.Ordinal),
+        "FlashCardGroup must render its child card collection.");
+
+    var invalid = new FlashCardGroup();
+    typeof(FlashCardGroup).GetProperty(nameof(FlashCardGroup.CardWidth))!.SetValue(invalid, 0d);
+    var onParametersSet = typeof(FlashCardGroup).GetMethod("OnParametersSet", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+    try
+    {
+        onParametersSet.Invoke(invalid, null);
+        Require(false, "FlashCardGroup must reject a non-positive card width.");
+    }
+    catch (System.Reflection.TargetInvocationException)
+    {
+        // Expected validation failure.
     }
 }
 

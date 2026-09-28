@@ -9,6 +9,14 @@
     width: 100%;
 }
 
+.preview-flash-card-group-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 330px;
+    padding-block: var(--aeterni-spacing-4);
+}
+
 .preview-flash-card-back {
     display: flex;
     flex-direction: column;

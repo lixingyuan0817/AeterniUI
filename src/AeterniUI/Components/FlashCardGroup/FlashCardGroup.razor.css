@@ -1,0 +1,96 @@
+/* The group owns the deck geometry. Its direct children are separate FlashCard
+   roots, so the wildcard child selector deliberately lets the group's scoped
+   rule reach those roots without taking over FlashCard's own face styling. */
+.aeterni-flash-card-group {
+    --aeterni-flash-card-group-card-width: 220px;
+    --aeterni-flash-card-group-expanded-spacing: 72px;
+    --aeterni-flash-card-group-collapsed-offset: 5px;
+
+    display: block;
+    box-sizing: border-box;
+    width: min(100%, calc(var(--aeterni-flash-card-group-card-width) + (var(--aeterni-flash-card-group-expanded-spacing) * 2)));
+    min-width: 0;
+    margin-inline: auto;
+    border-radius: var(--aeterni-radius-card);
+    outline: none;
+}
+
+.aeterni-flash-card-group__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    justify-items: center;
+    min-height: 1px;
+    padding-block: var(--aeterni-flash-card-group-collapsed-offset);
+}
+
+.aeterni-flash-card-group__cards > * {
+    grid-area: 1 / 1;
+    width: min(100%, var(--aeterni-flash-card-group-card-width));
+    transform: translateY(var(--aeterni-flash-card-group-collapsed-offset));
+    transform-origin: center bottom;
+    transition: var(--aeterni-transition-transform), var(--aeterni-transition-shadow);
+    will-change: transform;
+}
+
+/* The last card sits on top of the stack. A small offset preserves the deck
+   silhouette while keeping every card discoverable as the pointer enters it. */
+.aeterni-flash-card-group__cards > :nth-child(1) { z-index: 1; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 0)); }
+.aeterni-flash-card-group__cards > :nth-child(2) { z-index: 2; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 0.5)); }
+.aeterni-flash-card-group__cards > :nth-child(3) { z-index: 3; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 1)); }
+.aeterni-flash-card-group__cards > :nth-child(4) { z-index: 4; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 1.5)); }
+.aeterni-flash-card-group__cards > :nth-child(5) { z-index: 5; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 2)); }
+.aeterni-flash-card-group__cards > :nth-child(6) { z-index: 6; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 2.5)); }
+.aeterni-flash-card-group__cards > :nth-child(n + 7) { z-index: 7; transform: translateY(calc(var(--aeterni-flash-card-group-collapsed-offset) * 3)); }
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(1),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(1),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(1) {
+    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -2), 0) rotate(-12deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(2),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(2),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(2) {
+    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -1), 0) rotate(-7deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(3),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(3),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(3) {
+    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * -0.5), 0) rotate(-3deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(4),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(4),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(4) {
+    transform: translate(0, -2px) rotate(0deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(5),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(5),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(5) {
+    transform: translate(var(--aeterni-flash-card-group-expanded-spacing), 0) rotate(7deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(6),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(6),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(6) {
+    transform: translate(calc(var(--aeterni-flash-card-group-expanded-spacing) * 2), 0) rotate(12deg);
+}
+
+.aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards > :nth-child(n + 7),
+.aeterni-flash-card-group.is-hover-expand:hover .aeterni-flash-card-group__cards > :nth-child(n + 7),
+.aeterni-flash-card-group.is-hover-expand:focus-within .aeterni-flash-card-group__cards > :nth-child(n + 7) {
+    transform: translate(0, -4px) rotate(0deg);
+}
+
+.aeterni-flash-card-group.is-disabled .aeterni-flash-card-group__cards > * {
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-flash-card-group__cards > * {
+        transition: none;
+    }
+}
