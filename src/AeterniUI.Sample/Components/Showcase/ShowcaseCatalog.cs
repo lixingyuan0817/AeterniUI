@@ -66,6 +66,7 @@ public static class ShowcaseCatalog
             new("rating", "Rating", "整数评分"),
             new("search", "Search", "关键词查询"),
             new("autocomplete", "Autocomplete", "输入建议"),
+            new("multi-select", "MultiSelect", "多值选择"),
             new("combobox", "ComboBox", "下拉选择"),
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
             new("time-picker", "TimePicker", "时间选择"),

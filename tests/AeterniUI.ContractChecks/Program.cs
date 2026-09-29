@@ -8,6 +8,7 @@ using AeterniUI.Components.FlashCard;
 using AeterniUI.Components.FlashCardGroup;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
+using AeterniUI.Components.MultiSelect;
 using AeterniUI.Components.Search;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
@@ -42,6 +43,7 @@ await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
 await CheckSearchAsync();
 await CheckAutocompleteAsync();
+await CheckMultiSelectAsync();
 await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
 await CheckStepperAsync();
@@ -61,7 +63,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (21 groups).");
+Console.WriteLine("Component contract checks passed (22 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -742,6 +744,69 @@ async Task CheckAutocompleteAsync()
     {
         await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?> { ["Size"] = (Size)99 });
         Require(false, "Autocomplete must reject unknown sizes.");
+    }
+    catch (ArgumentOutOfRangeException) { }
+}
+
+async Task CheckMultiSelectAsync()
+{
+    var html = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?>
+    {
+        [nameof(MultiSelect<string>.Id)] = "contract-multi-select",
+        [nameof(MultiSelect<string>.Class)] = "consumer-multi-select",
+        [nameof(MultiSelect<string>.Style)] = "margin: 0",
+        [nameof(MultiSelect<string>.AdditionalAttributes)] = new Dictionary<string, object> { ["data-contract"] = "multi-select" },
+        [nameof(MultiSelect<string>.Items)] = new[] { "Design", "Development", "Operations" },
+        [nameof(MultiSelect<string>.SelectedValues)] = new[] { "Design", "Operations" },
+        [nameof(MultiSelect<string>.Size)] = Size.Small,
+        [nameof(MultiSelect<string>.AllowSelectAll)] = true,
+        [nameof(MultiSelect<string>.AllowClear)] = true,
+        [nameof(MultiSelect<string>.Required)] = true,
+        [nameof(MultiSelect<string>.Invalid)] = true,
+        [nameof(MultiSelect<string>.AriaLabel)] = "Component categories"
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-multi-select\"[^>]*>").Value;
+    foreach (var value in new[]
+    {
+        "id=\"contract-multi-select\"", "consumer-multi-select", "margin: 0", "data-contract=\"multi-select\"",
+        "aeterni-multi-select--sm", "is-invalid"
+    })
+    {
+        Require(root.Contains(value), $"MultiSelect root must render {value}.");
+    }
+
+    var trigger = Regex.Match(html, "<div[^>]*role=\"combobox\"[^>]*>").Value;
+    Require(trigger.Contains("aria-expanded=\"false\"")
+        && trigger.Contains("aria-haspopup=\"listbox\"")
+        && trigger.Contains("aria-required=\"true\"")
+        && trigger.Contains("aria-invalid=\"true\"")
+        && trigger.Contains("aria-label=\"Component categories\""),
+        "MultiSelect must expose combobox and field state semantics on its trigger.");
+    Require(Regex.Matches(html, "class=\"aeterni-multi-select__chip\"").Count == 2
+        && html.Contains("Remove Design")
+        && html.Contains("Remove Operations"),
+        "MultiSelect must render selected values as removable chips.");
+
+    var empty = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?>
+    {
+        [nameof(MultiSelect<string>.Items)] = Array.Empty<string>(),
+        [nameof(MultiSelect<string>.AriaLabel)] = "Categories"
+    });
+    Require(empty.Contains("Select options"), "MultiSelect renders its default placeholder.");
+
+    foreach (var size in Enum.GetValues<Size>())
+    {
+        var sized = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?> { [nameof(MultiSelect<string>.Size)] = size });
+        Require(sized.Contains("aeterni-multi-select--sm") == (size == Size.Small)
+            && sized.Contains("aeterni-multi-select--lg") == (size == Size.Large),
+            $"MultiSelect {size} must render only its matching size modifier.");
+    }
+
+    try
+    {
+        await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?> { [nameof(MultiSelect<string>.Size)] = (Size)99 });
+        Require(false, "MultiSelect must reject unknown sizes.");
     }
     catch (ArgumentOutOfRangeException) { }
 }

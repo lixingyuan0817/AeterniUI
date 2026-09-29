@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.22.3`
+文档版本：`10.23.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.22.3` 在 `10.22.2` 的基础上，将 Search / Autocomplete 的输入框与右侧图标按钮改为连体 ButtonGroup 结构，共用边界且不再出现间隔；操作按钮随组件尺寸同步高度，`Clearable` 仍只控制清除入口，`Loading` 会暂时禁用整个组合。其余组件的现行能力以本文档后续章节和源码为准。
+`10.23.0` 在 `10.22.3` 的基础上新增 `MultiSelect<TItem>` 多值选择组件，并将 Search / Autocomplete 的输入框与右侧图标按钮保持为连体 ButtonGroup 结构。其余组件的现行能力以本文档后续章节和源码为准。
 
 ## 文档口径
 
@@ -300,7 +300,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 实现边界
 
-`Search` 不包含建议弹层、搜索历史、远程数据源、查询缓存、分页或结果渲染；需要输入建议时使用后续的 `Autocomplete`，需要筛选条件编排时由宿主组合其他控件。示例：`/components/search`。
+`Search` 不包含建议弹层、搜索历史、远程数据源、查询缓存、分页或结果渲染；需要输入建议时使用 `Autocomplete`，需要筛选条件编排时由宿主组合其他控件。示例：`/components/search`。
 
 ### 基础用法
 
@@ -341,6 +341,39 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
               Items="Suggestions"
               TextSelector="@(city => city.Name)"
               OnItemSelected="SelectCity" />
+```
+
+## 8.3 MultiSelect
+
+### 支持能力
+
+`MultiSelect<TItem>` 提供多值绑定与下拉选项选择。选项、异步数据和业务筛选由宿主提供，组件负责触发器、已选项展示、浮层和键盘交互。
+
+- `Items`、`SelectedValues`、`SelectedValuesChanged` 与 `SelectedValuesExpression`，支持标准多值绑定和 `EditContext` 校验。
+- `TextSelector`、`DisabledSelector`、`ItemTemplate`、`SelectedItemTemplate` 和 `EmptyContent`。
+- `OnItemSelected` 在选项切换后回调；`OnClear` 在清空全部选项后回调。
+- `AllowSelectAll`、`AllowClear` 控制浮层内的全选和清空动作，默认关闭。
+- `Size`、`ReadOnly`、`Required`、`Invalid`、`FullWidth` 以及继承的 `Disabled`。
+- `Placeholder`、`AriaLabel`、`AriaDescribedBy`、`SelectAllLabel`、`ClearAllLabel` 和 `RemoveLabel`。
+- 自有文案使用 `AeterniUITextOptions.MultiSelectLabel`、`MultiSelectListLabel`、`MultiSelectPlaceholder`、`MultiSelectEmptyText`、`MultiSelectSelectAllLabel`、`MultiSelectClearAllLabel` 和 `MultiSelectRemoveLabel` 默认值。
+
+### 行为与无障碍
+
+触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，移除按钮具有独立焦点和无障碍名称。禁用选项不会进入键盘导航或被批量选中。
+
+### 实现边界
+
+组件不负责远程请求、查询缓存、搜索历史、全文检索、树形结果、表格渲染或虚拟滚动；宿主应提供当前 `Items` 快照并维护 `SelectedValues`。与只允许单值、无自由输入的 `ComboBox` 相比，`MultiSelect` 专门表达多值选择。示例：`/components/multi-select`。
+
+### 基础用法
+
+```razor
+<MultiSelect TItem="Category"
+             @bind-SelectedValues="SelectedCategories"
+             Items="Categories"
+             TextSelector="@(category => category.Name)"
+             AllowSelectAll
+             AllowClear />
 ```
 
 ## 9. Textarea
@@ -1069,6 +1102,13 @@ builder.Services.AddAeterniUI(options =>
     options.Text.AutocompleteListLabel = "建议项";
     options.Text.AutocompleteNoResultsText = "没有建议项";
     options.Text.AutocompleteLoadingText = "正在加载建议项";
+    options.Text.MultiSelectLabel = "多项选择";
+    options.Text.MultiSelectListLabel = "选项";
+    options.Text.MultiSelectPlaceholder = "请选择";
+    options.Text.MultiSelectEmptyText = "没有可选项";
+    options.Text.MultiSelectSelectAllLabel = "全选";
+    options.Text.MultiSelectClearAllLabel = "清空";
+    options.Text.MultiSelectRemoveLabel = "移除";
     options.Text.TimePickerPlaceholder = "请选择时间";
     options.Text.TimePickerLabel = "时间选择器";
     options.Text.TimePickerOptionsLabel = "可用时间";

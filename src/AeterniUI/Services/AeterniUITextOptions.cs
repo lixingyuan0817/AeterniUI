@@ -36,6 +36,27 @@ public sealed class AeterniUITextOptions
     /// <summary>Message shown while an <c>Autocomplete</c> host loads suggestions.</summary>
     public string AutocompleteLoadingText { get; set; } = "Loading suggestions";
 
+    /// <summary>Accessible name of a <c>MultiSelect</c> control.</summary>
+    public string MultiSelectLabel { get; set; } = "Multi-select";
+
+    /// <summary>Accessible name of a <c>MultiSelect</c> option list.</summary>
+    public string MultiSelectListLabel { get; set; } = "Options";
+
+    /// <summary>Trigger text of a <c>MultiSelect</c> with no values.</summary>
+    public string MultiSelectPlaceholder { get; set; } = "Select options";
+
+    /// <summary>Message shown when a <c>MultiSelect</c> has no options.</summary>
+    public string MultiSelectEmptyText { get; set; } = "No options";
+
+    /// <summary>Accessible label of the select-all action.</summary>
+    public string MultiSelectSelectAllLabel { get; set; } = "Select all";
+
+    /// <summary>Accessible label of the clear-all action.</summary>
+    public string MultiSelectClearAllLabel { get; set; } = "Clear all";
+
+    /// <summary>Prefix of a selected-item remove action.</summary>
+    public string MultiSelectRemoveLabel { get; set; } = "Remove";
+
     /// <summary>Trigger text of a <c>TimePicker</c> that has no value yet.</summary>
     public string TimePickerPlaceholder { get; set; } = "Select time";
 
@@ -186,6 +207,13 @@ public sealed class AeterniUITextOptions
         AutocompleteListLabel = Or(AutocompleteListLabel, defaults.AutocompleteListLabel);
         AutocompleteNoResultsText = Or(AutocompleteNoResultsText, defaults.AutocompleteNoResultsText);
         AutocompleteLoadingText = Or(AutocompleteLoadingText, defaults.AutocompleteLoadingText);
+        MultiSelectLabel = Or(MultiSelectLabel, defaults.MultiSelectLabel);
+        MultiSelectListLabel = Or(MultiSelectListLabel, defaults.MultiSelectListLabel);
+        MultiSelectPlaceholder = Or(MultiSelectPlaceholder, defaults.MultiSelectPlaceholder);
+        MultiSelectEmptyText = Or(MultiSelectEmptyText, defaults.MultiSelectEmptyText);
+        MultiSelectSelectAllLabel = Or(MultiSelectSelectAllLabel, defaults.MultiSelectSelectAllLabel);
+        MultiSelectClearAllLabel = Or(MultiSelectClearAllLabel, defaults.MultiSelectClearAllLabel);
+        MultiSelectRemoveLabel = Or(MultiSelectRemoveLabel, defaults.MultiSelectRemoveLabel);
         TimePickerPlaceholder = Or(TimePickerPlaceholder, defaults.TimePickerPlaceholder);
         TimePickerLabel = Or(TimePickerLabel, defaults.TimePickerLabel);
         TimePickerOptionsLabel = Or(TimePickerOptionsLabel, defaults.TimePickerOptionsLabel);
