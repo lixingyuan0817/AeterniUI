@@ -1,0 +1,137 @@
+@typeparam TItem
+@inherits AeterniComponent
+
+<PopupHost Class="aeterni-multi-select__host">
+    <ChildContent>
+        <div @ref="RootElement" @attributes="BuildAttributes()">
+            <div class="aeterni-multi-select__trigger"
+                 role="combobox"
+                 tabindex="@(IsDisabled || ReadOnly ? "-1" : "0")"
+                 aria-labelledby="@FormField?.LabelId"
+                 aria-describedby="@(FormField?.DescribedBy ?? AriaDescribedBy)"
+                 aria-label="@(FormField?.LabelId is null ? EffectiveAriaLabel : null)"
+                 aria-expanded="@(_open ? "true" : "false")"
+                 aria-controls="@ListboxId"
+                 aria-haspopup="listbox"
+                 aria-disabled="@(IsDisabled ? "true" : null)"
+                 aria-readonly="@(ReadOnly ? "true" : null)"
+                 aria-required="@(IsRequired ? "true" : null)"
+                 aria-invalid="@(IsInvalid ? "true" : null)"
+                 aria-activedescendant="@ActiveOptionId"
+                 @onclick="HandleTriggerClickAsync"
+                 @onkeydown="HandleTriggerKeyDownAsync">
+                <div class="aeterni-multi-select__values">
+                    @if (HasSelection)
+                    {
+                        @foreach (var item in SelectedValues)
+                        {
+                            <span class="aeterni-multi-select__chip">
+                                @if (SelectedItemTemplate is not null)
+                                {
+                                    @SelectedItemTemplate(item)
+                                }
+                                else
+                                {
+                                    <span class="aeterni-multi-select__chip-text">@DisplayText(item)</span>
+                                }
+                                <button type="button"
+                                        class="aeterni-multi-select__chip-remove"
+                                        aria-label="@($"{EffectiveRemoveLabel} {DisplayText(item)}")"
+                                        disabled="@(IsDisabled || ReadOnly)"
+                                        @onclick="@(_ => RemoveSelectedAsync(item))"
+                                        @onclick:stopPropagation="true">
+                                    <Icon Definition="@AeterniIcons.Xmark" />
+                                </button>
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="aeterni-multi-select__placeholder">@PlaceholderText</span>
+                    }
+                </div>
+                <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-multi-select__chevron" />
+            </div>
+
+            <Popover Open="@_open"
+                     OpenChanged="@HandlePopoverOpenChangedAsync"
+                     Placement="@PopupPlacement.BottomStart"
+                     CloseOnScroll="true"
+                     Class="aeterni-multi-select__popover"
+                     AriaLabel="@EffectiveListLabel">
+                <div class="aeterni-multi-select__panel">
+                    @if (AllowSelectAll || AllowClear)
+                    {
+                        <div class="aeterni-multi-select__actions" role="group" aria-label="@EffectiveListLabel">
+                            @if (AllowSelectAll && HasEnabledItems)
+                            {
+                                <button type="button" class="aeterni-multi-select__action"
+                                        aria-label="@EffectiveSelectAllLabel"
+                                        disabled="@(IsDisabled || ReadOnly)"
+                                        @onclick="SelectAllAsync">@EffectiveSelectAllLabel</button>
+                            }
+                            @if (AllowClear && HasSelection)
+                            {
+                                <button type="button" class="aeterni-multi-select__action"
+                                        aria-label="@EffectiveClearAllLabel"
+                                        disabled="@(IsDisabled || ReadOnly)"
+                                        @onclick="ClearAllAsync">@EffectiveClearAllLabel</button>
+                            }
+                        </div>
+                    }
+
+                    <div id="@ListboxId"
+                         class="aeterni-multi-select__options"
+                         role="listbox"
+                         aria-label="@EffectiveListLabel"
+                         aria-multiselectable="true">
+                        @if (_visibleItems.Count == 0)
+                        {
+                            <div class="aeterni-multi-select__empty">
+                                @if (EmptyContent is not null)
+                                {
+                                    @EmptyContent
+                                }
+                                else
+                                {
+                                    @UiText.MultiSelectEmptyText
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            @for (var index = 0; index < _visibleItems.Count; index++)
+                            {
+                                var item = _visibleItems[index];
+                                var selected = IsSelected(item);
+                                var itemDisabled = IsItemDisabled(item);
+                                <div id="@($"{ListboxId}-option-{index}")"
+                                     role="option"
+                                     aria-selected="@(selected ? "true" : "false")"
+                                     aria-disabled="@(itemDisabled ? "true" : null)"
+                                     class="aeterni-multi-select__option @(index == _activeIndex ? "is-active" : string.Empty) @(selected ? "is-selected" : string.Empty) @(itemDisabled ? "is-disabled" : string.Empty)"
+                                     @onclick="@(_ => ToggleItemAsync(item))">
+                                    <span class="aeterni-multi-select__option-check" aria-hidden="true">
+                                        @if (selected)
+                                        {
+                                            <Icon Definition="@AeterniIcons.Check" />
+                                        }
+                                    </span>
+                                    @if (ItemTemplate is not null)
+                                    {
+                                        @ItemTemplate(item)
+                                    }
+                                    else
+                                    {
+                                        <span class="aeterni-multi-select__option-text">@DisplayText(item)</span>
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+                </div>
+            </Popover>
+        </div>
+    </ChildContent>
+</PopupHost>

@@ -1,0 +1,102 @@
+@page "/components/multi-select"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · MultiSelect</PageTitle>
+
+<ComponentPreview AnchorId="multi-select"
+                  Category="表单组件"
+                  Title="MultiSelect"
+                  ComponentName="MultiSelect&lt;TItem&gt;"
+                  Description="多值绑定、已选项标签、移除操作以及可选的全选和清空动作。"
+                  Parameters="@MultiSelectParameters"
+                  Events="@MultiSelectEvents"
+                  Contracts="@MultiSelectContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="组件分类" Description="可以通过键盘方向键移动，按空格切换选项。" Disabled="@_disabled" Invalid="@_invalid">
+                <MultiSelect TItem="string"
+                             Items="@Categories"
+                             SelectedValues="@_selected"
+                             SelectedValuesChanged="HandleSelectedChanged"
+                             Size="@_size"
+                             Placeholder="@_placeholder"
+                             AllowSelectAll="@_allowSelectAll"
+                             AllowClear="@_allowClear"
+                             FullWidth="@_fullWidth"
+                             Disabled="@_disabled"
+                             Invalid="@_invalid"
+                             AriaLabel="组件分类" />
+            </FormField>
+            <span class="preview-feedback" role="status">已选择：@(_selected.Count == 0 ? "（空）" : string.Join("、", _selected))</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="multi-select-placeholder">Placeholder</label>
+            <input id="multi-select-placeholder" @bind="_placeholder" />
+        </div>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="multi-select-size" AriaLabel="MultiSelect Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_allowSelectAll">AllowSelectAll</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_allowClear">AllowClear</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+    </Controls>
+    <Notes>
+        <span>组件只负责展示和交互；Items、SelectedValues 以及异步数据由宿主应用控制。</span>
+        <span>选项使用 listbox/option 多选语义；已选项可以在触发器内单独移除，AllowSelectAll 和 AllowClear 控制批量动作。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly string[] Categories = ["设计", "开发", "产品", "运营", "研究"];
+    private IReadOnlyList<string> _selected = ["设计", "开发"];
+    private string _placeholder = "选择组件分类…";
+    private Size _size = Size.Default;
+    private bool _allowSelectAll = true;
+    private bool _allowClear = true;
+    private bool _disabled;
+    private bool _invalid;
+    private bool _fullWidth;
+
+    private static readonly ShowcaseParameter[] MultiSelectParameters =
+    [
+        new("Items", "IReadOnlyList<TItem>", "宿主提供的选项集合。"),
+        new("SelectedValues", "IReadOnlyList<TItem>", "当前选中的值列表。", "空列表"),
+        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<TItem>>", "多值绑定回调。"),
+        new("TextSelector", "Func<TItem, string>?", "将选项映射为展示文本。"),
+        new("DisabledSelector", "Func<TItem, bool>?", "按选项决定是否禁用。"),
+        new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
+        new("SelectedItemTemplate", "RenderFragment<TItem>?", "自定义已选项内容。"),
+        new("Size", "Size", "触发器与选项共同尺寸。", "Default"),
+        new("AllowSelectAll", "bool", "显示全选动作。", "false"),
+        new("AllowClear", "bool", "显示清空动作。", "false"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Placeholder", "string?", "无选中值时的占位文本。"),
+        new("AriaLabel", "string?", "控件和选项列表的无障碍名称。"),
+        new("SelectAllLabel / ClearAllLabel / RemoveLabel", "string?", "批量动作与移除动作的无障碍名称。")
+    ];
+
+    private static readonly ShowcaseEvent[] MultiSelectEvents =
+    [
+        new("OnItemSelected", "EventCallback<TItem>", "选项被切换后触发。"),
+        new("OnClear", "EventCallback", "清空全部选项后触发。")
+    ];
+
+    private static readonly ShowcaseContract[] MultiSelectContracts =
+    [new("MultiSelect<TItem>", "combobox + listbox[aria-multiselectable]", "不请求远程数据、不缓存结果，异步数据由宿主提供。")];
+
+    private Task HandleSelectedChanged(IReadOnlyList<string> values)
+    {
+        _selected = values;
+        return Task.CompletedTask;
+    }
+}
