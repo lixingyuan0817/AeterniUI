@@ -15,6 +15,27 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of the <c>ComboBox</c> option list.</summary>
     public string ComboBoxListLabel { get; set; } = "Options";
 
+    /// <summary>Accessible name of a <c>Search</c> landmark and input.</summary>
+    public string SearchLabel { get; set; } = "Search";
+
+    /// <summary>Visible label of a <c>Search</c> submit action.</summary>
+    public string SearchSubmitLabel { get; set; } = "Search";
+
+    /// <summary>Accessible label of a <c>Search</c> clear action.</summary>
+    public string SearchClearLabel { get; set; } = "Clear search";
+
+    /// <summary>Accessible name of an <c>Autocomplete</c> input.</summary>
+    public string AutocompleteLabel { get; set; } = "Autocomplete";
+
+    /// <summary>Accessible name of an <c>Autocomplete</c> suggestion list.</summary>
+    public string AutocompleteListLabel { get; set; } = "Suggestions";
+
+    /// <summary>Message shown when an <c>Autocomplete</c> has no suggestions.</summary>
+    public string AutocompleteNoResultsText { get; set; } = "No suggestions";
+
+    /// <summary>Message shown while an <c>Autocomplete</c> host loads suggestions.</summary>
+    public string AutocompleteLoadingText { get; set; } = "Loading suggestions";
+
     /// <summary>Trigger text of a <c>TimePicker</c> that has no value yet.</summary>
     public string TimePickerPlaceholder { get; set; } = "Select time";
 
@@ -158,6 +179,13 @@ public sealed class AeterniUITextOptions
     {
         ComboBoxPlaceholder = Or(ComboBoxPlaceholder, defaults.ComboBoxPlaceholder);
         ComboBoxListLabel = Or(ComboBoxListLabel, defaults.ComboBoxListLabel);
+        SearchLabel = Or(SearchLabel, defaults.SearchLabel);
+        SearchSubmitLabel = Or(SearchSubmitLabel, defaults.SearchSubmitLabel);
+        SearchClearLabel = Or(SearchClearLabel, defaults.SearchClearLabel);
+        AutocompleteLabel = Or(AutocompleteLabel, defaults.AutocompleteLabel);
+        AutocompleteListLabel = Or(AutocompleteListLabel, defaults.AutocompleteListLabel);
+        AutocompleteNoResultsText = Or(AutocompleteNoResultsText, defaults.AutocompleteNoResultsText);
+        AutocompleteLoadingText = Or(AutocompleteLoadingText, defaults.AutocompleteLoadingText);
         TimePickerPlaceholder = Or(TimePickerPlaceholder, defaults.TimePickerPlaceholder);
         TimePickerLabel = Or(TimePickerLabel, defaults.TimePickerLabel);
         TimePickerOptionsLabel = Or(TimePickerOptionsLabel, defaults.TimePickerOptionsLabel);

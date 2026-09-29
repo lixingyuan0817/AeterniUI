@@ -1,0 +1,109 @@
+.aeterni-search {
+    --aeterni-search-group-radius: var(--aeterni-radius-input);
+
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-width-input-md));
+    max-width: 100%;
+}
+
+.aeterni-search__field {
+    min-width: 0;
+}
+
+.aeterni-search__input-wrap {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-search-group-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-search__input-wrap:focus-within {
+    border-color: var(--aeterni-control-border-focus);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-search__actions {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 0 0 auto;
+}
+
+.aeterni-search__actions ::deep .aeterni-button-group {
+    gap: 0;
+    border: 0;
+}
+
+.aeterni-search__input-wrap ::deep .aeterni-input {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.aeterni-search__input-wrap ::deep .aeterni-input:focus-visible,
+.aeterni-search__actions ::deep .aeterni-icon-button:focus-visible {
+    outline: none;
+}
+
+.aeterni-search__input-wrap ::deep .aeterni-input.is-full-width {
+    width: auto;
+}
+
+.aeterni-search__input-wrap ::deep input[type="search"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.aeterni-search__actions ::deep .aeterni-icon-button {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.aeterni-search__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button,
+.aeterni-search__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:first-child,
+.aeterni-search__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:last-child {
+    border-radius: 0;
+}
+
+.aeterni-search__actions ::deep .aeterni-icon-button:hover:not(:disabled),
+.aeterni-search__actions ::deep .aeterni-icon-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: none;
+}
+
+.aeterni-search.is-invalid .aeterni-search__input-wrap {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-search.is-invalid .aeterni-search__input-wrap:focus-within {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-search.is-disabled .aeterni-search__input-wrap {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-search.is-readonly .aeterni-search__input-wrap {
+    background: var(--aeterni-control-background-readonly);
+}
+
+.aeterni-search.is-full-width {
+    width: 100%;
+}
+
+.aeterni-search--sm {
+    --aeterni-search-group-radius: var(--aeterni-radius-input-sm);
+}
+
+.aeterni-search--lg {
+    --aeterni-search-group-radius: var(--aeterni-radius-input-lg);
+}

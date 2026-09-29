@@ -1,8 +1,27 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.20.2`
+文档版本：`10.22.3`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；v0.7 规划中。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，后续 `MultiSelect` 仍规划中。
+
+## 10.22.3 Search / Autocomplete 连体按钮组
+
+- [x] Search 的清除/搜索按钮和 Autocomplete 的清除按钮统一使用 `ButtonGroup Connected`，与输入框共用边界，不再显示间隙或重复圆角。
+- [x] ButtonGroup 支持 `IconButton` 子项并继承禁用状态，保留相邻按钮分隔线、焦点层级和 RTL 逻辑边角。
+- [x] 操作按钮随 Search / Autocomplete 的 `Size` 同步高度；`Loading` 暂时禁用整个组合。
+- [x] 示例、功能文档和渲染契约同步；构建与 21 组契约检查通过。
+
+## 10.22.2 Search 内置搜索按钮
+
+- [x] 将 Search 的文字提交按钮收进输入框，改为始终可见的紧凑搜索图标按钮；Enter 与点击继续共用 `OnSearch`。
+- [x] 新增核心 `AeterniIcons.MagnifyingGlass` 字形；`SubmitLabel` 继续提供可本地化无障碍名称，Loading 在按钮内显示 Spinner。
+- [x] `Clearable` 只控制清除动作，关闭后仍保留内置搜索按钮；同步示例、功能清单和渲染契约。
+
+## 10.22.1 Search / Autocomplete 清除操作优化
+
+- [x] 清除按钮统一放入输入框内部，不再作为输入框外的并列操作占位。
+- [x] `Clearable` 统一控制自定义清除按钮，并隐藏 `type="search"` 的浏览器原生清除入口，避免重复图标。
+- [x] 清除图标使用紧凑尺寸并保留独立焦点与无障碍名称；构建、21 组渲染契约和文档检查通过。
 
 ## 10.20.2 FlashCardGroup 牌堆布局修复
 
@@ -662,9 +681,9 @@ Token 和现有基础组件
 | 优先级 0 | v0.5.1 质量收口（REV-64～REV-73、REV-75～REV-76） | 已完成 | 已恢复根属性、键盘焦点、折叠内容可达性、视觉状态和本地化契约，并加入最小渲染回归门禁 |
 | 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | 三项均已完成 | ToggleGroup 复用键盘规则；SplitButton 复用 MenuButton 浮层与键盘实现 |
 | 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 已完成（5/5） | Breadcrumb 明确链接导航边界；Stepper 复用线性流程状态语义 |
-| 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 未开始 | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
+| 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | `Autocomplete` 已完成（2/3） | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
 
-文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划进入优先级 3 的 v0.7 Search。
+文档事实偏差 REV-74 已在本轮规划同步时直接修正。当前未实现计划进入优先级 3 的 v0.7 `MultiSelect`。
 
 ### v0.5.1 质量收口（优先级 0）
 
@@ -701,7 +720,7 @@ Accordion / DateCalendar / TimeOptionList 焦点语义
           +--> 最小化渲染契约门禁
 ```
 
-完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付，下一实施项为 v0.7 `Search`。
+完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付，`Search` 已在 10.21.0 交付，`Autocomplete` 已在 10.22.0 交付，下一实施项为 v0.7 `MultiSelect`。
 
 ### 规划原则
 
@@ -764,12 +783,12 @@ Tabs / Menu 语义与键盘模型
 
 目标：在完成时间和动作基础后，补齐从关键词输入到结果选择的搜索组件能力；搜索结果的数据获取、缓存和业务状态仍由宿主应用负责。
 
-状态：未开始（0/3）。
+状态：`Search` 与 `Autocomplete` 已完成（2/3）。
 
 计划顺序：
 
-1. [ ] `Search`：关键词输入、清除、提交、搜索状态和可访问名称；优先复用 `Input`、`Button`、`IconButton` 与现有表单校验语义。
-2. [ ] `Autocomplete`：自由输入、建议列表、键盘导航、异步结果由宿主通过参数/回调提供；复用 `Search` 的输入状态与 `PopupHost` + `List` 语义。
+1. [x] `Search`：关键词输入、清除、提交、搜索状态和可访问名称；复用 `Input`、`Button`、`IconButton` 与现有表单校验语义；根节点使用 `role="search"`，不渲染建议列表或查询结果，示例为 `/components/search`。
+2. [x] `Autocomplete`：自由输入、建议列表、键盘导航、异步结果由宿主通过参数/回调提供；复用 `Search` 的输入状态与 `PopupHost` + `List` 语义；输入保持 combobox 焦点，建议项使用 listbox/option 语义，示例为 `/components/autocomplete`。
 3. [ ] `MultiSelect`：多值绑定、已选项展示、移除操作、全选/清空策略；与现有纯下拉 `ComboBox` 保持明确边界。
 
 依赖顺序：
@@ -812,3 +831,5 @@ Search + List + PopupHost
 | v10.20.2 FlashCardGroup 牌堆布局修复 | 已完成 | 构建、无头浏览器预览、渲染契约、CSS 注释与文档门禁 | 修复隔离 CSS 无法匹配子 FlashCard 根元素导致牌堆预览空白的问题；按修复版本规则由 `10.20.1` 递增为 `10.20.2`。 |
 | v10.20.1 FlashCardGroup 示例补充 | 已完成 | 构建、文档一致性门禁 | 新增独立 `/components/flash-card-group` 示例页并注册侧栏导航，补充抽卡宿主交互；按修复版本规则由 `10.20.0` 递增为 `10.20.1`。 |
 | v10.20.0 FlashCard 光泽优化与 FlashCardGroup | 已完成 | 构建、渲染契约、JS 指针跟随回归、CSS 注释、文档与品牌对比度门禁 | 优化 FlashCard 的光泽高光与 3D 同步、翻面缓动；新增默认叠放、悬浮/聚焦扇形展开的 FlashCardGroup 与抽卡示例。按仓库约定「功能新增递增次版本号」由 `10.19.0` 递增为 `10.20.0`。 |
+| v10.21.0 v0.7 Search | 已完成（1/3） | 构建、20 组渲染契约、CSS 注释与文档门禁 | 新增 `Search` 关键词查询组件，提供标准绑定、清除、Enter/点击提交、Loading、FormField 状态继承和命名 `role="search"`；不包含建议弹层、结果列表或远程数据源，示例为 `/components/search`。按功能新增规则由 `10.20.2` 递增为 `10.21.0`。 |
+| v10.22.0 v0.7 Autocomplete | 已完成（2/3） | 构建、21 组渲染契约、Autocomplete JS 语法、CSS 注释与文档门禁 | 新增 `Autocomplete<TItem>` 自由输入建议组件，提供宿主建议快照、异步 Loading、Popover 浮层、combobox/listbox/option 语义、方向键/Home/End/Enter/Escape、模板和字段校验；不包含远程请求、debounce、缓存或虚拟滚动，示例为 `/components/autocomplete`。按功能新增规则由 `10.21.0` 递增为 `10.22.0`。 |

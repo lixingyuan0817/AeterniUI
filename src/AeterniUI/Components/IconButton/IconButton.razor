@@ -14,7 +14,7 @@
 @code {
     private async Task HandleClickAsync(MouseEventArgs args)
     {
-        if (Disabled || Loading)
+        if (IsEffectivelyDisabled || Loading)
         {
             return;
         }
@@ -30,7 +30,7 @@
         .Add(IntentClass)
         .Add(SizeClass)
         .Add("is-loading", Loading)
-        .Add("is-disabled", Disabled);
+        .Add("is-disabled", IsEffectivelyDisabled);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
@@ -40,7 +40,7 @@
             ["aria-label"] = AriaLabel.Trim()
         };
 
-        if (Disabled || Loading)
+        if (IsEffectivelyDisabled || Loading)
         {
             attributes["disabled"] = true;
             attributes["aria-disabled"] = "true";

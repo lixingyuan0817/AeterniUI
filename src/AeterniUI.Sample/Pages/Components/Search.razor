@@ -1,0 +1,119 @@
+@page "/components/search"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Search</PageTitle>
+
+<ComponentPreview AnchorId="search"
+                  Category="表单组件"
+                  Title="Search"
+                  ComponentName="Search"
+                  Description="关键词查询入口，输入框内置清除与搜索图标按钮，支持 Enter 提交和受控加载状态；不渲染建议列表或查询结果。"
+                  Parameters="@SearchParameters"
+                  Events="@SearchEvents"
+                  Contracts="@SearchContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="组件查询"
+                       Description="输入关键词后按 Enter 或点击输入框内的搜索按钮。"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <Search @bind-Value="_query"
+                        Size="@_size"
+                        Placeholder="@_placeholder"
+                        Clearable="@_clearable"
+                        Loading="@_loading"
+                        SubmitOnEnter="@_submitOnEnter"
+                        FullWidth="@_fullWidth"
+                        AriaLabel="组件查询"
+                        OnSearch="HandleSearchAsync"
+                        OnClear="HandleClearAsync" />
+            </FormField>
+            <span class="preview-feedback" role="status">@_status</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="search-placeholder">Placeholder</label>
+            <input id="search-placeholder" @bind="_placeholder" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="search-size" AriaLabel="Search Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_clearable">Clearable</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_submitOnEnter">SubmitOnEnter</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+    </Controls>
+    <Notes>
+        <span>Search 内置搜索图标按钮，只负责关键词输入和提交；不内置建议列表、远程数据源或查询结果，需要输入建议时使用 Autocomplete。</span>
+        <span>Loading 会暂时禁用输入、清除和搜索操作，阻止重复提交并输出 aria-busy；输入值仍由宿主通过标准绑定持有。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private string? _query;
+    private string _placeholder = "搜索组件名称…";
+    private string _status = "尚未提交查询";
+    private Size _size = Size.Default;
+    private bool _clearable = true;
+    private bool _submitOnEnter = true;
+    private bool _loading;
+    private bool _disabled;
+    private bool _invalid;
+    private bool _fullWidth;
+
+    private static readonly ShowcaseParameter[] SearchParameters =
+    [
+        new("Value", "string?", "当前关键词。"),
+        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
+        new("Size", "Size", "输入框以及内置清除/搜索按钮的共同尺寸。", "Default"),
+        new("Clearable", "bool", "是否在有值时显示清除动作。", "true"),
+        new("Loading", "bool", "暂时禁用整个组合，阻止重复提交并输出 aria-busy。", "false"),
+        new("SubmitOnEnter", "bool", "是否允许 Enter 提交。", "true"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
+        new("AriaLabel", "string?", "搜索区域与输入的无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("SubmitLabel", "string?", "内置搜索按钮的无障碍标签。"),
+        new("ClearLabel", "string?", "清除按钮无障碍标签。")
+    ];
+
+    private static readonly ShowcaseEvent[] SearchEvents =
+    [
+        new("OnSearch", "EventCallback<string?>", "点击提交或按 Enter 后触发。"),
+        new("OnClear", "EventCallback", "清除关键词后触发。")
+    ];
+
+    private static readonly ShowcaseContract[] SearchContracts =
+    [new("Search", "role=search", "不渲染建议弹层；建议列表属于后续 Autocomplete。")];
+
+    private Task HandleSearchAsync(string? value)
+    {
+        _status = string.IsNullOrWhiteSpace(value)
+            ? "已提交空查询"
+            : $"最近查询：{value}";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClearAsync()
+    {
+        _status = "已清除查询";
+        return Task.CompletedTask;
+    }
+}

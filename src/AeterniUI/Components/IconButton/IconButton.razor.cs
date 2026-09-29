@@ -1,5 +1,6 @@
 using AeterniUI.Enums;
 using AeterniUI.Components;
+using AeterniUI.Components.ButtonGroup;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -8,6 +9,9 @@ namespace AeterniUI.Components.IconButton;
 /// <summary>A compact square button for an icon-only action.</summary>
 public partial class IconButton : AeterniComponent
 {
+    [CascadingParameter]
+    private ButtonGroupContext? ParentContext { get; set; }
+
     [Parameter]
     public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
 
@@ -36,4 +40,6 @@ public partial class IconButton : AeterniComponent
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     private RenderFragment? EffectiveIcon => Icon ?? ChildContent;
+
+    private bool IsEffectivelyDisabled => Disabled || (ParentContext?.Disabled ?? false);
 }

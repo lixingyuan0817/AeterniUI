@@ -93,6 +93,15 @@ public static class AeterniIcons
             "M8 2.8a5.2 5.2 0 1 1 0 10.4A5.2 5.2 0 0 1 8 2.8zm0 2.9a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm-1 4.4h2.1v3.6H7z"
         ]);
 
+    /// <summary>Magnifying glass used by the Search submit action.</summary>
+    public static IconDefinition MagnifyingGlass { get; } = new(
+        "magnifying-glass",
+        16,
+        16,
+        [
+            "M7 2.4a4.6 4.6 0 1 0 2.9 8.2l3.5 3.5.9-.9-3.5-3.5A4.6 4.6 0 0 0 7 2.4zm0 1.3a3.3 3.3 0 1 1 0 6.6 3.3 3.3 0 0 1 0-6.6z"
+        ]);
+
     /// <summary>Exclamation mark used by warning notices.</summary>
     public static IconDefinition Exclamation { get; } = new(
         "exclamation",

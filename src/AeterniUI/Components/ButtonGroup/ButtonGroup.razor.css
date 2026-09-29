@@ -30,7 +30,16 @@
     min-width: 0;
 }
 
+.aeterni-button-group.is-full-width ::deep .aeterni-icon-button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 .aeterni-button-group--vertical.is-full-width ::deep .aeterni-button {
+    width: 100%;
+}
+
+.aeterni-button-group--vertical.is-full-width ::deep .aeterni-icon-button {
     width: 100%;
 }
 
@@ -42,9 +51,18 @@
     border-radius: 0;
 }
 
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button {
+    border-radius: 0;
+}
+
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button:first-child {
     border-start-start-radius: var(--aeterni-button-radius);
     border-end-start-radius: var(--aeterni-button-radius);
+}
+
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button:first-child {
+    border-start-start-radius: var(--aeterni-radius-button-sm);
+    border-end-start-radius: var(--aeterni-radius-button-sm);
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button:last-child {
@@ -52,7 +70,17 @@
     border-end-end-radius: var(--aeterni-button-radius);
 }
 
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button:last-child {
+    border-start-end-radius: var(--aeterni-radius-button-sm);
+    border-end-end-radius: var(--aeterni-radius-button-sm);
+}
+
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button {
+    border-inline-start-color: var(--aeterni-button-group-divider);
+    margin-inline-start: calc(var(--aeterni-border-width) * -1);
+}
+
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button {
     border-inline-start-color: var(--aeterni-button-group-divider);
     margin-inline-start: calc(var(--aeterni-border-width) * -1);
 }
@@ -67,7 +95,18 @@
     border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 }
 
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--outline,
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--soft,
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--ghost,
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--link {
+    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+}
+
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button {
+    border-radius: 0;
+}
+
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button {
     border-radius: 0;
 }
 
@@ -76,12 +115,27 @@
     border-start-end-radius: var(--aeterni-button-radius);
 }
 
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button:first-child {
+    border-start-start-radius: var(--aeterni-radius-button-sm);
+    border-start-end-radius: var(--aeterni-radius-button-sm);
+}
+
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button:last-child {
     border-end-start-radius: var(--aeterni-button-radius);
     border-end-end-radius: var(--aeterni-button-radius);
 }
 
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button:last-child {
+    border-end-start-radius: var(--aeterni-radius-button-sm);
+    border-end-end-radius: var(--aeterni-radius-button-sm);
+}
+
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button {
+    border-block-start-color: var(--aeterni-button-group-divider);
+    margin-block-start: calc(var(--aeterni-border-width) * -1);
+}
+
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button {
     border-block-start-color: var(--aeterni-button-group-divider);
     margin-block-start: calc(var(--aeterni-border-width) * -1);
 }
@@ -93,7 +147,19 @@
     border-block-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 }
 
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--outline,
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--soft,
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--ghost,
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--link {
+    border-block-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+}
+
 .aeterni-button-group.is-connected ::deep .aeterni-button:hover,
 .aeterni-button-group.is-connected ::deep .aeterni-button:focus-visible {
+    z-index: 1;
+}
+
+.aeterni-button-group.is-connected ::deep .aeterni-icon-button:hover,
+.aeterni-button-group.is-connected ::deep .aeterni-icon-button:focus-visible {
     z-index: 1;
 }

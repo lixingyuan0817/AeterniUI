@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using AeterniUI.Components.Accordion;
+using AeterniUI.Components.Autocomplete;
 using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
@@ -7,6 +8,7 @@ using AeterniUI.Components.FlashCard;
 using AeterniUI.Components.FlashCardGroup;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
+using AeterniUI.Components.Search;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
 using AeterniUI.Enums;
@@ -38,6 +40,8 @@ await CheckFlashCardGroupAsync();
 await CheckToolbarAsync();
 await CheckToggleGroupAsync();
 await CheckSplitButtonAsync();
+await CheckSearchAsync();
+await CheckAutocompleteAsync();
 await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
 await CheckStepperAsync();
@@ -57,7 +61,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (19 groups).");
+Console.WriteLine("Component contract checks passed (21 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -588,6 +592,158 @@ async Task CheckSplitButtonAsync()
         Require(false, "SplitButton must reject missing menu name.");
     }
     catch (ArgumentException) { }
+}
+
+async Task CheckSearchAsync()
+{
+    var html = await RenderAsync<Search>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-search",
+        ["Class"] = "consumer-search",
+        ["Style"] = "margin: 0",
+        ["AdditionalAttributes"] = new Dictionary<string, object> { ["data-contract"] = "search" },
+        ["Value"] = "button",
+        ["Size"] = Size.Small,
+        ["Required"] = true,
+        ["Invalid"] = true,
+        ["Disabled"] = true,
+        ["Loading"] = true,
+        ["AriaLabel"] = "Component search",
+        ["SubmitLabel"] = "Run search",
+        ["ClearLabel"] = "Clear component search"
+    });
+
+    var root = Regex.Match(html, "^<div[^>]*>").Value;
+    foreach (var value in new[]
+    {
+        "id=\"contract-search\"", "consumer-search", "margin: 0", "data-contract=\"search\"",
+        "role=\"search\"", "aria-label=\"Component search\"", "aria-disabled=\"true\"", "aria-busy=\"true\"",
+        "aeterni-search--sm", "is-invalid", "is-disabled", "is-loading"
+    })
+    {
+        Require(root.Contains(value), $"Search root must render {value}.");
+    }
+
+    var input = Regex.Match(html, "<input[^>]*>").Value;
+    Require(input.Contains("type=\"text\"") && input.Contains("disabled")
+        && input.Contains("aria-required=\"true\"") && input.Contains("aria-invalid=\"true\""),
+        "Search must forward search input semantics and field state.");
+    Require(html.Contains("aria-label=\"Run search\"") && html.Contains("aria-label=\"Clear component search\""),
+        "Search must render accessible labels for its built-in submit and clear actions.");
+    Require(html.Contains("role=\"group\"")
+        && html.Contains("aeterni-search__submit")
+        && html.Contains("aeterni-search__clear")
+        && html.Contains("aeterni-icon-button--sm"),
+        "Search shows compact submit and clear actions inside the input.");
+
+    var empty = await RenderAsync<Search>(new Dictionary<string, object?> { ["Value"] = string.Empty });
+    Require(!empty.Contains("aeterni-search__clear"), "Search hides the clear action for an empty value.");
+
+    var notClearable = await RenderAsync<Search>(new Dictionary<string, object?>
+    {
+        ["Value"] = "button", ["Clearable"] = false
+    });
+    Require(!notClearable.Contains("aeterni-search__clear")
+        && notClearable.Contains("aeterni-search__submit"),
+        "Search Clearable=false disables only its clear action and retains the built-in submit action.");
+
+    var loading = await RenderAsync<Search>(new Dictionary<string, object?>
+    {
+        ["Value"] = "button", ["Loading"] = true, ["Size"] = Size.Large
+    });
+    var loadingInput = Regex.Match(loading, "<input[^>]*>").Value;
+    Require(loading.Contains("aria-disabled=\"true\"") && loadingInput.Contains("disabled")
+        && loading.Contains("aeterni-icon-button--lg"),
+        "Search loading state must disable the whole composite and size both actions with the input.");
+
+    foreach (var size in Enum.GetValues<Size>())
+    {
+        var sized = await RenderAsync<Search>(new Dictionary<string, object?> { ["Size"] = size });
+        Require(sized.Contains("aeterni-search--sm") == (size == Size.Small)
+            && sized.Contains("aeterni-search--lg") == (size == Size.Large),
+            $"Search {size} must render only its matching size modifier.");
+    }
+}
+
+async Task CheckAutocompleteAsync()
+{
+    var html = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-autocomplete",
+        ["Class"] = "consumer-autocomplete",
+        ["Style"] = "margin: 0",
+        ["AdditionalAttributes"] = new Dictionary<string, object> { ["data-contract"] = "autocomplete" },
+        ["Value"] = "bu",
+        ["Items"] = new[] { "Button", "Breadcrumb" },
+        ["Size"] = Size.Small,
+        ["Required"] = true,
+        ["Invalid"] = true,
+        ["Disabled"] = true,
+        ["Loading"] = true,
+        ["AriaLabel"] = "Component suggestions",
+        ["ClearLabel"] = "Clear component suggestions"
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-autocomplete\"[^>]*>").Value;
+    foreach (var value in new[]
+    {
+        "id=\"contract-autocomplete\"", "consumer-autocomplete", "margin: 0", "data-contract=\"autocomplete\"",
+        "aria-disabled=\"true\"", "aria-busy=\"true\"", "aeterni-autocomplete--sm", "is-invalid", "is-disabled", "is-loading"
+    })
+    {
+        Require(root.Contains(value), $"Autocomplete root must render {value}.");
+    }
+
+    var input = Regex.Match(html, "<input[^>]*>").Value;
+    Require(input.Contains("type=\"text\"") && input.Contains("role=\"combobox\"")
+        && input.Contains("aria-expanded=\"false\"") && input.Contains("aria-haspopup=\"listbox\"")
+        && input.Contains("aria-autocomplete=\"list\"") && input.Contains("aria-required=\"true\"")
+        && input.Contains("aria-invalid=\"true\"") && input.Contains("disabled"),
+        "Autocomplete must expose combobox and field state semantics on its input.");
+    Require(html.Contains("role=\"listbox\"")
+        && html.Contains("role=\"group\"")
+        && html.Contains("aeterni-autocomplete__clear")
+        && html.Contains("aeterni-icon-button--sm")
+        && html.Contains("aria-label=\"Clear component suggestions\""),
+        "Autocomplete must render its listbox and compact clear action.");
+    Require(html.Contains("Loading suggestions"), "Autocomplete exposes its loading status in the suggestion panel.");
+
+    var notClearable = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "bu", ["Items"] = new[] { "Button" }, ["Clearable"] = false
+    });
+    Require(!notClearable.Contains("aeterni-autocomplete__clear"), "Autocomplete Clearable=false disables its clear action.");
+
+    var loading = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "bu", ["Items"] = new[] { "Button" }, ["Loading"] = true, ["Size"] = Size.Large
+    });
+    var loadingInput = Regex.Match(loading, "<input[^>]*>").Value;
+    Require(loading.Contains("aria-disabled=\"true\"") && loadingInput.Contains("disabled")
+        && loading.Contains("aeterni-icon-button--lg"),
+        "Autocomplete loading state must disable the whole composite and size the clear action with the input.");
+
+    var suggestions = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "bu",
+        ["Items"] = new[] { "Button", "Breadcrumb" }
+    });
+    Require(suggestions.Contains("role=\"option\"") && suggestions.Contains("Button"),
+        "Autocomplete renders host-provided suggestion options.");
+
+    var empty = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
+    {
+        ["Items"] = Array.Empty<string>(),
+        ["AriaLabel"] = "Suggestions"
+    });
+    Require(empty.Contains("No suggestions"), "Autocomplete renders a default empty suggestion message.");
+
+    try
+    {
+        await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?> { ["Size"] = (Size)99 });
+        Require(false, "Autocomplete must reject unknown sizes.");
+    }
+    catch (ArgumentOutOfRangeException) { }
 }
 
 async Task CheckToolbarAsync()

@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.20.2`
+文档版本：`10.22.3`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.20.2` 已包含 `FlashCardGroup` 牌堆布局修复、FlashCard 光泽/翻转优化及对应示例与渲染契约。其余组件的现行能力以本文档后续章节和源码为准。
+`10.22.3` 在 `10.22.2` 的基础上，将 Search / Autocomplete 的输入框与右侧图标按钮改为连体 ButtonGroup 结构，共用边界且不再出现间隔；操作按钮随组件尺寸同步高度，`Clearable` 仍只控制清除入口，`Loading` 会暂时禁用整个组合。其余组件的现行能力以本文档后续章节和源码为准。
 
 ## 文档口径
 
@@ -157,7 +157,7 @@
 `ButtonGroup` 当前支持：
 
 - `ChildContent`、`Orientation`（`Horizontal` / `Vertical`）、`Connected`、`FullWidth` 和 `AriaLabel`。
-- 横向和纵向排列，以及连体按钮和独立间距两种模式。
+- 横向和纵向排列，以及连体按钮和独立间距两种模式；子项支持 `Button` 与 `IconButton`。
 - 通过级联上下文向子 Button 传递禁用状态。
 - 统一处理按钮之间的边框和分隔关系。
 
@@ -228,7 +228,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 ### 核心内置图标集 `AeterniIcons`
 
 - 位于 `AeterniUI/Icons/AeterniIcons.cs`，是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商。
-- 提供 `Calendar`、`Clock`、`Check`、`ChevronDown`、`ChevronRight`、`ChevronLeft`、`Xmark`、`Star`、`EmptyBox`、`Info` 和 `Exclamation`。
+- 提供 `Calendar`、`Clock`、`Check`、`ChevronDown`、`ChevronRight`、`ChevronLeft`、`Xmark`、`MagnifyingGlass`、`Star`、`EmptyBox`、`Info` 和 `Exclamation`。
 - 组件内部统一通过它渲染字形，替换了此前散落在组件中的内联 SVG 和文本字符：
   - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Rating` 星形。
   - `Menu` 分组折叠指示使用 `ChevronRight`，展开时旋转 90° 变为向下，避免 180° 翻转在中间帧退化成横线。
@@ -279,6 +279,70 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 ### 实现边界
 
 不提供日期时间选择、掩码输入和异步校验；多行输入使用 `Textarea`。
+
+## 8.1 Search
+
+### 支持能力
+
+`Search` 是关键词查询入口，组合 `Input`、清除动作和提交按钮，不渲染建议列表或查询结果。
+
+- `Value`、`ValueChanged`、`ValueExpression`，兼容 Blazor 标准绑定和 `EditContext` 校验。
+- `OnSearch`：点击提交或按 Enter 时回调当前关键词；组件不请求数据、不缓存结果。
+- `OnClear`：清除当前关键词后回调。
+- `Size`：`Small`、`Default/Medium`、`Large`，控制输入框以及内置清除/搜索按钮的尺寸。
+- `Clearable`、`Loading`、`SubmitOnEnter`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`。
+- `Placeholder`、`Name`、`AutoComplete`、`AriaLabel`、`AriaDescribedBy`、`SubmitLabel` 和 `ClearLabel`。
+- 自有文案使用 `AeterniUITextOptions.SearchLabel`、`SearchSubmitLabel` 和 `SearchClearLabel` 默认值，并可由实例参数覆盖。
+
+### 行为与无障碍
+
+根节点输出命名的 `role="search"`；内部输入使用文本输入语义，并继承 `FormField` 的标签、描述、必填、禁用和无效状态。输入框右侧始终内置搜索图标按钮，清除按钮（若启用）与搜索按钮组成连体 `ButtonGroup`，与输入框共用边界且不留间隙。Enter 与搜索按钮走同一条 `OnSearch` 回调；`SubmitLabel` 是按钮的可本地化无障碍名称。`Loading` 让按钮显示 Spinner、输出 `aria-busy="true"`，并暂时禁用输入、清除和搜索操作，阻止重复提交。清除动作只在有值且 `Clearable` 开启时显示，控件只读或禁用时同步变为不可用；组件不渲染浏览器原生搜索清除入口，避免与自定义按钮重复。
+
+### 实现边界
+
+`Search` 不包含建议弹层、搜索历史、远程数据源、查询缓存、分页或结果渲染；需要输入建议时使用后续的 `Autocomplete`，需要筛选条件编排时由宿主组合其他控件。示例：`/components/search`。
+
+### 基础用法
+
+```razor
+<Search @bind-Value="Query"
+        Placeholder="Search components"
+        OnSearch="RunSearch"
+        Clearable />
+```
+
+## 8.2 Autocomplete
+
+### 支持能力
+
+`Autocomplete<TItem>` 提供自由输入与宿主建议项之间的组合控件。建议项由宿主通过参数提供，组件负责输入、浮层、键盘活动项和选择回调。
+
+- `Value`、`ValueChanged`、`ValueExpression`，兼容标准文本绑定和 `EditContext` 校验。
+- `Items`、`TextSelector`、`ItemTemplate` 和 `EmptyContent`；`Items` 为宿主提供的当前建议快照。
+- `OnItemSelected`：鼠标点击或键盘 Enter 确认后回调选中的 `TItem`。
+- `OnClear`：清除当前自由输入后回调。
+- `Size`、`Clearable`、`Loading`、`OpenOnFocus`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`；清除按钮随 `Size` 与输入框同步高度。
+- `Placeholder`、`Name`、`AutoComplete`、`AriaLabel`、`AriaDescribedBy` 和 `ClearLabel`。
+- 自有文案使用 `AeterniUITextOptions.AutocompleteLabel`、`AutocompleteListLabel`、`AutocompleteNoResultsText` 和 `AutocompleteLoadingText` 默认值。
+
+### 行为与无障碍
+
+输入保持唯一焦点并输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"`、`aria-autocomplete="list"` 和活动项 `aria-activedescendant`。建议区域通过共享 `PopupHost` + `Popover` 定位，内容输出 `listbox` / `option` 语义；ArrowUp/ArrowDown、Home/End 移动活动项，Enter 确认，Escape 关闭。活动项滚动只作用于建议视窗，不滚动页面。`Loading` 在建议区域输出 `role="status"`，同时暂时禁用输入和清除操作；组件不由自身发起请求。清除动作只在有值且 `Clearable` 开启时显示，并与输入框组成无间隙的连体 `ButtonGroup`；组件不渲染浏览器原生搜索清除入口。
+
+### 实现边界
+
+组件不负责远程请求、debounce、缓存、过滤、搜索历史、虚拟滚动或结果渲染；宿主应在 `ValueChanged` 后异步更新 `Items` 和 `Loading`。示例：`/components/autocomplete`。
+
+### 基础用法
+
+```razor
+<Autocomplete TItem="City"
+              @bind-Value="Query"
+              Items="Suggestions"
+              TextSelector="@(city => city.Name)"
+              OnItemSelected="SelectCity" />
+```
+
 ## 9. Textarea
 
 ### 支持能力
@@ -998,6 +1062,13 @@ builder.Services.AddAeterniUI(options =>
 {
     options.Text.ComboBoxPlaceholder = "请选择";
     options.Text.ComboBoxListLabel = "选项";
+    options.Text.SearchLabel = "搜索";
+    options.Text.SearchSubmitLabel = "搜索";
+    options.Text.SearchClearLabel = "清除搜索";
+    options.Text.AutocompleteLabel = "自动完成";
+    options.Text.AutocompleteListLabel = "建议项";
+    options.Text.AutocompleteNoResultsText = "没有建议项";
+    options.Text.AutocompleteLoadingText = "正在加载建议项";
     options.Text.TimePickerPlaceholder = "请选择时间";
     options.Text.TimePickerLabel = "时间选择器";
     options.Text.TimePickerOptionsLabel = "可用时间";
