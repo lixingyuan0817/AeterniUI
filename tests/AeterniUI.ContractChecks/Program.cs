@@ -181,7 +181,9 @@ async Task CheckStepperAsync()
 
     Require(html.Contains("id=\"contract-stepper\"") && html.Contains("class=\"aeterni-stepper aeterni-stepper--vertical\""), "Stepper preserves root attributes and orientation.");
     Require(html.Contains("role=\"group\"") && html.Contains("aria-label=\"Progress steps\"") && html.Contains("aria-current=\"step\""), "Stepper exposes a named group and current step semantics.");
-    Require(html.Contains("aria-posinset=\"2\"") && html.Contains("aria-setsize=\"2\"") && html.Contains("Current step"), "Stepper reports visible position and description relationships.");
+    Require(html.Contains("aria-posinset=\"2\"") && html.Contains("aria-setsize=\"2\"")
+        && html.Contains("aria-label=\"Two\"") && html.Contains("Current step"),
+        "Stepper reports visible position, stable step names and description relationships.");
     Require(html.Contains("is-completed") && !html.Contains("Three"), "Stepper renders explicit completion and filters hidden steps.");
     var describedButton = Regex.Match(html, "<button[^>]*aria-describedby=\"([^\"]+)\"[^>]*>").Groups[1].Value;
     Require(!string.IsNullOrEmpty(describedButton)
@@ -190,14 +192,16 @@ async Task CheckStepperAsync()
 
     var disabledHtml = await RenderAsync<Stepper>(new Dictionary<string, object?>
     {
-        ["Items"] = new[] { new StepperItem("one", "One", Disabled: true) },
+        ["Items"] = new[] { new StepperItem("one", "One", Completed: true, Disabled: true) },
+        ["Value"] = "one",
         ["Disabled"] = true,
         ["AriaLabel"] = "Checkout steps"
     });
     Require(disabledHtml.Contains("aria-label=\"Checkout steps\"")
         && disabledHtml.Contains("aria-disabled=\"true\"")
         && disabledHtml.Contains("inert")
-        && Regex.IsMatch(disabledHtml, "<button[^>]*disabled"),
+        && Regex.IsMatch(disabledHtml, "<button[^>]*disabled")
+        && disabledHtml.Contains("aria-current=\"step\""),
         "Stepper root and item disabled states must retain their native and composite semantics.");
 
     async Task RequireInvalidItems(object? invalidItems, Type exceptionType)

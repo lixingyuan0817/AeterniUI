@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.25.0`
+文档版本：`10.25.1`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.25.0` 在 `10.24.1` 的基础上为 `VirtualList<TItem>` 增加宿主控制的触底加载通知；同时保留 `MultiSelect<TItem>` 的共享弹层宽度、鼠标打开首项状态、中文批量操作文案、标签关闭按钮间距，以及 `VirtualList<TItem>` / `List<TItem>` 的视口、内边距和键盘交互修复。
+`10.25.1` 在 `10.25.0` 的基础上收口 `Stepper` 的状态优先级和描述无障碍名称；同时保留 `VirtualList<TItem>` 的宿主控制触底加载、`MultiSelect<TItem>` 的弹层和标签修复，以及 `VirtualList<TItem>` / `List<TItem>` 的视口与键盘交互收口。
 
 ## 文档口径
 
@@ -1314,10 +1314,10 @@ builder.Services.AddAeterniUI(options =>
 
 - 根元素是带名称的 `role="group"`，步骤使用有序列表和原生按钮，保留浏览器 Tab、Enter 和 Space 行为。
 - 每个步骤是独立原生按钮，因此每步各有一个 Tab 停留点；Stepper 不采用 Toolbar/ToggleGroup 式 roving-focus，也不接管方向键。
-- 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，默认渲染的描述文本通过 `aria-describedby` 关联；使用 `ItemTemplate` 时组件不再输出描述元素，`aria-label` 由 `Label` 提供。
+- 当前项输出 `aria-current="step"`；每个可见项输出 `aria-posinset` / `aria-setsize`，每个按钮都用 `Label` 作为稳定的 `aria-label`，默认渲染的描述文本再通过 `aria-describedby` 提供，避免描述同时进入名称造成重复播报；使用 `ItemTemplate` 时组件不再输出描述元素。
 - 完成状态只消费宿主传入的 `Completed`，不根据当前索引或点击行为自动推断；禁用状态由组件根 `Disabled` 或项级 `Disabled` 合并决定。
 - 点击可用且非当前步骤时提出 `ValueChanged`，随后触发 `OnStepClick`；组件不擅自修改业务流程状态。
-- 当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标；只有可激活的已完成步骤提供 hover/active 反馈，未完成步骤不额外提供指针反馈。
+- 状态视觉优先级为禁用 > 当前 > 完成 > 未完成：禁用态覆盖当前/完成的文字、标记和连接线颜色；当前步骤不可重新激活，因此不提供 hover 换档或 `pointer` 光标；只有可激活的已完成步骤提供 hover/active 反馈，未完成步骤不额外提供指针反馈。
 - `Items` 不可为 null；列表项不可为 null，`Id`、`Label` 不可为空白且 `Id` 不可重复。隐藏项不参与编号、连接线和位置计算；根属性沿用 `AeterniComponent` 公共契约。
 
 ### 实现边界

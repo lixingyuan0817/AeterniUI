@@ -18,7 +18,7 @@
                         class="aeterni-stepper__button"
                         disabled="@disabled"
                         aria-current="@(current ? "step" : null)"
-                        aria-label="@(templated ? item.Label : null)"
+                        aria-label="@item.Label"
                         aria-describedby="@descriptionId"
                         @onclick="() => SelectAsync(item)">
                     @if (ItemTemplate is not null)

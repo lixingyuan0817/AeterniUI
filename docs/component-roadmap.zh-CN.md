@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.25.0`
+文档版本：`10.25.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知，10.25.1 收口 Stepper 状态优先级与描述无障碍名称。
 
 ## List 长列表尺寸修复
 
@@ -22,6 +22,12 @@
 - [x] 触底通知由组件负责并发抑制、禁用/不可见/无更多数据跳过和 `aria-busy` 状态；数据请求、分页、缓存和是否还有更多项目仍由宿主控制。
 - [x] 示例改为分批追加数据并展示触底加载；同步当前功能文档与渲染契约，保留固定行高、键盘导航、选中状态和 `aria-posinset` / `aria-setsize` 语义。
 - [x] `dotnet build aeterni_ui.slnx`、`AeterniUI.ContractChecks` 与文档门禁通过；`.razor.js` 语法检查需在具备 Node.js 的环境执行。
+
+## 10.25.1 Stepper 状态与无障碍收口
+
+- [x] 统一状态优先级为“禁用 > 当前 > 完成 > 未完成”：禁用步骤覆盖当前/完成的文字、标记和连接线视觉，已完成的当前步骤仍正确填充通往下一步的连接线。
+- [x] 默认与模板模式下每个步骤按钮都使用 `Label` 作为稳定 `aria-label`；默认描述仅通过 `aria-describedby` 提供，避免描述同时进入按钮名称造成重复播报。
+- [x] 扩展 Stepper 渲染契约，覆盖默认步骤名称、当前 + 完成 + 禁用组合；构建、契约、CSS 注释和文档门禁通过。
 
 ## 10.22.3 Search / Autocomplete 连体按钮组
 
@@ -857,3 +863,4 @@ Search + List + PopupHost
 | v10.24.0 VirtualList | 已完成 | 构建、渲染契约、VirtualList JS 语法、CSS 注释与文档门禁 | 新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，支持可见行模板、key、单/多选、键盘导航、自动滚动和 `aria-setsize` / `aria-posinset`；基于 Blazor `Virtualize<TItem>`，不包含远程数据、缓存、可变高度、拖拽或分组。按功能新增规则由 `10.23.1` 递增为 `10.24.0`。 |
 | v10.24.1 MultiSelect / VirtualList 修复 | 已完成 | 构建、23 组渲染契约、文档门禁与差异检查 | 修复 `MultiSelect<TItem>` 共享 `PopupHost` 宽度对齐、鼠标打开首项误显示活动底色和 Razor 多余字符；默认全选/清除文案改为中文；修正 `Tag` / MultiSelect 关闭按钮留白与垂直居中；收口 `VirtualList<TItem>` 外层内边距、滚动视口与单选键盘行为。按修复版本规则由 `10.24.0` 递增为 `10.24.1`。 |
 | v10.25.0 VirtualList 触底加载 | 已完成 | 构建、23 组渲染契约、文档门禁；Node.js 语法检查待环境补跑 | 新增宿主控制的 `OnLoadMore` 触底通知和 `HasMoreItems` / `LoadingMore` / `LoadMoreThreshold` 参数；组件负责滚动监听、并发抑制与 `aria-busy`，宿主负责异步数据请求、追加 `Items`、分页和缓存。按功能新增规则由 `10.24.1` 递增为 `10.25.0`。 |
+| v10.25.1 Stepper 状态与无障碍收口 | 已完成 | 构建、23 组渲染契约、CSS 注释与文档门禁 | 修复 Stepper 禁用状态无法完全覆盖当前/完成视觉、已完成当前步骤连接线未填充，以及默认描述可能重复播报的问题；按修复版本规则由 `10.25.0` 递增为 `10.25.1`。 |
