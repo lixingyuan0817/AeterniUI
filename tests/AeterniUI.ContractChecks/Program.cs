@@ -1692,9 +1692,25 @@ async Task CheckSharedAbstractionsAsync()
 
     var cardBodies = SurfaceRuleBodies(await File.ReadAllTextAsync(Path.Combine(components, "Card/Card.razor.css")), "aeterni-card");
     var surfaceBodies = SurfaceRuleBodies(await File.ReadAllTextAsync(Path.Combine(components, "Surface/Surface.razor.css")), "aeterni-surface");
-    var sharedModifiers = cardBodies.Keys.Intersect(surfaceBodies.Keys, StringComparer.Ordinal)
-        .Where(modifier => !modifier.Contains("padding", StringComparison.Ordinal))
-        .ToArray();
+    // Two families are exempt by design rather than by accident. Padding: the two
+    // components differ in what "unset" means. Radius: Card carries the fixed
+    // container radius because its header/body/footer structure makes it the
+    // larger container, while Surface follows the control geometry and exposes the
+    // scale. Everything else must match on both sides — including a modifier that
+    // gains only one of them, which the shared-body comparison below cannot see
+    // because it only looks at keys that already exist in both.
+    static bool SharedSurfaceModifier(string modifier) =>
+        !modifier.Contains("padding", StringComparison.Ordinal)
+        && !modifier.Contains("radius", StringComparison.Ordinal);
+
+    var cardShared = cardBodies.Keys.Where(SharedSurfaceModifier).OrderBy(m => m, StringComparer.Ordinal).ToArray();
+    var surfaceShared = surfaceBodies.Keys.Where(SharedSurfaceModifier).OrderBy(m => m, StringComparer.Ordinal).ToArray();
+    Require(cardShared.SequenceEqual(surfaceShared, StringComparer.Ordinal),
+        "Card and Surface must declare the same surface modifiers: card-only " +
+        $"[{string.Join(", ", cardShared.Except(surfaceShared, StringComparer.Ordinal))}], surface-only " +
+        $"[{string.Join(", ", surfaceShared.Except(cardShared, StringComparer.Ordinal))}].");
+
+    var sharedModifiers = cardShared.Intersect(surfaceShared, StringComparer.Ordinal).ToArray();
     // Six: the variant modifiers (subtle, elevated, glass) and the three elevation
     // tiers. Each is one rule body because the variant selectors are grouped.
     Require(sharedModifiers.Length >= 6,
