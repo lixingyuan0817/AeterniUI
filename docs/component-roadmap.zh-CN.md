@@ -1,8 +1,20 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.23.0`
+文档版本：`10.23.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3）。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口。
+
+## List 长列表尺寸修复
+
+- [x] `ListItem` 保持固有行高，不再因父级 flex 尺寸协商被压缩。
+- [x] `List.MaxHeight` 提供可选的内部滚动视口；设置后滚动条归 List 所有，默认短列表仍保持内容自适应。
+- [x] 同步 List 示例与当前功能文档；解决方案构建、契约检查和文档门禁通过。
+
+## VirtualList<TItem> 规划
+
+- [ ] 新增 `VirtualList<TItem>`，面向大数据量场景按可视区域和 overscan 渲染，不改变现有 `List<TItem>` 的静态/交互契约。
+- [ ] 明确固定或可估算行高、`MaxHeight`、键盘活动项、选中状态、动态重排及 `aria-setsize` / `aria-posinset` 语义。
+- [ ] 优先评估基于 Blazor `Virtualize<TItem>` 的实现，暂不把虚拟化能力写入当前 `List<TItem>`。
 
 ## 10.22.3 Search / Autocomplete 连体按钮组
 

@@ -12,7 +12,7 @@
                   Category="导航组件"
                   Title="List + ListItem"
                   ComponentName="List / ListItem"
-                  Description="可组合的静态选项列表，支持无选择、单选、多选和键盘导航。"
+                  Description="可组合的静态选项列表，支持无选择、单选、多选、键盘导航和长列表滚动。"
                   Parameters="@ListParameters"
                   Events="@ListEvents">
     <Preview>
@@ -59,6 +59,14 @@
     <Notes>
         <span>切换 CardMode 保留当前选择；普通行与卡片使用相同的选中底色，悬停不覆盖选中态。可用方向键比较活动项反馈，多选通过再次选择移除。</span>
     </Notes>
+</ComponentPreview>
+
+<ComponentPreview AnchorId="list-scroll" Category="数据展示" Title="长列表滚动" ComponentName="List&lt;TItem&gt;"
+                  Description="通过 MaxHeight 固定列表视口，行项目保持自身高度，超出内容在列表内部滚动。">
+    <Preview>
+        <List Items="@_longNames" MaxHeight="220px" AriaLabel="长列表滚动预览" />
+    </Preview>
+    <Notes><span>MaxHeight 为空时列表保持内容自适应；设置后由 List 自己拥有垂直滚动条，ListItem 不会因父级尺寸协商而被压缩。</span></Notes>
 </ComponentPreview>
 
 <ComponentPreview AnchorId="list-items" Category="数据展示" Title="泛型 Items 与卡片" ComponentName="List&lt;TItem&gt;"
@@ -108,6 +116,11 @@
     private bool _itemsDisabled;
     private object? _itemSelected = "开发";
     private string[] _names = ["设计", "开发", "产品"];
+    private readonly string[] _longNames = [
+        "提交记录 01", "提交记录 02", "提交记录 03", "提交记录 04",
+        "提交记录 05", "提交记录 06", "提交记录 07", "提交记录 08",
+        "提交记录 09", "提交记录 10", "提交记录 11", "提交记录 12"
+    ];
     private readonly DemoItem[] _models = [new("设计", "类型化模板与默认 context"), new("开发", "卡片 Context 别名")];
     private sealed record DemoItem(string Name, string Description);
     private void ReplaceItems() => _names = _names.Length == 3 ? ["新项目", "开发"] : ["设计", "开发", "产品"];
@@ -136,6 +149,7 @@
         new("List.ItemTemplate", "RenderFragment<TItem>?", "普通行内容，默认 ToString。"),
         new("List.CardMode", "bool", "使用 Card 外壳。", "false"),
         new("List.CardTemplate", "RenderFragment<TItem>?", "卡片内容，无模板时显示文本。"),
+        new("List.MaxHeight", "string?", "设置滚动视口的最大高度；超出后由 List 内部滚动。"),
         new("List.ChildContent", "RenderFragment?", "列表内容。"),
         new("List.SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
         new("List.SelectedValue", "object?", "单选当前值。"),

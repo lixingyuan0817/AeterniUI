@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.23.0`
+文档版本：`10.23.1`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.23.0` 在 `10.22.3` 的基础上新增 `MultiSelect<TItem>` 多值选择组件，并将 Search / Autocomplete 的输入框与右侧图标按钮保持为连体 ButtonGroup 结构。其余组件的现行能力以本文档后续章节和源码为准。
+`10.23.1` 在 `10.23.0` 的基础上修复 `List<TItem>` 长列表的行高压缩与滚动边界问题，并新增可选 `MaxHeight` 内部滚动视口。`VirtualList<TItem>` 仍处于规划阶段，未列入当前已实现公共 API。
 
 ## 文档口径
 
@@ -36,7 +36,7 @@
 - 支持 Blazor WebAssembly 使用组件库。
 - 示例项目 `AeterniUI.Sample` 为 Blazor WebAssembly 项目。
 - `scripts/sample-publish.sh` 将示例发布到仓库根目录 `dist/`，供静态部署及 GitHub Pages 使用。
-- 示例项目包含文档首页（路由 `/`，品牌介绍与基础使用代码窗口）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
+- 示例项目包含文档首页（路由 `/`，提交时间线与基础使用代码窗口）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
 - 组件 API 不依赖具体宿主，浏览器能力通过 JS isolation 提供。
 
 ## 2. 设计基础
@@ -530,6 +530,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - `CardMode` 为 bool，默认 false（没有 Mode 参数）。true 时每项由库统一渲染现有 Card 外壳；`CardTemplate` 为 `RenderFragment<TItem>?`，只负责内容，无模板显示文本，**不回退 ItemTemplate**。普通模式忽略 CardTemplate。声明式 CardMode 包裹 ListItem.ChildContent，Leading/TrailingContent 只用于普通行。
 - 普通行与 CardMode 共用选中底色、字重、悬停及活动项反馈；内层 Card 通过现有 Style 参数采用透明背景和继承文字色，保留卡片边框与内容留白，选中底色覆盖整张卡片。CardMode 不再添加额外的活动项描边；禁用选中项保留选择底色并使用禁用文字色。
 - `List<TItem>` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
+- `MaxHeight` 可设置列表滚动视口的最大高度；设置后超出内容由 List 自身垂直滚动，未设置时保持内容自适应高度。ListItem 保持自身最小/固有行高，不因父级 flex 尺寸协商被压缩。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
 - `AllowClear` 只影响单选模式；多选模式通过再次选择已选项移除该项。

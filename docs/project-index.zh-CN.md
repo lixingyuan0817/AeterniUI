@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.23.0`
+文档版本：`10.23.1`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.23.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.23.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -95,7 +95,7 @@ Components/<Component>/
 - [`src/AeterniUI.Sample/Program.cs`](../src/AeterniUI.Sample/Program.cs)：创建 WASM Host、注册根组件和 `AddAeterniUI()`。
 - [`src/AeterniUI.Sample/App.razor`](../src/AeterniUI.Sample/App.razor)：Blazor Router 入口。
 - [`src/AeterniUI.Sample/Layout/MainLayout.razor`](../src/AeterniUI.Sample/Layout/MainLayout.razor)：注册 `ThemeProvider` 和 `DialogProvider`，并承载示例项目固定头部（品牌、首页/组件导航、主题切换）。
-- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），品牌介绍与右侧基础使用代码窗口；背景是铺满整个视口（含页头与外壳留白）的淡彩光晕与细网格动画。
+- [`src/AeterniUI.Sample/Pages/Home.razor`](../src/AeterniUI.Sample/Pages/Home.razor)：首页文档页（路由 `/`），按提交时间倒序展示开发时间线，并保留右侧基础使用代码窗口；背景是铺满整个视口（含页头与外壳留白）的淡彩光晕与细网格动画。
 - [`src/AeterniUI.Sample/Layout/ComponentsLayout.razor`](../src/AeterniUI.Sample/Layout/ComponentsLayout.razor)：组件页的侧栏布局（`@layout MainLayout` 之上再嵌一层），负责分类导航、路由高亮和预览容器；页面本体是 `@Body`。
 - [`src/AeterniUI.Sample/Pages/Components/`](../src/AeterniUI.Sample/Pages/Components)：**每个组件一个独立页面**，路由形如 `/components/button`、`/components/tabs`，安装页是 `/components`，色彩页是 `/components/colors`；组件页只包含该组件的演示标记与自己的 `@code` 状态，色彩页则不引用任何组件，只用 `showcase-*` 标记陈列语义 Token（色族、文字墨阶、字体、中性表面、圆角、阴影、间距与对比度基线）。
 - [`src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs`](../src/AeterniUI.Sample/Components/Showcase/ShowcasePageBase.cs)：跨页共享的少量状态（注入的服务、Button 演示的交互提示、主题订阅），其余状态都留在各自页面里。

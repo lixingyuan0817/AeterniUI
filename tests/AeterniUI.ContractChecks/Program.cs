@@ -385,6 +385,9 @@ async Task CheckListAsync()
     args["CardTemplate"] = (RenderFragment<string?>)(item => builder => builder.AddContent(0, $"card:{item}"));
     html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
     Require(html.Contains("card:Alpha") && !html.Contains("row:"), "CardTemplate supplies card content only.");
+    args["MaxHeight"] = "220px";
+    html = await RenderAsync<AeterniUI.Components.List.List<string?>>(args);
+    Require(html.Contains("aeterni-list--scrollable") && html.Contains("--aeterni-list-max-height: 220px"), "Bounded lists must expose their own scroll viewport size.");
     args["SelectionMode"] = SelectionMode.Multiple;
     args["SelectedValues"] = new object?[] { "Alpha" };
     args["Disabled"] = true;

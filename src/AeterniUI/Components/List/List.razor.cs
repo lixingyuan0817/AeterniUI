@@ -24,6 +24,13 @@ public partial class List<TItem> : AeterniComponent
     [Parameter]
     public bool CardMode { get; set; }
 
+    /// <summary>
+    /// Maximum block size of the list viewport. When specified, the list owns
+    /// vertical scrolling once its content exceeds this size.
+    /// </summary>
+    [Parameter]
+    public string? MaxHeight { get; set; }
+
     [Parameter]
     public RenderFragment<TItem>? CardTemplate { get; set; }
 
@@ -192,8 +199,12 @@ public partial class List<TItem> : AeterniComponent
         return base.BuildClass()
             .Add("aeterni-list")
             .Add("aeterni-list--select", IsSelectable)
-            .Add("aeterni-list--cards", CardMode);
+            .Add("aeterni-list--cards", CardMode)
+            .Add("aeterni-list--scrollable", !string.IsNullOrWhiteSpace(MaxHeight));
     }
+
+    protected override StyleBuilder BuildStyle() => base.BuildStyle()
+        .Add("--aeterni-list-max-height", MaxHeight, !string.IsNullOrWhiteSpace(MaxHeight));
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

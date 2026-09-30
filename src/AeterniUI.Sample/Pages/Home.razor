@@ -1,48 +1,40 @@
 @page "/"
-@using AeterniUI.Enums
-
 <PageTitle>Aeterni UI · Blazor 组件库</PageTitle>
 
 <main class="doc-home">
     <div class="doc-home__grid">
-        <section class="doc-intro" aria-labelledby="doc-title">
-            <p class="doc-intro__eyebrow">Aeterni UI · Blazor 组件库</p>
-            <h1 id="doc-title" tabindex="-1">
-                一致、可主题化的<br />
-                <span class="doc-intro__accent">Blazor 组件库</span>
-            </h1>
-            <p class="doc-intro__lead">
-                为 Blazor 应用准备的一套可靠基础：用语义 Token 统一主题，
-                用清晰的组件契约承接业务，并把无障碍与键盘操作自然融入每一次交互。
-            </p>
+        <section class="doc-history" aria-labelledby="doc-history-title">
+            <header class="doc-history__header">
+                <p class="doc-history__eyebrow">Aeterni UI · 开发记录</p>
+                <h1 id="doc-history-title" tabindex="-1">提交时间线</h1>
+                <p class="doc-history__lead">
+                    从组件、主题到示例页面，每次提交都记录着库的演进方向。
+                    时间线按提交时间倒序排列。
+                </p>
+            </header>
 
-            <ul class="doc-features">
-                <li>
-                    <Icon Definition="@FontAwesomeIcons.Solid.LayerGroup" Color="Color.Primary" />
-                    <span>一套代码覆盖 Server 与 WebAssembly，无需改写业务层</span>
-                </li>
-                <li>
-                    <Icon Definition="@FontAwesomeIcons.Solid.Palette" Color="Color.Primary" />
-                    <span>System / Light / Dark 主题由语义 Token 统一驱动</span>
-                </li>
-                <li>
-                    <Icon Definition="@FontAwesomeIcons.Solid.UniversalAccess" Color="Color.Primary" />
-                    <span>原生语义、焦点管理与表单校验状态开箱即用</span>
-                </li>
-            </ul>
-
-            <div class="doc-intro__cta">
-                <a class="doc-cta" href="/components">
-                    浏览组件
-                    <span class="doc-cta__arrow" aria-hidden="true"><Icon Definition="@FontAwesomeIcons.Solid.ArrowRight" /></span>
-                </a>
-                <span class="doc-intro__cta-hint">从安装指南开始，逐步了解组件的用法与边界</span>
-            </div>
-
-            <div class="doc-intro__meta" aria-label="平台与主题支持">
-                <span><Icon Definition="@FontAwesomeIcons.Solid.Code" /> Server / WebAssembly</span>
-                <span><Icon Definition="@FontAwesomeIcons.Solid.Swatchbook" /> System / Light / Dark</span>
-            </div>
+            <ol class="doc-timeline" aria-label="项目提交记录">
+                @foreach (var commit in CommitHistory)
+                {
+                    <li class="doc-timeline__item">
+                        <span class="doc-timeline__marker" aria-hidden="true"></span>
+                        <article class="doc-timeline__entry">
+                            <header class="doc-timeline__meta">
+                                <time datetime="@commit.Timestamp">@commit.DisplayTime</time>
+                                <code>@commit.Hash</code>
+                            </header>
+                            <p class="doc-timeline__subject">@commit.Subject</p>
+                            <a class="doc-timeline__link"
+                               href="@($"https://github.com/lixingyuan0817/AeterniUI/commit/{commit.Hash}")"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                查看提交
+                                <span aria-hidden="true">↗</span>
+                            </a>
+                        </article>
+                    </li>
+                }
+            </ol>
         </section>
 
         <section class="doc-code" aria-labelledby="doc-code-title">

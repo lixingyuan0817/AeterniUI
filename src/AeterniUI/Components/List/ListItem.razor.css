@@ -5,6 +5,7 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
+    flex: 0 0 auto;
     min-height: var(--aeterni-row-height-compact);
     padding: var(--aeterni-spacing-1) var(--aeterni-control-padding-x-sm);
     border: 0;

@@ -1,6 +1,6 @@
 /*
    AeterniUI.Sample — 首页文档页（/）。
-   左侧为简要介绍与特性清单，右侧为基础使用代码窗口。布局优先适配默认窗口
+   左侧为提交时间线，右侧为基础使用代码窗口。布局优先适配默认窗口
    （避免页面级滚动条）。页面背景由共享示例外壳统一提供，颜色、间距与动效全部来自
    AeterniUI 语义 Token。
 */
@@ -36,9 +36,9 @@
     min-width: 0;
 }
 
-/* Intro column */
+/* Commit timeline */
 
-.doc-intro__eyebrow,
+.doc-history__eyebrow,
 .doc-code__kicker {
     margin: 0;
     color: var(--aeterni-color-brand-text);
@@ -48,111 +48,125 @@
     text-transform: uppercase;
 }
 
-.doc-intro__eyebrow {
+.doc-history__eyebrow {
     margin-bottom: 14px;
 }
 
-.doc-intro h1 {
-    max-width: 16ch;
-    margin: 0 0 14px;
+.doc-history__header h1 {
+    margin: 0 0 12px;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(34px, 4.4vw, 56px);
+    font-size: clamp(32px, 4vw, 52px);
     font-weight: var(--aeterni-font-weight-semibold);
     line-height: 1.06;
     letter-spacing: -.02em;
 }
 
-.doc-intro__accent {
-    color: var(--aeterni-color-brand-default);
-}
-
-.doc-intro__lead {
-    max-width: 46ch;
-    margin: 0 0 16px;
+.doc-history__lead {
+    max-width: 42ch;
+    margin: 0 0 22px;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-md);
     line-height: 1.6;
 }
 
-/* Plain feature list (no card chrome). */
-
-.doc-features {
+.doc-timeline {
+    position: relative;
     display: grid;
-    gap: 8px;
-    margin: 0 0 22px;
-    padding: 0;
+    gap: 0;
+    max-height: calc(100dvh - var(--sample-content-top) - 28px);
+    margin: 0;
+    padding: 0 12px 12px 0;
+    overflow-y: auto;
     list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-border-strong) transparent;
 }
 
-.doc-features li {
+.doc-timeline::before {
+    position: absolute;
+    top: 8px;
+    bottom: 20px;
+    left: 5px;
+    width: 1px;
+    background: var(--aeterni-border-subtle);
+    content: "";
+}
+
+.doc-timeline__item {
+    position: relative;
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    max-width: 46ch;
-    color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-normal);
+    gap: 16px;
+    padding: 0 0 18px;
 }
 
-/* Feature icons ride on the text line without changing the row rhythm. */
-.doc-features li > svg {
-    margin-top: .18em;
+.doc-timeline__item:last-child {
+    padding-bottom: 0;
 }
 
-/* CTA */
-
-.doc-intro__cta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px 16px;
-}
-
-.doc-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 0 22px;
-    border: 1px solid var(--aeterni-color-brand-default);
+.doc-timeline__marker {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 11px;
+    width: 11px;
+    height: 11px;
+    margin-top: 5px;
+    border: 3px solid var(--aeterni-bg-primary);
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-color-brand-default);
-    color: var(--aeterni-text-inverse);
-    font-size: var(--aeterni-font-size-sm);
-    font-weight: var(--aeterni-font-weight-semibold);
-    text-decoration: none;
-    white-space: nowrap;
-    transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-transform), var(--aeterni-transition-shadow);
+    box-shadow: 0 0 0 1px var(--aeterni-color-brand-default);
 }
 
-.doc-cta:hover {
-    background: var(--aeterni-color-brand-hover);
-    border-color: var(--aeterni-color-brand-hover);
-    box-shadow: var(--aeterni-shadow-sm);
-    transform: translateY(-1px);
+.doc-timeline__entry {
+    min-width: 0;
+    padding: 0 0 1px;
 }
 
-.doc-cta:active {
-    background: var(--aeterni-color-brand-active);
-    border-color: var(--aeterni-color-brand-active);
-    transform: translateY(0);
-}
-
-.doc-cta:focus-visible {
-    outline: 2px solid var(--aeterni-control-focus-ring);
-    outline-offset: 2px;
-}
-
-.doc-cta__arrow {
-    font-size: 15px;
-    line-height: 1;
-}
-
-.doc-intro__cta-hint {
+.doc-timeline__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 5px;
     color: var(--aeterni-text-muted);
-    font-size: 12px;
-    line-height: 1.5;
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 11px;
+}
+
+.doc-timeline__meta code {
+    padding: 2px 5px;
+    border-radius: var(--aeterni-radius-sm);
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-color-brand-text);
+    font: inherit;
+}
+
+.doc-timeline__subject {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.doc-timeline__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    color: var(--aeterni-color-brand-text);
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.doc-timeline__link:hover {
+    color: var(--aeterni-color-brand-hover);
+    text-decoration: underline;
+}
+
+.doc-timeline__link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 /* Code window */
@@ -276,6 +290,11 @@
     .doc-home {
         min-height: 0;
     }
+
+    .doc-timeline {
+        max-height: none;
+        overflow: visible;
+    }
 }
 
 /* Keep the page scrollbar-free on short windows by tightening spacing. */
@@ -285,17 +304,16 @@
         padding-bottom: var(--aeterni-spacing-2);
     }
 
-    .doc-intro h1 {
+    .doc-history__header h1 {
         font-size: clamp(28px, 3.8vw, 40px);
     }
 
-    .doc-intro__lead {
+    .doc-history__lead {
         margin-bottom: 12px;
     }
 
-    .doc-features {
-        margin-bottom: 16px;
-        gap: 6px;
+    .doc-timeline {
+        max-height: calc(100dvh - var(--sample-content-top) - 18px);
     }
 
     .doc-code__body {
