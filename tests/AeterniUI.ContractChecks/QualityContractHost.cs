@@ -11,7 +11,11 @@ public sealed class QualityContractHost : ComponentBase
     public bool Disabled, Invalid, Required, HideFirst;
     public bool ShowFirst = true;
     public string? Value = "a";
+    public int RatingValue;
     public ComboBox<string> Combo = null!;
+    public List<string> ComboPicked = [];
+    public List<int> RatingChanges = [];
+    public AeterniUI.Components.Rating.Rating Rating = null!;
     public RadioGroup<string> Radios = null!;
     public Radio<string> Standalone = null!;
     public Tabs Tabs = null!;
@@ -28,6 +32,7 @@ public sealed class QualityContractHost : ComponentBase
             c.OpenComponent<ComboBox<string>>(0);
             c.AddAttribute(1, "Items", Array.Empty<string>());
             c.AddAttribute(2, "EmptyContent", (RenderFragment)(t => t.AddContent(0, "Empty choices")));
+            c.AddAttribute(20, "OnItemSelected", EventCallback.Factory.Create<string>(this, value => ComboPicked.Add(value)));
             c.AddComponentReferenceCapture(3, x => Combo = (ComboBox<string>)x);
             c.CloseComponent();
             c.OpenComponent<RadioGroup<string>>(4);
@@ -42,6 +47,15 @@ public sealed class QualityContractHost : ComponentBase
             c.CloseComponent();
         }));
         b.CloseComponent();
+        b.OpenComponent<AeterniUI.Components.Rating.Rating>(30);
+        b.AddAttribute(31, "Value", RatingValue);
+        b.AddAttribute(32, "ValueChanged", EventCallback.Factory.Create<int>(this, value => RatingChanges.Add(value)));
+#pragma warning disable CS0618 // exercised on purpose: the alias must keep working.
+        b.AddAttribute(33, "OnChange", EventCallback.Factory.Create<int>(this, value => RatingChanges.Add(value * 1000)));
+#pragma warning restore CS0618
+        b.AddComponentReferenceCapture(34, component => Rating = (AeterniUI.Components.Rating.Rating)component);
+        b.CloseComponent();
+
         b.OpenComponent<Tabs>(10);
         b.AddAttribute(11, "Value", Value);
         b.AddAttribute(12, "ValueChanged", EventCallback.Factory.Create<string?>(this, value => Value = value));

@@ -110,7 +110,7 @@ P0 修复期间发现并一并修复的条目：
 
 **浏览器验收**（第九轮收尾补充）：`tests/browser/` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例，覆盖本轮四条无法由 `HtmlRenderer` 断言的结论——REV-98（`DialogProvider` 根不再生成栈上下文，通知区以 1080 位于根栈上下文）、REV-121（过渡类按时长移除，reduced-motion 下降到约 40–60ms）、REV-118（被改指的焦点环仍绘制、被删别名解析为空）、REV-123（Toolbar/ToggleGroup 保持单一 Tab 停靠点、方向键同时移动焦点与停靠点、回绕成立）。**未覆盖**：Menu/MultiSelect 的内嵌焦点环——进入打开浮层的键盘焦点没有受支持的路径（触发器契约只承诺 Tab 与 Enter/Space），该条仍只由声明值的契约断言覆盖；另有截图、真实触屏与读屏软件不在范围内。CI 增加独立的 `browser` job。
 
-**尚未做**：REV-115 的破坏性公共 API 收口与 REV-128 保留色阶的收窄都待决策。
+**REV-115 收尾**：走 `AGENTS.md` 的「破坏性变更应优先避免或提供兼容迁移」路径。`Rating.OnChange` 标注 `[Obsolete]`（指向 `ValueChanged`）并与 `ValueChanged` 一同触发；ComboBox 新增 `OnItemSelected`，`OnChange` 同样标注弃用但两者都会触发。两条契约断言分别锁定「旧名字必须仍然工作」与「新名字必须触发」。移除窗口与 `Card`/`Surface` 抽象仍待决策，记录在 roadmap 的优先级 5。**REV-128 未动**：保留的原始色阶是宿主自定义主题的基材且没有门禁覆盖，收窄属公开令牌 API 决策，需单独确认。
 
 ## 第八轮：Breadcrumb / Stepper / List 审阅收口（10.17.1 / 10.17.2）
 

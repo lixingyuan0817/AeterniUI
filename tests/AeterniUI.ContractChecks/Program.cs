@@ -131,6 +131,28 @@ async Task CheckQualityStatesAsync()
             "Radio.ElementId must match the id it renders.");
         Require(rendered.Contains($"id=\"{host.Tabs.ElementId}\"", StringComparison.Ordinal),
             "Tabs.ElementId must match the id it renders.");
+
+        // REV-115: Rating.OnChange is deprecated in favour of ValueChanged but must
+        // keep working, so a consumer on the old name is not silently cut off.
+        await Call(host.Rating, "SetValueAsync", 4);
+        Require(host.RatingChanges.SequenceEqual([4, 4000]),
+            $"Rating must still invoke the deprecated OnChange alongside ValueChanged, got [{string.Join(", ", host.RatingChanges)}].");
+    });
+
+    // REV-115: ComboBox gained the name its siblings use. The host above has no
+    // items, so the confirm path is driven on a ComboBox that does.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        var picked = new List<string>();
+        var combo = await RenderComponentAsync<AeterniUI.Components.ComboBox.ComboBox<string>>(new Dictionary<string, object?>
+        {
+            ["Items"] = new[] { "alpha", "beta" },
+            ["OnItemSelected"] = EventCallback.Factory.Create<string>(renderer, value => picked.Add(value))
+        });
+        await (Task)typeof(AeterniUI.Components.ComboBox.ComboBox<string>).GetMethod("ChooseAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(combo, ["beta"])!;
+        Require(picked.Count == 1 && picked[0] == "beta",
+            "ComboBox must report a confirmed item through OnItemSelected.");
     });
     var accordion = await RenderAsync<Accordion>(new Dictionary<string, object?> {
         ["Items"] = new[] { new AccordionItem("locked", "Locked", b => b.AddContent(0, "Content"), true) },
@@ -1714,6 +1736,22 @@ async Task CheckTextTableFallbackAsync()
     });
     Require(rating.Contains("aria-label=\"3 of 5\"", StringComparison.Ordinal),
         "Rating stars must announce their meaning through the text table, not a bare number.");
+}
+
+// Renders a component and hands back the instance, so a check can drive its
+// private interaction path the way a real event would. Call from the dispatcher.
+async Task<TComponent> RenderComponentAsync<TComponent>(Dictionary<string, object?> values)
+    where TComponent : IComponent
+{
+    ParameterContractHost<TComponent> host = null!;
+    await renderer.RenderComponentAsync<ParameterContractHost<TComponent>>(
+        ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<ParameterContractHost<TComponent>>)(x => host = x)
+        }));
+    host.Values = values;
+    host.Update();
+    return host.Inner;
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)

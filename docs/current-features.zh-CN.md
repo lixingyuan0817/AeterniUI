@@ -601,7 +601,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 
 ### 支持能力
 
-- 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
+- 整数评分：`Value` / `ValueChanged` / `ValueExpression`，`Max`（默认 5）与越界钳制。`OnChange` 已弃用（与 `ValueChanged` 在同一次交互上重复触发），为使既有消费者不被静默切断，它仍会被调用，将在后续版本移除。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。Disabled 合并 FormField 状态；只读/禁用星级不进入 Tab 序列。方向键/Home/End 同步真实焦点与值、不清零、不滚动页面，空格继续激活当前聚焦星级；主 JS module 仅处理默认键盘行为。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`，每颗星的无障碍名称与 tooltip 取 `AeterniUITextOptions.RatingStarLabelFormat`（默认 `{0} of {1}`，即读作"3 of 5"而不是裸数字）。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
@@ -625,7 +625,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnChange`；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`；`OnChange` 是同一通知的旧名字，已弃用但仍会触发，便于迁移；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。

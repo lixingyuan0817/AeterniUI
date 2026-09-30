@@ -58,6 +58,16 @@ public partial class Rating : AeterniComponent
     [Parameter]
     public string AriaLabel { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Fires on the same interaction as <see cref="ValueChanged"/>, so binding
+    /// both reports one change twice.
+    /// </summary>
+    /// <remarks>
+    /// Superseded by <see cref="ValueChanged"/>, which is the standard Blazor
+    /// binding name the rest of the library uses. Kept and still invoked so
+    /// existing consumers keep working; it will be removed in a later release.
+    /// </remarks>
+    [Obsolete("Use ValueChanged instead. OnChange fires on the same interaction and duplicating it is redundant.")]
     [Parameter]
     public EventCallback<int> OnChange { get; set; }
 
@@ -205,7 +215,11 @@ public partial class Rating : AeterniComponent
 
         Value = value;
         await ValueChanged.InvokeAsync(value);
+        // OnChange is obsolete for consumers but still honoured, so invoking it is
+        // deliberate rather than an oversight.
+#pragma warning disable CS0618
         await OnChange.InvokeAsync(value);
+#pragma warning restore CS0618
         NotifyFieldChanged();
     }
 

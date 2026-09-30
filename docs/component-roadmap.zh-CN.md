@@ -719,9 +719,9 @@ Token 和现有基础组件
 
 | 项 | 现状 | 需要决策的点 |
 | --- | --- | --- |
-| `Rating.OnChange` 与 `ValueChanged` 同一次交互双重触发 | 两个回调并存，`Rating.razor.cs:208` 同时触发；仓库内 `OnChange` 零使用 | 值是标准绑定名 `ValueChanged`，`OnChange` 是冗余别名。直接删除是破坏性变更，需要定迁移窗口（保留一个发布周期并标注弃用，或直接移除并写入变更说明） |
-| ComboBox 用 `OnChange`、Autocomplete 与 MultiSelect 用 `OnItemSelected` | 三个同类组件的"选中项确认"事件命名不同 | 统一到 `OnItemSelected` 需要给 ComboBox 增加兼容别名或走弃用期 |
-| `Card` 重复声明 `Surface` 的三组属性却漏掉 `Radius` | `Card.razor.cs:9-16` 与 `Surface.razor.cs` 之间无共享基类也无组合，靠人工保持同步 | 是否抽出共享抽象（会改变继承关系，触及设计规范 2.1 的"不为元素能力单独建基类"约定），或维持现状并接受人工同步 |
+| `Rating.OnChange` 与 `ValueChanged` 同一次交互双重触发 | **迁移已开始**：`OnChange` 标注 `[Obsolete]`，仍与 `ValueChanged` 一同触发；契约断言两条都必须在 | 待定移除窗口。移除前需要一次次版本发布让弃用警告触达消费者，之后按破坏性变更流程删除并更新本文档 |
+| ComboBox 用 `OnChange`、Autocomplete 与 MultiSelect 用 `OnItemSelected` | **迁移已开始**：ComboBox 新增 `OnItemSelected`，`OnChange` 标注 `[Obsolete]` 且两者都会触发 | 同上，待定移除窗口 |
+| `Card` 重复声明 `Surface` 的三组属性却漏掉 `Radius` | 未处理：`Card.razor.cs:9-16` 与 `Surface.razor.cs` 之间无共享基类也无组合，靠人工保持同步 | 是否抽出共享抽象（会改变继承关系，触及设计规范 2.1 的"不为元素能力单独建基类"约定），或维持现状并接受人工同步 |
 
 ### v0.5.1 质量收口（优先级 0）
 

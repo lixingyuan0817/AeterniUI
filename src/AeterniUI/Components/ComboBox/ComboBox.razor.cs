@@ -78,7 +78,16 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     public bool FullWidth { get; set; }
 
     [Parameter]
+    [Obsolete("Use OnItemSelected instead, which is the name ComboBox's siblings use. OnChange still fires.")]
     public EventCallback<TItem?> OnChange { get; set; }
+
+    /// <summary>
+    /// Fires with the confirmed item. Named after the equivalent callback on
+    /// <c>Autocomplete</c> and <c>MultiSelect</c>; <see cref="OnChange"/> is the
+    /// older name for the same notification.
+    /// </summary>
+    [Parameter]
+    public EventCallback<TItem?> OnItemSelected { get; set; }
 
     private bool _open;
     private int _activeIndex = -1;
@@ -283,7 +292,12 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
         Value = item;
         await ValueChanged.InvokeAsync(item);
+        // OnChange is obsolete for consumers but still honoured, so invoking it is
+        // deliberate rather than an oversight.
+#pragma warning disable CS0618
         await OnChange.InvokeAsync(item);
+#pragma warning restore CS0618
+        await OnItemSelected.InvokeAsync(item);
         NotifyFieldChanged();
         _open = false;
         _activeIndex = -1;
