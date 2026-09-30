@@ -116,7 +116,9 @@ P0 修复期间发现并一并修复的条目：
 
 **浏览器验收**（第九轮收尾补充）：`tests/browser/` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例，覆盖本轮四条无法由 `HtmlRenderer` 断言的结论——REV-98（`DialogProvider` 根不再生成栈上下文，通知区以 1080 位于根栈上下文）、REV-121（过渡类按时长移除，reduced-motion 下降到约 40–60ms）、REV-118（被改指的焦点环仍绘制、被删别名解析为空）、REV-123（Toolbar/ToggleGroup 保持单一 Tab 停靠点、方向键同时移动焦点与停靠点、回绕成立）。**未覆盖**：Menu/MultiSelect 的内嵌焦点环——进入打开浮层的键盘焦点没有受支持的路径（触发器契约只承诺 Tab 与 Enter/Space），该条仍只由声明值的契约断言覆盖；另有截图、真实触屏与读屏软件不在范围内。CI 增加独立的 `browser` job。
 
-**REV-115 收尾**：`Rating.OnChange` 与 `ComboBox.OnChange` 已**直接移除**（经确认组件库外部使用量很小，不需弃用窗口），`ComboBox.OnItemSelected` 保留为新名字。两条契约断言锁定「旧名字必须不存在」与「新名字必须触发」。`Card`/`Surface` 的修饰类映射收敛到 `ComponentClass.ForSurface*`，CSS 规则体加漂移守卫；`Card` 无 `Radius` 经查是令牌层已说明的刻意设计（Card 带 header/body/footer 读作更大容器、取固定容器圆角；Surface 是跟随控件几何的裸包裹），**不补**，按此记录。是否抽共享抽象仍待决策，记录在 roadmap 的优先级 5。
+**REV-115 收尾**：`Rating.OnChange` 与 `ComboBox.OnChange` 已**直接移除**（经确认组件库外部使用量很小，不需弃用窗口），`ComboBox.OnItemSelected` 保留为新名字。两条契约断言锁定「旧名字必须不存在」与「新名字必须触发」。`Card`/`Surface` 的修饰类映射收敛到 `ComponentClass.ForSurface*`，CSS 规则体加漂移守卫；`Card` 无 `Radius` 经查是令牌层已说明的刻意设计（Card 带 header/body/footer 读作更大容器、取固定容器圆角；Surface 是跟随控件几何的裸包裹），**不补**，按此记录。不抽共享抽象——用 DOM 变化去换 6 条已被保护的规则体不划算；守卫已扩展为「两侧非豁免修饰类集合必须相同」（豁免 padding 与 radius），验证方式：给 Surface 临时加一个单边修饰类，断言立即以 `surface-only [--probe-only]` 报错。
+
+**REV-129 收尾**：核实消费者用法后由"三处不达标"更正为"**一处真实承字不足 + 两处门禁配对写错**"。浅色 `--aeterni-color-danger-text` 由 `danger-600` 改 `danger-700`（单行；该令牌只作前景、从不作背景，故无连带影响），白底 4.57 → **6.08:1**、页面灰 4.27 → **5.67:1**，`bg-secondary` 与 `bg-tertiary` 亦通过；两条测染色源的配对删除并注明理由；`KNOWN_SHORTFALLS` 清空。门禁 216 组全绿。
 
 **REV-128 收尾**：保留的原始色阶不删——它们是宿主自定义主题的基材而非别名层，收窄等于静默删掉别人依赖的公开令牌。改为「声明受支持档位 + 补门禁覆盖」，并在补门禁时发现 **REV-129**（浅色主题下语意族三处对比度低于下限，见上表），缺口以 `KNOWN_SHORTFALLS` 具名记录，每次运行仍打印实测值。
 

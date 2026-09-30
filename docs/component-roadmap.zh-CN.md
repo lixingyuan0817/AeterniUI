@@ -708,7 +708,7 @@ Token 和现有基础组件
 | 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 已完成（5/5） | Breadcrumb 明确链接导航边界；Stepper 复用线性流程状态语义 |
 | 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 已完成（3/3） | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
 | 优先级 4 | 大数据量展示：`VirtualList<TItem>` | 已完成 | 复用 Blazor `Virtualize<TItem>`，在固定行高和固定视口约束下补齐键盘、选择和位置语义 |
-| 优先级 5 | 公共 API 形状收口（第九轮 REV-115） | 部分完成 | 重复回调与事件命名已直接移除；`Card`/`Surface` 抽象待决策，详见下节 |
+| 优先级 5 | 公共 API 形状收口（第九轮 REV-115） | 已完成 | 重复回调与事件命名已直接移除；`Card`/`Surface` 按「收敛映射 + 漂移守卫」收口，不抽基类 |
 | 优先级 6 | 装饰层令牌（第九轮 REV-125） | 已完成 | 新增 `--aeterni-decor-*` 命名空间，`FlashCard` 的金属光泽与全息衍射改走该层，契约见设计规范 §5.3；装饰色与品牌故意无关，不参与对比度契约 |
 
 文档事实偏差 REV-74 已在本轮规划同步时直接修正。v0.7 的 `MultiSelect` 已在 10.23.0 交付，搜索与数据选择阶段完成。
@@ -721,7 +721,7 @@ Token 和现有基础组件
 | --- | --- | --- |
 | `Rating.OnChange` 与 `ValueChanged` 同一次交互双重触发 | **已完成**：`OnChange` 已移除，`ValueChanged` 是唯一回调，一次交互只上报一次 | — |
 | ComboBox 用 `OnChange`、Autocomplete 与 MultiSelect 用 `OnItemSelected` | **已完成**：ComboBox 的 `OnChange` 已移除，三者统一为 `OnItemSelected` | — |
-| `Card` 重复声明 `Surface` 的三组属性却漏掉 `Radius` | 未处理：`Card.razor.cs:9-16` 与 `Surface.razor.cs` 之间无共享基类也无组合，靠人工保持同步 | 是否抽出共享抽象（会改变继承关系，触及设计规范 2.1 的"不为元素能力单独建基类"约定），或维持现状并接受人工同步 |
+| `Card` 重复声明 `Surface` 的三组属性却漏掉 `Radius` | **已收口，未抽基类**：修饰类映射收敛到 `ComponentClass.ForSurface*`，共享的 6 条 CSS 规则体由漂移守卫锁定，守卫另断言两侧非豁免修饰类集合必须相同；`Radius` 缺席是令牌层已说明的刻意设计（Card 取固定容器圆角） | — |
 
 ### v0.5.1 质量收口（优先级 0）
 
