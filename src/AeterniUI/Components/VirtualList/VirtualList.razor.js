@@ -7,22 +7,58 @@ function visible(element) {
 
 export function init(reference, key) {
     dispose(key);
-    instances.set(key, { reference, root: null, viewport: null, handler: null, pending: Promise.resolve(), disposed: false });
+    instances.set(key, {
+        reference,
+        root: null,
+        viewport: null,
+        handler: null,
+        scrollHandler: null,
+        pending: Promise.resolve(),
+        loadMoreEnabled: false,
+        loadMoreThreshold: 0,
+        lastLoadMoreHeight: -1,
+        disposed: false
+    });
 }
 
-export function sync(key, root) {
+function tryLoadMore(state, root, viewport) {
+    if (!state.loadMoreEnabled || state.disposed || state.root !== root || state.viewport !== viewport ||
+        !visible(root) || root.getAttribute('aria-disabled') === 'true') return;
+
+    const distance = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+    if (distance > state.loadMoreThreshold || viewport.scrollHeight === state.lastLoadMoreHeight) return;
+
+    state.lastLoadMoreHeight = viewport.scrollHeight;
+    state.loadMoreEnabled = false;
+    state.pending = state.pending.then(async () => {
+        if (!state.disposed && state.root === root) {
+            await state.reference.invokeMethodAsync('HandleLoadMoreAsync');
+        }
+    }).catch(error => {
+        if (!state.disposed) console.error('VirtualList load-more update failed.', error);
+    });
+}
+
+export function sync(key, root, loadMoreEnabled = false, loadMoreThreshold = 0) {
     const state = instances.get(key);
     if (!state || !root) return;
+    state.loadMoreEnabled = loadMoreEnabled === true;
+    state.loadMoreThreshold = Number.isFinite(loadMoreThreshold) ? Math.max(0, loadMoreThreshold) : 0;
     const viewport = root.querySelector('.aeterni-virtual-list__viewport');
     if (!viewport) {
         state.root?.removeEventListener('keydown', state.handler);
+        state.viewport?.removeEventListener('scroll', state.scrollHandler);
         state.root = null;
         state.viewport = null;
         return;
     }
-    if (state.root === root && state.viewport === viewport) return;
+    if (state.root === root && state.viewport === viewport) {
+        queueMicrotask(() => tryLoadMore(state, root, viewport));
+        return;
+    }
 
     state.root?.removeEventListener('keydown', state.handler);
+    state.viewport?.removeEventListener('scroll', state.scrollHandler);
     state.root = root;
     state.viewport = viewport;
     state.handler = event => {
@@ -43,6 +79,9 @@ export function sync(key, root) {
         });
     };
     root.addEventListener('keydown', state.handler);
+    state.scrollHandler = () => tryLoadMore(state, root, viewport);
+    viewport.addEventListener('scroll', state.scrollHandler, { passive: true });
+    queueMicrotask(() => tryLoadMore(state, root, viewport));
 }
 
 export function scrollToIndex(key, index, itemSize) {
@@ -56,6 +95,7 @@ export function dispose(key) {
     if (!state) return;
     state.disposed = true;
     state.root?.removeEventListener('keydown', state.handler);
+    state.viewport?.removeEventListener('scroll', state.scrollHandler);
     state.root = null;
     state.viewport = null;
     instances.delete(key);

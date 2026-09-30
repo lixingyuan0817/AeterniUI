@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.24.1`
+文档版本：`10.25.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知。
 
 ## List 长列表尺寸修复
 
@@ -15,6 +15,13 @@
 - [x] 新增 `VirtualList<TItem>`，面向大数据量场景按可视区域和 overscan 渲染，不改变现有 `List<TItem>` 的静态/交互契约。
 - [x] 明确固定行高、`Height`、`ItemSize`、键盘活动项、选中状态、动态重排及 `aria-setsize` / `aria-posinset` 语义。
 - [x] 基于 Blazor `Virtualize<TItem>` 实现，远程数据、可变高度和缓存仍留在后续规划。
+
+## 10.25.0 VirtualList 触底加载
+
+- [x] `VirtualList<TItem>` 增加 `HasMoreItems`、`LoadingMore`、`LoadMoreThreshold` 与 `OnLoadMore`，由内部滚动视口在接近底部时通知宿主追加下一批 `Items`。
+- [x] 触底通知由组件负责并发抑制、禁用/不可见/无更多数据跳过和 `aria-busy` 状态；数据请求、分页、缓存和是否还有更多项目仍由宿主控制。
+- [x] 示例改为分批追加数据并展示触底加载；同步当前功能文档与渲染契约，保留固定行高、键盘导航、选中状态和 `aria-posinset` / `aria-setsize` 语义。
+- [x] `dotnet build aeterni_ui.slnx`、`AeterniUI.ContractChecks` 与文档门禁通过；`.razor.js` 语法检查需在具备 Node.js 的环境执行。
 
 ## 10.22.3 Search / Autocomplete 连体按钮组
 
@@ -63,13 +70,13 @@
 - [x] 新增 `Stepper.ItemTemplate`（`RenderFragment<StepperItem>`）：每步唯一的内容区，接管按钮内全部内容（含图标），可按步骤渲染不同内容；模板模式下 `Label` 继续作为按钮的无障碍名称，`Description` 不再关联 `aria-describedby`。
 - [x] 横向布局改为标记在上、标题与描述在下方居中，连线沿标记行贯通且不再穿过文字；纵向布局保持标记在左、文字在右，两种情况共用同一套连线端点（两端各留一个 `--aeterni-spacing-1`）。
 - [x] `aeterni_ui.slnx` 构建、`AeterniUI.ContractChecks`（新增单步图标与模板渲染断言）、`check-css-comments.mjs`、`check-contrast.mjs` 与 `check-docs.sh` 均通过；版本属性统一为 10.18.0，同步当前功能、设计规范、审阅待办、项目索引、roadmap 与 README 发布 tag 示例。
-- [ ] 待发布：通过最终差异审查后推送 `v10.18.0`。
+- [x] 已发布：通过最终差异审查后推送 `v10.18.0`。
 
 ## 10.17.3 Stepper 修复发布
 
 - [x] 修复 Stepper `Items` null 参数异常、补齐参数与 ARIA 渲染契约，并使示例 Previous/Next 跳过隐藏和禁用步骤。
 - [x] 收窄 Stepper hover 反馈，仅对可激活的已完成步骤提供 hover/active 状态；同步当前功能、设计规范、审阅待办、项目索引与 README 版本示例。
-- [ ] 待发布：通过构建、ContractChecks、文档一致性和最终差异审查后推送 `v10.17.3`。
+- [x] 已发布：通过构建、ContractChecks、文档一致性和最终差异审查后推送 `v10.17.3`。
 
 ## 10.17.2 补发完整发布
 
@@ -849,3 +856,4 @@ Search + List + PopupHost
 | v10.23.0 v0.7 MultiSelect | 已完成（3/3） | 构建、22 组渲染契约、MultiSelect JS 语法、CSS 注释、对比度与文档门禁 | 新增 `MultiSelect<TItem>` 多值选择组件，提供 `SelectedValues` 绑定、已选标签和移除、可选全选/清空、禁用选项、Popover 浮层、combobox/listbox 多选语义、方向键/Home/End/Enter/Space/Escape/Backspace 与模板；不包含远程请求、搜索过滤、缓存或虚拟滚动，示例为 `/components/multi-select`。按功能新增规则由 `10.22.3` 递增为 `10.23.0`。 |
 | v10.24.0 VirtualList | 已完成 | 构建、渲染契约、VirtualList JS 语法、CSS 注释与文档门禁 | 新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，支持可见行模板、key、单/多选、键盘导航、自动滚动和 `aria-setsize` / `aria-posinset`；基于 Blazor `Virtualize<TItem>`，不包含远程数据、缓存、可变高度、拖拽或分组。按功能新增规则由 `10.23.1` 递增为 `10.24.0`。 |
 | v10.24.1 MultiSelect / VirtualList 修复 | 已完成 | 构建、23 组渲染契约、文档门禁与差异检查 | 修复 `MultiSelect<TItem>` 共享 `PopupHost` 宽度对齐、鼠标打开首项误显示活动底色和 Razor 多余字符；默认全选/清除文案改为中文；修正 `Tag` / MultiSelect 关闭按钮留白与垂直居中；收口 `VirtualList<TItem>` 外层内边距、滚动视口与单选键盘行为。按修复版本规则由 `10.24.0` 递增为 `10.24.1`。 |
+| v10.25.0 VirtualList 触底加载 | 已完成 | 构建、23 组渲染契约、文档门禁；Node.js 语法检查待环境补跑 | 新增宿主控制的 `OnLoadMore` 触底通知和 `HasMoreItems` / `LoadingMore` / `LoadMoreThreshold` 参数；组件负责滚动监听、并发抑制与 `aria-busy`，宿主负责异步数据请求、追加 `Items`、分页和缓存。按功能新增规则由 `10.24.1` 递增为 `10.25.0`。 |

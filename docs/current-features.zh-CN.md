@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.24.1`
+文档版本：`10.25.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.24.1` 在 `10.24.0` 的基础上收口 `MultiSelect<TItem>` 的共享弹层宽度、鼠标打开首项状态、中文批量操作文案和标签关闭按钮间距；同时修正 `VirtualList<TItem>` 与 `List<TItem>` 的视口、内边距和键盘交互细节。
+`10.25.0` 在 `10.24.1` 的基础上为 `VirtualList<TItem>` 增加宿主控制的触底加载通知；同时保留 `MultiSelect<TItem>` 的共享弹层宽度、鼠标打开首项状态、中文批量操作文案、标签关闭按钮间距，以及 `VirtualList<TItem>` / `List<TItem>` 的视口、内边距和键盘交互修复。
 
 ## 文档口径
 
@@ -577,13 +577,17 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 - 根元素使用固定高度滚动容器；选择模式输出单一 Tab 停留点、`role="listbox"`、`aria-activedescendant` 和 `aria-multiselectable`，普通模式输出 `role="list"`。
 - 可见项目输出 `role="option"` 或 `role="listitem"`、`aria-posinset` 和 `aria-setsize`；方向键、Home/End、Enter/Space 由根容器统一处理，活动项自动滚动到可视区域。
 - 外层表面沿用 `List` 的 padding、边框、圆角和背景；滚动条位于内层视口，单选方向键选中行为与 `List<TItem>` 保持一致。
-- 内部基于 Blazor `Virtualize<TItem>`；当前只支持固定行高，不提供远程 `ItemsProvider`、缓存、可变高度、拖拽、分组或 CardMode。
+- 内部基于 Blazor `Virtualize<TItem>`，支持固定行高和宿主控制的触底加载；通过 `HasMoreItems`、`LoadingMore`、`LoadMoreThreshold` 与 `OnLoadMore` 在接近视口底部时通知宿主追加 `Items`。组件不请求数据、不缓存结果，也不提供可变高度、拖拽、分组或 CardMode。
+- 触底加载只负责一次性通知与并发抑制：宿主应在 `OnLoadMore` 中异步获取下一批数据、更新 `Items`，并在没有更多数据时将 `HasMoreItems` 设为 `false`；加载期间设置 `LoadingMore="true"` 可暂停后续触发并输出 `aria-busy="true"`。
 
 ```razor
 <VirtualList Items="@rows"
              Height="320px"
              ItemSize="32"
              OverscanCount="5"
+             HasMoreItems="@hasMoreItems"
+             LoadingMore="@loadingMore"
+             OnLoadMore="LoadMoreAsync"
              ItemKeySelector="row => row.Id"
              AriaLabel="项目列表">
     <ItemTemplate Context="row">@row.Name</ItemTemplate>

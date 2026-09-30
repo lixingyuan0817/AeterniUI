@@ -481,6 +481,16 @@ async Task CheckVirtualListAsync()
 
     Require(!html.Contains("aria-setsize=", StringComparison.Ordinal), "VirtualList must not place option position metadata on the listbox root before browser virtualization mounts rows.");
 
+    var loading = await RenderAsync<VirtualList<string>>(new Dictionary<string, object?>
+    {
+        [nameof(VirtualList<string>.Items)] = items,
+        [nameof(VirtualList<string>.HasMoreItems)] = true,
+        [nameof(VirtualList<string>.LoadingMore)] = true,
+        [nameof(VirtualList<string>.LoadMoreThreshold)] = 48d,
+        [nameof(VirtualList<string>.OnLoadMore)] = EventCallback.Factory.Create(renderer, () => Task.CompletedTask)
+    });
+    Require(loading.Contains("aria-busy=\"true\"", StringComparison.Ordinal), "VirtualList must expose aria-busy while loading more items.");
+
     var plain = await RenderAsync<VirtualList<string>>(new Dictionary<string, object?>
     {
         [nameof(VirtualList<string>.Items)] = Array.Empty<string>(),

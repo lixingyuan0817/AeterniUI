@@ -17,6 +17,9 @@
                          Height="280px"
                          ItemSize="32"
                          OverscanCount="6"
+                         HasMoreItems="@_hasMoreItems"
+                         LoadingMore="@_loadingMore"
+                         OnLoadMore="LoadMoreAsync"
                          SelectionMode="SelectionMode.Single"
                          @bind-SelectedValue="_selected"
                          ItemKeySelector="row => row.Id"
@@ -30,16 +33,18 @@
         </div>
     </Preview>
     <Notes>
-        <span>示例包含 10,000 条数据，但 DOM 只保留视口附近的行。第一版使用固定 ItemSize，不包含远程数据源和可变高度项目。</span>
+        <span>示例按触底分批追加数据，DOM 只保留视口附近的行。触底阈值由组件负责判断，数据请求与是否还有更多项目由宿主控制。</span>
     </Notes>
 </ComponentPreview>
 
 @code {
-    private readonly IReadOnlyList<VirtualRow> _rows = Enumerable.Range(1, 10_000)
+    private readonly System.Collections.Generic.List<VirtualRow> _rows = Enumerable.Range(1, 250)
         .Select(index => new VirtualRow(index, $"项目 {index:00000}"))
-        .ToArray();
+        .ToList();
 
     private object? _selected;
+    private bool _hasMoreItems = true;
+    private bool _loadingMore;
 
     private static readonly ShowcaseParameter[] Parameters =
     [
@@ -49,8 +54,28 @@
         new("ItemSize", "double", "固定行高，单位为 CSS px。", "32"),
         new("OverscanCount", "int", "视口外预渲染行数。", "5"),
         new("ItemKeySelector", "Func<TItem, object?>?", "稳定且唯一的项目 key。"),
+        new("HasMoreItems", "bool", "是否仍有更多项目可加载。", "false"),
+        new("LoadingMore", "bool", "宿主当前是否正在加载更多项目。", "false"),
+        new("LoadMoreThreshold", "double", "距视口底部多少 CSS px 时触发加载。", "96"),
+        new("OnLoadMore", "EventCallback", "触底后通知宿主追加项目。"),
         new("SelectionMode", "SelectionMode", "无选择、单选或多选。", "None")
     ];
+
+    private async Task LoadMoreAsync()
+    {
+        if (_loadingMore || !_hasMoreItems) return;
+
+        _loadingMore = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(180);
+
+        var start = _rows.Count + 1;
+        _rows.AddRange(Enumerable.Range(start, 250)
+            .Select(index => new VirtualRow(index, $"项目 {index:00000}")));
+        _hasMoreItems = _rows.Count < 1_000;
+        _loadingMore = false;
+        await InvokeAsync(StateHasChanged);
+    }
 
     private sealed record VirtualRow(int Id, string Label);
 }

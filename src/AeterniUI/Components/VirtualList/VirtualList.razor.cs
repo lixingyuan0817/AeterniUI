@@ -19,6 +19,7 @@ public partial class VirtualList<TItem> : AeterniComponent
     private float _itemSizePixels;
     private int _activeIndex = -1;
     private int? _scrollRequestIndex;
+    private bool _loadMoreInFlight;
 
     [Parameter, EditorRequired]
     public IReadOnlyList<TItem>? Items { get; set; }
@@ -68,6 +69,31 @@ public partial class VirtualList<TItem> : AeterniComponent
     [Parameter]
     public EventCallback<object?> OnItemSelected { get; set; }
 
+    /// <summary>
+    /// Indicates whether more items can be loaded when the scroll viewport reaches its end.
+    /// </summary>
+    [Parameter]
+    public bool HasMoreItems { get; set; }
+
+    /// <summary>
+    /// Indicates that the host is currently loading more items.
+    /// </summary>
+    [Parameter]
+    public bool LoadingMore { get; set; }
+
+    /// <summary>
+    /// The distance, in CSS pixels, from the end of the viewport at which <see cref="OnLoadMore"/> is raised.
+    /// </summary>
+    [Parameter]
+    public double LoadMoreThreshold { get; set; } = 96;
+
+    /// <summary>
+    /// Raised once when the viewport reaches the configured load-more threshold.
+    /// The host owns data loading and should append items through <see cref="Items"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnLoadMore { get; set; }
+
     internal bool IsSelectable => SelectionMode != SelectionMode.None;
 
     private string ItemRole => IsSelectable ? "option" : "listitem";
@@ -93,6 +119,11 @@ public partial class VirtualList<TItem> : AeterniComponent
         if (OverscanCount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(OverscanCount), OverscanCount, "OverscanCount cannot be negative.");
+        }
+
+        if (!double.IsFinite(LoadMoreThreshold) || LoadMoreThreshold < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(LoadMoreThreshold), LoadMoreThreshold, "LoadMoreThreshold must be zero or greater.");
         }
 
         if (!Enum.IsDefined(SelectionMode))
@@ -128,6 +159,7 @@ public partial class VirtualList<TItem> : AeterniComponent
         .Add("aeterni-virtual-list")
         .Add("is-selectable", IsSelectable)
         .Add("is-disabled", Disabled)
+        .Add("is-loading-more", LoadingMore)
         .Add("is-empty", _rows.Count == 0);
 
     protected override StyleBuilder BuildStyle() => base.BuildStyle()
@@ -159,6 +191,11 @@ public partial class VirtualList<TItem> : AeterniComponent
         if (Disabled)
         {
             attributes["aria-disabled"] = "true";
+        }
+
+        if (LoadingMore)
+        {
+            attributes["aria-busy"] = "true";
         }
 
         return attributes;
@@ -333,11 +370,37 @@ public partial class VirtualList<TItem> : AeterniComponent
 
     protected override async Task OnComponentAfterRenderAsync(bool firstRender)
     {
-        await JsModuleManager.InvokeModuleVoidAsync("virtual-list", "sync", InstanceId, RootElement);
+        var loadMoreEnabled = OnLoadMore.HasDelegate && HasMoreItems && !LoadingMore && !Disabled && Visible;
+        await JsModuleManager.InvokeModuleVoidAsync(
+            "virtual-list",
+            "sync",
+            InstanceId,
+            RootElement,
+            loadMoreEnabled,
+            LoadMoreThreshold);
         if (_scrollRequestIndex is int index)
         {
             _scrollRequestIndex = null;
             await JsModuleManager.InvokeModuleVoidAsync("virtual-list", "scrollToIndex", InstanceId, index, _itemSizePixels);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleLoadMoreAsync()
+    {
+        if (_loadMoreInFlight || !OnLoadMore.HasDelegate || !HasMoreItems || LoadingMore || Disabled || !Visible)
+        {
+            return;
+        }
+
+        _loadMoreInFlight = true;
+        try
+        {
+            await OnLoadMore.InvokeAsync();
+        }
+        finally
+        {
+            _loadMoreInFlight = false;
         }
     }
 
