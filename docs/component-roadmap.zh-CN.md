@@ -2,7 +2,7 @@
 
 文档版本：`10.25.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知，10.25.1 收口 Stepper 状态优先级与描述无障碍名称。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知，10.25.1 收口 Stepper 状态优先级与描述无障碍名称；第九轮全库架构审阅收口；随后登记优先级 7～9 的组件排期（表单族数值输入、纯展示补齐、待评估候选），`Table`/`DataGrid` 与 `TreeView` 评估后暂缓。
 
 ## List 长列表尺寸修复
 
@@ -710,8 +710,30 @@ Token 和现有基础组件
 | 优先级 4 | 大数据量展示：`VirtualList<TItem>` | 已完成 | 复用 Blazor `Virtualize<TItem>`，在固定行高和固定视口约束下补齐键盘、选择和位置语义 |
 | 优先级 5 | 公共 API 形状收口（第九轮 REV-115） | 已完成 | 重复回调与事件命名已直接移除；`Card`/`Surface` 按「收敛映射 + 漂移守卫」收口，不抽基类 |
 | 优先级 6 | 装饰层令牌（第九轮 REV-125） | 已完成 | 新增 `--aeterni-decor-*` 命名空间，`FlashCard` 的金属光泽与全息衍射改走该层，契约见设计规范 §5.3；装饰色与品牌故意无关，不参与对比度契约 |
+| 优先级 7 | 表单族数值输入：`InputNumber` → `Slider` | 规划中 | 表单族已覆盖文本、布尔、日期、时间、选择与评分，**唯独缺数值类**。`InputNumber` 可由 `Input` + `Button` 组合，不需新 JS；`Slider` 只需一个指针拖拽 module。两者都不引入新的浮层或焦点模型，是本仓库当前**重用最多、缺口最明显**的一对 |
+| 优先级 8 | 纯展示补齐：`Timeline` → `Descriptions` | 规划中 | 无 JS、无浮层，消费现有 Token 与排版阶；与 `Stepper`、`List` 共享视觉词汇，风险低 |
+| 优先级 9 | 待按用途排序的候选 | 未评估 | `Carousel`、`Upload`、`ColorPicker`、`Transfer`、`Cascader`、`Result`、`Anchor`、`Image`、`QRCode`。彼此独立、各自体量不小，排序取决于本库面向的是后台型还是展示型场景——**当前没有依据**，故只登记、不排先后 |
+| 已评估暂缓 | `Table` / `DataGrid`、`TreeView` | 暂不做 | 见下节「已评估并暂缓」 |
 
 文档事实偏差 REV-74 已在本轮规划同步时直接修正。v0.7 的 `MultiSelect` 已在 10.23.0 交付，搜索与数据选择阶段完成。
+
+### 表单族数值输入（优先级 7）
+
+目标：补上表单族唯一的整类缺口。现有表单控件覆盖文本、布尔、日期、时间、选择与评分，没有任何数值输入。
+
+- `InputNumber<TValue>`：`Value` / `ValueChanged` / `ValueExpression`、`Min` / `Max` / `Step`、`Precision`、`ShowControls`（默认关闭）、方向键与 PageUp/PageDown 步进、`FormField` 状态继承、`EditContext` 校验。构建在 `Input` 与 `Button` 之上，不新增 JS。
+  **第一版不包含**：千分位与自定义格式化、`Culture` 覆盖、货币与百分比语义（宿主用 `Format` 表达）、异步校验。
+- `Slider<TValue>`：单值模式、`Min` / `Max` / `Step`、刻度显示、键盘（方向键 / Home / End / PageUp / PageDown）、`role="slider"` 与 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` / `aria-valuetext`。
+  **第一版不包含**：范围双柄、竖向以外的自定义轨道渲染、拖拽吸附动画、与输入框联动。
+
+两者都只消费现有 Token；`Slider` 新增一个 `.razor.js`（指针拖拽属浏览器行为），`InputNumber` 不需要 JS。按仓库约定，两者交付时同步 `current-features`、示例页、渲染契约与对比度门禁。
+
+### 已评估并暂缓（不在当前排期）
+
+| 组件 | 结论 | 原因 |
+| --- | --- | --- |
+| `Table` / `DataGrid` | 暂不做 | 实践中被要得最多，但需要先做**范围决策**而不是先写代码：只读表格还是带客户端排序？分页归组件还是归宿主？虚拟化如何与 `VirtualList` 已声明的固定行高约束共存？roadmap 已把 `VirtualList` 限定在「不含分组、可变高度、拖拽」，表格会正面撞上这些边界。先记范围问题，暂不开工 |
+| `TreeView` | 本轮决定暂不纳入排期 | 记录一处事实供日后决策参考：它与第九轮抽出的 `wwwroot/js/aeterni_roving_focus.js`（单一 Tab 停靠点 + 方向键在项间移动）重用关系最强，而该模块目前只有 ToggleGroup 与 Toolbar 两个消费者 |
 
 ### 公共 API 形状收口（优先级 5）
 
