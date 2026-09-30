@@ -55,11 +55,15 @@ P0 修复期间发现并一并修复的条目：
 
 批次 19（REV-116）修复落点：新增三个 JS 层测试文件（共 18 个用例）覆盖此前零覆盖的三个 `Interactive` 模块——`VirtualList` 的键盘过滤与串行队列、触底加载的阈值/高度闩锁/并发闩锁、视口替换后的解绑、释放后取消排队回调、`scrollToIndex` 边界；`MultiSelect`/`Autocomplete` 的按键白名单、修饰键与输入法忽略、活动项滚入自身视口、**元素替换或为空时必须解绑**（REV-126 的回归守卫）、释放后不再重绑。契约侧新增 `VirtualListContractHost`（沿用 `ListContractHost` 模式），把键盘导航、`DisabledSelector` 跳过、多选 Enter 累积、加载的**并发**闩锁、`ItemKeySelector` 唯一性与非空校验，以及释放后忽略排队回调纳入行为断言——`VirtualList` 的断言数由 4 条提升到 20 条。
 
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-129 / P1 | 对比度门禁此前只测品牌阶与焦点环，**语意族从未被测**。补上语意族的承字/填充配对后，浅色主题下有三处低于各自下限（三套色相层数值完全相同，与品牌无关）：`--aeterni-color-danger-text` 落在 `--aeterni-bg` 上 **4.27:1**（正文下限 4.5）；`--aeterni-color-success-default` 与 `--aeterni-color-warning-default` 作边框/图标落在 `--aeterni-bg-surface` 上分别 **2.22:1 / 2.20:1**（非正文下限 3）。配对在组件里真实存在：`danger-text` 是 `FormField` 错误文字、`Icon`、`Progress` 的墨色（`FormField.razor.css:18,28`、`Icon.razor.css:42`、`Progress.razor.css:53`）；`success/warning-default` 是 `Badge` 填充、`Tag` 颜色与 Dialog 强调色（`Badge.razor.css:85,90`、`Tag.razor.css:51,56`、`DialogProvider.razor.css:87,92`） | **待决策**：修正需重锚浅色主题的语意停靠档，属调色板设计决策而非缺陷修复。缺口已列入 `scripts/check-contrast.mjs` 的 `KNOWN_SHORTFALLS`，每次运行仍打印实测值，**新增缺口会让门禁失败**；修正后从该清单移除。门禁配对总数 99 → 252 |
+
 修复批次 20 时发现并已部分处理的新条目：
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
-| REV-128 / P2 | 令牌文件的公开表面远大于组件与宿主实际消费的面：全表 516 个声明中，**190 个在任何地方都没有 `var()` 引用**。其中 146 个（`space-*`/`margin-*`/`gap-*`/`text-*`/`leading-*`/`tracking-*`/`breakpoint-*`/`gray-dark-*`/`typography-*`/`container-*`/`field-*`/`z-base,fixed,dropdown`/`ease`/`blur`/`shadow`/`opacity-disabled` 等）是**纯别名层或已废弃档位**，与另一套既有命名一一对应，已删除（240 条声明，令牌表 1177 → 943 行）。其余保留：`--aeterni-brand-50..900` 十档由品牌对比度门禁逐档校验、原始色阶（`gray-*`/`neutral-*`/六族 `danger/success/warning/info` 档位）是宿主自定义主题的基材 | 已删除的 146 个为纯冗余，无消费者、无文档承诺；**保留的原始色阶与裸色阶没有门禁覆盖**，是否收窄属于公开令牌 API 决策，需单独确认后再动 |
+| REV-128 / P2 | 令牌文件的公开表面远大于组件与宿主实际消费的面：全表 516 个声明中，**190 个在任何地方都没有 `var()` 引用**。其中 146 个（`space-*`/`margin-*`/`gap-*`/`text-*`/`leading-*`/`tracking-*`/`breakpoint-*`/`gray-dark-*`/`typography-*`/`container-*`/`field-*`/`z-base,fixed,dropdown`/`ease`/`blur`/`shadow`/`opacity-disabled` 等）是**纯别名层或已废弃档位**，与另一套既有命名一一对应，已删除（240 条声明，令牌表 1177 → 943 行）。其余保留：`--aeterni-brand-50..900` 十档由品牌对比度门禁逐档校验、原始色阶（`gray-*`/`neutral-*`/六族 `danger/success/warning/info` 档位）是宿主自定义主题的基材 | 已删除的 146 个为纯冗余。**保留的原始色阶按「不删，改为可检查」处理**：色阶是宿主自定义主题的基材而非别名层，收窄等于静默删掉别人依赖的公开令牌，因此改为声明受支持档位并补门禁覆盖（见 REV-129） |
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
@@ -110,7 +114,9 @@ P0 修复期间发现并一并修复的条目：
 
 **浏览器验收**（第九轮收尾补充）：`tests/browser/` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例，覆盖本轮四条无法由 `HtmlRenderer` 断言的结论——REV-98（`DialogProvider` 根不再生成栈上下文，通知区以 1080 位于根栈上下文）、REV-121（过渡类按时长移除，reduced-motion 下降到约 40–60ms）、REV-118（被改指的焦点环仍绘制、被删别名解析为空）、REV-123（Toolbar/ToggleGroup 保持单一 Tab 停靠点、方向键同时移动焦点与停靠点、回绕成立）。**未覆盖**：Menu/MultiSelect 的内嵌焦点环——进入打开浮层的键盘焦点没有受支持的路径（触发器契约只承诺 Tab 与 Enter/Space），该条仍只由声明值的契约断言覆盖；另有截图、真实触屏与读屏软件不在范围内。CI 增加独立的 `browser` job。
 
-**REV-115 收尾**：走 `AGENTS.md` 的「破坏性变更应优先避免或提供兼容迁移」路径。`Rating.OnChange` 标注 `[Obsolete]`（指向 `ValueChanged`）并与 `ValueChanged` 一同触发；ComboBox 新增 `OnItemSelected`，`OnChange` 同样标注弃用但两者都会触发。两条契约断言分别锁定「旧名字必须仍然工作」与「新名字必须触发」。移除窗口与 `Card`/`Surface` 抽象仍待决策，记录在 roadmap 的优先级 5。**REV-128 未动**：保留的原始色阶是宿主自定义主题的基材且没有门禁覆盖，收窄属公开令牌 API 决策，需单独确认。
+**REV-115 收尾**：`Rating.OnChange` 与 `ComboBox.OnChange` 已**直接移除**（经确认组件库外部使用量很小，不需弃用窗口），`ComboBox.OnItemSelected` 保留为新名字。两条契约断言锁定「旧名字必须不存在」与「新名字必须触发」。`Card`/`Surface` 的修饰类映射收敛到 `ComponentClass.ForSurface*`，CSS 规则体加漂移守卫；`Card` 无 `Radius` 经查是令牌层已说明的刻意设计（Card 带 header/body/footer 读作更大容器、取固定容器圆角；Surface 是跟随控件几何的裸包裹），**不补**，按此记录。是否抽共享抽象仍待决策，记录在 roadmap 的优先级 5。
+
+**REV-128 收尾**：保留的原始色阶不删——它们是宿主自定义主题的基材而非别名层，收窄等于静默删掉别人依赖的公开令牌。改为「声明受支持档位 + 补门禁覆盖」，并在补门禁时发现 **REV-129**（浅色主题下语意族三处对比度低于下限，见上表），缺口以 `KNOWN_SHORTFALLS` 具名记录，每次运行仍打印实测值。
 
 ## 第八轮：Breadcrumb / Stepper / List 审阅收口（10.17.1 / 10.17.2）
 

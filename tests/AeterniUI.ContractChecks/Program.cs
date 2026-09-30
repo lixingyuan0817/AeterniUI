@@ -132,11 +132,13 @@ async Task CheckQualityStatesAsync()
         Require(rendered.Contains($"id=\"{host.Tabs.ElementId}\"", StringComparison.Ordinal),
             "Tabs.ElementId must match the id it renders.");
 
-        // REV-115: Rating.OnChange is deprecated in favour of ValueChanged but must
-        // keep working, so a consumer on the old name is not silently cut off.
+        // REV-115: Rating.OnChange was removed. ValueChanged is the only callback,
+        // so one interaction reports exactly one change.
         await Call(host.Rating, "SetValueAsync", 4);
-        Require(host.RatingChanges.SequenceEqual([4, 4000]),
-            $"Rating must still invoke the deprecated OnChange alongside ValueChanged, got [{string.Join(", ", host.RatingChanges)}].");
+        Require(host.RatingChanges.SequenceEqual([4]),
+            $"Rating must report a change exactly once through ValueChanged, got [{string.Join(", ", host.RatingChanges)}].");
+        Require(typeof(AeterniUI.Components.Rating.Rating).GetProperty("OnChange") is null,
+            "Rating.OnChange must be gone: ValueChanged is the standard binding name.");
     });
 
     // REV-115: ComboBox gained the name its siblings use. The host above has no
@@ -153,6 +155,8 @@ async Task CheckQualityStatesAsync()
             .Invoke(combo, ["beta"])!;
         Require(picked.Count == 1 && picked[0] == "beta",
             "ComboBox must report a confirmed item through OnItemSelected.");
+        Require(typeof(AeterniUI.Components.ComboBox.ComboBox<string>).GetProperty("OnChange") is null,
+            "ComboBox.OnChange must be gone: OnItemSelected is the name its siblings use.");
     });
     var accordion = await RenderAsync<Accordion>(new Dictionary<string, object?> {
         ["Items"] = new[] { new AccordionItem("locked", "Locked", b => b.AddContent(0, "Content"), true) },
@@ -1667,6 +1671,38 @@ async Task CheckSharedAbstractionsAsync()
     {
         Require(buttonIntents[intent] == iconButtonIntents[intent],
             $"Button and IconButton must wire identical slots for the '{intent}' intent.");
+    }
+
+    // REV-122 / REV-115: Card and Surface render the same surface recipe under
+    // different root classes, and CSS isolation means the two stylesheets cannot
+    // share a rule body. The duplication that follows is tolerable; drift is not.
+    // The variant and elevation bodies must stay identical once the prefix is
+    // normalised away. Padding is exempt on purpose — the two components differ in
+    // what "unset" means there.
+    static Dictionary<string, string> SurfaceRuleBodies(string css, string prefix)
+    {
+        var bodies = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(css, $@"\.{Regex.Escape(prefix)}(--[a-z-]+)\s*\{{([^}}]*)\}}"))
+        {
+            bodies[match.Groups[1].Value] = Regex.Replace(match.Groups[2].Value, @"\s+", " ").Trim();
+        }
+
+        return bodies;
+    }
+
+    var cardBodies = SurfaceRuleBodies(await File.ReadAllTextAsync(Path.Combine(components, "Card/Card.razor.css")), "aeterni-card");
+    var surfaceBodies = SurfaceRuleBodies(await File.ReadAllTextAsync(Path.Combine(components, "Surface/Surface.razor.css")), "aeterni-surface");
+    var sharedModifiers = cardBodies.Keys.Intersect(surfaceBodies.Keys, StringComparer.Ordinal)
+        .Where(modifier => !modifier.Contains("padding", StringComparison.Ordinal))
+        .ToArray();
+    // Six: the variant modifiers (subtle, elevated, glass) and the three elevation
+    // tiers. Each is one rule body because the variant selectors are grouped.
+    Require(sharedModifiers.Length >= 6,
+        $"Card and Surface must share at least the variant and elevation modifiers, found {sharedModifiers.Length}.");
+    foreach (var modifier in sharedModifiers)
+    {
+        Require(cardBodies[modifier] == surfaceBodies[modifier],
+            $"Card and Surface must render the same surface recipe for '{modifier}'.");
     }
 
     // REV-127: inheriting the base contract means feeding the root element back.

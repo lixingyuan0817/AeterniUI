@@ -51,6 +51,59 @@ internal static class ComponentClass
     };
 
     /// <summary>
+    /// Variant modifier for a surface-like container, or <see langword="null" />
+    /// for the base style.
+    /// </summary>
+    /// <remarks>
+    /// Card and Surface render the same surface recipe under different root
+    /// classes and cannot share a stylesheet (CSS isolation keeps each
+    /// component's rules to itself), so the option-to-modifier mapping lives here
+    /// instead of being written out twice and left to drift.
+    /// </remarks>
+    public static string? ForSurfaceVariant(SurfaceVariant variant) => variant switch
+    {
+        SurfaceVariant.Subtle => "subtle",
+        SurfaceVariant.Elevated => "elevated",
+        SurfaceVariant.Glass => "glass",
+        _ => null
+    };
+
+    /// <summary>Elevation modifier for a surface-like container.</summary>
+    public static string? ForSurfaceElevation(SurfaceElevation elevation) => elevation switch
+    {
+        SurfaceElevation.Small => "elevation-small",
+        SurfaceElevation.Medium => "elevation-medium",
+        SurfaceElevation.Large => "elevation-large",
+        _ => null
+    };
+
+    /// <summary>
+    /// Padding modifier for a surface-like container. Unlike the other surface
+    /// options the default tier does carry a modifier, because the two components
+    /// differ in what "unset" means to them.
+    /// </summary>
+    public static string? ForSurfacePadding(SurfacePadding padding) => padding switch
+    {
+        SurfacePadding.None => "padding-none",
+        SurfacePadding.Small => "padding-small",
+        SurfacePadding.Large => "padding-large",
+        SurfacePadding.ExtraLarge => "padding-extra-large",
+        _ => "padding-medium"
+    };
+
+    /// <summary>Radius modifier for a surface-like container.</summary>
+    public static string? ForSurfaceRadius(SurfaceRadius radius) => radius switch
+    {
+        SurfaceRadius.None => "radius-none",
+        SurfaceRadius.Small => "radius-small",
+        SurfaceRadius.Medium => "radius-medium",
+        SurfaceRadius.Large => "radius-large",
+        SurfaceRadius.ExtraLarge => "radius-extra-large",
+        SurfaceRadius.Round => "radius-round",
+        _ => null
+    };
+
+    /// <summary>
     /// Native <c>type</c> attribute value for a button.
     /// </summary>
     /// <remarks>
