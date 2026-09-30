@@ -269,28 +269,13 @@ function contrast(fg, bg) {
    still prints the numbers, and so that a *new* shortfall fails the build. The
    list only grows by editing this constant. */
 const KNOWN_SHORTFALLS = new Map([
-    // REV-130: the focus ring is a 24% (light) / 32% (dark) brand tint, which
-    // composites to 1.36-1.72:1 against the page and the surface — under the 3:1
-    // non-text floor, and the ring is the whole focus indicator (it is the only
-    // thing `:focus-visible` changes on a Button). The alpha predates this gate;
-    // it went unseen because the gate tested `--aeterni-state-color-focus`, which
-    // no component paints as a ring, and because it could not evaluate a
-    // `color-mix` value at all. Raising the alpha is a visual change to every
-    // focused control, so it is recorded rather than applied.
-    ['::light::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.36-1.43:1'],
-    ['::light::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.37-1.43:1'],
-    ['::dark::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.62-1.70:1'],
-    ['::dark::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.64-1.72:1'],
-    ['::system-dark::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.62-1.70:1'],
-    ['::system-dark::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.64-1.72:1'],
-
-    // REV-131: Avatar draws its family ink on its own soft fill
-    // (`Avatar.razor.css:10`), and only the info family in the light theme falls
-    // short — 4.09:1 over the page and 4.37:1 over a surface, against a 4.5:1
-    // text floor. The other three families clear it. Recorded rather than fixed
-    // because the correction is another light-theme stop change.
-    ['::light::--aeterni-color-info-text::--aeterni-color-info-soft', 'REV-131: info ink on its soft fill, 4.09-4.37:1'],
+    // Empty. Every entry names the review item tracking a measured pair that is
+    // still below its floor; both of the first two entries cleared once the ring
+    // stopped being a 24% tint (REV-130) and the light info ink moved a stop
+    // (REV-131). The list only grows by editing this constant.
 ]);
+
+
 
 
 
@@ -313,6 +298,9 @@ const PAIRS = [
     // alias above is a declared token but no component paints it as a ring.
     ['--aeterni-focus-color', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the focus ring components draw, on a surface'],
     ['--aeterni-focus-color', '--aeterni-bg', GRAPHIC_FLOOR, 'the focus ring components draw, on the page'],
+    // The invalid-state ring draws its own token and had never been measured.
+    ['--aeterni-focus-color-invalid', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the invalid focus ring, on a surface'],
+    ['--aeterni-focus-color-invalid', '--aeterni-bg', GRAPHIC_FLOOR, 'the invalid focus ring, on the page'],
 
     // The semantic families carry text and borders the same way the brand hue
     // does, and the light theme's solid semantic fills were a real contrast

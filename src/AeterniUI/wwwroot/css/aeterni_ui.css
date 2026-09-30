@@ -342,7 +342,7 @@
     --aeterni-focus-offset: 2px;
     /* Fallback only: every theme block below re-declares this from the brand
        scale, so the value stays hue-agnostic here as well. */
-    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-brand-500) 24%, transparent);
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
     --aeterni-leading-none: 1;
     /* Discoverable but quiet scrollbars for scrollable overlay content. */
     --aeterni-scrollbar-size: 6px;
@@ -546,13 +546,13 @@
     --aeterni-color-success-text: var(--aeterni-success-800);
     --aeterni-color-warning-text: var(--aeterni-warning-800);
     --aeterni-color-danger-text: var(--aeterni-danger-700);
-    --aeterni-color-info-text: var(--aeterni-info-600);
+    --aeterni-color-info-text: var(--aeterni-info-700);
     --aeterni-color-neutral-text: var(--aeterni-neutral-700);
     /* A brand tint in its own right (used by Avatar and the brand soft button).
        It used to borrow the neutral hover overlay. */
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
-    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 24%, transparent);
-    --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 24%, transparent);
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
     --aeterni-color-success-default: var(--aeterni-sem-success);
     --aeterni-color-success-soft: var(--aeterni-success-soft);
     --aeterni-color-warning-default: var(--aeterni-sem-warning);
@@ -704,8 +704,8 @@
     /* A brand tint in its own right (used by Avatar and the brand soft button).
        It used to borrow the neutral hover overlay. */
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
-    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
-    --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
     --aeterni-color-success-default: var(--aeterni-sem-success);
     --aeterni-color-success-soft: var(--aeterni-success-soft);
     --aeterni-color-warning-default: var(--aeterni-sem-warning);
@@ -834,8 +834,8 @@
         --aeterni-color-brand-hover: var(--aeterni-brand-300);
         --aeterni-color-brand-active: var(--aeterni-brand-200);
         --aeterni-color-brand-soft: var(--aeterni-surface-hover);
-        --aeterni-focus-color: color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent);
-        --aeterni-focus-color-invalid: color-mix(in srgb, var(--aeterni-color-danger-default) 32%, transparent);
+        --aeterni-focus-color: var(--aeterni-color-brand-default);
+        --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
         --aeterni-color-success-default: var(--aeterni-sem-success);
         --aeterni-color-success-soft: var(--aeterni-success-soft);
         --aeterni-color-warning-default: var(--aeterni-sem-warning);
