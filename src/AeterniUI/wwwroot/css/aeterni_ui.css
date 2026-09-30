@@ -539,7 +539,7 @@
     --aeterni-color-brand-text: var(--aeterni-brand-600);
     --aeterni-color-success-text: var(--aeterni-success-800);
     --aeterni-color-warning-text: var(--aeterni-warning-800);
-    --aeterni-color-danger-text: var(--aeterni-danger-600);
+    --aeterni-color-danger-text: var(--aeterni-danger-700);
     --aeterni-color-info-text: var(--aeterni-info-600);
     --aeterni-color-neutral-text: var(--aeterni-neutral-700);
     /* A brand tint in its own right (used by Avatar and the brand soft button).

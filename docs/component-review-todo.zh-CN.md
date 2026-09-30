@@ -57,7 +57,9 @@ P0 修复期间发现并一并修复的条目：
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
-| REV-129 / P1 | 对比度门禁此前只测品牌阶与焦点环，**语意族从未被测**。补上语意族的承字/填充配对后，浅色主题下有三处低于各自下限（三套色相层数值完全相同，与品牌无关）：`--aeterni-color-danger-text` 落在 `--aeterni-bg` 上 **4.27:1**（正文下限 4.5）；`--aeterni-color-success-default` 与 `--aeterni-color-warning-default` 作边框/图标落在 `--aeterni-bg-surface` 上分别 **2.22:1 / 2.20:1**（非正文下限 3）。配对在组件里真实存在：`danger-text` 是 `FormField` 错误文字、`Icon`、`Progress` 的墨色（`FormField.razor.css:18,28`、`Icon.razor.css:42`、`Progress.razor.css:53`）；`success/warning-default` 是 `Badge` 填充、`Tag` 颜色与 Dialog 强调色（`Badge.razor.css:85,90`、`Tag.razor.css:51,56`、`DialogProvider.razor.css:87,92`） | **待决策**：修正需重锚浅色主题的语意停靠档，属调色板设计决策而非缺陷修复。缺口已列入 `scripts/check-contrast.mjs` 的 `KNOWN_SHORTFALLS`，每次运行仍打印实测值，**新增缺口会让门禁失败**；修正后从该清单移除。门禁配对总数 99 → 252 |
+| REV-129 / P1 | 对比度门禁此前只测品牌阶与焦点环，**语意族从未被测**。补上语意族配对后报出三处不达标，但**逐项核对消费者用法后只剩一处是真的**：`--aeterni-color-danger-text` 是唯一按**原色直接绘制**的语意承字色（`FormField` 错误提示与必填星号 `:18,28`、`Icon :42`、`Spinner :56`、`Tag` 的 ink、Dialog 的 accent-ink、Avatar 的 ink），它在浅色主题取 `danger-600` 时：白卡片 4.57:1（余量仅 1.016）、页面灰 **4.27:1 ✗**、`bg-secondary` **4.01:1 ✗**、`bg-tertiary` **3.73:1 ✗**——即只有纯白底勉强通过，表单直接铺在页面上时低于正文下限。另两处（`success/warning-default` 对表面 2.20–2.22:1）是**门禁配对写错**：该档位从不以原色出现，`Badge` 拿它当背景（上面压 `-on-semantic`，8.3:1 通过）、`Tag` 混到 14%/22%、`NoticeCard` 混到 9%/20%、Dialog 的 accent 亦为染色源 | **已修复**：浅色主题 `--aeterni-color-danger-text` 由 `danger-600` 改为 `danger-700`（单行；该令牌只作前景，从不作背景，故无连带影响），白底 6.08:1 / 页面灰 5.67:1 / `bg-secondary` 与 `bg-tertiary` 亦通过。门禁侧删除那两条测染色源的配对并注明理由；`KNOWN_SHORTFALLS` 清空（每条都是具名条目，空即代表无已知缺口）。门禁配对 99 → 216 组，全部通过 |
+
+**这次更正的性质**：REV-129 最初被记成"浅色语意色三处不达标"，核对消费者后变成"**一处真实承字不足 + 两处门禁配对写错**"。这与会话中另外几处更正同源——先信了测量值，没有先看这个颜色在渲染里到底出现在哪。
 
 修复批次 20 时发现并已部分处理的新条目：
 

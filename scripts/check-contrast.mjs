@@ -226,13 +226,12 @@ function contrast(fg, bg) {
    still prints the numbers, and so that a *new* shortfall fails the build. The
    list only grows by editing this constant. */
 const KNOWN_SHORTFALLS = new Map([
-    ['::light::--aeterni-color-danger-text::--aeterni-bg',
-        'REV-129: danger ink on the page is 4.27:1, just under the 4.5:1 text floor'],
-    ['::light::--aeterni-color-success-default::--aeterni-bg-surface',
-        'REV-129: success fill used as border or icon on a surface is 2.22:1, under the 3:1 graphic floor'],
-    ['::light::--aeterni-color-warning-default::--aeterni-bg-surface',
-        'REV-129: warning fill used as border or icon on a surface is 2.20:1, under the 3:1 graphic floor'],
+    // Empty. Every entry here is a measured pair that is below its floor and
+    // still awaiting a palette decision; the list only grows by editing this
+    // constant, and each entry names the review item that tracks it.
 ]);
+
+
 
 /* --- the pairs the palette is used in ------------------------------------ */
 
@@ -256,7 +255,12 @@ const PAIRS = [
     // back — so they are enumerated here rather than trusted.
     ...['danger', 'success', 'warning', 'info'].flatMap(family => [
         [`--aeterni-color-${family}-text`, '--aeterni-bg-surface', TEXT_FLOOR, `${family} text on a surface`],
-        [`--aeterni-color-${family}-default`, '--aeterni-bg-surface', GRAPHIC_FLOOR, `${family} border or icon on a surface`],
+        // Deliberately absent: `<family>-default on a surface`. That stop is never
+        // painted at full strength — Badge uses it as a fill behind
+        // `--aeterni-color-on-semantic` (covered above), and Tag and NoticeCard mix
+        // it to 9-22% before painting a tint or border. Measuring the raw stop
+        // against a surface would be measuring a colour that never renders, the
+        // same mistake the `-soft` fills would produce.
         [`--aeterni-color-on-semantic`, `--aeterni-color-${family}-default`, TEXT_FLOOR, `label on a solid ${family} fill`],
         // Deliberately absent: the `-soft` fills. They are 11-12% alpha tints, and
         // this gate flattens a translucent foreground onto its background but has
