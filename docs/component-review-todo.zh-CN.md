@@ -108,7 +108,9 @@ P0 修复期间发现并一并修复的条目：
 
 **修复过程中由契约测试或复核推翻的审阅结论**（均已在对应条目更正）：REV-112 的 `ToggleGroup` 白名单（不是风格差异，`SelectionMode.None` 需拒绝）、REV-113 的 5 处无守卫（实为 1 处）、REV-115 的 `SplitButton` 默认值（有断言保护的刻意设计）、REV-117 的 `FlashCardGroup` 魔数（组件内局部层叠）、REV-118 的内嵌偏移（两个值对应不同需求）、REV-122 的 14 行死声明（实为 7 条）、REV-124 的 196 行重复（REV-109 后实为 21 行可抽）。另有 REV-126（combobox 解绑顺序）、REV-127（`RadioGroup`/`Tab` 缺 `@ref`）、REV-128（190 个无引用令牌）为修复期间新发现。
 
-**尚未做**：REV-115 的破坏性公共 API 收口与 REV-128 保留色阶的收窄都待决策；第九轮全部改动未做浏览器实测，视觉类结论由渲染契约与 CSS 内容断言支撑。
+**浏览器验收**（第九轮收尾补充）：`tests/browser/` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例，覆盖本轮四条无法由 `HtmlRenderer` 断言的结论——REV-98（`DialogProvider` 根不再生成栈上下文，通知区以 1080 位于根栈上下文）、REV-121（过渡类按时长移除，reduced-motion 下降到约 40–60ms）、REV-118（被改指的焦点环仍绘制、被删别名解析为空）、REV-123（Toolbar/ToggleGroup 保持单一 Tab 停靠点、方向键同时移动焦点与停靠点、回绕成立）。**未覆盖**：Menu/MultiSelect 的内嵌焦点环——进入打开浮层的键盘焦点没有受支持的路径（触发器契约只承诺 Tab 与 Enter/Space），该条仍只由声明值的契约断言覆盖；另有截图、真实触屏与读屏软件不在范围内。CI 增加独立的 `browser` job。
+
+**尚未做**：REV-115 的破坏性公共 API 收口与 REV-128 保留色阶的收窄都待决策。
 
 ## 第八轮：Breadcrumb / Stepper / List 审阅收口（10.17.1 / 10.17.2）
 

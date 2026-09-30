@@ -60,3 +60,27 @@ jobs:
             exit 1
           fi
           echo "aeterni_ui.css is Token-only."
+
+  # Drives the published sample in headless Chrome. Separate from `build` because
+  # it needs a browser and a published site; it asserts what HtmlRenderer cannot
+  # see — real stacking contexts, transition timing, focus rings and keyboard
+  # focus movement. See tests/browser/README.md.
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # The harness uses the global WebSocket that Node 22 added.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Browser checks
+        run: tests/browser/run.sh

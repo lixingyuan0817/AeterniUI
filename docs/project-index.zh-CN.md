@@ -53,6 +53,8 @@ AeterniUI/
 │   ├── check-css-comments.mjs        # CSS 注释提前闭合检查
 │   ├── check-contrast.mjs            # 品牌色板承字/图形对比度门禁
 │   └── sample-publish.sh             # 发布 WASM 示例到 dist/
+├── tests/
+│   └── browser/                      # 无头 Chrome 行为检查（见下）
 ├── src/
 │   ├── AeterniUI/                    # 核心组件库
 │   │   ├── Attributes/               # JsModule 等特性
@@ -124,9 +126,10 @@ Components/<Component>/
 
 ### 渲染契约检查
 
-- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 23 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义、FlashCard 的翻转与隐藏面语义、FlashCardGroup 的牌堆语义、Search 查询、Autocomplete 建议/字段状态、MultiSelect 多值/标签语义和 VirtualList 虚拟视口根契约。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 28 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义、FlashCard 的翻转与隐藏面语义、FlashCardGroup 的牌堆语义、Search 查询、Autocomplete 建议/字段状态、MultiSelect 多值/标签语义和 VirtualList 虚拟视口根契约。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
 - [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
 - [`tests/quality-interactions.test.mjs`](../tests/quality-interactions.test.mjs)：模态 Esc 策略、可取消退出、reduced-motion、键盘与 Tooltip 动态关联的浏览器行为回归；C# 的 `QualityContractHost.cs` 配合渲染契约覆盖状态、日期极值与时间映射复用。
+- [`tests/browser/`](../tests/browser/README.md)：`tests/browser/run.sh` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例。断言 `DialogProvider` 根不再生成栈上下文（通知因此高于 Popover/Tooltip）、主题过渡类按时长移除且在 reduced-motion 下降为瞬时、被改指的焦点环仍绘制、Toolbar 与 ToggleGroup 的单一 Tab 停靠点与方向键循环。`run.sh` 会在 `dist/` 缺失时先发布示例；需要本机 Chrome/Chromium（`CHROME_BIN` 可覆盖）与 Node 22+。
 - [`tests/flash-card.test.mjs`](../tests/flash-card.test.mjs)：`node --test tests/flash-card.test.mjs`，用 DOM 替身验证 FlashCard 指针跟随写入的旋转与高光变量、越界收敛、`Tilt="false"` / `Disabled` / reduced-motion 不注册监听器，以及重复挂载后的监听器释放；不是浏览器端到端测试。
 
 ### 静态发布
@@ -227,7 +230,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证 Token 动画完成回调、重复渲染、快速改值、输入中断、不同真实行高、禁用项、边缘居中、reduced-motion 与资源释放；滚筒仅变换文字视觉层。
 
-当前项目提供最小组件渲染契约门禁，但尚未建立完整业务测试或浏览器端到端测试套件。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
+当前项目提供最小组件渲染契约门禁与一组**限定范围**的无头 Chrome 行为检查（`tests/browser/`，覆盖层叠上下文、过渡时序、焦点环与键盘焦点移动），但尚未建立完整业务测试或端到端测试套件：浏览器检查只断言计算样式与 DOM 状态，不含截图、真实触屏或读屏软件。未完成组件和实现边界以路线图、当前功能文档和源码为准，不在项目索引中重复维护。
 
 ## 8. 文档职责和事实源
 
