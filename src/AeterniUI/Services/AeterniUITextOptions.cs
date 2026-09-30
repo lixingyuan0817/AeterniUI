@@ -2,7 +2,7 @@ namespace AeterniUI.Services;
 
 /// <summary>
 /// User-visible text that AeterniUI renders on its own. Every entry has an
-/// English default; override any of them through
+/// built-in default; override any of them through
 /// <see cref="AeterniServiceCollectionExtensions.AddAeterniUI" /> to localise the
 /// library. Components fall back to these values only when the matching
 /// parameter was not supplied, so per-instance overrides keep working.
@@ -49,10 +49,10 @@ public sealed class AeterniUITextOptions
     public string MultiSelectEmptyText { get; set; } = "No options";
 
     /// <summary>Accessible label of the select-all action.</summary>
-    public string MultiSelectSelectAllLabel { get; set; } = "Select all";
+    public string MultiSelectSelectAllLabel { get; set; } = "全选";
 
     /// <summary>Accessible label of the clear-all action.</summary>
-    public string MultiSelectClearAllLabel { get; set; } = "Clear all";
+    public string MultiSelectClearAllLabel { get; set; } = "清除";
 
     /// <summary>Prefix of a selected-item remove action.</summary>
     public string MultiSelectRemoveLabel { get; set; } = "Remove";

@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.24.0`
+文档版本：`10.24.1`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.24.0` 在 `10.23.1` 的基础上新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，用于大数据量内存集合；`List<TItem>` 的长列表滚动修复继续保留。
+`10.24.1` 在 `10.24.0` 的基础上收口 `MultiSelect<TItem>` 的共享弹层宽度、鼠标打开首项状态、中文批量操作文案和标签关闭按钮间距；同时修正 `VirtualList<TItem>` 与 `List<TItem>` 的视口、内边距和键盘交互细节。
 
 ## 文档口径
 
@@ -359,7 +359,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，移除按钮具有独立焦点和无障碍名称。禁用选项不会进入键盘导航或被批量选中。
+触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
 
 ### 实现边界
 
@@ -576,6 +576,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 - 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、`SelectedValue` / `SelectedValues`、对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`。
 - 根元素使用固定高度滚动容器；选择模式输出单一 Tab 停留点、`role="listbox"`、`aria-activedescendant` 和 `aria-multiselectable`，普通模式输出 `role="list"`。
 - 可见项目输出 `role="option"` 或 `role="listitem"`、`aria-posinset` 和 `aria-setsize`；方向键、Home/End、Enter/Space 由根容器统一处理，活动项自动滚动到可视区域。
+- 外层表面沿用 `List` 的 padding、边框、圆角和背景；滚动条位于内层视口，单选方向键选中行为与 `List<TItem>` 保持一致。
 - 内部基于 Blazor `Virtualize<TItem>`；当前只支持固定行高，不提供远程 `ItemsProvider`、缓存、可变高度、拖拽、分组或 CardMode。
 
 ```razor
@@ -1132,7 +1133,7 @@ builder.Services.AddAeterniUI(options =>
     options.Text.MultiSelectPlaceholder = "请选择";
     options.Text.MultiSelectEmptyText = "没有可选项";
     options.Text.MultiSelectSelectAllLabel = "全选";
-    options.Text.MultiSelectClearAllLabel = "清空";
+    options.Text.MultiSelectClearAllLabel = "清除";
     options.Text.MultiSelectRemoveLabel = "移除";
     options.Text.TimePickerPlaceholder = "请选择时间";
     options.Text.TimePickerLabel = "时间选择器";

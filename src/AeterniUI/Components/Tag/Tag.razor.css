@@ -123,12 +123,22 @@
     min-height: var(--aeterni-icon-size-md);
     height: var(--aeterni-icon-size-md);
     padding: 0;
-    /* Pull the glyph box against the chip's inline end; the flex gap above
-       already separates it from the label. */
-    margin: 0 calc(var(--aeterni-spacing-2) * -1) 0 0;
+    align-self: center;
+    line-height: 1;
+    /* Keep the dismiss glyph inside the Tag's end padding. The hit target may
+       extend into that padding, but the visible icon remains optically inset. */
+    margin: 0;
     border-radius: var(--aeterni-radius-round);
     background: transparent;
     overflow: visible;
+}
+
+.aeterni-tag ::deep .aeterni-tag__dismiss:hover:not(:disabled),
+.aeterni-tag ::deep .aeterni-tag__dismiss:active:not(:disabled) {
+    background: transparent;
+    color: var(--aeterni-tag-fg);
+    box-shadow: none;
+    transform: none;
 }
 
 .aeterni-tag ::deep .aeterni-tag__dismiss::after {

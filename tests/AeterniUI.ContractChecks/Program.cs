@@ -820,6 +820,12 @@ async Task CheckMultiSelectAsync()
         && html.Contains("Remove Design")
         && html.Contains("Remove Operations"),
         "MultiSelect must render selected values as removable chips.");
+    Require(html.Contains("class=\"aeterni-multi-select__host aeterni-popup-host\"")
+        && html.Contains("width: min(100%, var(--aeterni-width-input-md));"),
+        "MultiSelect popup host must stay aligned with the trigger width.");
+    Require(!html.Contains("}"), "MultiSelect must not leak Razor closing braces into rendered markup.");
+    Require(html.Contains("&#x5168;&#x9009;") && html.Contains("&#x6E05;&#x9664;"),
+        "MultiSelect default bulk actions must use Chinese labels.");
 
     var empty = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?>
     {

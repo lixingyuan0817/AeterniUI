@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.24.0`
+文档版本：`10.24.1`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口。
 
 ## List 长列表尺寸修复
 
@@ -848,3 +848,4 @@ Search + List + PopupHost
 | v10.22.0 v0.7 Autocomplete | 已完成（2/3） | 构建、21 组渲染契约、Autocomplete JS 语法、CSS 注释与文档门禁 | 新增 `Autocomplete<TItem>` 自由输入建议组件，提供宿主建议快照、异步 Loading、Popover 浮层、combobox/listbox/option 语义、方向键/Home/End/Enter/Escape、模板和字段校验；不包含远程请求、debounce、缓存或虚拟滚动，示例为 `/components/autocomplete`。按功能新增规则由 `10.21.0` 递增为 `10.22.0`。 |
 | v10.23.0 v0.7 MultiSelect | 已完成（3/3） | 构建、22 组渲染契约、MultiSelect JS 语法、CSS 注释、对比度与文档门禁 | 新增 `MultiSelect<TItem>` 多值选择组件，提供 `SelectedValues` 绑定、已选标签和移除、可选全选/清空、禁用选项、Popover 浮层、combobox/listbox 多选语义、方向键/Home/End/Enter/Space/Escape/Backspace 与模板；不包含远程请求、搜索过滤、缓存或虚拟滚动，示例为 `/components/multi-select`。按功能新增规则由 `10.22.3` 递增为 `10.23.0`。 |
 | v10.24.0 VirtualList | 已完成 | 构建、渲染契约、VirtualList JS 语法、CSS 注释与文档门禁 | 新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，支持可见行模板、key、单/多选、键盘导航、自动滚动和 `aria-setsize` / `aria-posinset`；基于 Blazor `Virtualize<TItem>`，不包含远程数据、缓存、可变高度、拖拽或分组。按功能新增规则由 `10.23.1` 递增为 `10.24.0`。 |
+| v10.24.1 MultiSelect / VirtualList 修复 | 已完成 | 构建、23 组渲染契约、文档门禁与差异检查 | 修复 `MultiSelect<TItem>` 共享 `PopupHost` 宽度对齐、鼠标打开首项误显示活动底色和 Razor 多余字符；默认全选/清除文案改为中文；修正 `Tag` / MultiSelect 关闭按钮留白与垂直居中；收口 `VirtualList<TItem>` 外层内边距、滚动视口与单选键盘行为。按修复版本规则由 `10.24.0` 递增为 `10.24.1`。 |

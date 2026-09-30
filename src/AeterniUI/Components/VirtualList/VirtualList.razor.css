@@ -1,17 +1,31 @@
 .aeterni-virtual-list {
-    display: block;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
     width: 100%;
     height: var(--aeterni-virtual-list-height);
     min-width: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
-    scrollbar-gutter: stable;
+    overflow: hidden;
+    padding: var(--aeterni-padding-xs);
     border: var(--aeterni-border-width) solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-lg);
     background: var(--aeterni-bg-surface);
     color: var(--aeterni-text-primary);
+}
+
+.aeterni-virtual-list__viewport {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+    scrollbar-gutter: stable;
+}
+
+.aeterni-virtual-list.is-selectable:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 .aeterni-virtual-list__item {

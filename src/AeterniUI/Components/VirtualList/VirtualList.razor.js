@@ -7,16 +7,24 @@ function visible(element) {
 
 export function init(reference, key) {
     dispose(key);
-    instances.set(key, { reference, root: null, handler: null, pending: Promise.resolve(), disposed: false });
+    instances.set(key, { reference, root: null, viewport: null, handler: null, pending: Promise.resolve(), disposed: false });
 }
 
 export function sync(key, root) {
     const state = instances.get(key);
     if (!state || !root) return;
-    if (state.root === root) return;
+    const viewport = root.querySelector('.aeterni-virtual-list__viewport');
+    if (!viewport) {
+        state.root?.removeEventListener('keydown', state.handler);
+        state.root = null;
+        state.viewport = null;
+        return;
+    }
+    if (state.root === root && state.viewport === viewport) return;
 
     state.root?.removeEventListener('keydown', state.handler);
     state.root = root;
+    state.viewport = viewport;
     state.handler = event => {
         if (event.target !== root || root.getAttribute('role') !== 'listbox' ||
             root.getAttribute('aria-disabled') === 'true' || !visible(root) ||
@@ -39,8 +47,8 @@ export function sync(key, root) {
 
 export function scrollToIndex(key, index, itemSize) {
     const state = instances.get(key);
-    if (!state?.root || !Number.isFinite(index) || !Number.isFinite(itemSize)) return;
-    state.root.scrollTop = Math.max(0, index * itemSize);
+    if (!state?.viewport || !Number.isFinite(index) || !Number.isFinite(itemSize)) return;
+    state.viewport.scrollTop = Math.max(0, index * itemSize);
 }
 
 export function dispose(key) {
@@ -48,5 +56,7 @@ export function dispose(key) {
     if (!state) return;
     state.disposed = true;
     state.root?.removeEventListener('keydown', state.handler);
+    state.root = null;
+    state.viewport = null;
     instances.delete(key);
 }

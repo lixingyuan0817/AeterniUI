@@ -37,7 +37,7 @@ public static class AeterniServiceCollectionExtensions
         ValidateDuration(options.DefaultAlertDuration, nameof(options.DefaultAlertDuration));
         ValidateDuration(options.DefaultToastDuration, nameof(options.DefaultToastDuration));
 
-        // Empty text entries fall back to the English defaults instead of
+        // Empty text entries fall back to the built-in defaults instead of
         // rendering an unlabelled control.
         options.Text.FillEmptyFrom(new AeterniUITextOptions());
         ValidateCompositeFormat(options.Text.PaginationPageLabelFormat, nameof(options.Text.PaginationPageLabelFormat));

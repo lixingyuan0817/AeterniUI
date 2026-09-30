@@ -97,6 +97,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private readonly List<TItem> _visibleItems = [];
     private bool _open;
+    private bool _keyboardNavigation;
     private int _activeIndex = -1;
     private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
@@ -163,13 +164,17 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
             _open = false;
             _activeIndex = -1;
         }
-        else if (_open)
+        else if (_open && _keyboardNavigation)
         {
             _activeIndex = _visibleItems.Count == 0
                 ? -1
                 : _activeIndex >= 0 && _activeIndex < _visibleItems.Count && !IsItemDisabled(_visibleItems[_activeIndex])
                     ? _activeIndex
                     : FindEnabledIndex(0, 1);
+        }
+        else if (_open)
+        {
+            _activeIndex = -1;
         }
     }
 
@@ -189,6 +194,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         .Add("is-full-width", FullWidth)
         .Add("is-readonly", ReadOnly)
         .Add("is-open", _open)
+        .Add("is-keyboard-navigation", _keyboardNavigation)
         .Add("is-invalid", IsInvalid)
         .Add("is-disabled", IsDisabled);
 
@@ -210,13 +216,16 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
             return;
         }
 
+        _keyboardNavigation = false;
         if (_open)
         {
             Close();
         }
         else
         {
-            Open();
+            // A pointer opening should not paint the first option as if it were
+            // keyboard-active. Keyboard opening paths opt into an active item.
+            Open(activateFirst: false);
         }
 
         await InvokeAsync(StateHasChanged);
@@ -229,6 +238,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
             return;
         }
 
+        _keyboardNavigation = true;
         switch (args.Key)
         {
             case "ArrowDown":
@@ -288,16 +298,20 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private Task HandlePopoverOpenChangedAsync(bool open)
     {
-        if (open && !IsDisabled && !ReadOnly) Open();
+        if (open && !IsDisabled && !ReadOnly)
+        {
+            _keyboardNavigation = false;
+            Open(activateFirst: false);
+        }
         else Close();
         return InvokeAsync(StateHasChanged);
     }
 
-    private void Open()
+    private void Open(bool activateFirst = true)
     {
         if (IsDisabled || ReadOnly || !Visible) return;
         _open = true;
-        _activeIndex = _visibleItems.Count == 0
+        _activeIndex = !activateFirst || _visibleItems.Count == 0
             ? -1
             : _activeIndex >= 0 && _activeIndex < _visibleItems.Count && !IsItemDisabled(_visibleItems[_activeIndex])
                 ? _activeIndex
@@ -307,6 +321,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     private void Close()
     {
         _open = false;
+        _keyboardNavigation = false;
         _activeIndex = -1;
     }
 
@@ -344,6 +359,12 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         if (selectedIndex >= 0) next.RemoveAt(selectedIndex);
         else next.Add(item);
         await SetSelectedValuesAsync(next, item);
+    }
+
+    private async Task HandleOptionClickAsync(TItem item)
+    {
+        _keyboardNavigation = false;
+        await ToggleItemAsync(item);
     }
 
     private async Task SelectAllAsync(MouseEventArgs _)
@@ -398,6 +419,10 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     private string DisplayText(TItem item) => TextSelector?.Invoke(item) ?? item.ToString() ?? string.Empty;
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-multi-select", Size);
+
+    private string PopupHostStyle => FullWidth
+        ? "width: 100%; max-width: 100%;"
+        : "width: min(100%, var(--aeterni-width-input-md)); max-width: 100%;";
 
     private void UpdateEditContextSubscription()
     {

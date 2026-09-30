@@ -103,12 +103,19 @@ public partial class VirtualList<TItem> : AeterniComponent
         var previousActiveKey = _activeIndex >= 0 && _activeIndex < _rows.Count ? _rows[_activeIndex].Key : null;
         _itemSizePixels = (float)ItemSize;
         _rows = BuildRows(Items ?? []);
-        _activeIndex = previousActiveKey is null
-            ? (_rows.Count == 0 ? -1 : Math.Clamp(_activeIndex, -1, _rows.Count - 1))
-            : _rows.FindIndex(row => Equals(row.Key, previousActiveKey));
-        if (_activeIndex < 0 && _rows.Count > 0)
+        if (Disabled || !Visible || !IsSelectable)
         {
             _activeIndex = -1;
+        }
+        else
+        {
+            _activeIndex = previousActiveKey is null
+                ? (_rows.Count == 0 ? -1 : Math.Clamp(_activeIndex, -1, _rows.Count - 1))
+                : _rows.FindIndex(row => Equals(row.Key, previousActiveKey));
+            if (_activeIndex < 0 && _rows.Count > 0)
+            {
+                _activeIndex = -1;
+            }
         }
 
         if (Items is not null)
@@ -235,6 +242,15 @@ public partial class VirtualList<TItem> : AeterniComponent
                 _ => NextIndex(enabled, -1)
             };
             SetActive(next, true);
+            if (SelectionMode == SelectionMode.Single)
+            {
+                var nextRow = _rows.First(row => row.Index == next);
+                await ToggleAsync(nextRow, allowClear: false);
+            }
+            else
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
         else if (key is "Enter" or " ")
         {
@@ -269,12 +285,12 @@ public partial class VirtualList<TItem> : AeterniComponent
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private async Task ToggleAsync(VirtualRow row)
+    private async Task ToggleAsync(VirtualRow row, bool allowClear = true)
     {
         switch (SelectionMode)
         {
             case SelectionMode.Single:
-                SelectedValue = AllowClear && ValuesEqual(SelectedValue, row.Value) ? null : row.Value;
+                SelectedValue = allowClear && AllowClear && ValuesEqual(SelectedValue, row.Value) ? null : row.Value;
                 await SelectedValueChanged.InvokeAsync(SelectedValue);
                 break;
             case SelectionMode.Multiple:
