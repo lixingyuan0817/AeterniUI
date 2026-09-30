@@ -242,6 +242,12 @@
     --aeterni-border-width-thin: 1px;
     --aeterni-border-width-medium: 2px;
     --aeterni-border-width-thick: 3px;
+    /* Committed colour-ramp stops. These sets are the library's public promise:
+       a host may theme against any of them, so adding or removing a stop is an
+       API change rather than cleanup. The five semantic families mirror the brand
+       ramp's ten stops; `gray` and `neutral` add `0` and `950` because the neutral
+       surfaces need both ends. `tests/AeterniUI.ContractChecks` asserts these sets
+       exactly, so a stop cannot appear or vanish without the check being updated. */
     --aeterni-gray-0: #FFFFFF;
     --aeterni-gray-50: #F9FAFB;
     --aeterni-gray-100: #F3F4F6;

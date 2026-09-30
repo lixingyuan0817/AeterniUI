@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AeterniUI.Components.Accordion;
 using AeterniUI.Components.Autocomplete;
@@ -59,6 +60,7 @@ await CheckJsLifecycleAsync();
 await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
 await CheckTextTableFallbackAsync();
+await CheckTokenSurfaceAsync();
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -71,7 +73,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (28 groups).");
+Console.WriteLine("Component contract checks passed (29 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -1804,6 +1806,45 @@ async Task<TComponent> RenderComponentAsync<TComponent>(Dictionary<string, objec
     host.Values = values;
     host.Update();
     return host.Inner;
+}
+
+// REV-128: the colour ramps are the theming substrate a host builds against, so
+// the stops the library commits to are an API surface, not an implementation
+// detail. The review found 190 tokens referenced nowhere and had to decide which
+// were cruft and which were promise; this pins the answer so a stop cannot appear
+// or vanish silently. The token layer carries the same statement as a comment.
+async Task CheckTokenSurfaceAsync()
+{
+    var root = FindRepositoryRoot();
+    var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/wwwroot/css/aeterni_ui.css"));
+
+    // Written out rather than generated: the sets are not arithmetic sequences
+    // (they start at 50 and then step by 100), and the literal list *is* the
+    // declaration this check exists to enforce.
+    var tenStop = new[] { 50, 100, 200, 300, 400, 500, 600, 700, 800, 900 };
+    var expected = new Dictionary<string, int[]>(StringComparer.Ordinal)
+    {
+        ["brand"] = tenStop,
+        ["danger"] = tenStop,
+        ["info"] = tenStop,
+        ["success"] = tenStop,
+        ["warning"] = tenStop,
+        // The neutral surfaces need both ends, so these two also carry 0 and 950.
+        ["gray"] = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
+        ["neutral"] = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
+    };
+
+    foreach (var (family, stops) in expected)
+    {
+        var declared = Regex.Matches(css, $@"^\s*--aeterni-{family}-(\d+)\s*:", RegexOptions.Multiline)
+            .Select(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+            .Distinct()
+            .OrderBy(stop => stop)
+            .ToArray();
+        Require(declared.SequenceEqual(stops),
+            $"The --aeterni-{family}-* ramp must declare exactly the committed stops: " +
+            $"missing [{string.Join(", ", stops.Except(declared))}], unexpected [{string.Join(", ", declared.Except(stops))}].");
+    }
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)
