@@ -35,34 +35,40 @@ const pick = index => evaluate(`(() => {
 })()`);
 
 // Measure how long the transition class stays on <html>.
+//
+// The timestamps are taken in the page, not by polling from here: every poll is
+// a CDP round trip, and on a loaded CI runner that latency dwarfed the duration
+// being measured (620ms was reported as 1000ms). The observer records the add
+// and the remove with performance.now(), so the number is the duration the
+// browser actually applied.
 async function measureTransition(optionIndex) {
-    await evaluate(`window.__t = null; window.__seen = false;
+    await evaluate(`(() => {
         window.__obs && window.__obs.disconnect();
+        window.__seen = false; window.__t0 = null; window.__t1 = null;
         window.__obs = new MutationObserver(() => {
-            if (document.documentElement.classList.contains('aeterni-theme-transitioning')) window.__seen = true;
+            const on = document.documentElement.classList.contains('aeterni-theme-transitioning');
+            if (on) { window.__seen = true; if (window.__t0 === null) window.__t0 = performance.now(); }
+            else if (window.__t0 !== null && window.__t1 === null) { window.__t1 = performance.now(); }
         });
-        window.__obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });`);
-    const started = Date.now();
+        window.__obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    })()`);
     await pick(optionIndex);
     const appliedImmediately = await evaluate(`document.documentElement.classList.contains('aeterni-theme-transitioning')`);
-    let removedAfter = null;
-    const deadline = Date.now() + 4000;
+    const deadline = Date.now() + 5000;
     while (Date.now() < deadline) {
-        if (!await evaluate(`document.documentElement.classList.contains('aeterni-theme-transitioning')`)) {
-            removedAfter = Date.now() - started;
-            break;
-        }
-        await sleep(10);
+        if (await evaluate('window.__t1 !== null')) break;
+        await sleep(25);
     }
-    const sawClass = await evaluate('window.__seen');
-    return { appliedImmediately, sawClass, removedAfter };
+    const observed = await evaluate(`JSON.stringify({ seen: window.__seen, t0: window.__t0, t1: window.__t1 })`);
+    const { seen, t0, t1 } = JSON.parse(observed);
+    return { appliedImmediately, sawClass: seen, removedAfter: t0 !== null && t1 !== null ? Math.round(t1 - t0) : null };
 }
 
 const normal = await measureTransition(2);
 check('REV-121 the transition class is applied on a real theme switch', normal.appliedImmediately && normal.sawClass,
     `applied=${normal.appliedImmediately} observed=${normal.sawClass}`);
 check('REV-121 it is removed once the token-derived duration elapses (~620ms)',
-    normal.removedAfter !== null && normal.removedAfter >= 500 && normal.removedAfter <= 900,
+    normal.removedAfter !== null && normal.removedAfter >= 550 && normal.removedAfter <= 750,
     `removed after ${normal.removedAfter}ms`);
 
 await setReducedMotion(true);

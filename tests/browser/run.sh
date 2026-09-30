@@ -42,7 +42,13 @@ CHROME_PID=$!
 cleanup() {
     kill "$CHROME_PID" "$HTTP_PID" 2>/dev/null || true
     wait "$CHROME_PID" "$HTTP_PID" 2>/dev/null || true
-    rm -rf "$PROFILE" "$HTTP_LOG" "$CHROME_LOG"
+    # Chrome keeps writing to its profile while shutting down; retry rather than
+    # let a racing rm print an error over the real result.
+    for _ in $(seq 1 10); do
+        rm -rf "$PROFILE" "$HTTP_LOG" "$CHROME_LOG" 2>/dev/null && break
+        sleep 0.3
+    done
+    return 0
 }
 trap cleanup EXIT
 
