@@ -15,7 +15,7 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
     private JsModuleManager? _jsModuleManager;
     private IReadOnlyList<JsModuleAttribute>? _jsModules;
     private bool _jsScanned;
-    private bool _jsModuleLoaded;
+    private bool _jsModuleLoadStarted;
     private DotNetObjectReference<AeterniComponent>? _dotNetReference;
 
     #region 私有字段
@@ -90,9 +90,24 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
     public string InstanceId => _instanceId;
 
     /// <summary>
+    /// Computes the identifier rendered on the component's root element.
+    /// </summary>
+    /// <remarks>
+    /// Override when the rendered id is derived from a cascading form field or a
+    /// parent component. Keeping this in one overridable place is what makes
+    /// <see cref="ElementId"/> truthful: consumers build <c>for</c>,
+    /// <c>aria-controls</c> and <c>aria-describedby</c> references from it, and a
+    /// component that renders a different id than this property reports hands them
+    /// a broken reference. Components that adopt a field or owner id must not
+    /// re-derive it separately in <c>BuildAttributes</c>.
+    /// </remarks>
+    protected virtual string ComputeElementId() =>
+        string.IsNullOrWhiteSpace(Id) ? InstanceId : Id.Trim();
+
+    /// <summary>
     /// Gets the identifier that should be rendered on the component's root element.
     /// </summary>
-    public string ElementId => string.IsNullOrWhiteSpace(Id) ? InstanceId : Id.Trim();
+    public string ElementId => ComputeElementId();
 
     /// <summary>
     /// Compatibility alias for <see cref="InstanceId"/>.
@@ -267,8 +282,17 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
             return;
         }
 
+        // Recorded before the first await so DisposeAsync can pair with a load that
+        // is still in flight instead of skipping the JS dispose entirely.
+        _jsModuleLoadStarted = true;
+
         await JsModuleManager.LoadComponentAsync(GetType());
-        _jsModuleLoaded = true;
+
+        if (IsDisposed)
+        {
+            return;
+        }
+
         var interactiveModule = JsModules.SingleOrDefault(attribute => attribute.Interactive);
 
         if (interactiveModule is null)
@@ -281,6 +305,15 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
             interactiveModule.Name ?? interactiveModule.Path,
             _dotNetReference,
             InstanceId);
+
+        // The component can be removed while the module is being imported. The JS
+        // side has now created its instance with no owner left to dispose it, so
+        // pair it up here — this is the one path that would otherwise leave a
+        // document-level listener behind for the lifetime of the page.
+        if (IsDisposed)
+        {
+            await JsModuleManager.DisposeModuleAsync(interactiveModule.Name ?? interactiveModule.Path, InstanceId);
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -294,7 +327,11 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
 
         try
         {
-            if (_jsModuleLoaded)
+            // Keyed on "the load started", not "the load finished": a component
+            // removed while its module was still importing would otherwise skip the
+            // dispose and leak the JS instance. Disposing a module whose init never
+            // ran is a no-op on the JS side.
+            if (_jsModuleLoadStarted)
             {
                 var module = JsModules.SingleOrDefault();
                 if (module is not null)
@@ -320,6 +357,23 @@ public class AeterniComponent : ComponentBase, IAsyncDisposable
     protected virtual ValueTask OnComponentDisposeAsync() => ValueTask.CompletedTask;
 
     protected bool IsDisposed => _disposed;
+
+    /// <summary>
+    /// Requests a re-render unless the component has already been released.
+    /// </summary>
+    /// <remarks>
+    /// A queued browser callback or an event from a long-lived subscription can
+    /// arrive after disposal, and re-rendering then throws. Shared helpers that
+    /// need to refresh their component route through here rather than repeating
+    /// the guard.
+    /// </remarks>
+    protected void RequestStateHasChanged()
+    {
+        if (!_disposed)
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
 
     /// <summary>
     /// Updates the root element reference when a concrete component assigns its

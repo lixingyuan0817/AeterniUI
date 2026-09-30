@@ -24,11 +24,13 @@ public partial class ToolbarGroup : AeterniComponent
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
         {
             ["role"] = "group",
-            ["aria-label"] = AriaLabel.Trim(),
-            ["aria-disabled"] = Disabled ? "true" : "false"
+            ["aria-label"] = AriaLabel.Trim()
         };
         if (Disabled)
         {
+            // Emitted only while disabled, matching the base class and the rest of
+            // the library: an explicit "false" would be a second convention.
+            attributes["aria-disabled"] = "true";
             attributes["inert"] = true;
         }
         return attributes;

@@ -23,6 +23,11 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public MultiSelect() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter]
     public IReadOnlyList<TItem> Items { get; set; } = [];
 
@@ -95,11 +100,10 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public string? RemoveLabel { get; set; }
 
-    private readonly List<TItem> _visibleItems = [];
     private bool _open;
     private bool _keyboardNavigation;
     private int _activeIndex = -1;
-    private EditContext? _subscribedEditContext;
+    private ElementReference _triggerElement;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
 
@@ -109,13 +113,13 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private bool IsInvalid => Invalid ||
         (FormField?.Invalid ?? false) ||
-        (_hasFieldIdentifier && _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+        (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
 
     private bool IsRequired => Required || (FormField?.Required ?? false);
 
     private bool HasSelection => SelectedValues.Count > 0;
 
-    private bool HasEnabledItems => _visibleItems.Any(item => !IsItemDisabled(item));
+    private bool HasEnabledItems => Items.Any(item => !IsItemDisabled(item));
 
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel)
         ? UiText.MultiSelectLabel
@@ -141,7 +145,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         ? UiText.MultiSelectRemoveLabel
         : RemoveLabel.Trim();
 
-    private string? ActiveOptionId => _open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count
+    private string? ActiveOptionId => _open && _activeIndex >= 0 && _activeIndex < Items.Count
         ? $"{ListboxId}-option-{_activeIndex}"
         : null;
 
@@ -156,7 +160,6 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
         ArgumentNullException.ThrowIfNull(Items);
         ArgumentNullException.ThrowIfNull(SelectedValues);
-        RebuildItems();
         UpdateEditContextSubscription();
 
         if (IsDisabled || !Visible || ReadOnly)
@@ -166,9 +169,9 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         }
         else if (_open && _keyboardNavigation)
         {
-            _activeIndex = _visibleItems.Count == 0
+            _activeIndex = Items.Count == 0
                 ? -1
-                : _activeIndex >= 0 && _activeIndex < _visibleItems.Count && !IsItemDisabled(_visibleItems[_activeIndex])
+                : _activeIndex >= 0 && _activeIndex < Items.Count && !IsItemDisabled(Items[_activeIndex])
                     ? _activeIndex
                     : FindEnabledIndex(0, 1);
         }
@@ -185,8 +188,12 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         return ValueTask.CompletedTask;
     }
 
+    // The trigger is passed explicitly instead of being looked up from
+    // RootElement: a consumer-supplied Element parameter replaces RootElement,
+    // and a querySelector would then silently find nothing and drop keyboard
+    // suppression and active-option scrolling.
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
-        JsModuleManager.InvokeModuleVoidAsync("multi-select", "sync", InstanceId, RootElement);
+        JsModuleManager.InvokeModuleVoidAsync("multi-select", "sync", InstanceId, _triggerElement);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-multi-select")
@@ -260,7 +267,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
             case "End":
                 if (_open)
                 {
-                    _activeIndex = FindEnabledIndex(_visibleItems.Count - 1, -1);
+                    _activeIndex = FindEnabledIndex(Items.Count - 1, -1);
                     await InvokeAsync(StateHasChanged);
                 }
 
@@ -272,9 +279,9 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
                     Open();
                     await InvokeAsync(StateHasChanged);
                 }
-                else if (_activeIndex >= 0 && _activeIndex < _visibleItems.Count)
+                else if (_activeIndex >= 0 && _activeIndex < Items.Count)
                 {
-                    await ToggleItemAsync(_visibleItems[_activeIndex]);
+                    await ToggleItemAsync(Items[_activeIndex]);
                 }
 
                 break;
@@ -311,9 +318,9 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     {
         if (IsDisabled || ReadOnly || !Visible) return;
         _open = true;
-        _activeIndex = !activateFirst || _visibleItems.Count == 0
+        _activeIndex = !activateFirst || Items.Count == 0
             ? -1
-            : _activeIndex >= 0 && _activeIndex < _visibleItems.Count && !IsItemDisabled(_visibleItems[_activeIndex])
+            : _activeIndex >= 0 && _activeIndex < Items.Count && !IsItemDisabled(Items[_activeIndex])
                 ? _activeIndex
                 : FindEnabledIndex(0, 1);
     }
@@ -327,13 +334,13 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private void MoveActive(int direction)
     {
-        if (_visibleItems.Count == 0)
+        if (Items.Count == 0)
         {
             _activeIndex = -1;
             return;
         }
 
-        var enabled = _visibleItems.Select((item, index) => (item, index)).Where(pair => !IsItemDisabled(pair.item)).Select(pair => pair.index).ToArray();
+        var enabled = Items.Select((item, index) => (item, index)).Where(pair => !IsItemDisabled(pair.item)).Select(pair => pair.index).ToArray();
         if (enabled.Length == 0) { _activeIndex = -1; return; }
         var current = Array.IndexOf(enabled, _activeIndex);
         var origin = current < 0 ? (direction > 0 ? -1 : 0) : current;
@@ -342,9 +349,9 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private int FindEnabledIndex(int start, int direction)
     {
-        for (var index = start; index >= 0 && index < _visibleItems.Count; index += direction)
+        for (var index = start; index >= 0 && index < Items.Count; index += direction)
         {
-            if (!IsItemDisabled(_visibleItems[index])) return index;
+            if (!IsItemDisabled(Items[index])) return index;
         }
 
         return -1;
@@ -370,7 +377,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     private async Task SelectAllAsync(MouseEventArgs _)
     {
         if (IsDisabled || ReadOnly) return;
-        var next = _visibleItems.Where(item => !IsItemDisabled(item)).Distinct().ToArray();
+        var next = Items.Where(item => !IsItemDisabled(item)).Distinct().ToArray();
         await SetSelectedValuesAsync(next);
     }
 
@@ -406,12 +413,6 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         await InvokeAsync(StateHasChanged);
     }
 
-    private void RebuildItems()
-    {
-        _visibleItems.Clear();
-        _visibleItems.AddRange(Items);
-    }
-
     private bool IsItemDisabled(TItem item) => DisabledSelector?.Invoke(item) == true;
 
     private bool IsSelected(TItem item) => SelectedValues.Any(value => ValuesEqual(value, item));
@@ -426,16 +427,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = SelectedValuesExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(SelectedValuesExpression is null ? null : CascadedEditContext);
 
         if (SelectedValuesExpression is not null)
         {
@@ -448,26 +440,16 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
+
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
 
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
+        if (_hasFieldIdentifier)
         {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
+            _validation.NotifyFieldChanged(_fieldIdentifier);
         }
-    }
-
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
     }
 
     private static bool ValuesEqual(TItem? left, TItem? right) => EqualityComparer<TItem>.Default.Equals(left!, right!);

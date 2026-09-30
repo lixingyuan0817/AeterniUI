@@ -73,16 +73,9 @@ body {
     }
 }
 
-/* ThemeProvider toggles this class before changing semantic theme tokens. */
-html.aeterni-theme-transitioning,
-html.aeterni-theme-transitioning body,
-html.aeterni-theme-transitioning body *,
-html.aeterni-theme-transitioning body *::before,
-html.aeterni-theme-transitioning body *::after {
-    transition-property: color, background-color, border-color, outline-color, box-shadow, opacity, transform !important;
-    transition-duration: calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) !important;
-    transition-timing-function: var(--aeterni-ease-in-out) !important;
-}
+/* The theme transition rule for `.aeterni-theme-transitioning` is provided by
+   the library (src/AeterniUI/wwwroot/css/aeterni_ui.css). Hosts must not
+   restate it: a second copy would silently drift from the library's. */
 
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;

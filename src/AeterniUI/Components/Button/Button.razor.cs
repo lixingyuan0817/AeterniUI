@@ -54,6 +54,34 @@ public partial class Button : AeterniComponent
 
     protected override bool SupportsDisabled => true;
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown button variant.");
+        }
+
+        if (!Enum.IsDefined(Intent))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Intent), Intent, "Unknown button intent.");
+        }
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown button size.");
+        }
+
+        // An undefined value would otherwise be rendered verbatim as `type="99"`,
+        // and HTML resolves an invalid type to `submit` — the button would then
+        // submit its surrounding form. Fail loudly instead.
+        if (!Enum.IsDefined(Type))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Type), Type, "Unknown button type.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
@@ -75,7 +103,7 @@ public partial class Button : AeterniComponent
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase);
 
-        attributes["type"] = Type.ToString().ToLowerInvariant();
+        attributes["type"] = ComponentClass.ForButtonType(Type);
 
         if (!string.IsNullOrWhiteSpace(AriaLabel))
         {

@@ -21,6 +21,11 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public ComboBox() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter]
     public TItem? Value { get; set; }
 
@@ -61,6 +66,17 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public string? AriaLabel { get; set; }
 
+    /// <summary>
+    /// Additional ids that describe the control, merged with the ones cascaded by a
+    /// <c>FormField</c>. Matches Autocomplete, MultiSelect and Search.
+    /// </summary>
+    [Parameter]
+    public string? AriaDescribedBy { get; set; }
+
+    /// <summary>Stretches the control to its container width.</summary>
+    [Parameter]
+    public bool FullWidth { get; set; }
+
     [Parameter]
     public EventCallback<TItem?> OnChange { get; set; }
 
@@ -69,7 +85,6 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     private readonly List<TItem> _visibleItems = [];
     private ElementReference _triggerElement;
 
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
 
@@ -82,6 +97,9 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     private string? FormFieldLabelId => FormField?.LabelId;
     private string? FormFieldDescribedBy => FormField?.DescribedBy;
 
+    private string? EffectiveDescribedBy => string.Join(" ", new[] { AriaDescribedBy, FormField?.DescribedBy }
+        .Where(value => !string.IsNullOrWhiteSpace(value))) is { Length: > 0 } merged ? merged : null;
+
     private string PlaceholderText => string.IsNullOrWhiteSpace(Placeholder) ? UiText.ComboBoxPlaceholder : Placeholder;
 
     private string ListLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.ComboBoxListLabel : AriaLabel;
@@ -90,7 +108,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         Invalid ||
         (FormField?.Invalid ?? false) ||
         (_hasFieldIdentifier &&
-         _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+         _validation.HasValidationMessages(_fieldIdentifier));
 
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || (FormField?.Required ?? false);
@@ -116,6 +134,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     {
         return base.BuildClass()
             .Add("aeterni-combobox")
+            .Add("is-full-width", FullWidth)
             .Add(SizeClass)
             .Add("is-open", _open)
             .Add("is-invalid", IsInvalid)
@@ -307,16 +326,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
 
         if (ValueExpression is not null)
         {
@@ -329,28 +339,18 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed)
-        {
-            _ = InvokeAsync(StateHasChanged);
-        }
-    }
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
+
+
 
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
+        if (_hasFieldIdentifier)
         {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
+            _validation.NotifyFieldChanged(_fieldIdentifier);
         }
     }
+
 }

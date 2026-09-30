@@ -13,6 +13,11 @@ public partial class TimePicker : AeterniComponent
     [CascadingParameter] private FormFieldContext? FormField { get; set; }
     [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public TimePicker() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter] public TimeOnly? Value { get; set; }
     [Parameter] public EventCallback<TimeOnly?> ValueChanged { get; set; }
     [Parameter] public Expression<Func<TimeOnly?>>? ValueExpression { get; set; }
@@ -34,7 +39,6 @@ public partial class TimePicker : AeterniComponent
     [Parameter] public bool Invalid { get; set; }
 
     private bool _open;
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
     private TimeSelectionMap _selectionMap = default!;
@@ -50,15 +54,15 @@ public partial class TimePicker : AeterniComponent
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || FormField?.Disabled == true;
     private bool IsRequired => Required || FormField?.Required == true;
-    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
     private string? SizeClass => ComponentClass.ForSize("aeterni-time-picker", Size);
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (!Enum.IsDefined(TimeFormat)) throw new ArgumentOutOfRangeException(nameof(TimeFormat));
-        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+        if (!Enum.IsDefined(TimeFormat)) throw new ArgumentOutOfRangeException(nameof(TimeFormat), TimeFormat, "Unknown time picker format.");
+        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown time picker placement.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown time picker size.");
         _selectionMap = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime, _selectionMap);
         UpdateEditContextSubscription();
     }
@@ -112,30 +116,23 @@ public partial class TimePicker : AeterniComponent
 
     private void UpdateEditContextSubscription()
     {
-        var next = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, next))
-        {
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = next;
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
         _hasFieldIdentifier = ValueExpression is not null;
         if (_hasFieldIdentifier) _fieldIdentifier = FieldIdentifier.Create(ValueExpression!);
     }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
-    }
-
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier) _subscribedEditContext?.NotifyFieldChanged(_fieldIdentifier);
+        if (_hasFieldIdentifier)
+        {
+            _validation.NotifyFieldChanged(_fieldIdentifier);
+        }
     }
+
 
     protected override ValueTask OnComponentDisposeAsync()
     {
-        if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        _validation.Detach();
         return ValueTask.CompletedTask;
     }
 }

@@ -21,10 +21,22 @@ public partial class DateCalendar : AeterniComponent
     [Parameter] public EventCallback<DateOnly> DateSelected { get; set; }
     [Parameter] public EventCallback<DateOnly> MonthChanged { get; set; }
     [Parameter] public EventCallback<DateOnly> DateHovered { get; set; }
-    [Parameter] public string AriaLabel { get; set; } = "Calendar";
+    // Empty by default so the host's AeterniUITextOptions.DatePickerCalendarLabel
+    // applies; a hard-coded default would silently win over the text table.
+    [Parameter] public string? AriaLabel { get; set; }
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DatePickerCalendarLabel : AriaLabel.Trim();
     [Parameter] public int VisibleMonths { get; set; } = 1;
 
     private CultureInfo Culture => CultureInfo.CurrentCulture;
+
+    // The root participates in the base class DOM contract so Id/Class/Style/
+    // Visible/AdditionalAttributes and ElementChanged are no longer dead
+    // parameters. The dynamic is-multi-month modifier goes through BuildClass so
+    // the consumer class and the state class are merged in one place.
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-date-calendar")
+        .Add("is-multi-month", VisibleMonths > 1);
+
     private readonly Dictionary<CalendarDayKey, ElementReference> _dayElements = [];
     private DateOnly? _pendingFocusDate;
     private DateOnly? FocusedDate { get; set; }

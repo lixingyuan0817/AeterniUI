@@ -45,9 +45,9 @@ public partial class Pagination : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (TotalPages < 1) throw new ArgumentOutOfRangeException(nameof(TotalPages));
-        if (SiblingCount < 0) throw new ArgumentOutOfRangeException(nameof(SiblingCount));
-        if (CurrentPage < 1 || CurrentPage > TotalPages) throw new ArgumentOutOfRangeException(nameof(CurrentPage));
+        if (TotalPages < 1) throw new ArgumentOutOfRangeException(nameof(TotalPages), TotalPages, "The page count must be at least one.");
+        if (SiblingCount < 0) throw new ArgumentOutOfRangeException(nameof(SiblingCount), SiblingCount, "The sibling count cannot be negative.");
+        if (CurrentPage < 1 || CurrentPage > TotalPages) throw new ArgumentOutOfRangeException(nameof(CurrentPage), CurrentPage, "The current page must fall inside the page count.");
         try
         {
             var parsed = CompositeFormat.Parse(EffectivePageLabelFormat);

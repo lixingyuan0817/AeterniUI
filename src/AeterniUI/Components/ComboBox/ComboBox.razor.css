@@ -12,6 +12,10 @@
     color: var(--aeterni-text-primary);
 }
 
+.aeterni-combobox.is-full-width {
+    width: 100%;
+}
+
 .aeterni-combobox--sm {
     --aeterni-combobox-height: var(--aeterni-control-height-sm);
     --aeterni-combobox-padding-x: var(--aeterni-control-padding-x-sm);
@@ -57,7 +61,7 @@
 }
 
 .aeterni-combobox__trigger:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
 }
 

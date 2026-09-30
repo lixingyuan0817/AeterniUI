@@ -13,9 +13,15 @@ public partial class FlashCardGroup : AeterniComponent
     [Parameter, EditorRequired]
     public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Accessible name for the card collection.</summary>
+    /// <summary>
+    /// Accessible name for the card collection. Empty falls back to
+    /// <c>AeterniUITextOptions.FlashCardGroupLabel</c>, so a host can localise it
+    /// through the text table instead of having to pass the name on every deck.
+    /// </summary>
     [Parameter]
-    public string AriaLabel { get; set; } = "Flash cards";
+    public string? AriaLabel { get; set; }
+
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.FlashCardGroupLabel : AriaLabel.Trim();
 
     /// <summary>Whether the deck is kept open without pointer hover.</summary>
     [Parameter]
@@ -41,11 +47,6 @@ public partial class FlashCardGroup : AeterniComponent
     {
         base.OnParametersSet();
 
-        if (string.IsNullOrWhiteSpace(AriaLabel))
-        {
-            throw new ArgumentException("A flash card group requires an accessible name.", nameof(AriaLabel));
-        }
-
         ValidateLength(CardWidth, nameof(CardWidth), allowZero: false);
         ValidateLength(ExpandedSpacing, nameof(ExpandedSpacing), allowZero: true);
         ValidateLength(CollapsedOffset, nameof(CollapsedOffset), allowZero: true);
@@ -62,7 +63,7 @@ public partial class FlashCardGroup : AeterniComponent
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
         {
             ["role"] = "group",
-            ["aria-label"] = AriaLabel.Trim()
+            ["aria-label"] = EffectiveAriaLabel
         };
 
         if (Disabled)

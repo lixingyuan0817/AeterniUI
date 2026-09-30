@@ -52,10 +52,10 @@ public partial class Progress : AeterniComponent
 
     private void ValidateParameters()
     {
-        if (Max <= 0 || double.IsNaN(Max) || double.IsInfinity(Max)) throw new ArgumentOutOfRangeException(nameof(Max));
-        if (Value is { } value && (double.IsNaN(value) || double.IsInfinity(value))) throw new ArgumentOutOfRangeException(nameof(Value));
-        if (!Enum.IsDefined(Color)) throw new ArgumentOutOfRangeException(nameof(Color));
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+        if (Max <= 0 || double.IsNaN(Max) || double.IsInfinity(Max)) throw new ArgumentOutOfRangeException(nameof(Max), Max, "The progress maximum must be a finite positive number.");
+        if (Value is { } value && (double.IsNaN(value) || double.IsInfinity(value))) throw new ArgumentOutOfRangeException(nameof(Value), Value, "The progress value must be finite.");
+        if (!Enum.IsDefined(Color)) throw new ArgumentOutOfRangeException(nameof(Color), Color, "Unknown progress color.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown progress size.");
     }
 
     protected override void OnParametersSet()

@@ -39,6 +39,26 @@ public partial class Card : AeterniComponent
     [Parameter]
     public string? AriaLabel { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown card variant.");
+        }
+
+        if (!Enum.IsDefined(Elevation))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Elevation), Elevation, "Unknown card elevation.");
+        }
+
+        if (!Enum.IsDefined(Padding))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Padding), Padding, "Unknown card padding.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()

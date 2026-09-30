@@ -13,7 +13,8 @@ export function init(_reference, key) {
         activeDialog: null,
         previousActiveElement: null,
         releaseScroll: null,
-        keydownHandler: null
+        keydownHandler: null,
+        progressRoot: null
     };
 
     instance.keydownHandler = event => handleTabKey(event, instance);
@@ -21,8 +22,8 @@ export function init(_reference, key) {
     instances.set(key, instance);
 }
 
-export function sync(root, activeDialogId, hasModal) {
-    const instance = [...instances.values()][0];
+export function sync(key, root, activeDialogId, hasModal) {
+    const instance = instances.get(key);
     if (!instance || !root) {
         return;
     }
@@ -101,9 +102,17 @@ export function dispose(key) {
     }
 
     document.removeEventListener('keydown', instance.keydownHandler);
-    disposeProgress();
     restoreBodyAndFocus(instance);
     instances.delete(key);
+
+    // The resize listener and the observers are module-level state shared by every
+    // provider on the page, so only the last one to go may tear them down.
+    // Disposing them here unconditionally would let one provider unmounting strip
+    // another provider's measurements.
+    pruneProgressObservers();
+    if (instances.size === 0) {
+        disposeProgress();
+    }
 }
 
 /* SVG border progress ------------------------------------------------------
@@ -113,7 +122,6 @@ export function dispose(key) {
    tip advances at a constant rate along the border (like a native progress
    bar). Geometry is measured per card because SVG needs real pixel units. */
 
-const progressNodes = new Map();
 const progressObservers = new Map();
 let progressResizeHandler = null;
 
@@ -172,40 +180,62 @@ function observeProgressNode(host) {
     progressObservers.set(host, observer);
 }
 
-function disposeProgressNode(host) {
-    const observer = progressObservers.get(host);
-    if (observer) {
-        observer.disconnect();
-        progressObservers.delete(host);
+// A host is still owned as long as any live provider's subtree contains it, so
+// pruning is scoped across every instance rather than to the provider that
+// happens to be syncing.
+function pruneProgressObservers() {
+    for (const [host, observer] of progressObservers) {
+        const owned = [...instances.values()].some(instance => instance.progressRoot?.contains(host));
+        if (!owned) {
+            observer.disconnect();
+            progressObservers.delete(host);
+        }
     }
 }
 
-export function initProgress(root) {
-    const nodes = [...root.querySelectorAll('[data-aeterni-notice-progress="true"]')];
-
-    for (const [known, observer] of progressObservers) {
-        if (!root.contains(known)) {
-            observer.disconnect();
-            progressObservers.delete(known);
-        }
+export function initProgress(key, root) {
+    const instance = instances.get(key);
+    if (!instance || !root) {
+        return;
     }
 
-    for (const node of nodes) {
+    instance.progressRoot = root;
+    pruneProgressObservers();
+
+    for (const node of root.querySelectorAll('[data-aeterni-notice-progress="true"]')) {
         observeProgressNode(node);
     }
 
-    progressNodes.set(root, nodes);
-
     if (!progressResizeHandler) {
         progressResizeHandler = () => {
-            for (const [root] of progressNodes) {
-                for (const node of root.querySelectorAll('[data-aeterni-notice-progress="true"]')) {
+            for (const instance of instances.values()) {
+                const currentRoot = instance.progressRoot;
+                if (!currentRoot) {
+                    continue;
+                }
+
+                for (const node of currentRoot.querySelectorAll('[data-aeterni-notice-progress="true"]')) {
                     measureProgress(node);
                 }
             }
         };
         window.addEventListener('resize', progressResizeHandler);
     }
+}
+
+/** Resolves once the dialog's shake animation has finished. The C# side awaits
+ * this instead of guessing the CSS duration: a hand-tuned delay drifts whenever
+ * the motion scale changes, and under `prefers-reduced-motion` the animation
+ * completes instantly while a fixed delay would still block. */
+export async function waitForShake(key, dialogId) {
+    if (!instances.has(key)) {
+        return;
+    }
+
+    const dialog = document.querySelector(`[data-aeterni-dialog-id="${dialogId}"]`);
+    const shakes = (dialog?.getAnimations?.() ?? [])
+        .filter(animation => /shake/.test(animation.animationName ?? ''));
+    await Promise.allSettled(shakes.map(animation => animation.finished));
 }
 
 function disposeProgress() {
@@ -219,5 +249,4 @@ function disposeProgress() {
     }
 
     progressObservers.clear();
-    progressNodes.clear();
 }

@@ -42,8 +42,10 @@ public partial class RadioGroup<TValue> : AeterniComponent
     // The fieldset adopts the FormField input id, so the field label's `for`
     // resolves to an existing element; the accessible name is attached with
     // aria-labelledby because a fieldset has no implicit label association.
-    private string GroupId => Id ?? FormField?.InputId ?? InstanceId;
-    private string EffectiveName => Name ?? GroupId;
+    // ElementId carries this value, so both the rendered id and every reference
+    // built from it stay in agreement.
+    protected override string ComputeElementId() => Id ?? FormField?.InputId ?? InstanceId;
+    private string EffectiveName => Name ?? ElementId;
     private bool EffectiveDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool EffectiveRequired => Required || (FormField?.Required ?? false);
     private bool EffectiveInvalid => Invalid || (FormField?.Invalid ?? false);
@@ -62,6 +64,11 @@ public partial class RadioGroup<TValue> : AeterniComponent
         {
             throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown radio group orientation.");
         }
+    
+        if (Size is { } sizeValue && !Enum.IsDefined(sizeValue))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown radio group size.");
+        }
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -70,7 +77,6 @@ public partial class RadioGroup<TValue> : AeterniComponent
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase);
 
-        attributes["id"] = GroupId;
         attributes["aria-orientation"] = OrientationClass;
 
         if (FormField?.LabelId is { } labelId)

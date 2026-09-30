@@ -2,9 +2,113 @@
 
 文档版本：`10.25.1`
 
-文档状态：第一至第六轮（REV-01～REV-76）均已修复并验收；第七轮 P1～P3（REV-77～REV-89）已实现并回归，纳入 10.14.3 发布范围；第八轮（REV-90～REV-96）已修复并随 10.17.1 / 10.17.2 交付。List 键盘修复记录见 roadmap 的 10.14.2 批次，一并合入 10.14.3。
+文档状态：第一至第六轮（REV-01～REV-76）均已修复并验收；第七轮 P1～P3（REV-77～REV-89）已实现并回归，纳入 10.14.3 发布范围；第八轮（REV-90～REV-96）已修复并随 10.17.1 / 10.17.2 交付；**第九轮（REV-97～REV-127，共 31 条）为全库架构审阅记录；P0（REV-97～REV-103）、修复期间发现的 REV-126～REV-127，以及 P1 批次 16（REV-104～REV-108）、批次 17（REV-109～REV-111）、批次 18（REV-112～REV-114，REV-115 仅非破坏性部分）、批次 19（REV-116）、批次 20（REV-117～REV-124）与批次 21（REV-125）已修复。**本轮的收尾结论见「第九轮修复总结」**。List 键盘修复记录见 roadmap 的 10.14.2 批次，一并合入 10.14.3。
 
 前六轮全量审阅记录：第一轮覆盖 token 层、22 个组件的 `.razor.css`、`.razor` 标记与关键 `.razor.cs`/`.razor.js`；第二轮（v10.4）针对「品牌色/语意色在全组件的落地」与「组件结构稳定性」重做审核；第三轮（v10.4）回应「中性容器表面又带紫色」的报告并做样式体系一致性扫描；第四轮（v10.4）回应「界面看起来不干净」，重做文字色阶（Apple label 模型）与分隔线、清理浑浊的 chip 混色；第五轮（v10.5）补充组件表面归属规范；第六轮在 v0.5 日期/时间组件交付后重新核对全库根属性、键盘焦点、视觉状态、本地化、示例覆盖与文档事实。前六轮问题均已关闭；本次新增第七轮修复记录如下，功能扩展规划继续以 roadmap 为准。
+
+## 第九轮：全库架构审阅（P0 已修复，P1～P3 待修复）
+
+范围：全库 49 个组件目录 / 60 个组件文件 / 25k LOC、1177 行令牌表、18 个 `.razor.js`（2126 行）、7 项 CI 门禁。审阅维度为基类契约、令牌与主题、JS 互操作、服务与 DI、新组件漂移。所有条目均经源码复核。行号以本轮审阅时代码为准。
+
+### P0：渲染语义错误与用户可见缺陷（已修复）
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-97 / P0 | `Radio` 根元素是 `<label>`（`Radio.razor:7`）却声明 `SupportsDisabled => true`（`Radio.razor.cs:56`），基类据此输出 `disabled="true"`+`aria-disabled="true"`；`<label>` 不接受原生 `disabled`。同一禁用态另有子 `<input>` 原生属性和 `BuildInputAttributes` 第二次 `aria-disabled` 两条路径（`Radio.razor.cs:100-103`），共三条输出。反证：`Card.razor.cs:69-72`、`FlashCard.razor.cs:178-183` 均因根元素不能承受原生 `disabled` 而故意不声明 | 去掉 `SupportsDisabled`，禁用语义只保留子 `<input>` 原生属性 + 一次 `aria-disabled`；契约断言 `<label>` 根上不出现 `disabled`，且禁用态仅一条输出路径 |
+| REV-98 / P0 | `DialogProvider.razor.css:1-7` 在 provider 根设 `z-index: var(--aeterni-z-modal-backdrop)`（1040）+ `isolation: isolate`，通知区在 `:106` 设 `z-index: var(--aeterni-z-toast)`（1080）。`isolation: isolate` 使根成为栈上下文，1080 被永久关在 1040 层内，声明的 `toast(1080) > tooltip(1070) > popover(1060) > modal(1050)` 在真实 DOM 中不成立：页面上开着 Popover（`Popover.razor.css:16`）或 Tooltip（`Tooltip.razor.css:22`）即盖住通知 | 移除 `isolation: isolate`，或把通知区移出该栈上下文；浏览器验收在同时打开下拉浮层与通知时确认通知在顶层，且遮罩仍压在页面内容之上 |
+| REV-99 / P0 | `Button.razor.cs:25` 的 `Type` 无校验，`:81` 直接 `Type.ToString().ToLowerInvariant()` 输出 `attributes["type"]`；`IconButton.razor:39` 同。传入未定义枚举值输出 `type="99"`，按 HTML 规范非法值使 `<button>` 回落到 **submit**，在表单中意外提交 | 补 `Enum.IsDefined` 校验，`type` 输出改为白名单映射；契约断言非法 `ButtonType` 抛 `ArgumentOutOfRangeException` 而非渲染 `type="99"` |
+| REV-100 / P0 | `AeterniUITextOptions.cs:52,55` 的默认值是中文 `"全选"` / `"清除"`，而 `MultiSelect.razor:71,78` 将其渲染为**可见按钮文本**（同时作 `aria-label`）。不覆写文案的英文应用会看到中文按钮，违反 `AeterniUITextOptions.cs:4-8` 的"Every entry has a built-in default"与 `current-features` 的"默认值为英文" | 改为英文默认值并补对应中文示例覆写；契约断言默认文案不含非 ASCII 字符 |
+| REV-101 / P0 | `aeterni-theme-transitioning` 的过渡样式只存在于示例宿主（`AeterniUI.Sample/wwwroot/css/app.css:77-81`），组件库内无任何消费。库侧 JS（`ThemeProvider.razor.js:98-124`）仍 toggle 该类、强制回流、挂 620ms 定时器——非示例宿主白付一次同步回流与一个定时器且看不到过渡。而 `current-features.zh-CN.md:106` 将其写成库能力"切换品牌会复用主题切换的过渡动画" | 把过渡样式移入库内令牌层或组件样式，或让过渡由库声明为宿主可选扩展点；同步修正 `current-features` 的表述。验收：非示例宿主接入后主题/品牌切换有过渡，并受 `prefers-reduced-motion` 降级 |
+| REV-102 / P0 | `DateCalendar.razor:3` 根元素硬编码 `class="aeterni-date-calendar …"`，全文件无 `BuildAttributes()`、无 `@ref`（该类型继承 `AeterniComponent`，`DateCalendar.razor.cs:13`）。基类提供的 `Id`/`Class`/`Style`/`Visible`/`AdditionalAttributes`/`Element`/`ElementChanged` 全部静默失效。当前三个调用点靠内部直接传参掩盖了问题 | 接入基类契约（`@ref` + `BuildAttributes()`）；契约断言消费方传入的 `Class`/`Id` 出现在渲染结果上。若定位为纯内部组件，应在文档与契约中改为不继承基类或不暴露这些参数 |
+| REV-103 / P0 | `ComboBox.razor.cs:70` 持有 `_triggerElement` 并把该引用直接传给 JS（`:113`）；`MultiSelect.razor.cs:189` 与 `Autocomplete.razor.cs:197` 改传 `RootElement`，由 JS 反查 `root.querySelector('[role="combobox"]')`（`MultiSelect.razor.js:13`、`Autocomplete.razor.js:13`）。消费方一旦传入基类 `Element` 参数，`RootElement` 被替换为外部元素（`AeterniComponent.cs:201-205`），反查找不到触发器，而模块静默 `return`（`MultiSelect.razor.js:14`）→ 键盘抑制与活动项滚动无声失效 | 改回 ComboBox 的显式 `ElementReference` 传参；浏览器验收在设置 `Element` 参数后键盘导航与活动项滚动仍生效 |
+
+P0 修复落点：`Radio.razor.cs` 去掉 `SupportsDisabled`（`<label>` 保留 `aria-disabled`，原生 `disabled` 只留在子 `<input>`）；`DialogProvider.razor.css` 的 provider 根不再生成栈上下文（移除定位与 `isolation`，两个 `position: fixed` 子层自带 z-index）；`Button`/`IconButton` 补 `Type` 的 `Enum.IsDefined` 校验并把原生类型收敛到 `ComponentClass.ForButtonType` 白名单；`MultiSelectSelectAllLabel`/`MultiSelectClearAllLabel` 默认值改英文；`aeterni-theme-transitioning` 过渡规则从示例宿主移入库内 `aeterni_ui.css`；`DateCalendar` 接入基类 DOM 契约并把 `is-multi-month` 并入 `BuildClass`；`MultiSelect`/`Autocomplete` 改为传递真实触发器/输入元素（`Autocomplete` 经子 `Input` 的 `ElementChanged` 捕获），三处 combobox 模块的解绑提前到任何提前返回之前。新增 `CheckArchitectureP0Async` 契约组覆盖上述各项，另含一条源级断言禁止 `sync` 回退到 `RootElement`。
+
+P1 批次 16（REV-104～REV-108）修复落点：`AeterniComponent` 用 `_jsModuleLoadStarted` 替换只在加载完成后才置位的 `_jsModuleLoaded`，由它决定释放是否配对，并在 `LoadJsModulesAsync` 的 `IsDisposed` 分支与 init 之后各补一道守卫（后者回收"init 已完成但组件已释放"的实例）；`JsModuleManager.LoadModuleAsync` 把"已完成且结果为 null"的缓存条目按未命中处理，下次调用重试（**首版写成在导入内部自我淘汰，因同步完成时 `Remove` 早于缓存写入而失效，由新增的失败重试断言抓出后改为读取侧惰性淘汰**）；`DialogProvider` 的 `sync`/`initProgress` 改为按 `InstanceId` 取实例，模块级 resize 监听与 observer 只在 `instances.size === 0` 时拆除，进度观察按"是否仍被任一存活 provider 的子树包含"剪枝（`progressNodes` 与未使用的 `disposeProgressNode` 一并删除）；`VirtualList` 补 `_disposed` 与 `OnComponentDisposeAsync`，对齐 `List` 模式；`Popover`/`Drawer` 的释放守卫收在 `CloseAsync` 这一个汇合点，`TimeOptionList` 在 C# 入口与 JS 的 `align`/回调边界各加一道 `disposed` 守卫。
+
+### P1：一致性、可访问性与资源生命周期（批次 16、17 已修复；18 部分修复）
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-104 / P1 | `AeterniComponent.cs:270-271` 先 `await LoadComponentAsync(...)` 才置 `_jsModuleLoaded = true`，而 `DisposeAsync`（`:297`）只在 `_jsModuleLoaded` 为真时调 `DisposeModuleAsync`；`LoadJsModulesAsync` 自身无 `IsDisposed` 检查（对照 `Tooltip.razor.cs:55-58` 有）。组件在首个 await 窗口内被移除时 JS `init` 仍执行、实例进入模块级 Map 且永不收到 `dispose`。具体后果：`DialogProvider.razor.js:20` 在 `init` 里注册 `document.addEventListener('keydown', …)`，唯一注销点是 `:103` 的 `dispose` → 永久残留 document 级捕获监听器 | `LoadJsModulesAsync` 增加 `IsDisposed` 守卫，或 `DisposeAsync` 去掉 `_jsModuleLoaded` 门闩改为无条件 `DisposeModuleAsync`；加回归用例：首帧前卸载组件后确认 JS 侧实例表为空 |
+| REV-105 / P1 | `JsModuleManager.cs:269-270` 无条件 `_moduleTasks[name] = task`，而 `ImportModuleAsync:275-279` 把 `JSDisconnectedException`/`InvalidOperationException`/`TaskCanceledException` 一律转成 `null`。一次瞬时失败（资源 404、circuit 断开）会让该 circuit 内该组件永久失去 JS 行为，无重试、无日志 | 失败结果不写入缓存（写表前判空并移除表项），或缓存失败态并允许重试；断言首次失败后第二次加载会重新 import |
+| REV-106 / P1 | `DialogProvider.razor.js:25` 的 `sync(root, …)` 忽略 key，只取 `[...instances.values()][0]`，与其余 17 个模块的 `instances.get(key)` 约定相悖；同页两个 provider 时焦点/`previousActiveElement`/`lockScroll` 错位。`:104` 的 `dispose(key)` 无条件调 `disposeProgress()`，而它清理的是模块级全局态（window resize 监听、ResizeObserver）→ 任一 provider 卸载都摘掉另一个的监听。对照正确写法：`Tooltip.razor.js:68`、`ThemeProvider.razor.js:140` 均在 `instances.size === 0` 时才摘 | `sync` 改为按 key 取实例；`disposeProgress()` 移入 `instances.size === 0` 分支；`progressNodes` 在登记时清理已脱离文档的 root。断言双 provider 场景互不影响 |
+| REV-107 / P1 | `VirtualList` 无 `_disposed` 字段、无 `OnComponentDisposeAsync`，两个 `[JSInvokable]`（`VirtualList.razor.cs:264`、`:388`）均不判释放，`:22` 的 `_loadMoreInFlight` 无复位路径；同族 `List.razor.cs:324-326` 有完整模式并在 `:260`、`:140` 设守卫 | 对齐 List 模式；断言组件释放后 `[JSInvokable]` 调用不再改动状态 |
+| REV-108 / P1 | `[JSInvokable]` 释放守卫不一致：`Popover.razor.cs:179` 与 `Drawer.razor.cs:193` 的 `FinalizeCloseAsync` 有 `IsDisposed`，但同文件的 `Popover.razor.cs:173`、`Drawer.razor.cs:187` 没有；`TimeOptionList.razor.cs:198` 无守卫且 JS 侧也无 `disposed` 标志（ResizeObserver 与 reduced-motion `change` 两条链路都能触发 `invokeMethodAsync`）。所有回调失败路径一律 `.catch(() => {})`，`ObjectDisposedException` 不可观测 | 全部 `[JSInvokable]` 统一 `IsDisposed` 守卫；把静默吞异常改为至少保留降级信号；契约断言每个 `[JSInvokable]` 方法体包含释放守卫 |
+| REV-109 / P1 | `UpdateEditContextSubscription`/`UnsubscribeFromEditContext`/`NotifyFieldChanged`/`HandleValidationStateChanged` 四方法在 **13 个组件**中各存一份（Autocomplete、DatePicker、Checkbox、DateRangePicker、ComboBox、DateTimePicker、Input、Rating、Switch、Textarea、TimePicker、Search、MultiSelect），每份约 48 行共约 600 行 | 抽为共享件（如 `EditContextSubscription`）供 13 个组件复用；等价性由现有表单校验契约回归证明 |
+| REV-110 / P1 | 基类契约是 `ElementId => Id ?? InstanceId`（`AeterniComponent.cs:95`），但 7 个组件各自重算渲染 id（`RadioGroup.razor.cs:45`、`Segmented.razor.cs:68`、`Input.razor.cs:104`、`Textarea.razor.cs:98`、`Rating.razor.cs:107`、`Tabs/Tab.razor.cs:65`、`List/ListItem.razor.cs:86`）。基类未提供扩展点，消费方按公开属性 `ElementId` 拼 `for`/`aria-controls` 会得到错值 | 基类增加可覆写的 id 计算扩展点，7 处改为覆写；断言公开 `ElementId` 与渲染出的 id 一致 |
+| REV-111 / P1 | `aria-disabled` 输出约定分裂：基类（`AeterniComponent.cs:191`）与 20+ 组件仅禁用时输出；`ToggleGroup.razor.cs:57`、`Toolbar.razor.cs:39`、`ToolbarGroup.razor.cs:28` 恒输出（含 `"false"`） | 统一为"仅禁用时输出"；契约断言非禁用态不出现 `aria-disabled` |
+| REV-112 / P1 | 枚举参数校验存在两套互斥策略：47 个参数在 `OnParametersSet` 抛 `ArgumentOutOfRangeException`（如 `Rating.razor.cs:69`、`Empty.razor.cs:42`），32 个静默走 `switch` 兜底（如 `Button.razor.cs:16,19,22,25`、`Surface.razor.cs:8,11,14,17`、`Icon.razor.cs:12,15`）。同一 `Size` 在 `Rating` 抛错、在 `Button` 被 `ComponentClass.cs:28` 的 `_ => null` 吞掉。**修复时更正**：`ToggleGroup.razor.cs:22-23` 的手写白名单经契约回归证明**不是**风格差异——`SelectionMode.None` 是已定义成员但对动作组无意义，白名单有意拒绝它，改成 `Enum.IsDefined` 会放宽校验（已由 `ToggleGroup must reject invalid parameters` 断言拦下）。该项保持不变，只补了原因说明。异常写法不统一（带值带原因 vs 裸 `nameof`）属实，已全库统一 | 统一为"公共枚举参数一律 `Enum.IsDefined` 校验 + 带值带原因的异常"；契约增加架构断言，新增组件不得引入静默兜底 |
+| REV-113 / P1 | `AriaLabel.Trim()` 无空值守卫。**修复时更正**：原证据列的 5 处里 4 处（`ToggleGroup.razor.cs:56`、`Toolbar.razor.cs:37`、`ToolbarGroup.razor.cs:27`、`FlashCardGroup.razor.cs:65`）其实已受保护——它们都在 `OnParametersSet` 抛 "requires an accessible name"，早于 `BuildAttributes`，不会 NRE。真正无守卫的只有 `IconButton.razor:40`（无任何校验，且 `[Parameter]` 运行期可被赋 null） | 给 `IconButton` 补无障碍名校验（与同族四组件同形）；断言传空白名抛 `ArgumentException` |
+| REV-114 / P1 | 用户可见字符串未走 `UiText` 文案表：`FlashCardGroup.razor.cs:18` `"Flash cards"`（且 `:44-46` 留空时**抛异常**，宿主无法用留空退回文案表）；`TimeOptionList.razor.cs:28-31` 四条英文默认值（public 子组件被直接使用时拿不到 `UiText`）；`DateCalendar.razor.cs:24` `"Calendar"`；`Rating.razor:22-23` 与 `:267` 的逐星 `aria-label`/`title` 及 `" / "` 分隔符 | 全部纳入 `AeterniUITextOptions`；`FlashCardGroup` 的留空语义改为回退文案表而非抛错；断言文案表覆盖这些键 |
+| REV-115 / P1 | 公共 API 形状不一致。**修复时更正**：`SplitButton.razor.cs:20` 默认 `Size.Small` 经契约回归证明是**有意的**紧凑动作组设计（`SplitButton defaults to compact small neutral ghost segments` 断言即为此），不是漂移，已回退并加注释。其余属实：`Button` 族 `Intent` 默认值分裂（`Button.razor.cs:20` 为 `Default`，IconButton/MenuButton/SplitButton 三者 `Neutral`）；`Rating.razor.cs:198-199` 同一次交互**同时触发** `ValueChanged` 与 `OnChange`（全库唯一双触发）；"选中项确认"在 ComboBox 叫 `OnChange`（`:65`）、在 Autocomplete/MultiSelect 叫 `OnItemSelected`（`Autocomplete.razor.cs:47`、`MultiSelect.razor.cs:54`）；`ComboBox` 缺 `FullWidth` 与 `AriaDescribedBy` 而同族三个都有；`Card.razor.cs:9-16` 重复声明 `Surface` 的三组属性却漏 `Radius`（`Surface.razor.cs:18`），两者无共享基类也无组合 | 先对齐无争议项（`Size` 默认值、`OnItemSelected` 命名、ComboBox 补齐 `FullWidth`/`AriaDescribedBy`、`Rating` 去掉重复回调）；涉及公共 API 变更的项走 roadmap 交付并同步 `current-features` |
+| REV-116 / P1 | 三个新增 `Interactive = true` 模块零 JS 测试：`VirtualList.razor.js`（102 行）、`MultiSelect.razor.js`、`Autocomplete.razor.js`，而它们带 `[JSInvokable]` 跨边界契约（`VirtualList.razor.cs:264`、`:388`）。对照 List、Toolbar、ToggleGroup、Popover、TimePicker、ComboBox、Rating 均有 `.test.mjs`。`ContractChecks` 对这批组件只有静态标记断言：`OnSearch`/`OnClear`/`OnItemSelected`/`SubmitOnEnter`/`OnLoadMore`/`Backspace` 在 `Program.cs` 中出现次数均为 0，VirtualList 仅 4 条断言且 `OnLoadMore` 从未被断言触发，且无对应 ContractHost（现有仅 `ListContractHost.cs`、`QualityContractHost.cs`） | 为三个模块补 `.test.mjs`；按 `ListContractHost.cs` 模式为 VirtualList 建 ContractHost，把键盘导航、选择、`OnLoadMore` 去重闩锁、`ItemKeySelector` 校验纳入行为断言 |
+
+P0 修复期间发现并一并修复的条目：
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-126 / P1 | 三个 combobox 模块在"取不到目标元素"时提前返回，跳过了此前的 `removeEventListener`：`Autocomplete.razor.js:14` 早于 `:26` 的解绑、`ComboBox.razor.js:14` 早于 `:21`、`MultiSelect.razor.js:14` 早于 `:26`。旧元素仍在 DOM 中时旧 handler 继续生效，已移除时闭包长期持有该子树。对照 `Rating.razor.js:11-12`、`VirtualList.razor.js:49-50`、`List.razor.js:18-19` 都是"先解绑再返回" | 解绑提前到任何提前返回之前（仅当目标元素发生变化时执行）；三个模块的行为回归通过 |
+| REV-127 / P1 | `RadioGroup` 与 `Tab` 的根元素没有绑定 `@ref="RootElement"`（`RadioGroup.razor:4`、`Tab.razor:6`），基类的 `Element` 参数与 `ElementChanged` 回调因此永不触发。与 REV-102 的 `DateCalendar` 同属"继承基类但未接入引用回传"，审阅时被漏记为独立条目，在批次 17 修复 §5.2 同类问题时一并补入 | 两处补 `@ref="RootElement"`；契约断言 `ElementChanged` 在渲染后携带根元素 |
+
+批次 17（REV-109～REV-111）修复落点：新增 `Components/EditContextSubscription.cs`，把订阅/解绑对称、处理器、释放守卫与顺序收敛到一处——各组件保留各自的表达式逻辑（`ValueExpression`、`SelectedValuesExpression`、`DateRangePicker` 的起止一对），只把机制交给共享件；`FormField` 是第 14 处同类实现，一并收编（它额外需要 `FirstValidationMessage`）。基类新增 `RequestStateHasChanged()` 承载带释放守卫的渲染请求，替换散落的 `if (!IsDisposed) _ = InvokeAsync(StateHasChanged);`。`ElementId` 改为经可覆写的 `ComputeElementId()` 计算，`RadioGroup`、`Segmented`、`Input`、`Textarea`、`Rating`、`Tab`、`ListItem` 七处改为覆写且不再各自重算渲染 id，因此公开属性与 DOM 上的 id 第一次一致。`ToggleGroup`、`Toolbar`、`ToolbarGroup` 的 `aria-disabled` 改为仅禁用时输出。
+
+批次 19（REV-116）修复落点：新增三个 JS 层测试文件（共 18 个用例）覆盖此前零覆盖的三个 `Interactive` 模块——`VirtualList` 的键盘过滤与串行队列、触底加载的阈值/高度闩锁/并发闩锁、视口替换后的解绑、释放后取消排队回调、`scrollToIndex` 边界；`MultiSelect`/`Autocomplete` 的按键白名单、修饰键与输入法忽略、活动项滚入自身视口、**元素替换或为空时必须解绑**（REV-126 的回归守卫）、释放后不再重绑。契约侧新增 `VirtualListContractHost`（沿用 `ListContractHost` 模式），把键盘导航、`DisabledSelector` 跳过、多选 Enter 累积、加载的**并发**闩锁、`ItemKeySelector` 唯一性与非空校验，以及释放后忽略排队回调纳入行为断言——`VirtualList` 的断言数由 4 条提升到 20 条。
+
+修复批次 20 时发现并已部分处理的新条目：
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-128 / P2 | 令牌文件的公开表面远大于组件与宿主实际消费的面：全表 516 个声明中，**190 个在任何地方都没有 `var()` 引用**。其中 146 个（`space-*`/`margin-*`/`gap-*`/`text-*`/`leading-*`/`tracking-*`/`breakpoint-*`/`gray-dark-*`/`typography-*`/`container-*`/`field-*`/`z-base,fixed,dropdown`/`ease`/`blur`/`shadow`/`opacity-disabled` 等）是**纯别名层或已废弃档位**，与另一套既有命名一一对应，已删除（240 条声明，令牌表 1177 → 943 行）。其余保留：`--aeterni-brand-50..900` 十档由品牌对比度门禁逐档校验、原始色阶（`gray-*`/`neutral-*`/六族 `danger/success/warning/info` 档位）是宿主自定义主题的基材 | 已删除的 146 个为纯冗余，无消费者、无文档承诺；**保留的原始色阶与裸色阶没有门禁覆盖**，是否收窄属于公开令牌 API 决策，需单独确认后再动 |
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-117 / P2 | **修复时更正**：`FlashCardGroup.razor.css:122` 的 `20` 与 `:51-57` 的 `1–7` 经查是牌堆**自身栈上下文内**的局部层叠（注释写明「抬高以露出完整牌面」），不是页面级决策，原判「正是 `--aeterni-z-raised` 的角色」有误，两处保持局部数值并在令牌层注明局部层叠不得使用阶梯 Token。其余属实：z-index 阶梯写了但未成为机制：11 档中 5 档消费者为 0（`z-base`/`z-raised`/`z-dropdown`/`z-sticky`/`z-fixed`，`aeterni_ui.css:218-228`）；37 处 `z-index` 中 27 处为裸数字，其中 `FlashCardGroup.razor.css:122` 的 `20` 正是 `--aeterni-z-raised` 的角色；`--aeterni-z-overlay` 与 `--aeterni-z-modal-backdrop` 同为 1040 却异名（Drawer 用前者、Dialog/Popover 用后者） | 合并同值异名档；把属于全局层级决策的魔数（`FlashCardGroup:122`、`:51-57`）改走令牌；无消费者的档位删除或在文档中说明保留理由 |
+| REV-118 / P2 | **修复时更正**：内嵌偏移的两个公式并非重复——`calc(-1 * var(--aeterni-focus-width))`（-3px）是「让 3px 焦点环完整留在元素内」，滚动容器里必须如此，契约断言为此存在；`calc(var(--aeterni-focus-offset) * -1)`（-2px）是「按标准间隙内缩」。两者对应不同需求，已保持并按此记录。真正修掉的是名字分裂：`--aeterni-control-focus-ring` 只是 `var(--aeterni-focus-color)` 的冗余别名，已删除并改指全部 8 处消费者（含示例宿主 2 处）。原判：焦点环存在名字、技术、内嵌值三重分裂。名字：`--aeterni-focus-color`（多数）vs `--aeterni-control-focus-ring`（`ComboBox.razor.css:60`、`Menu.razor.css:211`、`DateTimePicker.razor.css:34`、`TimePicker.razor.css:40`）。技术：`outline:`（38 处）vs `box-shadow: 0 0 0 var(--aeterni-focus-width)`（4 个日期/时间组件）。内嵌偏移两个公式两个值：`calc(var(--aeterni-focus-offset) * -1)` = **-2px**（`Accordion:6`、`Segmented:138`、`Tabs:79`）vs `calc(-1 * var(--aeterni-focus-width))` = **-3px**（`Menu:212`、`MultiSelect:148,224`） | 收敛为一个焦点环令牌名与一种画法，内嵌偏移统一取值；对比度门禁与焦点可见性浏览器验收通过 |
+| REV-119 / P2 | 令牌层死声明与同名双写：`aeterni_ui.css:184-185` 的 `--aeterni-ease-standard`/`-emphasized` 被同为 `:root` 的 `:764-765` 覆盖（4 条死声明）；`--aeterni-opacity-disabled`（`:393`）消费者为 0；`--aeterni-breakpoint-*` 六档（`:264-269`）消费者为 0（自定义属性无法用于 `@media`），而组件各写各的且同断点两种单位（DialogProvider `640px`、DateTimePicker `40rem`、DateCalendar `48rem`）；`--aeterni-radius-button`/`-button-sm`/`-button-lg` 三档同值 `.625rem`（`:114-116`）而同层 `--aeterni-radius-control-*` 是真阶梯；系统深色块（`:952-1120`，169 行）是 `:769-945` 的逐行复制 | 删除死声明与同名双写，合并重复的深色块；断点改用组件内注释记录的实际值或移除令牌；`check-contrast` 与令牌纯净度门禁通过 |
+| REV-120 / P2 | `--aeterni-icon-render-size` 在 `aeterni_ui.css` 中声明次数为 0，却被 21 个组件样式表就地覆盖（`Drawer.razor.css:151`、`Rating:30`、`Empty:29`、`Pagination:2`、`DateCalendar:56`、`TimePicker:69` 等），由 `Icon.razor.css:4-5` 以 `var(--aeterni-icon-render-size, 1em)` 读取。这是事实上的跨组件契约层，宿主无法从令牌文件发现或覆盖 | 在令牌层正式声明该角色并成文其覆盖语义；断言组件不再各自定义未登记令牌 |
+| REV-121 / P2 | 魔法时长与跨层时长漂移：`ThemeProvider.razor.js:123` 硬编码 620ms；`NoticeCard.razor.css:217` 用裸 `5s` + 裸 `linear` 关键字；`FlashCard.razor.css:221` 用裸 `900ms`——全库唯一破坏"缩放令牌"约定者（对照 `Skeleton:28` 用 `calc(var(--aeterni-duration-slower) * 2.8)`），也因此绕过 reduced-motion 的时长归零；`DialogProvider.razor.cs:106` 在 C# 里 `Task.Delay(320ms)` 硬编码 CSS 动画时长，而同库 Popover/Drawer 用 JS 实测动画（`aeterni_floating.js:25-33 waitForExit`），两种做法并存 | 时长改走令牌或由 CSS 推导；C# 侧改为读取实测完成信号而非硬编码等待；`check-css-comments`/reduced-motion 验收与 `--check` 图标门禁通过 |
+| REV-122 / P2 | **修复时更正**：磨砂 5 角色接管块里的 `--aeterni-text-muted` 有 23 处读取（不是死声明），真正的死声明是 `--aeterni-state-color-muted`（0 读取），已删除 7 条。按钮家族的 72 行意图管线重复属实，但 CSS isolation 下组件样式表无法共享规则，强行共享需要改用数据属性承载意图（会动 DOM 与接线），因此改为**漂移守卫**：契约断言两份拷贝对每个共享意图必须声明完全相同的槽位。原判：同义 token 与样式块重复：Button/IconButton 意图管线逐字重复约 80 行（`Button.razor.css:38-46,287-321` vs `IconButton.razor.css:125-169`）；字段控件尺寸阶梯五件套三档值完全相同（`ComboBox.razor.css` vs `MultiSelect.razor.css`）；浮层组圆角两份（`Autocomplete.razor.css` vs `Search.razor.css`）；通知强调色映射两份（`DialogProvider.razor.css:37-38,74-90` vs `NoticeCard.razor.css:14-15,61-80`）；磨砂墨 5 角色接管块复制 7 份且其中 `--aeterni-text-muted`/`--aeterni-state-color-muted` 全库消费者为 0（14 行死声明） | 抽出共享层（如 `ButtonIntent` 管线基类选择器组、字段控件尺寸阶梯）；删除未被消费的死声明；`check-css-comments` 与令牌纯净度门禁通过 |
+| REV-123 / P2 | `ToggleGroup.razor.js` 与 `Toolbar.razor.js` 是同一文件的两份拷贝，160 行 diff 仅 4 行（`:2` 选择器、`:12` closest 判定、`:75`/`:98` 的 `data-orientation` vs `aria-orientation`） | 合并为共享模块并以参数区分选择器与方向属性来源；两侧行为回归通过 |
+| REV-124 / P2 | **修复时更正**：REV-109 抽走 `EditContext` 机制后重新测量，两份实现的重合从 196 行降到 155 行，其中可抽的「可清除文本控件」机制（`ClearAsync`/`ClearIcon`/`EffectiveClearLabel`）仅约 21 行，且 `ClearAsync` 两处只差一行（Autocomplete 多一个 `Close()`）；其余重合是**并列的参数声明**，属于有意保持的 API 一致性而非重复逻辑，为 21 行引入新类型不划算，故不抽。真正执行的是另一半：`MultiSelect` 的 `_visibleItems` 是 `Items` 的逐字拷贝、不含任何过滤，整套「可见项」结构已删除（22 处引用改为直接读 `Items`）。原判：`Autocomplete.razor.cs` 与 `Search.razor.cs` **196 行逐字相同**，占较短文件 73%（含 49 行的 EditContext 段与逐字相同的 `ClearIcon` RenderFragment）。而 `component-roadmap.zh-CN.md:817` 规划 Autocomplete 时写的是"复用 `Search` 的输入状态与 `PopupHost` + `List` 语义"——实际输入状态被拷贝、`List` 语义完全未复用（另写了一套 listbox/option）。相关：`MultiSelect.razor.cs:411-412` 的 `RebuildItems()` 只做 `AddRange(Items)`，`_visibleItems` 为纯拷贝不含过滤，却保留了整套可见项结构 | 按 roadmap 原意抽共享输入状态与 listbox 组合；`MultiSelect` 若无过滤需求则删除空转的可见项结构。重复度由人工复核确认下降 |
+
+### P3：需要新增设计体系表面的提案
+
+| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
+| --- | --- | --- |
+| REV-125 / P3 | 装饰性视觉在令牌体系中无落点。`FlashCard.razor.css:154-160,173,181-187,208` 共 25 处 `rgba()` 字面量，其中 `:175-179` 是一组固定五彩（`rgba(255,0,128)`/`rgba(255,176,0)`/`rgba(120,255,130)`/`rgba(0,220,255)`/`rgba(140,90,255)`）——全库唯一不随 `[data-aeterni-brand]` 变化的颜色。而 `AGENTS.md:18` 的色彩规则只覆盖"中性容器 + 品牌/语意色 + 交互态 + 通知卡片"，没有装饰性色彩的词汇；同文件已令牌化的 `--aeterni-flash-card-sheen-opacity`（`:20`）说明是体系缺层而非纪律疏忽 | 走 roadmap 新增装饰层令牌命名空间（如 `--aeterni-decor-*`），并成文"装饰色不参与语义与对比度契约"；FlashCard 字面量改走该层，品牌切换时装饰色行为需明确。未补齐前只在 roadmap 记为规划中，不得写成已实现 |
+
+### 建议的修复批次（第九轮）
+
+| 批次 | 范围 | 说明 |
+| --- | --- | --- |
+| 批次 15 ✅（已修复） | REV-97 ~ REV-103 | P0 渲染语义与可见缺陷，含 3 处无效标记/意外提交；契约回归见 `CheckArchitectureP0Async` |
+| 批次 16 ✅（已修复） | REV-104 ~ REV-108 | JS 生命周期与释放守卫；契约回归见 `CheckJsLifecycleAsync`（含失败重试行为用例） |
+| 批次 17 ✅（已修复） | REV-109 ~ REV-111 | 共享抽象与基类扩展点；契约回归见 `CheckSharedAbstractionsAsync` 与 `CheckQualityStatesAsync` 的 ElementId 断言 |
+| 批次 18 ⏳（部分修复） | REV-112 ~ REV-115 | REV-112～REV-114 已修复；REV-115 只完成非破坏性项，破坏性项转 roadmap |
+| 批次 19 ✅（已修复） | REV-116 | 补齐 `tests/virtual-list.test.mjs`、`multi-select.test.mjs`、`autocomplete.test.mjs` 与 `VirtualListContractHost`；行为断言纳入 `CheckVirtualListAsync` |
+| 批次 20 ✅（已修复） | REV-117 ~ REV-124 | Token 纪律与结构卫生；删除 146 个无引用令牌与 7 条死声明，令牌表 1177 → 943 行 |
+| 批次 21 ✅（已修复） | REV-125 | 新增 `--aeterni-decor-*` 装饰层，`FlashCard` 23 处字面量清零；契约写进设计规范 §5.3 |
+| 批次 22 ✅（已修复） | REV-126 | 与批次 15 同批修复（`sync` 解绑顺序），行为回归通过 |
+
+其中 REV-98、REV-99、REV-101 建议在批次 15 内优先处理：三者都会在真实宿主中产生用户可见的错误行为（通知被遮挡、表单意外提交、主题切换无过渡）。
+
+## 第九轮修复总结
+
+| 批次 | 范围 | 状态 | 落点 |
+| --- | --- | --- | --- |
+| 15 | REV-97 ~ REV-103 | 已修复 | P0 渲染语义与可见缺陷；契约组 `CheckArchitectureP0Async` |
+| 16 | REV-104 ~ REV-108、REV-126 | 已修复 | JS 生命周期与释放守卫；契约组 `CheckJsLifecycleAsync`（含失败重试行为用例） |
+| 17 | REV-109 ~ REV-111、REV-127 | 已修复 | 共享 `EditContextSubscription`、`ElementId` 扩展点、`aria-disabled` 约定；契约组 `CheckSharedAbstractionsAsync` |
+| 18 | REV-112 ~ REV-114 | 已修复 | 枚举校验统一（40 个参数）、文案回退；契约组 `CheckEnumValidationAsync`、`CheckTextTableFallbackAsync` |
+| 18 | REV-115 | 部分修复 | 非破坏性项（ComboBox `FullWidth`/`AriaDescribedBy`）已做；破坏性项转 roadmap |
+| 19 | REV-116 | 已修复 | 三个 JS 测试文件（18 用例）+ `VirtualListContractHost`，VirtualList 断言 4 → 20 条 |
+| 20 | REV-117 ~ REV-124 | 已修复 | 令牌表 1177 → 943 行；焦点环与 z-index 名收敛；tone/时长收敛到令牌；roving focus 与装饰层共享化 |
+| 21 | REV-125 | 已修复 | 新增 `--aeterni-decor-*`，FlashCard 字面量清零 |
+
+**修复过程中由契约测试或复核推翻的审阅结论**（均已在对应条目更正）：REV-112 的 `ToggleGroup` 白名单（不是风格差异，`SelectionMode.None` 需拒绝）、REV-113 的 5 处无守卫（实为 1 处）、REV-115 的 `SplitButton` 默认值（有断言保护的刻意设计）、REV-117 的 `FlashCardGroup` 魔数（组件内局部层叠）、REV-118 的内嵌偏移（两个值对应不同需求）、REV-122 的 14 行死声明（实为 7 条）、REV-124 的 196 行重复（REV-109 后实为 21 行可抽）。另有 REV-126（combobox 解绑顺序）、REV-127（`RadioGroup`/`Tab` 缺 `@ref`）、REV-128（190 个无引用令牌）为修复期间新发现。
+
+**尚未做**：REV-115 的破坏性公共 API 收口与 REV-128 保留色阶的收窄都待决策；第九轮全部改动未做浏览器实测，视觉类结论由渲染契约与 CSS 内容断言支撑。
 
 ## 第八轮：Breadcrumb / Stepper / List 审阅收口（10.17.1 / 10.17.2）
 

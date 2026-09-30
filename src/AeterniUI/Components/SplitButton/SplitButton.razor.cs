@@ -17,6 +17,8 @@ public partial class SplitButton : AeterniComponent
     [Parameter, EditorRequired] public IReadOnlyList<MenuGroup> Items { get; set; } = [];
     [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
     [Parameter] public ButtonIntent Intent { get; set; } = ButtonIntent.Neutral;
+    // Deliberately Small: SplitButton is the compact segmented action group, and
+    // its contract check enforces this default.
     [Parameter] public Size Size { get; set; } = Size.Small;
     [Parameter] public bool PrimaryDisabled { get; set; }
     [Parameter] public bool MenuDisabled { get; set; }
@@ -45,6 +47,21 @@ public partial class SplitButton : AeterniComponent
             throw new ArgumentException("SplitButton requires a menu accessible name.", nameof(MenuAriaLabel));
         if (IsMenuDisabled)
             _internalOpen = false;
+    
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown split button variant.");
+        }
+
+        if (!Enum.IsDefined(Intent))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Intent), Intent, "Unknown split button intent.");
+        }
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown split button size.");
+        }
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()

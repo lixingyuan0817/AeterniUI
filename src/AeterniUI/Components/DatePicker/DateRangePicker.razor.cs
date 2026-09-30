@@ -13,6 +13,11 @@ public partial class DateRangePicker : AeterniComponent
     [CascadingParameter] private FormFieldContext? FormField { get; set; }
     [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public DateRangePicker() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter] public DateOnly? StartDate { get; set; }
     [Parameter] public EventCallback<DateOnly?> StartDateChanged { get; set; }
     [Parameter] public DateOnly? EndDate { get; set; }
@@ -35,7 +40,6 @@ public partial class DateRangePicker : AeterniComponent
 
     private bool _open;
     private DateOnly? _hoverDate;
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _startFieldIdentifier;
     private FieldIdentifier _endFieldIdentifier;
     private bool _hasFieldIdentifiers;
@@ -49,8 +53,8 @@ public partial class DateRangePicker : AeterniComponent
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;
     private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifiers &&
-        ((StartDateExpression is not null && _subscribedEditContext?.GetValidationMessages(_startFieldIdentifier).Any() == true) ||
-         (EndDateExpression is not null && _subscribedEditContext?.GetValidationMessages(_endFieldIdentifier).Any() == true)));
+        ((StartDateExpression is not null && _validation.HasValidationMessages(_startFieldIdentifier)) ||
+         (EndDateExpression is not null && _validation.HasValidationMessages(_endFieldIdentifier))));
     private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
@@ -68,8 +72,8 @@ public partial class DateRangePicker : AeterniComponent
         if (MinDate.HasValue && MaxDate.HasValue && MinDate.Value > MaxDate.Value)
             throw new ArgumentException("The minimum date cannot be later than the maximum date.");
         ValidatePresets();
-        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown date range picker placement.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown date range picker size.");
     }
 
     private bool IsDateDisabled(DateOnly date) =>
@@ -134,33 +138,23 @@ public partial class DateRangePicker : AeterniComponent
 
     private void UpdateEditContextSubscription()
     {
-        var next = CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, next))
-        {
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = next;
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-        }
+        _validation.Attach(CascadedEditContext);
         _hasFieldIdentifiers = StartDateExpression is not null || EndDateExpression is not null;
         if (StartDateExpression is not null) _startFieldIdentifier = FieldIdentifier.Create(StartDateExpression);
         if (EndDateExpression is not null) _endFieldIdentifier = FieldIdentifier.Create(EndDateExpression);
     }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
-    }
-
     private void NotifyFieldChanged()
     {
-        if (!_hasFieldIdentifiers || _subscribedEditContext is null) return;
-        if (StartDateExpression is not null) _subscribedEditContext.NotifyFieldChanged(_startFieldIdentifier);
-        if (EndDateExpression is not null) _subscribedEditContext.NotifyFieldChanged(_endFieldIdentifier);
+        if (!_hasFieldIdentifiers) return;
+        if (StartDateExpression is not null) _validation.NotifyFieldChanged(_startFieldIdentifier);
+        if (EndDateExpression is not null) _validation.NotifyFieldChanged(_endFieldIdentifier);
     }
+
 
     protected override ValueTask OnComponentDisposeAsync()
     {
-        if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        _validation.Detach();
         return ValueTask.CompletedTask;
     }
 

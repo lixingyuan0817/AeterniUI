@@ -189,7 +189,7 @@
 }
 
 .app-nav ::deep .app-nav__link:focus-visible {
-    outline: 2px solid var(--aeterni-control-focus-ring);
+    outline: 2px solid var(--aeterni-focus-color);
     outline-offset: 3px;
     border-radius: var(--aeterni-radius-sm);
 }

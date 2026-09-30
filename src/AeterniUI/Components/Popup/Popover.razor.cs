@@ -191,7 +191,11 @@ public partial class Popover : AeterniComponent
 
     private async Task CloseAsync()
     {
-        if (!Open || Disabled || _closing)
+        // Every close path funnels through here, including the JSInvokable
+        // RequestCloseAsync, so the released-component guard belongs in this one
+        // place: a queued browser callback must not still flip Open or invoke
+        // OpenChanged after the component is gone.
+        if (IsDisposed || !Open || Disabled || _closing)
         {
             return;
         }

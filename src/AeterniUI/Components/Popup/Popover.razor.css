@@ -100,7 +100,6 @@
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 

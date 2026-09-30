@@ -16,6 +16,7 @@ using AeterniUI.Components.VirtualList;
 using AeterniUI.Enums;
 using AeterniUI.Icons;
 using AeterniUI.Services;
+using AeterniUI.Services.Impl;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,11 @@ await CheckVirtualListAsync();
 await CheckQualityStatesAsync();
 await CheckDateBoundariesAsync();
 await CheckOverlayTransitionsAsync();
+await CheckArchitectureP0Async();
+await CheckJsLifecycleAsync();
+await CheckSharedAbstractionsAsync();
+await CheckEnumValidationAsync();
+await CheckTextTableFallbackAsync();
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -65,7 +71,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (23 groups).");
+Console.WriteLine("Component contract checks passed (28 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -109,6 +115,22 @@ async Task CheckQualityStatesAsync()
         host.Disabled = host.Invalid = host.Required = false; host.Update();
         trigger = Regex.Match(root.ToHtmlString(), "<button[^>]*role=\"combobox\"[^>]*>").Value;
         Require(!trigger.Contains("disabled") && !trigger.Contains("aria-required"), "Field state can be cleared dynamically.");
+
+        // REV-110: ElementId is public API that consumers turn into `for`,
+        // aria-controls and aria-describedby references, so it has to be the id the
+        // DOM actually carries — including when the component adopts a field id.
+        var rendered = root.ToHtmlString();
+        // The adopted id is what makes this discriminating: before the fix
+        // ElementId reported the instance GUID while the fieldset rendered the
+        // FormField's input id, so the containment check below could not pass.
+        Require(host.Radios.ElementId.EndsWith("-input", StringComparison.Ordinal),
+            "RadioGroup inside a FormField must report the field-adopted id from ElementId.");
+        Require(rendered.Contains($"id=\"{host.Radios.ElementId}\"", StringComparison.Ordinal),
+            "RadioGroup.ElementId must match the id it renders, including the FormField-adopted id.");
+        Require(rendered.Contains($"id=\"{host.Standalone.ElementId}\"", StringComparison.Ordinal),
+            "Radio.ElementId must match the id it renders.");
+        Require(rendered.Contains($"id=\"{host.Tabs.ElementId}\"", StringComparison.Ordinal),
+            "Tabs.ElementId must match the id it renders.");
     });
     var accordion = await RenderAsync<Accordion>(new Dictionary<string, object?> {
         ["Items"] = new[] { new AccordionItem("locked", "Locked", b => b.AddContent(0, "Content"), true) },
@@ -501,6 +523,95 @@ async Task CheckVirtualListAsync()
         [nameof(VirtualList<string>.EmptyContent)] = (RenderFragment)(builder => builder.AddContent(0, "Empty virtual list"))
     });
     Require(plain.Contains("Empty virtual list", StringComparison.Ordinal) && plain.Contains("role=\"list\"", StringComparison.Ordinal), "VirtualList empty display mode must retain plain list semantics.");
+
+    // Each scenario gets its own host: the active row is component state, so
+    // sharing one host would let an earlier scenario steer a later assertion.
+    async Task<VirtualListContractHost> HostAsync(Action<VirtualListContractHost>? configure = null)
+    {
+        VirtualListContractHost created = null!;
+        await renderer.RenderComponentAsync<VirtualListContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+            { ["Ready"] = (Action<VirtualListContractHost>)(x => created = x) }));
+        configure?.Invoke(created);
+        created.Update();
+        return created;
+    }
+
+    async Task Call(VirtualListContractHost host, string name, params object?[] args) =>
+        await (Task)typeof(VirtualList<string>).GetMethod(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)!.Invoke(host.List, args)!;
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        // Keyboard navigation moves the active row and commits it in single mode,
+        // so the browser-facing entry point is exercised, not just its markup.
+        var single = await HostAsync();
+        await Call(single, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(Equals(single.Selected, "Alpha"), "VirtualList ArrowDown must activate and select the first row.");
+        Require(single.Picked.Count == 1 && single.Picked[0] == "Alpha", "VirtualList must report the picked row through OnItemSelected.");
+        await Call(single, "HandleKeyFromBrowserAsync", "End");
+        Require(Equals(single.Selected, "Gamma"), "VirtualList End must jump to the last row.");
+        await Call(single, "HandleKeyFromBrowserAsync", "Home");
+        Require(Equals(single.Selected, "Alpha"), "VirtualList Home must return to the first row.");
+
+        // A row the host disables is skipped rather than activated.
+        var skipping = await HostAsync(x => x.DisabledSelector = value => value == "Beta");
+        await Call(skipping, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(Equals(skipping.Selected, "Alpha"), "VirtualList must start on the first enabled row.");
+        await Call(skipping, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(Equals(skipping.Selected, "Gamma"), "VirtualList must skip rows disabled by DisabledSelector.");
+
+        // Multi-select separates navigation from selection: arrows move the active
+        // row and only Enter/Space toggle it into the set, so a stray arrow key
+        // cannot rewrite a multi-row selection.
+        var multiple = await HostAsync(x => x.Mode = SelectionMode.Multiple);
+        await Call(multiple, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(multiple.SelectedMany.Count == 0, "An arrow key must not select in multi-select mode.");
+        await Call(multiple, "HandleKeyFromBrowserAsync", "Enter");
+        await Call(multiple, "HandleKeyFromBrowserAsync", "ArrowDown");
+        await Call(multiple, "HandleKeyFromBrowserAsync", "Enter");
+        Require(multiple.SelectedMany.Count == 2, "VirtualList multi-select must accumulate rows toggled with Enter.");
+
+        // The in-flight latch is a concurrency guard: a second request raised while
+        // the host is still answering the first must not reach the host again.
+        var gated = await HostAsync(x => { x.HasMoreItems = true; x.LoadMoreGate = new TaskCompletionSource(); });
+        var firstLoad = Call(gated, "HandleLoadMoreAsync");
+        await Call(gated, "HandleLoadMoreAsync");
+        Require(gated.LoadMoreCalls == 1, "VirtualList must not raise a second load while one is in flight.");
+        gated.LoadMoreGate!.SetResult();
+        await firstLoad;
+        Require(gated.LoadMoreCalls == 1, "VirtualList must not report the same load twice.");
+
+        // Once the host re-arms it, a fresh request goes through again.
+        gated.LoadMoreGate = null;
+        await Call(gated, "HandleLoadMoreAsync");
+        Require(gated.LoadMoreCalls == 2, "VirtualList must report again once the host re-arms it.");
+
+        // A key selector that is not unique cannot address rows, so it must fail loudly.
+        foreach (var selector in new Func<string, object?>[] { _ => "same", _ => null })
+        {
+            try
+            {
+                await HostAsync(x => x.KeySelector = selector);
+                Require(false, "VirtualList must reject an ItemKeySelector that is not a unique non-null key.");
+            }
+            catch (ArgumentException) { }
+        }
+
+        // REV-107: the browser can queue a callback that lands after the component
+        // is gone. Driving a real instance matters here — a bare one returns early
+        // on IsSelectable and would pass without proving the guard exists.
+        var disposed = await HostAsync();
+        await Call(disposed, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(Equals(disposed.Selected, "Alpha"), "VirtualList must select before disposal, so the guard below is meaningful.");
+
+        await ((IAsyncDisposable)disposed.List).DisposeAsync();
+
+        disposed.Selected = null;
+        disposed.Picked.Clear();
+        await Call(disposed, "HandleKeyFromBrowserAsync", "ArrowDown");
+        await Call(disposed, "HandleKeyFromBrowserAsync", "Enter");
+        Require(disposed.Selected is null && disposed.Picked.Count == 0,
+            "VirtualList must ignore a queued browser callback that arrives after disposal.");
+    });
 }
 
 async Task CheckToggleGroupAsync()
@@ -838,8 +949,13 @@ async Task CheckMultiSelectAsync()
         && html.Contains("width: min(100%, var(--aeterni-width-input-md));"),
         "MultiSelect popup host must stay aligned with the trigger width.");
     Require(!html.Contains("}"), "MultiSelect must not leak Razor closing braces into rendered markup.");
-    Require(html.Contains("&#x5168;&#x9009;") && html.Contains("&#x6E05;&#x9664;"),
-        "MultiSelect default bulk actions must use Chinese labels.");
+    // Built-in defaults must be English: a host that never overrides Text has to
+    // render a usable label, and the bulk actions paint this value as visible
+    // button text, not only as an accessible name.
+    Require(html.Contains(">Select all<") && html.Contains(">Clear<"),
+        "MultiSelect default bulk actions must use the built-in English labels.");
+    Require(!Regex.IsMatch(html, ">[^<]*[\\u4e00-\\u9fff][^<]*<"),
+        "MultiSelect must not render CJK text from built-in defaults.");
 
     var empty = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?>
     {
@@ -1332,6 +1448,274 @@ async Task CheckFlashCardGroupAsync()
     }
 }
 
+// Regression guards for the ninth review round's P0 batch. Each assertion locks a
+// fix in place so the pre-fix shape cannot come back unnoticed.
+async Task CheckArchitectureP0Async()
+{
+    var root = FindRepositoryRoot();
+
+    // REV-97: the Radio root is a <label>, which cannot carry the native disabled
+    // attribute. Disabling must surface through the input plus one aria-disabled.
+    var radio = await RenderAsync<AeterniUI.Components.Radio.Radio<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "a",
+        ["Disabled"] = true
+    });
+    var radioRoot = Regex.Match(radio, "<label[^>]*>").Value;
+    // Match the attribute itself: `aria-disabled="true"` also contains the
+    // substring "disabled", so a plain Contains would never pass.
+    Require(!Regex.IsMatch(radioRoot, @"\sdisabled="),
+        "Radio label root must not emit native disabled (invalid on <label>).");
+    Require(radioRoot.Contains("aria-disabled=\"true\""), "Radio label root must still report aria-disabled.");
+    Require(Regex.Match(radio, "<input[^>]*type=\"radio\"[^>]*>").Value.Contains("disabled"),
+        "Radio input must keep the native disabled state.");
+
+    // REV-99: an undefined ButtonType used to render verbatim as type="99", and
+    // HTML resolves an invalid type to `submit`, silently submitting the form.
+    try
+    {
+        await RenderAsync<AeterniUI.Components.Button.Button>(new Dictionary<string, object?>
+        {
+            [nameof(AeterniUI.Components.Button.Button.Type)] = (ButtonType)99
+        });
+        Require(false, "Button must reject an unknown ButtonType instead of rendering type=\"99\".");
+    }
+    catch (ArgumentOutOfRangeException) { }
+
+    var submitButton = await RenderAsync<AeterniUI.Components.Button.Button>(new Dictionary<string, object?>
+    {
+        [nameof(AeterniUI.Components.Button.Button.Type)] = ButtonType.Submit
+    });
+    Require(submitButton.Contains("type=\"submit\""), "Button must render ButtonType.Submit as the native submit type.");
+
+    // REV-102: DateCalendar inherits the base DOM contract, so the inherited
+    // parameters must reach the rendered root instead of being dead.
+    var calendar = await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+    {
+        [nameof(DateCalendar.DisplayMonth)] = new DateOnly(2026, 9, 1),
+        ["Class"] = "consumer-calendar",
+        ["Id"] = "consumer-calendar-id"
+    });
+    Require(calendar.Contains("consumer-calendar", StringComparison.Ordinal)
+        && calendar.Contains("id=\"consumer-calendar-id\"", StringComparison.Ordinal),
+        "DateCalendar must honour consumer Class and Id through the base DOM contract.");
+
+    // REV-98: the provider root must not create a stacking context, or the notice
+    // region is clamped below popovers (1060) and tooltips (1070).
+    var dialogCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Dialog/DialogProvider.razor.css"));
+    var providerRoot = Regex.Match(dialogCss, @"\.aeterni-dialog-provider\s*\{[^}]*\}").Value;
+    Require(!providerRoot.Contains("position", StringComparison.Ordinal)
+        && !providerRoot.Contains("z-index", StringComparison.Ordinal)
+        && !providerRoot.Contains("isolation", StringComparison.Ordinal),
+        "The dialog provider root must not create a stacking context.");
+
+    // REV-101: the transition rule drives the class ThemeProvider toggles, so it
+    // must ship with the library rather than only in the sample host.
+    var tokens = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/wwwroot/css/aeterni_ui.css"));
+    Require(tokens.Contains("html.aeterni-theme-transitioning", StringComparison.Ordinal),
+        "The theme transition rule must ship with the library.");
+    var sampleCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI.Sample/wwwroot/css/app.css"));
+    Require(!sampleCss.Contains("html.aeterni-theme-transitioning", StringComparison.Ordinal),
+        "Hosts must not restate the library theme transition rule.");
+
+    // REV-103: the combobox modules need the real trigger/input element. Passing
+    // RootElement let a consumer-supplied Element parameter silently disable
+    // keyboard suppression and active-option scrolling.
+    foreach (var component in new[] { "MultiSelect", "Autocomplete" })
+    {
+        var code = await File.ReadAllTextAsync(Path.Combine(root, $"src/AeterniUI/Components/{component}/{component}.razor.cs"));
+        Require(!code.Contains("\"sync\", InstanceId, RootElement", StringComparison.Ordinal),
+            $"{component} must pass its real trigger/input element to the JS module, not RootElement.");
+    }
+}
+
+// Regression guards for the ninth review round's P1 JS-lifecycle batch.
+async Task CheckJsLifecycleAsync()
+{
+    var root = FindRepositoryRoot();
+
+    // REV-105: a failed import must not be cached, or one transient failure
+    // silently strips the component of its JS behaviour for the whole circuit.
+    var runtime = new FlakyImportJsRuntime();
+    await using var manager = new JsModuleManager(runtime);
+    manager.ScanComponent(typeof(MultiSelect<string>));
+    var first = await manager.GetModuleAsync("multi-select");
+    Require(first is null && runtime.ImportAttempts == 1, "A failed module import must resolve to null.");
+    await manager.GetModuleAsync("multi-select");
+    Require(runtime.ImportAttempts == 2, "A failed module import must not be cached: the next call has to retry.");
+
+    // REV-104: the base class has to pair its dispose with a load that is still in
+    // flight, so an instance created by init always has an owner that disposes it.
+    var baseClass = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/AeterniComponent.cs"));
+    Require(baseClass.Contains("_jsModuleLoadStarted", StringComparison.Ordinal)
+        && baseClass.Contains("if (IsDisposed)", StringComparison.Ordinal),
+        "AeterniComponent must record that a JS load started and guard the load with IsDisposed.");
+
+    // REV-106: the provider module must address its own instance by key, and may
+    // only tear down module-global state once the last provider is gone.
+    var dialogJs = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Dialog/DialogProvider.razor.js"));
+    Require(!dialogJs.Contains("[...instances.values()][0]", StringComparison.Ordinal),
+        "DialogProvider sync must resolve its own instance by key.");
+    Require(dialogJs.Contains("instances.size === 0", StringComparison.Ordinal),
+        "DialogProvider may only dispose module-global progress state when no provider is left.");
+
+    // REV-107 / REV-108: a component exposing [JSInvokable] entry points can be
+    // called from the browser after release, so it must be disposal-aware. The
+    // guard may sit at the entry point or in the funnel it delegates to, which is
+    // why this checks the file rather than each method body.
+    foreach (var file in Directory.EnumerateFiles(
+        Path.Combine(root, "src/AeterniUI/Components"), "*.razor.cs", SearchOption.AllDirectories))
+    {
+        var source = await File.ReadAllTextAsync(file);
+        if (!source.Contains("[JSInvokable]", StringComparison.Ordinal))
+        {
+            continue;
+        }
+
+        Require(source.Contains("IsDisposed", StringComparison.Ordinal) || source.Contains("_disposed", StringComparison.Ordinal),
+            $"{Path.GetFileName(file)} exposes [JSInvokable] entry points without any disposal guard.");
+    }
+}
+
+// Regression guards for the ninth review round's P1 shared-abstraction batch.
+async Task CheckSharedAbstractionsAsync()
+{
+    var root = FindRepositoryRoot();
+    var subscriptionFile = Path.Combine(root, "src/AeterniUI/Components/EditContextSubscription.cs");
+    var components = Path.Combine(root, "src/AeterniUI/Components");
+
+    foreach (var file in Directory.EnumerateFiles(components, "*.razor.cs", SearchOption.AllDirectories))
+    {
+        var source = await File.ReadAllTextAsync(file);
+        var name = Path.GetFileName(file);
+
+        // REV-109: the EditContext subscription mechanics live in exactly one
+        // place. A component that touches OnValidationStateChanged itself is a
+        // re-grown copy of the machinery the shared helper exists to own.
+        if (!string.Equals(file, subscriptionFile, StringComparison.Ordinal))
+        {
+            Require(!source.Contains("OnValidationStateChanged", StringComparison.Ordinal),
+                $"{name} subscribes to EditContext directly; route it through EditContextSubscription.");
+        }
+
+        // REV-111: aria-disabled is emitted only while disabled. An explicit
+        // "false" would be a second convention alongside the base class.
+        Require(!Regex.IsMatch(source, "\\[\"aria-disabled\"\\]\\s*=\\s*[^;]*\"false\""),
+            $"{name} must not render aria-disabled=\"false\".");
+    }
+
+    // REV-122: CSS isolation means a component stylesheet cannot be shared, so the
+    // button family necessarily keeps two copies of the intent pipeline. That is
+    // acceptable; letting them drift is not. Both copies must wire the same slots
+    // for every intent they have in common, so adding a slot to one and forgetting
+    // the other fails here instead of shipping two different button behaviours.
+    static Dictionary<string, string> IntentSlots(string css, string prefix)
+    {
+        var slots = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(css, $@"\.{Regex.Escape(prefix)}--(\w+)\s*\{{([^}}]*)\}}"))
+        {
+            // Only the intent blocks wire the shared intent tokens; size and
+            // variant modifiers legitimately differ between the two components.
+            if (!match.Groups[2].Value.Contains("--aeterni-button-intent-", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            // Compare only the declarations that wire the shared intent tokens:
+            // the rest of a block is component-specific (Button folds its disabled
+            // slots into the same rule, IconButton keeps them separate).
+            var declarations = match.Groups[2].Value
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(declaration => declaration.Contains("--aeterni-button-intent-", StringComparison.Ordinal))
+                .Select(declaration => Regex.Replace(declaration, @"\s+", " "))
+                .OrderBy(declaration => declaration, StringComparer.Ordinal);
+            slots[match.Groups[1].Value] = string.Join("|", declarations);
+        }
+
+        return slots;
+    }
+
+    var buttonIntents = IntentSlots(
+        await File.ReadAllTextAsync(Path.Combine(components, "Button/Button.razor.css")), "aeterni-button");
+    var iconButtonIntents = IntentSlots(
+        await File.ReadAllTextAsync(Path.Combine(components, "IconButton/IconButton.razor.css")), "aeterni-icon-button");
+    var sharedIntents = buttonIntents.Keys.Intersect(iconButtonIntents.Keys, StringComparer.Ordinal).ToArray();
+    Require(sharedIntents.Length >= 3, "The button family must share at least the neutral, warning and danger intents.");
+    foreach (var intent in sharedIntents)
+    {
+        Require(buttonIntents[intent] == iconButtonIntents[intent],
+            $"Button and IconButton must wire identical slots for the '{intent}' intent.");
+    }
+
+    // REV-127: inheriting the base contract means feeding the root element back.
+    // Without the @ref binding, Element and ElementChanged stay dead parameters.
+    foreach (var markup in new[] { "Radio/RadioGroup.razor", "Tabs/Tab.razor" })
+    {
+        var source = await File.ReadAllTextAsync(Path.Combine(components, markup));
+        Require(source.Contains("@ref=\"RootElement\"", StringComparison.Ordinal),
+            $"{markup} must bind @ref=\"RootElement\" so Element and ElementChanged work.");
+    }
+}
+
+// Regression guards for the ninth review round's P1 validation and localisation
+// batch. Enum validation used to be split: some components threw, others silently
+// degraded, and the silent ones had no contract coverage at all.
+async Task CheckEnumValidationAsync()
+{
+    var cases = new (string Name, Func<Task> Render)[]
+    {
+        ("Button.Variant", () => RenderAsync<AeterniUI.Components.Button.Button>(new Dictionary<string, object?> { ["Variant"] = (ButtonVariant)99 })),
+        ("Button.Intent", () => RenderAsync<AeterniUI.Components.Button.Button>(new Dictionary<string, object?> { ["Intent"] = (ButtonIntent)99 })),
+        ("Button.Size", () => RenderAsync<AeterniUI.Components.Button.Button>(new Dictionary<string, object?> { ["Size"] = (Size)99 })),
+        ("IconButton.AriaLabel", () => RenderAsync<AeterniUI.Components.IconButton.IconButton>(new Dictionary<string, object?> { ["AriaLabel"] = "  " })),
+        ("Surface.Variant", () => RenderAsync<AeterniUI.Components.Surface.Surface>(new Dictionary<string, object?> { ["Variant"] = (SurfaceVariant)99 })),
+        ("Card.Elevation", () => RenderAsync<AeterniUI.Components.Card.Card>(new Dictionary<string, object?> { ["Elevation"] = (SurfaceElevation)99 })),
+        ("Icon.Color", () => RenderAsync<AeterniUI.Components.Icon.Icon>(new Dictionary<string, object?> { ["Color"] = (Color)99 })),
+        ("Radio.Size", () => RenderAsync<AeterniUI.Components.Radio.Radio<string>>(new Dictionary<string, object?> { ["Value"] = "a", ["Size"] = (Size)99 })),
+        ("ButtonGroup.Orientation", () => RenderAsync<AeterniUI.Components.ButtonGroup.ButtonGroup>(new Dictionary<string, object?> { ["Orientation"] = (Orientation)99 })),
+        ("ThemeSwitch.Size", () => RenderAsync<AeterniUI.Components.Theme.ThemeSwitch>(new Dictionary<string, object?> { ["Size"] = (Size)99 })),
+        ("ToggleGroup.SelectionMode", () => RenderAsync<AeterniUI.Components.ToggleGroup.ToggleGroup>(new Dictionary<string, object?> {
+            ["AriaLabel"] = "Actions", ["SelectionMode"] = SelectionMode.None }))
+    };
+
+    foreach (var (name, render) in cases)
+    {
+        try
+        {
+            await render();
+            Require(false, $"{name} must reject its invalid value instead of degrading silently.");
+        }
+        catch (ArgumentException) { }
+    }
+}
+
+// REV-114: components whose parameter defaults used to be hard-coded English (or
+// which refused an empty value outright) now fall back to the text table, so a
+// host can localise them without setting every parameter.
+async Task CheckTextTableFallbackAsync()
+{
+    var calendar = await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+    {
+        [nameof(DateCalendar.DisplayMonth)] = new DateOnly(2026, 9, 1)
+    });
+    Require(calendar.Contains("aria-label=\"Calendar\"", StringComparison.Ordinal),
+        "DateCalendar must fall back to the text table for its accessible name.");
+
+    var deck = await RenderAsync<FlashCardGroup>(new Dictionary<string, object?>
+    {
+        ["ChildContent"] = (RenderFragment)(builder => builder.AddContent(0, "card"))
+    });
+    Require(deck.Contains("aria-label=\"Flash cards\"", StringComparison.Ordinal),
+        "FlashCardGroup must fall back to the text table instead of throwing on an unset name.");
+
+    var rating = await RenderAsync<AeterniUI.Components.Rating.Rating>(new Dictionary<string, object?>
+    {
+        ["Value"] = 3
+    });
+    Require(rating.Contains("aria-label=\"3 of 5\"", StringComparison.Ordinal),
+        "Rating stars must announce their meaning through the text table, not a bare number.");
+}
+
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)
     where TComponent : IComponent
 {
@@ -1368,4 +1752,32 @@ internal sealed class NoopJsRuntime : IJSRuntime
 
     public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
         ValueTask.FromResult(default(TValue)!);
+}
+
+/// <summary>
+/// Fails the first <c>import</c> and succeeds on every later one, so a test can
+/// tell "the failure was retried" apart from "the failure was cached".
+/// </summary>
+internal sealed class FlakyImportJsRuntime : IJSRuntime
+{
+    public int ImportAttempts { get; private set; }
+
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
+    {
+        if (identifier != "import")
+        {
+            return ValueTask.FromResult(default(TValue)!);
+        }
+
+        ImportAttempts++;
+        if (ImportAttempts == 1)
+        {
+            throw new JSDisconnectedException("The circuit is mid-disconnect.");
+        }
+
+        return ValueTask.FromResult(default(TValue)!);
+    }
+
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
+        InvokeAsync<TValue>(identifier, args);
 }
