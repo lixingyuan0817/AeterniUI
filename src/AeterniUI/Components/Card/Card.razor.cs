@@ -59,6 +59,12 @@ public partial class Card : AeterniComponent
         }
     }
 
+    // No Radius parameter, unlike Surface. The token layer states the reason:
+    // Card carries a header, body and footer, so it reads as the larger container
+    // and takes the fixed container radius, while Surface is a plain wrapper that
+    // follows the control geometry and therefore exposes the scale. Adding the
+    // option here would contradict that and duplicate six rule bodies that CSS
+    // isolation cannot share.
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
@@ -138,28 +144,10 @@ public partial class Card : AeterniComponent
 
     // Each mapper returns null for the tier that the component's base rule
     // already renders, so no modifier class is emitted without a matching rule.
-    private string? VariantClass => Variant switch
-    {
-        SurfaceVariant.Subtle => "subtle",
-        SurfaceVariant.Elevated => "elevated",
-        SurfaceVariant.Glass => "glass",
-        _ => null
-    };
-
-    private string? ElevationClass => Elevation switch
-    {
-        SurfaceElevation.Small => "elevation-small",
-        SurfaceElevation.Medium => "elevation-medium",
-        SurfaceElevation.Large => "elevation-large",
-        _ => null
-    };
-
-    private string? PaddingClass => Padding switch
-    {
-        SurfacePadding.None => "padding-none",
-        SurfacePadding.Small => "padding-small",
-        SurfacePadding.Large => "padding-large",
-        SurfacePadding.ExtraLarge => "padding-extra-large",
-        _ => "padding-medium"
-    };
+    // The surface recipe is shared with the sibling container, so the
+    // option-to-modifier mapping lives in ComponentClass rather than being written
+    // out in both components and left to drift.
+    private string? VariantClass => ComponentClass.ForSurfaceVariant(Variant);
+    private string? ElevationClass => ComponentClass.ForSurfaceElevation(Elevation);
+    private string? PaddingClass => ComponentClass.ForSurfacePadding(Padding);
 }

@@ -51,6 +51,9 @@ public partial class Surface : AeterniComponent
         }
     }
 
+    // Card renders the same recipe with a fixed container radius and no option for
+    // it (see the token layer's container-radius note); the difference is
+    // deliberate, so this component keeps the only RadiusClass.
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
@@ -65,39 +68,12 @@ public partial class Surface : AeterniComponent
 
     // Each mapper returns null for the tier that the component's base rule
     // already renders, so no modifier class is emitted without a matching rule.
-    private string? VariantClass => Variant switch
-    {
-        SurfaceVariant.Subtle => "subtle",
-        SurfaceVariant.Elevated => "elevated",
-        SurfaceVariant.Glass => "glass",
-        _ => null
-    };
+    // The surface recipe is shared with the sibling container, so the
+    // option-to-modifier mapping lives in ComponentClass rather than being written
+    // out in both components and left to drift.
+    private string? VariantClass => ComponentClass.ForSurfaceVariant(Variant);
+    private string? ElevationClass => ComponentClass.ForSurfaceElevation(Elevation);
+    private string? PaddingClass => ComponentClass.ForSurfacePadding(Padding);
 
-    private string? ElevationClass => Elevation switch
-    {
-        SurfaceElevation.Small => "elevation-small",
-        SurfaceElevation.Medium => "elevation-medium",
-        SurfaceElevation.Large => "elevation-large",
-        _ => null
-    };
-
-    private string? PaddingClass => Padding switch
-    {
-        SurfacePadding.None => "padding-none",
-        SurfacePadding.Small => "padding-small",
-        SurfacePadding.Large => "padding-large",
-        SurfacePadding.ExtraLarge => "padding-extra-large",
-        _ => "padding-medium"
-    };
-
-    private string? RadiusClass => Radius switch
-    {
-        SurfaceRadius.None => "radius-none",
-        SurfaceRadius.Small => "radius-small",
-        SurfaceRadius.Medium => "radius-medium",
-        SurfaceRadius.Large => "radius-large",
-        SurfaceRadius.ExtraLarge => "radius-extra-large",
-        SurfaceRadius.Round => "radius-round",
-        _ => null
-    };
+    private string? RadiusClass => ComponentClass.ForSurfaceRadius(Radius);
 }
