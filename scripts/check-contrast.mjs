@@ -152,11 +152,39 @@ function resolveContext(rules, { brand, mode }) {
         const text = value.trim();
         const hex = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
         if (hex) return parseHex(text);
+        // `transparent` is a colour keyword, not a variable, and the palette uses
+        // it as a color-mix operand.
+        if (/^transparent$/i.test(text)) return { r: 0, g: 0, b: 0, a: 0 };
+
         const fn = text.match(/^rgba?\(([^)]+)\)$/i);
         if (fn) {
-            const [r, g, b, a = '1'] = fn[1].split(/[,\s/]+/).filter(Boolean).map(Number);
-            return { r, g, b, a };
+            const [r, g, b, a = '1'] = fn[1].split(/[,\s/]+/).filter(Boolean);
+            const alpha = typeof a === 'string' && a.endsWith('%')
+                ? Number.parseFloat(a) / 100
+                : Number(a);
+            return { r: Number(r), g: Number(g), b: Number(b), a: alpha };
         }
+        // `color-mix(in srgb, A p%, B)`: a weighted average with premultiplied
+        // alpha, per CSS Color 5. Only the sRGB space appears in this palette, and
+        // the common `... 24%, transparent` form falls out of the same formula.
+        const mix = text.match(/^color-mix\(\s*in\s+srgb\s*,([\s\S]*)\)$/i);
+        if (mix) {
+            const parts = splitTopLevel(mix[1]);
+            if (parts.length !== 2) throw new Error(`unsupported color-mix operands ${JSON.stringify(text)}`);
+            const [aPart, bPart] = parts.map(part => {
+                const percentage = part.match(/([\d.]+)%\s*$/);
+                const value = percentage ? part.slice(0, percentage.index).trim() : part.trim();
+                return { weight: percentage ? Number(percentage[1]) / 100 : null, color: resolve(value, seen) };
+            });
+            const aWeight = aPart.weight ?? (bPart.weight === null ? 0.5 : 1 - bPart.weight);
+            const bWeight = bPart.weight ?? 1 - aWeight;
+            const alpha = (aWeight * aPart.color.a) + (bWeight * bPart.color.a);
+            if (alpha === 0) return { r: 0, g: 0, b: 0, a: 0 };
+            const mixChannel = key => ((aWeight * aPart.color.a * aPart.color[key]) +
+                (bWeight * bPart.color.a * bPart.color[key])) / alpha;
+            return { r: mixChannel('r'), g: mixChannel('g'), b: mixChannel('b'), a: alpha };
+        }
+
         const ref = text.match(/^var\(\s*(--[\w-]+)\s*(?:,([\s\S]*))?\)$/);
         if (ref) {
             const name = ref[1];
@@ -179,6 +207,21 @@ function resolveContext(rules, { brand, mode }) {
     };
 
     return { color };
+}
+
+/** Splits on commas that are not inside parentheses. */
+function splitTopLevel(text) {
+    const parts = [];
+    let depth = 0;
+    let current = '';
+    for (const ch of text) {
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        if (ch === ',' && depth === 0) { parts.push(current); current = ''; continue; }
+        current += ch;
+    }
+    if (current.trim()) parts.push(current);
+    return parts.map(part => part.trim());
 }
 
 /* --- color math ---------------------------------------------------------- */
@@ -226,10 +269,30 @@ function contrast(fg, bg) {
    still prints the numbers, and so that a *new* shortfall fails the build. The
    list only grows by editing this constant. */
 const KNOWN_SHORTFALLS = new Map([
-    // Empty. Every entry here is a measured pair that is below its floor and
-    // still awaiting a palette decision; the list only grows by editing this
-    // constant, and each entry names the review item that tracks it.
+    // REV-130: the focus ring is a 24% (light) / 32% (dark) brand tint, which
+    // composites to 1.36-1.72:1 against the page and the surface — under the 3:1
+    // non-text floor, and the ring is the whole focus indicator (it is the only
+    // thing `:focus-visible` changes on a Button). The alpha predates this gate;
+    // it went unseen because the gate tested `--aeterni-state-color-focus`, which
+    // no component paints as a ring, and because it could not evaluate a
+    // `color-mix` value at all. Raising the alpha is a visual change to every
+    // focused control, so it is recorded rather than applied.
+    ['::light::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.36-1.43:1'],
+    ['::light::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.37-1.43:1'],
+    ['::dark::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.62-1.70:1'],
+    ['::dark::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.64-1.72:1'],
+    ['::system-dark::--aeterni-focus-color::--aeterni-bg', 'REV-130: focus ring on the page, 1.62-1.70:1'],
+    ['::system-dark::--aeterni-focus-color::--aeterni-bg-surface', 'REV-130: focus ring on a surface, 1.64-1.72:1'],
+
+    // REV-131: Avatar draws its family ink on its own soft fill
+    // (`Avatar.razor.css:10`), and only the info family in the light theme falls
+    // short — 4.09:1 over the page and 4.37:1 over a surface, against a 4.5:1
+    // text floor. The other three families clear it. Recorded rather than fixed
+    // because the correction is another light-theme stop change.
+    ['::light::--aeterni-color-info-text::--aeterni-color-info-soft', 'REV-131: info ink on its soft fill, 4.09-4.37:1'],
 ]);
+
+
 
 
 
@@ -246,7 +309,10 @@ const PAIRS = [
     ['--aeterni-text-link', '--aeterni-bg', TEXT_FLOOR, 'link on the page'],
     ['--aeterni-color-brand-default', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'brand border or icon on a surface'],
     ['--aeterni-color-brand-default', '--aeterni-bg', GRAPHIC_FLOOR, 'brand border or icon on the page'],
-    ['--aeterni-state-color-focus', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'focus ring on a surface'],
+    // The ring components actually draw is `--aeterni-focus-color`; the state
+    // alias above is a declared token but no component paints it as a ring.
+    ['--aeterni-focus-color', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the focus ring components draw, on a surface'],
+    ['--aeterni-focus-color', '--aeterni-bg', GRAPHIC_FLOOR, 'the focus ring components draw, on the page'],
 
     // The semantic families carry text and borders the same way the brand hue
     // does, and the light theme's solid semantic fills were a real contrast
@@ -272,6 +338,16 @@ const PAIRS = [
     ]),
     ...['danger', 'success', 'warning', 'info', 'neutral'].map(family =>
         [`--aeterni-color-${family}-text`, '--aeterni-bg', TEXT_FLOOR, `${family} text on the page`]),
+
+    // Ink on a soft fill. The fill is an 11-12% alpha tint, so it is only
+    // measurable with the surface behind it — this is the pairing Avatar draws
+    // (its ink over its own soft background).
+    ...['danger', 'success', 'warning', 'info'].flatMap(family => [
+        [`--aeterni-color-${family}-text`, `--aeterni-color-${family}-soft`, TEXT_FLOOR,
+            `${family} ink on its soft fill over a surface`, '--aeterni-bg-surface'],
+        [`--aeterni-color-${family}-text`, `--aeterni-color-${family}-soft`, TEXT_FLOOR,
+            `${family} ink on its soft fill over the page`, '--aeterni-bg'],
+    ]),
 ];
 
 /* --- run ----------------------------------------------------------------- */
@@ -311,9 +387,14 @@ for (const [brand] of hueLayers) {
             continue;
         }
 
-        for (const [fgToken, bgToken, floor, usage] of PAIRS) {
+        for (const [fgToken, bgToken, floor, usage, surfaceToken] of PAIRS) {
             try {
-                const bg = context.color(bgToken);
+                // A translucent background has to be flattened onto whatever sits
+                // behind it before it can be measured. Without the surface step the
+                // tint's own luminance is used, which reports a meaningless ratio
+                // for an 11% fill — the mistake that produced a false finding once.
+                const rawBg = context.color(bgToken);
+                const bg = surfaceToken ? composite(rawBg, context.color(surfaceToken)) : rawBg;
                 const ratio = contrast(context.color(fgToken), bg);
                 const margin = ratio / floor;
                 const pass = ratio >= floor;

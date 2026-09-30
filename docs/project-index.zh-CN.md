@@ -51,7 +51,7 @@ AeterniUI/
 │   ├── generate-fontawesome-icons.mjs # 从官方 npm 包生成 Font Awesome 定义
 │   ├── check-docs.sh                 # 文档一致性检查
 │   ├── check-css-comments.mjs        # CSS 注释提前闭合检查
-│   ├── check-contrast.mjs            # 承字/图形对比度门禁（品牌阶 + 语意族 + 焦点环）
+│   ├── check-contrast.mjs            # 承字/图形对比度门禁（品牌阶 + 语意族 + 焦点环，支持 color-mix 与半透明底色）
 │   └── sample-publish.sh             # 发布 WASM 示例到 dist/
 ├── tests/
 │   └── browser/                      # 无头 Chrome 行为检查（见下）
