@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.23.1`
+文档版本：`10.24.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.23.1` 在 `10.23.0` 的基础上修复 `List<TItem>` 长列表的行高压缩与滚动边界问题，并新增可选 `MaxHeight` 内部滚动视口。`VirtualList<TItem>` 仍处于规划阶段，未列入当前已实现公共 API。
+`10.24.0` 在 `10.23.1` 的基础上新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，用于大数据量内存集合；`List<TItem>` 的长列表滚动修复继续保留。
 
 ## 文档口径
 
@@ -563,7 +563,31 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 </List>
 ```
 
-当前不提供拖拽、虚拟化、分组和异步数据源。
+`List<TItem>` 当前不提供拖拽、虚拟化、分组和异步数据源；大数据量场景使用下方的 `VirtualList<TItem>`。
+
+### VirtualList<TItem>
+
+`VirtualList<TItem>` 面向大数据量的内存集合，只渲染滚动视口附近的项目：
+
+- `Items` 使用 `IReadOnlyList<TItem>?`；`ItemTemplate` 自定义可见行内容；无模板时显示 `ToString()`。
+- `Height` 定义必需的固定滚动视口高度，`ItemSize` 定义固定行高（CSS px，默认 32），`OverscanCount` 定义视口外预渲染行数（默认 5）。
+- `ItemKeySelector` 提供稳定且唯一的 key；未提供时使用当前索引，数据重排时应提供该参数以保持 DOM 复用正确。
+- `DisabledSelector` 标记禁用项目；`EmptyContent` 提供空集合内容。
+- 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、`SelectedValue` / `SelectedValues`、对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`。
+- 根元素使用固定高度滚动容器；选择模式输出单一 Tab 停留点、`role="listbox"`、`aria-activedescendant` 和 `aria-multiselectable`，普通模式输出 `role="list"`。
+- 可见项目输出 `role="option"` 或 `role="listitem"`、`aria-posinset` 和 `aria-setsize`；方向键、Home/End、Enter/Space 由根容器统一处理，活动项自动滚动到可视区域。
+- 内部基于 Blazor `Virtualize<TItem>`；当前只支持固定行高，不提供远程 `ItemsProvider`、缓存、可变高度、拖拽、分组或 CardMode。
+
+```razor
+<VirtualList Items="@rows"
+             Height="320px"
+             ItemSize="32"
+             OverscanCount="5"
+             ItemKeySelector="row => row.Id"
+             AriaLabel="项目列表">
+    <ItemTemplate Context="row">@row.Name</ItemTemplate>
+</VirtualList>
+```
 
 ## 17. Rating
 

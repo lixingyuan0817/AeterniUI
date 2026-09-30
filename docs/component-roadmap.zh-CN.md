@@ -1,8 +1,8 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.23.1`
+文档版本：`10.24.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`。
 
 ## List 长列表尺寸修复
 
@@ -10,11 +10,11 @@
 - [x] `List.MaxHeight` 提供可选的内部滚动视口；设置后滚动条归 List 所有，默认短列表仍保持内容自适应。
 - [x] 同步 List 示例与当前功能文档；解决方案构建、契约检查和文档门禁通过。
 
-## VirtualList<TItem> 规划
+## VirtualList<TItem> 实现
 
-- [ ] 新增 `VirtualList<TItem>`，面向大数据量场景按可视区域和 overscan 渲染，不改变现有 `List<TItem>` 的静态/交互契约。
-- [ ] 明确固定或可估算行高、`MaxHeight`、键盘活动项、选中状态、动态重排及 `aria-setsize` / `aria-posinset` 语义。
-- [ ] 优先评估基于 Blazor `Virtualize<TItem>` 的实现，暂不把虚拟化能力写入当前 `List<TItem>`。
+- [x] 新增 `VirtualList<TItem>`，面向大数据量场景按可视区域和 overscan 渲染，不改变现有 `List<TItem>` 的静态/交互契约。
+- [x] 明确固定行高、`Height`、`ItemSize`、键盘活动项、选中状态、动态重排及 `aria-setsize` / `aria-posinset` 语义。
+- [x] 基于 Blazor `Virtualize<TItem>` 实现，远程数据、可变高度和缓存仍留在后续规划。
 
 ## 10.22.3 Search / Autocomplete 连体按钮组
 
@@ -682,7 +682,7 @@ Token 和现有基础组件
 
 ## 第五阶段交付与后续规划（v0.5～v0.7）
 
-状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6 已交付 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper（5/5），v0.7 仍为规划。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
+状态：v0.5 的功能清单与 v0.5.1 第六轮质量收口均已交付；v0.6 已交付 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper（5/5），v0.7 的 Search、Autocomplete、MultiSelect 已完成；VirtualList 第一版已在 10.24.0 交付。本节中只有标记为已完成的能力属于当前公共表面，其余阶段不代表组件已经实现。
 
 ### 后续计划与实施优先级
 
@@ -694,6 +694,7 @@ Token 和现有基础组件
 | 优先级 1 | v0.6 动作编排：`Toolbar` → `ToggleGroup` → `SplitButton` | 三项均已完成 | ToggleGroup 复用键盘规则；SplitButton 复用 MenuButton 浮层与键盘实现 |
 | 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 已完成（5/5） | Breadcrumb 明确链接导航边界；Stepper 复用线性流程状态语义 |
 | 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 已完成（3/3） | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
+| 优先级 4 | 大数据量展示：`VirtualList<TItem>` | 已完成 | 复用 Blazor `Virtualize<TItem>`，在固定行高和固定视口约束下补齐键盘、选择和位置语义 |
 
 文档事实偏差 REV-74 已在本轮规划同步时直接修正。v0.7 的 `MultiSelect` 已在 10.23.0 交付，搜索与数据选择阶段完成。
 
@@ -732,7 +733,7 @@ Accordion / DateCalendar / TimeOptionList 焦点语义
           +--> 最小化渲染契约门禁
 ```
 
-完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付，`Search` 已在 10.21.0 交付，`Autocomplete` 已在 10.22.0 交付，`MultiSelect` 已在 10.23.0 交付，v0.7 搜索与数据选择阶段完成。
+完成状态：REV-64～REV-73、REV-75～REV-76 已逐项实现并纳入示例或契约检查；REV-74 文档偏差也已同步关闭。构建、文档、CSS、JS、对比度与图标一致性门禁均作为本批次交付验证，质量收口完成后 Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付，`Search` 已在 10.21.0 交付，`Autocomplete` 已在 10.22.0 交付，`MultiSelect` 已在 10.23.0 交付，v0.7 搜索与数据选择阶段完成；`VirtualList<TItem>` 已在 10.24.0 交付。
 
 ### 规划原则
 
@@ -846,3 +847,4 @@ Search + List + PopupHost
 | v10.21.0 v0.7 Search | 已完成（1/3） | 构建、20 组渲染契约、CSS 注释与文档门禁 | 新增 `Search` 关键词查询组件，提供标准绑定、清除、Enter/点击提交、Loading、FormField 状态继承和命名 `role="search"`；不包含建议弹层、结果列表或远程数据源，示例为 `/components/search`。按功能新增规则由 `10.20.2` 递增为 `10.21.0`。 |
 | v10.22.0 v0.7 Autocomplete | 已完成（2/3） | 构建、21 组渲染契约、Autocomplete JS 语法、CSS 注释与文档门禁 | 新增 `Autocomplete<TItem>` 自由输入建议组件，提供宿主建议快照、异步 Loading、Popover 浮层、combobox/listbox/option 语义、方向键/Home/End/Enter/Escape、模板和字段校验；不包含远程请求、debounce、缓存或虚拟滚动，示例为 `/components/autocomplete`。按功能新增规则由 `10.21.0` 递增为 `10.22.0`。 |
 | v10.23.0 v0.7 MultiSelect | 已完成（3/3） | 构建、22 组渲染契约、MultiSelect JS 语法、CSS 注释、对比度与文档门禁 | 新增 `MultiSelect<TItem>` 多值选择组件，提供 `SelectedValues` 绑定、已选标签和移除、可选全选/清空、禁用选项、Popover 浮层、combobox/listbox 多选语义、方向键/Home/End/Enter/Space/Escape/Backspace 与模板；不包含远程请求、搜索过滤、缓存或虚拟滚动，示例为 `/components/multi-select`。按功能新增规则由 `10.22.3` 递增为 `10.23.0`。 |
+| v10.24.0 VirtualList | 已完成 | 构建、渲染契约、VirtualList JS 语法、CSS 注释与文档门禁 | 新增固定行高、固定视口和 overscan 的 `VirtualList<TItem>`，支持可见行模板、key、单/多选、键盘导航、自动滚动和 `aria-setsize` / `aria-posinset`；基于 Blazor `Virtualize<TItem>`，不包含远程数据、缓存、可变高度、拖拽或分组。按功能新增规则由 `10.23.1` 递增为 `10.24.0`。 |

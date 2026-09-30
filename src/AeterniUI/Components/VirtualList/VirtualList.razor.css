@@ -1,0 +1,67 @@
+.aeterni-virtual-list {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--aeterni-virtual-list-height);
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+    scrollbar-gutter: stable;
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-virtual-list__item {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: var(--aeterni-virtual-list-item-size);
+    padding: var(--aeterni-spacing-1) var(--aeterni-control-padding-x-sm);
+    border-radius: var(--aeterni-radius-md);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
+}
+
+.aeterni-virtual-list.is-selectable .aeterni-virtual-list__item {
+    cursor: pointer;
+}
+
+.aeterni-virtual-list.is-selectable .aeterni-virtual-list__item:hover:not(.is-disabled):not(.is-selected),
+.aeterni-virtual-list.is-selectable:focus-visible .aeterni-virtual-list__item.is-active:not(.is-disabled):not(.is-selected) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-virtual-list__item.is-selected {
+    background: var(--aeterni-state-background-selected);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+.aeterni-virtual-list__item.is-selected:hover:not(.is-disabled) {
+    background: var(--aeterni-state-background-selected);
+}
+
+.aeterni-virtual-list__item.is-disabled {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-virtual-list.is-empty {
+    overflow: hidden;
+    height: auto;
+    min-height: var(--aeterni-row-height-compact);
+    padding: var(--aeterni-padding-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-virtual-list__item {
+        transition: none;
+    }
+}

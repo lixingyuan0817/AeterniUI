@@ -76,6 +76,7 @@ public static class ShowcaseCatalog
             new("breadcrumb", "Breadcrumb", "层级导航路径"),
             new("stepper", "Stepper", "线性流程步骤"),
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
+            new("virtual-list", "VirtualList", "大数据量虚拟列表"),
             new("menu", "Menu", "分组菜单"),
             new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航"),
             new("pagination", "Pagination", "分页导航")

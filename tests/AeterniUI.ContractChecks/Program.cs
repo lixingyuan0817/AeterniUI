@@ -12,6 +12,7 @@ using AeterniUI.Components.MultiSelect;
 using AeterniUI.Components.Search;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
+using AeterniUI.Components.VirtualList;
 using AeterniUI.Enums;
 using AeterniUI.Icons;
 using AeterniUI.Services;
@@ -48,6 +49,7 @@ await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
 await CheckStepperAsync();
 await CheckListAsync();
+await CheckVirtualListAsync();
 await CheckQualityStatesAsync();
 await CheckDateBoundariesAsync();
 await CheckOverlayTransitionsAsync();
@@ -63,7 +65,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (22 groups).");
+Console.WriteLine("Component contract checks passed (23 groups).");
 return 0;
 
 async Task CheckQualityStatesAsync()
@@ -457,6 +459,34 @@ async Task CheckListAsync()
         host.Rows = ["Alpha"]; host.Update(); await Key("Home"); await Key("ArrowDown");
         Require(Equals(host.Selected, "Alpha"), "Wrapping a one-item list must not clear selection.");
     });
+}
+
+async Task CheckVirtualListAsync()
+{
+    var items = Enumerable.Range(1, 100).Select(index => $"Item {index}").ToArray();
+    var html = await RenderAsync<VirtualList<string>>(new Dictionary<string, object?>
+    {
+        [nameof(VirtualList<string>.Items)] = items,
+        [nameof(VirtualList<string>.Height)] = "240px",
+        [nameof(VirtualList<string>.ItemSize)] = 32d,
+        [nameof(VirtualList<string>.OverscanCount)] = 4,
+        [nameof(VirtualList<string>.SelectionMode)] = SelectionMode.Single,
+        [nameof(VirtualList<string>.AriaLabel)] = "Virtual items"
+    });
+
+    foreach (var expected in new[] { "aeterni-virtual-list", "role=\"listbox\"", "aria-multiselectable=\"false\"", "--aeterni-virtual-list-height: 240px", "--aeterni-virtual-list-item-size: 32px" })
+    {
+        Require(html.Contains(expected, StringComparison.Ordinal), $"VirtualList must expose {expected}.");
+    }
+
+    Require(!html.Contains("aria-setsize=", StringComparison.Ordinal), "VirtualList must not place option position metadata on the listbox root before browser virtualization mounts rows.");
+
+    var plain = await RenderAsync<VirtualList<string>>(new Dictionary<string, object?>
+    {
+        [nameof(VirtualList<string>.Items)] = Array.Empty<string>(),
+        [nameof(VirtualList<string>.EmptyContent)] = (RenderFragment)(builder => builder.AddContent(0, "Empty virtual list"))
+    });
+    Require(plain.Contains("Empty virtual list", StringComparison.Ordinal) && plain.Contains("role=\"list\"", StringComparison.Ordinal), "VirtualList empty display mode must retain plain list semantics.");
 }
 
 async Task CheckToggleGroupAsync()
