@@ -4,7 +4,8 @@
 <PopupHost Class="aeterni-multi-select__host" Style="@PopupHostStyle">
     <ChildContent>
         <div @ref="RootElement" @attributes="BuildAttributes()">
-            <div class="aeterni-multi-select__trigger"
+            <div @ref="_triggerElement"
+                 class="aeterni-multi-select__trigger"
                  role="combobox"
                  tabindex="@(IsDisabled || ReadOnly ? "-1" : "0")"
                  aria-labelledby="@FormField?.LabelId"
@@ -85,7 +86,7 @@
                          role="listbox"
                          aria-label="@EffectiveListLabel"
                          aria-multiselectable="true">
-                        @if (_visibleItems.Count == 0)
+                        @if (Items.Count == 0)
                         {
                             <div class="aeterni-multi-select__empty">
                                 @if (EmptyContent is not null)
@@ -100,9 +101,9 @@
                         }
                         else
                         {
-                            @for (var index = 0; index < _visibleItems.Count; index++)
+                            @for (var index = 0; index < Items.Count; index++)
                             {
-                                var item = _visibleItems[index];
+                                var item = Items[index];
                                 var selected = IsSelected(item);
                                 var itemDisabled = IsItemDisabled(item);
                                 <div id="@($"{ListboxId}-option-{index}")"

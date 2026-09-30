@@ -50,6 +50,26 @@ public partial class MenuButton : AeterniComponent
     [Parameter]
     public bool FullWidth { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown menu button variant.");
+        }
+
+        if (!Enum.IsDefined(Intent))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Intent), Intent, "Unknown menu button intent.");
+        }
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown menu button size.");
+        }
+    }
+
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-menu-button")
         .Add("is-open", EffectiveOpen)

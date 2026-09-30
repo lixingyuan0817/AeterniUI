@@ -17,7 +17,7 @@ public partial class Toolbar : AeterniComponent
         base.OnParametersSet();
         if (!Enum.IsDefined(Orientation))
         {
-            throw new ArgumentOutOfRangeException(nameof(Orientation));
+            throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown toolbar orientation.");
         }
         if (string.IsNullOrWhiteSpace(AriaLabel))
         {
@@ -36,11 +36,13 @@ public partial class Toolbar : AeterniComponent
             ["role"] = "toolbar",
             ["aria-label"] = AriaLabel.Trim(),
             ["aria-orientation"] = Orientation == Orientation.Vertical ? "vertical" : "horizontal",
-            ["aria-disabled"] = Disabled ? "true" : "false",
             ["tabindex"] = "-1"
         };
         if (Disabled)
         {
+            // Emitted only while disabled, matching the base class and the rest of
+            // the library.
+            attributes["aria-disabled"] = "true";
             attributes["inert"] = true;
         }
         return attributes;

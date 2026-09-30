@@ -72,8 +72,12 @@
     overscroll-behavior: contain;
     overflow-anchor: none;
     scrollbar-width: none;
-    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), black 30%, black 70%, rgb(0 0 0 / 65%));
-    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), black 30%, black 70%, rgb(0 0 0 / 65%));
+    /* These are mask opacities, not colours: the wheel fades its top and bottom
+       edges to reveal the cylinder depth. Written in one notation so the stops
+       read as a single gradient rather than a mix of a colour keyword and an
+       rgb() form. */
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), rgb(0 0 0) 30%, rgb(0 0 0) 70%, rgb(0 0 0 / 65%));
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 65%), rgb(0 0 0) 30%, rgb(0 0 0) 70%, rgb(0 0 0 / 65%));
 }
 
 .aeterni-time-option-list__options::-webkit-scrollbar {

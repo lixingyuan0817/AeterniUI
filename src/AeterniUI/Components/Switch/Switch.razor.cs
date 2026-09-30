@@ -12,6 +12,11 @@ public partial class Switch : AeterniComponent
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public Switch() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [CascadingParameter]
     private FormFieldContext? FormField { get; set; }
 
@@ -60,7 +65,6 @@ public partial class Switch : AeterniComponent
     private bool _effectiveDisabled;
     private bool _effectiveRequired;
 
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
 
@@ -165,24 +169,12 @@ public partial class Switch : AeterniComponent
             await ValueChanged.InvokeAsync(value);
         }
 
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
-        {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
-        }
+        if (_hasFieldIdentifier) _validation.NotifyFieldChanged(_fieldIdentifier);
     }
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
 
         if (ValueExpression is not null)
         {
@@ -195,22 +187,10 @@ public partial class Switch : AeterniComponent
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed)
-        {
-            _ = InvokeAsync(StateHasChanged);
-        }
-    }
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
+
 
     protected override ValueTask OnComponentDisposeAsync()
     {
@@ -221,7 +201,7 @@ public partial class Switch : AeterniComponent
     private bool IsInvalid =>
         _effectiveInvalid ||
         (_hasFieldIdentifier &&
-         _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+         _validation.HasValidationMessages(_fieldIdentifier));
 
     private static void AddAttribute(
         IDictionary<string, object> attributes,

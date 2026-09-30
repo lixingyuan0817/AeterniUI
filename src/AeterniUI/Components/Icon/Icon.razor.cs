@@ -21,6 +21,21 @@ public partial class Icon : AeterniComponent
     [Parameter]
     public string? Title { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown icon size.");
+        }
+
+        if (!Enum.IsDefined(Color))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Color), Color, "Unknown icon color.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()

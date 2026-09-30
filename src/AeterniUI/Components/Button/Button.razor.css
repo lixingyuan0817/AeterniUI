@@ -159,7 +159,7 @@
 }
 
 .aeterni-button--sm {
-    --aeterni-button-radius: var(--aeterni-radius-button-sm);
+    --aeterni-button-radius: var(--aeterni-radius-button);
 
     min-height: var(--aeterni-control-height-sm);
     padding-inline: var(--aeterni-control-padding-x-sm);
@@ -176,7 +176,7 @@
 }
 
 .aeterni-button--lg {
-    --aeterni-button-radius: var(--aeterni-radius-button-lg);
+    --aeterni-button-radius: var(--aeterni-radius-button);
 
     min-height: var(--aeterni-control-height-lg);
     padding-inline: var(--aeterni-control-padding-x-lg);

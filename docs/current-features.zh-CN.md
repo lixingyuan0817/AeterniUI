@@ -19,6 +19,7 @@
 - 本文档以当前源码中的公开组件、`[Parameter]`、`EventCallback`、公开服务和配置类型为准；实现细节不等同于公共 API。
 - 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
+- 公共枚举参数一律在 `OnParametersSet` 用 `Enum.IsDefined` 校验，非法值抛带实际值与原因的 `ArgumentOutOfRangeException`；不再有"非法值静默降级为默认档"的组件。`ToggleGroup.SelectionMode` 例外：它是取值白名单（`SelectionMode.None` 是已定义成员但对动作组无意义，仍需拒绝）。需要无障碍名称的组件（`IconButton`、`ToggleGroup`、`Toolbar`、`ToolbarGroup`）在留空时抛 `ArgumentException`，`FlashCardGroup` 改为回退文案表。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)，不会写入已完成功能。
 - 组合组件的公开边界：`RadioGroup`、`ThemeSwitch` 可独立使用；`ListItem` 只能作为 `List` 子项，`Tab` 只能作为 `Tabs` 子项；`PopupHost` 与 `Popover` 用于自定义浮层组合，通常由 `MenuButton`、`ComboBox`、`Tooltip` 等宿主间接使用；`DialogProvider` 与 `ThemeProvider` 分别只应在应用根部注册一次。`DateCalendar` 是 `DatePicker` / `DateRangePicker` 的内部渲染部件，虽保留 Razor 类型以支持内部组合，但已标记为非稳定公共 API，不支持直接使用。
 
@@ -59,7 +60,7 @@
 - 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 状态别名；组件无需直接选择色阶。
 - 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`。其中 `selected` 是淡染的选中底面，`checked` 是实心勾选块（取品牌填充档，其上的墨取 `--aeterni-text-inverse`），并配套 `--aeterni-state-background-checked-hover` / `-active` 两档：已勾选的控件在指针下整块沿品牌色阶换档，而不是被淡染洗浅。
 - 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
-- 提供通用控件组合别名：`--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*` 和 `--aeterni-control-focus-ring`，方便组件直接组合控件状态。
+- 提供通用控件组合角色：`--aeterni-control-background`、`--aeterni-control-border`、`--aeterni-control-foreground` 及其 `disabled` / `readonly` / `hover` / `focus` / `invalid` / `placeholder` 分支，方便组件直接消费完整的控件状态组合。焦点环统一使用 `--aeterni-focus-color` 与 `--aeterni-focus-width` / `--aeterni-focus-offset`。
 - 色板按 OKLCH 重建：每个色族一条明度阶梯、固定色相（仅浅档做少量 Abney 补偿漂移）、chroma 在中档收敛成峰值，因此不再出现「阶梯忽大忽小」「同一色族色相漂移 8°」这类问题。
 - 品牌色是紫罗兰色系（浅色主题 `--aeterni-brand-500` = `#795AD9`，深色主题取 `--aeterni-brand-400` = `#9985ED`），峰值 chroma 从 0.237 降到 0.186、色相漂移从 7.8° 收到 1.7°，去掉了原来的荧光感。
 - 品牌色阶是一个独立色相层，与明暗层正交：默认紫罗兰色板声明在 `:root` 上，显式 `[data-aeterni-brand="purple"]` 与之逐字节等价；宿主可在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900`，色阶一变，品牌填充、强调文字、链接、焦点环以及悬浮/按下/选中状态同时换色，语义别名与组件都不需要改动。该属性必须与 `data-theme` 同元素（`<html>`），因为语义别名在声明元素上解析色阶。
@@ -82,7 +83,9 @@
 - `FormField` 的必填星号与错误文案、`Menu` 选中项文字同样使用强调文字形态。
 - `Tag` 的标签文字取词族的「强调文字形态」（`--aeterni-tag-ink`）再向正文墨靠 15%，而不是把亮色填充档与近黑对半混：后者会把绿/黄族混成橄榄色、褐色，看起来脏；当前浅色 4.95~7.15:1、深色 7.35~8.78:1，且色相保持饱和。
 - 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
-- 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md` 和 `--aeterni-width-control-md`。
+- 装饰层 `--aeterni-decor-*` 供不以语义表达的饰面使用（`FlashCard` 的金属光泽与全息衍射各档）。它与品牌无关、不参与对比度契约，通道以空格分隔，使用处写成 `rgb(var(--aeterni-decor-sheen) / 0.42)` 自带强度。
+- 页面层级阶梯为 `sticky` / `modal-backdrop` / `modal` / `popover` / `tooltip` / `toast`，另有供宿主内容使用的 `base`、`raised`、`fixed`；库内不存在独立的 dropdown 档——所有下拉都是锚定浮层，走 `popover`，若置于遮罩之下会反被遮住。组件内部的层叠（扇形卡片、选中分段）不出现在该阶梯上。
+- 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*` 和 `--aeterni-badge-size-md`。
 - 提供玻璃表面的角色别名（填充是独立档位，模糊跟随既有刻度）：`--aeterni-bg-glass`（浅色 68% / 深色 72%，不再跟随 `--aeterni-bg-elevated`）、`--aeterni-blur-glass`（跟随 `--aeterni-blur-md`）和 `--aeterni-blur-scrim`（跟随 `--aeterni-blur-sm`）。库内十处磨砂消费者（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板与遮罩、Drawer 面板与遮罩、Popover 表面与遮罩、Tooltip、Alert/Toast 卡片）统一引用这三个别名，宿主覆盖一处就能整体调整全库玻璃配方，不必逐个组件改。填充停在 68% / 72% 是实测下限，不是偏好值：这两支墨——`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`）与 `--aeterni-text-on-glass-tertiary`（同样写法的 67%）——都按「最坏背景」（纯黑／纯白）定档，再淡一档就会吃掉这两支墨的 1.1× 余量——它们是全库最紧的一对，浅色由三级墨绑定（1.15×）、深色由次要墨绑定（1.14×）。两支墨都只声明一次、按主体墨的比例给出，所以浅深两主题余量相同、也不会各自漂移，代码里把角色名接过去就行。全部磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都用它们接管 `--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-state-color-muted` 与 `--aeterni-text-tertiary`，补掉标准墨在玻璃填充上的缺口（深色最坏背景：标准次要墨 3.41:1、标准三级墨 2.51:1 → 接管后 5.11:1 / 3.51:1）；不透明表面（含 `is-no-blur` 的通知卡片）与三类遮罩仍用标准墨，遮罩本来就不承字。
 - 玻璃表面在 `prefers-reduced-transparency: reduce` 与「不支持 `backdrop-filter`」两种情况下退到不透明：填充改 `--aeterni-bg-solid`、模糊归 `none`。只摘模糊会留下半透明色斑——既没有模糊解释它，也没有不透明底承字，两种读法都不如实心表面。同一处把两支玻璃专用墨退回标准墨：它们的用途就是扛住透出来的背景，填充已经是实心表面之后就没有背景要扛了。遮罩只摘模糊、保留压暗，因此它仍然把背后的页面压下去。
 - 提供可发现滚动条 Token：`--aeterni-scrollbar-size`、`--aeterni-scrollbar-thumb`、`--aeterni-scrollbar-track`；长选项列表和长通知堆栈使用细滚动条而不是隐藏滚动条。
@@ -598,9 +601,9 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 
 ### 支持能力
 
-- 整数评分：`Value` / `ValueChanged` / `ValueExpression`、`OnChange`，`Max`（默认 5）与越界钳制。
+- 整数评分：`Value` / `ValueChanged` / `ValueExpression`，`Max`（默认 5）与越界钳制。`OnChange` 已弃用（与 `ValueChanged` 在同一次交互上重复触发），为使既有消费者不被静默切断，它仍会被调用，将在后续版本移除。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。Disabled 合并 FormField 状态；只读/禁用星级不进入 Tab 序列。方向键/Home/End 同步真实焦点与值、不清零、不滚动页面，空格继续激活当前聚焦星级；主 JS module 仅处理默认键盘行为。
-- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`。
+- 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`，每颗星的无障碍名称与 tooltip 取 `AeterniUITextOptions.RatingStarLabelFormat`（默认 `{0} of {1}`，即读作"3 of 5"而不是裸数字）。
 - 每颗星只有当前值 `aria-checked="true"`（“已填充”视觉与“已选中”语义分离），并使用 roving tabindex：只有当前值（未选中时为第一颗）在 Tab 序列内，一次 Tab 即可进出。
 - `Size` 提供三档：`Small` 为 16px 星形，命中区域下限 24px（与 Checkbox Small 同档）、`Default` 为 20px + 8px（与之前一致）、`Large` 为 24px + 12px。
 - `aria-checked` 输出显式字符串 `"true"`/`"false"`（布尔值会被渲染成最小化属性，读屏会当成无效值）。
@@ -622,7 +625,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnChange`；未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`；`OnChange` 是同一通知的旧名字，已弃用但仍会触发，便于迁移；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
@@ -1118,7 +1121,7 @@ builder.Services.AddAeterniUI();
 
 ### 文案与本地化
 
-库内用户可见文案集中在 `AeterniUIOptions.Text`（类型 `AeterniUITextOptions`），默认值为英文；通过 `AddAeterniUI` 覆写即可整体本地化。日期、范围、日历导航与分页文案也使用同一入口：
+库内用户可见文案集中在 `AeterniUIOptions.Text`（类型 `AeterniUITextOptions`），默认值为英文；通过 `AddAeterniUI` 覆写即可整体本地化。组件里不存在会盖住文案表的英文参数默认值：`TimeOptionList`、`DateCalendar`、`FlashCardGroup` 的相关参数留空即回退到对应条目。日期、范围、日历导航与分页文案也使用同一入口：
 
 ```csharp
 builder.Services.AddAeterniUI(options =>

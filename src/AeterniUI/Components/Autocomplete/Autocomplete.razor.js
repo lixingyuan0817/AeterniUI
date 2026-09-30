@@ -6,11 +6,18 @@ export function init(reference, key) {
     instances.set(key, { reference, root: null, input: null, handler: null });
 }
 
-export function sync(key, root) {
+export function sync(key, input) {
     const state = instances.get(key);
-    if (!state || !root) return;
+    if (!state) return;
 
-    const input = root.querySelector('input[role="combobox"]');
+    // Unbind before any early return: leaving a stale listener attached to a
+    // detached subtree leaks it for the lifetime of the page.
+    if (state.input !== input) {
+        state.input?.removeEventListener('keydown', state.handler);
+        state.input = null;
+        state.handler = null;
+    }
+
     if (!input) return;
 
     const active = document.getElementById(input.getAttribute('aria-activedescendant'));
@@ -23,7 +30,6 @@ export function sync(key, root) {
     }
 
     if (state.input === input) return;
-    state.input?.removeEventListener('keydown', state.handler);
     state.input = input;
     state.handler = event => {
         if (event.target !== input || input.disabled || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;

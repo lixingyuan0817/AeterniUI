@@ -8,7 +8,15 @@ export function init(reference, key) {
 
 export function sync(key, trigger) {
     const state = instances.get(key);
-    if (!state || !trigger) return;
+    if (!state) return;
+    // Unbind before any early return: leaving a stale listener attached to a
+    // detached subtree leaks it for the lifetime of the page.
+    if (state.trigger !== trigger) {
+        state.trigger?.removeEventListener('keydown', state.handler);
+        state.trigger = null;
+        state.handler = null;
+    }
+    if (!trigger) return;
     // Scroll only the options viewport, never the page (which closes the popup).
     const active = document.getElementById(trigger.getAttribute('aria-activedescendant'));
     if (active) {
@@ -18,7 +26,6 @@ export function sync(key, trigger) {
         else if (row.bottom > box.bottom) viewport.scrollTop += row.bottom - box.bottom;
     }
     if (state.trigger === trigger) return;
-    state.trigger?.removeEventListener('keydown', state.handler);
     state.trigger = trigger;
     state.handler = event => {
         if (event.target !== trigger || trigger.disabled || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;

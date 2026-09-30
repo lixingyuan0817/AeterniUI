@@ -19,6 +19,11 @@ public partial class Rating : AeterniComponent
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public Rating() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter]
     public int Value { get; set; }
 
@@ -53,6 +58,16 @@ public partial class Rating : AeterniComponent
     [Parameter]
     public string AriaLabel { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Fires on the same interaction as <see cref="ValueChanged"/>, so binding
+    /// both reports one change twice.
+    /// </summary>
+    /// <remarks>
+    /// Superseded by <see cref="ValueChanged"/>, which is the standard Blazor
+    /// binding name the rest of the library uses. Kept and still invoked so
+    /// existing consumers keep working; it will be removed in a later release.
+    /// </remarks>
+    [Obsolete("Use ValueChanged instead. OnChange fires on the same interaction and duplicating it is redundant.")]
     [Parameter]
     public EventCallback<int> OnChange { get; set; }
 
@@ -83,6 +98,13 @@ public partial class Rating : AeterniComponent
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
         JsModuleManager.InvokeModuleVoidAsync("rating", "sync", InstanceId, RootElement);
 
+    /// <summary>
+    /// Accessible name and tooltip of a single star. Routed through the text table
+    /// so a star announces what it means ("3 of 5") rather than a bare number.
+    /// </summary>
+    private string StarLabel(int rating) =>
+        string.Format(CultureInfo.CurrentCulture, UiText.RatingStarLabelFormat, rating, Max);
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
@@ -95,19 +117,16 @@ public partial class Rating : AeterniComponent
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-rating", Size);
 
+    // A radiogroup container cannot be named by a `for` attribute, so the field
+    // label is linked through aria-labelledby; the container still adopts the
+    // field input id to keep the label's `for` resolvable.
+    protected override string ComputeElementId() => FormField?.InputId ?? base.ComputeElementId();
+
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
         var attributes = new Dictionary<string, object>(
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase);
-
-        // A radiogroup container cannot be named by a `for` attribute, so the
-        // field label is linked through aria-labelledby; the container still
-        // adopts the field input id to keep the label's `for` resolvable.
-        if (FormField?.InputId is { } inputId)
-        {
-            attributes["id"] = inputId;
-        }
 
         if (FormField?.LabelId is { } labelId)
         {
@@ -196,31 +215,25 @@ public partial class Rating : AeterniComponent
 
         Value = value;
         await ValueChanged.InvokeAsync(value);
+        // OnChange is obsolete for consumers but still honoured, so invoking it is
+        // deliberate rather than an oversight.
+#pragma warning disable CS0618
         await OnChange.InvokeAsync(value);
+#pragma warning restore CS0618
         NotifyFieldChanged();
     }
 
     private bool IsInvalid =>
         (FormField?.Invalid ?? false) ||
         (_hasFieldIdentifier &&
-         _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+         _validation.HasValidationMessages(_fieldIdentifier));
 
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
 
         if (ValueExpression is not null)
         {
@@ -233,30 +246,20 @@ public partial class Rating : AeterniComponent
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed)
-        {
-            _ = InvokeAsync(StateHasChanged);
-        }
-    }
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
+
+
 
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
+        if (_hasFieldIdentifier)
         {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
+            _validation.NotifyFieldChanged(_fieldIdentifier);
         }
     }
+
 
     protected override ValueTask OnComponentDisposeAsync()
     {

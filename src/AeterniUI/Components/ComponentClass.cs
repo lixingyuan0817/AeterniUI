@@ -51,6 +51,24 @@ internal static class ComponentClass
     };
 
     /// <summary>
+    /// Native <c>type</c> attribute value for a button.
+    /// </summary>
+    /// <remarks>
+    /// The fallback is deliberately <c>button</c> rather than an exception: an
+    /// unknown value must never degrade to the native default, because the HTML
+    /// default for an invalid <c>type</c> is <c>submit</c> and would make the
+    /// control submit its surrounding form. Components still validate the
+    /// parameter up front so callers get an exception instead of a silent change
+    /// of behaviour; this mapping is the safety net behind that check.
+    /// </remarks>
+    public static string ForButtonType(ButtonType type) => type switch
+    {
+        ButtonType.Submit => "submit",
+        ButtonType.Reset => "reset",
+        _ => "button"
+    };
+
+    /// <summary>
     /// Maps notification severities onto the shared semantic colour used by
     /// buttons, progress bars and icons. This is the only Severity→Color mapping
     /// in the library.

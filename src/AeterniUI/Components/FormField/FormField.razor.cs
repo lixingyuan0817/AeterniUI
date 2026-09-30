@@ -25,9 +25,12 @@ public partial class FormField : AeterniComponent
     [Parameter]
     public Expression<Func<object?>>? For { get; set; }
 
+    private readonly EditContextSubscription _validation;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
-    private EditContext? _subscribedEditContext;
+
+    public FormField() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
 
     private string InputId => $"{ElementId}-input";
 
@@ -42,7 +45,7 @@ public partial class FormField : AeterniComponent
     private string ErrorId => $"{ElementId}-error";
     private string? ErrorMessage => !string.IsNullOrWhiteSpace(Error)
         ? Error.Trim()
-        : _hasFieldIdentifier ? CascadedEditContext?.GetValidationMessages(_fieldIdentifier).FirstOrDefault() : null;
+        : _hasFieldIdentifier ? _validation.FirstValidationMessage(_fieldIdentifier) : null;
     private bool IsInvalid => Invalid || ErrorMessage is not null;
     private string? DescribedBy => string.Join(" ", new[] { string.IsNullOrWhiteSpace(Description) ? null : DescriptionId, ErrorMessage is null ? null : ErrorId }.Where(x => x is not null));
     private FormFieldContext Context => new(InputId, LabelId, DescribedBy, Disabled, IsInvalid, Required);
@@ -54,12 +57,7 @@ public partial class FormField : AeterniComponent
         {
             _fieldIdentifier = FieldIdentifier.Create(For);
             _hasFieldIdentifier = true;
-            if (!ReferenceEquals(_subscribedEditContext, CascadedEditContext))
-            {
-                Unsubscribe();
-                _subscribedEditContext = CascadedEditContext;
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationChanged;
-            }
+            _validation.Attach(CascadedEditContext);
         }
         else
         {
@@ -79,15 +77,5 @@ public partial class FormField : AeterniComponent
         return ValueTask.CompletedTask;
     }
 
-    private void HandleValidationChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
-    }
-
-    private void Unsubscribe()
-    {
-        if (_subscribedEditContext is not null)
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationChanged;
-        _subscribedEditContext = null;
-    }
+    private void Unsubscribe() => _validation.Detach();
 }

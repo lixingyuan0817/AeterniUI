@@ -21,6 +21,7 @@
                            AriaLabel="@InputAriaLabel"
                            AriaDescribedBy="@AriaDescribedBy"
                            AdditionalAttributes="@InputAttributes"
+                           ElementChanged="HandleInputElementChanged"
                            OnFocus="@HandleFocusAsync"
                            OnKeyDown="@HandleKeyDownAsync" />
                     @if (Clearable && HasValue)

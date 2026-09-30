@@ -36,7 +36,7 @@
     {
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
         {
-            ["type"] = Type.ToString().ToLowerInvariant(),
+            ["type"] = ComponentClass.ForButtonType(Type),
             ["aria-label"] = AriaLabel.Trim()
         };
 

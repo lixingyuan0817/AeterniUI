@@ -12,6 +12,11 @@ public partial class Input : AeterniComponent
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public Input() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [CascadingParameter]
     private FormFieldContext? FormField { get; set; }
 
@@ -85,10 +90,8 @@ public partial class Input : AeterniComponent
     public string? AriaDescribedBy { get; set; }
 
     private string? _currentValue;
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
-    private string? _effectiveId;
     private string? _effectiveAriaDescribedBy;
     private bool _effectiveInvalid;
     private bool _effectiveDisabled;
@@ -96,12 +99,17 @@ public partial class Input : AeterniComponent
 
     protected override bool SupportsDisabled => true;
 
+    // The input adopts the FormField input id so the field label's `for` resolves
+    // to this element; ElementId reports the same value, so aria references built
+    // from it cannot drift from the rendered id.
+    protected override string ComputeElementId() =>
+        (FormField?.InputId ?? Id)?.Trim() is { Length: > 0 } candidate ? candidate : InstanceId;
+
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
         ValidateParameters();
-        _effectiveId = FormField?.InputId ?? Id;
         _effectiveAriaDescribedBy = string.Join(" ", new[] { AriaDescribedBy, FormField?.DescribedBy }
             .Where(value => !string.IsNullOrWhiteSpace(value)));
         _effectiveInvalid = Invalid || (FormField?.Invalid ?? false);
@@ -152,11 +160,6 @@ public partial class Input : AeterniComponent
         {
             attributes["readonly"] = true;
             attributes["aria-readonly"] = "true";
-        }
-
-        if (!string.IsNullOrWhiteSpace(_effectiveId))
-        {
-            attributes["id"] = _effectiveId.Trim();
         }
 
         if (_effectiveDisabled)
@@ -231,24 +234,12 @@ public partial class Input : AeterniComponent
             await ValueChanged.InvokeAsync(value);
         }
 
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
-        {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
-        }
+        if (_hasFieldIdentifier) _validation.NotifyFieldChanged(_fieldIdentifier);
     }
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
 
         if (ValueExpression is not null)
         {
@@ -261,26 +252,14 @@ public partial class Input : AeterniComponent
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed)
-        {
-            _ = InvokeAsync(StateHasChanged);
-        }
-    }
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
+
 
     private bool IsInvalid => _effectiveInvalid ||
         (_hasFieldIdentifier &&
-         _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+         _validation.HasValidationMessages(_fieldIdentifier));
 
     private bool CanChangeValue => !_effectiveDisabled && !ReadOnly;
 

@@ -1,9 +1,18 @@
+/* The provider root must NOT create a stacking context. Its two children are
+   `position: fixed` and carry their own z-index (modal layer 1040, notice region
+   1080), so they can order themselves against the rest of the page directly.
+   Rooting them behind a stacking context — which `position: fixed` + a z-index,
+   or `isolation: isolate`, would both do — clamps the whole subtree to that
+   context and makes the notice region lose to anchored overlays that are
+   genuine siblings of this provider: popovers (1060) and tooltips (1070) would
+   paint over toasts even though `--aeterni-z-toast` is the top rung.
+
+   The root stays a plain static element: it only carries the component id,
+   class, style and the Escape keydown handler, all of which work without
+   positioning. Keyboard bubbling follows DOM ancestry, not layout, so the
+   handler is unaffected. */
 .aeterni-dialog-provider {
-    position: fixed;
-    inset: 0;
-    z-index: var(--aeterni-z-modal-backdrop);
     pointer-events: none;
-    isolation: isolate;
 }
 
 .aeterni-dialog-provider__modal-layer,
@@ -65,7 +74,6 @@
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 

@@ -152,12 +152,12 @@
     /* White light lifts the image, so the metallic finish stays on `screen`. */
     mix-blend-mode: screen;
     background-image: linear-gradient(112deg,
-        rgba(255, 255, 255, 0.06) 0%,
-        rgba(255, 255, 255, 0.42) 22%,
-        rgba(255, 255, 255, 0.08) 44%,
-        rgba(255, 255, 255, 0.5) 66%,
-        rgba(255, 255, 255, 0.1) 86%,
-        rgba(255, 255, 255, 0.36) 100%);
+        rgb(var(--aeterni-decor-sheen) / 0.06) 0%,
+        rgb(var(--aeterni-decor-sheen) / 0.42) 22%,
+        rgb(var(--aeterni-decor-sheen) / 0.08) 44%,
+        rgb(var(--aeterni-decor-sheen) / 0.5) 66%,
+        rgb(var(--aeterni-decor-sheen) / 0.1) 86%,
+        rgb(var(--aeterni-decor-sheen) / 0.36) 100%);
     background-size: 320% 320%;
     background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
 }
@@ -170,21 +170,21 @@
     mix-blend-mode: screen;
     background-image:
         radial-gradient(circle at var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y),
-            rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.2) 16%, transparent 42%),
+            rgb(var(--aeterni-decor-sheen) / 0.74) 0%, rgb(var(--aeterni-decor-sheen) / 0.2) 16%, transparent 42%),
         repeating-linear-gradient(112deg,
-            rgba(255, 0, 128, 0.2) 0 30px,
-            rgba(255, 176, 0, 0.2) 30px 60px,
-            rgba(120, 255, 130, 0.2) 60px 90px,
-            rgba(0, 220, 255, 0.2) 90px 120px,
-            rgba(140, 90, 255, 0.2) 120px 150px),
+            rgb(var(--aeterni-decor-holo-1) / 0.2) 0 30px,
+            rgb(var(--aeterni-decor-holo-2) / 0.2) 30px 60px,
+            rgb(var(--aeterni-decor-holo-3) / 0.2) 60px 90px,
+            rgb(var(--aeterni-decor-holo-4) / 0.2) 90px 120px,
+            rgb(var(--aeterni-decor-holo-5) / 0.2) 120px 150px),
         repeating-linear-gradient(112deg,
-            rgba(255, 255, 255, 0) 0 4px, rgba(255, 255, 255, 0.18) 4px 5px, rgba(255, 255, 255, 0) 5px 9px),
+            rgb(var(--aeterni-decor-sheen) / 0) 0 4px, rgb(var(--aeterni-decor-sheen) / 0.18) 4px 5px, rgb(var(--aeterni-decor-sheen) / 0) 5px 9px),
         linear-gradient(112deg,
-            rgba(255, 255, 255, 0.12) 0%,
-            rgba(255, 255, 255, 0.42) 32%,
-            rgba(255, 255, 255, 0.1) 58%,
-            rgba(255, 255, 255, 0.38) 86%,
-            rgba(255, 255, 255, 0.14) 100%);
+            rgb(var(--aeterni-decor-sheen) / 0.12) 0%,
+            rgb(var(--aeterni-decor-sheen) / 0.42) 32%,
+            rgb(var(--aeterni-decor-sheen) / 0.1) 58%,
+            rgb(var(--aeterni-decor-sheen) / 0.38) 86%,
+            rgb(var(--aeterni-decor-sheen) / 0.14) 100%);
     background-size: 100% 100%, 100% 100%, 100% 100%, 320% 320%;
     background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y), 0 0, 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
 }
@@ -205,7 +205,7 @@
 .aeterni-flash-card__glint-sweep {
     position: absolute;
     inset: 0;
-    background: linear-gradient(108deg, transparent 40%, rgba(255, 255, 255, 0.68) 49%, rgba(255, 255, 255, 0.12) 53%, transparent 62%);
+    background: linear-gradient(108deg, transparent 40%, rgb(var(--aeterni-decor-sheen) / 0.68) 49%, rgb(var(--aeterni-decor-sheen) / 0.12) 53%, transparent 62%);
     transform: translateX(-70%);
 }
 
@@ -218,7 +218,10 @@
 .aeterni-flash-card:hover .aeterni-flash-card__glint-sweep,
 .aeterni-flash-card:focus-visible .aeterni-flash-card__glint-sweep,
 .aeterni-flash-card.is-tilting .aeterni-flash-card__glint-sweep {
-    animation: aeterni-flash-card-glint 900ms var(--aeterni-ease-out) both;
+    /* Scaled from the shared slower step (500ms x 1.8 = 900ms) rather than a
+       literal, so the sweep follows the motion scale and the reduced-motion
+       block above collapses it with every other duration. */
+    animation: aeterni-flash-card-glint calc(var(--aeterni-duration-slower) * 1.8) var(--aeterni-ease-out) both;
 }
 
 @keyframes aeterni-flash-card-glint {

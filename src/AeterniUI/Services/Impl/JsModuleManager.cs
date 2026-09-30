@@ -265,8 +265,24 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
         lock (_sync)
         {
             if (_disposed || !_moduleInfos.TryGetValue(name, out var info)) return Task.FromResult<IJSObjectReference?>(null);
-            if (_moduleTasks.TryGetValue(name, out var task)) return task;
-            task = ImportModuleAsync(info.Path);
+
+            if (_moduleTasks.TryGetValue(name, out var cached))
+            {
+                // A cached task that completed with null is a failed import. Treating
+                // it as a miss makes the next call retry, instead of leaving the
+                // component without JS for the rest of the circuit after a single
+                // transient failure (a 404 while static assets are still being
+                // served, or a circuit that is mid-disconnect). The retry is cheap:
+                // the browser deduplicates a repeated import() of the same URL.
+                if (!cached.IsCompletedSuccessfully || cached.Result is not null)
+                {
+                    return cached;
+                }
+
+                _moduleTasks.Remove(name);
+            }
+
+            var task = ImportModuleAsync(info.Path);
             _moduleTasks[name] = task;
             return task;
         }

@@ -54,6 +54,10 @@ public partial class Tab : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-tabs__panel");
 
+    // The panel id comes from the owning Tabs instance so consumer ids cannot break
+    // the aria-controls pairing; ElementId reports that same value.
+    protected override string ComputeElementId() => Owner?.TabPanelId(this) ?? base.ComputeElementId();
+
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
         var attributes = new Dictionary<string, object>(
@@ -62,7 +66,6 @@ public partial class Tab : AeterniComponent
         {
             // The panel id wins over the base element id: the strip points
             // aria-controls at it, so the pairing must not depend on the consumer.
-            ["id"] = Owner?.TabPanelId(this) ?? ElementId,
             ["role"] = "tabpanel",
             ["aria-labelledby"] = Owner?.TabButtonId(this) ?? ElementId,
             // Panels without focusable content still need a Tab stop; the ARIA tabs

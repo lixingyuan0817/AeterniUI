@@ -23,6 +23,16 @@ public partial class ButtonGroup : AeterniComponent
     [Parameter]
     public string? AriaLabel { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Orientation))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown button group orientation.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()

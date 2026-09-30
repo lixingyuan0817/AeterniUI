@@ -12,6 +12,11 @@ public partial class DatePicker : AeterniComponent
     [CascadingParameter] private FormFieldContext? FormField { get; set; }
     [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public DatePicker() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter] public DateOnly? Value { get; set; }
     [Parameter] public EventCallback<DateOnly?> ValueChanged { get; set; }
     [Parameter] public Expression<Func<DateOnly?>>? ValueExpression { get; set; }
@@ -29,7 +34,6 @@ public partial class DatePicker : AeterniComponent
 
     private bool _open;
     private ElementReference _triggerElement;
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
@@ -39,7 +43,7 @@ public partial class DatePicker : AeterniComponent
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;
-    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+    private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
     private string? SizeClass => ComponentClass.ForSize("aeterni-date-picker", Size);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
@@ -53,8 +57,8 @@ public partial class DatePicker : AeterniComponent
         base.OnParametersSet();
         UpdateEditContextSubscription();
         if (Value.HasValue) _displayMonth = Value.Value.AddDays(1 - Value.Value.Day);
-        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement));
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+        if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown date picker placement.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown date picker size.");
     }
 
     private bool IsDateDisabled(DateOnly date) =>
@@ -82,30 +86,23 @@ public partial class DatePicker : AeterniComponent
 
     private void UpdateEditContextSubscription()
     {
-        var next = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, next))
-        {
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = next;
-            if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
         _hasFieldIdentifier = ValueExpression is not null;
         if (_hasFieldIdentifier) _fieldIdentifier = FieldIdentifier.Create(ValueExpression!);
     }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
-    }
-
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier && _subscribedEditContext is not null) _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
+        if (_hasFieldIdentifier)
+        {
+            _validation.NotifyFieldChanged(_fieldIdentifier);
+        }
     }
+
 
     protected override ValueTask OnComponentDisposeAsync()
     {
-        if (_subscribedEditContext is not null) _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        _validation.Detach();
         return ValueTask.CompletedTask;
     }
 

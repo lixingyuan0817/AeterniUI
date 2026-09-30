@@ -22,6 +22,11 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
     [CascadingParameter]
     private EditContext? CascadedEditContext { get; set; }
 
+    private readonly EditContextSubscription _validation;
+
+    public Autocomplete() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter]
     public string? Value { get; set; }
 
@@ -95,9 +100,9 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
     private string? _currentValue;
     private bool _open;
     private int _activeIndex = -1;
-    private EditContext? _subscribedEditContext;
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
+    private ElementReference _inputElement;
 
     private string ListboxId => $"{ElementId}-list";
 
@@ -107,7 +112,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private bool IsInvalid => Invalid ||
         (FormField?.Invalid ?? false) ||
-        (_hasFieldIdentifier && _subscribedEditContext?.GetValidationMessages(_fieldIdentifier).Any() == true);
+        (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
 
     private bool IsRequired => Required || (FormField?.Required ?? false);
 
@@ -193,8 +198,16 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
         return ValueTask.CompletedTask;
     }
 
+    /// <summary>
+    /// Captures the real input element exposed by the child <c>Input</c>. The
+    /// module needs that element, not the component root: a consumer-supplied
+    /// <c>Element</c> parameter replaces <c>RootElement</c>, and a querySelector
+    /// would then silently find nothing and drop keyboard suppression.
+    /// </summary>
+    private void HandleInputElementChanged(ElementReference element) => _inputElement = element;
+
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
-        JsModuleManager.InvokeModuleVoidAsync("autocomplete", "sync", InstanceId, RootElement);
+        JsModuleManager.InvokeModuleVoidAsync("autocomplete", "sync", InstanceId, _inputElement);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-autocomplete")
@@ -425,16 +438,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private void UpdateEditContextSubscription()
     {
-        var nextEditContext = ValueExpression is null ? null : CascadedEditContext;
-        if (!ReferenceEquals(_subscribedEditContext, nextEditContext))
-        {
-            UnsubscribeFromEditContext();
-            _subscribedEditContext = nextEditContext;
-            if (_subscribedEditContext is not null)
-            {
-                _subscribedEditContext.OnValidationStateChanged += HandleValidationStateChanged;
-            }
-        }
+        _validation.Attach(ValueExpression is null ? null : CascadedEditContext);
 
         if (ValueExpression is not null)
         {
@@ -447,28 +451,18 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
         }
     }
 
-    private void UnsubscribeFromEditContext()
-    {
-        if (_subscribedEditContext is not null)
-        {
-            _subscribedEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
-            _subscribedEditContext = null;
-        }
-    }
+
+    private void UnsubscribeFromEditContext() => _validation.Detach();
+
 
     private void NotifyFieldChanged()
     {
-        if (_hasFieldIdentifier && _subscribedEditContext is not null)
+        if (_hasFieldIdentifier)
         {
-            _subscribedEditContext.NotifyFieldChanged(_fieldIdentifier);
+            _validation.NotifyFieldChanged(_fieldIdentifier);
         }
     }
 
-    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args)
-    {
-        if (!IsDisposed)
-        {
-            _ = InvokeAsync(StateHasChanged);
-        }
-    }
+
+
 }

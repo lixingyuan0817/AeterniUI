@@ -26,6 +26,31 @@ public partial class Surface : AeterniComponent
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown surface variant.");
+        }
+
+        if (!Enum.IsDefined(Elevation))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Elevation), Elevation, "Unknown surface elevation.");
+        }
+
+        if (!Enum.IsDefined(Padding))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Padding), Padding, "Unknown surface padding.");
+        }
+
+        if (!Enum.IsDefined(Radius))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Radius), Radius, "Unknown surface radius.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()

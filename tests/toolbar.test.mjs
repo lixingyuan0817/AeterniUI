@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-const source = await readFile(new URL('../src/AeterniUI/Components/Toolbar/Toolbar.razor.js', import.meta.url), 'utf8');
+// The component module now delegates to the shared roving-focus helper, so the
+// helper is inlined before the module is imported from a data URL.
+const roving = await readFile(new URL('../src/AeterniUI/wwwroot/js/aeterni_roving_focus.js', import.meta.url), 'utf8');
+const source = (await readFile(new URL('../src/AeterniUI/Components/Toolbar/Toolbar.razor.js', import.meta.url), 'utf8'))
+    .replace('../../js/aeterni_roving_focus.js', `data:text/javascript;base64,${Buffer.from(roving).toString('base64')}`);
 const { init, sync, dispose } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
 function fixture() {

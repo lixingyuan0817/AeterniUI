@@ -65,7 +65,7 @@ public partial class Segmented<TValue> : AeterniComponent
 
     // Inside a FormField the group adopts the field's input id, so the field label's
     // `for` resolves to an element that exists.
-    private string GroupId => Id ?? FormField?.InputId ?? InstanceId;
+    protected override string ComputeElementId() => Id ?? FormField?.InputId ?? InstanceId;
 
     private bool IsEffectivelyDisabled => Disabled || FormField?.Disabled == true;
 
@@ -103,7 +103,6 @@ public partial class Segmented<TValue> : AeterniComponent
     {
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
         {
-            ["id"] = GroupId,
             ["role"] = "radiogroup",
             ["aria-orientation"] = "horizontal"
         };

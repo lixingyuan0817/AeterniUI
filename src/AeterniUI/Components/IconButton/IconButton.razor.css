@@ -63,13 +63,13 @@
 .aeterni-icon-button--sm {
     --aeterni-icon-button-size: var(--aeterni-control-height-sm);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
-    border-radius: var(--aeterni-radius-button-sm);
+    border-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-icon-button--lg {
     --aeterni-icon-button-size: var(--aeterni-control-height-lg);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-lg);
-    border-radius: var(--aeterni-radius-button-lg);
+    border-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-icon-button--outline,

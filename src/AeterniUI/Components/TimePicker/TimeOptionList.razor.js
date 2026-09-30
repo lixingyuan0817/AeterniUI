@@ -2,7 +2,7 @@ const instances = new Map();
 
 export function init(reference, key) {
     dispose(key);
-    instances.set(key, { reference, wheels: new Map() });
+    instances.set(key, { reference, wheels: new Map(), disposed: false });
 }
 
 export function sync(key, host, _activeOptionId, _shouldAlign, animateAlignment, alignmentRevision = 0) {
@@ -61,7 +61,13 @@ export function pendingValues(key) {
 }
 
 export function dispose(key) {
-    for (const [wheel, state] of instances.get(key)?.wheels ?? []) detachWheel(wheel, state);
+    const instance = instances.get(key);
+    if (!instance) return;
+
+    // Marked before detaching: a ResizeObserver callback that was already queued
+    // still runs after disconnect(), and it would otherwise reach the C# callback.
+    instance.disposed = true;
+    for (const [wheel, state] of instance.wheels) detachWheel(wheel, state);
     instances.delete(key);
 }
 
@@ -174,6 +180,10 @@ function settle(instance, wheel, state) {
 }
 
 function align(instance, wheel, state, row, animated, commit) {
+    // Every callback path — wheel/touch/pointer input, scroll, the reduced-motion
+    // change listener and the ResizeObserver — converges here, so this one guard
+    // stops all of them from doing DOM work or reaching C# after release.
+    if (instance.disposed) return;
     cancel(state);
     state.user = false;
     if (!wheel.clientHeight) return;
@@ -194,6 +204,9 @@ function align(instance, wheel, state, row, animated, commit) {
         const value = row.option.dataset.timeValue;
         if (state.notified === value) return;
         state.notified = value;
+        // Last gate before crossing into C#: an animation frame may already have
+        // been queued when the component was released.
+        if (instance.disposed) return;
         void instance.reference.invokeMethodAsync('OnWheelChangedAsync', wheel.dataset.timeUnit, Number(value)).catch(() => {});
     };
     if (!animated || state.reduced.matches || !duration || Math.abs(start - top) < 0.5) {

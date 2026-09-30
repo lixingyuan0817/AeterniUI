@@ -28,6 +28,18 @@ public partial class ThemeSwitch : AeterniComponent
     [Parameter]
     public EventCallback<ThemeMode> ModeChanged { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Segmented validates its own Size too, but failing here reports the
+        // parameter the consumer actually set instead of a size it never passed.
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown theme switch size.");
+        }
+    }
+
     protected override void OnComponentInitialized()
     {
         ThemeService.ThemeChanged += HandleThemeChanged;

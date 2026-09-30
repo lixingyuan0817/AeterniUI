@@ -1,6 +1,6 @@
 @inherits AeterniComponent
 
-<div class="aeterni-date-calendar @(VisibleMonths > 1 ? "is-multi-month" : null)" role="group" aria-label="@AriaLabel">
+<div @ref="RootElement" @attributes="BuildAttributes()" role="group" aria-label="@EffectiveAriaLabel">
     <div class="aeterni-date-calendar__toolbar">
         <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerPreviousMonthLabel" disabled="@(DisplayMonth == DateOnly.MinValue)" @onclick="PreviousMonthAsync">
             <Icon Definition="@AeterniIcons.ChevronLeft" />

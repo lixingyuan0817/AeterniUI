@@ -49,6 +49,7 @@ public partial class DialogProvider : AeterniComponent
             await JsModuleManager.InvokeModuleVoidAsync(
                 "dialog-provider",
                 "sync",
+                InstanceId,
                 RootElement,
                 topDialogId,
                 topDialogId is not null);
@@ -57,6 +58,7 @@ public partial class DialogProvider : AeterniComponent
             await JsModuleManager.InvokeModuleVoidAsync(
                 "dialog-provider",
                 "initProgress",
+                InstanceId,
                 RootElement);
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException or TaskCanceledException)
@@ -103,7 +105,10 @@ public partial class DialogProvider : AeterniComponent
 
         try
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(320));
+            // Wait for the shake the stylesheet is actually running rather than a
+            // hand-tuned delay, which would outlive a shortened animation and would
+            // still block under reduced motion where the duration collapses to zero.
+            await JsModuleManager.InvokeModuleVoidAsync("dialog-provider", "waitForShake", InstanceId, dialog.Id);
         }
         finally
         {

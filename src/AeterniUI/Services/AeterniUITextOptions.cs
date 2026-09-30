@@ -48,11 +48,15 @@ public sealed class AeterniUITextOptions
     /// <summary>Message shown when a <c>MultiSelect</c> has no options.</summary>
     public string MultiSelectEmptyText { get; set; } = "No options";
 
-    /// <summary>Accessible label of the select-all action.</summary>
-    public string MultiSelectSelectAllLabel { get; set; } = "全选";
+    /// <summary>
+    /// Visible text and accessible label of the select-all action.
+    /// </summary>
+    public string MultiSelectSelectAllLabel { get; set; } = "Select all";
 
-    /// <summary>Accessible label of the clear-all action.</summary>
-    public string MultiSelectClearAllLabel { get; set; } = "清除";
+    /// <summary>
+    /// Visible text and accessible label of the clear-all action.
+    /// </summary>
+    public string MultiSelectClearAllLabel { get; set; } = "Clear";
 
     /// <summary>Prefix of a selected-item remove action.</summary>
     public string MultiSelectRemoveLabel { get; set; } = "Remove";
@@ -128,6 +132,16 @@ public sealed class AeterniUITextOptions
 
     /// <summary>Accessible name of a <c>Rating</c> group.</summary>
     public string RatingLabel { get; set; } = "Rating";
+
+    /// <summary>
+    /// Composite format for a single star's accessible name and tooltip.
+    /// Placeholder {0} receives the star value, {1} the rating maximum, so the
+    /// star announces "3 of 5" instead of a bare number.
+    /// </summary>
+    public string RatingStarLabelFormat { get; set; } = "{0} of {1}";
+
+    /// <summary>Accessible name of a <c>FlashCardGroup</c> deck.</summary>
+    public string FlashCardGroupLabel { get; set; } = "Flash cards";
 
     /// <summary>Accessible name of a <c>Tabs</c> strip.</summary>
     public string TabsLabel { get; set; } = "Tabs";
@@ -226,6 +240,7 @@ public sealed class AeterniUITextOptions
         DateTimePickerPlaceholder = Or(DateTimePickerPlaceholder, defaults.DateTimePickerPlaceholder);
         DateTimePickerLabel = Or(DateTimePickerLabel, defaults.DateTimePickerLabel);
         DatePickerCalendarLabel = Or(DatePickerCalendarLabel, defaults.DatePickerCalendarLabel);
+        FlashCardGroupLabel = Or(FlashCardGroupLabel, defaults.FlashCardGroupLabel);
         DatePickerPlaceholder = Or(DatePickerPlaceholder, defaults.DatePickerPlaceholder);
         DatePickerLabel = Or(DatePickerLabel, defaults.DatePickerLabel);
         DateRangePickerLabel = Or(DateRangePickerLabel, defaults.DateRangePickerLabel);
@@ -237,6 +252,7 @@ public sealed class AeterniUITextOptions
         PaginationNextLabel = Or(PaginationNextLabel, defaults.PaginationNextLabel);
         PaginationPageLabelFormat = Or(PaginationPageLabelFormat, defaults.PaginationPageLabelFormat);
         RatingLabel = Or(RatingLabel, defaults.RatingLabel);
+        RatingStarLabelFormat = Or(RatingStarLabelFormat, defaults.RatingStarLabelFormat);
         TabsLabel = Or(TabsLabel, defaults.TabsLabel);
         BreadcrumbLabel = Or(BreadcrumbLabel, defaults.BreadcrumbLabel);
         StepperLabel = Or(StepperLabel, defaults.StepperLabel);

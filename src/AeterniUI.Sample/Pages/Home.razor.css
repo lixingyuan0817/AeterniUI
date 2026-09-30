@@ -165,7 +165,7 @@
 }
 
 .doc-timeline__link:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-control-focus-ring);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
 }
 

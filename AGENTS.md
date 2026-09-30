@@ -85,7 +85,7 @@ dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profi
 
 用户可能正在运行示例应用。未经明确批准，不要终止其进程或执行破坏性清理。
 
-针对窄范围修改，先执行静态检查。当前项目只有最小组件渲染契约检查，没有完整业务或端到端测试套件。需要构建时使用：
+针对窄范围修改，先执行静态检查。当前项目有最小组件渲染契约检查、一组 DOM 替身行为测试和无头 Chrome 行为检查，但没有完整业务或端到端测试套件。需要构建时使用：
 
 ```bash
 dotnet build aeterni_ui.slnx
@@ -93,7 +93,15 @@ dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csp
 bash scripts/check-docs.sh
 ```
 
-其中 `AeterniUI.ContractChecks` 是不依赖外部浏览器服务的最小组件渲染契约门禁，不是完整业务或端到端测试套件；修改根属性、ARIA、复合控件焦点模型或公开样式变体时必须运行。
+改动**层叠顺序、过渡/动画时序、焦点环或键盘焦点模型**时，除上述门禁外还要运行浏览器行为检查——这些结论 `HtmlRenderer` 看不见（它没有布局、没有真实引擎的级联解析、也没有焦点模型）：
+
+```bash
+tests/browser/run.sh
+```
+
+该脚本会在 `dist/` 缺失时先发布示例，需要本机 Chrome/Chromium（可用 `CHROME_BIN` 指定）与 Node 22+。它只断言计算样式与 DOM 状态，不含截图与真实触屏/读屏验收；覆盖范围与盲区见 [`tests/browser/README.md`](tests/browser/README.md)。
+
+其中 `AeterniUI.ContractChecks` 是不依赖外部浏览器服务的最小组件渲染契约门禁，不是完整业务或端到端测试套件（浏览器检查是另一个独立入口）；修改根属性、ARIA、复合控件焦点模型或公开样式变体时必须运行。
 
 `check-docs.sh` 是 CI 门禁之一，校验必需文件、文档版本号一致性与关键组件章节，
 修改文档或项目结构后必须执行。另外四项 CI 门禁是「`wwwroot/css/aeterni_ui.css` 只允许 Token

@@ -19,10 +19,13 @@ public partial class ToggleGroup : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        // Deliberately a whitelist rather than Enum.IsDefined: SelectionMode.None is a
+        // defined member that is still meaningless for a toggle group, so an
+        // IsDefined check would silently start accepting it.
         if (SelectionMode is not (SelectionMode.Single or SelectionMode.Multiple))
-            throw new ArgumentOutOfRangeException(nameof(SelectionMode));
-        if (!Enum.IsDefined(Orientation)) throw new ArgumentOutOfRangeException(nameof(Orientation));
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
+            throw new ArgumentOutOfRangeException(nameof(SelectionMode), SelectionMode, "A toggle group is either single- or multi-select.");
+        if (!Enum.IsDefined(Orientation)) throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown toggle group orientation.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown toggle group size.");
         if (string.IsNullOrWhiteSpace(AriaLabel))
             throw new ArgumentException("A toggle group requires an accessible name.", nameof(AriaLabel));
         ArgumentNullException.ThrowIfNull(Items);
@@ -54,11 +57,16 @@ public partial class ToggleGroup : AeterniComponent
         {
             ["role"] = "group",
             ["aria-label"] = AriaLabel.Trim(),
-            ["aria-disabled"] = Disabled ? "true" : "false",
             ["data-orientation"] = Orientation == Orientation.Vertical ? "vertical" : "horizontal",
             ["tabindex"] = "-1"
         };
-        if (Disabled) attributes["inert"] = true;
+        if (Disabled)
+        {
+            // Emitted only while disabled, matching the base class and the rest of
+            // the library: an explicit "false" would be a second convention.
+            attributes["aria-disabled"] = "true";
+            attributes["inert"] = true;
+        }
         return attributes;
     }
 

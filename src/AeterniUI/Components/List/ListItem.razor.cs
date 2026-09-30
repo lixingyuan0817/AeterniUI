@@ -28,9 +28,13 @@ public partial class ListItem<TItem> : AeterniComponent
 
     internal bool Interactive => Owner?.IsSelectable == true;
 
-    internal string? OptionId => Owner is null
-        ? null
+    // The option id is only meaningful inside a List; ElementId reports it so
+    // aria-activedescendant and the rendered id agree.
+    protected override string ComputeElementId() => Owner is null
+        ? base.ComputeElementId()
         : $"{Owner.ElementId}-option-{InstanceId}";
+
+    internal string? OptionId => Owner is null ? null : ElementId;
 
     internal bool Selected => Owner?.IsSelected(Value) == true;
 
@@ -77,13 +81,6 @@ public partial class ListItem<TItem> : AeterniComponent
         if (!Interactive)
         {
             return attributes;
-        }
-
-        // The Listbox container points aria-activedescendant at this option, so the
-        // option id takes over from the base element id while it is selectable.
-        if (OptionId is not null)
-        {
-            attributes["id"] = OptionId;
         }
 
         attributes["role"] = "option";

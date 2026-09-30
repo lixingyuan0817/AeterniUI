@@ -20,6 +20,7 @@ public partial class VirtualList<TItem> : AeterniComponent
     private int _activeIndex = -1;
     private int? _scrollRequestIndex;
     private bool _loadMoreInFlight;
+    private bool _disposed;
 
     [Parameter, EditorRequired]
     public IReadOnlyList<TItem>? Items { get; set; }
@@ -264,7 +265,7 @@ public partial class VirtualList<TItem> : AeterniComponent
     [JSInvokable]
     public async Task HandleKeyFromBrowserAsync(string key)
     {
-        if (!IsSelectable || Disabled || _rows.Count == 0) return;
+        if (_disposed || !IsSelectable || Disabled || _rows.Count == 0) return;
 
         var enabled = _rows.Where(row => !IsRowDisabled(row)).ToArray();
         if (enabled.Length == 0) return;
@@ -388,7 +389,7 @@ public partial class VirtualList<TItem> : AeterniComponent
     [JSInvokable]
     public async Task HandleLoadMoreAsync()
     {
-        if (_loadMoreInFlight || !OnLoadMore.HasDelegate || !HasMoreItems || LoadingMore || Disabled || !Visible)
+        if (_disposed || _loadMoreInFlight || !OnLoadMore.HasDelegate || !HasMoreItems || LoadingMore || Disabled || !Visible)
         {
             return;
         }
@@ -405,4 +406,14 @@ public partial class VirtualList<TItem> : AeterniComponent
     }
 
     private static bool ValuesEqual(object? left, object? right) => EqualityComparer<object?>.Default.Equals(left, right);
+
+    // Mirrors List: the flag lets the JSInvokable entry points reject a callback
+    // that the browser had already queued when the component was removed.
+    protected override ValueTask OnComponentDisposeAsync()
+    {
+        _disposed = true;
+        _rows.Clear();
+        _activeIndex = -1;
+        return ValueTask.CompletedTask;
+    }
 }

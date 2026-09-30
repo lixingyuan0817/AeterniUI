@@ -25,10 +25,18 @@ public partial class TimeOptionList : AeterniComponent
     [Parameter] public TimeOnly? MaxTime { get; set; }
     [Parameter] public Func<TimeOnly, bool>? DisabledTime { get; set; }
     [Parameter] public TimeFormat TimeFormat { get; set; } = TimeFormat.TwentyFourHour;
-    [Parameter] public string AriaLabel { get; set; } = "Time options";
-    [Parameter] public string EmptyText { get; set; } = "No available times";
-    [Parameter] public string CancelText { get; set; } = "Cancel";
-    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    // Defaults are empty on purpose: a hard-coded English default would shadow
+    // the matching AeterniUITextOptions entry and make the component ignore the
+    // host's localisation. Leaving a parameter unset now falls back to the table.
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public string? CancelText { get; set; }
+    [Parameter] public string? ConfirmText { get; set; }
+
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.TimePickerOptionsLabel : AriaLabel.Trim();
+    private string EffectiveEmptyText => string.IsNullOrWhiteSpace(EmptyText) ? UiText.TimePickerEmptyText : EmptyText.Trim();
+    private string EffectiveCancelText => string.IsNullOrWhiteSpace(CancelText) ? UiText.TimePickerCancelText : CancelText.Trim();
+    private string EffectiveConfirmText => string.IsNullOrWhiteSpace(ConfirmText) ? UiText.TimePickerConfirmText : ConfirmText.Trim();
 
     private TimeSelectionMap _map = default!;
     private TimeOnly? _draftValue;
@@ -49,7 +57,7 @@ public partial class TimeOptionList : AeterniComponent
         base.OnParametersSet();
         if (!Enum.IsDefined(TimeFormat))
         {
-            throw new ArgumentOutOfRangeException(nameof(TimeFormat));
+            throw new ArgumentOutOfRangeException(nameof(TimeFormat), TimeFormat, "Unknown time option list format.");
         }
 
         _map = TimePickerOptions.CreateMap(Step, MinTime, MaxTime, DisabledTime, _map);
@@ -77,7 +85,7 @@ public partial class TimeOptionList : AeterniComponent
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
         {
             ["role"] = "group",
-            ["aria-label"] = AriaLabel,
+            ["aria-label"] = EffectiveAriaLabel,
             ["tabindex"] = _map.Count == 0 ? "-1" : "0"
         };
 
@@ -198,7 +206,11 @@ public partial class TimeOptionList : AeterniComponent
     [JSInvokable]
     public async Task OnWheelChangedAsync(string unitName, int value)
     {
-        if (!Enum.TryParse<TimeUnit>(unitName, ignoreCase: true, out var unit) ||
+        // The wheel module reports through a ResizeObserver callback and a
+        // reduced-motion change listener, so a queued call can still arrive after
+        // the component was released.
+        if (IsDisposed ||
+            !Enum.TryParse<TimeUnit>(unitName, ignoreCase: true, out var unit) ||
             !Units.Contains(unit) ||
             !ValuesFor(unit).Contains(value))
         {

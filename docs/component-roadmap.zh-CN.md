@@ -708,8 +708,20 @@ Token 和现有基础组件
 | 优先级 2 | v0.6 导航：`Breadcrumb` → `Stepper` | 已完成（5/5） | Breadcrumb 明确链接导航边界；Stepper 复用线性流程状态语义 |
 | 优先级 3 | v0.7 搜索与数据选择：`Search` → `Autocomplete` → `MultiSelect` | 已完成（3/3） | 依赖稳定的输入、列表、浮层与焦点模型，复杂度和回归面最大 |
 | 优先级 4 | 大数据量展示：`VirtualList<TItem>` | 已完成 | 复用 Blazor `Virtualize<TItem>`，在固定行高和固定视口约束下补齐键盘、选择和位置语义 |
+| 优先级 5 | 公共 API 形状收口（第九轮 REV-115 的破坏性项） | 规划中 | 需要迁移路径，不能与 P0/P1 修复同批交付，详见下节 |
+| 优先级 6 | 装饰层令牌（第九轮 REV-125） | 已完成 | 新增 `--aeterni-decor-*` 命名空间，`FlashCard` 的金属光泽与全息衍射改走该层，契约见设计规范 §5.3；装饰色与品牌故意无关，不参与对比度契约 |
 
 文档事实偏差 REV-74 已在本轮规划同步时直接修正。v0.7 的 `MultiSelect` 已在 10.23.0 交付，搜索与数据选择阶段完成。
+
+### 公共 API 形状收口（优先级 5，规划中）
+
+第九轮审阅（REV-115）发现三处需要**破坏性变更**才能收口的公共 API 不一致。按 `AGENTS.md` 的"破坏性公共 API 变更应优先避免或提供兼容迁移"，它们不在修复批次内实现，先在此记录待决策：
+
+| 项 | 现状 | 需要决策的点 |
+| --- | --- | --- |
+| `Rating.OnChange` 与 `ValueChanged` 同一次交互双重触发 | **迁移已开始**：`OnChange` 标注 `[Obsolete]`，仍与 `ValueChanged` 一同触发；契约断言两条都必须在 | 待定移除窗口。移除前需要一次次版本发布让弃用警告触达消费者，之后按破坏性变更流程删除并更新本文档 |
+| ComboBox 用 `OnChange`、Autocomplete 与 MultiSelect 用 `OnItemSelected` | **迁移已开始**：ComboBox 新增 `OnItemSelected`，`OnChange` 标注 `[Obsolete]` 且两者都会触发 | 同上，待定移除窗口 |
+| `Card` 重复声明 `Surface` 的三组属性却漏掉 `Radius` | 未处理：`Card.razor.cs:9-16` 与 `Surface.razor.cs` 之间无共享基类也无组合，靠人工保持同步 | 是否抽出共享抽象（会改变继承关系，触及设计规范 2.1 的"不为元素能力单独建基类"约定），或维持现状并接受人工同步 |
 
 ### v0.5.1 质量收口（优先级 0）
 

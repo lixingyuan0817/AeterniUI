@@ -61,8 +61,8 @@
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button:first-child {
-    border-start-start-radius: var(--aeterni-radius-button-sm);
-    border-end-start-radius: var(--aeterni-radius-button-sm);
+    border-start-start-radius: var(--aeterni-radius-button);
+    border-end-start-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button:last-child {
@@ -71,8 +71,8 @@
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button:last-child {
-    border-start-end-radius: var(--aeterni-radius-button-sm);
-    border-end-end-radius: var(--aeterni-radius-button-sm);
+    border-start-end-radius: var(--aeterni-radius-button);
+    border-end-end-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button {
@@ -116,8 +116,8 @@
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button:first-child {
-    border-start-start-radius: var(--aeterni-radius-button-sm);
-    border-start-end-radius: var(--aeterni-radius-button-sm);
+    border-start-start-radius: var(--aeterni-radius-button);
+    border-start-end-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button:last-child {
@@ -126,8 +126,8 @@
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button:last-child {
-    border-end-start-radius: var(--aeterni-radius-button-sm);
-    border-end-end-radius: var(--aeterni-radius-button-sm);
+    border-end-start-radius: var(--aeterni-radius-button);
+    border-end-end-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button {

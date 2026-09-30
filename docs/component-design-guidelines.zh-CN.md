@@ -386,16 +386,18 @@ background: #8b4df6;
 | 只读控件 | `--aeterni-state-color-readonly`、`--aeterni-state-background-readonly` |
 | 占位/弱化文本 | `--aeterni-state-color-placeholder`、`--aeterni-state-color-muted` |
 | 反色内容 | `--aeterni-state-color-inverse`、`--aeterni-state-background-inverse` |
-| 品牌动作 | `--aeterni-color-brand-default`、`--aeterni-color-brand-hover`、`--aeterni-color-brand-active`、`--aeterni-color-brand-disabled`、`--aeterni-color-brand-soft` |
+| 品牌动作 | `--aeterni-color-brand-default`、`--aeterni-color-brand-hover`、`--aeterni-color-brand-active`、`--aeterni-color-brand-text`、`--aeterni-color-brand-soft` |
 | 状态反馈 | `--aeterni-color-success-*`、`--aeterni-color-warning-*`、`--aeterni-color-danger-*`、`--aeterni-color-info-*`、`--aeterni-color-neutral-*` |
 
-每个颜色族都提供 `default`、`hover`、`active`、`disabled` 状态前景/边框别名，并提供 `soft` 柔和背景别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-hover` 和 `--aeterni-color-info-soft`。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
+每个颜色族都提供 `default`（填充/边框）、`soft`（柔和背景）和 `text`（承字形态）三个别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-soft` 和 `--aeterni-color-info-text`。悬停与按下态**不再各自保留别名**：它们由 `default` 档与中性面用 `color-mix()` 推导（见 §5.4），因此调色板换色时推导结果自动跟随，不会出现别名与色阶脱节。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
 
 品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。库内已按该机制交付三个色相：默认紫罗兰（`:root`）与绿色（`[data-aeterni-brand="green"]`）、焦橙（`[data-aeterni-brand="orange"]`）。
 
-常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background-*`、`--aeterni-control-border-*`、`--aeterni-control-foreground-*`；焦点环使用 `--aeterni-control-focus-ring` 或现有的 focus 尺寸 Token。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
+常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background`、`--aeterni-control-border`、`--aeterni-control-foreground`（各自带 `disabled`、`readonly`、`hover`、`focus`、`invalid`、`placeholder` 分支）；焦点环使用 `--aeterni-focus-color` 配合 `--aeterni-focus-width` 与 `--aeterni-focus-offset`，不要另立别名。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
 
 组件不得通过自己增加 `.dark`、`.light` 或媒体查询来实现主题切换。主题由 `ThemeProvider` 设置，组件只消费语义 Token。
+
+**装饰色（`--aeterni-decor-*`）不以语义角色出现，也不参与对比度契约。** 只有「视觉本身就是内容」的饰面才用它——目前只有 `FlashCard` 的金属光泽与全息衍射。装饰色与品牌**故意无关**：光栅是被表面分解的白光，不是品牌色，换品牌不应该把衍射光栅重刷一遍。因此这类组件不得为了「跟随品牌」而改写装饰层，也不得把语义角色当装饰用；反过来，装饰层上的任何文字或状态必须另配语义角色。宿主若想改饰面，重调 `--aeterni-decor-*` 即可，不必改组件样式表。
 
 ### 5.4 色板构建
 
@@ -431,7 +433,7 @@ background: #8b4df6;
 
   用不透明度的另一个好处是文字会随所在表面自动调和（着色 chip、hover 底、毛玻璃层），不需要为每个表面另写一个 hex。
 - **结构分隔线用 `--aeterni-separator`**（不透明，浅色 1.7:1 / 深色 1.5:1），不用 7% alpha 的 `--aeterni-border-subtle`：后者在卡片头/底分界上看起来像一片污渍。
-- `--aeterni-bg-hover` 与 `--aeterni-bg-active` 是**交互态别名**（有意带品牌色），不属于上面的「中性容器背景」；组件一律使用 `--aeterni-state-background-*`。
+- 交互态（hover / active / selected）一律使用 `--aeterni-state-*` 角色；容器背景只取上面的无彩色角色，不得为交互态另立一套带品牌色的容器背景别名。
 - **实心填充的字色由填充明度决定**：深档填充（品牌）配 `--aeterni-text-inverse`，亮档填充（success/warning/danger/info）配 `--aeterni-color-on-semantic`。同一控件在 base/hover/active 三个状态必须保持同一字色，否则很容易掉到 4.5:1 以下；品牌填充向下取档，语意填充向白提亮 12%。
 - **浅底深字**：带色 chip（Tag）必须用「浅色调底 + 深色文字」，文字由强调色与正文字色按约 1:1 混合得到；只用两成墨色会让 chip 文字掉到 3:1 以下。
 

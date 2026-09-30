@@ -60,6 +60,16 @@ public partial class NoticeCard : AeterniComponent
         ? "aeterni-dialog-provider__alert"
         : "aeterni-dialog-provider__toast";
 
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Severity))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Severity), Severity, "Unknown notice severity.");
+        }
+    }
+
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()

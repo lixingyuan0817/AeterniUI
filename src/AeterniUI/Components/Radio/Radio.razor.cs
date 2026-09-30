@@ -53,12 +53,25 @@ public partial class Radio<TValue> : AeterniComponent
     private bool EffectiveInvalid => Invalid || (Group?.Invalid ?? false) || (FormField?.Invalid ?? false);
     private Size EffectiveSize => Size ?? Group?.Size ?? SizeValue.Default;
 
-    protected override bool SupportsDisabled => true;
+    // The root is a <label>, which cannot carry the native disabled attribute,
+    // so SupportsDisabled stays false (matching Card/FlashCard/Card-based roots).
+    // The child <input> owns the native disabled state; the label only reports
+    // it through aria-disabled so assistive technology can still announce it.
 
     /// <summary>
     /// Attributes for the root label element: the component class plus the
     /// inherited DOM attributes. The input carries its own radio semantics.
     /// </summary>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Size is { } sizeValue && !Enum.IsDefined(sizeValue))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown radio size.");
+        }
+    }
+
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
         var attributes = new Dictionary<string, object>(

@@ -19,8 +19,8 @@
                 aria-checked="@(rating == Value ? "true" : "false")"
                 tabindex="@(IsInteractive && rating == TabStop ? 0 : -1)"
                 @ref="_starElements[rating]"
-                aria-label="@(rating.ToString(CultureInfo.InvariantCulture))"
-                title="@(rating.ToString(CultureInfo.InvariantCulture)) / @(Max.ToString(CultureInfo.InvariantCulture))"
+                aria-label="@StarLabel(rating)"
+                title="@StarLabel(rating)"
                 disabled="@IsDisabled"
                 @onclick="@(args => HandleClickAsync(rating))">
             @if (Icon is not null)

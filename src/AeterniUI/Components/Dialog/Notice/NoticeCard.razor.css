@@ -52,7 +52,6 @@
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
@@ -214,7 +213,7 @@
     stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 80%, var(--aeterni-bg-elevated));
     stroke-dasharray: 1;
     stroke-dashoffset: 0;
-    animation: aeterni-progress-drain var(--aeterni-dialog-duration, 5s) linear forwards;
+    animation: aeterni-progress-drain var(--aeterni-dialog-duration, 5s) var(--aeterni-ease-linear) forwards;
 }
 
 @keyframes aeterni-progress-drain {

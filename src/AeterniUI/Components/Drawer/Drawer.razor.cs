@@ -206,8 +206,11 @@ public partial class Drawer : AeterniComponent
     private async Task CloseAsync()
     {
         // A disabled drawer keeps its state: every close path (button, Escape,
-        // backdrop, outside pointer) funnels through here, so the lock is one guard.
-        if (!Open || Disabled || _closing)
+        // backdrop, outside pointer, the JSInvokable RequestCloseAsync) funnels
+        // through here, so the locks are one guard. IsDisposed joins them so a
+        // queued browser callback cannot still flip Open or invoke OpenChanged
+        // after the drawer is gone.
+        if (IsDisposed || !Open || Disabled || _closing)
         {
             return;
         }

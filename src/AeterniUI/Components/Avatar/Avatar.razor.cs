@@ -35,8 +35,8 @@ public partial class Avatar : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size));
-        if (!Enum.IsDefined(Color)) throw new ArgumentOutOfRangeException(nameof(Color));
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown avatar size.");
+        if (!Enum.IsDefined(Color)) throw new ArgumentOutOfRangeException(nameof(Color), Color, "Unknown avatar color.");
         if (string.IsNullOrWhiteSpace(Src) && string.IsNullOrWhiteSpace(Name) && ChildContent is null)
         {
             throw new ArgumentException("Avatar requires Src, Name, or ChildContent.");

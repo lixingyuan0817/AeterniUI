@@ -13,7 +13,7 @@
 
     position: fixed;
     inset: 0;
-    z-index: var(--aeterni-z-overlay);
+    z-index: var(--aeterni-z-modal-backdrop);
     pointer-events: none;
 }
 
@@ -62,7 +62,6 @@
     --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-muted: var(--aeterni-text-on-glass-secondary);
     --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
 }
 
