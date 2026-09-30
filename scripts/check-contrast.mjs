@@ -216,6 +216,24 @@ function contrast(fg, bg) {
     return (hi + 0.05) / (lo + 0.05);
 }
 
+/* --- known shortfalls ------------------------------------------------------
+   Pairs that this gate measures and that are currently below their floor. The
+   palette values predate the gate learning to check the semantic families at
+   all, and correcting them means re-anchoring light-theme stops, which is a
+   design decision rather than a bug fix (see REV-129 in the review record).
+
+   They stay enumerated instead of being dropped from PAIRS so that every run
+   still prints the numbers, and so that a *new* shortfall fails the build. The
+   list only grows by editing this constant. */
+const KNOWN_SHORTFALLS = new Map([
+    ['::light::--aeterni-color-danger-text::--aeterni-bg',
+        'REV-129: danger ink on the page is 4.27:1, just under the 4.5:1 text floor'],
+    ['::light::--aeterni-color-success-default::--aeterni-bg-surface',
+        'REV-129: success fill used as border or icon on a surface is 2.22:1, under the 3:1 graphic floor'],
+    ['::light::--aeterni-color-warning-default::--aeterni-bg-surface',
+        'REV-129: warning fill used as border or icon on a surface is 2.20:1, under the 3:1 graphic floor'],
+]);
+
 /* --- the pairs the palette is used in ------------------------------------ */
 
 const PAIRS = [
@@ -230,11 +248,32 @@ const PAIRS = [
     ['--aeterni-color-brand-default', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'brand border or icon on a surface'],
     ['--aeterni-color-brand-default', '--aeterni-bg', GRAPHIC_FLOOR, 'brand border or icon on the page'],
     ['--aeterni-state-color-focus', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'focus ring on a surface'],
+
+    // The semantic families carry text and borders the same way the brand hue
+    // does, and the light theme's solid semantic fills were a real contrast
+    // failure once (the fill stop used as ink). They were fixed by hand and then
+    // left outside this gate, which is exactly how that kind of regression comes
+    // back — so they are enumerated here rather than trusted.
+    ...['danger', 'success', 'warning', 'info'].flatMap(family => [
+        [`--aeterni-color-${family}-text`, '--aeterni-bg-surface', TEXT_FLOOR, `${family} text on a surface`],
+        [`--aeterni-color-${family}-default`, '--aeterni-bg-surface', GRAPHIC_FLOOR, `${family} border or icon on a surface`],
+        [`--aeterni-color-on-semantic`, `--aeterni-color-${family}-default`, TEXT_FLOOR, `label on a solid ${family} fill`],
+        // Deliberately absent: the `-soft` fills. They are 11-12% alpha tints, and
+        // this gate flattens a translucent foreground onto its background but has
+        // no surface to flatten a translucent background against, so it would
+        // compare the tint's own luminance and report a meaningless ~1.2:1.
+        // Measuring ink-on-soft needs the palette's compositing step first. The
+        // pairing is real (Avatar puts `-text` on `-soft`), so this is a gap in the
+        // gate rather than a pair that does not exist.
+    ]),
+    ...['danger', 'success', 'warning', 'info', 'neutral'].map(family =>
+        [`--aeterni-color-${family}-text`, '--aeterni-bg', TEXT_FLOOR, `${family} text on the page`]),
 ];
 
 /* --- run ----------------------------------------------------------------- */
 
 const css = readFileSync(target, 'utf8');
+
 const rules = parseRules(css);
 
 const hueLayers = new Map();
@@ -276,9 +315,18 @@ for (const [brand] of hueLayers) {
                 const pass = ratio >= floor;
                 rows.push({ brand, mode, fgToken, bgToken, usage, ratio, floor, margin, pass });
                 if (!pass) {
-                    problems.push(
-                        `::error::${brand}/${mode}: ${fgToken} on ${bgToken} is ${ratio.toFixed(2)}:1, ` +
-                        `below the ${floor}:1 floor (${usage})`);
+                    const known = KNOWN_SHORTFALLS.get(`::${mode}::${fgToken}::${bgToken}`);
+                    const detail =
+                        `${brand}/${mode}: ${fgToken} on ${bgToken} is ${ratio.toFixed(2)}:1, ` +
+                        `below the ${floor}:1 floor (${usage})`;
+                    if (known) {
+                        // Printed every run so the gap stays visible, but it does not
+                        // fail the build while the palette decision is open.
+                        console.log(`  known   ${detail}`);
+                        console.log(`          ${known}`);
+                    } else {
+                        problems.push(`::error::${detail}`);
+                    }
                 }
             } catch (error) {
                 problems.push(`::error::${brand}/${mode}: ${fgToken} on ${bgToken} - ${error.message}`);

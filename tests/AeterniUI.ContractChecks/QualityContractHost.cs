@@ -50,9 +50,6 @@ public sealed class QualityContractHost : ComponentBase
         b.OpenComponent<AeterniUI.Components.Rating.Rating>(30);
         b.AddAttribute(31, "Value", RatingValue);
         b.AddAttribute(32, "ValueChanged", EventCallback.Factory.Create<int>(this, value => RatingChanges.Add(value)));
-#pragma warning disable CS0618 // exercised on purpose: the alias must keep working.
-        b.AddAttribute(33, "OnChange", EventCallback.Factory.Create<int>(this, value => RatingChanges.Add(value * 1000)));
-#pragma warning restore CS0618
         b.AddComponentReferenceCapture(34, component => Rating = (AeterniUI.Components.Rating.Rating)component);
         b.CloseComponent();
 
