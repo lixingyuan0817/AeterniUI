@@ -7,10 +7,12 @@ using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.FlashCard;
 using AeterniUI.Components.FlashCardGroup;
+using AeterniUI.Components.InputNumber;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.MultiSelect;
 using AeterniUI.Components.Search;
+using AeterniUI.Components.Slider;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.TimePicker;
 using AeterniUI.Components.VirtualList;
@@ -47,6 +49,8 @@ await CheckSplitButtonAsync();
 await CheckSearchAsync();
 await CheckAutocompleteAsync();
 await CheckMultiSelectAsync();
+await CheckInputNumberAsync();
+await CheckSliderAsync();
 await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
 await CheckStepperAsync();
@@ -73,8 +77,425 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (29 groups).");
+Console.WriteLine("Component contract checks passed (31 groups).");
 return 0;
+
+// Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
+// composite root contract, the spinbutton semantics added to the inner input and
+// the value pipeline (typing, stepping, clamping) driven on a live instance.
+async Task CheckInputNumberAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(InputNumber<decimal>), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "inputnumber",
+        "InputNumber declares its interactive key-guard module.");
+
+    var html = await RenderAsync<InputNumber<decimal>>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-input-number",
+        ["Class"] = "consumer-input-number",
+        ["Style"] = "color: inherit",
+        ["Value"] = 12.5m,
+        ["Min"] = 0m,
+        ["Max"] = 100m,
+        ["Step"] = 0.5m,
+        ["ShowControls"] = true,
+        ["Required"] = true,
+        ["Invalid"] = true,
+        ["Disabled"] = true,
+        ["FullWidth"] = true,
+        ["Size"] = Size.Small,
+        ["Placeholder"] = "Amount",
+        ["Name"] = "amount",
+        ["AriaLabel"] = "Amount",
+        ["AdditionalAttributes"] = new Dictionary<string, object> { ["data-kind"] = "quantity" }
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-input-number\"[^>]*>").Value;
+    Require(root.Contains("consumer-input-number", StringComparison.Ordinal)
+        && root.Contains("aeterni-input-number--sm", StringComparison.Ordinal)
+        && root.Contains("is-full-width", StringComparison.Ordinal)
+        && root.Contains("is-invalid", StringComparison.Ordinal)
+        && root.Contains("is-disabled", StringComparison.Ordinal)
+        && root.Contains("aria-disabled=\"true\"", StringComparison.Ordinal)
+        && root.Contains("data-kind=\"quantity\"", StringComparison.Ordinal)
+        && root.Contains("style=\"color: inherit", StringComparison.Ordinal),
+        "InputNumber preserves root attributes and emits size and state classes.");
+
+    var input = Regex.Match(html, "<input[^>]*role=\"spinbutton\"[^>]*>").Value;
+    Require(input.Contains("type=\"text\"", StringComparison.Ordinal)
+        && input.Contains("inputmode=\"decimal\"", StringComparison.Ordinal)
+        && input.Contains("aria-valuenow=\"12.5\"", StringComparison.Ordinal)
+        && input.Contains("aria-valuemin=\"0.0\"", StringComparison.Ordinal)
+        && input.Contains("aria-valuemax=\"100.0\"", StringComparison.Ordinal)
+        && input.Contains("placeholder=\"Amount\"", StringComparison.Ordinal)
+        && input.Contains("name=\"amount\"", StringComparison.Ordinal),
+        "InputNumber renders a text input with string spinbutton bounds; the native number type would duplicate the steppers.");
+    Require(input.Contains("aria-required=\"true\"", StringComparison.Ordinal)
+        && input.Contains("aria-invalid=\"true\"", StringComparison.Ordinal)
+        && input.Contains("disabled", StringComparison.Ordinal),
+        "InputNumber forwards the field state to the inner input.");
+
+    var buttons = Regex.Matches(html, "<button[^>]*aria-label=\"(Increase|Decrease) value\"[^>]*>");
+    Require(html.Contains("role=\"group\"", StringComparison.Ordinal)
+        && buttons.Count == 2
+        && buttons.All(button => button.Value.Contains("disabled", StringComparison.Ordinal)),
+        "ShowControls renders two grouped step buttons that follow the disabled state.");
+
+    var bare = await RenderAsync<InputNumber<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 3
+    });
+    Require(!bare.Contains("aeterni-icon-button", StringComparison.Ordinal)
+        && !bare.Contains("Increase value", StringComparison.Ordinal),
+        "InputNumber renders no step buttons unless ShowControls is on.");
+    Require(bare.Contains("inputmode=\"numeric\"", StringComparison.Ordinal),
+        "Integer value types get the numeric keyboard hint.");
+
+    foreach (var size in Enum.GetValues<Size>())
+    {
+        var sized = await RenderAsync<InputNumber<int>>(new Dictionary<string, object?>
+        {
+            ["Value"] = 1,
+            ["Size"] = size
+        });
+        Require(sized.Contains("aeterni-input-number--sm", StringComparison.Ordinal) == (size == Size.Small)
+            && sized.Contains("aeterni-input-number--lg", StringComparison.Ordinal) == (size == Size.Large),
+            $"InputNumber renders exactly the {size} size modifier.");
+    }
+
+    Require(!Regex.IsMatch(html, ">[^<]*[\\u4e00-\\u9fff][^<]*<"),
+        "InputNumber must not render CJK text from built-in defaults.");
+
+    var invalidConfigs = new (string Name, Func<Task> Render)[]
+    {
+        ("InputNumber.Step zero", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Step"] = 0 })),
+        ("InputNumber.Step negative", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Step"] = -1 })),
+        ("InputNumber.Min above Max", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Min"] = 5, ["Max"] = 1 })),
+        ("InputNumber.Precision range", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Precision"] = 16 })),
+        ("InputNumber.Precision below step", () => RenderAsync<InputNumber<decimal>>(new Dictionary<string, object?> { ["Value"] = 1m, ["Step"] = 0.5m, ["Precision"] = 0 })),
+        ("InputNumber.Min non-finite", () => RenderAsync<InputNumber<double>>(new Dictionary<string, object?> { ["Value"] = 1d, ["Min"] = double.NaN }))
+    };
+
+    foreach (var (name, render) in invalidConfigs)
+    {
+        try
+        {
+            await render();
+            Require(false, $"{name} must reject its invalid configuration instead of degrading silently.");
+        }
+        catch (ArgumentException) { }
+    }
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        InputNumberContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<InputNumberContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<InputNumberContractHost>)(x => host = x)
+        }));
+
+        var fieldHtml = root.ToHtmlString();
+        var inputTag = Regex.Match(fieldHtml, "<input[^>]*role=\"spinbutton\"[^>]*>").Value;
+        var inputId = Regex.Match(inputTag, "id=\"([^\"]+)\"").Groups[1].Value;
+        Require(inputId.EndsWith("-input", StringComparison.Ordinal),
+            "The inner input adopts the FormField input id.");
+        Require(fieldHtml.Contains($"for=\"{inputId}\"", StringComparison.Ordinal),
+            "The field label targets the editable element, not the wrapper.");
+        Require(inputTag.Contains("aria-describedby=\"", StringComparison.Ordinal),
+            "The field description is linked from the input.");
+
+        var press = typeof(InputNumber<decimal>)
+            .GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        async Task Press(string key) =>
+            await (Task)press.Invoke(host.Field, [new KeyboardEventArgs { Key = key }])!;
+
+        await Press("ArrowUp");
+        Require(host.Changes.SequenceEqual([13m]) && host.Value == 13m,
+            $"ArrowUp steps once by Step, got [{string.Join(", ", host.Changes)}].");
+        host.Changes.Clear();
+
+        await Press("PageDown");
+        Require(host.Changes.SequenceEqual([8m]), "PageDown jumps ten increments at once.");
+        host.Changes.Clear();
+
+        host.Value = 99.5m;
+        host.Update();
+        await Press("ArrowUp");
+        Require(host.Changes.SequenceEqual([100m]), "Stepping clamps at Max.");
+        host.Changes.Clear();
+        await Press("ArrowUp");
+        Require(host.Changes.Count == 0, "Stepping at the Max bound reports no change.");
+
+        var typeText = typeof(InputNumber<decimal>)
+            .GetMethod("HandleTextChangedAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var blur = typeof(InputNumber<decimal>)
+            .GetMethod("HandleBlurAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+
+        host.Changes.Clear();
+        await (Task)typeText.Invoke(host.Field, ["abc"])!;
+        Require(host.Changes.Count == 0, "Unparseable drafts are never committed.");
+        await (Task)typeText.Invoke(host.Field, ["12.75"])!;
+        Require(host.Changes.SequenceEqual([12.75m]), "Parseable drafts commit while typing, without rounding.");
+        host.Changes.Clear();
+        await (Task)blur.Invoke(host.Field, [new FocusEventArgs()])!;
+        Require(host.Changes.SequenceEqual([12.8m]), "Blur rounds the draft to the step's precision.");
+        host.Changes.Clear();
+        await (Task)typeText.Invoke(host.Field, [""])!;
+        Require(host.Changes.SequenceEqual([(decimal?)null]), "Clearing the draft commits the empty value.");
+
+        host.Disabled = true;
+        host.Update();
+        host.Changes.Clear();
+        await Press("ArrowUp");
+        Require(host.Changes.Count == 0, "Disabled fields ignore step keys.");
+
+        host.Disabled = false;
+        host.Invalid = true;
+        host.Required = true;
+        host.Update();
+        var invalidHtml = root.ToHtmlString();
+        Require(invalidHtml.Contains("is-invalid", StringComparison.Ordinal)
+            && invalidHtml.Contains("aria-invalid=\"true\"", StringComparison.Ordinal)
+            && invalidHtml.Contains("aria-required=\"true\"", StringComparison.Ordinal),
+            "InputNumber inherits Invalid and Required from its FormField.");
+    });
+
+    // The JS key guard exists to stop the page acting on the keys the C# handler
+    // steps on, so the two literals have to move together; a change on one side
+    // alone would either scroll the page or silently drop the suppression.
+    var repositoryRoot = FindRepositoryRoot();
+    var code = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/InputNumber/InputNumber.razor.cs"));
+    var script = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/InputNumber/InputNumber.razor.js"));
+    var codeKeys = KeyLiterals(code);
+    Require(codeKeys.SequenceEqual(KeyLiterals(script)),
+        $"The InputNumber key guard must match the C# step keys, C# has [{string.Join(", ", codeKeys)}].");
+}
+
+// Priority-7 batch: Slider is a container-style field control, so the checks pin
+// the slider role on the single focusable root, the tick cap, the clamping
+// contract and the pointer/keyboard paths driven on a live instance.
+async Task CheckSliderAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(Slider<int>), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "slider",
+        "Slider declares its interactive drag module.");
+
+    var html = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-slider",
+        ["Class"] = "consumer-slider",
+        ["Value"] = 25,
+        ["Min"] = 0,
+        ["Max"] = 100,
+        ["Step"] = 5,
+        ["ShowTicks"] = true,
+        ["Size"] = Size.Large,
+        ["AriaLabel"] = "Volume",
+        ["AdditionalAttributes"] = new Dictionary<string, object> { ["data-kind"] = "volume" }
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-slider\"[^>]*>").Value;
+    Require(root.Contains("role=\"slider\"", StringComparison.Ordinal)
+        && root.Contains("tabindex=\"0\"", StringComparison.Ordinal)
+        && root.Contains("aeterni-slider--lg", StringComparison.Ordinal)
+        && root.Contains("aria-valuenow=\"25\"", StringComparison.Ordinal)
+        && root.Contains("aria-valuemin=\"0\"", StringComparison.Ordinal)
+        && root.Contains("aria-valuemax=\"100\"", StringComparison.Ordinal)
+        && root.Contains("aria-valuetext=\"25\"", StringComparison.Ordinal)
+        && root.Contains("aria-label=\"Volume\"", StringComparison.Ordinal)
+        && root.Contains("consumer-slider", StringComparison.Ordinal)
+        && root.Contains("data-kind=\"volume\"", StringComparison.Ordinal)
+        && root.Contains("--aeterni-slider-value: 0.25", StringComparison.Ordinal),
+        "Slider renders the slider role, its value semantics and the position fraction.");
+    Require(!root.Contains("aria-orientation", StringComparison.Ordinal),
+        "A horizontal slider omits the default orientation.");
+    Require(html.Contains("aeterni-slider__fill", StringComparison.Ordinal)
+        && html.Contains("aeterni-slider__thumb", StringComparison.Ordinal),
+        "Slider renders its decorative fill and thumb.");
+
+    var ticks = Regex.Matches(html, "<span[^>]*aeterni-slider__tick[^>]*>");
+    Require(ticks.Count == 21,
+        $"A 0-100 range stepping by 5 renders 21 ticks, got {ticks.Count}.");
+    Require(ticks.All(tick => tick.Value.Contains("aria-hidden=\"true\"", StringComparison.Ordinal)),
+        "Ticks stay decorative.");
+    Require(ticks[0].Value.Contains("--aeterni-slider-tick-position: 0\"", StringComparison.Ordinal)
+        && ticks[^1].Value.Contains("--aeterni-slider-tick-position: 1\"", StringComparison.Ordinal),
+        "Ticks span the whole track.");
+
+    var dense = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 1,
+        ["Step"] = 1,
+        ["ShowTicks"] = true
+    });
+    Require(Regex.Matches(dense, "<span[^>]*aeterni-slider__tick[^>]*>").Count == 2,
+        "A range with more than 100 grid points collapses to the two end ticks.");
+
+    var noTicks = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 1
+    });
+    Require(!noTicks.Contains("aeterni-slider__tick", StringComparison.Ordinal),
+        "ShowTicks defaults to off.");
+
+    var disabled = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 10,
+        ["Disabled"] = true
+    });
+    var disabledRoot = Regex.Match(disabled, "<div[^>]*role=\"slider\"[^>]*>").Value;
+    Require(disabledRoot.Contains("aria-disabled=\"true\"", StringComparison.Ordinal)
+        && disabledRoot.Contains("is-disabled", StringComparison.Ordinal)
+        && !disabledRoot.Contains("tabindex", StringComparison.Ordinal),
+        "A disabled slider leaves the Tab sequence and announces the state.");
+
+    var clamped = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 999,
+        ["Min"] = 0,
+        ["Max"] = 100
+    });
+    Require(clamped.Contains("aria-valuenow=\"100\"", StringComparison.Ordinal)
+        && clamped.Contains("--aeterni-slider-value: 1", StringComparison.Ordinal),
+        "Out-of-range values clamp instead of throwing.");
+
+    var decimalSlider = await RenderAsync<Slider<decimal>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 2.5m,
+        ["Min"] = 0m,
+        ["Max"] = 10m,
+        ["Step"] = 0.5m
+    });
+    Require(decimalSlider.Contains("aria-valuenow=\"2.5\"", StringComparison.Ordinal)
+        && decimalSlider.Contains("--aeterni-slider-value: 0.25", StringComparison.Ordinal),
+        "Decimal sliders keep their own grid.");
+
+    var vertical = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 25,
+        ["Orientation"] = Orientation.Vertical
+    });
+    Require(vertical.Contains("aeterni-slider--vertical", StringComparison.Ordinal)
+        && vertical.Contains("aria-orientation=\"vertical\"", StringComparison.Ordinal),
+        "The vertical layout announces its orientation.");
+
+    Require(!Regex.IsMatch(html, ">[^<]*[\\u4e00-\\u9fff][^<]*<"),
+        "Slider must not render CJK text from built-in defaults.");
+
+    var invalidConfigs = new (string Name, Func<Task> Render)[]
+    {
+        ("Slider.Min equal to Max", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Min"] = 0, ["Max"] = 0 })),
+        ("Slider.Step zero", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Step"] = 0 })),
+        ("Slider.Precision range", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Precision"] = -1 })),
+        ("Slider.Max non-finite", () => RenderAsync<Slider<double>>(new Dictionary<string, object?> { ["Value"] = 1d, ["Max"] = double.PositiveInfinity }))
+    };
+
+    foreach (var (name, render) in invalidConfigs)
+    {
+        try
+        {
+            await render();
+            Require(false, $"{name} must reject its invalid configuration instead of degrading silently.");
+        }
+        catch (ArgumentException) { }
+    }
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        SliderContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<SliderContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<SliderContractHost>)(x => host = x)
+        }));
+
+        var fieldHtml = root.ToHtmlString();
+        var sliderTag = Regex.Match(fieldHtml, "<div[^>]*role=\"slider\"[^>]*>").Value;
+        Require(host.Field.ElementId.EndsWith("-input", StringComparison.Ordinal)
+            && sliderTag.Contains($"id=\"{host.Field.ElementId}\"", StringComparison.Ordinal),
+            "Slider reports and renders the FormField-adopted id.");
+        Require(sliderTag.Contains("aria-labelledby=\"", StringComparison.Ordinal)
+            && sliderTag.Contains("aria-describedby=\"", StringComparison.Ordinal),
+            "A slider named by its field links the label and description ids.");
+
+        var press = typeof(Slider<int>)
+            .GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        async Task Press(string key) =>
+            await (Task)press.Invoke(host.Field, [new KeyboardEventArgs { Key = key }])!;
+
+        await Press("ArrowRight");
+        Require(host.Changes.SequenceEqual([30]) && host.Value == 30,
+            $"ArrowRight steps up once on a horizontal track, got [{string.Join(", ", host.Changes)}].");
+        host.Changes.Clear();
+
+        await Press("PageUp");
+        Require(host.Changes.SequenceEqual([80]), "PageUp jumps ten increments at once.");
+        host.Changes.Clear();
+
+        await Press("End");
+        Require(host.Changes.SequenceEqual([100]), "End goes to the maximum.");
+        await Press("End");
+        Require(host.Changes.SequenceEqual([100]), "End at the maximum reports no further change.");
+
+        // RTL: the arrow step follows the direction the track visually grows in.
+        await host.Field.HandleDirectionAsync(true);
+        host.Changes.Clear();
+        await Press("ArrowRight");
+        Require(host.Changes.SequenceEqual([95]), "In RTL, ArrowRight decreases.");
+        await host.Field.HandleDirectionAsync(false);
+
+        // The vertical layout follows the APG: up/down step, left/right do not.
+        host.Orientation = Orientation.Vertical;
+        host.Update();
+        host.Changes.Clear();
+        await Press("ArrowLeft");
+        Require(host.Changes.Count == 0, "Vertical sliders ignore the horizontal arrows.");
+        await Press("ArrowUp");
+        Require(host.Changes.SequenceEqual([95 + 5]), "Vertical sliders step up with ArrowUp.");
+        host.Orientation = Orientation.Horizontal;
+        host.Update();
+
+        host.Changes.Clear();
+        await host.Field.HandlePointerFractionAsync(0.333);
+        Require(host.Changes.SequenceEqual([35]),
+            $"A reported pointer fraction snaps to the step grid, got [{string.Join(", ", host.Changes)}] from Value={host.Value}.");
+        host.Changes.Clear();
+        await host.Field.HandlePointerFractionAsync(0.333);
+        Require(host.Changes.Count == 0, "An unchanged pointer fraction reports nothing.");
+
+        host.Disabled = true;
+        host.Update();
+        host.Changes.Clear();
+        await Press("ArrowLeft");
+        await host.Field.HandlePointerFractionAsync(0.5);
+        Require(host.Changes.Count == 0, "Disabled sliders ignore keys and reported pointer fractions.");
+
+        host.Disabled = false;
+        host.Invalid = true;
+        host.Update();
+        var invalidRoot = Regex.Match(root.ToHtmlString(), "<div[^>]*role=\"slider\"[^>]*>").Value;
+        Require(invalidRoot.Contains("is-invalid", StringComparison.Ordinal)
+            && invalidRoot.Contains("aria-invalid=\"true\"", StringComparison.Ordinal),
+            "Slider inherits the invalid state from its FormField.");
+    });
+
+    // Same cross-file lock as InputNumber: the JS guard must suppress exactly the
+    // keys the C# keyboard model handles, and nothing else.
+    var repositoryRoot = FindRepositoryRoot();
+    var code = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/Slider/Slider.razor.cs"));
+    var script = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/Slider/Slider.razor.js"));
+    var codeKeys = KeyLiterals(code);
+    Require(codeKeys.SequenceEqual(KeyLiterals(script)),
+        $"The Slider key guard must match the C# keyboard model, C# has [{string.Join(", ", codeKeys)}].");
+}
+
+static string[] KeyLiterals(string text) => Regex
+    .Matches(text, "[\"'](ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Home|End|PageUp|PageDown)[\"']")
+    .Select(match => match.Groups[1].Value)
+    .Distinct()
+    .OrderBy(value => value, StringComparer.Ordinal)
+    .ToArray();
 
 async Task CheckQualityStatesAsync()
 {
@@ -1749,6 +2170,9 @@ async Task CheckEnumValidationAsync()
         ("Icon.Color", () => RenderAsync<AeterniUI.Components.Icon.Icon>(new Dictionary<string, object?> { ["Color"] = (Color)99 })),
         ("Radio.Size", () => RenderAsync<AeterniUI.Components.Radio.Radio<string>>(new Dictionary<string, object?> { ["Value"] = "a", ["Size"] = (Size)99 })),
         ("ButtonGroup.Orientation", () => RenderAsync<AeterniUI.Components.ButtonGroup.ButtonGroup>(new Dictionary<string, object?> { ["Orientation"] = (Orientation)99 })),
+        ("InputNumber.Size", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Size"] = (Size)99 })),
+        ("Slider.Size", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Size"] = (Size)99 })),
+        ("Slider.Orientation", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Orientation"] = (Orientation)99 })),
         ("ThemeSwitch.Size", () => RenderAsync<AeterniUI.Components.Theme.ThemeSwitch>(new Dictionary<string, object?> { ["Size"] = (Size)99 })),
         ("ToggleGroup.SelectionMode", () => RenderAsync<AeterniUI.Components.ToggleGroup.ToggleGroup>(new Dictionary<string, object?> {
             ["AriaLabel"] = "Actions", ["SelectionMode"] = SelectionMode.None }))
@@ -1790,6 +2214,22 @@ async Task CheckTextTableFallbackAsync()
     });
     Require(rating.Contains("aria-label=\"3 of 5\"", StringComparison.Ordinal),
         "Rating stars must announce their meaning through the text table, not a bare number.");
+
+    var number = await RenderAsync<InputNumber<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 1,
+        ["ShowControls"] = true
+    });
+    Require(number.Contains("aria-label=\"Increase value\"", StringComparison.Ordinal)
+        && number.Contains("aria-label=\"Decrease value\"", StringComparison.Ordinal),
+        "InputNumber step buttons must fall back to the text table instead of hard-coded English.");
+
+    var slider = await RenderAsync<Slider<int>>(new Dictionary<string, object?>
+    {
+        ["Value"] = 1
+    });
+    Require(slider.Contains("aria-label=\"Slider\"", StringComparison.Ordinal),
+        "Slider must fall back to the text table for its accessible name.");
 }
 
 // Renders a component and hands back the instance, so a check can drive its

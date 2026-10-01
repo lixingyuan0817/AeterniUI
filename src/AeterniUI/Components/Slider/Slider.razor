@@ -1,0 +1,20 @@
+@typeparam TValue
+@inherits AeterniComponent
+
+@* The root is the slider: role, tabindex and the value semantics live on the one
+   focusable element, and everything painted below it is decorative and hidden
+   from assistive technology. Pointer dragging is the only browser behaviour
+   (Slider.razor.js); the keyboard model stays in C#. *@
+<div @ref="RootElement" @attributes="BuildAttributes()" @onkeydown="HandleKeyDownAsync">
+    <div class="aeterni-slider__track" aria-hidden="true">
+        <div class="aeterni-slider__fill"></div>
+        @if (ShowTicks)
+        {
+            foreach (var position in TickPositions)
+            {
+                <span class="aeterni-slider__tick" aria-hidden="true" style="--aeterni-slider-tick-position: @position"></span>
+            }
+        }
+    </div>
+    <span class="aeterni-slider__thumb" aria-hidden="true"></span>
+</div>

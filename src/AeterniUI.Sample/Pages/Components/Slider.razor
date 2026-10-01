@@ -1,0 +1,102 @@
+@page "/components/slider"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Slider</PageTitle>
+
+<ComponentPreview AnchorId="slider"
+                  Category="表单组件"
+                  Title="Slider"
+                  ComponentName="Slider&lt;TValue&gt;"
+                  Description="单值滑块：横向与竖向布局、步进吸附、可选刻度、完整键盘模型与指针拖拽；不提供双柄范围、自定义轨道渲染或与输入框联动。"
+                  Parameters="@SliderParameters"
+                  Events="@SliderEvents"
+                  Contracts="@SliderContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="音量"
+                       Description="拖动滑块，或聚焦后使用方向键 / Home / End / PageUp / PageDown。"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <Slider TValue="int"
+                        Value="@_value"
+                        ValueChanged="@HandleValueChanged"
+                        Min="0"
+                        Max="100"
+                        Step="5"
+                        ShowTicks="@_showTicks"
+                        Size="@_size"
+                        Orientation="@_orientation"
+                        Disabled="@_disabled"
+                        Invalid="@_invalid"
+                        AriaLabel="音量" />
+            </FormField>
+            <span class="preview-feedback" role="status">当前值：@_value</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="slider-size" AriaLabel="Slider Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+            <div class="control-field">
+                <span>Orientation</span>
+                <ShowcaseSelect TValue="Orientation" Id="slider-orientation" AriaLabel="Slider Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_showTicks">ShowTicks</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+    </Controls>
+    <Notes>
+        <span>根元素就是滑块本体（<code>role="slider"</code> + 单一 Tab 停留点）；轨道、填充与刻度均为装饰节点。</span>
+        <span>竖向布局的值从底边向上增长，长度默认 12rem，可由宿主通过 <code>--aeterni-slider-length</code> 覆盖。</span>
+        <span>指针拖拽由 <code>Slider.razor.js</code> 处理并在 JS 内就近吸附到步网格；键盘与取值逻辑全部在 C#。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private int _value = 40;
+    private Size _size = Size.Default;
+    private Orientation _orientation = Orientation.Horizontal;
+    private bool _showTicks = true;
+    private bool _disabled;
+    private bool _invalid;
+
+    private Task HandleValueChanged(int value)
+    {
+        _value = value;
+        return Task.CompletedTask;
+    }
+
+    private static readonly ShowcaseParameter[] SliderParameters =
+    [
+        new("Value", "TValue", "受控数值。"),
+        new("ValueChanged", "EventCallback<TValue>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<TValue>>?", "EditContext 字段表达式。"),
+        new("Min", "TValue?", "下限，默认 0。", "0"),
+        new("Max", "TValue?", "上限，默认 100。", "100"),
+        new("Step", "TValue?", "步进增量，默认 1。", "1"),
+        new("Precision", "int?", "aria-valuetext 的小数位，默认取 Step 的小数位。"),
+        new("Orientation", "Orientation", "横向或竖向布局。", "Horizontal"),
+        new("ShowTicks", "bool", "是否渲染刻度点。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Size", "Size", "轨道与滑块尺寸。", "Default"),
+        new("AriaLabel", "string", "无 FormField 标签时的无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] SliderEvents =
+    [
+        new("ValueChanged", "EventCallback<TValue>", "键盘步进或指针拖动改变数值时触发。")
+    ];
+
+    private static readonly ShowcaseContract[] SliderContracts =
+    [
+        new("Slider", "role=slider", "根元素是唯一可聚焦节点；禁用时移出 Tab 序列。"),
+        new("Slider", "aria-valuetext", "按当前文化格式化；valumin/max/now 为不变文化字符串。"),
+        new("Slider", "刻度上限", "网格点超过 100 个时只渲染两端刻度。")
+    ];
+}

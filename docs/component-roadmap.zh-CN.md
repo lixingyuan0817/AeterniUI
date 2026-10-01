@@ -1,8 +1,19 @@
 # AeterniUI 组件路线图
 
-文档版本：`10.25.1`
+文档版本：`10.26.0`
 
-状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知，10.25.1 收口 Stepper 状态优先级与描述无障碍名称；第九轮全库架构审阅收口；随后登记优先级 7～9 的组件排期（表单族数值输入、纯展示补齐、待评估候选），`Table`/`DataGrid` 与 `TreeView` 评估后暂缓。
+状态：v0.1～v0.5 与第六轮质量收口已交付；v0.6 Toolbar、ToggleGroup、SplitButton、Breadcrumb、Stepper 已交付（5/5）；10.17.1 完成 Breadcrumb / Stepper 审查收口与 List 活动项底色修复；10.17.2 从 main 补发完整包；10.17.3 完成 Stepper 参数、示例导航与 ARIA 契约修复；10.18.0 完成 Stepper 单步图标、可选 `ItemTemplate` 单一内容区与横向布局扩展；10.19.0 新增 FlashCard 图片闪卡与 3D 指针跟随；10.20.0 优化闪光/翻转并新增 FlashCardGroup；10.20.1 补充独立 FlashCardGroup 示例页；10.20.2 修复牌堆子卡片隔离样式；10.21.0 完成 v0.7 `Search`，10.22.0 完成 `Autocomplete`（2/3），10.22.1 优化两者的内嵌清除操作，10.22.2 为 Search 增加内置搜索图标按钮，10.22.3 将两者操作按钮与输入框改为连体 ButtonGroup，10.23.0 完成 v0.7 `MultiSelect`（3/3），10.23.1 修复 List 长列表行高与滚动视口，10.24.0 交付 `VirtualList<TItem>`，10.24.1 完成 MultiSelect 弹层与状态修复、批量操作文案本地化、标签关闭按钮和 VirtualList/List 视觉收口，10.25.0 增加 VirtualList 触底加载通知，10.25.1 收口 Stepper 状态优先级与描述无障碍名称；第九轮全库架构审阅收口；随后登记优先级 7～9 的组件排期（表单族数值输入、纯展示补齐、待评估候选），`Table`/`DataGrid` 与 `TreeView` 评估后暂缓；10.26.0 交付优先级 7 表单族数值输入 `InputNumber<TValue>` 与 `Slider<TValue>`（含横竖两向、指针拖拽与按键默认行为拦截）。
+
+## 10.26.0 表单族数值输入（优先级 7）
+
+- [x] 新增 `InputNumber<TValue>`：受控 `TValue?` 绑定、`Min`/`Max`/`Step`/`Precision`、方向键与 PageUp/PageDown 步进、默认关闭的 `ShowControls` 连体增减按钮、`FormField` 状态继承与 `EditContext` 校验；构建在 `Input` 与 `Button` 之上，内部输入输出 `role="spinbutton"` 与不变的 `aria-value*` 字符串（不使用原生 `type="number"`）。
+- [x] 新增 `Slider<TValue>`：单值、横向与竖向两向布局、`ShowTicks`（网格点超过 100 个时只渲染两端）、Home/End/PageUp/PageDown 与方向键（RTL 自动互换、竖向忽略左右）、指针拖拽（`Slider.razor.js` 在 JS 内测量轨道几何并就近吸附后回报）、`role="slider"` 与 `aria-valuenow/min/max/valuetext`。
+- [x] 两者共用 `Components/NumericValue.cs`（文化解析、定点格式化、小数位推导、按类型取整与步进吸附）与新增核心字形 `Plus`/`Minus`；文案表新增 `InputNumberIncrementLabel`、`InputNumberDecrementLabel` 和 `SliderLabel`。
+- [x] 按键默认行为收口：两个组件各新增一个只做 keydown 拦截的模块（`Rating.razor.js` 先例），PageUp/PageDown 在步进时不再同时滚动页面；C# 与 JS 的按键集合由契约检查交叉锁定。边界随之修正：`InputNumber`「不需要 JS」改为「唯一 JS 是键位默认行为拦截」。
+- [x] **命名事实与决定**：.NET 8+ 的 `Microsoft.AspNetCore.Components.Forms` 自带同名 `InputNumber<TValue>`，实测无论 `@using` 顺序（页面级、`_Imports` 前后）`<InputNumber>` 都解析到框架类型，只有完全限定标签能命中本组件。决定保留路线图原名，示例与文档一律使用完全限定标签，限制写进 `current-features` 实现边界。
+- [x] 示例新增 `/components/input-number` 与 `/components/slider` 并注册导航；`tests/input-number.test.mjs`、`tests/slider.test.mjs` 与第 30、31 组渲染契约覆盖按键拦截、指针吸附、RTL/竖向几何、边界校验与资源释放。
+- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误、31 组渲染契约、`node --check`、`node --test`（66 项）、CSS 注释、品牌对比度与文档门禁通过；`tests/browser/run.sh` 复核焦点环画在滑块上、拖拽落值、PageUp/PageDown 步进不滚页。
+- 本批由路线图优先级 7 直接转化，两者都只消费现有 Token，未新增全局 Token。
 
 ## List 长列表尺寸修复
 
@@ -710,7 +721,7 @@ Token 和现有基础组件
 | 优先级 4 | 大数据量展示：`VirtualList<TItem>` | 已完成 | 复用 Blazor `Virtualize<TItem>`，在固定行高和固定视口约束下补齐键盘、选择和位置语义 |
 | 优先级 5 | 公共 API 形状收口（第九轮 REV-115） | 已完成 | 重复回调与事件命名已直接移除；`Card`/`Surface` 按「收敛映射 + 漂移守卫」收口，不抽基类 |
 | 优先级 6 | 装饰层令牌（第九轮 REV-125） | 已完成 | 新增 `--aeterni-decor-*` 命名空间，`FlashCard` 的金属光泽与全息衍射改走该层，契约见设计规范 §5.3；装饰色与品牌故意无关，不参与对比度契约 |
-| 优先级 7 | 表单族数值输入：`InputNumber` → `Slider` | 规划中 | 表单族已覆盖文本、布尔、日期、时间、选择与评分，**唯独缺数值类**。`InputNumber` 可由 `Input` + `Button` 组合，不需新 JS；`Slider` 只需一个指针拖拽 module。两者都不引入新的浮层或焦点模型，是本仓库当前**重用最多、缺口最明显**的一对 |
+| 优先级 7 | 表单族数值输入：`InputNumber` → `Slider` | 已完成（10.26.0） | 表单族已覆盖文本、布尔、日期、时间、选择与评分，**唯独缺数值类**。`InputNumber` 由 `Input` + `Button` 组合，`Slider` 一个指针拖拽 module；两者都不引入新的浮层或焦点模型，是本仓库当时**重用最多、缺口最明显**的一对。交付后 `InputNumber` 的 JS 边界修正为「唯一 JS 是键位默认行为拦截」，`Slider` 追加竖向布局 |
 | 优先级 8 | 纯展示补齐：`Timeline` → `Descriptions` | 规划中 | 无 JS、无浮层，消费现有 Token 与排版阶；与 `Stepper`、`List` 共享视觉词汇，风险低 |
 | 优先级 9 | 待按用途排序的候选 | 未评估 | `Carousel`、`Upload`、`ColorPicker`、`Transfer`、`Cascader`、`Result`、`Anchor`、`Image`、`QRCode`。彼此独立、各自体量不小，排序取决于本库面向的是后台型还是展示型场景——**当前没有依据**，故只登记、不排先后 |
 | 已评估暂缓 | `Table` / `DataGrid`、`TreeView` | 暂不做 | 见下节「已评估并暂缓」 |
@@ -721,12 +732,12 @@ Token 和现有基础组件
 
 目标：补上表单族唯一的整类缺口。现有表单控件覆盖文本、布尔、日期、时间、选择与评分，没有任何数值输入。
 
-- `InputNumber<TValue>`：`Value` / `ValueChanged` / `ValueExpression`、`Min` / `Max` / `Step`、`Precision`、`ShowControls`（默认关闭）、方向键与 PageUp/PageDown 步进、`FormField` 状态继承、`EditContext` 校验。构建在 `Input` 与 `Button` 之上，不新增 JS。
+- `InputNumber<TValue>`：`Value` / `ValueChanged` / `ValueExpression`、`Min` / `Max` / `Step`、`Precision`、`ShowControls`（默认关闭）、方向键与 PageUp/PageDown 步进、`FormField` 状态继承、`EditContext` 校验。构建在 `Input` 与 `Button` 之上；交付时修正为：唯一 JS 是键位默认行为拦截（PageUp/PageDown 步进不得同时滚动页面）。
   **第一版不包含**：千分位与自定义格式化、`Culture` 覆盖、货币与百分比语义（宿主用 `Format` 表达）、异步校验。
 - `Slider<TValue>`：单值模式、`Min` / `Max` / `Step`、刻度显示、键盘（方向键 / Home / End / PageUp / PageDown）、`role="slider"` 与 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` / `aria-valuetext`。
-  **第一版不包含**：范围双柄、竖向以外的自定义轨道渲染、拖拽吸附动画、与输入框联动。
+  **第一版不包含**：范围双柄、自定义轨道渲染、拖拽吸附动画、与输入框联动（横向与竖向布局均已包含；原文「竖向以外」的表述已按交付结果澄清）。
 
-两者都只消费现有 Token；`Slider` 新增一个 `.razor.js`（指针拖拽属浏览器行为），`InputNumber` 不需要 JS。按仓库约定，两者交付时同步 `current-features`、示例页、渲染契约与对比度门禁。
+两者都只消费现有 Token；`Slider` 新增一个 `.razor.js`（指针拖拽属浏览器行为），`InputNumber` 的微模块只拦截被处理按键的默认行为。按仓库约定，两者交付时同步 `current-features`、示例页、渲染契约与对比度门禁。
 
 ### 已评估并暂缓（不在当前排期）
 
@@ -898,3 +909,4 @@ Search + List + PopupHost
 | v10.24.1 MultiSelect / VirtualList 修复 | 已完成 | 构建、23 组渲染契约、文档门禁与差异检查 | 修复 `MultiSelect<TItem>` 共享 `PopupHost` 宽度对齐、鼠标打开首项误显示活动底色和 Razor 多余字符；默认全选/清除文案改为中文；修正 `Tag` / MultiSelect 关闭按钮留白与垂直居中；收口 `VirtualList<TItem>` 外层内边距、滚动视口与单选键盘行为。按修复版本规则由 `10.24.0` 递增为 `10.24.1`。 |
 | v10.25.0 VirtualList 触底加载 | 已完成 | 构建、23 组渲染契约、文档门禁；Node.js 语法检查待环境补跑 | 新增宿主控制的 `OnLoadMore` 触底通知和 `HasMoreItems` / `LoadingMore` / `LoadMoreThreshold` 参数；组件负责滚动监听、并发抑制与 `aria-busy`，宿主负责异步数据请求、追加 `Items`、分页和缓存。按功能新增规则由 `10.24.1` 递增为 `10.25.0`。 |
 | v10.25.1 Stepper 状态与无障碍收口 | 已完成 | 构建、23 组渲染契约、CSS 注释与文档门禁 | 修复 Stepper 禁用状态无法完全覆盖当前/完成视觉、已完成当前步骤连接线未填充，以及默认描述可能重复播报的问题；按修复版本规则由 `10.25.0` 递增为 `10.25.1`。 |
+| v10.26.0 InputNumber / Slider（优先级 7） | 已完成 | 构建、31 组渲染契约、两个新模块 JS 语法、66 项 Node 回归、CSS 注释、品牌对比度、文档门禁与 23 项浏览器行为检查 | 交付优先级 7 表单族数值输入：`InputNumber<TValue>`（受控数值、上下限/步进/精度、连体增减按钮、spinbutton 语义）与 `Slider<TValue>`（横竖两向、刻度上限、指针拖拽、完整键盘模型）；新增 `NumericValue` 助手与 `Plus`/`Minus` 字形。两者各带一个只做键位默认行为拦截的 JS 模块（Rating 先例）；`InputNumber` 因与 .NET 自带 `Forms.InputNumber<TValue>` 同名，约定示例与文档使用完全限定标签。按功能新增规则由 `10.25.1` 递增为 `10.26.0`。 |

@@ -110,4 +110,18 @@ public static class AeterniIcons
         [
             "M8 2.2 13.4 12.8H2.6zm0 3.8a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm-1.1 4.3h2.2v1.8H6.9z"
         ]);
+
+    /// <summary>Plus sign used by the InputNumber increment action.</summary>
+    public static IconDefinition Plus { get; } = new(
+        "plus",
+        16,
+        16,
+        "M7.4 3h1.2v4.4H13v1.2H8.6V13H7.4V8.6H3V7.4h4.4z");
+
+    /// <summary>Minus sign used by the InputNumber decrement action.</summary>
+    public static IconDefinition Minus { get; } = new(
+        "minus",
+        16,
+        16,
+        "M3 7.4h10v1.2H3z");
 }

@@ -1,6 +1,6 @@
 # AeterniUI 组件开发设计规范
 
-文档版本：`10.25.1`
+文档版本：`10.26.0`
 
 状态：第一版草案
 
@@ -579,7 +579,7 @@ ARIA 用来补充语义，不用来替代正确的 HTML 元素。每个 ARIA 属
 
 复合控件的角色层次必须成立：`listbox` 的直接子元素是 `role="option"`，`radiogroup` 内恒有至多一个 `aria-checked="true"`，非可聚焦的选项元素不得进入 Tab 序列，也不得抢走容器的 DOM 焦点。单选组、评分等复合控件的键盘模型使用 roving tabindex：组件整体只有一次 Tab 停留点。
 
-表单字段的关联有三种合法形态：原生可聚焦控件（`Input`、`Textarea`、`Checkbox`、`Switch`、独立 `Radio`）直接采用 `FormField` 的输入 ID 让 `label for` 生效；容器型控件（`ComboBox`、`Rating`、`RadioGroup`）既采用输入 ID 以保持 `for` 可解析，又必须用 `aria-labelledby` 关联标签 ID、用 `aria-describedby` 关联描述与错误文本。
+表单字段的关联有三种合法形态：原生可聚焦控件（`Input`、`Textarea`、`Checkbox`、`Switch`、独立 `Radio` 和 `InputNumber` 的内部输入）直接采用 `FormField` 的输入 ID 让 `label for` 生效；容器型控件（`ComboBox`、`Rating`、`RadioGroup`、`Slider`）既采用输入 ID 以保持 `for` 可解析，又必须用 `aria-labelledby` 关联标签 ID、用 `aria-describedby` 关联描述与错误文本。
 
 库内所有用户可见文案（无障碍名称、占位符、关闭按钮文案）统一取自 `AeterniUIOptions.Text`，不得在组件里硬编码中英文混排的默认值；组件参数优先于文案表。
 

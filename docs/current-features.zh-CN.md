@@ -1,6 +1,6 @@
 # AeterniUI 当前已完成功能
 
-文档版本：`10.25.1`
+文档版本：`10.26.0`
 
 文档状态：当前实现清单；本文档是当前已实现公共 API 和行为的唯一事实源。
 
@@ -10,7 +10,7 @@
 
 当前功能文档只保留现行组件 API、行为和示例契约；版本发布记录、历史修复批次及待发布状态统一维护在 [`component-roadmap.zh-CN.md`](component-roadmap.zh-CN.md)。
 
-`10.25.1` 在 `10.25.0` 的基础上收口 `Stepper` 的状态优先级和描述无障碍名称；同时保留 `VirtualList<TItem>` 的宿主控制触底加载、`MultiSelect<TItem>` 的弹层和标签修复，以及 `VirtualList<TItem>` / `List<TItem>` 的视口与键盘交互收口。
+`10.26.0` 交付表单族数值输入：新增 `InputNumber<TValue>`（受控数值、上下限与步进、可选连体增减按钮）和 `Slider<TValue>`（横向与竖向单值滑块、刻度、指针拖拽与完整键盘模型），两者共用同一套解析、格式化与步进吸附助手。
 
 ## 文档口径
 
@@ -231,11 +231,11 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 ### 核心内置图标集 `AeterniIcons`
 
 - 位于 `AeterniUI/Icons/AeterniIcons.cs`，是组件库自己的几何定义（16 × 16 网格），不依赖任何图标供应商。
-- 提供 `Calendar`、`Clock`、`Check`、`ChevronDown`、`ChevronRight`、`ChevronLeft`、`Xmark`、`MagnifyingGlass`、`Star`、`EmptyBox`、`Info` 和 `Exclamation`。
+- 提供 `Calendar`、`Clock`、`Check`、`ChevronDown`、`ChevronRight`、`ChevronLeft`、`Xmark`、`MagnifyingGlass`、`Plus`、`Minus`、`Star`、`EmptyBox`、`Info` 和 `Exclamation`。
 - 组件内部统一通过它渲染字形，替换了此前散落在组件中的内联 SVG 和文本字符：
   - `Checkbox` 勾选标记；`ComboBox` 下拉箭头；`Rating` 星形。
   - `Menu` 分组折叠指示使用 `ChevronRight`，展开时旋转 90° 变为向下，避免 180° 翻转在中间帧退化成横线。
-  - `Dialog` 关闭按钮、`Tag` 关闭按钮统一使用 `Xmark`。
+  - `Dialog` 关闭按钮、`Tag` 关闭按钮统一使用 `Xmark`；`InputNumber` 的增减按钮使用 `Plus` 和 `Minus`。
   - Alert / Toast 未传 `Icon` 时按 `Severity` 使用 `Check`、`Exclamation`、`Xmark` 和 `Info`。
 - 业务代码可以直接复用这些定义，也可以传入自己的 `IconDefinition`。
 
@@ -379,6 +379,49 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
              AllowClear />
 ```
 
+## 8.4 InputNumber
+
+### 支持能力
+
+`InputNumber<TValue>` 是数值输入控件，组合 `Input` 与可选的内置增减按钮；值类型约束为 `struct, INumber<TValue>`（`int`、`long`、`decimal`、`double`、`Half`、`BigInteger` 等，`char` 不满足约束）。
+
+- `Value`（`TValue?`）、`ValueChanged`、`ValueExpression`，兼容标准绑定与 `EditContext` 校验；空值表示“未填写”，配合 `Required` 参与表单校验。
+- `Min` / `Max`（空表示无界）、`Step`（默认 1）、`Precision`（显示与提交的小数位，默认取 `Step` 的小数位）。
+- `ShowControls`（默认关闭）：在输入框尾部追加连体的减/增按钮，与输入框共用边界；到达上下限时对应按钮自动禁用。
+- 方向键按 `Step` 增减，PageUp/PageDown 一次走 10 步。
+- `ReadOnly`、`Required`、`Invalid`、`FullWidth`、`Size`、`Placeholder`、`Name`、`AutoComplete`、`InputMode`、`AriaLabel`、`AriaDescribedBy`、`IncrementLabel`、`DecrementLabel`；`InputMode` 默认按值类型取 `numeric`（整数）或 `decimal`。
+- 增减按钮的无障碍名称使用 `AeterniUITextOptions.InputNumberIncrementLabel` 和 `InputNumberDecrementLabel` 默认值，可由实例参数覆盖。
+
+### 行为与无障碍
+
+输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时做上下限夹取与精度取整（四舍五入、远离零）。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
+
+组件复用 `Input` 的字段状态：在 `FormField` 中时内部输入采用字段输入 ID，`label for` 解析到可编辑元素，禁用、必填与无效状态沿级联上下文合并。`InputNumber` 的 JS 只拦截被处理按键的默认行为（`ArrowUp` / `ArrowDown` / `PageUp` / `PageDown`），避免 PageUp/PageDown 在步进的同时滚动页面；步进逻辑全部在 C#。
+
+### 实现边界
+
+不提供千分位与自定义格式化、`Culture` 覆盖、货币与百分比语义和异步校验，示例：`/components/input-number`。**.NET 8+ 的 `Microsoft.AspNetCore.Components.Forms` 自带同名 `InputNumber<TValue>`**，凡是使用 EditForm 的宿主都会引入该命名空间；此时 Razor 标签 `<InputNumber>` 会解析到框架类型，模板中必须使用完全限定名 `<AeterniUI.Components.InputNumber.InputNumber TValue="…">`，或在宿主侧包一层自己的组件。
+
+## 8.5 Slider
+
+### 支持能力
+
+`Slider<TValue>` 是单值滑块，值类型约束同样为 `struct, INumber<TValue>`。
+
+- `Value`（`TValue`，非空）、`ValueChanged`、`ValueExpression`。
+- `Min`（默认 0）、`Max`（默认 100）、`Step`（默认 1）、`Precision`（`aria-valuetext` 的小数位，默认取 `Step` 的小数位）。
+- `Orientation`：横向（默认）与竖向；`ShowTicks`（默认关闭）、`Size`、`Invalid`、`AriaLabel`、`AriaDescribedBy`。
+- 指针拖拽由 `Slider.razor.js` 完成：点击跳转、拖动跟随、指针捕获（移出轨道后仍跟随），并在 JS 内就近吸附到步网格后把分数回报给 C#；拖拽期间组件重渲染不会覆写实时位置。横向在 RTL 页面自动镜像。
+- 键盘（C#）：横向 Left/Right 与 Up/Down，竖向 Up/Down（APG：左右仅限横向），Home/End 到两端，PageUp/PageDown 各走 10 步；RTL 页面中左右方向自动互换，全部吸附到步网格并夹取在范围内。
+
+### 行为与无障碍
+
+根元素就是滑块本体：`role="slider"`、单一 Tab 停留点（禁用时移出 Tab 序列）、不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 与按当前文化格式化的 `aria-valuetext`；竖向额外输出 `aria-orientation="vertical"`。轨道、填充、滑块和刻度全部 `aria-hidden`。填充位置由 C# 写入 `--aeterni-slider-value`（0～1 的无单位分数），横向用逻辑属性定位、竖向从底边向上增长；指针反馈沿品牌色阶整档换档，并排除禁用与无效状态。刻度超过 100 个网格点时只渲染两端两个。作为容器型字段控件，`FormField` 中采用输入 ID 并通过 `aria-labelledby` 关联标签、`aria-describedby` 关联描述与错误文本。参数校验：`Min` 必须小于 `Max`、`Step` 为有限正数、`Precision` 为 0～15 且不低于 `Step` 小数位，非法配置抛出 `ArgumentException`；越界或非有限的 `Value` 会被静默夹取到范围内，不抛异常。
+
+### 实现边界
+
+不提供双柄范围、自定义轨道渲染、拖拽吸附动画和与输入框联动；竖向长度归宿主，默认 12rem，可通过组件本地扩展点 `--aeterni-slider-length` 覆盖。示例：`/components/slider`。
+
 ## 9. Textarea
 
 ### 支持能力
@@ -409,7 +452,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 显式 `Error` 优先于 `EditContext` 验证消息，并通过稳定 ID 建立 label、描述文本、错误文本与控件之间的关联。FormField 会通过级联上下文向内部表单控件传递输入 ID、label ID、`aria-describedby`、禁用、必填和验证状态。
 
-`Input`、`Textarea`、`Checkbox`、`Switch` 与独立的 `Radio` 会直接采用该输入 ID，`ComboBox`、`Rating` 和 `RadioGroup` 则是容器型控件：它们采用输入 ID 让 `label for` 仍然可解析，并通过 `aria-labelledby` 关联标签、通过 `aria-describedby` 关联描述与错误文本。
+`Input`、`Textarea`、`Checkbox`、`Switch`、独立的 `Radio` 和 `InputNumber`（内部输入）会直接采用该输入 ID，`ComboBox`、`Rating`、`RadioGroup` 和 `Slider` 则是容器型控件：它们采用输入 ID 让 `label for` 仍然可解析，并通过 `aria-labelledby` 关联标签、通过 `aria-describedby` 关联描述与错误文本。
 
 ### 实现边界
 
@@ -1183,6 +1226,9 @@ builder.Services.AddAeterniUI(options =>
     options.Text.BadgeLabel = "有新内容";
     options.Text.DrawerLabel = "面板";
     options.Text.DrawerCloseLabel = "关闭面板";
+    options.Text.InputNumberIncrementLabel = "增加数值";
+    options.Text.InputNumberDecrementLabel = "减少数值";
+    options.Text.SliderLabel = "滑块";
 });
 ```
 

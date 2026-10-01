@@ -57,6 +57,8 @@ public static class ShowcaseCatalog
         new("表单组件", FontAwesomeIcons.Solid.Keyboard, [
             new("input", "Input", "单行输入"),
             new("textarea", "Textarea", "多行输入"),
+            new("input-number", "InputNumber", "数值输入"),
+            new("slider", "Slider", "单值滑块"),
             new("radio", "Radio / RadioGroup", "Radio 与 RadioGroup 组合"),
             new("form-field", "FormField", "字段组合"),
             new("label", "Label", "原生标签"),

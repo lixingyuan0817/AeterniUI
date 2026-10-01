@@ -1,6 +1,6 @@
 # AeterniUI 项目索引
 
-文档版本：`10.25.1`
+文档版本：`10.26.0`
 
 文档状态：项目结构、入口和开发命令索引
 
@@ -24,7 +24,7 @@
 | .NET 依赖管理 | NuGet `PackageReference` |
 | 前端包管理 | 不使用 npm、pnpm、yarn 或前端 bundler；Node 只用于 `.razor.js` 语法检查和图标生成脚本 |
 
-组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.25.1`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
+组件库版本由根目录 `Directory.Build.props` 中的 .NET `Version`、`AssemblyVersion`、`FileVersion` 和 `InformationalVersion` 统一管理；当前版本为 `10.26.0`。首位固定与 .NET 主版本对齐，第二位记录功能更新，第三位记录修复与优化。核心 .NET 包版本目前为 Blazor/ASP.NET Core `10.0.8`。
 
 ## 2. 解决方案和项目
 
@@ -121,12 +121,14 @@ Components/<Component>/
 - `Components/List`：泛型数据/声明式列表、普通模板与统一 Card 外壳；ListItem 级联类型及选择注册。迁移说明见功能清单 §16。
 - `Components/VirtualList`：固定行高、固定滚动视口和 overscan 的大数据量虚拟列表；支持可见行模板、选中/键盘导航和 listbox 位置语义。
 - `Components/MultiSelect`：泛型多值选择、已选项标签、批量选择动作与共享浮层键盘交互；业务数据与 `SelectedValues` 由宿主控制。
-- `Components/ComboBox/ComboBox.razor.js`、`Components/Autocomplete/Autocomplete.razor.js`、`Components/MultiSelect/MultiSelect.razor.js`、`Components/Rating/Rating.razor.js`：选择/建议/评分控件的默认按键行为与选项视窗滚动；业务值保留在 C#，各组件仍只有一个主 module。
+- `Components/InputNumber`：泛型数值输入（`struct, INumber<TValue>`）、上下限与步进、可选连体增减按钮；解析、格式化与步进吸附复用 `Components/NumericValue.cs`，值绑定与 EditContext 校验在 C#。
+- `Components/Slider`：泛型单值滑块（横/竖两向）、刻度、指针拖拽与完整键盘模型；取值与吸附逻辑在 C#，指针几何在 `Slider.razor.js`。
+- `Components/ComboBox/ComboBox.razor.js`、`Components/Autocomplete/Autocomplete.razor.js`、`Components/MultiSelect/MultiSelect.razor.js`、`Components/Rating/Rating.razor.js`、`Components/InputNumber/InputNumber.razor.js`、`Components/Slider/Slider.razor.js`：选择/建议/评分/数值控件的默认按键行为、选项视窗滚动与滑块拖拽；业务值保留在 C#，各组件仍只有一个主 module。
 - `wwwroot/js/aeterni_floating.js` 的 `waitForExit`：Drawer/Popover 共用的可取消退出动画完成通知，复用实际 CSS 动画与 reduced-motion 设置。
 
 ### 渲染契约检查
 
-- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 28 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义、FlashCard 的翻转与隐藏面语义、FlashCardGroup 的牌堆语义、Search 查询、Autocomplete 建议/字段状态、MultiSelect 多值/标签语义和 VirtualList 虚拟视口根契约。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
+- [`tests/AeterniUI.ContractChecks/Program.cs`](../tests/AeterniUI.ContractChecks/Program.cs)：通过 `HtmlRenderer` 执行 31 组渲染契约检查，覆盖关键组件根属性、ARIA、焦点、公开变体，以及 Breadcrumb / Stepper 的导航与流程语义、FlashCard 的翻转与隐藏面语义、FlashCardGroup 的牌堆语义、Search 查询、Autocomplete 建议/字段状态、MultiSelect 多值/标签语义、InputNumber 数值管线与按键拦截、Slider 滑块语义与刻度上限和 VirtualList 虚拟视口根契约。同时通过 `ListContractHost.cs` 覆盖 List 模板、Card、声明式注册、动态数据与键盘。该项目是小型稳定门禁，不替代完整交互或端到端测试。
 - [`tests/popover-focus.test.mjs`](../tests/popover-focus.test.mjs)：`node --test tests/popover-focus.test.mjs`，用 DOM 替身验证非模态菜单选择/Escape 焦点回归、外部点击/Tab/业务回调不抢焦点和禁用触发器跳过；不是浏览器端到端测试。
 - [`tests/quality-interactions.test.mjs`](../tests/quality-interactions.test.mjs)：模态 Esc 策略、可取消退出、reduced-motion、键盘与 Tooltip 动态关联的浏览器行为回归；C# 的 `QualityContractHost.cs` 配合渲染契约覆盖状态、日期极值与时间映射复用。
 - [`tests/browser/`](../tests/browser/README.md)：`tests/browser/run.sh` 用无头 Chrome 的 DevTools Protocol 驱动发布后的示例。断言 `DialogProvider` 根不再生成栈上下文（通知因此高于 Popover/Tooltip）、主题过渡类按时长移除且在 reduced-motion 下降为瞬时、被改指的焦点环仍绘制、Toolbar 与 ToggleGroup 的单一 Tab 停靠点与方向键循环。`run.sh` 会在 `dist/` 缺失时先发布示例；需要本机 Chrome/Chromium（`CHROME_BIN` 可覆盖）与 Node 22+。
@@ -193,7 +195,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 | 能力组 | 组件 |
 | --- | --- |
 | 动作和布局 | `Button`、`IconButton`、`MenuButton`、`ButtonGroup`、`SplitButton`（`Components/SplitButton`：主动作与菜单动作组合，示例 `/components/split-button`）、`Toolbar`、`ToolbarGroup`、`ToggleGroup`、`Surface`、`Card`、`FlashCard`、`FlashCardGroup`、`Divider`、`Accordion` |
-| 表单基础 | `Input`、`Search`、`Autocomplete`、`MultiSelect`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
+| 表单基础 | `Input`、`Search`、`Autocomplete`、`MultiSelect`、`InputNumber`、`Slider`、`FormField`、`Label`、`Textarea`、`Checkbox`、`Switch`、`Radio`、`RadioGroup`、`Segmented`、`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` |
 | 内容和选择 | `Tag`、`Badge`、`Avatar`、`Empty`、`List<TItem>`、`ListItem<TItem>`、`VirtualList<TItem>`、`Rating`、`ComboBox` |
 | 导航 | `Breadcrumb`、`Stepper`、`Menu`、`Tabs`、`Tab`、`Pagination` |
 | 状态反馈 | `Progress`、`Spinner`、`Skeleton` |
@@ -226,7 +228,7 @@ GitHub Pages 没有 SPA 重写：发布步骤把 `dist/index.html` 复制为 `di
 
 ## 7. 当前边界和后续计划
 
-当前路线图已交付 v0.1～v0.7 的功能清单、质量收口和 `VirtualList<TItem>` 第一版。`VirtualList` 采用固定行高、固定视口和 overscan，远程数据、缓存、可变高度、拖拽和分组仍不在当前范围。
+当前路线图已交付 v0.1～v0.7 的功能清单、质量收口和 `VirtualList<TItem>` 第一版；10.26.0 交付优先级 7 的表单族数值输入 `InputNumber<TValue>` 与 `Slider<TValue>`，优先级 8、9 与暂缓项见路线图。`VirtualList` 采用固定行高、固定视口和 overscan，远程数据、缓存、可变高度、拖拽和分组仍不在当前范围。
 
 时间滚轮的 JS 回归检查位于 `tests/time-wheel.test.mjs`，使用 `node --test tests/time-wheel.test.mjs` 验证 Token 动画完成回调、重复渲染、快速改值、输入中断、不同真实行高、禁用项、边缘居中、reduced-motion 与资源释放；滚筒仅变换文字视觉层。
 

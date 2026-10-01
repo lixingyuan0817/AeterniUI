@@ -1,0 +1,52 @@
+@typeparam TValue
+@inherits AeterniComponent
+
+@* One markup shape for both control modes: ShowControls only turns the trailing
+   button branch on and off, so nothing about the field itself moves. The inner
+   Input keeps receiving the FormField cascade directly, which is why the field
+   label's `for` resolves to the editable element and not to this wrapper. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <div class="aeterni-input-number__field">
+        <Input Value="@_text"
+               ValueChanged="@HandleTextChangedAsync"
+               Type="@InputType.Text"
+               Size="@Size"
+               Placeholder="@Placeholder"
+               Name="@Name"
+               AutoComplete="@AutoComplete"
+               InputMode="@EffectiveInputMode"
+               ReadOnly="@ReadOnly"
+               Required="@_effectiveRequired"
+               Invalid="@IsInvalid"
+               Disabled="@_effectiveDisabled"
+               FullWidth="true"
+               AriaLabel="@AriaLabel"
+               AriaDescribedBy="@AriaDescribedBy"
+               OnKeyDown="@HandleKeyDownAsync"
+               OnBlur="@HandleBlurAsync"
+               AdditionalAttributes="@SpinButtonAttributes" />
+        @if (ShowControls)
+        {
+            <div class="aeterni-input-number__controls">
+                <ButtonGroup Connected="true" Disabled="@_effectiveDisabled">
+                    <IconButton Class="aeterni-input-number__step"
+                                Size="@Size"
+                                Variant="@ButtonVariant.Ghost"
+                                Intent="@ButtonIntent.Neutral"
+                                AriaLabel="@EffectiveDecrementLabel"
+                                Disabled="@IsDecrementDisabled"
+                                Icon="@MinusIcon"
+                                OnClick="@(_ => StepAsync(-1))" />
+                    <IconButton Class="aeterni-input-number__step"
+                                Size="@Size"
+                                Variant="@ButtonVariant.Ghost"
+                                Intent="@ButtonIntent.Neutral"
+                                AriaLabel="@EffectiveIncrementLabel"
+                                Disabled="@IsIncrementDisabled"
+                                Icon="@PlusIcon"
+                                OnClick="@(_ => StepAsync(1))" />
+                </ButtonGroup>
+            </div>
+        }
+    </div>
+</div>

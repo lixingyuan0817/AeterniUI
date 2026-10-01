@@ -228,6 +228,118 @@ check('REV-98 nothing caps the notice region below the overlay rungs',
     stacking.capped === null && Number(stacking.regionZ) > 1060,
     stacking.capped ? `capped by ${stacking.capped.node} at ${stacking.capped.z}` : `region z=${stacking.regionZ}, popover=1060 tooltip=1070`);
 
+// ---------------------------------------------------------------- Priority 7
+// The two conclusions HtmlRenderer cannot see: the Slider paints its focus ring
+// on the thumb (a computed-style question) and the new key guards stop the
+// document from acting on PageUp/PageDown while the value steps (a default-action
+// question). The pointer drag is checked here as well because it is a real
+// browser interaction from end to end.
+
+async function mouse(type, x, y, extra = {}) {
+    await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1, ...extra });
+}
+
+await goto(`${BASE}/components/slider`);
+await waitForApp();
+
+// The route is served from the published bundle, so a stale dist/ would land
+// here without the component; fail the wait rather than the query below.
+const sliderDeadline = Date.now() + 10000;
+while (Date.now() < sliderDeadline) {
+    if (await evaluate(`!!document.querySelector('.aeterni-slider__track')`)) break;
+    await sleep(100);
+}
+
+// Drag-driven readiness: the module binds its pointer handler after the first
+// sync, and the drag end-to-end is itself the assertion, so a retry loop both
+// waits for the module and proves the geometry. 0.75 of the track is exactly 75
+// on the sample's 0..100 / step 5 grid.
+async function dragTo(fraction) {
+    const rect = await evaluate(`(() => {
+        const track = document.querySelector('.aeterni-slider__track');
+        track.scrollIntoView({ block: 'center' });
+        const r = track.getBoundingClientRect();
+        return { left: r.left, top: r.top, width: r.width, height: r.height };
+    })()`);
+    const x = rect.left + rect.width * fraction;
+    const y = rect.top + rect.height / 2;
+    await mouse('mousePressed', x, y, { buttons: 1 });
+    await mouse('mouseMoved', x, y, { buttons: 1 });
+    await mouse('mouseReleased', x, y, { buttons: 0 });
+}
+
+let sliderValue = '40';
+const dragDeadline = Date.now() + 5000;
+while (Date.now() < dragDeadline) {
+    await dragTo(0.75);
+    await sleep(120);
+    sliderValue = await evaluate(`document.querySelector('[role="slider"]').getAttribute('aria-valuenow')`);
+    if (sliderValue === '75') break;
+    await sleep(200);
+}
+check('P7 dragging the track commits the pointer value on the step grid', sliderValue === '75',
+    `aria-valuenow=${sliderValue}`);
+check('P7 the drag left no is-dragging state behind',
+    await evaluate(`!document.querySelector('[role="slider"]').classList.contains('is-dragging')`));
+
+// Real Tab so :focus-visible matches; the sidebar is long, so allow room.
+const sliderReached = await tabUntil('[role="slider"]', 80);
+const thumbRing = await evaluate(`(() => {
+    const style = getComputedStyle(document.querySelector('.aeterni-slider__thumb'));
+    return { width: style.outlineWidth, style: style.outlineStyle, color: style.outlineColor };
+})()`);
+check('P7 keyboard focus paints the ring on the thumb', sliderReached && parseFloat(thumbRing.width) > 0
+    && thumbRing.style !== 'none' && !/rgba?\(0, 0, 0, 0\)/.test(thumbRing.color),
+    `reached=${sliderReached} width=${thumbRing.width} style=${thumbRing.style} color=${thumbRing.color}`);
+
+// Tab-into-view scrolling can still be animating when the ring check returns;
+// two identical reads 120ms apart is a settled baseline.
+async function waitForScrollSettle() {
+    let last = -1;
+    for (let i = 0; i < 20; i++) {
+        const y = await evaluate('window.scrollY');
+        if (y === last) return y;
+        last = y;
+        await sleep(120);
+    }
+    return last;
+}
+
+const scrollTopBefore = await waitForScrollSettle();
+await key('PageDown', 'PageDown', 34);
+await sleep(120);
+const sliderAfterKeys = await evaluate(`({
+    value: document.querySelector('[role="slider"]').getAttribute('aria-valuenow'),
+    scrollY: window.scrollY,
+    scrollable: document.documentElement.scrollHeight > window.innerHeight
+})`);
+check('P7 PageDown steps the slider without scrolling the page',
+    sliderAfterKeys.value === '25' && sliderAfterKeys.scrollable && sliderAfterKeys.scrollY === scrollTopBefore,
+    `value 75 -> ${sliderAfterKeys.value}, scrollY ${scrollTopBefore} -> ${sliderAfterKeys.scrollY} (scrollable=${sliderAfterKeys.scrollable})`);
+
+await goto(`${BASE}/components/input-number`);
+await waitForApp();
+const numberBefore = await evaluate(`(() => {
+    const input = document.querySelector('input[role="spinbutton"]');
+    input.focus({ preventScroll: true });
+    return { value: input.getAttribute('aria-valuenow'), scrollY: window.scrollY,
+        scrollable: document.documentElement.scrollHeight > window.innerHeight };
+})()`);
+await key('ArrowUp', 'ArrowUp', 38);
+await sleep(80);
+const numberUp = await evaluate(`document.querySelector('input[role="spinbutton"]').getAttribute('aria-valuenow')`);
+const scrollAfterUp = await evaluate('window.scrollY');
+await key('PageDown', 'PageDown', 34);
+await sleep(120);
+const numberDown = await evaluate(`document.querySelector('input[role="spinbutton"]').getAttribute('aria-valuenow')`);
+const scrollAfterPageDown = await evaluate('window.scrollY');
+check('P7 ArrowUp steps the number field once', numberUp === '13.0' && numberBefore.value === '12.5',
+    `${numberBefore.value} -> ${numberUp}`);
+check('P7 PageDown steps ten increments without scrolling the page',
+    numberDown === '8.0' && numberBefore.scrollable && scrollAfterUp === numberBefore.scrollY
+        && scrollAfterPageDown === numberBefore.scrollY,
+    `value ${numberUp} -> ${numberDown}, scrollY ${numberBefore.scrollY} -> ${scrollAfterUp} -> ${scrollAfterPageDown} (scrollable=${numberBefore.scrollable})`);
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 console.log(results.some(r => !r.ok) ? 'RESULT: FAIL' : 'RESULT: PASS');
 close();

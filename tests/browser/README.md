@@ -30,6 +30,7 @@ CHROME_BIN=/path/to/chrome tests/browser/run.sh
 | Theme transition | The transition class is applied on a real theme switch, dropped after the token-derived duration, and collapses to near-zero under `prefers-reduced-motion` |
 | Focus ring | A repointed consumer still paints its ring, and the removed `--aeterni-control-focus-ring` alias resolves to nothing |
 | Roving focus | Toolbar and ToggleGroup keep one tab stop, arrow keys move focus *and* the tab stop, and the ring wraps |
+| Numeric fields | A synthesised pointer drag on `Slider` commits the on-grid value and leaves no drag state; keyboard focus paints the ring on the thumb; `ArrowUp` steps `InputNumber` once; `PageUp`/`PageDown` step both controls *without* scrolling the page |
 
 ## What it does not cover
 
@@ -40,7 +41,9 @@ CHROME_BIN=/path/to/chrome tests/browser/run.sh
   `outline-offset` instead, and the harness asserts the token it derives from
   resolves.
 - **Anything requiring a real pointer device, touch, or a screen reader.** CDP can
-  synthesise pointer and key events but not assistive-technology behaviour.
+  synthesise pointer and key events — the Slider drag above is one such synthesis,
+  covering geometry and snapping but not touch inertia or a physical device — but
+  not assistive-technology behaviour.
 - **Visual regressions.** There are no screenshots here; every assertion is a
   computed-style or DOM-state claim.
 

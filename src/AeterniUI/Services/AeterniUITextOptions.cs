@@ -206,6 +206,15 @@ public sealed class AeterniUITextOptions
     /// <summary>Close-button label of a <c>Drawer</c>.</summary>
     public string DrawerCloseLabel { get; set; } = "Close panel";
 
+    /// <summary>Accessible name of the <c>InputNumber</c> increment action.</summary>
+    public string InputNumberIncrementLabel { get; set; } = "Increase value";
+
+    /// <summary>Accessible name of the <c>InputNumber</c> decrement action.</summary>
+    public string InputNumberDecrementLabel { get; set; } = "Decrease value";
+
+    /// <summary>Accessible name of a <c>Slider</c> that has no explicit label.</summary>
+    public string SliderLabel { get; set; } = "Slider";
+
     /// <summary>
     /// Copies the defaults of a fresh instance onto this one. Used by the option
     /// validation to repair empty entries without losing the host's overrides.
@@ -274,6 +283,9 @@ public sealed class AeterniUITextOptions
         BadgeLabel = Or(BadgeLabel, defaults.BadgeLabel);
         DrawerLabel = Or(DrawerLabel, defaults.DrawerLabel);
         DrawerCloseLabel = Or(DrawerCloseLabel, defaults.DrawerCloseLabel);
+        InputNumberIncrementLabel = Or(InputNumberIncrementLabel, defaults.InputNumberIncrementLabel);
+        InputNumberDecrementLabel = Or(InputNumberDecrementLabel, defaults.InputNumberDecrementLabel);
+        SliderLabel = Or(SliderLabel, defaults.SliderLabel);
     }
 
     private static string Or(string? value, string fallback) =>
