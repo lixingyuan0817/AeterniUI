@@ -1,0 +1,150 @@
+/* Popover ---------------------------------------------------------------------
+   The layer is positioned against its PopupHost (the documented positioning
+   container). Only the four placement classes set `top`/`bottom` + inline edge; the
+   JS module flips the side when the viewport has no room and shifts the layer on
+   the cross axis through --aeterni-popover-shift-x.
+
+   The shift is applied with `margin-left` instead of `translate`/`transform` on
+   purpose: a transform would make the layer the containing block of its own
+   `position: fixed` backdrop, which must stay anchored to the viewport. */
+.aeterni-popover {
+    --aeterni-popover-gap: var(--aeterni-spacing-2);
+    --aeterni-popover-shift-x: 0px;
+
+    position: absolute;
+    box-sizing: border-box;
+    z-index: var(--aeterni-z-popover);
+    min-width: var(--aeterni-overlay-min-width-sm);
+    max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    margin-left: var(--aeterni-popover-shift-x);
+}
+
+.aeterni-popover[hidden] {
+    display: none;
+}
+
+.aeterni-popover.is-closing .aeterni-popover__surface {
+    animation: aeterni-popover-exit var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+}
+.aeterni-popover.is-closing .aeterni-popover__backdrop {
+    animation: aeterni-popover-fade-out var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+}
+
+@keyframes aeterni-popover-exit { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes aeterni-popover-fade-out { to { opacity: 0; } }
+
+.aeterni-popover--bottom-start,
+.aeterni-popover--bottom-end {
+    top: calc(100% + var(--aeterni-popover-gap));
+}
+
+.aeterni-popover--top-start,
+.aeterni-popover--top-end {
+    bottom: calc(100% + var(--aeterni-popover-gap));
+}
+
+.aeterni-popover--bottom-start,
+.aeterni-popover--top-start {
+    left: 0;
+}
+
+.aeterni-popover--bottom-end,
+.aeterni-popover--top-end {
+    right: 0;
+}
+
+/* Modal popovers sit on the modal layer and block the page behind them. */
+.aeterni-popover.is-modal {
+    /* The backdrop must remain above the page's painted content. The component
+       preview can opt out of its own isolation while a modal is open so the
+       fixed backdrop can sample the document behind it. */
+    z-index: var(--aeterni-z-modal);
+}
+
+.aeterni-popover__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--aeterni-z-modal-backdrop);
+    background: var(--aeterni-overlay);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
+    pointer-events: auto;
+    animation: aeterni-popover-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
+}
+
+.aeterni-popover__surface {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    min-width: var(--aeterni-overlay-min-width-sm);
+    max-width: min(var(--aeterni-overlay-max-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    padding: var(--aeterni-popover-content-padding, var(--aeterni-padding-lg));
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-dropdown);
+    background: var(--aeterni-bg-glass);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-dropdown);
+    animation: aeterni-popover-enter var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. Every
+   picker flyout (ComboBox / DatePicker / DateRangePicker / MenuButton) renders
+   through this one surface, so they follow along. */
+.aeterni-popover__surface {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
+}
+
+.aeterni-popover.is-modal .aeterni-popover__surface {
+    z-index: var(--aeterni-z-modal);
+    box-shadow: var(--aeterni-shadow-modal);
+}
+
+.aeterni-popover__header {
+    margin-bottom: var(--aeterni-spacing-3);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-popover__content {
+    min-width: 0;
+}
+
+/* Keyframe offsets are motion distances, not layout sizes. */
+@keyframes aeterni-popover-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes aeterni-popover-backdrop-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-popover__surface,
+    .aeterni-popover__backdrop,
+    .aeterni-popover.is-closing .aeterni-popover__surface,
+    .aeterni-popover.is-closing .aeterni-popover__backdrop {
+        animation: none;
+    }
+}

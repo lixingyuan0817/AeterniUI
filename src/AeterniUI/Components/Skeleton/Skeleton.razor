@@ -1,0 +1,10 @@
+@inherits AeterniComponent
+
+@* Placeholder geometry carries no information for assistive technology, so the
+   whole block is hidden; the host marks the busy state it replaces. *@
+<div @ref="RootElement" @attributes="BuildAttributes()" aria-hidden="true">
+    @for (var index = 0; index < Lines; index++)
+    {
+        <span class="@BarClass(index).Build()"></span>
+    }
+</div>

@@ -1,0 +1,95 @@
+.aeterni-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    min-height: var(--aeterni-row-height-compact);
+    padding: var(--aeterni-spacing-1) var(--aeterni-control-padding-x-sm);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
+}
+
+.aeterni-list-item.is-interactive {
+    cursor: pointer;
+}
+
+.aeterni-list-item.is-interactive:hover:not(.is-disabled):not(.is-selected) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-list-item.is-interactive.is-selected {
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+/* The selection fill outranks the hover wash. Without this the row lightened the
+   moment the pointer touched it, because in the light theme the hover wash is
+   weaker than the selected one. */
+.aeterni-list-item.is-interactive.is-selected:hover:not(.is-disabled) {
+    background: var(--aeterni-state-background-selected);
+}
+
+/* The container owns focus; `.is-active` mirrors the option reported through
+   aria-activedescendant (see ListItem). The cue is scoped to a keyboard-focused
+   listbox, because a click also activates its target: an unscoped rule left the
+   row tinted after that same click cleared the selection, since the active
+   option is not cleared when the pointer moves away. */
+.aeterni-list:focus-visible .aeterni-list-item.is-interactive.is-active:not(.is-selected):not(.is-disabled) {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-list-item.is-disabled,
+.aeterni-list-item.is-interactive.is-selected.is-disabled {
+    color: var(--aeterni-state-color-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-list-item__content {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-list-item__leading,
+.aeterni-list-item__trailing {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--aeterni-text-secondary);
+}
+
+.aeterni-list-item__leading > svg,
+.aeterni-list-item__trailing > svg {
+    width: var(--aeterni-icon-size-sm);
+    height: var(--aeterni-icon-size-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-list-item {
+        transition: none;
+    }
+}
+
+.aeterni-list-item.is-card {
+    display: block;
+    padding: 0;
+    border-radius: var(--aeterni-radius-card);
+}
+
+.aeterni-list-item[hidden] {
+    display: none;
+}

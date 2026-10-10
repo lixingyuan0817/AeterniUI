@@ -1,0 +1,48 @@
+@inherits AeterniComponent
+
+<ol @ref="RootElement" @attributes="BuildAttributes()">
+    @{ var visibleItems = VisibleItems; }
+    @foreach (var item in visibleItems)
+    {
+        var timeText = GetTimeText(item);
+        <li class="@GetItemClass(item)">
+            <span class="aeterni-timeline__marker" aria-hidden="true">
+                @if (item.Icon is not null)
+                {
+                    <span class="aeterni-timeline__glyph">
+                        <Icon Definition="@item.Icon" />
+                    </span>
+                }
+                else
+                {
+                    <span class="aeterni-timeline__dot"></span>
+                }
+            </span>
+            <div class="aeterni-timeline__content">
+                @if (timeText is not null)
+                {
+                    @if (item.Timestamp is { } timestamp)
+                    {
+                        <time class="aeterni-timeline__time" datetime="@GetMachineTimestamp(timestamp)">@timeText</time>
+                    }
+                    else
+                    {
+                        <span class="aeterni-timeline__time">@timeText</span>
+                    }
+                }
+                @if (ItemTemplate is not null)
+                {
+                    <div class="aeterni-timeline__template">@ItemTemplate(item)</div>
+                }
+                else
+                {
+                    <div class="aeterni-timeline__title">@item.Title</div>
+                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                    {
+                        <div class="aeterni-timeline__description">@item.Description</div>
+                    }
+                }
+            </div>
+        </li>
+    }
+</ol>

@@ -1,0 +1,265 @@
+/* Notification card ----------------------------------------------------------
+   iOS Notification Center look: a frosted, softly rounded sheet with a tinted
+   leading badge, two-line text column and a quiet trailing close control.
+
+   Two accent roles per severity:
+   - --aeterni-dialog-accent  the fill stop: card tint, badge tint, progress ring.
+   - --aeterni-dialog-accent-ink  the text stop: the badge glyph, which is ink on a
+     light tint and only reaches 1.9:1 with the fill stop. */
+
+.aeterni-dialog-provider__alert,
+.aeterni-dialog-provider__toast,
+.aeterni-dialog-provider__alert--primary,
+.aeterni-dialog-provider__toast--primary {
+    --aeterni-dialog-accent: var(--aeterni-color-brand-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
+    /* The tint has to sit on the frosted base, and the base has to change with the
+       blur: removing backdrop-filter from a 9% tint over a translucent fill would
+       leave the same half-transparent patch the token layer's fallback exists to
+       avoid. */
+    --aeterni-notice-fill: var(--aeterni-bg-glass);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--aeterni-gap-sm);
+    box-sizing: border-box;
+    min-width: 0;
+    padding: var(--aeterni-padding-sm) var(--aeterni-padding-lg);
+    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-dialog-accent) 20%, var(--aeterni-border-default));
+    border-radius: var(--aeterni-radius-2xl);
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 9%, var(--aeterni-notice-fill));
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-lg);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+    pointer-events: auto;
+    will-change: transform, opacity;
+    animation: aeterni-notice-enter var(--aeterni-duration-normal) var(--aeterni-ease-emphasized) both;
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. `is-no-blur`
+   swaps the fill for an opaque one, so it keeps the standard ink. */
+.aeterni-dialog-provider__alert:not(.is-no-blur),
+.aeterni-dialog-provider__toast:not(.is-no-blur),
+.aeterni-dialog-provider__alert--primary:not(.is-no-blur),
+.aeterni-dialog-provider__toast--primary:not(.is-no-blur) {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
+}
+
+.aeterni-dialog-provider__alert--info,
+.aeterni-dialog-provider__toast--info {
+    --aeterni-dialog-accent: var(--aeterni-color-info-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-info-text);
+}
+
+.aeterni-dialog-provider__alert--success,
+.aeterni-dialog-provider__toast--success {
+    --aeterni-dialog-accent: var(--aeterni-color-success-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-success-text);
+}
+
+.aeterni-dialog-provider__alert--warning,
+.aeterni-dialog-provider__toast--warning {
+    --aeterni-dialog-accent: var(--aeterni-color-warning-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-warning-text);
+}
+
+.aeterni-dialog-provider__alert--danger,
+.aeterni-dialog-provider__toast--danger {
+    --aeterni-dialog-accent: var(--aeterni-color-danger-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-danger-text);
+}
+
+.aeterni-dialog-provider__alert.is-no-blur,
+.aeterni-dialog-provider__toast.is-no-blur {
+    --aeterni-notice-fill: var(--aeterni-bg-solid);
+
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* Leading icon badge: custom icons and the auto-generated severity glyph both
+   sit inside a tinted circular badge, keeping rows aligned and quiet. One icon
+   size variable on the badge covers both paths, so the severity glyph no longer
+   resizes through a second `::deep svg` rule. */
+.aeterni-dialog-provider__notice-icon {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-badge-size-md);
+    height: var(--aeterni-badge-size-md);
+    border-radius: var(--aeterni-radius-badge);
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, transparent);
+    color: var(--aeterni-dialog-accent-ink);
+}
+
+.aeterni-dialog-provider__notice-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    line-height: 1;
+}
+
+/* Fluid content column: title on one line, message below, clamped to two
+   lines like the notification stack on iOS. */
+.aeterni-dialog-provider__notice-content {
+    display: flex;
+    flex-direction: column;
+    /* 2px gap and padding are a hairline rhythm inside the text column. */
+    gap: 2px;
+    min-width: 0;
+    padding: 2px 0;
+}
+
+.aeterni-dialog-provider__notice-content strong {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: var(--aeterni-line-height-tight);
+    overflow-wrap: anywhere;
+}
+
+.aeterni-dialog-provider__notice-content .aeterni-dialog-provider__message {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-compact);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+/* Trailing close control: only as wide as its glyph, vertically centred with
+   clear breathing room from the right border. */
+.aeterni-dialog-provider__notice-close {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    margin: 0;
+}
+
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button {
+    width: var(--aeterni-height-xs);
+    height: var(--aeterni-height-xs);
+    padding: 0;
+    justify-content: center;
+}
+
+.aeterni-dialog-provider__close-glyph {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--aeterni-text-tertiary);
+    line-height: 1;
+    transition: var(--aeterni-transition-color);
+}
+
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button:hover .aeterni-dialog-provider__close-glyph,
+.aeterni-dialog-provider__notice-close ::deep .aeterni-button:focus-visible .aeterni-dialog-provider__close-glyph {
+    color: var(--aeterni-text-primary);
+}
+
+/* Auto-dismiss progress ring traced on the four card edges -------------------
+   SVG stroke-dash animation over a pathLength-normalized rounded-rect path.
+   The progress tip advances at a constant rate along the real perimeter
+   (unlike a conic-gradient sweep, whose angular speed is not uniform on a
+   rounded rectangle). Runs purely in CSS for the full duration and never
+   re-renders Blazor state. */
+.aeterni-dialog-provider__progress {
+    position: absolute;
+    inset: var(--aeterni-border-width);
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.aeterni-progress-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.aeterni-progress-ring {
+    fill: none;
+    stroke-width: var(--aeterni-border-width-medium);
+    stroke-linecap: butt;
+    stroke-linejoin: round;
+}
+
+.aeterni-progress-ring--base {
+    stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 22%, transparent);
+    stroke-dasharray: 1;
+}
+
+.aeterni-progress-ring--accent {
+    stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 80%, var(--aeterni-bg-elevated));
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: aeterni-progress-drain var(--aeterni-dialog-duration, 5s) var(--aeterni-ease-linear) forwards;
+}
+
+@keyframes aeterni-progress-drain {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 1; }
+}
+
+/* Closing states ------------------------------------------------------------ */
+
+.aeterni-dialog-provider__alert.is-closing,
+.aeterni-dialog-provider__toast.is-closing {
+    pointer-events: none;
+    animation: aeterni-notice-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
+}
+
+@keyframes aeterni-notice-enter {
+    from {
+        opacity: 0;
+        /* Fallback offsets are the enter/exit motion distance, not a layout size. */
+        transform: translate3d(var(--aeterni-notice-in-x, 0px), var(--aeterni-notice-in-y, 12px), 0) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+/* Fallback offsets are the enter/exit motion distance, not a layout size. */
+@keyframes aeterni-notice-exit {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate3d(var(--aeterni-notice-out-x, 0px), var(--aeterni-notice-out-y, 12px), 0) scale(.96);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-dialog-provider__toast,
+    .aeterni-dialog-provider__alert,
+    .aeterni-dialog-provider__progress,
+    .aeterni-progress-ring--accent,
+    .aeterni-dialog-provider__alert.is-closing,
+    .aeterni-dialog-provider__toast.is-closing {
+        animation: none;
+    }
+}

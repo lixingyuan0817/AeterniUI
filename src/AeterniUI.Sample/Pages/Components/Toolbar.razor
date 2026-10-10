@@ -1,0 +1,96 @@
+@page "/components/toolbar"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · Toolbar</PageTitle>
+<ComponentPreview AnchorId="toolbar" Category="基础组件" Title="Toolbar" ComponentName="Toolbar"
+                  Description="无背景动作容器：跨命名分组共享一个 Tab 停留点。溢出菜单由宿主明确放置。"
+                  Parameters="@Parameters">
+    <Preview>
+        <Surface Bordered="true" FullWidth="true" Padding="SurfacePadding.None">
+          <div class="toolbar-demo" dir="@(_rtl ? "rtl" : "ltr")">
+            <div class="toolbar-demo__heading"><strong>项目周报</strong><span>文档工作区</span></div>
+            <div class="@(_vertical ? "toolbar-demo__workspace is-vertical" : "toolbar-demo__workspace")">
+              <div class="toolbar-demo__actions">
+            <Toolbar AriaLabel="文档操作" Orientation="@(_vertical ? Orientation.Vertical : Orientation.Horizontal)" Disabled="@_disabled" Visible="@_visible">
+                <ToolbarGroup AriaLabel="文件">
+                    <IconButton Size="Size.Small" AriaLabel="打开项目" title="打开项目" OnClick="@(() => _last = "打开项目")">
+                        <ChildContent><Icon Definition="@FontAwesomeIcons.Solid.FolderOpen" Size="Size.Small" /></ChildContent>
+                    </IconButton>
+                    <IconButton Size="Size.Small" AriaLabel="保存" title="保存" Disabled="@_itemDisabled" Loading="@_loading" OnClick="Save">
+                        <ChildContent><Icon Definition="@FontAwesomeIcons.Solid.Check" Size="Size.Small" /></ChildContent>
+                    </IconButton>
+                </ToolbarGroup>
+                <Divider Orientation="@(_vertical ? Orientation.Horizontal : Orientation.Vertical)" />
+                <ToolbarGroup AriaLabel="编辑">
+                    @foreach (var action in (_reverse ? _actions.Reverse() : _actions))
+                    {
+                        <IconButton @key="action" Size="Size.Small" AriaLabel="@action" title="@action" OnClick="@(() => _last = action)">
+                            <ChildContent><Icon Definition="@(action == "撤销" ? FontAwesomeIcons.Solid.RotateLeft : FontAwesomeIcons.Solid.RotateRight)" Size="Size.Small" /></ChildContent>
+                        </IconButton>
+                    }
+                </ToolbarGroup>
+                <Divider Orientation="@(_vertical ? Orientation.Horizontal : Orientation.Vertical)" />
+                <ToolbarGroup AriaLabel="其他操作">
+                    @if (_extra)
+                    {
+                        <IconButton Size="Size.Small" AriaLabel="打印" title="打印" OnClick="@(() => _last = "打印")">
+                            <ChildContent><Icon Definition="@FontAwesomeIcons.Solid.Print" Size="Size.Small" /></ChildContent>
+                        </IconButton>
+                    }
+                    <MenuButton Size="Size.Small" Variant="ButtonVariant.Ghost" Label="更多" Items="@_menu" OnItemSelected="@(item => _last = item.Id == "export" ? "导出" : "打印")" />
+                </ToolbarGroup>
+            </Toolbar>
+              </div>
+              <article class="toolbar-demo__document" aria-label="示例文档">
+                <span class="toolbar-demo__caption">周报草稿</span>
+                <h3>本周进展</h3>
+                <p>完成工具栏的分组操作与键盘导航，让文档动作集中在内容区上方。</p>
+                <h4>下一步</h4>
+                <p>使用上方的保存、导出或打印操作，观察下方状态反馈。</p>
+                <Button Variant="ButtonVariant.Link" OnClick="@(() => _last = "查看修订记录")">查看修订记录（工具栏后的焦点）</Button>
+              </article>
+            </div>
+            <div class="toolbar-demo__footer">
+                <p role="status">最近操作：@_last</p>
+                <span>Tab 进入工具栏 → @(_vertical ? "↑ ↓" : "← →") 切换动作 → Tab 进入文档链接</span>
+            </div>
+          </div>
+        </Surface>
+    </Preview>
+    <Controls>
+        <Checkbox @bind-Value="_vertical">纵向</Checkbox>
+        <Checkbox @bind-Value="_rtl">RTL</Checkbox>
+        <Checkbox @bind-Value="_disabled">整条禁用</Checkbox>
+        <Checkbox @bind-Value="_visible">可见</Checkbox>
+        <Checkbox @bind-Value="_itemDisabled">禁用保存</Checkbox>
+        <Checkbox @bind-Value="_loading">保存加载中</Checkbox>
+        <Checkbox @bind-Value="_extra">动态图标项</Checkbox>
+        <Checkbox @bind-Value="_reverse">重排编辑动作</Checkbox>
+    </Controls>
+    <Notes>
+        <span>横向左右键、纵向上下键循环移动，Home/End 到首尾；Tab 离开整条工具栏，再次进入记住最近项。Enter/Space 激活按钮。</span>
+        <span>Toolbar 默认使用紧凑组间距与组内间距；本例用 Small 图标动作呈现 IDE 式主工具栏。容器仍无背景，灰色工作区由宿主提供，不覆盖组件样式，也不强制改写子按钮的 Size / Variant。</span>
+        <span>仅接纳 Button、IconButton、MenuButton；不支持输入框、自动折叠或业务选择状态。菜单弹层自行管理键盘。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Toolbar.ChildContent", "RenderFragment?", "工具栏内的动作和 ToolbarGroup。"),
+        new("Toolbar.Orientation", "Orientation", "焦点移动和布局方向。", "Horizontal"),
+        new("Toolbar.AriaLabel", "string", "工具栏无障碍名称。"),
+        new("Toolbar.Disabled / Visible", "bool", "整条工具栏禁用或隐藏。", "false / true"),
+        new("ToolbarGroup.ChildContent", "RenderFragment?", "分组内的 Button、IconButton 或 MenuButton。"),
+        new("ToolbarGroup.AriaLabel", "string", "动作分组无障碍名称。")
+    ];
+
+    private bool _vertical, _rtl, _disabled, _itemDisabled, _loading, _reverse;
+    private bool _visible = true, _extra = true;
+    private string _last = "无";
+    private readonly string[] _actions = ["撤销", "重做"];
+    private readonly IReadOnlyList<MenuGroup> _menu = [new MenuGroup("more", "更多操作", [new MenuItem("export", "导出"), new MenuItem("print", "打印")])];
+    private void Save() => _last = "保存";
+}

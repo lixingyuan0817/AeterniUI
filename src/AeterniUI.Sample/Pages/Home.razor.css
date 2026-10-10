@@ -1,0 +1,277 @@
+/*
+   AeterniUI.Sample — 首页文档页（/）。
+   左侧为提交时间线，右侧为基础使用代码窗口。布局优先适配默认窗口
+   （避免页面级滚动条）。页面背景由共享示例外壳统一提供，颜色、间距与动效全部来自
+   AeterniUI 语义 Token。
+*/
+
+.doc-home {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    /* MainLayout already contributes the header inset and trailing page space.
+       This fills exactly the remaining viewport, while the inner padding lands
+       the first row on the shared content offset. */
+    height: calc(100vh - var(--sample-header-inset) - var(--sample-page-bottom));
+    height: calc(100dvh - var(--sample-header-inset) - var(--sample-page-bottom));
+    min-height: 0;
+    padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 0;
+}
+
+/* 首页内容保持在共享动态背景之上。 */
+
+.doc-home__grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: clamp(32px, 5vw, 64px);
+    align-items: stretch;
+    box-sizing: border-box;
+    width: var(--sample-shell-width);
+    height: 100%;
+    margin: 0 auto;
+}
+
+.doc-home__grid > * {
+    min-width: 0;
+}
+
+/* Commit timeline */
+
+.doc-history {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.doc-history__eyebrow,
+.doc-code__kicker {
+    margin: 0;
+    color: var(--aeterni-color-brand-text);
+    font-size: 11px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.doc-history__eyebrow {
+    margin-bottom: 14px;
+}
+
+.doc-history__header h1 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.06;
+    letter-spacing: -.02em;
+}
+
+.doc-history__header {
+    flex: 0 0 auto;
+    margin-bottom: var(--aeterni-spacing-5);
+}
+
+.doc-history__timeline {
+    min-height: 0;
+    flex: 1 1 auto;
+    padding-inline-end: var(--aeterni-spacing-2);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-border-strong) transparent;
+}
+
+.doc-commit {
+    min-width: 0;
+}
+
+.doc-commit__hash {
+    display: inline-block;
+    margin-block-end: var(--aeterni-spacing-1);
+    padding: 2px 5px;
+    border-radius: var(--aeterni-radius-sm);
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-color-brand-text);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 11px;
+}
+
+.doc-commit__subject {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.doc-commit__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    color: var(--aeterni-color-brand-text);
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.doc-commit__link:hover {
+    color: var(--aeterni-color-brand-hover);
+    text-decoration: underline;
+}
+
+.doc-commit__link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+/* Code window */
+
+.doc-code__kicker {
+    margin-bottom: 12px;
+}
+
+.doc-code__window {
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-md);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+}
+
+.doc-code__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-height: 38px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+    background: var(--aeterni-bg-secondary);
+}
+
+.doc-code__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-border-strong);
+    opacity: .8;
+}
+
+.doc-code__dot:nth-child(1) {
+    background: var(--aeterni-color-danger-default);
+}
+
+.doc-code__dot:nth-child(2) {
+    background: var(--aeterni-color-warning-default);
+}
+
+.doc-code__dot:nth-child(3) {
+    background: var(--aeterni-color-success-default);
+}
+
+.doc-code__file {
+    overflow: hidden;
+    margin-left: 8px;
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.doc-code__body {
+    margin: 0;
+    padding: 14px 16px 16px;
+    box-sizing: border-box;
+    max-height: clamp(300px, 54vh, 420px);
+    overflow: auto;
+    color: var(--aeterni-text-secondary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-border-strong) transparent;
+}
+
+.doc-code__body code {
+    font-family: inherit;
+}
+
+/* Lightweight syntax colouring on top of semantic tokens. The three accent
+   kinds use the families' text form: their fill stops are made for solid
+   surfaces and only reach ~2.2:1 as ink on the light code panel (dark happens to
+   be fine either way, so one role covers both themes). */
+
+.doc-code__body .tok-c {
+    color: var(--aeterni-text-muted);
+    font-style: italic;
+}
+
+.doc-code__body .tok-tag {
+    color: var(--aeterni-color-info-text);
+}
+
+.doc-code__body .tok-fn {
+    color: var(--aeterni-color-success-text);
+}
+
+.doc-code__body .tok-str {
+    color: var(--aeterni-color-warning-text);
+}
+
+.doc-code__body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.doc-code__body::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-border-strong);
+    background-clip: padding-box;
+}
+
+/* Responsive: collapse to one column only on narrow widths. */
+
+@media (max-width: 720px) {
+    .doc-home__grid {
+        grid-template-columns: 1fr;
+        gap: 34px;
+        height: auto;
+    }
+
+    .doc-home {
+        height: auto;
+        min-height: 0;
+    }
+
+    .doc-history__timeline {
+        max-height: calc(100vh - var(--sample-content-top) - var(--sample-page-bottom));
+        max-height: calc(100dvh - var(--sample-content-top) - var(--sample-page-bottom));
+        flex: 0 1 auto;
+    }
+}
+
+/* Keep the page scrollbar-free on short windows by tightening spacing. */
+
+@media (max-height: 760px) {
+    .doc-history__header h1 {
+        font-size: clamp(28px, 3.8vw, 40px);
+    }
+
+    .doc-history__header {
+        margin-bottom: var(--aeterni-spacing-3);
+    }
+
+    .doc-code__body {
+        max-height: clamp(220px, 44vh, 320px);
+    }
+}

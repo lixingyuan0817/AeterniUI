@@ -1,0 +1,189 @@
+.aeterni-icon-button {
+    --aeterni-icon-button-size: var(--aeterni-control-height-md);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-md);
+
+    position: relative;
+    box-sizing: border-box;
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: var(--aeterni-icon-button-size);
+    height: var(--aeterni-icon-button-size);
+    min-width: var(--aeterni-icon-button-size);
+    padding: 0;
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-radius-button);
+    background: var(--aeterni-button-background);
+    color: var(--aeterni-button-foreground);
+    cursor: pointer;
+    transition: var(--aeterni-transition-button), var(--aeterni-transition-transform);
+}
+
+.aeterni-icon-button:hover:not(:disabled) {
+    background: var(--aeterni-button-background-hover);
+    color: var(--aeterni-button-foreground);
+    box-shadow: var(--aeterni-shadow-sm);
+    transform: translateY(-1px);
+}
+
+.aeterni-icon-button:active:not(:disabled) {
+    background: var(--aeterni-button-background-active);
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+.aeterni-icon-button:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-icon-button:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+.aeterni-icon-button__icon,
+.aeterni-icon-button__loading {
+    --aeterni-icon-render-size: 100%;
+    display: inline-grid;
+    place-items: center;
+    width: var(--aeterni-icon-button-icon-size);
+    height: var(--aeterni-icon-button-icon-size);
+    color: inherit;
+}
+
+.aeterni-icon-button__icon > svg,
+.aeterni-icon-button__icon > img,
+.aeterni-icon-button__loading > svg,
+.aeterni-icon-button__loading > img {
+    width: 100%;
+    height: 100%;
+}
+
+.aeterni-icon-button--sm {
+    --aeterni-icon-button-size: var(--aeterni-control-height-sm);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
+    border-radius: var(--aeterni-radius-button);
+}
+
+.aeterni-icon-button--lg {
+    --aeterni-icon-button-size: var(--aeterni-control-height-lg);
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-lg);
+    border-radius: var(--aeterni-radius-button);
+}
+
+.aeterni-icon-button--outline,
+.aeterni-icon-button--soft,
+.aeterni-icon-button--ghost,
+.aeterni-icon-button--link {
+    background: transparent;
+    color: var(--aeterni-button-color);
+}
+
+.aeterni-icon-button--outline {
+    border-color: var(--aeterni-button-color);
+}
+
+.aeterni-icon-button--outline:hover:not(:disabled),
+.aeterni-icon-button--soft:hover:not(:disabled),
+.aeterni-icon-button--ghost:hover:not(:disabled) {
+    background: var(--aeterni-button-soft);
+    color: var(--aeterni-button-color-hover);
+}
+
+/* A soft surface is already tinted, so its hover has to step to the deeper soft
+   stop instead of repainting the same tint it already shows. */
+.aeterni-icon-button--soft:hover:not(:disabled) {
+    background: var(--aeterni-button-soft-active);
+}
+
+.aeterni-icon-button--soft {
+    background: var(--aeterni-button-soft);
+}
+
+.aeterni-icon-button--outline:active:not(:disabled),
+.aeterni-icon-button--soft:active:not(:disabled),
+.aeterni-icon-button--ghost:active:not(:disabled) {
+    background: var(--aeterni-button-soft-active);
+}
+
+.aeterni-icon-button--link {
+    border-color: transparent;
+}
+
+.aeterni-icon-button--link:hover:not(:disabled) {
+    background: transparent;
+    color: var(--aeterni-button-color-hover);
+}
+
+.aeterni-icon-button--link:active:not(:disabled) {
+    background: transparent;
+    color: var(--aeterni-button-color-active);
+}
+
+.aeterni-icon-button--default {
+    --aeterni-button-color: var(--aeterni-button-intent-default-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-default-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-default-color);
+    --aeterni-button-background: var(--aeterni-button-intent-default-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-default-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-default-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-default-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-default-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-default-soft-active);
+}
+
+.aeterni-icon-button--neutral {
+    --aeterni-button-color: var(--aeterni-button-intent-neutral-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-neutral-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-neutral-color);
+    --aeterni-button-background: var(--aeterni-button-intent-neutral-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-neutral-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-neutral-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-neutral-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-neutral-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-neutral-soft-active);
+}
+
+.aeterni-icon-button--warning {
+    --aeterni-button-color: var(--aeterni-button-intent-warning-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-warning-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-warning-color);
+    --aeterni-button-background: var(--aeterni-button-intent-warning-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-warning-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-warning-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-warning-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-warning-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-warning-soft-active);
+}
+
+.aeterni-icon-button--danger {
+    --aeterni-button-color: var(--aeterni-button-intent-danger-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-danger-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-danger-color);
+    --aeterni-button-background: var(--aeterni-button-intent-danger-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-danger-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-danger-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-danger-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-danger-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-danger-soft-active);
+}
+
+.aeterni-icon-button:disabled {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-icon-button--outline:disabled,
+.aeterni-icon-button--ghost:disabled,
+.aeterni-icon-button--link:disabled {
+    border-color: transparent;
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-icon-button {
+        transition: none;
+    }
+}

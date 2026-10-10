@@ -1,0 +1,24 @@
+@inherits AeterniComponent
+
+<dl @ref="RootElement" @attributes="BuildAttributes()">
+    @foreach (var item in VisibleItems)
+    {
+        <div class="aeterni-descriptions__item" style="@GetItemStyle(item)">
+            <dt class="aeterni-descriptions__label">@item.Label</dt>
+            <dd class="aeterni-descriptions__value">
+                @if (ItemTemplate is not null)
+                {
+                    @ItemTemplate(item)
+                }
+                else if (!string.IsNullOrWhiteSpace(item.Content))
+                {
+                    @item.Content
+                }
+                else
+                {
+                    <span class="aeterni-descriptions__empty" aria-label="Empty value">—</span>
+                }
+            </dd>
+        </div>
+    }
+</dl>

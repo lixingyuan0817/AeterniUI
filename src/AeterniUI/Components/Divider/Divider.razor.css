@@ -1,0 +1,65 @@
+/* The unlabelled form draws the line with the root's own top border, so the
+   separator occupies zero height instead of a stretched box. */
+.aeterni-divider {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-top: var(--aeterni-border-width-thin) solid var(--aeterni-separator);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+/* Vertical separators follow the height of the flex row around them; the 1em
+   floor is a mechanism fallback that keeps the line visible when the parent is
+   not a flex container. */
+.aeterni-divider--vertical {
+    align-self: stretch;
+    width: 0;
+    min-height: 1em;
+    border-top: 0;
+    border-inline-start: var(--aeterni-border-width-thin) solid var(--aeterni-separator);
+}
+
+.aeterni-divider.is-labeled {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    border-top: 0;
+}
+
+.aeterni-divider.is-labeled.aeterni-divider--vertical {
+    flex-direction: column;
+    align-self: stretch;
+    width: auto;
+    min-height: 0;
+    border-inline-start: 0;
+}
+
+/* Each segment keeps a minimum stub, so a labelled divider stays readable inside
+   a shrink-to-fit flex parent without asking the host for a width. */
+.aeterni-divider__line {
+    flex: 1 1 auto;
+    min-width: var(--aeterni-spacing-4);
+    height: 0;
+    border-top: var(--aeterni-border-width-thin) solid var(--aeterni-separator);
+}
+
+.aeterni-divider--vertical .aeterni-divider__line {
+    width: 0;
+    min-width: 0;
+    height: auto;
+    min-height: var(--aeterni-spacing-4);
+    border-top: 0;
+    border-inline-start: var(--aeterni-border-width-thin) solid var(--aeterni-separator);
+}
+
+.aeterni-divider__label {
+    flex: 0 0 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-tight);
+}

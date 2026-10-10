@@ -1,0 +1,1001 @@
+# AeterniUI 工程设计参考
+
+文档版本：`10.30.1`
+
+文档状态：工程原理、特殊配方、实现范式与验证案例参考
+
+适用范围：`src/AeterniUI` 中的所有 Blazor 组件，以及 `src/AeterniUI.Sample` 中的组件示例。
+
+具有约束力的项目索引与开发规范统一维护在根目录 [`AGENTS.md`](../AGENTS.md)。本文档解释规则背后的设计依据、特殊组件机制和可复用实现范式；与 `AGENTS.md` 冲突时以 `AGENTS.md`、实际代码和 CI 为准。
+
+## 1. 目标
+
+AeterniUI 同时服务于 Blazor Server 和 Blazor WebAssembly。组件必须尽量保持以下特征：
+
+- 在不同宿主中拥有一致的 API、语义和视觉结果。
+- 默认不依赖 JavaScript，只有浏览器能力无法由 CSS 或 Blazor 完成时才使用 JS isolation。
+- 只依赖语义化 Token，不在组件中重新定义颜色体系。
+- 参数、状态、事件、DOM 属性和销毁行为具有统一约定。
+- 组件可以被单独使用，也可以被组合到更复杂的组件中。
+- 视觉风格由组件库维护，业务项目只通过公开参数和扩展类名进行定制。
+
+本参考优先解释一致性与可维护性要求背后的工程依据，不追求一次性覆盖所有组件类型。
+
+### 1.1 快速复核
+
+新增或修改组件时至少确认：
+
+1. 组件继承 `AeterniComponent`。
+2. 根元素使用 `BuildAttributes()`，class 在 `BuildClass()` 中构建。
+3. 组件样式放在组件目录的 `.razor.css`，不把组件选择器写入全局 Token 文件。
+4. 颜色、间距、圆角和动效使用现有 `--aeterni-*` Token。
+5. JS 只用于必要的浏览器行为，并确保监听器、Observer 和定时器可释放。
+6. 保留正确的 HTML、ARIA 和键盘语义。
+7. 公共能力同步 `docs/delivered-features.zh-CN.md`，未完成任务同步 `docs/component-plan.zh-CN.md`。
+8. 完成后运行 `dotnet build aeterni_ui.slnx`。
+
+### 默认温和紧凑尺寸（10.12.1）
+
+- 全库共享控件高度 Small / Default / Large 为 28 / 36 / 44px（原 32 / 40 / 48px）；对应内联 padding 为 8 / 12 / 16px（原 12 / 16 / 20px）。Button、Input、ComboBox、日期时间字段及 IconButton 由现有高度别名派生，不新增 Density 参数。
+- 保留原始 spacing scale、正文大小/行高、颜色、圆角与焦点环。现有 padding-lg / xl / 2xl 别名改停靠 spacing-3 / 5 / 6（12 / 20 / 24px）；Surface/Card 的 None / Small / Medium / Large / ExtraLarge 留白为 0 / 8 / 12 / 20 / 24px。
+- 紧凑导航行 Token 从 36 收至 32px，Menu、Tabs、时间滚轮共用；List 保留内容自适应行高。弹层、Drawer、Dialog、通知同步收紧留白，日期单元格仍至少 28px。
+- 可点击图标与选择控件热区至少 24px；Small Segmented 以 1px 内边距保留 24px 选项高度，Rating Small 不随字形缩至 20px。多行列表和表面内容继续使用自适应高度；不通过缩小正文换取密度。
+- 时间滚轮的窗口、占位与行高同源，JS 使用真实 offsetHeight / offsetTop 和 ResizeObserver 测量，不假设旧行高；RTL、主题/品牌与 reduced-motion 原有行为不变。
+
+## 2. 当前架构约定
+
+### 2.1 组件继承关系
+
+所有组件直接或间接继承 `AeterniComponent`。当前阶段不为“元素能力”和“JS 能力”分别创建公共基类，也不要求组件实现 `Ixxx` 接口。
+
+```text
+ComponentBase
+    |
+AeterniComponent
+    |
+具体组件，例如 ThemeProvider、ThemeSwitch、Button
+```
+
+`AeterniComponent` 已经提供以下基础能力：
+
+- 由基类生成的 `InstanceId`。
+- 默认的 `ElementId`，由 `Id` 参数覆盖。
+- `Class`、`Style` 和 `AdditionalAttributes`。
+- `Visible`、`Disabled` 和 `ElementReference` 基础能力。
+- `ClassBuilder`、`StyleBuilder`。
+- 可选的 JS module 扫描、加载、初始化和销毁生命周期。
+- `ElementChanged` 回调。
+
+只有当某种行为被至少两个组件重复使用，并且无法通过组合解决时，才考虑增加新的抽象。新增抽象必须先说明解决的重复问题，不能仅为了“层次看起来完整”而创建基类。
+
+### 2.2 目录结构
+
+组件使用独立目录，组件的 Razor、代码后置和 JS module 放在一起：
+
+```text
+Components/
+  Button/
+    Button.razor
+    Button.razor.cs
+    Button.razor.js              # 只有需要 JS 时添加
+  Theme/
+    ThemeProvider.razor
+    ThemeProvider.razor.cs
+    ThemeProvider.razor.js
+```
+
+公共基础类型放在 `Components` 根目录或已有的明确目录中：
+
+```text
+Components/AeterniComponent.cs
+Components/ClassBuilder.cs
+Components/StyleBuilder.cs
+Enums/
+Services/Impl/
+```
+
+服务实现继续放在 `Services/Impl`。没有必要为每个组件创建服务接口。
+
+### 2.3 文件职责
+
+- `.razor`：DOM 结构、语义属性、事件绑定和渲染分支。
+- `.razor.cs`：参数、状态、事件处理、class/style 构建和生命周期。
+- `.razor.css`：仅在确实需要 CSS isolation 时使用。
+- `wwwroot/css/aeterni_ui.css`：当前组件库统一加载的 Token、主题变量和必要的主题别名；不得在此文件新增组件样式。
+- `.razor.js`：仅保存该组件需要的浏览器行为，不保存业务状态。
+
+组件公共样式使用各组件目录下的 `.razor.css` 做 CSS isolation；新增组件时应将组件选择器放在自己的隔离样式文件中。`wwwroot/css/aeterni_ui.css` 只维护共享 Token、主题变量和必要的主题别名，不能作为组件样式的集中入口。
+
+## 3. 组件公共 API
+
+### 3.1 参数命名
+
+参数使用 PascalCase，名称优先使用领域中已经稳定的术语：
+
+| 用途 | 统一名称 |
+| --- | --- |
+| 自定义 DOM id | `Id` |
+| 自定义 class | `Class` |
+| 自定义 inline style | `Style` |
+| 透传 DOM 属性 | `AdditionalAttributes`，由基类捕获 |
+| 是否禁用 | `Disabled` |
+| 是否渲染为隐藏状态 | `Visible` |
+| 根元素引用 | `Element` |
+| 根元素引用变化通知 | `ElementChanged` |
+| 子内容 | `ChildContent` |
+| 尺寸 | `Size` |
+| 视觉变体 | `Variant` |
+| 颜色语义 | `Color` |
+| 加载状态 | `Loading` |
+| 是否占满父容器宽度 | `FullWidth` |
+| 选中状态 | `Selected` |
+
+不使用含义重复的参数，例如 `IsDisabled`、`Enable`、`CustomClassName`。布尔参数统一使用正向语义。
+
+公共组件名不使用 `Au` 前缀：现有组件均以领域名命名（`Button`、`Surface`、`Card`、`ThemeProvider`、`ThemeSwitch`、`DialogProvider` 等），不引入厂牌前缀变体。
+
+### 3.2 参数顺序
+
+`.razor.cs` 中按照以下顺序排列参数：
+
+1. 继承的公共参数不重复声明。
+2. 组件必需参数。
+3. 组件状态参数，例如 `Disabled`、`Loading`、`Selected`。
+4. 外观参数，例如 `Variant`、`Color`、`Size`。
+5. 内容参数，例如 `ChildContent`、`StartIcon`、`EndIcon`。
+6. 事件回调，例如 `OnClick`、`ValueChanged`、`SelectedChanged`。
+7. 组件专用的可访问性参数。
+
+参数必须有合理默认值。默认值应使组件在最简单的使用方式下可用：
+
+```razor
+<Button>Save</Button>
+```
+
+### 3.3 枚举参数
+
+对于有限且稳定的选项使用枚举，不使用字符串常量：
+
+```csharp
+public enum ButtonVariant
+{
+    Default,
+    Outline,
+    Ghost,
+    Text,
+    Link
+}
+```
+
+枚举成员使用 PascalCase。枚举属于公开 API，命名应该使用视觉和交互领域通用的词，不绑定某个具体页面。
+
+不要为只有两个选项的状态创建枚举，优先使用 `bool`。例如使用 `Disabled`，不要创建 `DisabledState`。
+
+例外：表达方向或形态而不是“开/关状态”的二值参数可以使用枚举（例如 `Orientation.Horizontal/Vertical`、
+`TextareaResize.None/Vertical`），因为它们描述的是取值域而不是布尔状态。
+
+### 3.4 事件回调
+
+组件事件使用 `EventCallback` 或 `EventCallback<T>`，不要暴露 `Action`、`Action<T>` 或组件内部事件对象：
+
+```csharp
+[Parameter]
+public EventCallback<ThemeMode> ModeChanged { get; set; }
+```
+
+事件处理方法返回 `Task`，不要使用 `async void`。组件内部触发回调前，应先更新自身状态，除非该事件明确要求由消费者决定状态。
+
+值组件遵循 Blazor 标准绑定命名：
+
+```text
+Value
+ValueChanged
+ValueExpression
+```
+
+### 3.5 子内容
+
+可组合组件优先使用 `RenderFragment`：
+
+```csharp
+[Parameter]
+public RenderFragment? ChildContent { get; set; }
+```
+
+不要同时提供多个表达相同内容的参数，例如 `Text` 和 `ChildContent`（`Tooltip` 的
+`ChildContent` 是触发元素、`Text` 是提示内容，属于分工而非重复）。如果组件需要支持图标，图标可以使用明确命名的 `StartIcon` 和 `EndIcon`，但必须保持文本和图标的语义顺序。
+
+图标本身使用核心 `Icon` 组件渲染供应商无关的 SVG 定义：
+
+```razor
+<Icon Definition="@FontAwesomeIcons.Solid.Plus" />
+```
+
+组件内部的字形（勾选、箭头、星形、严重度提示和关闭按钮）使用核心库自带的
+`AeterniIcons`，它是不依赖任何图标供应商的 16 × 16 几何定义，因此更换适配包
+不会改变组件本身的观感。业务图标则通过独立适配包提供，例如
+`AeterniUI.Icons.FontAwesome`；核心组件库不直接依赖具体图标供应商。
+
+给子组件（尤其是 `Icon`）根元素挂自定义 class 时注意：CSS 隔离的作用域属性只加在
+组件自己文件里渲染的元素上，子组件的根元素拿不到父组件作用域，因此
+`.aeterni-parent__part { }` 无法命中 `<Icon Class="aeterni-parent__part" />` 渲染出的
+`<svg>`。可行做法是：用包装元素承载 class（尺寸、颜色通过继承生效），或改用
+`::deep`，或通过 `Icon` 组件读取的局部变量 `--aeterni-icon-render-size`（默认回退 `1em`，
+在祖先元素上设置即可传递尺寸，它不是全局 Token）在祖先元素上传递。
+
+## 4. 基类使用规范
+
+### 4.1 根元素渲染
+
+组件必须有明确的根元素，并将基类生成的属性传递给根元素：
+
+```razor
+<button @attributes="BuildAttributes()">
+    @ChildContent
+</button>
+```
+
+不要在组件中再次手动渲染 `id`、`class`、`style`，否则会产生重复属性或覆盖顺序不一致。
+
+`@attributes="BuildAttributes()"` 所在元素不要再写显式 `class`（除非该属性集合不含 class）：源码中位于 `@attributes` 之后的显式属性会覆盖属性集合里的值，条件类名应放进 `BuildClass()`。
+
+`BuildAttributes()` 的当前约定是：
+
+- 先复制 `AdditionalAttributes`。
+- 基类统一写入 `id`、`class`、`style`。
+- `Visible == false` 时写入 `hidden`，并追加内联 `display: none`，避免组件的 flex/grid 布局覆盖原生隐藏规则；恢复可见时不保留该内联声明。
+- 组件通过重写 `SupportsDisabled` 后，才由基类写入 `disabled` 和 `aria-disabled`。
+
+因此，组件不要自行生成第二套根元素属性合并逻辑。
+
+### 4.2 单根组件与复合组件
+
+`Disabled` 的处理取决于组件根节点是否就是实际交互元素：
+
+- 单根交互组件，例如 `Button`、`Input`，应重写 `SupportsDisabled`，由基类向根元素输出 `disabled` 和 `aria-disabled`。
+- 复合组件，例如 `ThemeSwitch`、`ComboBox`，根节点通常是 `div` 或其他容器，不应重写 `SupportsDisabled` 来伪造原生禁用能力。
+- 复合组件应在内部真正的交互元素上应用 `disabled`，并在根容器上根据需要输出 `aria-disabled` 或其他复合组件语义。
+- 复合组件内部不要再次调用 `BuildAttributes()` 处理每个子控件；子控件的属性由组件自身按语义生成。
+
+这样可以避免容器和内部控件重复表达 Disabled，也不会向不支持该属性的 HTML 元素添加错误的原生语义。
+
+### 4.3 class 构建
+
+组件通过重写 `BuildClass()` 添加自身的基础类、尺寸类和状态类：
+
+```csharp
+protected override ClassBuilder BuildClass()
+{
+    return base.BuildClass()
+        .Add("aeterni-button")
+        .Add(SizeClass)
+        .Add($"aeterni-button--{Variant.ToString().ToLowerInvariant()}")
+        .Add("is-disabled", Disabled)
+        .Add("is-loading", Loading);
+}
+```
+
+约束：
+
+- 第一项调用 `base.BuildClass()`。
+- 组件基础类使用 `aeterni-{component}`。
+- 变体使用 `aeterni-{component}--{variant}`。
+- 状态使用 `is-{state}`。
+- 不在 Razor 标记中拼接多套 class 逻辑。
+- 不将业务名称写入组件内部 class。
+
+### 4.4 style 构建
+
+组件通过重写 `BuildStyle()` 添加确实属于组件 API 的 inline style：
+
+```csharp
+protected override StyleBuilder BuildStyle()
+{
+    return base.BuildStyle()
+        .Add("--aeterni-button-width", Width, Width is not null);
+}
+```
+
+优先使用 CSS class 和 Token。只有动态数值、用户明确传入的尺寸或浏览器运行时值才使用 `StyleBuilder`。不要用 inline style 复制整套主题样式。
+
+### 4.5 Id 和 ElementReference
+
+- `InstanceId` 是组件实例内部稳定标识，主要用于 JS module 和内部关联。
+- `ElementId` 是渲染到 DOM 的 id。没有传入 `Id` 时使用基类生成的 id。
+- 组件不得自行创建另一套 Guid id。
+- JS 需要关联组件实例时传递 `InstanceId`，不要从 DOM 文本中推断组件状态。
+- 使用 `@ref` 时通过 `RootElement` 或组件专用的 `ElementReference` 管理。
+
+## 5. Token 和样式规范
+
+### 5.1 Token 是唯一视觉来源
+
+组件样式必须优先使用当前 Token：
+
+```css
+.aeterni-button {
+    background: var(--aeterni-color-brand-default);
+    color: var(--aeterni-text-inverse);
+    border-radius: var(--aeterni-radius-button);
+    transition: var(--aeterni-transition-button);
+}
+```
+
+组件中禁止直接写主题相关的颜色值，例如：
+
+```css
+/* 不允许 */
+color: #ffffff;
+background: #8b4df6;
+```
+
+允许使用固定值的场景：
+
+- 不表达主题含义的尺寸，例如 `1px` 边框。
+- 纯布局细节，在现有 spacing Token 无法表达时。
+- 图标内部必须固定的几何尺寸。
+- 阴影或透明度经过设计确认且尚未有对应 Token 时。
+
+这种例外应尽量转化为新的 Token，而不是在多个组件中复制。
+
+### 5.2 命名空间
+
+公开 Token 必须使用 `--aeterni-` 前缀。组件专用 Token 继续使用该前缀，并包含组件名：
+
+```css
+--aeterni-button-height          /* 以下三行只是命名示例，不表示这些 Token 已存在 */
+--aeterni-button-padding-inline
+--aeterni-dialog-width
+```
+
+不得创建无前缀的公共 Token，也不要覆盖 Bootstrap、浏览器或宿主项目的通用变量。
+
+### 5.3 颜色角色
+
+组件依赖语义角色，不依赖色阶：
+
+背景 Token 分为两类，不能混用：
+
+- 页面和容器背景使用 `--aeterni-bg-*`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 等中性背景 Token；它们不使用品牌紫色，避免 Card、Surface、Header 或侧边栏形成大面积彩色底。
+- 组件交互状态可以使用 `--aeterni-surface-hover`、`--aeterni-surface-active`、`--aeterni-surface-selected` 和 `--aeterni-focus-color` 等品牌状态 Token；它们用于选中、悬停、按下和焦点反馈，不作为页面或容器的默认背景。
+
+组件新增背景时，先判断它是容器背景还是交互状态背景，再选择对应 Token。
+
+选择态控件（`Checkbox`、`Radio`、`Switch`、`Segmented`、`Tabs`、`Menu`、`DatePicker`、`Pagination` 当前页）一律消费 `--aeterni-state-background-checked`／`--aeterni-state-color-selected`／`--aeterni-state-border-hover` 这些状态别名，不要直接引用 `--aeterni-color-brand-default`：别名本身由品牌色推导，多品牌下换色行为与品牌填充完全一致，但它们让宿主只需重写一个 Token 就能单独调整选择态配色（例如托管品牌色但想要中性勾选框）。
+
+`--aeterni-state-background-checked` 是**实心填充**而不是淡染，取值就是品牌填充档，因此其上的墨沿用 `--aeterni-text-inverse`，与直接用品牌填充时的对比度一致。已勾选的控件在指针下必须**整块换档**：`--aeterni-state-background-checked-hover`／`-active` 沿同一品牌色阶再走一档（浅色下更深、深色下更亮），边框与填充一起换（`Checkbox` 的空框只回边框）。不要用半透明的 `--aeterni-state-background-hover` 洗浅实心块——淡染会让 `--aeterni-text-inverse` 的墨落在浅底上，勾线随之读不出来；`Radio` 的圆环与圆点、`Switch` 的轨道与边框必须一起换档，否则一个控件会同时出现两种品牌色。
+
+校验失败的控件在悬停/按下时保留危险色：`invalid` 的守卫必须排除指针反馈（`.is-invalid` 前缀），否则 `--aeterni-state-border-hover` 会覆写 `--aeterni-state-border-invalid`，指针一划过错误提示就消失。
+
+悬浮规则必须排除已选中态（`:not(.is-selected)`／`:not(:checked)`／`:not(.is-current)`），否则选中提示会在指针下消失——`hover` 与选中态特异性相同时，胜负由声明顺序决定，最容易静默失守。
+
+**表面归属**：写样式前先确认这个组件**是否该自带表面**，两类组件的结论相反：
+
+| 分类 | 组件 | 规则 |
+| --- | --- | --- |
+| 自带表面 | `Surface`、`Card`、`List`、`Input`/`Textarea`/`ComboBox` 的控件盒、`Checkbox`/`Radio`/`Switch` 的指示块、`Popover`/`Tooltip`/`Dialog`/Alert/Toast 的浮层、`Tag`/`Button` 的实心与柔和变体 | 自身负责 `--aeterni-bg-*` 或语义填充色，可以单独使用；外围不得再套一层同色底 |
+| 内容控件（不自带表面） | `Menu`、`Tabs`、`Rating`、`FormField`、`Label`、`Icon`、`Progress`、`ButtonGroup`、`Button` 的透明变体 | 只画内容与交互状态；底由宿主容器（`Card`/`Surface`/侧边栏/代码块）提供，**不得**自行加 `--aeterni-bg-*` |
+
+判断依据是"这个组件能不能单独构成一块界面"：导航列表、标签页、评分这类控件天生是嵌在容器里使用的，给它们加底会在卡片/侧栏里形成"白底套白底 + 双层边框"；反过来，`List` 是一次性交付"选项容器"的可选中列表，所以自带表面。示例页与组件文档必须展示真实用法——把内容控件放进宿主容器里演示，而不是让它们裸在页面底上。
+
+| 用途 | 优先 Token |
+| --- | --- |
+| 页面或容器背景 | `--aeterni-bg-primary`、`--aeterni-bg-surface` |
+| 次级背景 | `--aeterni-bg-secondary`、`--aeterni-bg-tertiary` |
+| 主要文本 | `--aeterni-text-primary` |
+| 次要文本 | `--aeterni-text-secondary`、`--aeterni-text-tertiary` |
+| 边框 | `--aeterni-border`、`--aeterni-border-strong` |
+| 悬浮表面 | `--aeterni-state-background-hover` |
+| 按下表面 | `--aeterni-state-background-active` |
+| 选中/勾选表面 | `--aeterni-state-background-selected`、`--aeterni-state-background-checked` |
+| 勾选块的悬浮/按下档 | `--aeterni-state-background-checked-hover`、`--aeterni-state-background-checked-active` |
+| 禁用控件 | `--aeterni-state-color-disabled`、`--aeterni-state-background-disabled`、`--aeterni-state-border-disabled` |
+| 校验失败 | `--aeterni-state-color-invalid`、`--aeterni-state-background-invalid`、`--aeterni-state-border-invalid` |
+| 只读控件 | `--aeterni-state-color-readonly`、`--aeterni-state-background-readonly` |
+| 占位/弱化文本 | `--aeterni-state-color-placeholder`、`--aeterni-state-color-muted` |
+| 反色内容 | `--aeterni-state-color-inverse`、`--aeterni-state-background-inverse` |
+| 品牌动作 | `--aeterni-color-brand-default`、`--aeterni-color-brand-hover`、`--aeterni-color-brand-active`、`--aeterni-color-brand-text`、`--aeterni-color-brand-soft` |
+| 状态反馈 | `--aeterni-color-success-*`、`--aeterni-color-warning-*`、`--aeterni-color-danger-*`、`--aeterni-color-info-*`、`--aeterni-color-neutral-*` |
+
+每个颜色族都提供 `default`（填充/边框）、`soft`（柔和背景）和 `text`（承字形态）三个别名，例如 `--aeterni-color-info-default`、`--aeterni-color-info-soft` 和 `--aeterni-color-info-text`。悬停与按下态**不再各自保留别名**：它们由 `default` 档与中性面用 `color-mix()` 推导（见 §5.4），因此调色板换色时推导结果自动跟随，不会出现别名与色阶脱节。组件应优先消费这些别名；`--aeterni-brand-500` 等色阶只用于自定义主题或确实需要精确色阶的场景。通用控件的 `selected` 与 `checked` 状态使用同一套 `--aeterni-state-background-*` Token，禁用状态使用同一套 `--aeterni-state-*-disabled` Token。
+
+品牌色阶是一个独立的**色相层**，与明暗层正交：语义别名与交互态全部由它推导，因此换色只需替换这一层。默认（紫罗兰）色板声明在 `:root` 上，`[data-aeterni-brand="purple"]` 是它的等价别名；宿主在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900` 即可整体换色，不需要改动任何语义别名或组件。该属性必须与 `data-theme` 写在同一个元素（`<html>`）上：语义别名在声明它的元素上解析 `var(--aeterni-brand-*)`，把色板写在更深的节点不会传导到别名。换色只能替换整条色阶并遵循 §5.4，不得只调 500 档，也不得为此复制语义别名或引入 `.aeterni-brand-*` 这类类名（token 文件只允许 Token 选择器）。库内已按该机制交付三个色相：默认紫罗兰（`:root`）与绿色（`[data-aeterni-brand="green"]`）、焦橙（`[data-aeterni-brand="orange"]`）。
+
+常见交互状态还提供 `--aeterni-state-*-pressed`（等同 `active`），以及 `--aeterni-state-border-focus`、`--aeterni-state-*-invalid` 等别名。需要同时组合背景、边框和前景时，优先使用 `--aeterni-control-background`、`--aeterni-control-border`、`--aeterni-control-foreground`（各自带 `disabled`、`readonly`、`hover`、`focus`、`invalid`、`placeholder` 分支）；焦点环使用 `--aeterni-focus-color` 配合 `--aeterni-focus-width` 与 `--aeterni-focus-offset`，不要另立别名。`focus` 不强制改变背景，避免键盘焦点和悬浮状态互相覆盖。
+
+组件不得通过自己增加 `.dark`、`.light` 或媒体查询来实现主题切换。主题由 `ThemeProvider` 设置，组件只消费语义 Token。
+
+**装饰色（`--aeterni-decor-*`）不以语义角色出现，也不参与对比度契约。** 只有「视觉本身就是内容」的饰面才用它——目前只有 `FlashCard` 的金属光泽与全息衍射。装饰色与品牌**故意无关**：光栅是被表面分解的白光，不是品牌色，换品牌不应该把衍射光栅重刷一遍。因此这类组件不得为了「跟随品牌」而改写装饰层，也不得把语义角色当装饰用；反过来，装饰层上的任何文字或状态必须另配语义角色。宿主若想改饰面，重调 `--aeterni-decor-*` 即可，不必改组件样式表。
+
+### 5.4 色板构建
+
+色阶按 OKLCH 构建，不用手调 hex：
+
+- **每族一条明度阶梯**，锚在「该色相看起来最自然」的中档明度上——黄色与绿色天生比蓝色亮，所以不强行让所有族的 500 档明度相同；族内相邻档的 ΔL 必须单调且不要出现 2 倍以上的跳变。
+- **色相固定**，只允许浅档做 ≤6° 的 Abney 补偿漂移（浅色看起来偏粉/偏黄是视觉规律）。同一色族内出现 8° 以上漂移要重做。
+- **chroma 凹形收敛**：中档最高、两端下降；品牌色的峰值建议 ≤ 0.20（0.24 以上会发荧光）。
+- **中档锚点可以来自外部参考色**（例如沿用 Apple 系统色的语意色）：此时以参考色的 OKLCH 为 500 档锚点，浅端插值到统一的 L 0.976、深端插值到统一的 L 0.30，再按固定比例缩放 chroma。这样既保留参考色的观感，又不会出现「参考色直接塞进另一套阶梯」造成的明度断层与色相漂移。
+- 每族必须提供三种形态，缺一就会出现对比度问题：
+  | 形态 | Token | 用途 |
+  | --- | --- | --- |
+  | 填充 | `--aeterni-color-{role}-default`（500 档） | 实心按钮、开关轨道、选中指示、通知卡片底色/徽标底/进度环 |
+  | 文字/描边 | `--aeterni-color-{role}-text` | 描边/文字变体的文字与边框、图标 |
+  | 柔和底 | `--aeterni-color-{role}-soft` | 选中态、Tag/Alert 底色 |
+  直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
+- **每个色相层都要按本节配方完整重建**：新增品牌色相时不能只替换 500 档，也不能照抄另一色相的档位——各档明度与 `-text` 停靠档必须按该色相自身重挑，但浅端仍统一到 L 0.976、深端统一到 L 0.30，chroma 仍在中档收敛。
+- **chroma 剖面必须用绝对值，不能套用「占本色相色域宽度的比例」**：sRGB 色域宽度随色相与明度变化，绿色在 L 0.85 附近最宽（maxC ≈ 0.27），紫色恰好相反——L 0.57 附近 ≈ 0.27，到 L 0.85 只剩 ≈ 0.08。按相对比例迁移会把绿色的峰值挤到浅档并产出荧光绿（`#AEFDAB`）。正确做法是把源色相的**绝对 chroma 剖面**归一化到 500 档峰值后套用，紫罗兰即为 `50:0.081, 100:0.183, 200:0.355, 300:0.565, 400:0.807, 500:1.0, 600:0.941, 700:0.812, 800:0.656, 900:0.522`。
+- **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色锚在 L 0.552（外部参考绿 `#1F883D`）时承白字 4.52:1，刚好过 4.5:1 线。**余量低于 1.1× 的锚点必须显式记账**：绿色 500 当前的 1.004× 就是全库最紧的一条对比度门禁，任何进一步提亮、提高 chroma 或改动语义停靠档都会击穿它；换锚点或新增色相层时把门禁集合重跑一遍，并把新的最紧余量写进注释与对应变更记录。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。
+- **上述门禁由 `node scripts/check-contrast.mjs` 实测执行，不是人工校对**：脚本解析 Token 文件、重放「品牌 × 浅色／深色／系统深色」的级联、跟随 `var()` 链解析出实际颜色，再对实心填充承字、品牌文字、链接、边框／图标与焦点环逐组测量（文字 4.5:1，非文字 3:1）。色相层增删或色阶改动后必须跑它；余量低于 1.1× 的色相层若没在自己的注释块里写明该对比度，脚本会直接失败。因为色相层是「一处改动、全站换色」的间接层，这条自动拦截是唯一能在构建期发现承字对比度被改坏的手段。
+- **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
+- **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。壁纸、背景内容层不在此列——它们是被模糊的对象，不是容器背景。
+- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是每个组件各自为政的配方。填充是独立档位（浅 68% / 深 72%），不是「抬高一层」的别名：抬高只要求落在页面上，磨砂要按最坏背景（纯黑／纯白）保证墨可读，把两者塞进一个值就是填充曾经偏厚、糊不进背景的原因。这两支墨（`--aeterni-text-on-glass-secondary` 93%、`--aeterni-text-on-glass-tertiary` 67%，都按主体墨的比例声明一次）是给磨砂态专用的：**每一个**磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都要把这四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 接 `--aeterni-text-on-glass-secondary`，`--aeterni-text-tertiary` 接 `--aeterni-text-on-glass-tertiary`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。新增磨砂表面时按同样四条照抄，`Card.razor.css` 是这一段的注释范本（名单曾含 `--aeterni-state-color-muted`：它全库零读取，已随 REV-122 从各玻璃块删除，令牌层声明保留但不再纳入接管）。不透明表面（例如 `is-no-blur` 的通知卡片）与遮罩不接管——遮罩不承字，改成玻璃墨只会把压暗加深。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`、两支玻璃专用墨退回标准墨），不能只摘 `backdrop-filter`。玻璃只保证中性墨：品牌墨（`--aeterni-text-link`、`--aeterni-color-brand-text`）的亮度是照着页面定的，透出来的背景一深／一浅就会掉到 4.5:1 以下（浅色最坏 2.98:1、深色 2.27:1），所以玻璃面板要么用在页面级内容之上，要么改用实心变体。
+- **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
+
+  | Token | 浅色 | 深色 | 允许的用法（浅色主题在页面上的对比度） |
+  | --- | --- | --- | --- |
+  | `--aeterni-text-primary` | `rgba(0,0,0,.78)` | `rgba(255,255,255,.86)` | 正文、标题、控件值（11.7:1） |
+  | `--aeterni-text-secondary` | `rgba(0,0,0,.62)` | `rgba(255,255,255,.56)` | 标签、导航、说明、分组标题、未选中项（6.2:1） |
+  | `--aeterni-text-placeholder` | `rgba(0,0,0,.56)` | `rgba(255,255,255,.48)` | 输入占位符（4.9:1） |
+  | `--aeterni-text-tertiary` | `rgba(0,0,0,.52)` | `rgba(255,255,255,.40)` | **仅图标与装饰**（4.3:1），不得用于正文或标签 |
+  | `--aeterni-text-disabled` | `rgba(0,0,0,.36)` | `rgba(255,255,255,.28)` | 禁用态（2.5:1，WCAG 对禁用态豁免） |
+
+  用不透明度的另一个好处是文字会随所在表面自动调和（着色 chip、hover 底、毛玻璃层），不需要为每个表面另写一个 hex。
+- **结构分隔线用 `--aeterni-separator`**（不透明，浅色 1.7:1 / 深色 1.5:1），不用 7% alpha 的 `--aeterni-border-subtle`：后者在卡片头/底分界上看起来像一片污渍。
+- 交互态（hover / active / selected）一律使用 `--aeterni-state-*` 角色；容器背景只取上面的无彩色角色，不得为交互态另立一套带品牌色的容器背景别名。
+- **实心填充的字色由填充明度决定**：深档填充（品牌）配 `--aeterni-text-inverse`，亮档填充（success/warning/danger/info）配 `--aeterni-color-on-semantic`。同一控件在 base/hover/active 三个状态必须保持同一字色，否则很容易掉到 4.5:1 以下；品牌填充向下取档，语意填充向白提亮 12%。
+- **浅底深字**：带色 chip（Tag）必须用「浅色调底 + 深色文字」，文字由强调色与正文字色按约 1:1 混合得到；只用两成墨色会让 chip 文字掉到 3:1 以下。
+
+### 5.5 尺寸和圆角
+
+组件尺寸应映射到统一尺度：
+
+```text
+Small  -> 紧凑控件
+Medium -> 默认控件
+Large  -> 强调控件
+```
+
+尺寸变化必须保持稳定的布局尺寸，不能让文字、图标或状态切换导致组件跳动。圆角优先使用已有 `--aeterni-radius-*` Token。胶囊控件使用 `--aeterni-radius-full`，不要在组件中重新定义 `9999px`。
+
+控件型组件的圆角走同一档阶梯：`Small -> --aeterni-radius-control-sm`、`Medium/Default -> --aeterni-radius-control-md`、`Large -> --aeterni-radius-control-lg`，并通过 `--aeterni-radius-button*` / `--aeterni-radius-input*` 引用，保证同一表单行内 Button、Input、Textarea 圆角一致。容器型组件使用 `--aeterni-radius-surface`（通用包装）或 `--aeterni-radius-card`（带分区的结构化容器），两者的默认差异必须在组件文档中写明理由。
+
+尺寸档位遵循“默认档位不输出修饰类”的约定：`Size.Default` 与 `Size.Medium` 表示同一中间档，`Variant=Default`、`Elevation=None`、`Radius=Default` 等同样不生成类名。组件不得让 `Default` 与 `Medium` 指向不同档位（`Icon` 的中档有独立规则，是文档化的唯一例外）。组件发出的每个类名都必须在某个样式表中有匹配规则；不写空的占位类，也不写永不匹配的死规则。
+
+尺寸阶梯只使用 `--aeterni-spacing-*`：`--aeterni-gap-*`、`--aeterni-padding-*` 和 `--aeterni-margin-*` 是留给宿主的同名别名，组件内部不得使用，否则同一个 4px 在库里会有三种写法。
+
+浮层半径按层级递增，不是随手取值：Tooltip `--aeterni-radius-tooltip`（4px）< Popover / 下拉列表 `--aeterni-radius-dropdown`（8px）< Dialog `--aeterni-radius-modal`（16px）；通知卡片沿 iOS 通知中心的观感使用 `--aeterni-radius-2xl`（16px），与 Dialog 同档但卡片是独立一层。同一层级新组件应沿用对应 Token。
+
+过渡声明优先复用复合 Token（`--aeterni-transition-button`、`--aeterni-transition-control`、`--aeterni-transition-color` 等）；不要在多个组件里重复写同一串属性 + 时长 + 缓动的组合。确实属于该组件特有的属性（`width`、`grid-template-rows`、`translate`）才就地声明。
+
+选项到类名的映射集中在 `Components/ComponentClass.cs`：`ForSize`、`ForColor`、`For` 负责尺寸、语意色与通用修饰类的生成，组件不要各自维护一套 switch。`Severity` 到 `Color` 的映射也只保留这一处。
+
+组件样式表中不允许出现未注释的裸像素尺寸。能映射到 Token 的直接引用 Token；确实缺少档位的先在 Token 层补语义 Token（例如浮层宽度、紧凑行高、通知字号）再引用；结构性机制（无障碍裁剪模式的 `1px` + `50%`）、动画位移与排版微调可以保留字面量，但必须用注释说明它是机制或微调而不是尺寸档位。
+
+### 5.6 样式覆盖边界
+
+新增组件时：
+
+- 不修改已有 Token 的含义。
+- 不修改其他组件的基础样式来适配新组件。
+- 不把组件专用规则放进 Token 区域。
+- 不使用全局 `button`、`input` 等选择器覆盖宿主应用。
+- 组件样式必须以 `.aeterni-{component}` 为根选择器。
+- 跨组件的外观归渲染该元素的组件所有：传给子组件根元素的类名不会带上本组件的隔离属性（例如日历由 `DateCalendar.razor.css` 负责，在 `DatePicker.razor.css` 里复制一份只会在两者之间产生漂移）。
+- 用户传入的 `Class` 只能作为扩展入口，不能改变基类属性合并规则。
+
+### 5.7 结构稳定性
+
+组件结构必须只有一个真相源：
+
+- **一个根元素、一份内容标记。** 不要用 `@if` 给同一个组件的两种模式各写一份相同的子树（把差异放进 `BuildClass()` / `BuildAttributes()`），否则后续只改一份就会分叉。
+- **根属性一律走 `BuildAttributes()`。** 除文档化的例外（`ThemeProvider` 不渲染 DOM）外，不要用 `class="@SomeBuilder()"` 手写根元素属性：那会让 `Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes` 静默失效。
+- **子元素 class 也用 `ClassBuilder`。** 不要用 `List<string>` + `string.Join` 手工拼接。
+- **事件只在必要时绑定。** 非交互组件不应注册 DOM 监听器：处理属性可以返回 `default` 的 `EventCallback<T>`（渲染树不产生处理帧），不要把判断全部丢进处理器内部。
+- **图标尺寸只有一个入口。** 通过祖先元素的 `--aeterni-icon-render-size` 传递；不要用 `font-size` 依赖 Icon 的 `1em` 回落，也不要用 `::deep svg { width/height }` 覆盖。
+- **有可见根元素的组件必须绑 `@ref="RootElement"`**，否则 `Element` / `ElementChanged` 永远不会回调。
+- **禁用态用 Token，不要整块降透明度。** 使用 `--aeterni-state-color-disabled` / `--aeterni-state-background-disabled` / `--aeterni-state-border-disabled`；`opacity` 只用于组件局部的光学微调（加载中的标签、弱化的字形）并在注释里说明。
+- **同一角色的魔数只写一次。** 已经存在的 Token（如 `--aeterni-opacity-muted`、`--aeterni-radius-badge`）不要在旁边再写一份字面量；先看 Token 层是否已有对应角色。
+
+## 6. 状态和交互规范
+
+### 6.1 标准状态
+
+交互组件应根据组件语义实现适用状态：
+
+```text
+base
+hover
+focus-visible
+active
+disabled
+loading
+selected / checked
+invalid
+readonly
+```
+
+不适用的状态不需要强行实现。例如静态展示组件不需要 `active`。
+
+### 6.2 状态优先级
+
+状态样式应遵循以下优先级：
+
+```text
+disabled > loading > invalid / selected > focus-visible > hover > base
+```
+
+具体组件可以调整优先级，但必须确保禁用状态不会被悬浮或选中状态覆盖。
+
+### 6.3 Hover、Active 和 Focus
+
+- `hover` 用于反馈可交互性，可以改变背景、边框、颜色和阴影。
+- `active` 用于表达按下反馈，可以改变背景或阴影。
+- `focus-visible` 必须有清晰的焦点轮廓，不能只依赖颜色变化。
+- 不能通过 `outline: none` 删除焦点而不提供替代方案。
+- 位移、缩放或阴影变化不能造成布局尺寸变化。
+- 对于 ThemeSwitch 这类滑块组件，按下时保持尺寸和位置稳定，滑块只在选项切换时移动。
+
+### 6.4 动画
+
+动画只使用已有 duration 和 easing Token：
+
+```css
+transition: var(--aeterni-transition-button);
+```
+
+通用要求：
+
+- 背景、颜色、边框、阴影和透明度可以过渡。
+- 变换动画应使用 `transform`，不要改变布局属性。已登记的例外：折叠面板的自动高度展开/收起使用 `grid-template-rows: 0fr → 1fr`（`Menu` 的 `aeterni-menu__collapse`），因为在不引入 JS 测量高度的情况下它是不改变 DOM 结构的唯一方案；该属性只能用在自有折叠容器上，且必须同时兼容 `prefers-reduced-motion: reduce`。
+- 不为点击添加夸张的缩放或跳动效果。
+- 不使用无限循环动画表达普通交互状态。
+- 必须兼容 `prefers-reduced-motion: reduce`。
+
+## 7. HTML 语义和可访问性
+
+### 7.1 原生元素优先
+
+优先使用正确的原生元素：
+
+- 动作使用 `<button>`。
+- 导航使用 `<a>`；组件在提供导航项时，应像 `Menu` 一样允许消费者传入 `Href`（`Target="_blank"` 时自动补 `rel="noopener noreferrer"`），不要只能用 `@onclick` 模拟跳转。
+- 输入使用 `<input>`、`<textarea>`、`<select>`。
+- 分组使用 `<fieldset>` 和 `<legend>`。
+- 弹窗使用合适的 dialog 语义。
+
+不要用 `<div @onclick="...">` 模拟按钮，除非组件本身是允许完整内容结构的交互容器。此时必须补齐 `role="button"`、Tab 焦点、Enter/Space 键盘行为和禁用语义；Card 的 `Interactive` 模式属于这一明确例外。
+
+### 7.2 Disabled 和 Loading
+
+原生支持 `disabled` 的元素应使用原生属性。不能禁用原生元素的组件，应至少提供：
+
+```html
+aria-disabled="true"
+```
+
+加载状态应：
+
+- 阻止重复提交。
+- 保留组件的稳定尺寸。
+- 为屏幕阅读器提供可理解的状态。
+- 不仅依赖旋转图形表达加载中。
+
+### 7.3 ARIA
+
+ARIA 用来补充语义，不用来替代正确的 HTML 元素。每个 ARIA 属性都必须对应一个真实的交互状态。组件的 `AriaLabel` 等参数只在文本内容不能提供可访问名称时使用。
+
+带值的 ARIA 状态必须输出字符串：Blazor 把 `bool` 属性值渲染成最小化属性（`aria-selected` 而不是 `aria-selected="true"`，为 `false` 时直接省略），两者对读屏都是无效值。统一写成 `? "true" : "false"`；原生布尔属性（`disabled`、`hidden`、`checked`）不受影响。
+
+复合控件的角色层次必须成立：`listbox` 的直接子元素是 `role="option"`，`radiogroup` 内恒有至多一个 `aria-checked="true"`，非可聚焦的选项元素不得进入 Tab 序列，也不得抢走容器的 DOM 焦点。单选组、评分等复合控件的键盘模型使用 roving tabindex：组件整体只有一次 Tab 停留点。
+
+表单字段的关联有三种合法形态：原生可聚焦控件（`Input`、`Textarea`、`Checkbox`、`Switch`、独立 `Radio` 和 `InputNumber` 的内部输入）直接采用 `FormField` 的输入 ID 让 `label for` 生效；容器型控件（`ComboBox`、`Rating`、`RadioGroup`、`Slider`）既采用输入 ID 以保持 `for` 可解析，又必须用 `aria-labelledby` 关联标签 ID、用 `aria-describedby` 关联描述与错误文本。
+
+库内所有用户可见文案（无障碍名称、占位符、关闭按钮文案）统一取自 `AeterniUIOptions.Text`，不得在组件里硬编码中英文混排的默认值；组件参数优先于文案表。
+
+### 7.4 键盘行为
+
+交互组件至少检查：
+
+- Tab 是否可以进入和离开。
+- Enter 和 Space 是否符合原生预期。
+- Escape 是否用于关闭可关闭的浮层。
+- 方向键是否用于 tabs、列表选择或分段控件。
+- 焦点是否在状态变化后保持合理位置。
+
+时间选择器使用时/分/秒三列滚轮复合控件，不把一天内所有步长展开成扁平 DOM 列表：单位列名固定在顶部；中心选择带固定不随内容滚动，只画上下分隔线，不得用圆角或三个独立方框包围当前值；刻度吸附到中心，边缘渐隐并以近大远小表达层次。首次打开直接定位到当前值，用户点击或滚动后的吸附才播放平滑动画；较大步长只渲染实际可用的刻度。滚轮组只保留一个 Tab 停留点，取消与确定按钮按原生顺序进入 Tab；Left/Right 切列，ArrowUp/ArrowDown 与 Home/End 在当前列移动，Enter/Space 确认完整值。滚动与点击只更新草稿，取消不得改写绑定值。默认采用 24 小时制、`HH:mm:ss` 和 1 秒步长；步长以午夜为锚点且必须是整秒。秒级精度可以增加内部可用性映射，但不得渲染 86,400 个秒级选项。
+
+## 8. JS isolation 规范
+
+### 8.1 使用条件
+
+只有以下场景才引入 JS：
+
+- DOM 测量和定位。
+- 焦点控制或焦点陷阱。
+- 点击外部关闭。
+- 滚动锁定。
+- ResizeObserver、IntersectionObserver 等浏览器观察器。
+- CSS 和 Blazor 无法可靠完成的浏览器行为。
+
+以下场景不要使用 JS：
+
+- 普通 hover、focus、active 样式。
+- 普通过渡和 transform 动画。
+- 仅为了切换 class 的简单状态。
+- 组件 C# 已经可以直接维护的业务状态。
+
+### 8.2 声明方式
+
+一个组件最多声明一个 `JsModuleAttribute`。该 module 是组件唯一的 JS module；`Interactive` 只用于判断是否需要执行 `init`，不表示组件可以声明多个 module。
+
+组件通过 `JsModuleAttribute` 声明 module：
+
+```csharp
+[JsModule(
+    "Components/Dialog/Dialog.razor.js",
+    Name = "dialog",
+    Interactive = true)]
+public partial class Dialog : AeterniComponent
+{
+}
+```
+
+约定：
+
+- 路径相对于组件库程序集的静态资源根目录。
+- `Name` 必须稳定且具有组件语义。
+- 需要执行 `init` 或接收 C# 回调时才设置 `Interactive = true`。
+- `Interactive = false` 时 module 可以被加载，但不会执行 `init`；组件销毁时仍由基类执行实例级 `dispose`。
+- 不在组件初始化阶段访问浏览器；浏览器调用放在首次渲染之后。
+
+### 8.3 JS module 生命周期
+
+组件 module 必须提供实例级 `dispose`。当 `Interactive = true` 时还必须提供 `init`。`AeterniComponent` 基类会自动调用它们：
+
+```javascript
+const instances = new Map();
+
+export function init(reference, key) {
+    dispose(key);
+    instances.set(key, createInstance(reference));
+}
+
+export function dispose(key) {
+    const instance = instances.get(key);
+    instance?.dispose?.();
+    instances.delete(key);
+}
+```
+
+要求：
+
+- 所有监听器、Observer、定时器都必须在 `dispose` 中释放。
+- 使用 `InstanceId` 作为实例 key。
+- 组件不需要自行调用 `dispose`；基类会在组件销毁时调用 `dispose(InstanceId)`。
+- JS 回调失败不能让页面永久崩溃，应根据组件能力提供降级行为。
+- JS 不直接保存组件业务状态，状态源仍是 C# 或 DOM 原生状态。
+- 不为了绕过静态资源完整性问题而关闭 integrity 校验。
+
+### 8.4 共享浮层能力
+
+锚定浮层（Tooltip、Popover、后续的 Drawer）共用 `wwwroot/js/aeterni_floating.js`，不得各自重写视口贴合、焦点陷阱与滚动锁：
+
+- `fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift` —— 翻转与交叉轴贴边的全部数值。居中对齐（Tooltip）与边对齐（Popover）用不同的 clamp，不要拿一个公式套两种几何。
+- `createFocusTrap(container, { onEscape })` —— Tab 循环、Escape 上报、释放时把焦点还给打开前的元素；返回幂等的 `release()`。
+- `lockScroll()` —— 带滚动条宽度补偿、引用计数的页面滚动锁；返回幂等的释放函数，重叠浮层不会互相解锁。
+- 组件模块通过相对路径导入（`../../js/aeterni_floating.js`）。共享文件放 `wwwroot/js/`，因为它不属于任何单个组件；而组件模块必须是组件目录下的 `*.razor.js`（只有这个命名会被 Razor SDK 当作静态资源发布）。
+- **浮层不得用 `transform`/`translate` 做偏移**：变换会让浮层成为自身 `position: fixed` 遮罩的包含块。需要像素级偏移时用 `margin`（Popover 用 `margin-left` 承载 `--aeterni-popover-shift-x`）。
+- 关闭始终由使用方的 `OpenChanged` 驱动：JS 只负责“请求关闭”，不直接改 DOM 状态，也不假设参数未被绑定。
+- 堆栈类浮层（Dialog）可以保留自己的 Tab/Escape 处理，因为它要判断“只有最顶层响应”；这类差异必须在代码注释与当前功能文档里写明。
+
+## 9. 主题规范
+
+### 9.1 状态定义
+
+主题服务中的三个概念必须区分：
+
+- `Mode`：用户选择的来源，`System`、`Light` 或 `Dark`。
+- `CurrentTheme`：当前实际生效的主题，类型为 `ThemeKind`（`Light` 或 `Dark`）。
+- `Brand`：当前品牌色层，类型为 `ThemeBrand`（`Purple`、`Green` 或 `Orange`）。
+
+System 模式下，`CurrentTheme` 由系统主题决定；Light 或 Dark 模式下，`CurrentTheme` 由用户选择决定。
+
+`Brand` 与明暗是两个正交维度：明暗决定取色阶的哪几档，品牌决定用哪条色阶。品牌变化不影响 `Mode` 或 `CurrentTheme`，因此必须走独立的 `BrandChanged` 事件，不能复用 `ThemeChanged`——后者会触发系统偏好的重新解析，而品牌切换与系统偏好无关。
+
+### 9.2 组件约束
+
+组件不得：
+
+- 自己读取操作系统主题。
+- 自己修改 `data-theme`。
+- 自己修改 `data-aeterni-brand`。
+- 直接调用 `ThemeProvider` 的内部 JS module。
+
+组件只需要消费语义 Token，或者订阅 `ThemeService.ThemeChanged` / `ThemeService.BrandChanged` 来刷新组件自身的展示状态。
+
+### 9.3 ThemeProvider
+
+`ThemeProvider` 是无可见内容的宿主组件，通常放在 Layout 中：
+
+```razor
+<ThemeProvider />
+@Body
+```
+
+它负责：
+
+- 订阅 `ThemeService` 的明暗与品牌两个维度。
+- 初始化页面主题。
+- 监听系统主题变化。
+- 应用网页主题和品牌色层。
+- 释放 JS 监听和对象引用。
+
+它不包裹 Layout，也不承担业务布局职责。
+
+`ThemeProvider` **不渲染 DOM**：主题通过 JS module 写到 `<html>` 的 `data-theme` / `data-aeterni-mode` / `data-aeterni-brand` 上，因此基类提供的 `Id`、`Class`、`Style`、`Visible` 对它是无效参数，文档中必须这样说明，不能暗示它支持 DOM 参数。
+
+为避免首帧闪烁，宿主应在样式表之前放一段预渲染脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，并写入 `<html>` 的 `data-theme` 与 `data-aeterni-brand`）。样式表本身也提供 `prefers-color-scheme: dark` 兜底：只有在没有显式主题属性时才生效；品牌没有等价的 CSS 兜底，因为 `:root` 上的默认色板就是回退。脚本读不到 `AeterniUIOptions.DefaultBrand`，所以它的品牌回退字面量必须与该选项保持一致；品牌存储值非法时属性会匹配不到任何色相层而回落到 `:root`，页面保持默认品牌而不是丢掉品牌色，因此非法值不需要在脚本里额外过滤。
+
+### 9.4 DialogProvider 和 IDialogService
+
+`DialogProvider` 与 `ThemeProvider` 一样是无业务内容的自闭合宿主组件，通常在 Layout 中注册一次：
+
+```razor
+<ThemeProvider />
+<DialogProvider />
+@Body
+```
+
+业务组件只注入 `IDialogService`，不直接操作 Provider：
+
+```csharp
+await DialogService.AlertAsync("Saved", new AlertOptions
+{
+    Severity = Severity.Success,
+    Icon = CheckIcon
+});
+
+var confirmed = await DialogService.ConfirmAsync("Continue?");
+DialogService.ShowToast("Completed");
+```
+
+全局 Toast 位置等基础配置在服务注册阶段设置，组件运行过程中也可以通过 `IDialogService` 临时覆盖：
+
+```csharp
+builder.Services.AddAeterniUI(options =>
+{
+    options.DefaultToastPosition = ToastPosition.TopEnd;
+    options.DefaultAlertPosition = ToastPosition.BottomCenter;
+    options.MaxToastCount = 5;
+    options.DefaultAlertDuration = TimeSpan.FromSeconds(5);
+    options.DefaultToastDuration = TimeSpan.FromSeconds(5);
+});
+```
+
+指定单条 Toast 或 Alert 的位置可以使用对应 options 的 `Position` 属性，或者直接使用 Service 的位置重载：
+
+```csharp
+DialogService.ShowToast("Completed", ToastPosition.BottomCenter);
+await DialogService.AlertAsync("Saved", ToastPosition.TopCenter);
+```
+
+三种弹出内容的职责必须区分：
+
+- `Show` / `ConfirmAsync` 是模态内容，显示遮罩、锁定背景滚动并管理焦点；默认只有最顶层 Dialog 响应 Escape。
+- `AlertAsync` 是非模态、不阻塞页面的语义化提示，默认底部居中，可指定任意 `ToastPosition` 位置以避开页面顶部元素；支持 `Severity`、`Icon` 和手动关闭。消息内容最多显示两行，过长内容截断。
+- `AlertAsync` 和 `ShowToast` 默认自动关闭，四边环绕的边框进度条由 CSS 线性动画驱动（不显示倒计时文本，渲染过程不触发中间态重绘，多消息同时显示时也不会抖动）；将对应 options 的 `Duration` 设置为 `TimeSpan.Zero` 可改为仅手动关闭，设置为 `null` 时使用 `AddAeterniUI` 的全局默认值。
+- Alert 与 Toast 的卡片采用类似 iOS 通知中心的展示方式：磨砂圆角卡片、左侧图标徽标、标题与两行内内容、右侧顶部的轻量关闭按钮。
+- Alert 和 Toast 的语意背景沿用 Button 的 `Info`、`Success`、`Warning`、`Danger` 色值映射；`Blur = false` 可以关闭通知自身的背景模糊。
+- Alert 与 Toast 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 `Severity` 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并保持上下居中。
+- 需要在关闭后执行逻辑时使用 `AlertOptions.OnClosedAsync` 或 `ToastOptions.OnClosedAsync`。
+- `ShowToast` 是非阻塞通知，支持 `Info`、`Success`、`Warning`、`Danger`、手动关闭、自动关闭以及八个位置。
+
+Toast 的全局默认位置由 `IDialogService.DefaultToastPosition` 提供（默认 `TopEnd`，右上角），单条 Toast 可以通过 `ToastOptions.Position` 覆盖。Alert 的全局默认位置由 `IDialogService.DefaultAlertPosition` 提供（默认 `BottomCenter`，底部居中），单条 Alert 可以通过 `AlertOptions.Position` 覆盖；两者都可在 `AddAeterniUI` 的 `AeterniUIOptions` 中设置默认值。需要 RTL 兼容时优先使用 `Start` / `End`，不要在业务层重新实现定位 CSS。
+
+Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内嵌套另一个模态入口。
+
+## 10. 示例项目规范
+
+示例项目不是营销页面，而是组件库的可运行契约展示。每个组件示例应尽量覆盖：
+
+- 默认状态。
+- 所有公开尺寸。
+- 主要变体。
+- Hover、Focus、Disabled、Loading 等适用状态。
+- 键盘行为。
+- 主题切换后的结果。
+- 浏览器能力不可用时的降级行为。
+
+示例页面中的样式可以用于展示，但不能反向成为组件库的实现依赖。示例项目可以使用自己的页面 class，但不得覆盖 `.aeterni-*` 的核心规则来伪造组件效果。
+
+推荐的示例结构：
+
+```text
+Sample/
+  Pages/
+    Home.razor                  # 首页文档页（/）
+    Icons.razor                 # 图标浏览页（/icons）
+    Components/                 # 每个组件一个独立页面（/components/{id}）
+      Install.razor             # 安装页（/components）
+      Button.razor
+      Tabs.razor
+      ...
+  Layout/
+    MainLayout.razor            # 固定头部与导航 + 全局 Provider
+    ComponentsLayout.razor      # 组件页侧栏布局（内嵌 MainLayout）
+```
+
+示例页必须"一个组件一个页面"：页面只包含该组件的演示标记与自己的 `@code` 状态，跨页共享的只有少量基础件（`ComponentPreview`、组件目录、页面基类）和展示样式表。不要用一个大页面加 `switch` 来切换所有组件——那样每个组件都无法单独分享链接，也无法独立演进；页面标题（`PageTitle`）要能反映当前组件。示例样式在组件页拆分后必须放在示例项目的全局样式表里（作用域 CSS 无法跨页生效），但类名仍使用示例自己的前缀，不得覆盖 `.aeterni-*` 组件规则。
+
+组件变更后，示例页面必须同步展示真实参数和真实状态，不能使用静态文本模拟组件已支持的能力。
+
+## 11. 新增组件工作流
+
+新增组件按以下顺序进行：
+
+1. 明确组件解决的问题，以及它与现有组件的边界。
+2. 确认是否可以通过现有组件组合完成，避免重复组件。
+3. 设计公开参数、枚举和事件回调。
+4. 明确根 HTML 元素和可访问性语义。
+5. 列出适用状态：base、hover、focus、active、disabled、loading 等。
+6. 将视觉决策映射到已有 Token。
+7. 创建组件目录和 Razor 文件。
+8. 继承 `AeterniComponent`，实现 `BuildClass()`，必要时实现 `BuildStyle()`。
+9. 使用 `@attributes="BuildAttributes()"` 渲染根元素。
+10. 只有确有必要时添加 JS module，并导出符合约定的 `dispose(instanceId)`。
+11. 在示例项目中展示默认、变体、尺寸和状态。
+12. 进行人工检查，确认浏览器交互、主题切换和能力降级行为。
+
+## 12. 组件提交检查清单
+
+### API
+
+- [ ] 组件继承 `AeterniComponent`。
+- [ ] 参数名称和顺序符合规范。
+- [ ] 没有创建不必要的 `Ixxx` 接口或基类。
+- [ ] 事件使用 `EventCallback`，没有 `async void`。
+- [ ] 默认参数可以支持最简单的使用方式。
+
+### DOM 和基类
+
+- [ ] 有明确且正确的根 HTML 元素。
+- [ ] 使用 `BuildAttributes()` 传递基类属性。
+- [ ] 没有重复生成 `id`、`class` 或 `style`。
+- [ ] 没有自行创建 Guid id。
+- [ ] `Disabled` 的语义与根元素能力一致。
+- [ ] 可见根元素绑定了 `@ref="RootElement"`。
+- [ ] 两种渲染模式共用同一份内容标记（模式差异只在 class/属性）。
+- [ ] 非交互分支不注册 DOM 事件处理器。
+- [ ] 禁用态使用 state-disabled Token，而不是整块 `opacity`。
+
+### 样式
+
+- [ ] 根 class 使用 `aeterni-{component}`。
+- [ ] 变体和状态 class 命名统一。
+- [ ] 主题颜色使用 `--aeterni-*` Token。
+- [ ] 填充档只用于实心表面；ink 与需与浅色轨道/页面区分的实心图形用文字形态。
+- [ ] 容器背景是无色的（R = G = B，深色 ≤ +3）。
+- [ ] 悬浮规则排除已选中态（`:not(.is-selected)`／`:not(:checked)`／`:not(.is-current)`）。
+- [ ] 文字只用 `primary` / `secondary` / `placeholder` / `disabled`；`tertiary` 只用于图标与装饰。
+- [ ] 新增磨砂表面时，已按上文「玻璃配方只有一套」把四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly`、`--aeterni-text-tertiary`）一并接管到两支 on-glass 墨，而不是只改其中几个。
+- [ ] 尺寸只用 `--aeterni-spacing-*`，不用 gap/padding/margin 别名。
+- [ ] 已经按「表面归属」确认过本组件是否该自带表面，并与规范表格一致。
+- [ ] 没有覆盖其他组件或宿主项目的全局元素样式。
+- [ ] 尺寸变化不会造成布局跳动。
+- [ ] 动画使用统一 duration 和 easing。
+- [ ] 支持减少动画偏好。
+
+### 可访问性
+
+- [ ] 使用了正确的原生 HTML 语义。
+- [ ] 键盘可以完成核心操作。
+- [ ] `focus-visible` 清晰可见。
+- [ ] Disabled、Loading、Selected、Invalid 等状态有对应语义。
+- [ ] 带值的 ARIA 状态输出字符串而不是 `bool`。
+- [ ] 没有用视觉效果替代必要的文本或 ARIA 语义。
+
+### JS 和主题
+
+- [ ] JS 只用于必要的浏览器行为。
+- [ ] JS module 的监听器和定时器可以释放。
+- [ ] 组件没有自己修改主题根节点。
+- [ ] 主题切换后组件状态仍然正确。
+
+### 示例
+
+- [ ] 示例使用真实组件，而不是静态仿制样式。
+- [ ] 示例覆盖主要参数和适用状态。
+- [ ] 示例没有依赖组件内部 class 实现业务逻辑。
+- [ ] 示例页面在 Light、Dark、System 三种模式下都可读。
+
+## 13. 第一阶段落地范围
+
+本规范第一版落地时，优先统一以下组件和能力：
+
+```text
+Button
+ButtonGroup
+Surface
+Input
+FormField
+```
+
+`Stack`、`Flex` 曾列入本阶段范围，但从未实现，当前组件计划也没有排期；
+布局能力由 `Surface`、`Card` 与业务自身的布局样式承担。规范中不再把它们
+写成已落地能力，需要的组件应先进入组件计划再实现。
+
+`IconButton` 用于独立的方形图标操作，默认采用 `Ghost + Neutral`，必须提供 `AriaLabel`；`MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，不承担 Toolbar 或 ToggleGroup 语义。
+
+其中 `Button` 作为第一份参考实现，重点验证：
+
+- `Intent`、`Variant`、`Size` 的 API 设计。
+- `ButtonIntent` 提供 `Default`、`Neutral`、`Warning`、`Danger`；`Default` 使用主题品牌色。
+- `ButtonVariant` 提供 `Solid`、`Outline`、`Soft`、`Ghost`、`Link`。
+- `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可以组合，例如 `Danger + Outline`。
+- `Soft` 使用语义柔和底色，`Ghost` 默认透明并在交互时显示表面；二者不复用相同的基础状态。
+- `Link` 仅通过颜色和下划线表达悬浮、按下反馈，不显示背景色；它适合导航或文本链接语义。
+- `ButtonType` 继续表示原生 HTML `button` 类型（`Button`、`Submit`、`Reset`），不与按钮语义 `ButtonIntent` 混淆。
+- `Size.Default` 映射到默认中等尺寸，按钮圆角由 `--aeterni-radius-button*` Token 提供，当前为 `0.625rem`。
+- `FullWidth` 默认关闭，启用后按钮宽度为父容器的 100%。
+- `StartIcon` 和 `EndIcon` 使用 `RenderFragment`，分别表示内容左侧和右侧图标；`Icon` 保留为左侧图标的兼容简写。
+- 图标按钮必须通过 `AriaLabel` 提供可访问名称。
+- `Type` 支持 `Button`、`Submit` 和 `Reset`，默认值为 `Button`。
+- Disabled、Loading、Focus 和键盘行为。
+- Token 使用方式。
+- `BuildClass()` 和 `BuildAttributes()` 的组合。
+- 示例页面如何展示组件状态。
+
+`ButtonGroup` 的第一版约定如下：
+
+- 默认使用水平、连接式布局；设置 `Connected="false"` 时恢复按钮之间的 token 间距并保留 Button 自身的默认圆角。
+- 连接式布局在相邻 Button 之间保留 1px token 分隔线，避免相同颜色的实心按钮视觉上合并；分隔线由 ButtonGroup 管理，不修改 Button 核心样式。
+- `Orientation="Orientation.Vertical"` 用于垂直组合。
+- `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
+- `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。
+- 普通按钮组保留原生 Tab 顺序，不实现方向键导航；方向键行为由独立的 Toolbar 与 ToggleGroup 承担，后者以原生按钮 `aria-pressed` 表达单选/多选动作切换，不承担 Segmented 的表单值选择语义。
+
+`Surface` 和 `Card` 的职责需要区分：
+
+- `Surface` 是无内容结构的视觉容器，负责背景、边框、模糊、阴影、圆角和内边距。
+- `Card` 是有内容结构的容器，可提供 `Header`、主体 `ChildContent` 和 `Footer` 三个区域，默认带边框并使用卡片圆角。
+- Card 的 `Padding` 统一作用于 Header、Body 和 Footer 三个区域；设置为 `None` 才表示三个区域都采用无内边距，不能依赖业务 CSS 为各区域重复补间距。
+- 两者都使用 `SurfaceVariant`、`SurfaceElevation` 和 token 化的内边距；不要在业务页面重复实现相同的 surface CSS。
+- 模糊属于 `Glass` 变体本身，不是独立参数：`Glass` 取 `--aeterni-bg-glass` 的 `.68`／`.72` 填充加 `--aeterni-blur-glass`，其余变体就是各自的不透明填充。不要重新引入与 `Variant` 正交的模糊轴——两个参数会争夺同一个 `background`，后声明的规则静默胜出，另一个参数看起来失效。宿主覆盖 `--aeterni-blur-glass` 这一个 Token 就能统一调整全库玻璃表面的模糊。
+- `Glass` 变体的边框完全跟随 `Bordered`，不再自己写 `border-color`：玻璃配方的默认形态就是无边框，`Card` 因为默认 `Bordered=true`，无边框玻璃卡片需要显式 `Bordered="false"`。
+- `Card` 默认不是交互控件，不输出按钮或链接语义；需要整卡触发动作时使用 `Interactive="true"` 和 `OnClick`，组件会提供按钮语义、Tab 焦点以及 Enter/Space 键盘触发。
+- 交互式 Card 内不要嵌套 Button、Link 或其他可聚焦控件。如果卡片主要用于导航，优先使用页面中的 Link；如果同时存在多个独立动作，应保持 Card 为静态容器并把 Button 放在 Footer。
+
+基础用法：
+
+```razor
+<Surface Variant="SurfaceVariant.Glass">
+    Content
+</Surface>
+
+<Card Variant="SurfaceVariant.Glass" Bordered="false">
+    <Header>Title</Header>
+    Content
+    <Footer>Actions</Footer>
+</Card>
+
+<Card Interactive OnClick="OpenDetails">
+    Open details
+</Card>
+```
+
+后续组件如果与本规范冲突，应优先修改规范或明确记录例外，再实现组件。不能在单个组件中悄悄形成新的命名、状态或样式体系。
+
+### Toolbar 动作容器契约
+
+`Toolbar` 是无背景、无边框的动作布局，横向/纵向仅接纳 Button、IconButton 与 MenuButton。`ToolbarGroup` 提供必填名称的 `role="group"`，不增加 Tab 停留点。整条工具栏共享一个 roving tabindex；所属轴方向键循环、Home/End 首尾、横向 RTL 反转，非所属轴与 Enter/Space 留给按钮/菜单。菜单弹层与嵌套工具栏不属于外层候选。Disabled 使用 inert 阻止后代交互；隐藏、禁用、加载项跳过。业务状态留在宿主，JS 仅负责浏览器焦点和监听器释放；不提前建立通用焦点抽象。
+
+### FlashCard 媒体卡契约
+
+`FlashCard` 把整个 3D 舞台收在组件内部：根元素只承载透视，`.aeterni-flash-card__tilt` 负责指针旋转与悬停缩放，`.aeterni-flash-card__inner` 负责翻面，两面绝对定位于同一个 `aspect-ratio` 盒子，因此两侧尺寸永远一致。
+
+- 指针跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`），不在 JS 里直接改 `transform`：旋转组合、悬停缩放、翻面与过渡全部留在隔离样式表，module 只负责指针位置与监听器释放。
+- 透视放在根元素、而不是旋转元素上：旋转根元素会连焦点轮廓和透视原点一起旋转，既毁掉焦点环，也让倾斜状态下的指针换算持续漂移。
+- 卡片只在提供 `Back` 内容时才是控件，输出按钮语义与 `aria-pressed`；未翻出的一面必须用 `aria-hidden` 与 `inert` 退出无障碍树，不能用视觉翻转替代该状态。
+- 翻转是组件状态而非 CSS 悬浮：`FlipTrigger="Click"` 时 `IsFlipped` 受控，键盘 Enter/Space 与指针点击走同一个回调，回调前先更新非受控状态；`FlipTrigger="Hover"` 是由样式表驱动的指针预览，组件不再输出控件语义，也不隐藏任何一面——浏览器拥有的状态不能变成 ARIA 谎报，需要键盘等价操作时用默认的 `Click`。
+- 容器背景保持无彩色，只消费 `--aeterni-bg-surface`、`--aeterni-border-default`、`--aeterni-shadow-*` 与 `--aeterni-state-*`。`Sheen` 是这条规则里唯一被允许的彩色表面，而且必须保持为**铺满媒体区的光学装饰**：只在有 `ImageSrc` 时渲染、只覆盖图片、不覆盖图文说明区，也不参与容器背景填充，所以它不会把卡片本身染成品牌色底，也不会压低说明文字的对比度。混合模式要按效果选：彩虹镭射用 `color`（替换色相与饱和度、保留图片明度），白光反光用 `screen`（提亮）——用 `screen` 做彩虹会让浅色图片完全看不出闪光，因为只对暗像素生效。炫光必须整面铺满——指针位置只用来偏移渐变相位，不允许退化成"指针下面一块高光"。
+- `Tilt="false"`、`Disabled` 与减少动态效果时都不得注册指针跟随，也不得保留过渡；光泽层在这些情况下停在默认位置，而不是消失或改用手动动画。

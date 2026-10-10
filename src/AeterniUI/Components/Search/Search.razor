@@ -1,0 +1,49 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <div class="aeterni-search__field">
+        <div class="aeterni-search__input-wrap">
+            <Input Value="@_currentValue"
+                   ValueChanged="@HandleValueChangedAsync"
+                   Type="@InputType.Text"
+                   Size="@Size"
+                   Placeholder="@Placeholder"
+                   Name="@Name"
+                   AutoComplete="@AutoComplete"
+                   ReadOnly="@ReadOnly"
+                   Required="@IsRequired"
+                   Invalid="@IsInvalid"
+                   Disabled="@IsEffectivelyDisabled"
+                   FullWidth="true"
+                   AriaLabel="@InputAriaLabel"
+                   AriaDescribedBy="@AriaDescribedBy"
+                   OnKeyDown="@HandleInputKeyDownAsync" />
+            <div class="aeterni-search__actions">
+                <ButtonGroup Connected="true"
+                             Disabled="@IsEffectivelyDisabled"
+                             AriaLabel="@EffectiveAriaLabel">
+                    @if (Clearable && HasValue)
+                    {
+                        <IconButton Class="aeterni-search__clear"
+                                    Size="@Size"
+                                    Variant="@ButtonVariant.Ghost"
+                                    Intent="@ButtonIntent.Neutral"
+                                    AriaLabel="@EffectiveClearLabel"
+                                    Disabled="@(IsEffectivelyDisabled || ReadOnly)"
+                                    Icon="@ClearIcon"
+                                    OnClick="@ClearAsync" />
+                    }
+                    <IconButton Class="aeterni-search__submit"
+                                Size="@Size"
+                                Variant="@ButtonVariant.Ghost"
+                                Intent="@ButtonIntent.Default"
+                                AriaLabel="@EffectiveSubmitLabel"
+                                Disabled="@IsEffectivelyDisabled"
+                                Loading="@Loading"
+                                Icon="@SearchIcon"
+                                OnClick="@(_ => SubmitAsync())" />
+                </ButtonGroup>
+            </div>
+        </div>
+    </div>
+</div>

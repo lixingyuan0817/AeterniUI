@@ -1,0 +1,13 @@
+@inherits AeterniComponent
+
+<svg @ref="RootElement" @attributes="BuildAttributes()">
+    @if (!string.IsNullOrWhiteSpace(Title))
+    {
+        <title>@Title</title>
+    }
+
+    @foreach (var path in Definition.Paths)
+    {
+        <path d="@path" />
+    }
+</svg>

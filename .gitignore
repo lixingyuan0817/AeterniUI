@@ -1,0 +1,20 @@
+# .NET generated output
+**/bin/
+**/obj/
+
+# Published sample site (built by scripts/sample-publish.sh)
+/dist/
+/.sample-publish/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+.reasonix/
+*.user
+*.suo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example

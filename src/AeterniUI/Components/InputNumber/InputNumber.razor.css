@@ -1,0 +1,103 @@
+/* A bordered field that fuses the inner Input with optional step buttons, using
+   the same recipe as Search: the wrapper owns the border and the focus ring, and
+   the child input/button borders, radii and focus outlines are flattened so the
+   group reads as one control. The `::deep` rules only ever reach the children
+   this component itself renders inside its own wrapper. */
+.aeterni-input-number {
+    --aeterni-input-number-group-radius: var(--aeterni-radius-input);
+
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-width-input-md));
+    max-width: 100%;
+}
+
+.aeterni-input-number__field {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-input-number-group-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-input-number__field:focus-within {
+    border-color: var(--aeterni-control-border-focus);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-input-number__controls {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.aeterni-input-number__controls ::deep .aeterni-button-group {
+    gap: 0;
+    border: 0;
+}
+
+.aeterni-input-number__field ::deep .aeterni-input {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.aeterni-input-number__field ::deep .aeterni-input:focus-visible,
+.aeterni-input-number__controls ::deep .aeterni-icon-button:focus-visible {
+    outline: none;
+}
+
+.aeterni-input-number__field ::deep .aeterni-input.is-full-width {
+    width: auto;
+}
+
+.aeterni-input-number__controls ::deep .aeterni-icon-button {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.aeterni-input-number__controls ::deep .aeterni-button-group.is-connected .aeterni-icon-button,
+.aeterni-input-number__controls ::deep .aeterni-button-group.is-connected .aeterni-icon-button:first-child,
+.aeterni-input-number__controls ::deep .aeterni-button-group.is-connected .aeterni-icon-button:last-child {
+    border-radius: 0;
+}
+
+.aeterni-input-number__controls ::deep .aeterni-icon-button:hover:not(:disabled),
+.aeterni-input-number__controls ::deep .aeterni-icon-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: none;
+}
+
+.aeterni-input-number.is-invalid .aeterni-input-number__field {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-input-number.is-invalid .aeterni-input-number__field:focus-within {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-input-number.is-disabled .aeterni-input-number__field {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-input-number.is-readonly .aeterni-input-number__field {
+    background: var(--aeterni-control-background-readonly);
+}
+
+.aeterni-input-number.is-full-width {
+    width: 100%;
+}
+
+.aeterni-input-number--sm {
+    --aeterni-input-number-group-radius: var(--aeterni-radius-input-sm);
+}
+
+.aeterni-input-number--lg {
+    --aeterni-input-number-group-radius: var(--aeterni-radius-input-lg);
+}

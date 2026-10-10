@@ -1,0 +1,74 @@
+@page "/components/spinner"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Spinner</PageTitle>
+
+<ComponentPreview AnchorId="spinner"
+                  Category="状态反馈"
+                  Title="Spinner"
+                  ComponentName="Spinner"
+                  Description="独立加载指示器，供内容区、对话框和页面级加载复用；环形定义与 Button 的加载态共用一份实现。"
+                  Parameters="@SpinnerParameters">
+    <Preview>
+        <div class="preview-spinner-demo">
+            <div class="preview-state-row">
+                <Spinner Size="Size.Small" AriaLabel="小号加载" />
+                <Spinner AriaLabel="默认加载" />
+                <Spinner Size="Size.Large" AriaLabel="大号加载" />
+            </div>
+
+            <div class="preview-state-row">
+                @foreach (var family in ColorFamilies)
+                {
+                    <span class="preview-spinner-cell">
+                        <Spinner Color="@family.Color" AriaLabel="@($"{family.Label} 加载")" />
+                        <span class="preview-value">@family.Label</span>
+                    </span>
+                }
+            </div>
+
+            <div class="preview-spinner-host">
+                <Spinner Size="@_spinnerSize" Color="@_spinnerColor" AriaLabel="@_spinnerLabel" />
+                <span>内容区加载中…</span>
+            </div>
+
+            <Button Loading Size="@_spinnerSize" AriaLabel="加载中的按钮">提交</Button>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="spinner-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_spinnerSize" />
+        </div>
+        <div class="control-field">
+            <span>Color</span>
+            <ShowcaseSelect TValue="Color" Id="spinner-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_spinnerColor" />
+        </div>
+        <div class="control-field">
+            <label for="spinner-label">AriaLabel</label>
+            <input id="spinner-label" @bind="_spinnerLabel" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>根元素输出 <code>role="status"</code>，并始终带一个可访问名称：未传 <code>AriaLabel</code> 时取 <code>AeterniUITextOptions.SpinnerLabel</code>。</span>
+        <span>Button 的加载遮罩已经带 <code>aria-busy</code>，因此它内部的 Spinner 处于 <code>aria-hidden</code> 容器中，只做视觉指示。</span>
+        <span><code>prefers-reduced-motion</code> 下动画停止，环形保持静止；颜色默认继承当前文字色，命名色取色族的文字形态。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private Size _spinnerSize = Size.Default;
+
+    private Color _spinnerColor = Color.Default;
+
+    private string _spinnerLabel = "内容区加载中";
+
+    private static readonly ShowcaseParameter[] SpinnerParameters =
+    [
+        new("Size", "Size", "环形尺寸档位：Small 16px、Default 20px、Large 32px。", "Default"),
+        new("Color", "Color", "语义颜色；Default 继承当前文字色。", "Default"),
+        new("AriaLabel", "string?", "可访问名称；为空时使用文案表默认值。")
+    ];
+}

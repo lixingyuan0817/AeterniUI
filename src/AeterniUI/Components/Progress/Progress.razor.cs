@@ -1,0 +1,66 @@
+using AeterniUI.Enums;
+using Microsoft.AspNetCore.Components;
+
+namespace AeterniUI.Components.Progress;
+
+public partial class Progress : AeterniComponent
+{
+    [Parameter]
+    public double? Value { get; set; }
+    [Parameter]
+    public double Max { get; set; } = 100;
+    [Parameter]
+    public bool Indeterminate { get; set; }
+    [Parameter]
+    public Color Color { get; set; } = Color.Primary;
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
+    [Parameter]
+    public bool ShowValue { get; set; }
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    private double Percentage => Indeterminate || !Value.HasValue ? 0 : Math.Clamp(Value.Value / Max * 100, 0, 100);
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-progress")
+        .Add(SizeClass)
+        .Add(ColorClass)
+        .Add("is-indeterminate", Indeterminate);
+
+    // The bar width travels as a custom property instead of an inline `width`, so the
+    // indeterminate sweep can override it from the stylesheet without !important.
+    protected override StyleBuilder BuildStyle() => base.BuildStyle()
+        .Add("--aeterni-progress-value", Percentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%", !Indeterminate);
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase)
+        {
+            ["role"] = "progressbar",
+            ["aria-valuemin"] = "0",
+            ["aria-valuemax"] = Max.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        };
+        if (!Indeterminate && Value.HasValue)
+            attributes["aria-valuenow"] = Math.Clamp(Value.Value, 0, Max).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (!string.IsNullOrWhiteSpace(AriaLabel)) attributes["aria-label"] = AriaLabel!;
+        return attributes;
+    }
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-progress", Size);
+    private string? ColorClass => ComponentClass.ForColor("aeterni-progress", Color);
+
+    private void ValidateParameters()
+    {
+        if (Max <= 0 || double.IsNaN(Max) || double.IsInfinity(Max)) throw new ArgumentOutOfRangeException(nameof(Max), Max, "The progress maximum must be a finite positive number.");
+        if (Value is { } value && (double.IsNaN(value) || double.IsInfinity(value))) throw new ArgumentOutOfRangeException(nameof(Value), Value, "The progress value must be finite.");
+        if (!Enum.IsDefined(Color)) throw new ArgumentOutOfRangeException(nameof(Color), Color, "Unknown progress color.");
+        if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown progress size.");
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        ValidateParameters();
+    }
+}

@@ -1,0 +1,228 @@
+/* align-content:start keeps every row at its content height: a parent that hands
+   the menu extra height (a stretched sidebar or grid cell) must not stretch the
+   group rows, which would inflate the toggles and leave empty space where a
+   collapsed list should be. */
+.aeterni-menu {
+    --aeterni-menu-row-height: var(--aeterni-row-height-compact);
+
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-2);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.aeterni-menu__list {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aeterni-menu__group {
+    display: grid;
+    align-content: start;
+    gap: 0;
+}
+
+/* A zero-height collapse still occupies a grid track; keep its gap out of
+   closed or empty groups so the final header has no trailing blank space. */
+.aeterni-menu__group.is-open.has-items {
+    gap: var(--aeterni-spacing-1);
+}
+
+/* Group toggles and entries share one fixed row height so the navigation keeps
+   a single rhythm; the label and its description share one line and ellipsize
+   instead of wrapping, so a long entry cannot grow the row. */
+.aeterni-menu__group-toggle,
+.aeterni-menu__item {    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    width: 100%;
+    box-sizing: border-box;
+    height: var(--aeterni-menu-row-height);
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    text-align: start;
+    cursor: pointer;
+    font: inherit;
+}
+
+/* Link entries (MenuItem.Href) keep the same surface as buttons, without the
+   underline or the visited colour the browser would add. */
+.aeterni-menu__item {
+    position: relative;
+    padding: 0 var(--aeterni-menu-item-padding, var(--aeterni-control-padding-x-md));
+    text-decoration: none;
+}
+
+.aeterni-menu__group-toggle {
+    justify-content: flex-start;
+    padding: 0 var(--aeterni-menu-item-padding, var(--aeterni-control-padding-x-md));
+    /* A group title is a real label, so it uses the readable secondary ink;
+       tertiary is reserved for icons and decoration. */
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-menu__group-toggle:hover:not(:disabled),
+.aeterni-menu__item:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-menu__group-toggle:active:not(:disabled),
+.aeterni-menu__item:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-menu__item.is-selected {
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
+}
+
+/* The selected row owns its fill and its brand ink: the generic hover would paint
+   the lighter hover wash over the selection and swap the label back to neutral
+   primary. Hover holds the row still and press steps the fill, so the row still
+   answers the pointer without giving up the selection. */
+.aeterni-menu__item.is-selected:hover:not(:disabled) {
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.aeterni-menu__item.is-selected:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-menu__item.is-selected .aeterni-menu__icon {
+    color: var(--aeterni-state-color-selected);
+}
+
+/* The icon inherits its size from this box; setting the variable here reaches
+   the shared Icon component, whose own stylesheet cannot be targeted from this
+   component's scope. */
+.aeterni-menu__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-icon-size-lg);
+    height: var(--aeterni-icon-size-lg);
+    --aeterni-icon-render-size: 100%;
+}
+
+.aeterni-menu__item-copy {
+    display: flex;
+    align-items: baseline;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.aeterni-menu__item-copy > span {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-menu__item-copy small {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Collapsed groups leave the accessibility tree and the tab order (visibility,
+   not only opacity/clip). The visibility flip is delayed on close so the
+   collapse animation stays visible, and immediate on open.
+   min-height:0 is required on this container as well as on the inner list: as a
+   grid item it would otherwise keep an automatic minimum size, and the `0fr`
+   row would stay a few pixels tall per group instead of collapsing. */
+.aeterni-menu__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    min-height: 0;
+    align-content: start;
+    opacity: 0;
+    visibility: hidden;
+    transition: grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal);
+}
+
+.aeterni-menu__collapse.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s, 0s, 0s;
+}
+
+.aeterni-menu__items {
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+    margin: 0;
+    padding: 0;
+    padding-inline-start: var(--aeterni-spacing-2);
+    list-style: none;
+}
+
+.aeterni-menu__item-row {
+    min-width: 0;
+}
+
+/* Disclosure chevron: points right when a group is collapsed and rotates a
+   quarter turn when it opens, so the indicator never flattens mid-transition. */
+.aeterni-menu__chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+
+    margin-inline-start: auto;
+    /* De-emphasised until the row is hovered or the group is open. */
+    opacity: var(--aeterni-opacity-muted);
+    transform-origin: center;
+    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
+}
+
+.aeterni-menu__group-toggle:hover:not(:disabled) .aeterni-menu__chevron,
+.aeterni-menu__group.is-open .aeterni-menu__chevron {
+    opacity: 1;
+}
+
+.aeterni-menu__group.is-open .aeterni-menu__chevron {
+    transform: rotate(90deg);
+}
+
+.aeterni-menu button:focus-visible,
+.aeterni-menu a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
+}
+
+/* Disabled rows use the shared muted ink instead of a whole-row opacity: every
+   other component expresses disabled through --aeterni-state-*-disabled, and a
+   faded row also faded its own hover surface. */
+.aeterni-menu button:disabled {
+    cursor: not-allowed;
+    color: var(--aeterni-state-color-disabled);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-menu__collapse,
+    .aeterni-menu__chevron {
+        transition: none;
+    }
+}

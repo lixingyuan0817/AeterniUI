@@ -1,0 +1,21 @@
+@inherits AeterniComponent
+
+@* Keep the backdrop and the popover surface in the same stacking context, but
+   give the surface an explicit layer above the backdrop. A negative z-index
+   backdrop can fall behind the host's painted background while page text remains
+   visible above it; explicit 0/1 layers avoid that browser-dependent ordering. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @if (Modal && (Open || _closing))
+    {
+        <div class="aeterni-popover__backdrop" aria-hidden="true" @onclick="HandleBackdropClickAsync"></div>
+    }
+
+    <div class="aeterni-popover__surface">
+        @if (Header is not null)
+        {
+            <div class="aeterni-popover__header">@Header</div>
+        }
+
+        <div class="aeterni-popover__content">@ChildContent</div>
+    </div>
+</div>

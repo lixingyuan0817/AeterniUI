@@ -1,0 +1,1193 @@
+/*
+   AeterniUI.Sample — showcase styles shared by every /components page and the
+   sidebar layout. These used to live in the scoped Pages/Components.razor.css,
+   which cannot reach across the per-component pages, so they are a global sheet
+   now. Class names stay page-scoped by prefix (showcase-, preview- and control-
+   prefixed names only); no `.aeterni-` component rule is overridden here.
+
+   Note: never write a comment terminator inside a comment body. A glob-looking
+   path prefix followed immediately by a star and a slash would close the comment
+   early, and the CSS parser then eats the whole next rule — which is how
+   `.showcase-layout` silently lost its grid and every token it declared.
+*/
+
+/*
+   AeterniUI.Sample — component page shell (/components/{id}).
+   MainLayout owns the floating header, the brand and the top-level navigation;
+   ComponentsLayout owns the left category sidebar (a Menu inside a Surface-like
+   card) and the preview column. Width comes from the shared shell token so the
+   header, the homepage and the icons page all line up with this layout.
+*/
+
+.showcase-layout {
+    --showcase-sidebar-width: 276px;
+    display: grid;
+    grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+    width: var(--sample-shell-width);
+    /* Keep the same neutral page canvas as 首页 and 图标页; surfaces below remain
+       responsible for grouping content without introducing a second page background. */
+    /* No extra `max-width` or inset arithmetic next to the token: a second clamp
+       here would silently shrink the shell (or, when the token is missing, blow it
+       up to full-bleed) instead of failing visibly. */
+    /* .sample-page already contributes --sample-header-inset of top padding, so
+       the first row lands exactly on --sample-content-top. */
+    margin: calc(var(--sample-content-top) - var(--sample-header-inset)) auto 0;
+}
+
+.showcase-sidebar {
+    position: sticky;
+    /* Rest and stick at the same offset, and measure the panel from it: the bottom
+       edge then keeps --sample-header-gap clear of the fold at every scroll
+       position, instead of only once the panel has stuck. */
+    top: var(--sample-content-top);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: var(--showcase-sidebar-width);
+    /* Stable panel: collapsing the navigation must not resize the card; the inner
+       scroll container handles content that outgrows the viewport.
+
+       The budget subtracts --sample-page-bottom, not --sample-header-gap, because
+       the pinned range is the row height minus the panel: with the panel sized to
+       `100dvh - top - gap` it stays taller than the page's scroll range by
+       `page-bottom - gap`, and the browser drags it up by that much in the last
+       stretch of the scroll (very visible on short pages such as the install
+       guide). Subtracting the trailing space makes pinned range = scroll range at
+       any content height.
+
+       The vh line is the fallback: without it an engine that does not know dvh
+       would drop the declaration and let the panel grow to its content height. */
+    height: calc(100vh - var(--sample-content-top) - var(--sample-page-bottom));
+    height: calc(100dvh - var(--sample-content-top) - var(--sample-page-bottom));
+    overflow: hidden;
+    padding: 18px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-sm);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+    animation: showcase-fade-up var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
+    transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
+}
+
+.showcase-sidebar:hover {
+    border-color: var(--aeterni-border);
+    box-shadow: var(--aeterni-shadow-md);
+}
+
+.showcase-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-right: -18px;
+    padding: 4px 0 22px;
+    padding-right: 18px;
+    scrollbar-gutter: stable;
+}
+
+/* The sidebar navigation is the library Menu component: it brings its own row
+   rhythm, selected state and disclosure behaviour, so this sheet must not define
+   a second set of nav item styles (the previous `showcase-nav__*` rules became
+   dead the moment the sidebar switched to Menu). */
+
+.showcase-main {
+    grid-column: 2;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.showcase-preview-host {
+    min-width: 0;
+}
+
+.showcase-install { padding: clamp(28px, 5vw, 72px); border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-xl); background: var(--aeterni-bg-elevated); box-shadow: var(--aeterni-shadow-sm); }
+.showcase-install h1 { margin: 8px 0 14px; color: var(--aeterni-text-primary); font-size: clamp(28px, 4vw, 46px); }
+.showcase-install__lead { max-width: 680px; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-lg); line-height: var(--aeterni-line-height-relaxed); }
+/* Installation steps run as one vertical column: each step keeps a full-width code
+   block instead of a third of the row. */
+.showcase-install__steps { display: grid; grid-template-columns: 1fr; gap: var(--aeterni-spacing-4); margin-top: 36px; }
+.showcase-install__steps section { min-width: 0; padding: 20px; border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-lg); background: var(--aeterni-bg-surface); }
+.showcase-install__steps header { display: flex; align-items: center; gap: var(--aeterni-spacing-3); }
+.showcase-install__steps span { color: var(--aeterni-color-brand-default); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-bold); }
+.showcase-install__steps h2 { display: flex; align-items: center; gap: var(--aeterni-spacing-2); margin: 0; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
+.showcase-install__steps pre { margin-top: var(--aeterni-spacing-3); }
+.showcase-install pre { margin: 0; overflow-x: auto; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); line-height: 1.6; white-space: pre-wrap; }
+.showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
+/* Page-level eyebrow. `.component-preview__eyebrow` lives in an isolated sheet and
+   only matches ComponentPreview's own markup, so pages that are rendered straight
+   into the layout shell need their own copy from this global sheet. */
+.showcase-page-eyebrow { margin: 0 0 var(--aeterni-spacing-2); color: var(--aeterni-color-brand-text); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-semibold); letter-spacing: .12em; text-transform: uppercase; }
+
+/* Sample content shown inside the generic preview stages. */
+
+.preview-overlay-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    width: 100%;
+    min-height: 180px;
+    padding: var(--aeterni-spacing-5);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.preview-overlay-demo__anchor {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-overlay-demo__label,
+.preview-overlay-demo__popover-title span {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.preview-overlay-demo__popover-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+}
+
+.preview-overlay-demo__popover-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--aeterni-spacing-3);
+    min-width: min(320px, 70vw);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+}
+
+.preview-overlay-demo__popover-body p,
+.preview-overlay-demo__popover-body ul {
+    margin: 0;
+}
+
+.preview-overlay-demo__popover-body ul {
+    padding-inline-start: var(--aeterni-spacing-5);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-overlay-demo__popover-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-overlay-demo__hint {
+    max-width: 520px;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-stack {
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    width: min(100%, 440px);
+    text-align: center;
+}
+
+/* The Menu demo keeps the menu left-aligned at a sidebar-like width. */
+.preview-menu-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    width: min(100%, 360px);
+}
+
+.preview-menu-demo .preview-feedback {
+    text-align: start;
+}
+
+.preview-stack.preview-feedback-actions {
+    width: min(100%, 520px);
+}
+
+/* State comparison rows used by the Button preview (loading and semantic
+   colour matrices). */
+.preview-state-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-3);
+    width: min(100%, 520px);
+}
+
+.preview-feedback {
+    display: block;
+    max-width: 100%;
+    min-height: 1.25em;
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+    text-align: center;
+}
+
+.preview-surface-content,
+.preview-card-copy,
+.preview-card-footer {
+    color: var(--aeterni-text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.preview-surface-content {
+    display: grid;
+    gap: 6px;
+}
+
+/* 玻璃演示场景。backdrop-filter 只采样元素「背后」的内容，所以在一个背景平坦的预览框里，
+   模糊与不模糊长得一模一样。这一层是「被模糊的背景内容」，不是容器背景：它带彩色、带斜纹，
+   因为彩色和高频细节才是能看出模糊对象。 */
+.preview-glass-scene {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 180px;
+    padding: var(--aeterni-spacing-4);
+}
+
+.preview-glass-scene__backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--aeterni-radius-surface);
+    background-color: var(--aeterni-bg-secondary);
+    background-image:
+        repeating-linear-gradient(112deg,
+            color-mix(in srgb, var(--aeterni-text-primary) 16%, transparent) 0 9px,
+            transparent 9px 30px),
+        radial-gradient(circle at 22% 26%,
+            color-mix(in srgb, var(--aeterni-color-brand-default) 74%, transparent) 0%,
+            transparent 64%),
+        radial-gradient(circle at 80% 74%,
+            color-mix(in srgb, var(--aeterni-color-info-default) 66%, transparent) 0%,
+            transparent 64%);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* 背景副本是绝对定位，预览组件是静态的 flex 子项：定位元素画在普通流内容之上，
+   于是副本会把面板整个盖住。只有带 backdrop-filter 的变体自己生成层叠上下文才浮出来 ——
+   这正是「除了 Glass 其他变体都不显示」的原因。给面板一个属于自己的层，让它按 DOM 顺序
+   压在副本之上，与 GlassLab 页的 `.glass-lab__cell > .glass-lab__sample` 同一手法。 */
+.preview-glass-scene > *:not(.preview-glass-scene__backdrop) {
+    position: relative;
+    z-index: 1;
+}
+
+.preview-label,
+.preview-card-title {
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.preview-card-title {
+    margin: 0;
+    font-size: 18px;
+}
+
+.preview-card-copy {
+    margin: 8px 0 0;
+}
+
+.preview-card-footer {
+    font-size: 11px;
+}
+
+.preview-icon-wrap {
+    display: grid;
+    place-items: center;
+    min-height: 96px;
+    color: var(--aeterni-color-brand-text);
+}
+
+.preview-form-control {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    width: min(100%, 460px);
+    text-align: center;
+}
+
+/* FormField/ComboBox fill the preview row (their layout is width-driven);
+   default-width inputs stay centered. */
+.preview-form-control--fill {
+    justify-items: stretch;
+    text-align: start;
+}
+
+.preview-value {
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+}
+
+.preview-list-wrap {
+    width: min(100%, 520px);
+}
+
+.preview-empty {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    min-height: 120px;
+    color: var(--aeterni-text-secondary);
+    text-align: center;
+}
+
+.preview-action-row,
+.preview-feedback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.preview-feedback-actions {
+    display: grid;
+    gap: 16px;
+    justify-items: center;
+}
+
+/* Text and numeric fields remain native inputs; enum and boolean properties
+   use the library ComboBox and Checkbox components directly. */
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 1 / -1;
+    gap: 12px;
+}
+
+.control-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.control-field > label,
+.control-field > span {
+    color: var(--aeterni-text-secondary);
+    font-size: 11px;
+}
+
+.control-field input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 9px;
+    border: 1px solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-primary);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: 12px;
+}
+
+.control-field input:focus-visible {
+    outline: 2px solid var(--aeterni-focus-color);
+    outline-offset: 2px;
+}
+
+.control-status {
+    display: block;
+    color: var(--aeterni-text-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+@media (max-width: 1080px) {
+    .showcase-layout {
+        --showcase-sidebar-width: 240px;
+        grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
+        gap: 22px;
+    }
+}
+
+/* Sidebar beside the content, matching the header column, from the desktop layout
+   all the way down to tablet width. Only below 700px does the shell stack the
+   sidebar above the content, because a 240px column plus a readable preview card
+   no longer fit; the stacked block still keeps the header's width. */
+@media (max-width: 700px) {
+    .showcase-layout {
+        display: block;
+    }
+
+    .showcase-sidebar {
+        position: static;
+        width: auto;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        margin-bottom: 22px;
+    }
+
+    .showcase-nav {
+        overflow: visible;
+        margin-right: 0;
+        padding-right: 0;
+    }
+
+    .showcase-main {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .showcase-sidebar {
+        padding: 14px;
+    }
+
+    .control-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes showcase-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .showcase-sidebar {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* 色彩与语义 (/components/colors) -------------------------------------------
+   页面级设计基础验收页：色族色卡、文字墨阶、字体、表面、圆角、阴影和间距全部
+   手绘，只引用 `--aeterni-*` Token，且不覆写任何 `.aeterni-*` 组件规则。
+
+   版式按设计规格表组织：每一组基础各自成卡片，卡片之间走网格，卡片内部只放
+   标尺本身（色块、形状、条形）与 Token 名。容器表面保持无彩色：彩色只出现在
+   展示色值本身的小尺寸内容表面上，不会铺满卡片或整页。 */
+.showcase-colors {
+    padding: clamp(28px, 5vw, 72px);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-elevated);
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.showcase-colors h1 {
+    margin: 8px 0 14px;
+    color: var(--aeterni-text-primary);
+    font-size: clamp(28px, 4vw, 46px);
+}
+
+.showcase-colors__subtitle {
+    margin: 44px 0 10px;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-lg);
+}
+
+/* 页面说明段：保留 .showcase-install__note 的基础样式，只收紧它紧跟在标题后
+   的间距并限制行长。同权重、后定义，因此这里覆盖的是示例页自己的类。 */
+.showcase-colors__note {
+    max-width: 760px;
+    margin-top: var(--aeterni-spacing-2);
+}
+
+/* 卡片基线：色卡、墨阶、字体元信息、表面与圆角卡片共用同一套边界、圆角与
+   内边距，内容不同但骨架一致，整页才读成一张规格表。 */
+.showcase-colors__card,
+.showcase-colors__type,
+.showcase-colors__meta,
+.showcase-colors__surface,
+.showcase-colors__radius-item {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-3);
+    min-width: 0;
+    padding: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+/* Token 名一律等宽小字，只落在卡片内部，避免把页首与说明段里的行内代码缩小。 */
+.showcase-colors__card code,
+.showcase-colors__type code,
+.showcase-colors__meta code,
+.showcase-colors__surface code,
+.showcase-colors__radius-item code,
+.showcase-colors__shadow-item code,
+.showcase-colors__display code,
+.showcase-colors__scale-row code,
+.showcase-colors__spacing-row code,
+.showcase-colors__table-row code {
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+/* --- 色族色卡 ------------------------------------------------------------ */
+.showcase-colors__families {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+/* 每张色卡把自己的色族收敛成三个页面局部别名，卡内所有色块都从别名取色；
+   加一个色族只需要补一个 data-family 块，色块规则一行都不用改。 */
+.showcase-colors__card {
+    --family-solid: var(--aeterni-color-neutral-default);
+    --family-solid-ink: var(--aeterni-color-on-semantic);
+    --family-ink: var(--aeterni-color-neutral-text);
+    --family-soft: var(--aeterni-color-neutral-soft);
+}
+
+.showcase-colors__card[data-family="brand"] {
+    --family-solid: var(--aeterni-color-brand-default);
+    --family-solid-ink: var(--aeterni-button-intent-default-foreground);
+    --family-ink: var(--aeterni-color-brand-text);
+    --family-soft: var(--aeterni-color-brand-soft);
+}
+
+.showcase-colors__card[data-family="success"] {
+    --family-solid: var(--aeterni-color-success-default);
+    --family-ink: var(--aeterni-color-success-text);
+    --family-soft: var(--aeterni-color-success-soft);
+}
+
+.showcase-colors__card[data-family="warning"] {
+    --family-solid: var(--aeterni-color-warning-default);
+    --family-ink: var(--aeterni-color-warning-text);
+    --family-soft: var(--aeterni-color-warning-soft);
+}
+
+.showcase-colors__card[data-family="danger"] {
+    --family-solid: var(--aeterni-color-danger-default);
+    --family-ink: var(--aeterni-color-danger-text);
+    --family-soft: var(--aeterni-color-danger-soft);
+}
+
+.showcase-colors__card[data-family="info"] {
+    --family-solid: var(--aeterni-color-info-default);
+    --family-ink: var(--aeterni-color-info-text);
+    --family-soft: var(--aeterni-color-info-soft);
+}
+
+.showcase-colors__card[data-family="neutral"] {
+    --family-solid: var(--aeterni-color-neutral-default);
+    --family-ink: var(--aeterni-color-neutral-text);
+    --family-soft: var(--aeterni-color-neutral-soft);
+}
+
+.showcase-colors__card-head {
+    display: grid;
+    gap: 2px;
+}
+
+.showcase-colors__card-name {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.showcase-colors__card-use {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-colors__swatches {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+    padding-top: var(--aeterni-spacing-3);
+    border-top: 1px solid var(--aeterni-separator);
+}
+
+.showcase-colors__swatch {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    min-width: 0;
+}
+
+.showcase-colors__swatch-fill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    border: 1px solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+}
+
+.showcase-colors__swatch-fill--solid {
+    background: var(--family-solid);
+    color: var(--family-solid-ink);
+}
+
+.showcase-colors__swatch-fill--text {
+    border-color: currentColor;
+    color: var(--family-ink);
+}
+
+.showcase-colors__swatch-fill--soft {
+    background: var(--family-soft);
+    color: var(--family-ink);
+}
+
+.showcase-colors__swatch-meta {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.showcase-colors__swatch-variant {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* --- 文字墨阶 ------------------------------------------------------------ */
+.showcase-colors__types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__type {
+    gap: var(--aeterni-spacing-2);
+}
+
+.showcase-colors__type-sample {
+    font-size: var(--aeterni-font-size-xl);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.showcase-colors__type-use {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__ink--primary {
+    color: var(--aeterni-text-primary);
+}
+
+.showcase-colors__ink--secondary {
+    color: var(--aeterni-text-secondary);
+}
+
+.showcase-colors__ink--placeholder {
+    color: var(--aeterni-text-placeholder);
+}
+
+.showcase-colors__ink--tertiary {
+    color: var(--aeterni-text-tertiary);
+}
+
+.showcase-colors__ink--disabled {
+    color: var(--aeterni-text-disabled);
+}
+
+/* --- 字体与字号 ---------------------------------------------------------- */
+.showcase-colors__typography {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__display,
+.showcase-colors__scale {
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__display {
+    display: grid;
+    align-content: end;
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__display-eyebrow {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+.showcase-colors__display-sample {
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(64px, 10vw, 148px);
+    font-weight: var(--aeterni-font-weight-bold);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+}
+
+.showcase-colors__scale {
+    display: grid;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-4);
+}
+
+.showcase-colors__scale-row {
+    display: grid;
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-1) 0;
+}
+
+.showcase-colors__scale-row + .showcase-colors__scale-row {
+    border-top: 1px solid var(--aeterni-separator);
+}
+
+.showcase-colors__scale-row span {
+    color: var(--aeterni-text-primary);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.showcase-colors__size--6xl { font-size: var(--aeterni-font-size-6xl); }
+.showcase-colors__size--5xl { font-size: var(--aeterni-font-size-5xl); }
+.showcase-colors__size--4xl { font-size: var(--aeterni-font-size-4xl); }
+.showcase-colors__size--3xl { font-size: var(--aeterni-font-size-3xl); }
+.showcase-colors__size--2xl { font-size: var(--aeterni-font-size-2xl); }
+.showcase-colors__size--xl { font-size: var(--aeterni-font-size-xl); }
+.showcase-colors__size--lg { font-size: var(--aeterni-font-size-lg); }
+.showcase-colors__size--md { font-size: var(--aeterni-font-size-md); }
+.showcase-colors__size--sm { font-size: var(--aeterni-font-size-sm); }
+.showcase-colors__size--xs { font-size: var(--aeterni-font-size-xs); }
+
+.showcase-colors__font-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__meta {
+    gap: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__meta-title {
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wider);
+    text-transform: uppercase;
+}
+
+.showcase-colors__weight--regular { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-regular); }
+.showcase-colors__weight--medium { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-medium); }
+.showcase-colors__weight--semibold { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-semibold); }
+.showcase-colors__weight--bold { color: var(--aeterni-text-primary); font-weight: var(--aeterni-font-weight-bold); }
+
+.showcase-colors__family--base { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-base); }
+.showcase-colors__family--mono { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-mono); }
+.showcase-colors__family--display { color: var(--aeterni-text-primary); font-family: var(--aeterni-font-family-display); }
+
+.showcase-colors__leading--tight { line-height: var(--aeterni-line-height-tight); }
+.showcase-colors__leading--normal { line-height: var(--aeterni-line-height-normal); }
+.showcase-colors__leading--relaxed { line-height: var(--aeterni-line-height-relaxed); }
+
+/* --- 中性容器表面 -------------------------------------------------------- */
+.showcase-colors__surfaces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__surface {
+    gap: var(--aeterni-spacing-2);
+}
+
+/* 色块用「二级底打底 + 一层渐变当上层」画出来：不透明档看不到打底，两档半透明
+   （磨砂、叠色）则能看出它们叠在下方表面上之后的结果。 */
+.showcase-colors__surface-chip {
+    display: block;
+    height: 64px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background-color: var(--aeterni-bg-tertiary);
+    background-image: linear-gradient(var(--surface-layer), var(--surface-layer));
+}
+
+.showcase-colors__surface-chip--page { --surface-layer: var(--aeterni-bg-primary); }
+.showcase-colors__surface-chip--secondary { --surface-layer: var(--aeterni-bg-secondary); }
+.showcase-colors__surface-chip--tertiary { --surface-layer: var(--aeterni-bg-tertiary); }
+.showcase-colors__surface-chip--elevated { --surface-layer: var(--aeterni-bg-elevated); }
+.showcase-colors__surface-chip--soft { --surface-layer: var(--aeterni-surface-soft); }
+.showcase-colors__surface-chip--hover { --surface-layer: var(--aeterni-state-background-hover); }
+
+.showcase-colors__surface-name {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* --- 圆角阶梯 ------------------------------------------------------------ */
+.showcase-colors__radius {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.showcase-colors__radius-item {
+    gap: var(--aeterni-spacing-2);
+}
+
+.showcase-colors__radius-name,
+.showcase-colors__shadow-name {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.showcase-colors__radius-shape {
+    display: block;
+    height: 68px;
+    border: 1px solid var(--aeterni-border-strong);
+    background: var(--aeterni-bg-tertiary);
+}
+
+.showcase-colors__radius-shape--xs { border-radius: var(--aeterni-radius-xs); }
+.showcase-colors__radius-shape--sm { border-radius: var(--aeterni-radius-sm); }
+.showcase-colors__radius-shape--md { border-radius: var(--aeterni-radius-md); }
+.showcase-colors__radius-shape--lg { border-radius: var(--aeterni-radius-lg); }
+.showcase-colors__radius-shape--xl { border-radius: var(--aeterni-radius-xl); }
+.showcase-colors__radius-shape--2xl { border-radius: var(--aeterni-radius-2xl); }
+.showcase-colors__radius-shape--3xl { border-radius: var(--aeterni-radius-3xl); }
+.showcase-colors__radius-shape--full { border-radius: var(--aeterni-radius-full); }
+
+/* --- 阴影层级 ------------------------------------------------------------ */
+.showcase-colors__shadows {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--aeterni-spacing-5);
+    margin-top: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-5);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-secondary);
+}
+
+.showcase-colors__shadow-item {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+}
+
+.showcase-colors__shadow-tile {
+    display: block;
+    height: 72px;
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__shadow-tile--xs { box-shadow: var(--aeterni-shadow-xs); }
+.showcase-colors__shadow-tile--sm { box-shadow: var(--aeterni-shadow-sm); }
+.showcase-colors__shadow-tile--md { box-shadow: var(--aeterni-shadow-md); }
+.showcase-colors__shadow-tile--lg { box-shadow: var(--aeterni-shadow-lg); }
+.showcase-colors__shadow-tile--xl { box-shadow: var(--aeterni-shadow-xl); }
+
+/* --- 间距节奏 ------------------------------------------------------------ */
+.showcase-colors__spacing {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+    margin-top: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-5);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+}
+
+.showcase-colors__spacing-row {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-colors__spacing-bar {
+    display: block;
+    width: var(--spacing-width);
+    max-width: 100%;
+    height: 12px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-default);
+}
+
+.showcase-colors__spacing-bar--1 { --spacing-width: var(--aeterni-spacing-1); }
+.showcase-colors__spacing-bar--2 { --spacing-width: var(--aeterni-spacing-2); }
+.showcase-colors__spacing-bar--3 { --spacing-width: var(--aeterni-spacing-3); }
+.showcase-colors__spacing-bar--4 { --spacing-width: var(--aeterni-spacing-4); }
+.showcase-colors__spacing-bar--6 { --spacing-width: var(--aeterni-spacing-6); }
+.showcase-colors__spacing-bar--8 { --spacing-width: var(--aeterni-spacing-8); }
+.showcase-colors__spacing-bar--12 { --spacing-width: var(--aeterni-spacing-12); }
+
+/* --- 对比度验收组合 ------------------------------------------------------ */
+.showcase-colors__table {
+    margin-top: var(--aeterni-spacing-4);
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+}
+
+.showcase-colors__table-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 0.7fr);
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-colors__table-row + .showcase-colors__table-row {
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.showcase-colors__table-row--head {
+    background: var(--aeterni-surface-soft);
+    color: var(--aeterni-text-muted);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+    .showcase-colors__table-row {
+        font-size: var(--aeterni-font-size-xs);
+    }
+}
+
+@media (max-width: 1000px) {
+    .showcase-colors__typography {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .showcase-colors__swatch {
+        grid-template-columns: 88px minmax(0, 1fr);
+    }
+
+    .showcase-colors__scale-row,
+    .showcase-colors__spacing-row {
+        grid-template-columns: 1fr;
+        gap: var(--aeterni-spacing-1);
+    }
+}
+
+/* Tab preview: the strip should span the preview width so the horizontal scroll
+   behaviour is visible, which the centred default stack does not do. */
+.preview-stack--fill {
+    align-items: stretch;
+    width: 100%;
+    text-align: start;
+}
+
+.preview-tab-text {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+/*
+   Divider preview: the labelled and vertical forms need a column with real gaps
+   and a row that stretches, because a vertical separator takes its length from
+   the flex box around it.
+*/
+.preview-divider-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    width: min(100%, 460px);
+    text-align: start;
+}
+
+.preview-divider-demo p {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.preview-divider-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--aeterni-spacing-4);
+    min-height: 56px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-divider-row span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Empty preview: the placeholder is transparent by design, so the demo shows it
+   inside the container that owns the surface. */
+.preview-empty-host {
+    display: block;
+    width: min(100%, 520px);
+}
+
+.preview-empty-illustration {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-soft);
+    font-size: 28px;
+}
+
+/* Spinner preview: one row for sizes, one for colours, one host box that shows
+   the indicator in context. */
+.preview-spinner-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-5);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-spinner-cell,
+.preview-badge-cell {
+    display: grid;
+    justify-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-spinner-host {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    width: min(100%, 320px);
+    padding: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* Skeleton preview: the blocks stack so the line/gap rhythm is visible. */
+.preview-skeleton-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-5);
+    width: min(100%, 460px);
+    text-align: start;
+}
+
+.preview-skeleton-block {
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+}
+
+.preview-skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-skeleton-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Badge preview: the indicator overflows its anchor, so cells need room around
+   the corner it sits on. */
+.preview-badge-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-6);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-badge-demo .preview-state-row {
+    gap: var(--aeterni-spacing-6);
+}
+
+.preview-badge-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--aeterni-radius-full);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+/* Segmented preview: the control is inline, so the demo stacks several of them and
+   keeps every row centred. */
+.preview-segmented-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    justify-items: center;
+    width: min(100%, 520px);
+}
+
+.preview-segmented-option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+}
+
+/* Drawer preview: the trigger row plus the state readout; the panel itself is
+   rendered outside the preview card (a fixed panel inside the blurred card would be
+   positioned against the card). */
+.preview-drawer-demo {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    justify-items: center;
+    width: min(100%, 560px);
+}
+
+.preview-drawer-status {
+    display: grid;
+    gap: var(--aeterni-spacing-1);
+}
+
+.preview-drawer-content {
+    display: grid;
+    gap: var(--aeterni-spacing-3);
+}
+
+.preview-drawer-content p {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}

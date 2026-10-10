@@ -1,0 +1,11 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @foreach (var item in Items)
+    {
+        <button @key="item.Id" type="button" class="@ItemClass(item)"
+                disabled="@(Disabled || item.Disabled)"
+                aria-pressed="@(IsSelected(item.Id) ? "true" : "false")"
+                @onclick="() => ToggleAsync(item.Id)">@item.Text</button>
+    }
+</div>

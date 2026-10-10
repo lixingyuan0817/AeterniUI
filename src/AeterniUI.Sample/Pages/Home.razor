@@ -1,0 +1,63 @@
+@page "/"
+<PageTitle>Aeterni UI · Blazor 组件库</PageTitle>
+
+<main class="doc-home">
+    <div class="doc-home__grid">
+        <section class="doc-history" aria-labelledby="doc-history-title">
+            <header class="doc-history__header">
+                <p class="doc-history__eyebrow">Aeterni UI · 开发记录</p>
+                <h1 id="doc-history-title" tabindex="-1">提交时间线</h1>
+            </header>
+
+            <div class="doc-history__timeline">
+                <Timeline Items="@CommitTimeline" AriaLabel="项目提交记录">
+                    <ItemTemplate Context="item">
+                        @{ var commit = FindCommit(item); }
+                        <article class="doc-commit">
+                            <code class="doc-commit__hash">@commit.Hash</code>
+                            <p class="doc-commit__subject">@commit.Subject</p>
+                            <a class="doc-commit__link"
+                               href="@($"https://github.com/lixingyuan0817/AeterniUI/commit/{commit.Hash}")"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                查看提交
+                                <span aria-hidden="true">↗</span>
+                            </a>
+                        </article>
+                    </ItemTemplate>
+                </Timeline>
+            </div>
+        </section>
+
+        <section class="doc-code" aria-labelledby="doc-code-title">
+            <h2 id="doc-code-title" class="doc-code__kicker">基础使用</h2>
+            <div class="doc-code__window">
+                <div class="doc-code__bar">
+                    <span class="doc-code__dot" aria-hidden="true"></span>
+                    <span class="doc-code__dot" aria-hidden="true"></span>
+                    <span class="doc-code__dot" aria-hidden="true"></span>
+                    <span class="doc-code__file">Program.cs · 布局 · 使用示例</span>
+                </div>
+                <pre class="doc-code__body"><code><span class="tok-c">// 1. 注册服务（Program.cs）</span>
+builder.Services.<span class="tok-fn">AddAeterniUI</span>();
+
+<span class="tok-c">// 2. 引入样式（wwwroot/index.html）</span>
+&lt;link rel=<span class="tok-str">"stylesheet"</span>
+      href=<span class="tok-str">"_content/AeterniUI/css/aeterni_ui.css"</span> /&gt;
+
+<span class="tok-c">// 3. 根布局放置 Provider（MainLayout.razor）</span>
+&lt;<span class="tok-tag">ThemeProvider</span> /&gt;
+&lt;<span class="tok-tag">DialogProvider</span> /&gt;
+
+<span class="tok-c">// 4. 使用组件</span>
+&lt;<span class="tok-tag">Button</span> Intent=<span class="tok-str">"ButtonIntent.Default"</span>
+        OnClick=<span class="tok-str">"SaveChanges"</span>&gt;保存更改&lt;/<span class="tok-tag">Button</span>&gt;
+
+&lt;<span class="tok-tag">Input</span> @@bind-Value=<span class="tok-str">"name"</span>
+       Placeholder=<span class="tok-str">"请输入姓名"</span> /&gt;
+
+&lt;<span class="tok-tag">ThemeSwitch</span> AriaLabel=<span class="tok-str">"主题模式"</span> /&gt;</code></pre>
+            </div>
+        </section>
+    </div>
+</main>

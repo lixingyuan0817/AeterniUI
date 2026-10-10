@@ -1,0 +1,18 @@
+.aeterni-split-button {
+    display: inline-flex;
+    align-items: start;
+    min-width: 0;
+}
+
+.aeterni-split-button__primary {
+    min-width: 0;
+}
+
+.aeterni-split-button.is-full-width {
+    display: flex;
+    width: 100%;
+}
+
+.aeterni-split-button.is-full-width > .aeterni-split-button__primary {
+    flex: 1 1 0;
+}

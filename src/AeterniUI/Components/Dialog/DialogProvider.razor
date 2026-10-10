@@ -1,0 +1,141 @@
+@inherits AeterniComponent
+@using AeterniUI.Components.Dialog.Notice
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onkeydown="HandleKeyDownAsync">
+    @foreach (var position in NoticePositions)
+    {
+        var alerts = DialogService.GetAlerts(position);
+        var toasts = DialogService.GetToasts(position);
+        if (alerts.Count == 0 && toasts.Count == 0)
+        {
+            continue;
+        }
+
+        <div class="aeterni-dialog-provider__notice-region aeterni-dialog-provider__notice-region--@PositionClass(position)"
+             data-position="@PositionClass(position)">
+            @foreach (var alert in alerts)
+            {
+                <NoticeCard IsAlert="true"
+                            Severity="@alert.Options.Severity"
+                            Icon="@alert.Options.Icon"
+                            Title="@alert.Options.Title"
+                            Message="@alert.Message"
+                            ShowCloseButton="@alert.Options.ShowCloseButton"
+                            NoBlur="@(alert.Options is AlertOptions { Blur: false })"
+                            IsClosing="@alert.IsClosing"
+                            Duration="@alert.Duration"
+                            CloseLabel="@UiText.AlertCloseLabel"
+                            CloseRequested="@(() => CloseDialogAsync(alert, DialogResult.Dismiss()))" />
+            }
+
+            @foreach (var toast in toasts)
+            {
+                <NoticeCard IsAlert="false"
+                            Severity="@toast.Options.Severity"
+                            Icon="@toast.Options.Icon"
+                            Title="@toast.Options.Title"
+                            Message="@toast.Message"
+                            Content="@toast.Content"
+                            ShowCloseButton="@toast.Options.ShowCloseButton"
+                            NoBlur="@(!toast.Options.Blur)"
+                            IsClosing="@toast.IsClosing"
+                            Duration="@toast.Duration"
+                            CloseLabel="@UiText.ToastCloseLabel"
+                            CloseRequested="@(() => toast.Reference.CloseAsync())" />
+            }
+        </div>
+    }
+
+    @if (DialogService.Dialogs.Count > 0)
+    {
+        <div class="aeterni-dialog-provider__modal-layer">
+            @foreach (var dialog in DialogService.Dialogs)
+            {
+                var titleId = $"{dialog.Id}-title";
+                <div class="aeterni-dialog-provider__backdrop"
+                     @onclick="() => HandleOverlayClickAsync(dialog)">
+                    <section class="@BuildDialogClass(dialog)"
+                             data-aeterni-dialog-id="@dialog.Id"
+                             role="dialog"
+                             aria-modal="true"
+                             tabindex="-1"
+                             aria-label="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? UiText.DialogLabel : null)"
+                             aria-labelledby="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? null : titleId)"
+                             @onclick:stopPropagation="true">
+                        @if (dialog.Options.Icon is not null || !string.IsNullOrWhiteSpace(dialog.Options.Title) || dialog.Options.ShowCloseButton)
+                        {
+                            <header class="aeterni-dialog-provider__header">
+                                <div class="aeterni-dialog-provider__heading">
+                                    @if (dialog.Options.Icon is not null)
+                                    {
+                                        <span class="aeterni-dialog-provider__icon" aria-hidden="true">
+                                            @dialog.Options.Icon
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(dialog.Options.Title))
+                                    {
+                                        <h2 id="@titleId">@dialog.Options.Title</h2>
+                                    }
+                                </div>
+
+                                @if (dialog.Options.ShowCloseButton)
+                                {
+                                    <Button Variant="ButtonVariant.Ghost"
+                                            Intent="ButtonIntent.Neutral"
+                                            Size="Size.Small"
+                                            AriaLabel="@UiText.DialogCloseLabel"
+                                            OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
+                                        <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
+                                    </Button>
+                                }
+                            </header>
+                        }
+
+                        <div class="aeterni-dialog-provider__body">
+                            @if (dialog.Message is not null)
+                            {
+                                <p>@dialog.Message</p>
+                            }
+                            else
+                            {
+                                @dialog.Content
+                            }
+                        </div>
+
+                        @if (dialog.Kind == DialogContentKind.Alert && dialog.Options is AlertOptions alertOptions)
+                        {
+                            <footer class="aeterni-dialog-provider__footer">
+                                <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
+                                        OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
+                                    @alertOptions.CloseText
+                                </Button>
+                            </footer>
+                        }
+                        else if (dialog.Kind == DialogContentKind.Confirm && dialog.Options is ConfirmOptions confirmOptions)
+                        {
+                            <footer class="aeterni-dialog-provider__footer">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Intent="ButtonIntent.Neutral"
+                                        OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Cancel()))">
+                                    @confirmOptions.CancelText
+                                </Button>
+                                <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
+                                        OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Confirm()))">
+                                    @confirmOptions.ConfirmText
+                                </Button>
+                            </footer>
+                        }
+                        else if (dialog.Options.Footer is not null)
+                        {
+                            <footer class="aeterni-dialog-provider__footer">
+                                @dialog.Options.Footer
+                            </footer>
+                        }
+                    </section>
+                </div>
+            }
+        </div>
+    }
+</div>

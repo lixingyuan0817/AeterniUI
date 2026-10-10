@@ -1,0 +1,102 @@
+/* Two accent roles, like the notification cards: --aeterni-badge-fill is the
+   indicator surface and --aeterni-badge-ink its label. Fills decide the ink by
+   brightness: the brand fill takes the inverse ink, the bright semantic and
+   neutral fills take the on-semantic ink. */
+.aeterni-badge {
+    --aeterni-badge-fill: var(--aeterni-color-brand-default);
+    --aeterni-badge-ink: var(--aeterni-text-inverse);
+    /* The indicator is at least a medium icon box tall so a single digit still
+       reads as a pill; the width cap fits "99+" without stretching into a bar. */
+    --aeterni-badge-min-size: var(--aeterni-icon-size-md);
+    --aeterni-badge-max-width: calc(var(--aeterni-icon-size-md) + var(--aeterni-spacing-6));
+    --aeterni-badge-dot-size: var(--aeterni-spacing-3);
+
+    position: relative;
+    display: inline-flex;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.aeterni-badge__anchor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.aeterni-badge__indicator {
+    /* Logical insets: in RTL the indicator mirrors to the other corner. */
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--aeterni-badge-min-size);
+    max-width: var(--aeterni-badge-max-width);
+    height: var(--aeterni-badge-min-size);
+    padding: 0 var(--aeterni-spacing-1);
+    /* Percentage transforms resolve against the indicator's own box, which is what
+       centres it exactly on the anchor corner for any count width. */
+    transform: translate(50%, -50%);
+    overflow: hidden;
+    border-radius: var(--aeterni-radius-badge);
+    background: var(--aeterni-badge-fill);
+    color: var(--aeterni-badge-ink);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* A dot carries no number, so it collapses to a circle of its own size. */
+.aeterni-badge.is-dot .aeterni-badge__indicator {
+    width: var(--aeterni-badge-dot-size);
+    min-width: 0;
+    height: var(--aeterni-badge-dot-size);
+    padding: 0;
+}
+
+/* Visually hidden label of the dot: the standard 1px + clip mechanism, not a
+   design size. */
+.aeterni-badge__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Color.Default is the brand fill, so the base rule above already covers it. */
+.aeterni-badge--neutral {
+    --aeterni-badge-fill: var(--aeterni-color-neutral-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
+}
+
+.aeterni-badge--success {
+    --aeterni-badge-fill: var(--aeterni-color-success-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
+}
+
+.aeterni-badge--warning {
+    --aeterni-badge-fill: var(--aeterni-color-warning-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
+}
+
+.aeterni-badge--danger {
+    --aeterni-badge-fill: var(--aeterni-color-danger-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
+}
+
+.aeterni-badge--info {
+    --aeterni-badge-fill: var(--aeterni-color-info-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
+}

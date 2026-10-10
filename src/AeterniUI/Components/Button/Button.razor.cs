@@ -1,0 +1,164 @@
+using AeterniUI.Enums;
+using AeterniUI.Components.ButtonGroup;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+
+namespace AeterniUI.Components.Button;
+
+public partial class Button : AeterniComponent
+{
+    [CascadingParameter]
+    private ButtonGroupContext? ButtonGroupContext { get; set; }
+
+    [CascadingParameter]
+    private AeterniUI.Components.SplitButton.SplitButtonContext? SplitContext { get; set; }
+
+    [Parameter]
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Solid;
+
+    [Parameter]
+    public ButtonIntent Intent { get; set; } = ButtonIntent.Default;
+
+    [Parameter]
+    public Size Size { get; set; } = Size.Default;
+
+    [Parameter]
+    public ButtonType Type { get; set; } = ButtonType.Button;
+
+    /// <summary>
+    /// Legacy shorthand for <see cref="StartIcon"/>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? StartIcon { get; set; }
+
+    [Parameter]
+    public RenderFragment? EndIcon { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    [Parameter]
+    public bool Loading { get; set; }
+
+    [Parameter]
+    public bool FullWidth { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    protected override bool SupportsDisabled => true;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Variant))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown button variant.");
+        }
+
+        if (!Enum.IsDefined(Intent))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Intent), Intent, "Unknown button intent.");
+        }
+
+        if (!Enum.IsDefined(Size))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown button size.");
+        }
+
+        // An undefined value would otherwise be rendered verbatim as `type="99"`,
+        // and HTML resolves an invalid type to `submit` — the button would then
+        // submit its surrounding form. Fail loudly instead.
+        if (!Enum.IsDefined(Type))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Type), Type, "Unknown button type.");
+        }
+    }
+
+    protected override ClassBuilder BuildClass()
+    {
+        return base.BuildClass()
+            .Add("aeterni-button")
+            .Add("aeterni-button--split-primary", SplitContext?.PrimaryId == ElementId)
+            .Add("aeterni-button--split-menu", SplitContext?.MenuTriggerId == ElementId)
+            .Add(SizeClass)
+            .Add($"aeterni-button--{VariantClass}")
+            .Add(IntentClass)
+            .Add("is-icon-only", IsIconOnly)
+            .Add("is-loading", Loading)
+            .Add("is-disabled", IsEffectivelyDisabled)
+            .Add("is-full-width", FullWidth);
+    }
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase);
+
+        attributes["type"] = ComponentClass.ForButtonType(Type);
+
+        if (!string.IsNullOrWhiteSpace(AriaLabel))
+        {
+            attributes["aria-label"] = AriaLabel;
+        }
+
+        if (IsEffectivelyDisabled || Loading)
+        {
+            attributes["disabled"] = true;
+            attributes["aria-disabled"] = "true";
+        }
+
+        if (Loading)
+        {
+            attributes["aria-busy"] = "true";
+        }
+
+        return attributes;
+    }
+
+    private async Task HandleClickAsync(MouseEventArgs args)
+    {
+        if (IsEffectivelyDisabled || Loading)
+        {
+            return;
+        }
+
+        await OnClick.InvokeAsync(args);
+    }
+
+    private bool HasTextContent => ChildContent is not null;
+
+    private bool IsEffectivelyDisabled => Disabled || ButtonGroupContext?.Disabled == true;
+
+    private RenderFragment? EffectiveStartIcon => StartIcon ?? Icon;
+
+    private bool IsIconOnly =>
+        EffectiveStartIcon is not null && EndIcon is null && !HasTextContent;
+
+    private string? SizeClass => ComponentClass.ForSize("aeterni-button", Size);
+
+    private string VariantClass => Variant switch
+    {
+        ButtonVariant.Outline => "outline",
+        ButtonVariant.Soft => "soft",
+        ButtonVariant.Ghost => "ghost",
+        ButtonVariant.Link => "link",
+        _ => "solid"
+    };
+
+    private string IntentClass => Intent switch
+    {
+        ButtonIntent.Neutral => "aeterni-button--neutral",
+        ButtonIntent.Warning => "aeterni-button--warning",
+        ButtonIntent.Danger => "aeterni-button--danger",
+        _ => "aeterni-button--default"
+    };
+}

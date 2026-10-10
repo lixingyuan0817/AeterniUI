@@ -1,0 +1,95 @@
+@page "/components/timeline"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · Timeline</PageTitle>
+
+<ComponentPreview AnchorId="timeline"
+                  Category="基础组件"
+                  Title="Timeline"
+                  ComponentName="Timeline"
+                  Description="以原生有序列表展示宿主提供的时间事件，支持时间戳、语义色、图标与正文模板。"
+                  Parameters="@Parameters">
+    <Preview>
+        <div class="preview-stack preview-stack--fill">
+            <Timeline Items="@Items"
+                      ItemTemplate="@EventTemplate"
+                      Orientation="@TimelineOrientation"
+                      AriaLabel="版本发布记录" />
+        </div>
+    </Preview>
+    <Controls>
+        <Checkbox @bind-Value="_showReview">显示审核事件</Checkbox>
+        <Checkbox @bind-Value="_useTemplate">自定义事件正文</Checkbox>
+        <Checkbox @bind-Value="_horizontal">横向布局</Checkbox>
+    </Controls>
+    <Notes>
+        <span>组件按 <code>Items</code> 的既有顺序渲染，不排序、不推断状态；动态筛选或重新排序由宿主完成。</span>
+        <span><code>Timestamp</code> 输出机器可读的 <code>datetime</code>；<code>TimeText</code> 可覆盖其可见文案。</span>
+        <span><code>ItemTemplate</code> 只接管标题与描述区域，标记和时间仍由 Timeline 统一维护。</span>
+        <span>横向布局为每项保留可读宽度，空间不足时只在组件内部横向滚动。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private bool _showReview = true;
+    private bool _useTemplate;
+    private bool _horizontal;
+
+    private Orientation TimelineOrientation => _horizontal ? Orientation.Horizontal : Orientation.Vertical;
+
+    private IReadOnlyList<TimelineItem> Items =>
+    [
+        new(
+            "开始构建",
+            "CI 已创建发布任务并恢复依赖。",
+            new DateTimeOffset(2026, 10, 8, 9, 0, 0, TimeSpan.FromHours(8)),
+            "09:00",
+            AeterniIcons.Clock,
+            Color.Info),
+        new(
+            "完成自动检查",
+            "构建、契约与文档门禁全部通过。",
+            new DateTimeOffset(2026, 10, 8, 9, 8, 0, TimeSpan.FromHours(8)),
+            "09:08",
+            AeterniIcons.Check,
+            Color.Success),
+        new(
+            "等待人工审核",
+            "审核发布说明与公共 API 变更。",
+            new DateTimeOffset(2026, 10, 8, 9, 12, 0, TimeSpan.FromHours(8)),
+            "09:12",
+            AeterniIcons.Star,
+            Color.Warning,
+            Visible: _showReview),
+        new(
+            "发布组件包",
+            "完成后由宿主更新发布状态。",
+            new DateTimeOffset(2026, 10, 8, 9, 20, 0, TimeSpan.FromHours(8)),
+            "预计 09:20",
+            AeterniIcons.Calendar,
+            Color.Neutral)
+    ];
+
+    private RenderFragment<TimelineItem>? EventTemplate => !_useTemplate
+        ? null
+        : item => @<div class="timeline-template">
+            <strong>@item.Title</strong>
+            <span>@item.Description</span>
+        </div>;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Items", "IReadOnlyList<TimelineItem>", "按展示顺序提供事件。", "必填"),
+        new("TimelineItem.Title / Description", "string / string?", "默认事件标题与可选说明。"),
+        new("TimelineItem.Timestamp", "DateTimeOffset?", "机器可读的事件时间；未提供 TimeText 时也生成可见文案。", "null"),
+        new("TimelineItem.TimeText", "string?", "覆盖 Timestamp 的可见时间文案。", "null"),
+        new("TimelineItem.Icon", "IconDefinition?", "标记图标；未提供时显示圆点。", "null"),
+        new("TimelineItem.Color", "Color", "标记的品牌色或语义色。", "Default"),
+        new("TimelineItem.Visible", "bool", "是否渲染当前事件。", "true"),
+        new("ItemTemplate", "RenderFragment<TimelineItem>?", "替换每项默认的标题与描述内容。", "null"),
+        new("Orientation", "Orientation", "纵向或横向事件轴。", "Vertical"),
+        new("AriaLabel", "string?", "有序列表的可访问名称。", "null")
+    ];
+}

@@ -1,0 +1,111 @@
+using AeterniUI.Components.FormField;
+using AeterniUI.Enums;
+using Microsoft.AspNetCore.Components;
+
+namespace AeterniUI.Components.Radio;
+
+public partial class RadioGroup<TValue> : AeterniComponent
+{
+    [CascadingParameter]
+    private FormFieldContext? FormField { get; set; }
+
+    [Parameter]
+    public TValue? Value { get; set; }
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// Size cascaded to the contained <see cref="Radio{TValue}"/> items.
+    /// A Radio can still override it with its own <c>Size</c> parameter.
+    /// </summary>
+    [Parameter]
+    public Size? Size { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
+    [Parameter]
+    public bool Invalid { get; set; }
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    /// <summary>
+    /// Layout direction of the options. <see cref="Orientation.Vertical" />
+    /// renders a single column and is mirrored by <c>aria-orientation</c>.
+    /// </summary>
+    [Parameter]
+    public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    // The fieldset adopts the FormField input id, so the field label's `for`
+    // resolves to an existing element; the accessible name is attached with
+    // aria-labelledby because a fieldset has no implicit label association.
+    // ElementId carries this value, so both the rendered id and every reference
+    // built from it stay in agreement.
+    protected override string ComputeElementId() => Id ?? FormField?.InputId ?? InstanceId;
+    private string EffectiveName => Name ?? ElementId;
+    private bool EffectiveDisabled => Disabled || (FormField?.Disabled ?? false);
+    private bool EffectiveRequired => Required || (FormField?.Required ?? false);
+    private bool EffectiveInvalid => Invalid || (FormField?.Invalid ?? false);
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-radio-group")
+        .Add($"aeterni-radio-group--{OrientationClass}");
+
+    private string OrientationClass => Orientation == Orientation.Vertical ? "vertical" : "horizontal";
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!Enum.IsDefined(Orientation))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Orientation), Orientation, "Unknown radio group orientation.");
+        }
+    
+        if (Size is { } sizeValue && !Enum.IsDefined(sizeValue))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown radio group size.");
+        }
+    }
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase);
+
+        attributes["aria-orientation"] = OrientationClass;
+
+        if (FormField?.LabelId is { } labelId)
+        {
+            attributes["aria-labelledby"] = labelId;
+        }
+
+        if (FormField?.DescribedBy is { } describedBy)
+        {
+            attributes["aria-describedby"] = describedBy;
+        }
+
+        if (EffectiveDisabled) attributes["aria-disabled"] = "true";
+
+        return attributes;
+    }
+
+    private RadioGroupContext Context => new(
+        value => EqualityComparer<TValue?>.Default.Equals(Value, (TValue?)value),
+        SelectAsync,
+        EffectiveDisabled,
+        EffectiveRequired,
+        EffectiveInvalid,
+        EffectiveName,
+        Size);
+
+    private async Task SelectAsync(object? value)
+    {
+        if (!EffectiveDisabled && ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync((TValue?)value);
+    }
+}

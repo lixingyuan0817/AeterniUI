@@ -1,0 +1,8 @@
+.aeterni-menu-button {
+    display: inline-block;
+    min-width: 0;
+}
+
+.aeterni-menu-button.is-full-width {
+    width: 100%;
+}

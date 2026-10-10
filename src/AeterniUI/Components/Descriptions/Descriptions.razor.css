@@ -1,0 +1,77 @@
+.aeterni-descriptions {
+    --aeterni-descriptions-columns: 3;
+
+    display: grid;
+    grid-template-columns: repeat(var(--aeterni-descriptions-columns), minmax(0, 1fr));
+    gap: var(--aeterni-spacing-4);
+    min-width: 0;
+    margin: 0;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-descriptions__item {
+    display: grid;
+    grid-template-columns: minmax(7rem, .7fr) minmax(0, 1.3fr);
+    column-gap: var(--aeterni-spacing-3);
+    align-items: start;
+    min-width: 0;
+    padding-block: var(--aeterni-spacing-3);
+    border-block-end: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+.aeterni-descriptions__label,
+.aeterni-descriptions__value {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.aeterni-descriptions__label {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-descriptions__value {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-descriptions__empty {
+    color: var(--aeterni-text-muted);
+}
+
+.aeterni-descriptions--vertical .aeterni-descriptions__item {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--aeterni-spacing-1);
+}
+
+.aeterni-descriptions--bordered {
+    gap: 0;
+    border-block-start: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-inline-start: var(--aeterni-border-width) solid var(--aeterni-border-default);
+}
+
+.aeterni-descriptions--bordered .aeterni-descriptions__item {
+    padding: var(--aeterni-spacing-3);
+    border-block-end: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-inline-end: var(--aeterni-border-width) solid var(--aeterni-border-default);
+}
+
+@media (max-width: 720px) {
+    .aeterni-descriptions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .aeterni-descriptions__item {
+        grid-column: span 1 !important;
+    }
+
+    .aeterni-descriptions:not(.aeterni-descriptions--vertical) .aeterni-descriptions__item {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--aeterni-spacing-1);
+    }
+}

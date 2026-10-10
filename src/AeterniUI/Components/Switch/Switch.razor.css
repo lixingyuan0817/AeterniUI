@@ -1,0 +1,160 @@
+.aeterni-switch {
+    /* Switch geometry is intrinsic to the control: the knob size is the tier and
+       the track is derived from it, so the knob travel below is always exactly one
+       knob width and can never desync from a tier change. The default tier is
+       byte-identical to the previous hard-coded 38x22 track. */
+    --aeterni-switch-knob-size: var(--aeterni-control-size-sm);
+    --aeterni-switch-inset: calc(var(--aeterni-spacing-1) / 2);
+    --aeterni-switch-track-width: calc(var(--aeterni-switch-knob-size) * 2 + var(--aeterni-switch-inset) * 2 + var(--aeterni-border-width) * 2);
+    --aeterni-switch-track-height: calc(var(--aeterni-switch-knob-size) + var(--aeterni-switch-inset) * 2 + var(--aeterni-border-width) * 2);
+
+    display: inline-flex;
+    min-height: var(--aeterni-touch-target-min);
+    min-width: var(--aeterni-touch-target-min);
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Visually hide the native checkbox while keeping it focusable. The switch
+   track is a styled mirror of the native checked state, so keyboard toggling
+   (Space) and assistive technology keep working without extra JS. */
+.aeterni-switch__input {
+    /* Visually hidden with the shared clip pattern: the 1px box plus the 50%
+       clip is the standard clip mechanism, not a design size. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.aeterni-switch__track {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    width: var(--aeterni-switch-track-width);
+    height: var(--aeterni-switch-track-height);
+    padding: var(--aeterni-switch-inset);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-tertiary);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border);
+}
+
+.aeterni-switch__knob {
+    width: var(--aeterni-switch-knob-size);
+    height: var(--aeterni-switch-knob-size);
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-state-background-thumb);
+    box-shadow: var(--aeterni-shadow-sm);
+    transition: var(--aeterni-transition-transform), var(--aeterni-transition-background);
+}
+
+.aeterni-switch__input:checked + .aeterni-switch__track {
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-checked);
+}
+
+/* Travel = track width minus the knob and the inset/border on both sides. */
+.aeterni-switch__input:checked + .aeterni-switch__track .aeterni-switch__knob {
+    transform: translateX(calc(var(--aeterni-switch-track-width) - var(--aeterni-switch-knob-size) - var(--aeterni-switch-inset) * 2 - var(--aeterni-border-width) * 2));
+}
+
+/* Hover and press walk the brand ramp: an off track answers with its border
+   alone, while an on track is a filled pill whose whole surface steps one
+   shade. Invalid controls are scoped out so a pointer never repaints the danger
+   colour the error state is communicating (see Checkbox for the rationale). */
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:hover:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:active:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-active);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:hover:not(:disabled):checked + .aeterni-switch__track {
+    border-color: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-switch:not(.is-invalid) .aeterni-switch__input:active:not(:disabled):checked + .aeterni-switch__track {
+    border-color: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-switch__input:focus-visible + .aeterni-switch__track {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-switch.is-invalid .aeterni-switch__track {
+    border-color: var(--aeterni-color-danger-default);
+}
+
+/* A checked error switch fills with the danger colour too; a danger ring around
+   a brand pill split the state in two. Disabled still wins so an inactive
+   control keeps the neutral disabled paint. */
+.aeterni-switch.is-invalid .aeterni-switch__input:checked:not(:disabled) + .aeterni-switch__track {
+    border-color: var(--aeterni-color-danger-default);
+    background: var(--aeterni-color-danger-default);
+}
+
+.aeterni-switch__input:disabled + .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    cursor: not-allowed;
+}
+
+.aeterni-switch__input:disabled:checked + .aeterni-switch__track,
+.aeterni-switch.is-disabled.is-checked .aeterni-switch__track {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-switch.is-disabled.is-checked .aeterni-switch__knob {
+    background: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-switch.is-disabled {
+    cursor: not-allowed;
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-switch__label {
+    min-width: 0;
+}
+
+/* One half-step below the default: the control ladder jumps 16 -> 20 px, and a
+   14px knob is what keeps the small switch in proportion with the 16px Checkbox
+   box on the same row. */
+.aeterni-switch--sm {
+    --aeterni-switch-knob-size: calc(var(--aeterni-control-size-sm) - var(--aeterni-spacing-1) / 2);
+
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-switch--lg {
+    --aeterni-switch-knob-size: var(--aeterni-control-size-md);
+
+    font-size: var(--aeterni-font-size-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-switch__track,
+    .aeterni-switch__knob {
+        transition: none;
+    }
+}

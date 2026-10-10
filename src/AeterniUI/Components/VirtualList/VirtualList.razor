@@ -1,0 +1,42 @@
+@typeparam TItem
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@inherits AeterniComponent
+
+<div @ref="RootElement"
+     @attributes="BuildAttributes()">
+    @if (_rows.Count == 0)
+    {
+        @EmptyContent
+    }
+    else
+    {
+        <div class="aeterni-virtual-list__viewport">
+            <Virtualize Items="@_rows"
+                        ItemSize="@_itemSizePixels"
+                        OverscanCount="@OverscanCount"
+                        Context="row">
+                <ItemContent>
+                    <div @key="row.Key"
+                         class="@RowClass(row)"
+                         id="@OptionId(row)"
+                         role="@ItemRole"
+                         aria-selected="@SelectedAttribute(row)"
+                         aria-disabled="@DisabledAttribute(row)"
+                         aria-posinset="@(row.Index + 1)"
+                         aria-setsize="@_rows.Count"
+                         @onclick="ClickHandler(row)">
+                        @if (ItemTemplate is not null)
+                        {
+                            @ItemTemplate(row.Value)
+                        }
+                        else
+                        {
+                            @row.Value?.ToString()
+                        }
+                    </div>
+                </ItemContent>
+            </Virtualize>
+        </div>
+    }
+</div>

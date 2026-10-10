@@ -1,0 +1,17 @@
+.preview-flash-card-group-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    width: 100%;
+}
+
+.preview-flash-card-group-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 380px;
+    padding: var(--aeterni-spacing-5) var(--aeterni-spacing-4);
+    overflow: visible;
+}

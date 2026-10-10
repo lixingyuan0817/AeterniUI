@@ -1,0 +1,88 @@
+.aeterni-rating {
+    /* Tier tokens live on the root so both the hit box and the glyph inherit them;
+       the glyph size travels through --aeterni-icon-render-size below. */
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-lg);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-2);
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-rating--sm {
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-md);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-1);
+}
+
+.aeterni-rating--lg {
+    --aeterni-rating-icon-size: var(--aeterni-icon-size-xl);
+    --aeterni-rating-item-gap: var(--aeterni-spacing-3);
+}
+
+.aeterni-rating__item {
+    /* Both star states are filled glyphs, so each one has to clear 3:1 against the
+       surface on its own: the empty star uses tertiary ink and the filled star the
+       warning family's text stop (the fill stop only reaches 2.2:1 in light). */
+    --aeterni-rating-star: var(--aeterni-text-tertiary);
+    /* One icon size covers both the built-in star and an Icon passed through
+       the Icon parameter, so custom glyphs match the default. */
+    --aeterni-icon-render-size: var(--aeterni-rating-icon-size);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* Square hit box around the glyph: the icon tier plus one spacing step. */
+    width: max(var(--aeterni-touch-target-min), calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap)));
+    height: max(var(--aeterni-touch-target-min), calc(var(--aeterni-rating-icon-size) + var(--aeterni-rating-item-gap)));
+    padding: 0;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-rating-star);
+    cursor: pointer;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-background), var(--aeterni-transition-transform);
+}
+
+.aeterni-rating__item.is-filled {
+    --aeterni-rating-star: var(--aeterni-color-warning-text);
+}
+
+.aeterni-rating__item:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    transform: translateY(-1px);
+}
+
+.aeterni-rating__item:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-rating__glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.aeterni-rating.is-readonly .aeterni-rating__item,
+.aeterni-rating.is-disabled .aeterni-rating__item {
+    cursor: default;
+}
+
+.aeterni-rating.is-readonly .aeterni-rating__item:hover,
+.aeterni-rating.is-disabled .aeterni-rating__item:hover {
+    background: transparent;
+    transform: none;
+}
+
+.aeterni-rating.is-disabled {
+    color: var(--aeterni-state-color-disabled);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-rating__item {
+        transition: none;
+    }
+}

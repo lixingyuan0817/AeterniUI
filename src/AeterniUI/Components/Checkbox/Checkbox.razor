@@ -1,0 +1,20 @@
+@inherits AeterniComponent
+
+<label @ref="RootElement" @attributes="BuildAttributes()">
+    <input @ref="_inputElement"
+           @attributes="BuildInputAttributes()"
+           id="@_effectiveId"
+           type="checkbox"
+           class="aeterni-checkbox__input"
+           checked="@_currentValue"
+           @onchange="HandleChangeAsync" />
+
+    <span class="aeterni-checkbox__control" aria-hidden="true">
+        <Icon Definition="@AeterniIcons.Check" Class="aeterni-checkbox__check" />
+    </span>
+
+    @if (ChildContent is not null)
+    {
+        <span class="aeterni-checkbox__label">@ChildContent</span>
+    }
+</label>

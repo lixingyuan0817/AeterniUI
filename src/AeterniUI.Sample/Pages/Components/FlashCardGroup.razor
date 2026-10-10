@@ -1,0 +1,111 @@
+@page "/components/flash-card-group"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · FlashCardGroup</PageTitle>
+
+<ComponentPreview AnchorId="flash-card-group"
+                  Category="基础组件"
+                  Title="FlashCardGroup"
+                  ComponentName="FlashCardGroup"
+                  Description="把多张闪卡收拢成牌堆，悬浮或键盘聚焦时展开成扇形，适合抽卡式展示。"
+                  Parameters="@Parameters">
+    <Preview>
+        <div class="preview-flash-card-group-demo">
+            <div class="preview-flash-card-group-stage">
+                <FlashCardGroup AriaLabel="魔法卡牌堆"
+                                Expanded="@_expanded"
+                                HoverExpand="@_hoverExpand"
+                                Disabled="@_disabled"
+                                CardWidth="@_cardWidth"
+                                ExpandedSpacing="@_expandedSpacing">
+                    @foreach (var card in Cards)
+                    {
+                        <FlashCard @key="card.Id"
+                                   ImageSrc="@CoverImage"
+                                   ImageAlt="@card.Alt"
+                                   Title="@card.Title"
+                                   Description="@card.Description"
+                                   Sheen="@card.Sheen"
+                                   AriaLabel="@card.Title" />
+                    }
+                </FlashCardGroup>
+            </div>
+            <span class="preview-feedback" role="status">@_status</span>
+        </div>
+    </Preview>
+    <Controls>
+        <Button Variant="ButtonVariant.Outline" OnClick="DrawRandomCard">抽一张卡</Button>
+        <Checkbox Size="Size.Small" @bind-Value="_hoverExpand">悬浮/聚焦展开</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_expanded">保持展开</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">禁用牌堆</Checkbox>
+        <div class="control-field">
+            <span>CardWidth</span>
+            <ShowcaseSelect TValue="double" Id="flash-card-group-width" AriaLabel="CardWidth" Options="@Widths" TextSelector="@(value => $"{value}px")" @bind-Value="_cardWidth" />
+        </div>
+        <div class="control-field">
+            <span>ExpandedSpacing</span>
+            <ShowcaseSelect TValue="double" Id="flash-card-group-spacing" AriaLabel="ExpandedSpacing" Options="@Spacings" TextSelector="@(value => $"{value}px")" @bind-Value="_expandedSpacing" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>示例初始保持收拢，鼠标移到任意卡片时展开扇形；展开后，当前悬浮卡片会继续从扇形中抽出，方便观察完整卡面。</span>
+        <span>勾选“保持展开”可以固定扇形状态；关闭 <code>HoverExpand</code> 后只由 <code>Expanded</code> 控制整体展开状态。</span>
+        <span>“抽一张卡”只是示例宿主重新排列牌堆内容，<code>FlashCardGroup</code> 负责叠放与扇形展开，卡片翻面和业务抽取状态仍由宿主管理。</span>
+        <span>键盘用户可以通过组内 FlashCard 的 Tab 停留点触发展开；<code>reduced-motion</code> 会保留牌堆布局并取消展开过渡。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private const string CoverImage = "images/flash-card/magician.jpg";
+    private bool _hoverExpand = true;
+    private bool _expanded;
+    private bool _disabled;
+    private double _cardWidth = 220;
+    private double _expandedSpacing = 72;
+    private string _status = "牌堆已收拢，悬浮任意卡片抽出查看";
+    private int _drawOffset;
+
+    private static readonly double[] Widths = [180, 220, 260];
+    private static readonly double[] Spacings = [48, 72, 96];
+
+    private IReadOnlyList<DeckCard> Cards
+    {
+        get
+        {
+            var cards = AllCards;
+            return Enumerable.Range(0, cards.Count)
+                .Select(index => cards[(index + _drawOffset) % cards.Count])
+                .ToArray();
+        }
+    }
+
+    private static readonly IReadOnlyList<DeckCard> AllCards =
+    [
+        new("fire", "火焰法阵", "稀有 · 火焰", "火焰法阵卡面", FlashCardSheen.Holo),
+        new("moon", "月影咒语", "史诗 · 月影", "月影咒语卡面", FlashCardSheen.Shine),
+        new("storm", "风暴召唤", "传说 · 风暴", "风暴召唤卡面", FlashCardSheen.Holo),
+        new("star", "星尘秘术", "稀有 · 星尘", "星尘秘术卡面", FlashCardSheen.Shine),
+        new("unknown", "未知奖励", "普通 · 未鉴定", "未知奖励卡面", FlashCardSheen.Holo)
+    ];
+
+    private void DrawRandomCard()
+    {
+        _drawOffset = (_drawOffset + 1) % AllCards.Count;
+        _status = $"抽到：{Cards[0].Title} · 当前牌堆共 {Cards.Count} 张";
+        _expanded = true;
+    }
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("ChildContent", "RenderFragment", "组合多张 FlashCard；子卡片保留自身翻面、光泽与键盘语义。"),
+        new("AriaLabel", "string", "牌堆的可访问名称。", "Flash cards"),
+        new("Expanded", "bool", "是否保持扇形展开。", "false"),
+        new("HoverExpand", "bool", "悬浮或 focus-within 时是否展开。", "true"),
+        new("CardWidth", "double", "每张卡片宽度，单位像素。", "220"),
+        new("ExpandedSpacing", "double", "展开时的水平间距，单位像素。", "72"),
+        new("CollapsedOffset", "double", "折叠时卡片的垂直错位，单位像素。", "5")
+    ];
+
+    private sealed record DeckCard(string Id, string Title, string Description, string Alt, FlashCardSheen Sheen);
+}

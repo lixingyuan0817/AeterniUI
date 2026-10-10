@@ -1,0 +1,81 @@
+@page "/components/checkbox"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Checkbox</PageTitle>
+
+<ComponentPreview AnchorId="checkbox"
+                  Category="表单组件"
+                  Title="Checkbox"
+                  ComponentName="Checkbox"
+                  Description="保留原生复选框语义，支持稳定布尔绑定、三态初始显示和 EditContext 校验。"
+                  Parameters="@CheckboxParameters"
+                  Events="@CheckboxEvents">
+    <Preview>
+        <div class="preview-stack">
+            <Checkbox @bind-Value="_checkboxValue"
+                      Indeterminate="@_checkboxIndeterminate"
+                      Size="@_checkboxSize"
+                      Required="@_checkboxRequired"
+                      Invalid="@_checkboxInvalid"
+                      Disabled="@_checkboxDisabled"
+                      OnChange="HandleCheckboxChange">
+                同意服务条款
+            </Checkbox>
+            <span class="preview-feedback" role="status">Value: @_checkboxValue · @_checkboxNote</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="checkbox-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_checkboxSize" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_checkboxIndeterminate">Indeterminate</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_checkboxRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_checkboxInvalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_checkboxDisabled">Disabled</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private bool _checkboxValue;
+
+    private bool _checkboxIndeterminate = true;
+
+    private Size _checkboxSize = Size.Medium;
+
+    private bool _checkboxRequired;
+
+    private bool _checkboxInvalid;
+
+    private bool _checkboxDisabled;
+
+    private string _checkboxNote = "等待交互。";
+
+    private static readonly ShowcaseParameter[] CheckboxParameters =
+    [
+        new("Value", "bool", "当前选中值。"),
+        new("ValueChanged", "EventCallback<bool>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<bool>>?", "EditContext 字段表达式。"),
+        new("Indeterminate", "bool", "仅显示三态提示，交互后落定为 true/false。", "false"),
+        new("ChildContent", "RenderFragment?", "标签内容。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("Size", "Size", "复选框尺寸。", "Default"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] CheckboxEvents =
+    [new("OnChange", "EventCallback<ChangeEventArgs>", "原生复选框发生变化时触发。")];
+
+    private void HandleCheckboxChange(ChangeEventArgs _)
+    {
+        _checkboxNote = $"OnChange 已触发，当前值为 {_checkboxValue}。";
+    }
+}

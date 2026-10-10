@@ -1,0 +1,68 @@
+@page "/components/menu-button"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · MenuButton</PageTitle>
+
+<ComponentPreview AnchorId="menu-button"
+                  Category="基础组件"
+                  Title="MenuButton"
+                  ComponentName="MenuButton"
+                  Description="将 Button、Popover 与 Menu 组合为一个带锚定下拉菜单的操作入口。"
+                  Parameters="@Parameters"
+                  Events="@Events">
+    <Preview>
+        <div class="preview-action-row">
+            <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="占满容器" FullWidth Class="preview-menu-button-contract" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+        </div>
+        <span class="preview-feedback" role="status">@_interactionNote</span>
+    </Preview>
+    <Notes>
+        <span>菜单不是 List：PopupHost 仅定位，参照 List 保留 4px 外围与 8px 行内横向留白，子项保留 Menu 的 8px 缩进表达层级，折叠或空组不留尾部间距；保留 32px 菜单行高。普通内容 Popover 与独立 Menu 不受影响。</span>
+        <span>MenuButton 的菜单由现有 <code>Popover</code> 和 <code>Menu</code> 承载，支持 Escape、外部点击、键盘导航和视口翻转。</span>
+        <span>触发按钮和菜单都放在同一个 <code>PopupHost</code> 内，避免点击触发器时被误判为外部点击。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly IReadOnlyList<MenuGroup> MenuItems =
+    [
+        new MenuGroup("actions", "操作", [
+            new MenuItem("edit", "编辑", "修改当前内容", Icon: null),
+            new MenuItem("duplicate", "复制", "创建一个副本"),
+            new MenuItem("delete", "删除", "移除当前内容")
+        ]),
+        new MenuGroup("export", "导出", [new MenuItem("export-copy", "导出副本")], InitiallyOpen: false)
+    ];
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Label", "string", "触发按钮文本。"),
+        new("Items", "IReadOnlyList<MenuGroup>", "下拉菜单分组和菜单项。"),
+        new("Variant", "ButtonVariant", "触发按钮视觉变体。", "Outline"),
+        new("Intent", "ButtonIntent", "触发按钮语义类型。", "Neutral"),
+        new("Size", "Size", "触发按钮尺寸。", "Default"),
+        new("Placement", "PopupPlacement", "菜单弹出方向。", "BottomStart"),
+        new("Open", "bool", "受控打开状态。", "false"),
+        new("OpenChanged", "EventCallback<bool>", "受控打开状态变化回调。"),
+        new("AriaLabel", "string?", "触发按钮无障碍名称；缺省由 Label 命名。"),
+        new("Loading", "bool", "加载状态并阻止打开。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false")
+    ];
+
+    private static readonly ShowcaseEvent[] Events =
+    [
+        new("OpenChanged", "EventCallback<bool>", "受控打开状态变化时触发。"),
+        new("OnItemSelected", "EventCallback<MenuItem>", "菜单项被选择时触发。")
+    ];
+
+    private Task HandleSelectedAsync(MenuItem item)
+    {
+        MarkInteraction(new MouseEventArgs());
+        return Task.CompletedTask;
+    }
+}

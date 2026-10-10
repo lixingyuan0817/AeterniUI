@@ -1,0 +1,99 @@
+@typeparam TItem
+@inherits AeterniComponent
+
+<PopupHost Class="aeterni-autocomplete__host">
+    <ChildContent>
+        <div @ref="RootElement" @attributes="BuildAttributes()">
+            <div class="aeterni-autocomplete__field">
+                <div class="aeterni-autocomplete__input-wrap">
+                    <Input Value="@_currentValue"
+                           ValueChanged="@HandleValueChangedAsync"
+                           Type="@InputType.Text"
+                           Size="@Size"
+                           Placeholder="@Placeholder"
+                           Name="@Name"
+                           AutoComplete="@AutoComplete"
+                           ReadOnly="@ReadOnly"
+                           Required="@IsRequired"
+                           Invalid="@IsInvalid"
+                           Disabled="@IsEffectivelyDisabled"
+                           FullWidth="true"
+                           AriaLabel="@InputAriaLabel"
+                           AriaDescribedBy="@AriaDescribedBy"
+                           AdditionalAttributes="@InputAttributes"
+                           ElementChanged="HandleInputElementChanged"
+                           OnFocus="@HandleFocusAsync"
+                           OnKeyDown="@HandleKeyDownAsync" />
+                    @if (Clearable && HasValue)
+                    {
+                        <div class="aeterni-autocomplete__actions">
+                            <ButtonGroup Connected="true"
+                                         Disabled="@IsEffectivelyDisabled"
+                                         AriaLabel="@EffectiveAriaLabel">
+                                <IconButton Class="aeterni-autocomplete__clear"
+                                            Size="@Size"
+                                            Variant="@ButtonVariant.Ghost"
+                                            Intent="@ButtonIntent.Neutral"
+                                            AriaLabel="@EffectiveClearLabel"
+                                            Disabled="@(IsEffectivelyDisabled || ReadOnly)"
+                                            Icon="@ClearIcon"
+                                            OnClick="@ClearAsync" />
+                            </ButtonGroup>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <Popover Open="@_open"
+                     OpenChanged="@HandlePopoverOpenChangedAsync"
+                     Placement="@PopupPlacement.BottomStart"
+                     CloseOnScroll="true"
+                     Class="aeterni-autocomplete__popover"
+                     AriaLabel="@EffectiveListLabel">
+                <div id="@ListboxId"
+                     class="aeterni-autocomplete__options"
+                     role="listbox"
+                     aria-label="@EffectiveListLabel">
+                    @if (Loading)
+                    {
+                        <div class="aeterni-autocomplete__status" role="status" aria-live="polite">@UiText.AutocompleteLoadingText</div>
+                    }
+                    else if (_visibleItems.Count == 0)
+                    {
+                        <div class="aeterni-autocomplete__empty">
+                            @if (EmptyContent is not null)
+                            {
+                                @EmptyContent
+                            }
+                            else
+                            {
+                                @EmptyText
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        @for (var index = 0; index < _visibleItems.Count; index++)
+                        {
+                            var item = _visibleItems[index];
+                            <div id="@($"{ListboxId}-option-{index}")"
+                                 role="option"
+                                 aria-selected="false"
+                                 class="aeterni-autocomplete__option @(index == _activeIndex ? "is-active" : string.Empty)"
+                                 @onclick="@(_ => SelectAsync(item))">
+                                @if (ItemTemplate is not null)
+                                {
+                                    @ItemTemplate(item)
+                                }
+                                else
+                                {
+                                    <span class="aeterni-autocomplete__option-text">@DisplayText(item)</span>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </Popover>
+        </div>
+    </ChildContent>
+</PopupHost>

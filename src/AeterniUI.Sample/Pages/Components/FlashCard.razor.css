@@ -1,0 +1,25 @@
+/* Sample page layout only. The grid lives on the page because the component
+   itself has no width opinion: a flash card fills whatever box it is placed in. */
+.preview-flash-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 240px));
+    gap: var(--aeterni-spacing-5);
+    align-items: start;
+    justify-content: center;
+    width: 100%;
+}
+
+.preview-flash-card-back {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.preview-flash-card-back__label {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-semibold);
+}

@@ -1,0 +1,36 @@
+.aeterni-list {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    gap: var(--aeterni-spacing-1);
+    padding: var(--aeterni-padding-xs);
+    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-list:not(.aeterni-list--scrollable) {
+    min-height: min-content;
+}
+
+/* A bounded list is its own scroll viewport. Keeping the mode opt-in preserves
+   the intrinsic height of short lists while making the scroll boundary explicit
+   for larger data sets. */
+.aeterni-list--scrollable {
+    max-height: var(--aeterni-list-max-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+    scrollbar-gutter: stable;
+}
+
+.aeterni-list--select:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-list[hidden] {
+    display: none;
+}

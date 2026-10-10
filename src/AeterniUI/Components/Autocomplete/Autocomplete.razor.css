@@ -1,0 +1,184 @@
+.aeterni-autocomplete {
+    --aeterni-autocomplete-group-radius: var(--aeterni-radius-input);
+
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-width-input-md));
+    max-width: 100%;
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-autocomplete.is-full-width {
+    width: 100%;
+}
+
+.aeterni-autocomplete__field {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: var(--aeterni-spacing-1);
+}
+
+.aeterni-autocomplete__input-wrap {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-autocomplete-group-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-autocomplete__input-wrap:focus-within {
+    border-color: var(--aeterni-control-border-focus);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-autocomplete__actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.aeterni-autocomplete__actions ::deep .aeterni-button-group {
+    gap: 0;
+    border: 0;
+}
+
+.aeterni-autocomplete__input-wrap ::deep .aeterni-input {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.aeterni-autocomplete__input-wrap ::deep .aeterni-input:focus-visible,
+.aeterni-autocomplete__actions ::deep .aeterni-icon-button:focus-visible {
+    outline: none;
+}
+
+.aeterni-autocomplete__input-wrap ::deep .aeterni-input.is-full-width {
+    width: auto;
+}
+
+.aeterni-autocomplete__actions ::deep .aeterni-icon-button {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.aeterni-autocomplete__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button,
+.aeterni-autocomplete__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:first-child,
+.aeterni-autocomplete__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:last-child {
+    border-radius: 0;
+}
+
+.aeterni-autocomplete__actions ::deep .aeterni-icon-button:hover:not(:disabled),
+.aeterni-autocomplete__actions ::deep .aeterni-icon-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: none;
+}
+
+.aeterni-autocomplete.is-invalid .aeterni-autocomplete__input-wrap {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-autocomplete.is-invalid .aeterni-autocomplete__input-wrap:focus-within {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-autocomplete.is-disabled .aeterni-autocomplete__input-wrap {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-autocomplete.is-readonly .aeterni-autocomplete__input-wrap {
+    background: var(--aeterni-control-background-readonly);
+}
+
+::deep .aeterni-autocomplete__popover {
+    width: 100%;
+    min-width: 100%;
+    max-width: none;
+}
+
+::deep .aeterni-autocomplete__popover .aeterni-popover__surface {
+    min-width: 0;
+    max-width: none;
+    padding: var(--aeterni-spacing-2);
+    border-radius: var(--aeterni-radius-lg);
+}
+
+.aeterni-autocomplete__options {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+    max-height: min(var(--aeterni-overlay-max-height), 45vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-autocomplete__option {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--aeterni-touch-target-min);
+    padding: var(--aeterni-spacing-1) var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-background);
+}
+
+.aeterni-autocomplete__option:hover,
+.aeterni-autocomplete__option.is-active {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-autocomplete__option-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-autocomplete__empty,
+.aeterni-autocomplete__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--aeterni-control-height-md);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-control-foreground-placeholder);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.aeterni-autocomplete__status {
+    color: var(--aeterni-text-secondary);
+}
+
+.aeterni-autocomplete--sm {
+    --aeterni-autocomplete-group-radius: var(--aeterni-radius-input-sm);
+}
+
+.aeterni-autocomplete--lg {
+    --aeterni-autocomplete-group-radius: var(--aeterni-radius-input-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-autocomplete__option {
+        transition: none;
+    }
+}

@@ -1,0 +1,33 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <Button Id="@($"{ElementId}-trigger")" Variant="@Variant"
+                Intent="@Intent"
+                Size="@Size"
+                Loading="@Loading"
+                Disabled="@Disabled"
+                FullWidth="@FullWidth"
+                AriaLabel="@AriaLabel"
+                AdditionalAttributes="@TriggerAttributes"
+                OnClick="ToggleAsync"
+                EndIcon="@ChevronIcon">
+            @Label
+        </Button>
+
+        <Popover Style="--aeterni-popover-content-padding: var(--aeterni-spacing-1); --aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm);"
+                 Open="@EffectiveOpen"
+                 OpenChanged="@HandleOpenChangedAsync"
+                 Placement="@Placement"
+                 RestoreFocusOnClose="true"
+                 AriaLabel="@(AriaLabel ?? Label)">
+            <Menu Id="@MenuId" Items="@Items"
+                  AriaLabel="@(AriaLabel ?? Label)"
+                  OnItemSelected="@HandleItemSelectedAsync" />
+        </Popover>
+    </PopupHost>
+</div>
+
+@code {
+    private RenderFragment ChevronIcon => @<Icon Definition="@AeterniIcons.ChevronDown" />;
+}

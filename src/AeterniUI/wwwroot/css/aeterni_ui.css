@@ -1,0 +1,980 @@
+/* ==========================================================================
+   Aeterni UI · Primitive design tokens
+   All non-theme primitives are maintained in one readable root scope.
+   ========================================================================== */
+:root {
+    /* AeterniUI ships no webfonts: Inter and JetBrains Mono are optional host
+       dependencies. When the host does not load them, the stacks resolve to the
+       platform UI font (or Consolas/Courier New for the mono stack). */
+    --aeterni-font-family-base: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+    --aeterni-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace;
+    --aeterni-font-family-display: 'Inter', 'Segoe UI', sans-serif;
+    --aeterni-font-size-xs: 12px;
+    /* Text of compact surfaces (notification cards, dense chips) sits between
+       the xs and sm scale steps; it is exposed as a role token instead of a
+       scale step so the numbered scale stays a clean ladder. */
+    --aeterni-font-size-compact: 13px;
+    --aeterni-font-size-sm: 14px;
+    --aeterni-font-size-base: 16px;
+    --aeterni-font-size-md: 16px;
+    --aeterni-font-size-lg: 18px;
+    --aeterni-font-size-xl: 20px;
+    --aeterni-font-size-2xl: 24px;
+    --aeterni-font-size-3xl: 30px;
+    --aeterni-font-size-4xl: 36px;
+    --aeterni-font-size-5xl: 48px;
+    --aeterni-font-size-6xl: 60px;
+    --aeterni-font-weight-regular: 400;
+    --aeterni-font-weight-medium: 500;
+    --aeterni-font-weight-semibold: 600;
+    --aeterni-font-weight-bold: 700;
+    --aeterni-line-height-tight: 1.25;
+    --aeterni-line-height-normal: 1.5;
+    --aeterni-line-height-relaxed: 1.75;
+    --aeterni-letter-spacing-tight: -0.02em;
+    --aeterni-letter-spacing-normal: 0em;
+    --aeterni-letter-spacing-wide: 0.02em;
+    --aeterni-letter-spacing-wider: 0.05em;
+    --aeterni-spacing-1: 4px;
+    --aeterni-spacing-2: 8px;
+    --aeterni-spacing-3: 12px;
+    --aeterni-spacing-4: 16px;
+    --aeterni-spacing-5: 20px;
+    --aeterni-spacing-6: 24px;
+    --aeterni-spacing-8: 32px;
+    --aeterni-spacing-10: 40px;
+    --aeterni-spacing-12: 48px;
+    --aeterni-spacing-16: 64px;
+    --aeterni-padding-xs: var(--aeterni-spacing-1);
+    --aeterni-padding-sm: var(--aeterni-spacing-2);
+    --aeterni-padding-md: var(--aeterni-spacing-3);
+    --aeterni-padding-lg: var(--aeterni-spacing-3);
+    --aeterni-padding-xl: var(--aeterni-spacing-5);
+    --aeterni-padding-2xl: var(--aeterni-spacing-6);
+    --aeterni-gap-sm: var(--aeterni-spacing-2);
+    --aeterni-gap-md: var(--aeterni-spacing-3);
+    --aeterni-radius-none: 0px;
+    --aeterni-radius-xs: 2px;
+    --aeterni-radius-sm: 4px;
+    --aeterni-radius-md: 6px;
+    --aeterni-radius-lg: 8px;
+    --aeterni-radius-xl: 12px;
+    --aeterni-radius-2xl: 16px;
+    --aeterni-radius-3xl: 24px;
+    --aeterni-radius-full: 9999px;
+    --aeterni-radius-round: 50%;
+    /* Interactive controls resolve their radius through one size ladder, so a
+       Button and an Input of the same tier line up in a form row. */
+    --aeterni-radius-control-sm: var(--aeterni-radius-sm);
+    --aeterni-radius-control-md: var(--aeterni-radius-md);
+    --aeterni-radius-control-lg: var(--aeterni-radius-lg);
+    /* Button uses the shadcn-style medium rounding requested by the public API.
+       One token serves every size tier: the three tiers were previously declared
+       with the same value, which made the sm/lg names a ladder that did not
+       exist, and a host overriding it had to know to override three names. */
+    --aeterni-radius-button: 0.625rem;
+    --aeterni-radius-input: var(--aeterni-radius-control-md);
+    --aeterni-radius-input-sm: var(--aeterni-radius-control-sm);
+    --aeterni-radius-input-lg: var(--aeterni-radius-control-lg);
+    /* Container radii are intentionally one step apart: Card carries a header,
+       body and footer structure, so it reads as the larger container, while
+       Surface is a plain wrapper that follows the control geometry. */
+    --aeterni-radius-surface: var(--aeterni-radius-lg);
+    --aeterni-radius-card: var(--aeterni-radius-xl);
+    --aeterni-radius-modal: var(--aeterni-radius-2xl);
+    --aeterni-radius-badge: var(--aeterni-radius-full);
+    --aeterni-radius-tooltip: var(--aeterni-radius-sm);
+    --aeterni-radius-dropdown: var(--aeterni-radius-lg);
+
+    /* Decorative (non-semantic) colour -------------------------------------
+       For finishes that are decoration rather than meaning: the foil and
+       holographic layers of FlashCard. These are deliberately outside the
+       semantic palette and outside the contrast contract — no text or state is
+       ever conveyed over them, and a brand swap must not repaint a diffraction
+       grating, which is white light split by a surface rather than a brand
+       colour. Channels are space-separated so a use site writes
+       `rgb(var(--aeterni-decor-sheen) / 0.42)` and keeps its own intensity.
+       A host that wants a different finish retunes these tokens instead of
+       editing the component stylesheet. */
+    --aeterni-decor-sheen: 255 255 255;
+    --aeterni-decor-holo-1: 255 0 128;
+    --aeterni-decor-holo-2: 255 176 0;
+    --aeterni-decor-holo-3: 120 255 130;
+    --aeterni-decor-holo-4: 0 220 255;
+    --aeterni-decor-holo-5: 140 90 255;
+
+    /* Shared Button / IconButton intent roles. Components consume these aliases
+       so the button family cannot drift into separate colour systems. */
+    --aeterni-button-intent-default-color: var(--aeterni-color-brand-text);
+    --aeterni-button-intent-default-background: var(--aeterni-color-brand-default);
+    --aeterni-button-intent-default-background-hover: var(--aeterni-color-brand-hover);
+    --aeterni-button-intent-default-background-active: var(--aeterni-color-brand-active);
+    --aeterni-button-intent-default-foreground: var(--aeterni-text-inverse);
+    --aeterni-button-intent-default-soft: var(--aeterni-state-background-hover);
+    --aeterni-button-intent-default-soft-active: var(--aeterni-state-background-active);
+
+    --aeterni-button-intent-neutral-color: var(--aeterni-text-primary);
+    --aeterni-button-intent-neutral-background: var(--aeterni-bg-tertiary);
+    --aeterni-button-intent-neutral-background-hover: color-mix(in srgb, var(--aeterni-bg-tertiary) 86%, var(--aeterni-text-primary));
+    --aeterni-button-intent-neutral-background-active: color-mix(in srgb, var(--aeterni-bg-tertiary) 76%, var(--aeterni-text-primary));
+    --aeterni-button-intent-neutral-foreground: var(--aeterni-text-primary);
+    --aeterni-button-intent-neutral-soft: var(--aeterni-state-background-hover);
+    --aeterni-button-intent-neutral-soft-active: var(--aeterni-state-background-active);
+
+    --aeterni-button-intent-warning-color: var(--aeterni-color-warning-text);
+    --aeterni-button-intent-warning-background: var(--aeterni-color-warning-default);
+    --aeterni-button-intent-warning-background-hover: color-mix(in srgb, var(--aeterni-color-warning-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-intent-warning-background-active: var(--aeterni-color-warning-default);
+    --aeterni-button-intent-warning-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-intent-warning-soft: var(--aeterni-color-warning-soft);
+    --aeterni-button-intent-warning-soft-active: color-mix(in srgb, var(--aeterni-color-warning-default) 18%, transparent);
+
+    --aeterni-button-intent-danger-color: var(--aeterni-color-danger-text);
+    --aeterni-button-intent-danger-background: var(--aeterni-color-danger-default);
+    --aeterni-button-intent-danger-background-hover: color-mix(in srgb, var(--aeterni-color-danger-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-intent-danger-background-active: var(--aeterni-color-danger-default);
+    --aeterni-button-intent-danger-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-intent-danger-soft: var(--aeterni-color-danger-soft);
+    --aeterni-button-intent-danger-soft-active: color-mix(in srgb, var(--aeterni-color-danger-default) 18%, transparent);
+    --aeterni-duration-fast: 100ms;
+    --aeterni-duration-normal: 200ms;
+    --aeterni-duration-slow: 300ms;
+    --aeterni-duration-slower: 500ms;
+    --aeterni-ease-linear: cubic-bezier(0, 0, 1, 1);
+    --aeterni-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --aeterni-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --aeterni-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --aeterni-transition-color: color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-background: background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-border: border-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-opacity: opacity var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-transform: transform var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-shadow: box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    --aeterni-transition-button: background-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), border-color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), color var(--aeterni-duration-fast) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
+    /* Field-shaped controls (Input, Textarea, ComboBox trigger) share one
+       transition list instead of repeating four composites per component. */
+    --aeterni-transition-control: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-color), var(--aeterni-transition-shadow);
+    /* Role aliases for frosted content surfaces (the Card/Surface Glass variant,
+       Dialog, Drawer, Popover, Tooltip and the Alert/Toast cards). They exist so
+       the consumers share one knob instead of restating the recipe six times, and
+       so reduced transparency can degrade all of them from one place below.
+       --aeterni-bg-glass is declared per theme next to --aeterni-bg-elevated and
+       no longer aliases it. A raised surface and a frosted one answer to different
+       limits: the raised fill only has to sit on the page, while the frosted fill
+       is the transmission rate of a pane whose ink must stay readable over any
+       backdrop, because the pane can be dropped on a wallpaper or a photo. Sizing
+       it as the raised fill and keeping it there is what buried the blur: a
+       wallpaper behind an 82% pane is a 18% tint of itself.
+       68% light / 72% dark is the lowest fill that keeps the project's 1.1x
+       accounting margin on all three inks a pane carries (body 4.5:1, on-glass
+       secondary 4.5:1, on-glass tertiary 3:1 for icons), measured against a pure
+       black and a pure white backdrop. The two on-glass inks are what binds, and
+       they bind within a hundredth of each other (1.15x tertiary light, 1.14x
+       secondary dark), so spending more transmission buys nothing but an icon or
+       a caption under its floor. The fill is the pane's own colour at alpha, so it
+       also keeps R=G=B and the pane stays achromatic.
+       The inks are declared once here as fractions of the body ink, so both themes
+       keep the same margin and the fractions cannot drift per theme; frosted
+       surfaces opt in by re-pointing the role names at them. */
+    --aeterni-blur-glass: var(--aeterni-blur-md);
+    --aeterni-blur-scrim: var(--aeterni-blur-sm);
+    --aeterni-text-on-glass-secondary: color-mix(in srgb, var(--aeterni-text) 93%, transparent);
+    --aeterni-text-on-glass-tertiary: color-mix(in srgb, var(--aeterni-text) 67%, transparent);
+    --aeterni-glass-shadow: var(--aeterni-shadow-md);
+    /* Page-level stacking ladder, ordered bottom to top. Consumed rungs:
+       sticky (host chrome), modal-backdrop, modal, popover, tooltip, toast.
+       `base`, `raised` and `fixed` are reserved for host content and are not
+       reached from inside the library. There is deliberately no separate
+       dropdown rung: every dropdown in the library is an anchored overlay and
+       therefore rides `popover`, which sits above the modal tiers — a rung
+       below `modal-backdrop` would have trapped them behind a backdrop.
+       Component-local stacking (a card fanned over its neighbours, a selected
+       segment over its track) stays as local `z-index` inside that component's
+       own stacking context; it is not a page-level decision and must not be
+       expressed with these tokens. */
+    --aeterni-z-base: 0;
+    --aeterni-z-raised: 10;
+    --aeterni-z-sticky: 1020;
+    --aeterni-z-fixed: 1030;
+    --aeterni-z-modal-backdrop: 1040;
+    --aeterni-z-modal: 1050;
+    --aeterni-z-popover: 1060;
+    --aeterni-z-tooltip: 1070;
+    --aeterni-z-toast: 1080;
+    --aeterni-height-xs: 24px;
+    --aeterni-height-sm: 28px;
+    --aeterni-height-md: 36px;
+    --aeterni-height-lg: 44px;
+    /* Box size of inline controls (checkbox, radio) and their indicator boxes. */
+    --aeterni-control-size-sm: 16px;
+    --aeterni-control-size-md: 20px;
+    --aeterni-control-size-lg: 26px;
+    /* Dense row height used by menu and list style navigation rows. */
+    --aeterni-row-height-compact: 32px;
+    /* Badge/indicator disc that holds a medium icon plus its optical padding. */
+    --aeterni-badge-size-md: 30px;
+    /* Floating layer metrics: dialogs, dropdown option lists and popovers. */
+    --aeterni-overlay-width-sm: 420px;
+    --aeterni-overlay-width-md: 520px;
+    --aeterni-overlay-height-md: 720px;
+    --aeterni-overlay-max-height: 320px;
+    --aeterni-overlay-min-width-sm: 12rem;
+    --aeterni-overlay-max-width-sm: 32rem;
+    --aeterni-overlay-max-width-xs: 20rem;
+    --aeterni-width-input-xs: 160px;
+    --aeterni-width-input-sm: 200px;
+    --aeterni-width-input-md: 240px;
+    --aeterni-width-input-lg: 320px;
+    --aeterni-icon-size-xs: 12px;
+    --aeterni-icon-size-sm: 14px;
+    --aeterni-icon-size-md: 16px;
+    --aeterni-icon-size-lg: 20px;
+    --aeterni-icon-size-xl: 24px;
+    --aeterni-icon-size-2xl: 32px;
+    /* Cross-component icon sizing channel. `Icon` renders at this size, and a
+       container sets it locally to size the icons it owns without reaching into
+       Icon's own parameters — Button, Menu, Pagination, Rating and roughly twenty
+       others do exactly that. It is declared here, rather than only being set by
+       its consumers, so the contract is discoverable and a host can override it
+       once instead of chasing the components that establish it. The `1em`
+       fallback keeps an Icon that nothing has sized aligned with its own text. */
+    --aeterni-icon-render-size: 1em;
+    --aeterni-border-width-thin: 1px;
+    --aeterni-border-width-medium: 2px;
+    --aeterni-border-width-thick: 3px;
+    /* Committed colour-ramp stops. These sets are the library's public promise:
+       a host may theme against any of them, so adding or removing a stop is an
+       API change rather than cleanup. The five semantic families mirror the brand
+       ramp's ten stops; `gray` and `neutral` add `0` and `950` because the neutral
+       surfaces need both ends. `tests/AeterniUI.ContractChecks` asserts these sets
+       exactly, so a stop cannot appear or vanish without the check being updated. */
+    --aeterni-gray-0: #FFFFFF;
+    --aeterni-gray-50: #F9FAFB;
+    --aeterni-gray-100: #F3F4F6;
+    --aeterni-gray-200: #E5E7EB;
+    --aeterni-gray-300: #D1D5DB;
+    --aeterni-gray-400: #9CA3AF;
+    --aeterni-gray-500: #6B7280;
+    --aeterni-gray-600: #4B5563;
+    --aeterni-gray-700: #374151;
+    --aeterni-gray-800: #1F2937;
+    --aeterni-gray-900: #111827;
+    --aeterni-gray-950: #0B0F19;
+    --aeterni-success-50: #EBFDEE;
+    --aeterni-success-100: #CCF0D2;
+    --aeterni-success-200: #A8E6B4;
+    --aeterni-success-300: #84DD95;
+    --aeterni-success-400: #5ED277;
+    --aeterni-success-500: #34C759;
+    --aeterni-success-600: #29AB4A;
+    --aeterni-success-700: #218D3C;
+    --aeterni-success-800: #1C6F30;
+    --aeterni-success-900: #135322;
+    --aeterni-warning-50: #FFF5EC;
+    --aeterni-warning-100: #FFE1C6;
+    --aeterni-warning-200: #FFCFA1;
+    --aeterni-warning-300: #FFBC7C;
+    --aeterni-warning-400: #FFA953;
+    --aeterni-warning-500: #FF9500;
+    --aeterni-warning-600: #DA7E00;
+    --aeterni-warning-700: #B36700;
+    --aeterni-warning-800: #8D5002;
+    --aeterni-warning-900: #693A00;
+    --aeterni-danger-50: #FFF4F2;
+    --aeterni-danger-100: #FFD3CA;
+    --aeterni-danger-200: #FFB4A6;
+    --aeterni-danger-300: #FF9482;
+    --aeterni-danger-400: #FF6F5D;
+    --aeterni-danger-500: #FF3B30;
+    --aeterni-danger-600: #DE3228;
+    --aeterni-danger-700: #BA2B22;
+    --aeterni-danger-800: #95261E;
+    --aeterni-danger-900: #741E17;
+    --aeterni-info-50: #F3F7FF;
+    --aeterni-info-100: #C7DCFF;
+    --aeterni-info-200: #9FC4FF;
+    --aeterni-info-300: #77ACFF;
+    --aeterni-info-400: #4B94FF;
+    --aeterni-info-500: #007AFF;
+    --aeterni-info-600: #036BDF;
+    --aeterni-info-700: #095BBD;
+    --aeterni-info-800: #104C99;
+    --aeterni-info-900: #0F3C78;
+    --aeterni-neutral-0: #FFFFFF;
+    --aeterni-neutral-50: #F7F7F8;
+    --aeterni-neutral-100: #DEDEE0;
+    --aeterni-neutral-200: #C9C8CB;
+    --aeterni-neutral-300: #B4B4B8;
+    --aeterni-neutral-400: #A1A1A5;
+    --aeterni-neutral-500: #8E8E93;
+    --aeterni-neutral-600: #7B7B7F;
+    --aeterni-neutral-700: #67676B;
+    --aeterni-neutral-800: #535356;
+    --aeterni-neutral-900: #404042;
+    --aeterni-neutral-950: #2E2E30;
+}
+
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases
+   Keep the public foundation names stable while primitive names remain internal.
+   Component styles should use the documented aliases below; no component-specific
+   tokens are defined in this foundation stylesheet.
+   -------------------------------------------------------------------------- */
+:root {
+    --aeterni-font-mono: var(--aeterni-font-family-mono);
+    --aeterni-border-width: var(--aeterni-border-width-thin);
+    --aeterni-control-height-sm: var(--aeterni-height-sm);
+    --aeterni-control-height-md: var(--aeterni-height-md);
+    --aeterni-control-height-lg: var(--aeterni-height-lg);
+    --aeterni-control-padding-x-sm: var(--aeterni-spacing-2);
+    --aeterni-control-padding-x-md: var(--aeterni-spacing-3);
+    --aeterni-control-padding-x-lg: var(--aeterni-spacing-4);
+    --aeterni-avatar-size-sm: 32px;
+    --aeterni-avatar-size-md: 40px;
+    --aeterni-avatar-size-lg: 48px;
+    /* Minimum pointer target size from WCAG 2.5.8, used to grow hit areas of
+       small glyph buttons without changing their visual box. */
+    --aeterni-touch-target: var(--aeterni-height-lg);
+    --aeterni-touch-target-min: var(--aeterni-height-xs);
+    --aeterni-opacity-muted: .68;
+    --aeterni-focus-width: 3px;
+    --aeterni-focus-offset: 2px;
+    /* Fallback only: every theme block below re-declares this from the brand
+       scale, so the value stays hue-agnostic here as well. */
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    --aeterni-leading-none: 1;
+    /* Discoverable but quiet scrollbars for scrollable overlay content. */
+    --aeterni-scrollbar-size: 6px;
+    --aeterni-scrollbar-thumb: var(--aeterni-border-strong);
+    --aeterni-scrollbar-track: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Theme primitives and semantic foundation
+   Brand palettes are a hue layer that sits *below* light/dark; light and dark
+   themes use the same token order.
+   -------------------------------------------------------------------------- */
+
+/* 01. Brand palette — the hue layer, deliberately independent of color mode.
+   Only the 50..900 scale is declared here. Every semantic brand alias further
+   down derives from it, so repointing the scale re-tints fills, text, focus
+   rings and interaction states at once and no semantic alias has to change.
+
+   The attribute must sit on the same element as the theme attribute (`<html>`),
+   because each semantic alias resolves `var(--aeterni-brand-*)` on the element
+   that declares it: a palette set lower in the tree would never reach them.
+
+   `:root` carries the default palette, so hosts that never opt in keep purple;
+   naming `purple` explicitly is then an exact no-op alias that also documents
+   the attribute's valid values. A host adds its own palette by declaring a
+   `[data-aeterni-brand="…"]` block after this file, or by repointing
+   `--aeterni-brand-*` on `:root` for a single one-off brand.
+
+   The 500 stop carries the solid fill, so it is the palette's real contrast
+   budget: purple keeps 4.91:1 against the inverse text, a 1.09x margin over the
+   4.5:1 body-text floor. That is thin, and `scripts/check-contrast.mjs` refuses
+   any hue layer whose fill margin falls below 1.1x without naming the figure in
+   this comment — so tightening a palette has to be a stated decision here. */
+:root,
+[data-aeterni-brand="purple"] {
+    --aeterni-brand-50: #F5F4FF;
+    --aeterni-brand-100: #E8E6FF;
+    --aeterni-brand-200: #D4CFFF;
+    --aeterni-brand-300: #B7ADF7;
+    --aeterni-brand-400: #9985ED;
+    --aeterni-brand-500: #795AD9;
+    --aeterni-brand-600: #6646BB;
+    --aeterni-brand-700: #54399A;
+    --aeterni-brand-800: #432F7A;
+    --aeterni-brand-900: #34255E;
+}
+
+/* Green hue layer. Built with the purple recipe above (same relative dL steps
+   anchored at 500, same chroma profile shape peaking at 500, same sub-degree
+   light-end hue drift), but its 500 anchor is an external reference green
+   (#1F883D, L 0.552 / C 0.145) rather than purple's own L 0.565: chromatic green
+   gains luminance with chroma while violet loses it, so a green at purple's
+   lightness reaches only 4.3:1 against white when its chroma goes up.
+   The reference anchor is the tightest gate of the whole brand set at 4.52:1
+   against white — still over the 4.5:1 body-text requirement, but with almost
+   no headroom, so the 600/700 stops that carry light-mode `brand-text` and
+   `text-link` stay deliberately lower (6.17:1 / 8.09:1 on white). Re-anchoring
+   here is a deliberate brightness choice: the previous muted 500 (#2B7B33,
+   L 0.517) left a 1.17x margin, this one leaves 1.004x.
+   Peak chroma is 0.145, up from 0.132, and it stays clear of the semantic
+   `success` token (ΔE 18.5 in OKLab).
+   The dark stops gain the same brightness without spending the same headroom:
+   dark brand text/link sit on the 300/400 stops against the dark page, so the
+   tightest dark gate is 5.95:1 (margin 1.323) — looser than the previous muted
+   palette. The 4.52:1 light-mode fill is the only near-limit gate in the set. */
+[data-aeterni-brand="green"] {
+    --aeterni-brand-50: #ECF3ED;
+    --aeterni-brand-100: #DAEADB;
+    --aeterni-brand-200: #BCDBBF;
+    --aeterni-brand-300: #90C397;
+    --aeterni-brand-400: #5DA76A;
+    --aeterni-brand-500: #1F883D;
+    --aeterni-brand-600: #05712C;
+    --aeterni-brand-700: #045D23;
+    --aeterni-brand-800: #0B4A1E;
+    --aeterni-brand-900: #0B3817;
+}
+
+/* Orange hue layer, built with the same recipe a third time (relative dL steps
+   anchored at 500, the shared chroma profile peaking at 500, the same
+   sub-degree light-end hue drift). Its 500 anchor is a burnt orange (#C2410C,
+   L 0.553 / C 0.174) rather than a vivid one, and that is the whole point of the
+   layer: a bright orange is not usable as a solid brand fill under this family's
+   inverse-text model. #E8590C and #EA580C reach only 3.58:1 and 3.56:1 against
+   white, under the 4.5:1 body-text floor; making them legible would mean
+   switching the fill to the near-black `on-semantic` ink that `warning` uses,
+   which would give up the white label the other two brands share. At L 0.553 the
+   fill keeps 5.18:1 against the inverse text (margin 1.151) and the family stays
+   on one recipe, so the three palettes are interchangeable per stop.
+   The cost is proximity to the semantic `danger` red: orange and red are
+   neighbours at this lightness, and the anchor sits 12.1 ΔE from `danger` in
+   OKLab — the tightest brand/vs-semantic pair in the set, though still a clear
+   separation for normal colour vision. `warning` is 22.4 away and every cool
+   semantic is past 34, so the pressure comes from the warm end only.
+   Dark stops gain brightness on the same steps: the tightest dark gate is 5.45:1
+   (brand-default 400 against the inverse text), and light-mode `brand-text` on
+   the 600 stop is 7.02:1 on white. */
+[data-aeterni-brand="orange"] {
+    --aeterni-brand-50: #FAEFEC;
+    --aeterni-brand-100: #F9DFD6;
+    --aeterni-brand-200: #F6C5B5;
+    --aeterni-brand-300: #EB9F86;
+    --aeterni-brand-400: #DD7250;
+    --aeterni-brand-500: #C2410C;
+    --aeterni-brand-600: #A52E00;
+    --aeterni-brand-700: #892500;
+    --aeterni-brand-800: #6C2003;
+    --aeterni-brand-900: #521905;
+}
+
+/* 02. Light semantic theme */
+:root,
+[data-theme="light"],
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+
+    /* Surface, content and border semantics.
+       Large neutral surfaces stay hueless on purpose (R = G = B). A container that
+       carries even a +2 blue/violet cast reads as "brand tinted" once it covers a
+       sidebar or a card, and the frosted layers amplify it through their
+       saturate() filter. Only text keeps the small cool bias that gives the
+       "cold neutral" family its name. */
+    --aeterni-bg: #F7F7F7;
+    --aeterni-bg-primary: var(--aeterni-bg);
+    --aeterni-bg-secondary: #F0F0F0;
+    --aeterni-bg-tertiary: #E8E8E8;
+    --aeterni-bg-surface: #FFFFFF;
+    --aeterni-bg-elevated: rgba(255, 255, 255, .82);
+    --aeterni-bg-glass: rgba(255, 255, 255, .68);
+    --aeterni-bg-solid: #FFFFFF;
+    /* Toggle indicator surface. The white knob keeps a readable edge on the
+       light track and on the dark track, unlike the inverse-text token. */
+    --aeterni-state-background-thumb: var(--aeterni-gray-0);
+    --aeterni-bg-disabled: var(--aeterni-bg-secondary);
+    --aeterni-surface-soft: rgba(0, 0, 0, .045);
+    /* Mixed from the brand scale instead of a literal hue, so replacing the
+       brand palette re-tints every hover/pressed/selected state. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 13%, transparent);
+    --aeterni-overlay: rgba(0, 0, 0, .42);
+    /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
+       level on the same hue, and because the levels are translucent they also adapt
+       to whatever surface they land on (tinted chips, hover states, frosted layers)
+       instead of needing a per-surface hex.
+       Contrast is quoted on the two surfaces each level is allowed on:
+         primary     11.7:1 white / 9.6:1 bg-tertiary   正文、标题
+         secondary    6.2:1 white / 5.1:1 bg-tertiary   标签、导航、说明
+         tertiary     4.3:1 white / 3.5:1 bg-tertiary   仅图标与装饰，不用于正文
+         placeholder  4.9:1 on a field surface
+         disabled     2.5:1（WCAG 对禁用态豁免） */
+    --aeterni-text: rgba(0, 0, 0, .78);
+    --aeterni-text-primary: var(--aeterni-text);
+    --aeterni-text-secondary: rgba(0, 0, 0, .62);
+    --aeterni-text-tertiary: rgba(0, 0, 0, .52);
+    /* Muted text is de-emphasised text, so it stays at the readable level. */
+    --aeterni-text-muted: var(--aeterni-text-secondary);
+    --aeterni-text-disabled: rgba(0, 0, 0, .36);
+    --aeterni-text-inverse: #FFFFFF;
+    --aeterni-text-placeholder: rgba(0, 0, 0, .56);
+    --aeterni-text-link: var(--aeterni-brand-600);
+    --aeterni-border: rgba(0, 0, 0, .11);
+    --aeterni-border-strong: rgba(0, 0, 0, .18);
+    --aeterni-border-default: var(--aeterni-border);
+    --aeterni-border-subtle: rgba(0, 0, 0, .07);
+    --aeterni-border-disabled: var(--aeterni-border-subtle);
+    /* Structural dividers (card header/footer, dialog chrome). An opaque hairline
+       reads as a real edge; the 7%-alpha alternative looked like a smudge. */
+    --aeterni-separator: #C6C6C6;
+
+    /* Semantic state aliases: current Aeterni values */
+    --aeterni-sem-success: var(--aeterni-success-500);
+    --aeterni-sem-warning: var(--aeterni-warning-500);
+    --aeterni-sem-danger: var(--aeterni-danger-500);
+    --aeterni-sem-info: var(--aeterni-info-500);
+    --aeterni-sem-neutral: var(--aeterni-neutral-500);
+    --aeterni-success-soft: rgba(52, 199, 89, .11);
+    --aeterni-warning-soft: rgba(255, 149, 0, .12);
+    --aeterni-danger-soft: rgba(255, 59, 48, .11);
+    --aeterni-info-soft: rgba(0, 122, 255, .11);
+    --aeterni-neutral-soft: rgba(142, 142, 147, .11);
+
+    /* Ink for vivid semantic surfaces (solid success/warning/danger/info
+       controls). The near-black primitive clears 4.5:1 against every semantic
+       stop in both themes; "strong" covers the darker 600/700 hover and active
+       stops used by the light theme. */
+    /* Ink for vivid semantic fills. Hueless on purpose: the previous blue-black
+       primitive (#0B0F19) tinted every success/warning label. */
+    --aeterni-color-on-semantic: #141414;
+
+    /* State aliases: components consume these names instead of selecting a
+       palette stop independently. The primitive scales remain available for
+       custom themes, while the aliases define the component contract. */
+    --aeterni-color-brand-default: var(--aeterni-brand-500);
+    --aeterni-color-brand-hover: var(--aeterni-brand-600);
+    --aeterni-color-brand-active: var(--aeterni-brand-700);
+    /* Accent as text or border on a light surface. The fill stops above are too
+       light to read, so every family exposes a dedicated "text" stop; the dark
+       theme mirrors this with its lighter stops. */
+    --aeterni-color-brand-text: var(--aeterni-brand-600);
+    --aeterni-color-success-text: var(--aeterni-success-800);
+    --aeterni-color-warning-text: var(--aeterni-warning-800);
+    --aeterni-color-danger-text: var(--aeterni-danger-700);
+    --aeterni-color-info-text: var(--aeterni-info-700);
+    --aeterni-color-neutral-text: var(--aeterni-neutral-700);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
+    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
+    --aeterni-color-success-default: var(--aeterni-sem-success);
+    --aeterni-color-success-soft: var(--aeterni-success-soft);
+    --aeterni-color-warning-default: var(--aeterni-sem-warning);
+    --aeterni-color-warning-soft: var(--aeterni-warning-soft);
+    --aeterni-color-danger-default: var(--aeterni-sem-danger);
+    --aeterni-color-danger-soft: var(--aeterni-danger-soft);
+    --aeterni-color-info-default: var(--aeterni-sem-info);
+    --aeterni-color-info-soft: var(--aeterni-info-soft);
+    --aeterni-color-neutral-default: var(--aeterni-sem-neutral);
+    --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
+
+    --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-color-active: var(--aeterni-color-brand-active);
+    --aeterni-state-color-focus: var(--aeterni-color-brand-default);
+    /* Selected/checked are foreground roles: they paint labels and glyphs on the
+       tinted selection surface, so they use the accent's text form. Pointing them
+       at the fill stop dropped the selected menu label to 4.0:1 on its own
+       surface. */
+    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-checked: var(--aeterni-state-color-selected);
+    --aeterni-state-color-disabled: var(--aeterni-text-disabled);
+    --aeterni-state-background-default: var(--aeterni-bg-surface);
+    --aeterni-state-background-hover: var(--aeterni-surface-hover);
+    --aeterni-state-background-active: var(--aeterni-surface-active);
+    --aeterni-state-background-selected: var(--aeterni-surface-selected);
+    /* `checked` is a fill, not a tint: it paints the whole control (checkbox box,
+       radio dot, switch track, segmented pill, tab underline, selected day), so it
+       takes the solid 500 stop. Its ink stays --aeterni-text-inverse, the same
+       pairing the raw brand fill used before this alias existed. */
+    --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+    /* A filled surface still answers the pointer: hover and press step one stop
+       further along the same 500 / 600 / 700 ramp the solid button variants use,
+       so a live control (checkbox box, radio dot, switch track, current page,
+       selected day) does not read as dead once it is filled. The ink can stay
+       --aeterni-text-inverse because each step moves the fill away from the
+       page instead of toward it. */
+    --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
+    --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
+    --aeterni-state-border-default: var(--aeterni-border-default);
+    --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-border-active: var(--aeterni-color-brand-active);
+    --aeterni-state-border-focus: var(--aeterni-color-brand-default);
+    --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
+    --aeterni-state-border-disabled: var(--aeterni-border-disabled);
+    --aeterni-state-color-invalid: var(--aeterni-color-danger-default);
+    --aeterni-state-background-invalid: var(--aeterni-danger-soft);
+    --aeterni-state-color-readonly: var(--aeterni-text-secondary);
+    --aeterni-state-background-readonly: var(--aeterni-bg-secondary);
+    --aeterni-state-color-placeholder: var(--aeterni-text-placeholder);
+    --aeterni-state-color-muted: var(--aeterni-text-muted);
+    --aeterni-state-color-inverse: var(--aeterni-text-inverse);
+    --aeterni-state-background-inverse: var(--aeterni-bg-solid);
+
+    /* General control aliases reduce repeated state wiring in components. */
+    --aeterni-control-background: var(--aeterni-state-background-default);
+    --aeterni-control-background-disabled: var(--aeterni-state-background-disabled);
+    --aeterni-control-background-readonly: var(--aeterni-state-background-readonly);
+    --aeterni-control-border: var(--aeterni-state-border-default);
+    --aeterni-control-border-hover: var(--aeterni-state-border-hover);
+    --aeterni-control-border-focus: var(--aeterni-state-border-focus);
+    --aeterni-control-border-invalid: var(--aeterni-state-border-invalid);
+    --aeterni-control-border-disabled: var(--aeterni-state-border-disabled);
+    --aeterni-control-foreground: var(--aeterni-text-primary);
+    --aeterni-control-foreground-readonly: var(--aeterni-state-color-readonly);
+    --aeterni-control-foreground-placeholder: var(--aeterni-state-color-placeholder);
+    --aeterni-control-foreground-disabled: var(--aeterni-state-color-disabled);
+
+    --aeterni-danger: var(--aeterni-color-danger-default);
+    --aeterni-info: var(--aeterni-color-info-default);
+
+    /* Elevation, blur and motion */
+    --aeterni-shadow-xs: 0 1px 2px rgba(20, 20, 26, .05);
+    --aeterni-shadow-sm: 0 1px 3px rgba(20, 20, 26, .08), 0 1px 2px rgba(20, 20, 26, .05);
+    --aeterni-shadow-md: 0 4px 8px -2px rgba(20, 20, 26, .09), 0 2px 4px -2px rgba(20, 20, 26, .06);
+    --aeterni-shadow-lg: 0 12px 20px -6px rgba(20, 20, 26, .12), 0 4px 8px -4px rgba(20, 20, 26, .07);
+    --aeterni-shadow-xl: 0 24px 36px -12px rgba(20, 20, 26, .16), 0 8px 16px -8px rgba(20, 20, 26, .08);
+    --aeterni-shadow-card: var(--aeterni-shadow-md);
+    --aeterni-shadow-dropdown: var(--aeterni-shadow-lg);
+    --aeterni-shadow-modal: var(--aeterni-shadow-xl);
+    --aeterni-blur-sm: blur(8px) saturate(120%);
+    --aeterni-blur-md: blur(16px) saturate(135%);
+    --aeterni-blur-lg: blur(24px) saturate(150%);
+    --aeterni-ease-standard: cubic-bezier(.2, .8, .2, 1);
+    --aeterni-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* 03. Dark semantic theme — same declaration order as light */
+[data-theme="dark"],
+[data-aeterni-mode="dark"],
+.aeterni-dark {
+    color-scheme: dark;
+    --aeterni-bg: #101013;
+    --aeterni-bg-primary: var(--aeterni-bg);
+    --aeterni-bg-secondary: #17171A;
+    --aeterni-bg-tertiary: #202023;
+    --aeterni-bg-surface: #1A1A1D;
+    --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+    --aeterni-bg-glass: rgba(26, 26, 29, .72);
+    --aeterni-bg-solid: #1A1A1D;
+    --aeterni-state-background-thumb: var(--aeterni-gray-0);
+    --aeterni-bg-disabled: var(--aeterni-bg-secondary);
+    --aeterni-surface-soft: rgba(255, 255, 255, .045);
+    /* Same brand-scale derivation as the light theme: the dark states ride the
+       lighter 400 stop, while `selected` keeps the 500 stop in both themes. */
+    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+    --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+    --aeterni-overlay: rgba(0, 0, 0, .64);
+    --aeterni-text: rgba(255, 255, 255, .86);
+    --aeterni-text-primary: var(--aeterni-text);
+    --aeterni-text-secondary: rgba(255, 255, 255, .56);
+    --aeterni-text-tertiary: rgba(255, 255, 255, .40);
+    --aeterni-text-muted: var(--aeterni-text-secondary);
+    --aeterni-text-disabled: rgba(255, 255, 255, .28);
+    --aeterni-text-inverse: #1A1A1D;
+    --aeterni-text-placeholder: rgba(255, 255, 255, .48);
+    --aeterni-text-link: var(--aeterni-brand-400);
+    --aeterni-border: rgba(255, 255, 255, .09);
+    --aeterni-border-strong: rgba(255, 255, 255, .16);
+    --aeterni-border-default: var(--aeterni-border);
+    --aeterni-border-subtle: rgba(255, 255, 255, .06);
+    --aeterni-border-disabled: var(--aeterni-border-subtle);
+    --aeterni-separator: #3A3A3A;
+    --aeterni-sem-success: #30D158;
+    --aeterni-sem-warning: #FF9F0A;
+    --aeterni-sem-danger: #FF453A;
+    --aeterni-sem-info: #0A84FF;
+    --aeterni-sem-neutral: #8E8E93;
+    --aeterni-success-soft: rgba(48, 209, 88, .11);
+    --aeterni-warning-soft: rgba(255, 159, 10, .12);
+    --aeterni-danger-soft: rgba(255, 69, 58, .11);
+    --aeterni-info-soft: rgba(10, 132, 255, .11);
+    /* Dark-theme hover/active stops run lighter, so one ink covers the whole
+       interaction range (see the light theme block for the rationale). */
+    --aeterni-color-on-semantic: var(--aeterni-text-inverse);
+    --aeterni-neutral-soft: rgba(142, 142, 147, .12);
+
+    /* Dark-theme state aliases use lighter hover/active stops for contrast. */
+    --aeterni-color-brand-text: var(--aeterni-brand-300);
+    --aeterni-color-success-text: var(--aeterni-success-300);
+    --aeterni-color-warning-text: var(--aeterni-warning-300);
+    --aeterni-color-danger-text: var(--aeterni-danger-300);
+    --aeterni-color-info-text: var(--aeterni-info-300);
+    --aeterni-color-neutral-text: var(--aeterni-neutral-300);
+    --aeterni-color-brand-default: var(--aeterni-brand-400);
+    --aeterni-color-brand-hover: var(--aeterni-brand-300);
+    --aeterni-color-brand-active: var(--aeterni-brand-200);
+    /* A brand tint in its own right (used by Avatar and the brand soft button).
+       It used to borrow the neutral hover overlay. */
+    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
+    --aeterni-color-success-default: var(--aeterni-sem-success);
+    --aeterni-color-success-soft: var(--aeterni-success-soft);
+    --aeterni-color-warning-default: var(--aeterni-sem-warning);
+    --aeterni-color-warning-soft: var(--aeterni-warning-soft);
+    --aeterni-color-danger-default: var(--aeterni-sem-danger);
+    --aeterni-color-danger-soft: var(--aeterni-danger-soft);
+    --aeterni-color-info-default: var(--aeterni-sem-info);
+    --aeterni-color-info-soft: var(--aeterni-info-soft);
+    --aeterni-color-neutral-default: var(--aeterni-sem-neutral);
+    --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
+
+    --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-color-active: var(--aeterni-color-brand-active);
+    --aeterni-state-color-focus: var(--aeterni-color-brand-default);
+    --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+    --aeterni-state-color-checked: var(--aeterni-state-color-selected);
+    --aeterni-state-color-disabled: var(--aeterni-text-disabled);
+    --aeterni-state-background-default: var(--aeterni-bg-surface);
+    --aeterni-state-background-hover: var(--aeterni-surface-hover);
+    --aeterni-state-background-active: var(--aeterni-surface-active);
+    --aeterni-state-background-selected: var(--aeterni-surface-selected);
+    --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+    /* Hover/press step one stop along this theme's accent ramp; see the light
+       theme for the full rationale. */
+    --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
+    --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
+    --aeterni-state-border-default: var(--aeterni-border-default);
+    --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
+    --aeterni-state-border-active: var(--aeterni-color-brand-active);
+    --aeterni-state-border-focus: var(--aeterni-color-brand-default);
+    --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
+    --aeterni-state-border-disabled: var(--aeterni-border-disabled);
+    --aeterni-state-color-invalid: var(--aeterni-color-danger-default);
+    --aeterni-state-background-invalid: var(--aeterni-danger-soft);
+    --aeterni-state-color-readonly: var(--aeterni-text-secondary);
+    --aeterni-state-background-readonly: var(--aeterni-bg-secondary);
+    --aeterni-state-color-placeholder: var(--aeterni-text-placeholder);
+    --aeterni-state-color-muted: var(--aeterni-text-muted);
+    --aeterni-state-color-inverse: var(--aeterni-text-inverse);
+    --aeterni-state-background-inverse: var(--aeterni-bg-solid);
+
+    /* General control aliases reduce repeated state wiring in components. */
+    --aeterni-control-background: var(--aeterni-state-background-default);
+    --aeterni-control-background-disabled: var(--aeterni-state-background-disabled);
+    --aeterni-control-background-readonly: var(--aeterni-state-background-readonly);
+    --aeterni-control-border: var(--aeterni-state-border-default);
+    --aeterni-control-border-hover: var(--aeterni-state-border-hover);
+    --aeterni-control-border-focus: var(--aeterni-state-border-focus);
+    --aeterni-control-border-invalid: var(--aeterni-state-border-invalid);
+    --aeterni-control-border-disabled: var(--aeterni-state-border-disabled);
+    --aeterni-control-foreground: var(--aeterni-text-primary);
+    --aeterni-control-foreground-readonly: var(--aeterni-state-color-readonly);
+    --aeterni-control-foreground-placeholder: var(--aeterni-state-color-placeholder);
+    --aeterni-control-foreground-disabled: var(--aeterni-state-color-disabled);
+
+    --aeterni-danger: var(--aeterni-color-danger-default);
+    --aeterni-info: var(--aeterni-color-info-default);
+    --aeterni-shadow-xs: 0 1px 2px rgba(0, 0, 0, .18);
+    --aeterni-shadow-sm: 0 1px 3px rgba(0, 0, 0, .24), 0 1px 2px rgba(0, 0, 0, .16);
+    --aeterni-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, .28), 0 2px 4px -2px rgba(0, 0, 0, .18);
+    --aeterni-shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, .34), 0 4px 8px -4px rgba(0, 0, 0, .22);
+    --aeterni-shadow-xl: 0 24px 36px -12px rgba(0, 0, 0, .42), 0 8px 16px -8px rgba(0, 0, 0, .28);
+}
+
+/* System-preference fallback -------------------------------------------------
+   Before any script runs, an unset theme follows the operating system so a
+   dark-preference visitor never sees a light flash. The declarations mirror the
+   [data-theme="dark"] block above; an explicit theme attribute turns this rule
+   off. Keep both blocks in sync until the palette moves to a shared layer. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]):not([data-aeterni-mode]):not(.aeterni-dark) {
+        color-scheme: dark;
+        --aeterni-bg: #101013;
+        --aeterni-bg-primary: var(--aeterni-bg);
+        --aeterni-bg-secondary: #17171A;
+        --aeterni-bg-tertiary: #202023;
+        --aeterni-bg-surface: #1A1A1D;
+        --aeterni-bg-elevated: rgba(26, 26, 29, .82);
+        --aeterni-bg-glass: rgba(26, 26, 29, .72);
+        --aeterni-bg-solid: #1A1A1D;
+        --aeterni-state-background-thumb: var(--aeterni-gray-0);
+        --aeterni-bg-disabled: var(--aeterni-bg-secondary);
+        --aeterni-surface-soft: rgba(255, 255, 255, .045);
+        --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+        --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+        --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+        --aeterni-overlay: rgba(0, 0, 0, .64);
+        --aeterni-text: rgba(255, 255, 255, .86);
+        --aeterni-text-primary: var(--aeterni-text);
+        --aeterni-text-secondary: rgba(255, 255, 255, .56);
+        --aeterni-text-tertiary: rgba(255, 255, 255, .40);
+        --aeterni-text-muted: var(--aeterni-text-secondary);
+        --aeterni-text-disabled: rgba(255, 255, 255, .28);
+        --aeterni-text-inverse: #1A1A1D;
+        --aeterni-text-placeholder: rgba(255, 255, 255, .48);
+        --aeterni-text-link: var(--aeterni-brand-400);
+        --aeterni-border: rgba(255, 255, 255, .09);
+        --aeterni-border-strong: rgba(255, 255, 255, .16);
+        --aeterni-border-default: var(--aeterni-border);
+        --aeterni-border-subtle: rgba(255, 255, 255, .06);
+        --aeterni-border-disabled: var(--aeterni-border-subtle);
+        --aeterni-separator: #3A3A3A;
+        --aeterni-sem-success: #30D158;
+        --aeterni-sem-warning: #FF9F0A;
+        --aeterni-sem-danger: #FF453A;
+        --aeterni-sem-info: #0A84FF;
+        --aeterni-sem-neutral: #8E8E93;
+        --aeterni-success-soft: rgba(48, 209, 88, .11);
+        --aeterni-warning-soft: rgba(255, 159, 10, .12);
+        --aeterni-danger-soft: rgba(255, 69, 58, .11);
+        --aeterni-info-soft: rgba(10, 132, 255, .11);
+        /* Dark-theme hover/active stops run lighter, so one ink covers the whole
+           interaction range (see the light theme block for the rationale). */
+        --aeterni-color-on-semantic: var(--aeterni-text-inverse);
+        --aeterni-neutral-soft: rgba(142, 142, 147, .12);
+
+        /* Dark-theme state aliases use lighter hover/active stops for contrast. */
+        --aeterni-color-brand-text: var(--aeterni-brand-300);
+        --aeterni-color-success-text: var(--aeterni-success-300);
+        --aeterni-color-warning-text: var(--aeterni-warning-300);
+        --aeterni-color-danger-text: var(--aeterni-danger-300);
+        --aeterni-color-info-text: var(--aeterni-info-300);
+        --aeterni-color-neutral-text: var(--aeterni-neutral-300);
+        --aeterni-color-brand-default: var(--aeterni-brand-400);
+        --aeterni-color-brand-hover: var(--aeterni-brand-300);
+        --aeterni-color-brand-active: var(--aeterni-brand-200);
+        --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+        --aeterni-focus-color: var(--aeterni-color-brand-default);
+        --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
+        --aeterni-color-success-default: var(--aeterni-sem-success);
+        --aeterni-color-success-soft: var(--aeterni-success-soft);
+        --aeterni-color-warning-default: var(--aeterni-sem-warning);
+        --aeterni-color-warning-soft: var(--aeterni-warning-soft);
+        --aeterni-color-danger-default: var(--aeterni-sem-danger);
+        --aeterni-color-danger-soft: var(--aeterni-danger-soft);
+        --aeterni-color-info-default: var(--aeterni-sem-info);
+        --aeterni-color-info-soft: var(--aeterni-info-soft);
+        --aeterni-color-neutral-default: var(--aeterni-sem-neutral);
+        --aeterni-color-neutral-soft: var(--aeterni-neutral-soft);
+
+        --aeterni-state-color-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-color-active: var(--aeterni-color-brand-active);
+        --aeterni-state-color-focus: var(--aeterni-color-brand-default);
+        --aeterni-state-color-selected: var(--aeterni-color-brand-text);
+        --aeterni-state-color-checked: var(--aeterni-state-color-selected);
+        --aeterni-state-color-disabled: var(--aeterni-text-disabled);
+        --aeterni-state-background-default: var(--aeterni-bg-surface);
+        --aeterni-state-background-hover: var(--aeterni-surface-hover);
+        --aeterni-state-background-active: var(--aeterni-surface-active);
+        --aeterni-state-background-selected: var(--aeterni-surface-selected);
+        --aeterni-state-background-checked: var(--aeterni-color-brand-default);
+        /* Hover/press step one stop along this theme's accent ramp; see the
+           light theme for the full rationale. */
+        --aeterni-state-background-checked-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-background-checked-active: var(--aeterni-color-brand-active);
+        --aeterni-state-background-disabled: var(--aeterni-bg-disabled);
+        --aeterni-state-border-default: var(--aeterni-border-default);
+        --aeterni-state-border-hover: var(--aeterni-color-brand-hover);
+        --aeterni-state-border-active: var(--aeterni-color-brand-active);
+        --aeterni-state-border-focus: var(--aeterni-color-brand-default);
+        --aeterni-state-border-invalid: var(--aeterni-color-danger-default);
+        --aeterni-state-border-disabled: var(--aeterni-border-disabled);
+        --aeterni-state-color-invalid: var(--aeterni-color-danger-default);
+        --aeterni-state-background-invalid: var(--aeterni-danger-soft);
+        --aeterni-state-color-readonly: var(--aeterni-text-secondary);
+        --aeterni-state-background-readonly: var(--aeterni-bg-secondary);
+        --aeterni-state-color-placeholder: var(--aeterni-text-placeholder);
+        --aeterni-state-color-muted: var(--aeterni-text-muted);
+        --aeterni-state-color-inverse: var(--aeterni-text-inverse);
+        --aeterni-state-background-inverse: var(--aeterni-bg-solid);
+
+        /* General control aliases reduce repeated state wiring in components. */
+        --aeterni-control-background: var(--aeterni-state-background-default);
+        --aeterni-control-background-disabled: var(--aeterni-state-background-disabled);
+        --aeterni-control-background-readonly: var(--aeterni-state-background-readonly);
+        --aeterni-control-border: var(--aeterni-state-border-default);
+        --aeterni-control-border-hover: var(--aeterni-state-border-hover);
+        --aeterni-control-border-focus: var(--aeterni-state-border-focus);
+        --aeterni-control-border-invalid: var(--aeterni-state-border-invalid);
+        --aeterni-control-border-disabled: var(--aeterni-state-border-disabled);
+        --aeterni-control-foreground: var(--aeterni-text-primary);
+        --aeterni-control-foreground-readonly: var(--aeterni-state-color-readonly);
+        --aeterni-control-foreground-placeholder: var(--aeterni-state-color-placeholder);
+        --aeterni-control-foreground-disabled: var(--aeterni-state-color-disabled);
+    
+        --aeterni-danger: var(--aeterni-color-danger-default);
+        --aeterni-info: var(--aeterni-color-info-default);
+        --aeterni-shadow-xs: 0 1px 2px rgba(0, 0, 0, .18);
+        --aeterni-shadow-sm: 0 1px 3px rgba(0, 0, 0, .24), 0 1px 2px rgba(0, 0, 0, .16);
+        --aeterni-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, .28), 0 2px 4px -2px rgba(0, 0, 0, .18);
+        --aeterni-shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, .34), 0 4px 8px -4px rgba(0, 0, 0, .22);
+        --aeterni-shadow-xl: 0 24px 36px -12px rgba(0, 0, 0, .42), 0 8px 16px -8px rgba(0, 0, 0, .28);
+    }
+}
+
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --aeterni-duration-fast: 0ms;
+        --aeterni-duration-normal: 0ms;
+        --aeterni-duration-slow: 0ms;
+        --aeterni-duration-slower: 0ms;
+    }
+}
+
+/* Frosted surfaces degrade to opaque, and they drop the translucency rather than
+   only the filter. Removing backdrop-filter alone would leave a translucent fill
+   over whatever it covers: a colour patch with no blur to explain it and no opaque
+   backing to read ink against, which is worse than a solid surface on both
+   counts. The on-glass inks fall back to the standard roles in the same breath:
+   they exist to survive a backdrop showing through, and once the fill is the
+   solid surface there is no backdrop left to survive. Scrims keep their dim — a
+   scrim carries no readable content of its own, and an opaque scrim would hide
+   the page it exists to dim. */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --aeterni-bg-glass: var(--aeterni-bg-solid);
+        --aeterni-blur-glass: none;
+        --aeterni-blur-scrim: none;
+        --aeterni-text-on-glass-secondary: var(--aeterni-text-secondary);
+        --aeterni-text-on-glass-tertiary: var(--aeterni-text-tertiary);
+    }
+}
+
+/* No backdrop-filter support: the fill has to carry the surface on its own, so
+   the same opaque fallback plus the same ink fallback apply, and the blur
+   variables stay irrelevant. */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+    :root {
+        --aeterni-bg-glass: var(--aeterni-bg-solid);
+        --aeterni-text-on-glass-secondary: var(--aeterni-text-secondary);
+        --aeterni-text-on-glass-tertiary: var(--aeterni-text-tertiary);
+    }
+}
+
+/* Keep system UI controls aligned with the active Aeterni theme. */
+:root,
+[data-theme="light"],
+[data-aeterni-mode="light"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"],
+[data-aeterni-mode="dark"],
+.aeterni-dark {
+    color-scheme: dark;
+}
+
+/* Theme transition alias. `ThemeProvider` toggles `aeterni-theme-transitioning`
+   on <html> for the duration of a mode or brand swap, and the rule below is what
+   makes that class do anything. It lives in the token file on purpose: it is a
+   theme alias driven by a theme component, not a component's own styling, so it
+   is deliberately not scoped under a `.aeterni-*` component selector. Hosting it
+   in the consuming app instead — which the sample originally did — left the
+   library's documented transition with no effect for every other host.
+   `!important` is required because component styles declare their own
+   transitions, and those transitions must not win while the swap is in flight.
+   `prefers-reduced-motion` needs no extra rule here: the duration tokens above
+   collapse to 0ms, so the computed duration collapses with them. */
+html.aeterni-theme-transitioning,
+html.aeterni-theme-transitioning body,
+html.aeterni-theme-transitioning body *,
+html.aeterni-theme-transitioning body *::before,
+html.aeterni-theme-transitioning body *::after {
+    transition-property: color, background-color, border-color, outline-color, box-shadow, opacity, transform !important;
+    transition-duration: calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) !important;
+    transition-timing-function: var(--aeterni-ease-in-out) !important;
+}

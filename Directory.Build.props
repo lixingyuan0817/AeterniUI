@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <!-- First segment tracks .NET major; second adds features; third fixes or optimizes. -->
+    <Version>10.30.1</Version>
+    <AssemblyVersion>10.30.1.0</AssemblyVersion>
+    <FileVersion>10.30.1.0</FileVersion>
+    <InformationalVersion>10.30.1</InformationalVersion>
+    <Authors>AeterniUI contributors</Authors>
+    <Description>A Blazor component library for consistent user interfaces across Blazor Server and Blazor WebAssembly applications.</Description>
+    <PackageTags>blazor;components;ui;razor</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/lixingyuan0817/AeterniUI</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

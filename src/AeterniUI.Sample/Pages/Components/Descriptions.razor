@@ -1,0 +1,78 @@
+@page "/components/descriptions"
+@layout ComponentsLayout
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Descriptions</PageTitle>
+
+<ComponentPreview AnchorId="descriptions"
+                  Category="基础组件"
+                  Title="Descriptions"
+                  ComponentName="Descriptions"
+                  Description="用原生描述列表语义展示一组标签与值，支持横向/纵向排列、跨列和自定义值模板。"
+                  Parameters="@Parameters">
+    <Preview>
+        <div class="preview-stack preview-stack--fill">
+            <Descriptions Items="@Items"
+                          Columns="@_columns"
+                          Orientation="@CurrentOrientation"
+                          Bordered="@_bordered"
+                          ItemTemplate="@ValueTemplate"
+                          AriaLabel="订单摘要" />
+        </div>
+    </Preview>
+    <Controls>
+        <Checkbox @bind-Value="_vertical">纵向布局</Checkbox>
+        <Checkbox @bind-Value="_bordered">显示边框</Checkbox>
+        <Checkbox @bind-Value="_useTemplate">使用值模板</Checkbox>
+        <div class="control-field">
+            <span>Columns</span>
+            <ShowcaseSelect TValue="int" Id="descriptions-columns" AriaLabel="Columns" Options="@ColumnOptions" @bind-Value="_columns" />
+        </div>
+    </Controls>
+    <Notes>
+        <span>组件输出原生 <code>dl</code>、<code>dt</code> 和 <code>dd</code>，不负责排序、编辑或业务状态推断。</span>
+        <span><code>Columns</code> 控制网格列数，单项可用 <code>DescriptionItem.Span</code> 跨列；示例会随列数收窄说明项跨度，窄屏也会自动收为单列。</span>
+        <span><code>ItemTemplate</code> 只替换值区域，标签仍由组件渲染并保持描述列表语义。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private bool _vertical;
+    private bool _bordered;
+    private bool _useTemplate;
+    private int _columns = 3;
+
+    private static readonly int[] ColumnOptions = [1, 2, 3, 4];
+
+    private Orientation CurrentOrientation => _vertical ? Orientation.Vertical : Orientation.Horizontal;
+
+    private IReadOnlyList<DescriptionItem> Items =>
+    [
+        new("订单编号", "AU-20261008-042", Span: 1),
+        new("客户", "林小远", Span: 1),
+        new("状态", "已完成", Span: 1),
+        new("创建时间", "2026-10-08 17:36", Span: 1),
+        // Keep the interactive preview valid when Columns changes to 1 or 2.
+        // DescriptionItem.Span is intentionally strict and cannot exceed Columns.
+        new("说明", "组件库示例订单，用于展示长文本在描述列表中的换行行为。", Span: Math.Min(3, _columns))
+    ];
+
+    private RenderFragment<DescriptionItem>? ValueTemplate => !_useTemplate
+        ? null
+        : item => item.Label == "状态"
+            ? @<Tag Color="Color.Success" Size="Size.Small">@item.Content</Tag>
+            : @<span>@item.Content</span>;
+
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Items", "IReadOnlyList<DescriptionItem>", "按展示顺序提供标签和值。", "必填"),
+        new("DescriptionItem.Label / Content", "string / string?", "默认标签和值文本。"),
+        new("DescriptionItem.Span", "int", "占用的网格列数，不能超过 Columns。", "1"),
+        new("DescriptionItem.Visible", "bool", "是否渲染当前项目。", "true"),
+        new("ItemTemplate", "RenderFragment<DescriptionItem>?", "替换值区域，保留标签和 dd 语义。", "null"),
+        new("Orientation", "Orientation", "横向或纵向排列。", "Horizontal"),
+        new("Columns", "int", "网格列数，范围 1～4。", "3"),
+        new("Bordered", "bool", "是否显示中性边框。", "false"),
+        new("AriaLabel", "string?", "描述列表的可访问名称。", "null")
+    ];
+}

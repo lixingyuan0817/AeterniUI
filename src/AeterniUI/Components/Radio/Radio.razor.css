@@ -1,0 +1,165 @@
+/* The root element is the <label> (see Radio.razor), so every size token declared
+   here reaches both the input and the visual circle. */
+.aeterni-radio {
+    /* The default box matches Checkbox so a Radio and a Checkbox in the same
+       form row carry the same visual weight. */
+    --aeterni-radio-size: var(--aeterni-control-size-md);
+
+    display: inline-flex;
+    min-height: var(--aeterni-touch-target-min);
+    min-width: var(--aeterni-touch-target-min);
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+    cursor: pointer;
+}
+
+/* Visually hide the native input while keeping it focusable and exposed to
+   assistive technology. The 1px box plus the 50% clip below is the standard
+   clip mechanism, not a design size. */
+.aeterni-radio__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.aeterni-radio__control {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-radio-size);
+    height: var(--aeterni-radio-size);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-bg-surface);
+    transition: var(--aeterni-transition-background), var(--aeterni-transition-border);
+}
+
+/* The selected state is drawn with an inner dot instead of a 2px border, so the
+   ring weight stays identical to Checkbox in both states. */
+.aeterni-radio__dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-state-background-checked);
+    opacity: 0;
+    transform: scale(.5);
+    transition: var(--aeterni-transition-opacity), var(--aeterni-transition-transform);
+}
+
+.aeterni-radio__input:checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked);
+}
+
+.aeterni-radio__input:checked + .aeterni-radio__control .aeterni-radio__dot {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Hover and press walk the brand ramp, and an invalid control is scoped out so
+   a pointer never repaints the danger colour (see Checkbox for the rationale). */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled) + .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-active);
+}
+
+/* A selected radio is a ring plus a dot, so both halves step together or the
+   ornament would read as two different brand shades. */
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:hover:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control {
+    border-color: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-radio:not(.is-invalid) .aeterni-radio__input:active:not(:disabled):checked + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-state-background-checked-active);
+}
+
+.aeterni-radio__input:focus-visible + .aeterni-radio__control {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-radio__input:disabled + .aeterni-radio__control {
+    cursor: not-allowed;
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-radio.is-disabled {
+    cursor: not-allowed;
+    color: var(--aeterni-state-color-disabled);
+}
+
+/* Disabled + checked drops the brand colour so the state reads as inactive. */
+.aeterni-radio__input:disabled:checked + .aeterni-radio__control,
+.aeterni-radio.is-disabled.is-checked .aeterni-radio__control {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-radio__input:disabled:checked + .aeterni-radio__control .aeterni-radio__dot,
+.aeterni-radio.is-disabled.is-checked .aeterni-radio__dot {
+    background: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-radio.is-invalid .aeterni-radio__control,
+.aeterni-radio__input[aria-invalid="true"] + .aeterni-radio__control {
+    border-color: var(--aeterni-color-danger-default);
+}
+
+.aeterni-radio.is-invalid .aeterni-radio__dot,
+.aeterni-radio__input[aria-invalid="true"] + .aeterni-radio__control .aeterni-radio__dot {
+    background: var(--aeterni-color-danger-default);
+}
+
+.aeterni-radio__content {
+    min-width: 0;
+}
+
+.aeterni-radio:has(.aeterni-radio__input:disabled) {
+    cursor: not-allowed;
+    color: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-radio--sm {
+    --aeterni-radio-size: var(--aeterni-control-size-sm);
+
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-radio--lg {
+    --aeterni-radio-size: var(--aeterni-control-size-lg);
+
+    font-size: var(--aeterni-font-size-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-radio__control,
+    .aeterni-radio__dot {
+        transition: none;
+    }
+}

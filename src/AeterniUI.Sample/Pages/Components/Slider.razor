@@ -1,0 +1,105 @@
+@page "/components/slider"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Slider</PageTitle>
+
+<ComponentPreview AnchorId="slider"
+                  Category="表单组件"
+                  Title="Slider"
+                  ComponentName="Slider&lt;TValue&gt;"
+                  Description="单值滑块：默认无级调节，也可配置步进吸附；支持横向与竖向布局、完整键盘模型与指针拖拽。"
+                  Parameters="@SliderParameters"
+                  Events="@SliderEvents"
+                  Contracts="@SliderContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="音量"
+                       Description="拖动滑块，或聚焦后使用方向键 / Home / End / PageUp / PageDown。"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <Slider TValue="double"
+                        Value="@_value"
+                        ValueChanged="@HandleValueChanged"
+                        Min="0d"
+                        Max="100d"
+                        Step="@EffectiveStep"
+                        Precision="2"
+                        Size="@_size"
+                        Orientation="@_orientation"
+                        Disabled="@_disabled"
+                        Invalid="@_invalid"
+                        AriaLabel="音量" />
+            </FormField>
+            <span class="preview-feedback" role="status">当前值：@_value.ToString("0.00")</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="slider-size" AriaLabel="Slider Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+            <div class="control-field">
+                <span>Orientation</span>
+                <ShowcaseSelect TValue="Orientation" Id="slider-orientation" AriaLabel="Slider Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_useStep">按 5 步进</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+    </Controls>
+    <Notes>
+        <span><code>Step=null</code> 时指针无级跟随；设置正数后，指针与键盘都吸附到以 <code>Min</code> 为起点的步网格。</span>
+        <span>无级模式的方向键每次移动量程的 1%，PageUp / PageDown 每次移动 10%；整数类型仍受其可表示精度限制。</span>
+        <span>根元素就是滑块本体（<code>role="slider"</code> + 单一 Tab 停留点）；轨道、填充与滑块均为装饰节点。</span>
+        <span>竖向布局的值从底边向上增长，长度默认 12rem，可由宿主通过 <code>--aeterni-slider-length</code> 覆盖。</span>
+        <span>指针拖拽由 <code>Slider.razor.js</code> 处理；只有配置 <code>Step</code> 时才在 JS 内就近吸附，键盘与取值逻辑全部在 C#。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private double _value = 40;
+    private Size _size = Size.Default;
+    private Orientation _orientation = Orientation.Horizontal;
+    private bool _useStep;
+    private bool _disabled;
+    private bool _invalid;
+
+    private double? EffectiveStep => _useStep ? 5d : null;
+
+    private Task HandleValueChanged(double value)
+    {
+        _value = value;
+        return Task.CompletedTask;
+    }
+
+    private static readonly ShowcaseParameter[] SliderParameters =
+    [
+        new("Value", "TValue", "受控数值。"),
+        new("ValueChanged", "EventCallback<TValue>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<TValue>>?", "EditContext 字段表达式。"),
+        new("Min", "TValue?", "下限，默认 0。", "0"),
+        new("Max", "TValue?", "上限，默认 100。", "100"),
+        new("Step", "TValue?", "可选步进增量；null 表示无级调节，正数表示吸附到步网格。", "null"),
+        new("Precision", "int?", "aria-valuetext 的小数位；步进模式默认取 Step 小数位，无级模式按键盘增量推导。"),
+        new("Orientation", "Orientation", "横向或竖向布局。", "Horizontal"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("Size", "Size", "轨道与滑块尺寸。", "Default"),
+        new("AriaLabel", "string", "无 FormField 标签时的无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] SliderEvents =
+    [
+        new("ValueChanged", "EventCallback<TValue>", "键盘步进或指针拖动改变数值时触发。")
+    ];
+
+    private static readonly ShowcaseContract[] SliderContracts =
+    [
+        new("Slider", "role=slider", "根元素是唯一可聚焦节点；禁用时移出 Tab 序列。"),
+        new("Slider", "aria-valuetext", "按当前文化格式化；valuemin/max/now 为不变文化字符串。"),
+        new("Slider", "连续 / 步进", "Step=null 不吸附；显式正数同时约束指针与键盘。")
+    ];
+}

@@ -1,0 +1,22 @@
+@inherits AeterniComponent
+
+@* A dedicated usage of Segmented, mirroring ThemeSwitch: the brand list, the labels from
+   the text table and the ThemeService wiring live here, while the control's single-select
+   semantics, its size tiers and the sliding indicator belong to Segmented. The DOM
+   parameters are forwarded so `Id`, `Class`, `Style`, `Disabled`, `Visible`, `Element`
+   and the unmatched attributes keep working on the control's own root element. *@
+<Segmented TValue="ThemeBrand"
+           Id="@Id"
+           Class="@Class"
+           Style="@Style"
+           Visible="@Visible"
+           Disabled="@Disabled"
+           Element="@Element"
+           ElementChanged="ForwardElementChangedAsync"
+           AdditionalAttributes="@AdditionalAttributes"
+           Items="@Brands"
+           Value="@ThemeService.Brand"
+           ValueChanged="SelectBrandAsync"
+           Size="@Size"
+           TextSelector="BrandLabel"
+           AriaLabel="@GroupLabel" />

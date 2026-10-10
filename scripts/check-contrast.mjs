@@ -1,0 +1,460 @@
+#!/usr/bin/env node
+// Guards the WCAG contrast floors of the brand palettes (design guidelines §5.4).
+//
+// The palette is a hue layer: every semantic brand alias (fill, hover, active,
+// text, link) is a `var(--aeterni-brand-*)` in one of the light / dark / system
+// dark theme blocks. That indirection means a single edited stop silently
+// re-tints buttons, links and selected states everywhere, and nothing in the
+// build notices when the result drops below 4.5:1 under white text — the failure
+// only shows up as unreadable labels in a browser.
+//
+// This gate resolves the tokens for real instead of trusting the comments:
+// it scans the token file, replays the cascade for a given <html> attribute
+// state, follows `var()` chains to concrete colors, and measures each
+// foreground/background pair the palette is actually used in. It also enforces
+// the §5.4 accounting rule: a hue layer whose solid fill leaves less than a
+// 1.1x margin must state that margin in its own comment block, so tightening a
+// palette is always a deliberate, reviewed act rather than a side effect.
+//
+// Adding a hue layer: declare `[data-aeterni-brand="…"]` with the same ten
+// stops and the gate picks it up automatically - no edit needed here.
+//
+// Usage: node scripts/check-contrast.mjs [path-to-css]
+import { readFileSync } from 'node:fs';
+
+const CSS_FILE = 'src/AeterniUI/wwwroot/css/aeterni_ui.css';
+const target = process.argv[2] ?? CSS_FILE;
+const STOPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+const TEXT_FLOOR = 4.5;      // body text and any label inside a filled control
+const GRAPHIC_FLOOR = 3;     // icons, borders, focus rings (non-text contrast)
+const ACCOUNTING_MARGIN = 1.1;
+const DARK_MEDIA = 'prefers-color-scheme: dark';
+
+/* --- a very small CSS scanner -------------------------------------------- */
+
+function parseRules(css) {
+    const rules = [];
+    const stack = [];
+    let buffer = '';
+    let comment = '';
+    let index = 0;
+
+    while (index < css.length) {
+        const ch = css[index];
+
+        if (ch === '/' && css[index + 1] === '*') {
+            const close = css.indexOf('*/', index + 2);
+            comment = css.slice(index + 2, close < 0 ? css.length : close);
+            index = close < 0 ? css.length : close + 2;
+            continue;
+        }
+
+        if (ch === '{') {
+            const parent = stack[stack.length - 1];
+            const prelude = buffer.trim();
+            buffer = '';
+            stack.push({
+                prelude,
+                body: '',
+                atRule: prelude.startsWith('@'),
+                media: parent ? (parent.atRule ? parent.prelude : parent.media) : null,
+                comment,
+            });
+            comment = '';
+            index++;
+            continue;
+        }
+
+        if (ch === '}') {
+            const block = stack.pop();
+            if (!block.atRule) {
+                rules.push({
+                    selectors: block.prelude.split(',').map(s => s.trim()).filter(Boolean),
+                    declarations: parseDeclarations(block.body),
+                    media: block.media,
+                    comment: block.comment,
+                });
+            }
+            index++;
+            continue;
+        }
+
+        const frame = stack[stack.length - 1];
+        if (!frame || frame.atRule) {
+            buffer += ch;
+        } else {
+            frame.body += ch;
+        }
+        index++;
+    }
+
+    return rules;
+}
+
+// Declarations are split on ";" at paren depth 0 so values such as
+// `color-mix(in srgb, x 5%, y)` stay in one piece.
+function parseDeclarations(body) {
+    const declarations = {};
+    let depth = 0;
+    let current = '';
+
+    for (const ch of body) {
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        if (ch === ';' && depth === 0) {
+            store(current);
+            current = '';
+            continue;
+        }
+        current += ch;
+    }
+    store(current);
+
+    function store(text) {
+        const colon = text.indexOf(':');
+        if (colon < 0) return;
+        const name = text.slice(0, colon).trim();
+        const value = text.slice(colon + 1).trim();
+        if (name.startsWith('--') && value) declarations[name] = value;
+    }
+
+    return declarations;
+}
+
+/* --- cascade + var() resolution ------------------------------------------ */
+
+// A context is one rendered `<html>` attribute state. `selectors` lists the
+// selectors that match in that state; file order then decides which declaration
+// wins, exactly as the browser does for same-specificity rules.
+function resolveContext(rules, { brand, mode }) {
+    const active = new Set([':root', `[data-aeterni-brand="${brand}"]`]);
+    if (mode === 'light') active.add('[data-theme="light"]');
+    else if (mode === 'dark') {
+        active.add('[data-theme="dark"]');
+        active.add('.aeterni-dark');
+    }
+
+    const declared = new Map();
+    for (const rule of rules) {
+        const inDarkMedia = rule.media !== null && rule.media.includes(DARK_MEDIA);
+        if (rule.media !== null && !(mode === 'system-dark' && inDarkMedia)) continue;
+        // The system-dark block is one media query that guards the root element
+        // with `:root:not([data-theme]):not(...)`, so it never literally matches
+        // the selector set; inside that query any `:root…` selector is the
+        // palette we are checking.
+        const matches = rule.selectors.some(selector =>
+            active.has(selector) || (mode === 'system-dark' && inDarkMedia && selector.startsWith(':root')));
+        if (!matches) continue;
+        for (const [name, value] of Object.entries(rule.declarations)) declared.set(name, value);
+    }
+
+    const resolve = (value, seen = new Set()) => {
+        const text = value.trim();
+        const hex = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (hex) return parseHex(text);
+        // `transparent` is a colour keyword, not a variable, and the palette uses
+        // it as a color-mix operand.
+        if (/^transparent$/i.test(text)) return { r: 0, g: 0, b: 0, a: 0 };
+
+        const fn = text.match(/^rgba?\(([^)]+)\)$/i);
+        if (fn) {
+            const [r, g, b, a = '1'] = fn[1].split(/[,\s/]+/).filter(Boolean);
+            const alpha = typeof a === 'string' && a.endsWith('%')
+                ? Number.parseFloat(a) / 100
+                : Number(a);
+            return { r: Number(r), g: Number(g), b: Number(b), a: alpha };
+        }
+        // `color-mix(in srgb, A p%, B)`: a weighted average with premultiplied
+        // alpha, per CSS Color 5. Only the sRGB space appears in this palette, and
+        // the common `... 24%, transparent` form falls out of the same formula.
+        const mix = text.match(/^color-mix\(\s*in\s+srgb\s*,([\s\S]*)\)$/i);
+        if (mix) {
+            const parts = splitTopLevel(mix[1]);
+            if (parts.length !== 2) throw new Error(`unsupported color-mix operands ${JSON.stringify(text)}`);
+            const [aPart, bPart] = parts.map(part => {
+                const percentage = part.match(/([\d.]+)%\s*$/);
+                const value = percentage ? part.slice(0, percentage.index).trim() : part.trim();
+                return { weight: percentage ? Number(percentage[1]) / 100 : null, color: resolve(value, seen) };
+            });
+            const aWeight = aPart.weight ?? (bPart.weight === null ? 0.5 : 1 - bPart.weight);
+            const bWeight = bPart.weight ?? 1 - aWeight;
+            const alpha = (aWeight * aPart.color.a) + (bWeight * bPart.color.a);
+            if (alpha === 0) return { r: 0, g: 0, b: 0, a: 0 };
+            const mixChannel = key => ((aWeight * aPart.color.a * aPart.color[key]) +
+                (bWeight * bPart.color.a * bPart.color[key])) / alpha;
+            return { r: mixChannel('r'), g: mixChannel('g'), b: mixChannel('b'), a: alpha };
+        }
+
+        const ref = text.match(/^var\(\s*(--[\w-]+)\s*(?:,([\s\S]*))?\)$/);
+        if (ref) {
+            const name = ref[1];
+            if (seen.has(name)) throw new Error(`cyclic var() reference at ${name}`);
+            const declaredValue = declared.get(name);
+            if (declaredValue === undefined) {
+                if (ref[2] === undefined) throw new Error(`${name} is not declared in this context`);
+                return resolve(ref[2], seen);
+            }
+            seen.add(name);
+            return resolve(declaredValue, seen);
+        }
+        throw new Error(`unsupported color value ${JSON.stringify(text)}`);
+    };
+
+    const color = name => {
+        const raw = declared.get(name);
+        if (raw === undefined) throw new Error(`${name} is not declared in this context`);
+        return resolve(raw);
+    };
+
+    return { color };
+}
+
+/** Splits on commas that are not inside parentheses. */
+function splitTopLevel(text) {
+    const parts = [];
+    let depth = 0;
+    let current = '';
+    for (const ch of text) {
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        if (ch === ',' && depth === 0) { parts.push(current); current = ''; continue; }
+        current += ch;
+    }
+    if (current.trim()) parts.push(current);
+    return parts.map(part => part.trim());
+}
+
+/* --- color math ---------------------------------------------------------- */
+
+function parseHex(hex) {
+    let body = hex.slice(1);
+    if (body.length === 3) body = [...body].map(c => c + c).join('');
+    return {
+        r: parseInt(body.slice(0, 2), 16),
+        g: parseInt(body.slice(2, 4), 16),
+        b: parseInt(body.slice(4, 6), 16),
+        a: 1,
+    };
+}
+
+const channel = v => {
+    const s = v / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+
+const luminance = ({ r, g, b }) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+
+// Translucent foregrounds are composited onto their background first, so a
+// 78% ink token is measured as the pixel the user actually sees.
+const composite = (fg, bg) => fg.a >= 1 ? fg : {
+    r: fg.r * fg.a + bg.r * (1 - fg.a),
+    g: fg.g * fg.a + bg.g * (1 - fg.a),
+    b: fg.b * fg.a + bg.b * (1 - fg.a),
+    a: 1,
+};
+
+function contrast(fg, bg) {
+    const effective = composite(fg, bg);
+    const [hi, lo] = [luminance(effective), luminance(bg)].sort((a, b) => b - a);
+    return (hi + 0.05) / (lo + 0.05);
+}
+
+/* --- known shortfalls ------------------------------------------------------
+   Pairs that this gate measures and that are currently below their floor. The
+   palette values predate the gate learning to check the semantic families at
+   all, and correcting them means re-anchoring light-theme stops, which is a
+   design decision rather than a bug fix (see REV-129 in the review record).
+
+   They stay enumerated instead of being dropped from PAIRS so that every run
+   still prints the numbers, and so that a *new* shortfall fails the build. The
+   list only grows by editing this constant. */
+const KNOWN_SHORTFALLS = new Map([
+    // Empty. Every entry names the review item tracking a measured pair that is
+    // still below its floor; both of the first two entries cleared once the ring
+    // stopped being a 24% tint (REV-130) and the light info ink moved a stop
+    // (REV-131). The list only grows by editing this constant.
+]);
+
+
+
+
+
+
+
+/* --- the pairs the palette is used in ------------------------------------ */
+
+const PAIRS = [
+    ['--aeterni-text-inverse', '--aeterni-color-brand-default', TEXT_FLOOR, 'label on a solid brand fill'],
+    ['--aeterni-text-inverse', '--aeterni-color-brand-hover', TEXT_FLOOR, 'label on a hovered brand fill'],
+    ['--aeterni-text-inverse', '--aeterni-color-brand-active', TEXT_FLOOR, 'label on a pressed brand fill'],
+    ['--aeterni-color-brand-text', '--aeterni-bg-surface', TEXT_FLOOR, 'brand text on a surface'],
+    ['--aeterni-color-brand-text', '--aeterni-bg-tertiary', TEXT_FLOOR, 'brand text on a tinted surface'],
+    ['--aeterni-color-brand-text', '--aeterni-bg', TEXT_FLOOR, 'brand text on the page'],
+    ['--aeterni-text-link', '--aeterni-bg-surface', TEXT_FLOOR, 'link on a surface'],
+    ['--aeterni-text-link', '--aeterni-bg', TEXT_FLOOR, 'link on the page'],
+    ['--aeterni-color-brand-default', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'brand border or icon on a surface'],
+    ['--aeterni-color-brand-default', '--aeterni-bg', GRAPHIC_FLOOR, 'brand border or icon on the page'],
+    // The ring components actually draw is `--aeterni-focus-color`; the state
+    // alias above is a declared token but no component paints it as a ring.
+    ['--aeterni-focus-color', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the focus ring components draw, on a surface'],
+    ['--aeterni-focus-color', '--aeterni-bg', GRAPHIC_FLOOR, 'the focus ring components draw, on the page'],
+    // The invalid-state ring draws its own token and had never been measured.
+    ['--aeterni-focus-color-invalid', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the invalid focus ring, on a surface'],
+    ['--aeterni-focus-color-invalid', '--aeterni-bg', GRAPHIC_FLOOR, 'the invalid focus ring, on the page'],
+
+    // The semantic families carry text and borders the same way the brand hue
+    // does, and the light theme's solid semantic fills were a real contrast
+    // failure once (the fill stop used as ink). They were fixed by hand and then
+    // left outside this gate, which is exactly how that kind of regression comes
+    // back — so they are enumerated here rather than trusted.
+    ...['danger', 'success', 'warning', 'info'].flatMap(family => [
+        [`--aeterni-color-${family}-text`, '--aeterni-bg-surface', TEXT_FLOOR, `${family} text on a surface`],
+        // Deliberately absent: `<family>-default on a surface`. That stop is never
+        // painted at full strength — Badge uses it as a fill behind
+        // `--aeterni-color-on-semantic` (covered above), and Tag and NoticeCard mix
+        // it to 9-22% before painting a tint or border. Measuring the raw stop
+        // against a surface would be measuring a colour that never renders, the
+        // same mistake the `-soft` fills would produce.
+        [`--aeterni-color-on-semantic`, `--aeterni-color-${family}-default`, TEXT_FLOOR, `label on a solid ${family} fill`],
+        // Deliberately absent: the `-soft` fills. They are 11-12% alpha tints, and
+        // this gate flattens a translucent foreground onto its background but has
+        // no surface to flatten a translucent background against, so it would
+        // compare the tint's own luminance and report a meaningless ~1.2:1.
+        // Measuring ink-on-soft needs the palette's compositing step first. The
+        // pairing is real (Avatar puts `-text` on `-soft`), so this is a gap in the
+        // gate rather than a pair that does not exist.
+    ]),
+    ...['danger', 'success', 'warning', 'info', 'neutral'].map(family =>
+        [`--aeterni-color-${family}-text`, '--aeterni-bg', TEXT_FLOOR, `${family} text on the page`]),
+
+    // Ink on a soft fill. The fill is an 11-12% alpha tint, so it is only
+    // measurable with the surface behind it — this is the pairing Avatar draws
+    // (its ink over its own soft background).
+    ...['danger', 'success', 'warning', 'info'].flatMap(family => [
+        [`--aeterni-color-${family}-text`, `--aeterni-color-${family}-soft`, TEXT_FLOOR,
+            `${family} ink on its soft fill over a surface`, '--aeterni-bg-surface'],
+        [`--aeterni-color-${family}-text`, `--aeterni-color-${family}-soft`, TEXT_FLOOR,
+            `${family} ink on its soft fill over the page`, '--aeterni-bg'],
+    ]),
+];
+
+/* --- run ----------------------------------------------------------------- */
+
+const css = readFileSync(target, 'utf8');
+
+const rules = parseRules(css);
+
+const hueLayers = new Map();
+for (const rule of rules) {
+    const selector = rule.selectors.find(s => /^\[data-aeterni-brand=".+?"\]$/.test(s));
+    if (!selector || !rule.declarations['--aeterni-brand-500']) continue;
+    hueLayers.set(selector.match(/"(.*)"/)[1], { selector, rule });
+}
+
+const problems = [];
+if (!hueLayers.size) problems.push(`no [data-aeterni-brand="…"] hue layer found in ${target}`);
+
+for (const [brand, layer] of hueLayers) {
+    const declaredStops = Object.keys(layer.rule.declarations)
+        .filter(name => name.startsWith('--aeterni-brand-'))
+        .map(name => Number(name.replace('--aeterni-brand-', '')));
+    const missing = STOPS.filter(stop => !declaredStops.includes(stop));
+    const extra = declaredStops.filter(stop => !STOPS.includes(stop));
+    if (missing.length) problems.push(`${brand}: missing stops ${missing.join(', ')}`);
+    if (extra.length) problems.push(`${brand}: unexpected stops ${extra.join(', ')}`);
+}
+
+const rows = [];
+for (const [brand] of hueLayers) {
+    for (const mode of ['light', 'dark', 'system-dark']) {
+        let context;
+        try {
+            context = resolveContext(rules, { brand, mode });
+        } catch (error) {
+            problems.push(`::error::${brand}/${mode}: ${error.message}`);
+            continue;
+        }
+
+        for (const [fgToken, bgToken, floor, usage, surfaceToken] of PAIRS) {
+            try {
+                // A translucent background has to be flattened onto whatever sits
+                // behind it before it can be measured. Without the surface step the
+                // tint's own luminance is used, which reports a meaningless ratio
+                // for an 11% fill — the mistake that produced a false finding once.
+                const rawBg = context.color(bgToken);
+                const bg = surfaceToken ? composite(rawBg, context.color(surfaceToken)) : rawBg;
+                const ratio = contrast(context.color(fgToken), bg);
+                const margin = ratio / floor;
+                const pass = ratio >= floor;
+                rows.push({ brand, mode, fgToken, bgToken, usage, ratio, floor, margin, pass });
+                if (!pass) {
+                    const known = KNOWN_SHORTFALLS.get(`::${mode}::${fgToken}::${bgToken}`);
+                    const detail =
+                        `${brand}/${mode}: ${fgToken} on ${bgToken} is ${ratio.toFixed(2)}:1, ` +
+                        `below the ${floor}:1 floor (${usage})`;
+                    if (known) {
+                        // Printed every run so the gap stays visible, but it does not
+                        // fail the build while the palette decision is open.
+                        console.log(`  known   ${detail}`);
+                        console.log(`          ${known}`);
+                    } else {
+                        problems.push(`::error::${detail}`);
+                    }
+                }
+            } catch (error) {
+                problems.push(`::error::${brand}/${mode}: ${fgToken} on ${bgToken} - ${error.message}`);
+            }
+        }
+    }
+}
+
+// §5.4 accounting: the 500 stop carries the solid fill, so its margin against
+// the inverse text is the palette's real headroom. When that margin is thin the
+// hue layer's own comment must name it, otherwise a later edit can spend it
+// without anyone noticing that the palette had none left.
+for (const [brand, layer] of hueLayers) {
+    const fill = rows.find(r => r.brand === brand && r.mode === 'light'
+        && r.fgToken === '--aeterni-text-inverse' && r.bgToken === '--aeterni-color-brand-default');
+    if (!fill) continue;
+
+    if (fill.margin < ACCOUNTING_MARGIN) {
+        const quoted = `${fill.ratio.toFixed(2)}:1`;
+        if (!layer.rule.comment.includes(quoted)) {
+            problems.push(
+                `::error::${layer.selector}: the solid fill leaves only a ${fill.margin.toFixed(3)}x margin ` +
+                `(${quoted} against the inverse text), below the ${ACCOUNTING_MARGIN}x accounting line, but the ` +
+                `comment above the hue layer does not state "${quoted}". Either loosen the anchor or record the ` +
+                `trade-off in that comment.`);
+        }
+    }
+}
+
+const tag = ({ brand, mode }) => `${brand}/${mode}`.padEnd(18);
+for (const brand of hueLayers.keys()) {
+    for (const mode of ['light', 'dark', 'system-dark']) {
+        const group = rows.filter(r => r.brand === brand && r.mode === mode);
+        if (!group.length) continue;
+        console.log(`\n${brand} / ${mode}`);
+        for (const row of group) {
+            console.log(
+                `  ${row.pass ? 'ok  ' : 'FAIL'} ${row.ratio.toFixed(2).padStart(6)}:1  ` +
+                `floor ${row.floor}  margin ${row.margin.toFixed(3)}  ` +
+                `${row.fgToken} on ${row.bgToken}`);
+        }
+    }
+}
+
+const tightest = rows.filter(r => r.pass).sort((a, b) => a.margin - b.margin)[0];
+if (tightest) {
+    console.log(`\ntightest gate: ${tightest.ratio.toFixed(2)}:1 (margin ${tightest.margin.toFixed(3)}) - ` +
+        `${tag(tightest)} ${tightest.fgToken} on ${tightest.bgToken}`);
+}
+
+if (problems.length) {
+    console.error(`\nContrast check failed (${problems.length} problem${problems.length === 1 ? '' : 's'}):`);
+    for (const problem of problems) console.error(`  ${problem}`);
+    process.exit(1);
+}
+
+console.log(`\nContrast check passed: ${rows.length} gates across ` +
+    `${hueLayers.size} hue layer${hueLayers.size === 1 ? '' : 's'} x 3 mode states.`);

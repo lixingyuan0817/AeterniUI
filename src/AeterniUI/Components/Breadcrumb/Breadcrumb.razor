@@ -1,0 +1,56 @@
+@inherits AeterniComponent
+
+<nav @ref="RootElement" @attributes="BuildAttributes()" aria-label="@EffectiveAriaLabel">
+    <ol class="aeterni-breadcrumb__list">
+        @{ var visibleItems = VisibleItems; }
+        @for (var index = 0; index < visibleItems.Count; index++)
+        {
+            var item = visibleItems[index];
+            var current = IsCurrent(index, visibleItems.Count);
+            <li class="aeterni-breadcrumb__item @(current ? "is-current" : "")">
+                @if (index > 0)
+                {
+                    <span class="aeterni-breadcrumb__separator" aria-hidden="true">
+                        @if (Separator is not null)
+                        {
+                            @Separator
+                        }
+                        else
+                        {
+                            <Icon Definition="@AeterniIcons.ChevronRight" />
+                        }
+                    </span>
+                }
+
+                @if (!current && !string.IsNullOrWhiteSpace(item.Href))
+                {
+                    <a class="aeterni-breadcrumb__link @(item.Disabled ? "is-disabled" : "")"
+                       href="@item.Href"
+                       target="@item.Target"
+                       rel="@LinkRel(item)"
+                       aria-disabled="@(item.Disabled ? "true" : null)"
+                       tabindex="@(item.Disabled ? "-1" : null)">
+                        @ItemContent(item)
+                    </a>
+                }
+                else
+                {
+                    <span class="aeterni-breadcrumb__label @(item.Disabled ? "is-disabled" : "")"
+                          aria-current="@(current ? "page" : null)">
+                        @ItemContent(item)
+                    </span>
+                }
+            </li>
+        }
+    </ol>
+</nav>
+
+@code {
+    private static RenderFragment ItemContent(BreadcrumbItem item) => @<text>
+        @if (item.Icon is not null)
+        {
+            <span class="aeterni-breadcrumb__icon" aria-hidden="true">@item.Icon</span>
+        }
+        <span class="aeterni-breadcrumb__text">@item.Label</span>
+    </text>;
+}

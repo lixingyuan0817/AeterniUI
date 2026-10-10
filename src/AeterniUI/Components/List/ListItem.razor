@@ -1,0 +1,34 @@
+@typeparam TItem
+@using AeterniUI.Components.Card
+@inherits AeterniComponent
+
+@* A selectable ListItem renders a non-focusable `role="option"` element: the
+   Listbox container owns DOM focus and reports the active option through
+   aria-activedescendant, so options must stay out of the Tab sequence and must
+   not steal focus on click.
+   One element and one copy of the row content serve both modes; the option role,
+   the option id and the click handler are added by BuildAttributes()/BuildClass()
+   only while the owning List is selectable. *@
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onclick="ClickHandler">
+    @if (CardMode)
+    {
+        @* The option owns state colors; the Card supplies layout and its border. *@
+        <Card Disabled="@EffectiveDisabled" Style="background: transparent; color: inherit;">@ChildContent</Card>
+    }
+    else
+    {
+        @if (LeadingContent is not null)
+        {
+            <span class="aeterni-list-item__leading">@LeadingContent</span>
+        }
+
+        <div class="aeterni-list-item__content">@ChildContent</div>
+
+        @if (TrailingContent is not null)
+        {
+            <span class="aeterni-list-item__trailing">@TrailingContent</span>
+        }
+    }
+</div>

@@ -1,0 +1,61 @@
+@inherits AeterniComponent
+
+@* Card attributes come from BuildAttributes(), so Id/Class/Style/Visible and any
+   extra consumer attribute reach the card like every other component. The kind,
+   severity and state classes are built in BuildClass(). *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <span class="aeterni-dialog-provider__notice-icon" aria-hidden="true">
+        @if (Icon is not null)
+        {
+            @Icon
+        }
+        else
+        {
+            <span class="aeterni-dialog-provider__notice-glyph">
+                <Icon Definition="@NoticeIcon(Severity)" />
+            </span>
+        }
+    </span>
+
+    <div class="aeterni-dialog-provider__notice-content">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <strong>@Title</strong>
+        }
+
+        @if (Message is not null)
+        {
+            <span class="aeterni-dialog-provider__message">@Message</span>
+        }
+        else
+        {
+            @Content
+        }
+    </div>
+
+    @if (ShowCloseButton)
+    {
+        <div class="aeterni-dialog-provider__notice-close">
+            <Button Variant="ButtonVariant.Ghost"
+                    Intent="ButtonIntent.Neutral"
+                    Size="Size.Small"
+                    AriaLabel="@(CloseLabel ?? DefaultCloseLabel)"
+                    OnClick="HandleCloseAsync">
+                <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
+            </Button>
+        </div>
+    }
+
+    @if (Duration > TimeSpan.Zero)
+    {
+        <div class="aeterni-dialog-provider__progress"
+             style="@ProgressStyle(Duration)"
+             data-aeterni-notice-progress="true"
+             aria-hidden="true">
+            <svg class="aeterni-progress-svg" focusable="false">
+                <rect class="aeterni-progress-ring aeterni-progress-ring--base"></rect>
+                <rect class="aeterni-progress-ring aeterni-progress-ring--accent"></rect>
+            </svg>
+        </div>
+    }
+</div>

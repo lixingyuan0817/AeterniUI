@@ -1,0 +1,125 @@
+@page "/components/input-number"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · InputNumber</PageTitle>
+
+<ComponentPreview AnchorId="input-number"
+                  Category="表单组件"
+                  Title="InputNumber"
+                  ComponentName="InputNumber&lt;TValue&gt;"
+                  Description="数值输入控件：受控数值绑定、上下限与步进、方向键与 PageUp/PageDown 步进、可选内置增减按钮；不提供千分位与自定义格式化。"
+                  Parameters="@InputNumberParameters"
+                  Events="@InputNumberEvents"
+                  Contracts="@InputNumberContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            @* 这里必须使用完全限定标签：`Microsoft.AspNetCore.Components.Forms`
+               自带同名的 `InputNumber<TValue>`（.NET 8+），凡是使用 EditForm 的宿主都会
+               引入该命名空间，此时 `<InputNumber>` 会解析到框架类型。 *@
+            <FormField Label="采购数量"
+                       Description="方向键按步长增减，PageUp/PageDown 一次走 10 步；输入框聚焦时这些按键不会滚动页面。"
+                       Required="@_required"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <AeterniUI.Components.InputNumber.InputNumber TValue="decimal"
+                             Value="@_quantity"
+                             ValueChanged="@HandleQuantityChanged"
+                             Min="0"
+                             Max="100"
+                             Step="@_step"
+                             ShowControls="@_showControls"
+                             ReadOnly="@_readOnly"
+                             FullWidth="@_fullWidth"
+                             Size="@_size"
+                             Placeholder="请输入数量"
+                             AriaLabel="采购数量" />
+            </FormField>
+            <span class="preview-feedback" role="status">@_status</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="input-number-size" AriaLabel="InputNumber Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+            <div class="control-field">
+                <span>Step</span>
+                <ShowcaseSelect TValue="decimal" Id="input-number-step" AriaLabel="InputNumber Step" Options="@_stepOptions" TextSelector="@FormatStep" @bind-Value="_step" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_showControls">ShowControls</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_required">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+    </Controls>
+    <Notes>
+        <span>值类型为 <code>TValue?</code>：空值表示“未填写”，配合 FormField 的 Required 参与 EditContext 校验；显示精度默认取自 Step 的小数位。</span>
+        <span>输入过程中不拦截、不整形草稿，blur 时才做上下限夹取与精度取整；越界但仍可解析的输入由宿主校验负责提示。</span>
+        <span>ShowControls 在输入框尾部追加连体的减/增按钮；只读与禁用同时作用于输入框和按钮。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private decimal? _quantity = 12.5m;
+    private string _status = "当前值：12.5";
+    private Size _size = Size.Default;
+    private decimal _step = 0.5m;
+    private bool _showControls = true;
+    private bool _readOnly;
+    private bool _required;
+    private bool _invalid;
+    private bool _disabled;
+    private bool _fullWidth;
+
+    private static readonly decimal[] _stepOptions = [1m, 0.5m, 0.1m];
+
+    private static string FormatStep(decimal step) => step.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    private Task HandleQuantityChanged(decimal? value)
+    {
+        _quantity = value;
+        _status = value is null ? "当前值为空（未填写）" : $"当前值：{value.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}";
+        return Task.CompletedTask;
+    }
+
+    private static readonly ShowcaseParameter[] InputNumberParameters =
+    [
+        new("Value", "TValue?", "受控数值，空值表示未填写。"),
+        new("ValueChanged", "EventCallback<TValue?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<TValue?>>?", "EditContext 字段表达式。"),
+        new("Min", "TValue?", "下限，空表示无下界。"),
+        new("Max", "TValue?", "上限，空表示无上界。"),
+        new("Step", "TValue?", "步进增量，默认 1。", "1"),
+        new("Precision", "int?", "显示与提交的小数位，默认取 Step 的小数位。"),
+        new("ShowControls", "bool", "是否在尾部显示减/增按钮。", "false"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Size", "Size", "控件尺寸。", "Default"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
+        new("InputMode", "string?", "虚拟键盘提示，默认按值类型取 numeric/decimal。"),
+        new("IncrementLabel", "string?", "增加按钮的无障碍名称。"),
+        new("DecrementLabel", "string?", "减少按钮的无障碍名称。"),
+        new("AriaLabel", "string?", "输入框无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] InputNumberEvents =
+    [
+        new("ValueChanged", "EventCallback<TValue?>", "输入、步进或按钮改变数值时触发。")
+    ];
+
+    private static readonly ShowcaseContract[] InputNumberContracts =
+    [
+        new("InputNumber", "role=spinbutton", "步进逻辑在 C#，JS 只拦截被处理按键的默认行为。"),
+        new("InputNumber", "aria-valuenow/min/max", "上下限与当前值输出为字符串；空值时不输出 aria-valuenow。")
+    ];
+}

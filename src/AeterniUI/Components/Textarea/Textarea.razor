@@ -1,0 +1,9 @@
+@inherits AeterniComponent
+
+<textarea @ref="RootElement"
+          @attributes="BuildAttributes()"
+          @oninput="HandleInputAsync"
+          @onchange="HandleChangeAsync"
+          @onfocus="HandleFocusAsync"
+          @onblur="HandleBlurAsync"
+          @onkeydown="HandleKeyDownAsync"></textarea>

@@ -1,0 +1,44 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()" @onkeydown="HandleKeyDownAsync">
+    @if (_map.Count == 0)
+    {
+        <span class="aeterni-time-option-list__empty">@EffectiveEmptyText</span>
+    }
+    else
+    {
+        @foreach (var unit in Units)
+        {
+            <div class="aeterni-time-option-list__column @(unit == ActiveUnit ? "is-active" : null)">
+                <span class="aeterni-time-option-list__heading">@ColumnLabel(unit)</span>
+                <div class="aeterni-time-option-list__wheel">
+                    <div class="aeterni-time-option-list__options"
+                         role="listbox"
+                         aria-label="@ColumnLabel(unit)"
+                         aria-orientation="vertical"
+                         data-time-unit="@unit.ToString().ToLowerInvariant()">
+                        @foreach (var value in ValuesFor(unit))
+                        {
+                            var selected = IsSelected(unit, value);
+                            var active = IsActive(unit, value);
+                            var optionUnit = unit;
+                            var optionValue = value;
+                            <div @key="value" id="@OptionId(unit, value)"
+                                 class="aeterni-time-option-list__option @(selected ? "is-selected" : null) @(active ? "is-active" : null)"
+                                 role="option"
+                                 aria-selected="@(selected ? "true" : "false")"
+                                 data-time-value="@value"
+                                 @onclick="@(() => SelectUnitAsync(optionUnit, optionValue))">
+                                <span class="aeterni-time-option-list__label">@OptionLabel(unit, value)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    <div class="aeterni-time-option-list__footer" @onkeydown:stopPropagation="true">
+        <Button Variant="ButtonVariant.Ghost" Size="Size.Small" OnClick="@(_ => CancelAsync())">@EffectiveCancelText</Button>
+        <Button Size="Size.Small" Disabled="@(!_draftValue.HasValue)" OnClick="@(_ => ConfirmAsync())">@EffectiveConfirmText</Button>
+    </div>
+</div>

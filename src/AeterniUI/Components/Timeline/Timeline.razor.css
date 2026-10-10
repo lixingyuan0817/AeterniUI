@@ -1,0 +1,167 @@
+.aeterni-timeline {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-timeline__item {
+    --aeterni-timeline-accent: var(--aeterni-color-brand-text);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--aeterni-control-height-sm) minmax(0, 1fr);
+    column-gap: var(--aeterni-spacing-3);
+    min-width: 0;
+    padding-block-end: var(--aeterni-spacing-6);
+}
+
+.aeterni-timeline__item:last-child {
+    padding-block-end: 0;
+}
+
+/* The connector belongs to the preceding event and stops short of the next
+   marker, keeping the line decorative and outside the event copy. */
+.aeterni-timeline__item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(var(--aeterni-control-height-sm) + var(--aeterni-spacing-1)) var(--aeterni-spacing-1);
+    inset-inline-start: calc(var(--aeterni-control-height-sm) / 2 - var(--aeterni-border-width) / 2);
+    width: var(--aeterni-border-width);
+    background: var(--aeterni-separator);
+}
+
+.aeterni-timeline__marker {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
+
+    position: relative;
+    z-index: 1;
+    display: inline-grid;
+    align-self: start;
+    width: var(--aeterni-control-height-sm);
+    height: var(--aeterni-control-height-sm);
+    place-items: center;
+    box-sizing: border-box;
+    border: var(--aeterni-border-width-medium) solid var(--aeterni-timeline-accent);
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-timeline-accent);
+    line-height: 0;
+}
+
+/* Icon's global baseline adjustment is useful inline but must not influence a
+   marker slot. The flex wrapper centres the SVG's own box on both axes. */
+.aeterni-timeline__glyph {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.aeterni-timeline__dot {
+    width: var(--aeterni-spacing-2);
+    height: var(--aeterni-spacing-2);
+    border-radius: var(--aeterni-radius-full);
+    background: currentColor;
+}
+
+.aeterni-timeline__content {
+    min-width: 0;
+    padding-block-start: calc((var(--aeterni-control-height-sm) - var(--aeterni-font-size-sm) * var(--aeterni-line-height-normal)) / 2);
+}
+
+.aeterni-timeline__time {
+    display: block;
+    margin-block-end: var(--aeterni-spacing-1);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-tight);
+}
+
+.aeterni-timeline__title,
+.aeterni-timeline__description,
+.aeterni-timeline__template {
+    overflow-wrap: anywhere;
+}
+
+.aeterni-timeline__title {
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-timeline__description {
+    margin-block-start: var(--aeterni-spacing-1);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-timeline__item--primary {
+    --aeterni-timeline-accent: var(--aeterni-color-brand-text);
+}
+
+.aeterni-timeline__item--neutral {
+    --aeterni-timeline-accent: var(--aeterni-color-neutral-text);
+}
+
+.aeterni-timeline__item--success {
+    --aeterni-timeline-accent: var(--aeterni-color-success-text);
+}
+
+.aeterni-timeline__item--warning {
+    --aeterni-timeline-accent: var(--aeterni-color-warning-text);
+}
+
+.aeterni-timeline__item--danger {
+    --aeterni-timeline-accent: var(--aeterni-color-danger-text);
+}
+
+.aeterni-timeline__item--info {
+    --aeterni-timeline-accent: var(--aeterni-color-info-text);
+}
+
+/* Horizontal mode keeps the same marker/content rhythm and changes only the
+   event axis. Each event has a readable minimum width; excess content scrolls
+   inside the component instead of widening the page. */
+.aeterni-timeline--horizontal {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-block-end: var(--aeterni-spacing-2);
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-border-strong) transparent;
+}
+
+.aeterni-timeline--horizontal .aeterni-timeline__item {
+    flex: 1 0 min(12rem, 70vw);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--aeterni-control-height-sm) minmax(0, 1fr);
+    justify-items: center;
+    row-gap: var(--aeterni-spacing-3);
+    padding: 0 var(--aeterni-spacing-3);
+}
+
+.aeterni-timeline--horizontal .aeterni-timeline__marker {
+    align-self: center;
+}
+
+.aeterni-timeline--horizontal .aeterni-timeline__content {
+    padding-block-start: 0;
+    text-align: center;
+}
+
+.aeterni-timeline--horizontal .aeterni-timeline__item:not(:last-child)::after {
+    inset-block: calc(var(--aeterni-control-height-sm) / 2 - var(--aeterni-border-width) / 2) auto;
+    inset-inline-start: calc(50% + var(--aeterni-control-height-sm) / 2 + var(--aeterni-spacing-1));
+    inset-inline-end: calc(-50% + var(--aeterni-control-height-sm) / 2 + var(--aeterni-spacing-1));
+    width: auto;
+    height: var(--aeterni-border-width);
+}

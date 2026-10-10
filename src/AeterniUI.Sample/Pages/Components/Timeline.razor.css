@@ -1,0 +1,12 @@
+.timeline-template {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.timeline-template span {
+    color: var(--aeterni-text-secondary);
+}

@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Publishes the AeterniUI Blazor sample so the repo-root "dist" folder directly
+# contains the deployable site (index.html at its root) for static hosting,
+# including the GitHub Pages workflow.
+#
+# Usage: sample-publish.sh [Debug|Release]
+#
+# Blazor WASM's `dotnet publish` places the deployable site under <out>/wwwroot.
+# We move that wwwroot content up to <repo>/dist and discard the runtime/transport
+# metadata files, so `dist/index.html` is the static site's entry point.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG="${1:-Debug}"
+STAGE="$ROOT/.sample-publish"
+
+case "$CONFIG" in
+  Debug|Release) ;;
+  *) echo "Unknown config '$CONFIG'. Use Debug or Release." >&2; exit 2 ;;
+esac
+
+echo "Publishing AeterniUI.Sample ($CONFIG) -> $ROOT/dist"
+
+rm -rf "$ROOT/dist" "$STAGE"
+
+dotnet publish \
+  "$ROOT/src/AeterniUI.Sample/AeterniUI.Sample.csproj" \
+  -c "$CONFIG" \
+  -o "$STAGE"
+
+if [ -d "$STAGE/wwwroot" ]; then
+  mv "$STAGE/wwwroot" "$ROOT/dist"
+fi
+
+rm -rf "$STAGE"
+
+if [ ! -f "$ROOT/dist/index.html" ]; then
+  echo "Expected $ROOT/dist/index.html but it was not produced." >&2
+  exit 1
+fi
+
+# Fail loudly when a local asset referenced by index.html is missing from the
+# output. A stale dist/ that silently omitted a stylesheet (or a wwwroot file
+# the publish did not pick up) produced a page that looked "broken but styled":
+# every rule from the missing sheet did nothing, so the layout collapsed without
+# any visible error. Only same-origin relative paths are checked; _framework and
+# _content come from the runtime and package manifests.
+MISSING=0
+while IFS= read -r ref; do
+  case "$ref" in
+    http://*|https://*|//*|data:*|_framework/*|_content/*|\#*) continue ;;
+  esac
+  if [ ! -e "$ROOT/dist/${ref%%[?#]*}" ]; then
+    echo "index.html references '$ref' but dist/ does not contain it." >&2
+    MISSING=1
+  fi
+done < <(grep -oE '(href|src)="[^"]+"' "$ROOT/dist/index.html" | sed -E 's/^[a-z]+="//; s/"$//' | sort -u)
+
+if [ "$MISSING" -ne 0 ]; then
+  echo "Publish output is incomplete; the site would load without the assets above." >&2
+  exit 1
+fi
+
+echo "Done. dist/index.html is ready for static hosting."

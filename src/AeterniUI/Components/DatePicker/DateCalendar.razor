@@ -1,0 +1,66 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()" role="group" aria-label="@EffectiveAriaLabel">
+    <div class="aeterni-date-calendar__toolbar">
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerPreviousMonthLabel" disabled="@(DisplayMonth == DateOnly.MinValue)" @onclick="PreviousMonthAsync">
+            <Icon Definition="@AeterniIcons.ChevronLeft" />
+        </button>
+        <strong>@VisibleMonthTitle</strong>
+        <button type="button" class="aeterni-date-calendar__nav" aria-label="@UiText.DatePickerNextMonthLabel" disabled="@(DisplayMonth == new DateOnly(9999, 12, 1))" @onclick="NextMonthAsync">
+            <Icon Definition="@AeterniIcons.ChevronRight" />
+        </button>
+    </div>
+    <div class="aeterni-date-calendar__months" style="--aeterni-date-calendar-months: @RenderedMonthCount">
+        @foreach (var month in Months)
+        {
+            <section class="aeterni-date-calendar__month" aria-label="@MonthTitle(month)">
+                @if (VisibleMonths > 1)
+                {
+                    <strong class="aeterni-date-calendar__month-title">@MonthTitle(month)</strong>
+                }
+                <div class="aeterni-date-calendar__weekdays" aria-hidden="true">
+                    @foreach (var weekday in Weekdays)
+                    {
+                        <span>@weekday</span>
+                    }
+                </div>
+                <div class="aeterni-date-calendar__grid" role="grid" aria-label="@MonthTitle(month)">
+                    @foreach (var week in Weeks(month))
+                    {
+                        <div class="aeterni-date-calendar__row" role="row">
+                            @foreach (var cell in week)
+                            {
+                                if (cell is not { } day)
+                                {
+                                    <span role="gridcell" aria-disabled="true"></span>
+                                    continue;
+                                }
+                                var outside = day.Month != month.Month;
+                                var hiddenDuplicate = VisibleMonths > 1 && outside;
+                                var disabled = hiddenDuplicate || IsDisabled(day);
+                                var selected = IsSelected(day);
+                                var preview = IsRangePreview(day);
+                                var dayKey = new CalendarDayKey(month, day);
+                                <button @ref="_dayElements[dayKey]"
+                                        type="button"
+                                        class="aeterni-date-calendar__day @(outside ? "is-outside" : string.Empty) @(selected ? "is-selected" : string.Empty) @(preview ? "is-range-preview" : string.Empty) @(day == Today ? "is-today" : string.Empty)"
+                                        role="gridcell"
+                                        aria-label="@DayLabel(day)"
+                                        aria-hidden="@(hiddenDuplicate ? "true" : null)"
+                                        aria-selected="@(selected ? "true" : "false")"
+                                        aria-current="@(day == Today ? "date" : null)"
+                                        disabled="@disabled"
+                                        tabindex="@(!hiddenDuplicate && day == FocusedDate ? 0 : -1)"
+                                        @onkeydown="@(e => HandleKeyDownAsync(e, day))"
+                                        @onclick="@(() => SelectDayAsync(day))"
+                                        @onmouseenter="@(() => DateHovered.InvokeAsync(day))">
+                                    @day.Day
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</div>

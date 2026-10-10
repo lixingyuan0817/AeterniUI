@@ -1,0 +1,75 @@
+/* One ring definition for the whole library. `--aeterni-spinner-size` is the
+   documented extension point: an ancestor can set it to match the control it
+   loads (Button's veil does), while the size tiers below only provide the
+   default. That is why the tiers write `-size-base`, not the variable itself. */
+.aeterni-spinner {
+    --aeterni-spinner-size-base: var(--aeterni-icon-size-lg);
+    --aeterni-spinner-border-width: var(--aeterni-border-width-medium);
+
+    box-sizing: border-box;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--aeterni-spinner-size, var(--aeterni-spinner-size-base));
+    height: var(--aeterni-spinner-size, var(--aeterni-spinner-size-base));
+    border: var(--aeterni-spinner-border-width) solid currentColor;
+    /* The missing quarter is what reads as rotation. */
+    border-right-color: transparent;
+    border-radius: var(--aeterni-radius-round);
+    color: currentColor;
+    /* Local optical tweak carried over from the button loading ring: a fully
+       opaque stroke reads a little hard against a translucent veil. */
+    opacity: .92;
+    /* The ring keeps the previous 700ms period by scaling the slow duration token,
+       and spins linearly because a spinner has no start or end state. */
+    animation: aeterni-spinner-rotate calc(var(--aeterni-duration-slower) * 1.4) var(--aeterni-ease-linear) infinite;
+}
+
+.aeterni-spinner--sm {
+    --aeterni-spinner-size-base: var(--aeterni-icon-size-md);
+}
+
+.aeterni-spinner--lg {
+    --aeterni-spinner-size-base: var(--aeterni-icon-size-2xl);
+    /* A 2px stroke disappears on a 32px ring; the large tier thickens it. */
+    --aeterni-spinner-border-width: var(--aeterni-border-width-thick);
+}
+
+/* Named colours use the accent's text stop: the fill stops are for solid
+   surfaces and only reach ~2.2:1 as ink on a light page. */
+.aeterni-spinner--primary {
+    color: var(--aeterni-color-brand-text);
+}
+
+.aeterni-spinner--neutral {
+    color: var(--aeterni-color-neutral-text);
+}
+
+.aeterni-spinner--success {
+    color: var(--aeterni-color-success-text);
+}
+
+.aeterni-spinner--warning {
+    color: var(--aeterni-color-warning-text);
+}
+
+.aeterni-spinner--danger {
+    color: var(--aeterni-color-danger-text);
+}
+
+.aeterni-spinner--info {
+    color: var(--aeterni-color-info-text);
+}
+
+@keyframes aeterni-spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* The ring stays visible as a static busy indicator; the status role still
+       announces the loading state. */
+    .aeterni-spinner {
+        animation: none;
+    }
+}

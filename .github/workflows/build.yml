@@ -1,0 +1,89 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore & build
+        run: dotnet build aeterni_ui.slnx -c Debug --nologo
+
+      - name: Component contract checks
+        run: dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
+
+      - name: JS syntax check (.razor.js)
+        shell: bash
+        run: |
+          mapfile -t files < <(find src -name "*.razor.js" -not -path "*/bin/*" -not -path "*/obj/*")
+          if [ "${#files[@]}" -gt 0 ]; then
+            for file in "${files[@]}"; do
+              echo "node --check $file"
+              node --check "$file"
+            done
+          fi
+
+      - name: Documentation consistency check
+        run: bash scripts/check-docs.sh
+
+      - name: Documentation drift check
+        run: node scripts/check-doc-drift.mjs
+
+      - name: Browser behavior unit checks
+        run: node --test tests/*.test.mjs
+
+      - name: CSS comment check
+        run: node scripts/check-css-comments.mjs
+
+      - name: Brand palette contrast check
+        run: node scripts/check-contrast.mjs
+
+      - name: Token file must not contain component rules
+        shell: bash
+        run: |
+          CSS=src/AeterniUI/wwwroot/css/aeterni_ui.css
+          # Only the Token-level theme alias .aeterni-dark is allowed; every other
+          # top-level ".aeterni-…" selector means component styling leaked into the
+          # token file. Component styles belong in their own *.razor.css files.
+          offenders=$(grep -E '^\.aeterni-' "$CSS" | grep -v '^\.aeterni-dark' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::aeterni_ui.css contains component selectors (must be Tokens only):"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "aeterni_ui.css is Token-only."
+
+  # Drives the published sample in headless Chrome. Separate from `build` because
+  # it needs a browser and a published site; it asserts what HtmlRenderer cannot
+  # see — real stacking contexts, transition timing, focus rings and keyboard
+  # focus movement. See tests/browser/README.md.
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # The harness uses the global WebSocket that Node 22 added.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Browser checks
+        run: tests/browser/run.sh

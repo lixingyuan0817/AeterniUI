@@ -1,0 +1,99 @@
+@page "/components/textarea"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Textarea</PageTitle>
+
+<ComponentPreview AnchorId="textarea"
+                  Category="表单组件"
+                  Title="Textarea"
+                  ComponentName="Textarea"
+                  Description="多行原生文本控件，复用 Input 的绑定、校验、禁用、只读和无障碍语义。"
+                  Parameters="@TextareaParameters"
+                  Events="@TextareaEvents">
+    <Preview>
+        <div class="preview-form-control">
+            <Textarea @bind-Value="_textareaValue"
+                      Rows="@_textareaRows"
+                      Resize="@_textareaResize"
+                      Placeholder="@_textareaPlaceholder"
+                      ReadOnly="@_textareaReadOnly"
+                      Required="@_textareaRequired"
+                      Invalid="@_textareaInvalid"
+                      Disabled="@_textareaDisabled"
+                      FullWidth="@_textareaFullWidth"
+                      AriaLabel="预览文本域" />
+            <code class="preview-value">Value: @_textareaValue</code>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="textarea-placeholder">Placeholder</label>
+            <input id="textarea-placeholder" @bind="_textareaPlaceholder" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <label for="textarea-rows">Rows</label>
+                <input id="textarea-rows" type="number" min="1" @bind="_textareaRows" />
+            </div>
+            <div class="control-field">
+                <span>Resize</span>
+                <ShowcaseSelect TValue="TextareaResize" Id="textarea-resize" AriaLabel="Resize" Options="@(Enum.GetValues<TextareaResize>())" @bind-Value="_textareaResize" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_textareaReadOnly">ReadOnly</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_textareaRequired">Required</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_textareaInvalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_textareaDisabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_textareaFullWidth">FullWidth</Checkbox>
+    </Controls>
+</ComponentPreview>
+
+@code {
+    private string? _textareaValue = "这是一个多行文本示例。";
+
+    private string _textareaPlaceholder = "输入多行内容";
+
+    private int _textareaRows = 4;
+
+    private TextareaResize _textareaResize = TextareaResize.Vertical;
+
+    private bool _textareaReadOnly;
+
+    private bool _textareaRequired;
+
+    private bool _textareaInvalid;
+
+    private bool _textareaDisabled;
+
+    private bool _textareaFullWidth;
+
+    private static readonly ShowcaseParameter[] TextareaParameters =
+    [
+        new("Value", "string?", "当前文本值。"),
+        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("Rows", "int?", "初始行数。", "4"),
+        new("Resize", "TextareaResize", "是否允许垂直调整大小。", "Vertical"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
+    ];
+
+    private static readonly ShowcaseEvent[] TextareaEvents =
+    [
+        new("OnInput", "EventCallback<ChangeEventArgs>", "输入过程中触发。"),
+        new("OnChange", "EventCallback<ChangeEventArgs>", "值提交时触发。"),
+        new("OnFocus", "EventCallback<FocusEventArgs>", "获得焦点时触发。"),
+        new("OnBlur", "EventCallback<FocusEventArgs>", "失去焦点时触发。"),
+        new("OnKeyDown", "EventCallback<KeyboardEventArgs>", "键盘按键时触发。")
+    ];
+}

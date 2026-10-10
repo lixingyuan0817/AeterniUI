@@ -1,0 +1,127 @@
+@page "/components/autocomplete"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Models.Dialog
+@using AeterniUI.Services.Impl
+
+<PageTitle>Aeterni UI · Autocomplete</PageTitle>
+
+<ComponentPreview AnchorId="autocomplete"
+                  Category="表单组件"
+                  Title="Autocomplete"
+                  ComponentName="Autocomplete&lt;TItem&gt;"
+                  Description="自由输入与宿主提供的建议列表，支持浮层、键盘导航、异步加载状态和模板。"
+                  Parameters="@AutocompleteParameters"
+                  Events="@AutocompleteEvents"
+                  Contracts="@AutocompleteContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="组件建议"
+                       Description="输入关键词后使用方向键或鼠标选择。"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <Autocomplete TItem="string"
+                              @bind-Value="_query"
+                              Items="@Suggestions"
+                              Size="@_size"
+                              Placeholder="@_placeholder"
+                              Clearable="@_clearable"
+                              Loading="@_loading"
+                              OpenOnFocus="@_openOnFocus"
+                              FullWidth="@_fullWidth"
+                              AriaLabel="组件建议"
+                              OnItemSelected="HandleItemSelectedAsync"
+                              OnClear="HandleClearAsync" />
+            </FormField>
+            <span class="preview-feedback" role="status">@_status</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="autocomplete-placeholder">Placeholder</label>
+            <input id="autocomplete-placeholder" @bind="_placeholder" />
+        </div>
+        <div class="control-grid">
+            <div class="control-field">
+                <span>Size</span>
+                <ShowcaseSelect TValue="Size" Id="autocomplete-size" AriaLabel="Autocomplete Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+            </div>
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_clearable">Clearable</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_openOnFocus">OpenOnFocus</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+    </Controls>
+    <Notes>
+        <span>建议项由宿主通过 Items 提供；输入值变化通过标准 ValueChanged 绑定，宿主可以在回调中异步更新 Items。</span>
+        <span>输入框保持 combobox 焦点，建议项使用 listbox/option 语义；方向键只移动活动项，Enter 确认。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private static readonly string[] AllSuggestions =
+    ["Accordion", "Autocomplete", "Breadcrumb", "Button", "ComboBox", "DatePicker", "Dialog", "Input", "List", "Search", "Stepper", "Tabs"];
+
+    private string? _query;
+    private string _placeholder = "输入组件名称…";
+    private string _status = "尚未选择建议";
+    private Size _size = Size.Default;
+    private bool _clearable = true;
+    private bool _openOnFocus = true;
+    private bool _loading;
+    private bool _disabled;
+    private bool _invalid;
+    private bool _fullWidth;
+
+    private IReadOnlyList<string> Suggestions => string.IsNullOrWhiteSpace(_query)
+        ? AllSuggestions
+        : AllSuggestions.Where(item => item.Contains(_query, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+    private static readonly ShowcaseParameter[] AutocompleteParameters =
+    [
+        new("Value", "string?", "当前自由输入值。"),
+        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
+        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
+        new("Items", "IReadOnlyList<TItem>?", "宿主提供的建议项快照。"),
+        new("TextSelector", "Func<TItem, string>?", "将建议项映射为输入文本。"),
+        new("ItemTemplate", "RenderFragment<TItem>?", "自定义建议项模板。"),
+        new("EmptyContent", "RenderFragment?", "没有建议项时的内容。"),
+        new("Size", "Size", "输入与清除动作的共同尺寸。", "Default"),
+        new("Clearable", "bool", "是否在有值时显示清除动作。", "true"),
+        new("Loading", "bool", "宿主异步加载建议时的状态。", "false"),
+        new("OpenOnFocus", "bool", "聚焦时是否打开建议列表。", "true"),
+        new("ReadOnly", "bool", "只读状态。", "false"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("Placeholder", "string?", "占位文本。"),
+        new("AriaLabel", "string?", "输入和建议列表的无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
+        new("ClearLabel", "string?", "清除按钮无障碍标签。")
+    ];
+
+    private static readonly ShowcaseEvent[] AutocompleteEvents =
+    [
+        new("OnItemSelected", "EventCallback<TItem>", "建议项被点击或按 Enter 确认后触发。"),
+        new("OnClear", "EventCallback", "清除输入后触发。")
+    ];
+
+    private static readonly ShowcaseContract[] AutocompleteContracts =
+    [new("Autocomplete<TItem>", "combobox + listbox", "建议数据由宿主提供；组件不请求远程数据、不缓存结果。")];
+
+    private Task HandleItemSelectedAsync(string item)
+    {
+        _status = $"已选择：{item}";
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClearAsync()
+    {
+        _status = "已清除输入";
+        return Task.CompletedTask;
+    }
+}

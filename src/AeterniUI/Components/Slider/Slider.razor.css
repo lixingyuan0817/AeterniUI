@@ -1,0 +1,174 @@
+/* Slider geometry is a custom-property contract: C# and the drag module write a
+   unitless 0..1 fraction into --aeterni-slider-value, and every position below is
+   a calc() over that one number, so the fill and the thumb cannot
+   disagree about where the value is. Horizontal positioning uses logical
+   properties, which mirror the whole control in an RTL page without a second
+   rule set; the vertical variant swaps the axis and grows from the bottom. */
+.aeterni-slider {
+    --aeterni-slider-value: 0;
+    --aeterni-slider-thumb-size: var(--aeterni-control-size-md);
+    --aeterni-slider-track-size: var(--aeterni-spacing-1);
+    --aeterni-slider-control-size: var(--aeterni-control-height-md);
+
+    position: relative;
+    box-sizing: border-box;
+    display: block;
+    inline-size: 100%;
+    min-inline-size: var(--aeterni-slider-control-size);
+    block-size: var(--aeterni-slider-control-size);
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* The track is inset by half a thumb at either end, so its box is exactly the
+   path the thumb centre travels; that is what lets the drag module measure the
+   pointer against the track alone. */
+.aeterni-slider__track {
+    position: absolute;
+    inset-inline: calc(var(--aeterni-slider-thumb-size) / 2);
+    inset-block-start: 50%;
+    block-size: var(--aeterni-slider-track-size);
+    translate: 0 -50%;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-bg-tertiary);
+}
+
+.aeterni-slider__fill {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block: 0;
+    inline-size: calc(100% * var(--aeterni-slider-value));
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-state-background-checked);
+    transition: inline-size var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.aeterni-slider__thumb {
+    position: absolute;
+    inset-inline-start: calc((100% - var(--aeterni-slider-thumb-size)) * var(--aeterni-slider-value));
+    inset-block-start: 50%;
+    inline-size: var(--aeterni-slider-thumb-size);
+    block-size: var(--aeterni-slider-thumb-size);
+    translate: 0 -50%;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-state-background-thumb);
+    box-shadow: var(--aeterni-shadow-sm);
+    transition: inset-inline-start var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+/* Pointer feedback walks the brand ramp: the filled block steps one shade as a
+   whole, while invalid and disabled controls are scoped out so a pointer never
+   repaints the state the fill is communicating. */
+.aeterni-slider:not(.is-disabled):not(.is-invalid):hover .aeterni-slider__fill {
+    background: var(--aeterni-state-background-checked-hover);
+}
+
+.aeterni-slider:not(.is-disabled):not(.is-invalid):active .aeterni-slider__fill,
+.aeterni-slider.is-dragging:not(.is-disabled):not(.is-invalid) .aeterni-slider__fill {
+    background: var(--aeterni-state-background-checked-active);
+}
+
+/* The root delegates its focus ring to the thumb, which is the element the user
+   is actually steering. */
+.aeterni-slider:focus-visible {
+    outline: none;
+}
+
+.aeterni-slider:focus-visible .aeterni-slider__thumb {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-slider.is-invalid .aeterni-slider__fill {
+    background: var(--aeterni-color-danger-default);
+}
+
+.aeterni-slider.is-invalid:focus-visible .aeterni-slider__thumb {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-slider.is-disabled {
+    cursor: not-allowed;
+}
+
+/* Disabled keeps the value readable: the track goes flat, the filled block takes
+   the muted ink and the thumb drops its shadow instead of fading the whole
+   control out. */
+.aeterni-slider.is-disabled .aeterni-slider__track {
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-slider.is-disabled .aeterni-slider__fill {
+    background: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-slider.is-disabled .aeterni-slider__thumb {
+    box-shadow: none;
+}
+
+/* While the pointer owns the position, the transitions would lag behind it. */
+.aeterni-slider.is-dragging {
+    cursor: grabbing;
+}
+
+.aeterni-slider.is-dragging .aeterni-slider__fill,
+.aeterni-slider.is-dragging .aeterni-slider__thumb {
+    transition: none;
+}
+
+.aeterni-slider--sm {
+    --aeterni-slider-thumb-size: var(--aeterni-control-size-sm);
+    --aeterni-slider-control-size: var(--aeterni-control-height-sm);
+}
+
+.aeterni-slider--lg {
+    --aeterni-slider-thumb-size: var(--aeterni-control-size-lg);
+    --aeterni-slider-track-size: var(--aeterni-spacing-2);
+    --aeterni-slider-control-size: var(--aeterni-control-height-lg);
+}
+
+/* Vertical keeps the same fraction: it grows from the bottom edge and its length
+   belongs to the host. --aeterni-slider-length is a component-local extension
+   point (the Spinner's --aeterni-spinner-size precedent), not a global token; the
+   default is a usable standalone height and the host overrides it per instance. */
+.aeterni-slider--vertical {
+    --aeterni-slider-length: 12rem;
+
+    inline-size: var(--aeterni-slider-control-size);
+    block-size: var(--aeterni-slider-length);
+}
+
+.aeterni-slider--vertical .aeterni-slider__track {
+    inset-inline: auto;
+    inset-inline-start: calc(50% - var(--aeterni-slider-track-size) / 2);
+    inset-block: calc(var(--aeterni-slider-thumb-size) / 2);
+    inline-size: var(--aeterni-slider-track-size);
+    block-size: auto;
+    translate: none;
+}
+
+.aeterni-slider--vertical .aeterni-slider__fill {
+    inset-inline: 0;
+    inset-block-start: auto;
+    inset-block-end: 0;
+    inline-size: auto;
+    block-size: calc(100% * var(--aeterni-slider-value));
+    transition: block-size var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.aeterni-slider--vertical .aeterni-slider__thumb {
+    inset-inline-start: calc(50% - var(--aeterni-slider-thumb-size) / 2);
+    inset-block-start: auto;
+    inset-block-end: calc((100% - var(--aeterni-slider-thumb-size)) * var(--aeterni-slider-value));
+    translate: none;
+    transition: inset-block-end var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-slider__fill,
+    .aeterni-slider__thumb {
+        transition: none;
+    }
+}

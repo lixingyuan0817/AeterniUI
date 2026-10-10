@@ -1,0 +1,37 @@
+@typeparam TValue
+@inherits AeterniComponent
+
+@* Native radio inputs inside a labelled radiogroup: the browser already provides the
+   single tab stop (roving focus), the arrow keys and the RTL-aware arrow direction,
+   so this component carries no keyboard code of its own. The pill is decorative and
+   takes its geometry from two custom properties (index / count), which is why it does
+   not care how many options the control has. *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <span class="aeterni-segmented__slider" aria-hidden="true"></span>
+
+    @for (var index = 0; index < Items.Count; index++)
+    {
+        var item = Items[index];
+        var isSelected = IsSelected(item);
+        var isDisabled = IsItemDisabled(item);
+
+        <label class="@OptionClass(isSelected, isDisabled)">
+            <input class="aeterni-segmented__input"
+                   type="radio"
+                   name="@GroupName"
+                   checked="@isSelected"
+                   disabled="@isDisabled"
+                   @onchange="() => SelectAsync(item)" />
+            <span class="aeterni-segmented__label">
+                @if (ItemTemplate is not null)
+                {
+                    @ItemTemplate(item)
+                }
+                else
+                {
+                    @ItemText(item)
+                }
+            </span>
+        </label>
+    }
+</div>

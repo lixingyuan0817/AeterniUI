@@ -1,0 +1,382 @@
+/* The provider root must NOT create a stacking context. Its two children are
+   `position: fixed` and carry their own z-index (modal layer 1040, notice region
+   1080), so they can order themselves against the rest of the page directly.
+   Rooting them behind a stacking context — which `position: fixed` + a z-index,
+   or `isolation: isolate`, would both do — clamps the whole subtree to that
+   context and makes the notice region lose to anchored overlays that are
+   genuine siblings of this provider: popovers (1060) and tooltips (1070) would
+   paint over toasts even though `--aeterni-z-toast` is the top rung.
+
+   The root stays a plain static element: it only carries the component id,
+   class, style and the Escape keydown handler, all of which work without
+   positioning. Keyboard bubbling follows DOM ancestry, not layout, so the
+   handler is unaffected. */
+.aeterni-dialog-provider {
+    pointer-events: none;
+}
+
+.aeterni-dialog-provider__modal-layer,
+.aeterni-dialog-provider__backdrop {
+    position: fixed;
+    inset: 0;
+}
+
+.aeterni-dialog-provider__modal-layer {
+    z-index: var(--aeterni-z-modal-backdrop);
+    pointer-events: none;
+}
+
+.aeterni-dialog-provider__backdrop {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    padding: var(--aeterni-padding-xl);
+    background: var(--aeterni-overlay);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
+    pointer-events: auto;
+    animation: aeterni-dialog-fade-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
+}
+
+.aeterni-dialog-provider__dialog,
+.aeterni-dialog-provider__dialog--primary {
+    /* Fill and ink roles: the accent tints chrome and the leading icon badge, while
+       the ink paints the header glyph. Using the fill stop as ink left the
+       success/warning header icons at ~1.9:1 on the light backdrop. */
+    --aeterni-dialog-accent: var(--aeterni-color-brand-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-brand-text);
+
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-overlay-width-md));
+    max-height: min(var(--aeterni-overlay-height-md), calc(100vh - var(--aeterni-spacing-12)));
+    overflow: hidden auto;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-modal);
+    background: var(--aeterni-bg-glass);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-modal);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+    animation: none;
+}
+
+/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
+   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
+   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
+   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
+   names alias it inside the theme block. See `Card.razor.css` for the full note. The scrim
+   is deliberately excluded: it carries no text, so the replacement would only
+   darken the dimming. */
+.aeterni-dialog-provider__dialog,
+.aeterni-dialog-provider__dialog--primary {
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
+}
+
+
+.aeterni-dialog-provider__dialog--info {
+    --aeterni-dialog-accent: var(--aeterni-color-info-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-info-text);
+}
+
+.aeterni-dialog-provider__dialog--success {
+    --aeterni-dialog-accent: var(--aeterni-color-success-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-success-text);
+}
+
+.aeterni-dialog-provider__dialog--warning {
+    --aeterni-dialog-accent: var(--aeterni-color-warning-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-warning-text);
+}
+
+.aeterni-dialog-provider__dialog--danger {
+    --aeterni-dialog-accent: var(--aeterni-color-danger-default);
+    --aeterni-dialog-accent-ink: var(--aeterni-color-danger-text);
+}
+
+/* Notice regions ------------------------------------------------------------
+   The provider is a pure placement layer for Alert/Toast cards (the card
+   markup and styles live in NoticeCard). Each region declares where cards
+   come from and leave towards. */
+.aeterni-dialog-provider__notice-region {
+    /* Enter/exit direction per position; the 12px/14px/28px values below are motion
+       distances, not layout sizes. */
+    --aeterni-notice-in-x: 0px;
+    --aeterni-notice-in-y: 12px;
+    --aeterni-notice-out-x: 0px;
+    --aeterni-notice-out-y: 12px;
+
+    position: fixed;
+    z-index: var(--aeterni-z-toast);
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    width: min(var(--aeterni-overlay-width-sm), calc(100vw - var(--aeterni-spacing-8)));
+    max-height: calc(100vh - var(--aeterni-spacing-8));
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* The region itself stays click-through; the cards inside re-enable pointer
+       events, which is also what lets the wheel scroll this container when the
+       stack grows past its max height. */
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+    pointer-events: none;
+}
+
+.aeterni-dialog-provider__notice-region > * {
+    pointer-events: auto;
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-dialog-provider__notice-region::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
+.aeterni-dialog-provider__notice-region--top-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: var(--aeterni-spacing-4);
+    left: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.aeterni-dialog-provider__notice-region--top-center {
+    --aeterni-notice-in-y: -14px;
+    --aeterni-notice-out-y: -14px;
+
+    top: var(--aeterni-spacing-4);
+    left: 50%;
+    flex-direction: column;
+    align-items: stretch;
+    transform: translateX(-50%);
+}
+
+.aeterni-dialog-provider__notice-region--top-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: var(--aeterni-spacing-4);
+    right: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.aeterni-dialog-provider__notice-region--center-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: 50%;
+    left: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+    transform: translateY(-50%);
+}
+
+.aeterni-dialog-provider__notice-region--center-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+    --aeterni-notice-in-y: 0px;
+    --aeterni-notice-out-y: 0px;
+
+    top: 50%;
+    right: var(--aeterni-spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+    transform: translateY(-50%);
+}
+
+.aeterni-dialog-provider__notice-region--bottom-start {
+    --aeterni-notice-in-x: -28px;
+    --aeterni-notice-out-x: -28px;
+
+    bottom: var(--aeterni-spacing-4);
+    left: var(--aeterni-spacing-4);
+    flex-direction: column-reverse;
+    align-items: stretch;
+}
+
+.aeterni-dialog-provider__notice-region--bottom-center {
+    --aeterni-notice-in-y: 14px;
+    --aeterni-notice-out-y: 14px;
+
+    bottom: var(--aeterni-spacing-4);
+    left: 50%;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    transform: translateX(-50%);
+}
+
+.aeterni-dialog-provider__notice-region--bottom-end {
+    --aeterni-notice-in-x: 28px;
+    --aeterni-notice-out-x: 28px;
+
+    right: var(--aeterni-spacing-4);
+    bottom: var(--aeterni-spacing-4);
+    flex-direction: column-reverse;
+    align-items: stretch;
+}
+
+/* Modal dialog chrome ------------------------------------------------------- */
+
+.aeterni-dialog-provider__header,
+.aeterni-dialog-provider__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    padding: var(--aeterni-padding-md) var(--aeterni-padding-lg);
+}
+
+.aeterni-dialog-provider__header {
+    justify-content: space-between;
+    border-bottom: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+.aeterni-dialog-provider__heading {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: var(--aeterni-spacing-3);
+}
+
+.aeterni-dialog-provider__heading h2 {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-lg);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.aeterni-dialog-provider__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-icon-size-lg);
+    height: var(--aeterni-icon-size-lg);
+    color: var(--aeterni-dialog-accent-ink);
+}
+
+/* Modal header close glyph (the NoticeCard stylesheet owns the same glyph for
+   Alert/Toast cards). The size travels through the icon size variable instead of
+   a font-size, which only reached the glyph through its 1em fallback. */
+.aeterni-dialog-provider__close-glyph {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--aeterni-text-tertiary);
+    line-height: 1;
+    transition: var(--aeterni-transition-color);
+}
+
+.aeterni-dialog-provider__body {
+    min-width: 0;
+    padding: var(--aeterni-padding-lg);
+    overflow-wrap: anywhere;
+}
+
+.aeterni-dialog-provider__body p {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.aeterni-dialog-provider__footer {
+    justify-content: flex-end;
+    border-top: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+/* Closing states ------------------------------------------------------------ */
+
+.aeterni-dialog-provider__dialog.is-closing {
+    animation: aeterni-dialog-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
+}
+
+.aeterni-dialog-provider__dialog.is-shaking {
+    animation: aeterni-dialog-shake var(--aeterni-duration-slow) var(--aeterni-ease-in-out);
+}
+
+@keyframes aeterni-dialog-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Keyframe offsets are motion distances, not layout sizes. */
+@keyframes aeterni-dialog-slide-in {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes aeterni-dialog-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    75% { transform: translateX(-3px); }
+}
+
+@keyframes aeterni-dialog-exit {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(6px) scale(.98); }
+}
+
+/* Custom properties cannot be used in media conditions, so the query repeats
+   the value of --aeterni-breakpoint-sm (640px). */
+@media (max-width: 640px) {
+    .aeterni-dialog-provider__backdrop {
+        padding: var(--aeterni-spacing-4);
+    }
+
+    .aeterni-dialog-provider__dialog {
+        max-height: calc(100vh - var(--aeterni-spacing-8));
+    }
+
+    .aeterni-dialog-provider__notice-region {
+        right: var(--aeterni-spacing-4);
+        left: var(--aeterni-spacing-4);
+        width: auto;
+    }
+
+    .aeterni-dialog-provider__notice-region--top-center,
+    .aeterni-dialog-provider__notice-region--bottom-center {
+        transform: none;
+    }
+
+    .aeterni-dialog-provider__notice-region--center-start,
+    .aeterni-dialog-provider__notice-region--center-end {
+        transform: translateY(-50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-dialog-provider__backdrop,
+    .aeterni-dialog-provider__dialog,
+    .aeterni-dialog-provider__dialog.is-closing {
+        animation: none;
+    }
+
+    .aeterni-dialog-provider__dialog.is-shaking {
+        animation: none;
+    }
+}

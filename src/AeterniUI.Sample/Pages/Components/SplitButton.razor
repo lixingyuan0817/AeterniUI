@@ -1,0 +1,74 @@
+@page "/components/split-button"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · SplitButton</PageTitle>
+
+<ComponentPreview AnchorId="split-button" Category="基础组件" Title="SplitButton"
+                  ComponentName="SplitButton" Description="独立主动作与菜单动作，共享按钮外观，不共享动作状态。"
+                  Parameters="@Parameters" Events="@Events">
+    <Preview>
+        <div class="preview-action-row">
+            <SplitButton Label="保存" AriaLabel="保存当前文档" MenuAriaLabel="更多保存操作"
+                         Items="@Items" Loading="@_loading" PrimaryDisabled="@_primaryDisabled"
+                         MenuDisabled="@_menuDisabled" Disabled="@_disabled" OnClick="SaveAsync" OnItemSelected="Selected" />
+            <SplitButton Label="发布" MenuAriaLabel="更多发布操作" Items="@Items" Size="Size.Default"
+                         Variant="ButtonVariant.Solid" Intent="ButtonIntent.Default" OnClick="SaveAsync" OnItemSelected="Selected" />
+            <SplitButton Label="轮廓" MenuAriaLabel="轮廓菜单" Items="@Items" Size="Size.Small"
+                         Variant="ButtonVariant.Outline" OnClick="SaveAsync" OnItemSelected="Selected" />
+            <span dir="rtl">
+                <SplitButton Label="RTL" MenuAriaLabel="RTL 菜单" Items="@Items" Size="Size.Large"
+                             Variant="ButtonVariant.Soft" OnClick="SaveAsync" OnItemSelected="Selected" />
+            </span>
+        </div>
+        <div class="preview-action-row">
+            <Checkbox @bind-Value="_primaryDisabled">禁用主动作</Checkbox>
+            <Checkbox @bind-Value="_menuDisabled">禁用菜单</Checkbox>
+            <Checkbox @bind-Value="_disabled">整体禁用</Checkbox>
+            <Checkbox @bind-Value="_loading">主动作加载中（菜单仍可用）</Checkbox>
+        </div>
+        <SplitButton Label="全宽受控菜单" MenuAriaLabel="全宽按钮的更多操作" Items="@Items"
+                     FullWidth Variant="ButtonVariant.Ghost" @bind-Open="_open"
+                     OnClick="SaveAsync" OnItemSelected="Selected" />
+        <span class="preview-feedback" role="status">@_status；受控菜单：@(_open ? "打开" : "关闭")</span>
+    </Preview>
+    <Notes>
+        <span>默认 Small / Ghost / Neutral：紧凑主动作、窄箭头段与弱分隔线，悬浮原位高亮；菜单沿用 Menu 的紧凑行高。可显式指定 Size / Variant / Intent；发布按钮展示标准尺寸实心品牌色。</span>
+        <span>主按钮使用 Label / AriaLabel，箭头按钮必须提供 MenuAriaLabel。Loading 只锁定主动作；Disabled 优先禁用两侧。</span>
+        <span>Tab 分别停留两侧，Enter / Space 触发；菜单内方向键、Home / End、Escape、外部点击、关闭焦点回归与视口翻转复用 MenuButton。</span>
+        <span>无提交、链接主动作、自动替换主动作、异步编排、Toolbar roving-focus 集成或自动溢出能力。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private bool _loading, _primaryDisabled, _menuDisabled, _disabled, _open;
+    private string _status = "等待操作";
+    private static readonly IReadOnlyList<MenuGroup> Items =
+    [new("save", "保存方式", [new("copy", "另存副本"), new("export", "导出"), new("locked", "不可用", Disabled: true)])];
+    private static readonly ShowcaseParameter[] Parameters =
+    [
+        new("Label / AriaLabel", "string", "主动作文本及可选可访问名称。"),
+        new("MenuAriaLabel", "string", "必填的独立菜单名称。"),
+        new("Items", "IReadOnlyList<MenuGroup>", "复用 Menu 模型。"),
+        new("Disabled / PrimaryDisabled / MenuDisabled", "bool", "整体与独立禁用。", "false"),
+        new("Loading", "bool", "仅主动作加载、禁用。", "false"),
+        new("Variant / Intent / Size", "按钮枚举", "两侧共享现有 Button 外观，可显式覆盖紧凑默认值。", "Ghost / Neutral / Small"),
+        new("FullWidth", "bool", "主动作填满剩余宽度。", "false"),
+        new("Open / OpenChanged", "bool / EventCallback<bool>", "可选受控菜单；禁用菜单时不显示。"),
+        new("Placement", "PopupPlacement", "相对菜单按钮定位。", "BottomEnd")
+    ];
+    private static readonly ShowcaseEvent[] Events =
+    [new("OnClick", "EventCallback<MouseEventArgs>", "主动作。"), new("OnItemSelected", "EventCallback<MenuItem>", "菜单动作。")];
+    private Task SaveAsync(MouseEventArgs args)
+    {
+        MarkInteraction(args);
+        _status = "已执行主动作";
+        return Task.CompletedTask;
+    }
+    private void Selected(MenuItem item)
+    {
+        MarkInteraction(new MouseEventArgs());
+        _status = $"已选择：{item.Label}";
+    }
+}
