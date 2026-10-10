@@ -2438,10 +2438,15 @@ async Task CheckReviewBatch26Async()
     const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
     foreach (var (name, instance) in new (string, object)[]
     {
-        ("Menu", new Menu { Items = null! }),
-        ("Segmented", new Segmented<string> { Items = null! }),
+        ("Menu", new Menu()),
+        ("Segmented", new Segmented<string>()),
     })
     {
+        // Assigned reflectively like the other parameter-level checks: setting a
+        // component parameter from outside its component is a compile-time warning
+        // (BL0005) and this suite keeps the build warning-free.
+        instance.GetType().GetProperty("Items")!.SetValue(instance, null);
+
         var threw = false;
         try
         {

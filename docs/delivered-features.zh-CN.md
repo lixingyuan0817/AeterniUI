@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.30.1`
+文档版本：`10.31.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -394,7 +394,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时先按精度取整再做上下限夹取——顺序不能颠倒，否则 `Max` 不在精度网格上时（`Max=0.35`、`Precision=1`）夹取结果会被取整重新推回 `0.4`，提交值越界并让增减禁用判断错位。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
+输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时先按精度取整再做上下限夹取——顺序不能颠倒，否则 `Max` 不在精度网格上时（`Max=0.35`、`Precision=1`）夹取结果会被取整重新推回 `0.4`，提交值越界并让增减禁用判断错位。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Min` / `Max` 设置时必须为有限数（`NaN`、`±∞` 直接拒绝）、`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
 
 组件复用 `Input` 的字段状态：在 `FormField` 中时内部输入采用字段输入 ID，`label for` 解析到可编辑元素，禁用、必填与无效状态沿级联上下文合并。`InputNumber` 的 JS 只拦截被处理按键的默认行为（`ArrowUp` / `ArrowDown` / `PageUp` / `PageDown`），避免 PageUp/PageDown 在步进的同时滚动页面；步进逻辑全部在 C#。
 
@@ -696,7 +696,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 `Progress` 提供线性进度展示，支持 `Value`、`Max`（默认 100）、`Indeterminate`、`Color`（默认 `Primary`）、`Size`、`ShowValue` 和 `AriaLabel`。
 
-- 填充取色族的强调文字形态、轨道取同色相 12% 染色（填充/轨道浅色 3.2~4.6:1、深色 5.7~7.5:1；轨道与页面 1.4:1）；填充档直接做进度条时，浅色 success/warning 只有 1.8:1。
+- 填充取色族的强调文字形态、轨道取同色相 12% 染色（填充/轨道浅色 3.2~4.6:1、深色 5.7~7.5:1；轨道与页面 1.4:1）；填充档直接做进度条时，浅色 success/warning 只有 1.8:1。（这组数字是**手工实测口径**：组件用 `color-mix(in srgb, accent 12%, bg-tertiary)` 合成轨道，而 `check-contrast.mjs` 只解析调色板令牌与其 `color-mix` 组成的令牌对，因此它们不是门禁保证，改动填充或轨道时必须按同一口径重测。）
 - 宽度通过 `--aeterni-progress-value` 自定义属性传入，`indeterminate` 与 reduced-motion 用特异性覆盖，不使用 `!important`。
 
 ### 行为与无障碍
@@ -754,7 +754,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ### 语义与无障碍
 
-- 根为 `<nav>`（`AriaLabel` 提供可访问名称），分组与菜单项使用 `ul` / `li`（`role="list"`），折叠区域通过 `visibility` 退出无障碍树和 Tab 顺序。
+- 根为 `<nav>`（`AriaLabel` 提供可访问名称，且落在 `role="tooltip"` 的内容元素上（根元素是通用 `<span>`，按 ARIA 规范不参与名称计算，此前该参数实际无效）），分组与菜单项使用 `ul` / `li`（`role="list"`），折叠区域通过 `visibility` 退出无障碍树和 Tab 顺序。
 - 分组开关输出 `aria-expanded="true"` / `"false"` 字符串和 `aria-controls`，折叠区域带对应 `id`；当前项输出 `aria-current="page"`。
 - 键盘：Tab 保持原生顺序；`ArrowUp` / `ArrowDown` 在当前可达节点（分组开关 + 已展开分组的非禁用项）间循环，`Home` / `End` 跳到首尾，`ArrowRight` 展开、`ArrowLeft` 折叠（RTL 下由模块读取 `direction` 自动互换），`ArrowLeft` 在展开分组内会把焦点退回分组开关，`Enter` / `Space` 保持原生行为。
 - 组件声明一个 JS module（`Components/Menu/Menu.razor.js`），只负责把焦点移到 C# 模型选中的节点、在菜单内部抑制方向键的默认页面滚动，并报告书写方向；折叠动画仍由 CSS 完成。
@@ -810,6 +810,8 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 不提供 Escape、点击外部关闭、富交互内容和模态行为；无 JS 时视觉提示仍可用，只是缺少 `aria-describedby` 关联与翻转/偏移。
 
 ## 24. ThemeProvider、ThemeSwitch 和 ThemeBrandSwitch 使用方式
+
+除了 `data-theme` / `data-aeterni-mode` 属性入口，Token 层还保留了宿主手写的 `.aeterni-dark` 类入口（浅色主题块里的深色覆盖声明，见 `aeterni_ui.css`）。它**不**由任何组件应用，是给不使用 `ThemeProvider` 的宿主或静态页面片段手动切换深色的逃生口：CI 的 token 选择器门禁显式允许这一处类选择器，示例项目的对照页也依赖它，因此删除属破坏性变更。组件自身始终只读属性入口，不会读取系统主题或改写这两个入口。
 
 ### 基础用法
 
@@ -939,6 +941,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
+- `CloseOnEscape` 在焦点位于通知内部时生效（键盘用户 Tab 到关闭按钮后按 Escape 即可关闭）；通知是非模态的、不抢焦点，因此指针用户仍以关闭按钮为主，这是刻意的无障碍取舍而不是失效参数。
 - 支持 Alert 滑出动画。退场等待实测动画结束（`--aeterni-duration-slow`，约 300ms）后才移除条目并完成 `AlertAsync` / `CloseAsync`：此前的固定 180/220ms 会在动画 60%/73% 处把节点摘掉，reduced-motion 下还会原地冻结；现在只有宿主没有渲染 Provider 时才退回到 1 秒上限。
 
 ### Toast
@@ -1275,6 +1278,8 @@ builder.Services.AddAeterniUI(options =>
 ### 组合关系与实现边界
 
 两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。两者都有本组件拥有的真实根元素，基类属性完整落到 DOM；Small/Default/Large、hover、focus-visible、disabled 与 invalid 状态统一消费字段控件 Token，错误态不会被指针反馈覆盖。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
+
+**已知边界（REV-162）**：日历网格与时间滚轮的方向键按**逻辑方向**映射（Left = 前一天/更小），不会在 RTL 页面里镜像；镜像需要按书写方向反转按键映射（`Slider` / `Menu` 走的是 JS 读取 `direction` 的路线，日期族目前没有自己的 JS 模块），因此这里如实登记为已知限制而不是静默行为。
 
 ## 39. TimePicker
 

@@ -119,8 +119,23 @@ public partial class DateRangePicker : AeterniComponent
         _open = false;
     }
 
+    /// <summary>
+    /// Reference identity of the inputs the preset scan reads. The scan is O(days) per
+    /// preset and OnParametersSet runs on every parent render, so it only repeats when
+    /// one of these actually changes (REV-161).
+    /// </summary>
+    private (IReadOnlyList<DateRangePreset>? Presets, Func<DateOnly, bool>? DisabledDate, DateOnly? Min, DateOnly? Max)? _presetsValidationKey;
+
     private void ValidatePresets()
     {
+        var key = (Presets, DisabledDate, MinDate, MaxDate);
+        if (_presetsValidationKey == key)
+        {
+            return;
+        }
+
+        _presetsValidationKey = key;
+
         foreach (var preset in PresetItems)
         {
             if (string.IsNullOrWhiteSpace(preset.Label))

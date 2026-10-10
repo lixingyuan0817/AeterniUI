@@ -4,6 +4,6 @@
     <span class="aeterni-tooltip__trigger">@ChildContent</span>
     @if (!Disabled && !string.IsNullOrWhiteSpace(Text))
     {
-        <span class="aeterni-tooltip__content" id="@ContentId" role="tooltip">@Text</span>
+        <span class="aeterni-tooltip__content" id="@ContentId" role="tooltip" aria-label="@AriaLabel">@Text</span>
     }
 </span>

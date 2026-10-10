@@ -1,6 +1,6 @@
 # AeterniUI 发布历史
 
-文档版本：`10.30.1`
+文档版本：`10.31.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
@@ -11,6 +11,15 @@
 - [x] 修复示例将 `Columns` 切换为 1 或 2 时仍向 `DescriptionItem` 传入 `Span=3` 的参数异常。
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
+
+## 10.31.0 第十轮审阅修复（REV-133～REV-157 与 REV-160～REV-162）
+
+- [x] 版本号在 `Directory.Build.props` 单一来源递增 `10.30.1` → `10.31.0`（`Version` / `AssemblyVersion` / `FileVersion` / `InformationalVersion` 四处齐动）。按仓库约定「功能新增递增第二位」：本批新增公共文案表键 `DescriptionsEmptyValueLabel`、`ConfirmAcceptLabel`、`ConfirmCancelLabel`，并把 `AlertOptions.CloseText` / `ConfirmOptions.ConfirmText` / `CancelText` 改为可空 + 回退，属可观察的公共面变化；`AGENTS.md` 的文档版本头与项目索引、四份带版本头文档、README 的发布示例（`v10.31.0`）同步。
+- [x] 修复批次：23（REV-133～139 P1：Radio 独立绑定、InputNumber 步进与夹取、MultiSelect 字段关联、Descriptions 文案、IconButton 加载墨、Badge RTL）、24（REV-140～143：Holo 混色定调、OnChange/CloseText 契约、断言可移植性）、25（REV-146～148、153～155：指针反馈、JS 元素引用、退场时序、JSException 降级、月份保持、描述 id 合并）、26（REV-144/145、149～152、156/157：文档与注释对账、宿主别名收敛、令牌纪律、死类死关键帧、校验收口、IconButton 文件职责）、27 卫生包（REV-160）与 REV-158/161/162 的文档与性能项。逐项证据见上方各批次小节。
+- [x] 门禁本身的三处缺陷同步修复：`verify.mjs` 失败不再返回 0（此前 browser job 把失败当成功）、主题切换检查的就绪门槛（WASM 冷启动竞态）、`check-docs.sh` 纳入 `AGENTS.md` 版本头校验。
+- [x] 契约门禁新增四个批次函数（`CheckReviewBatch23Async`～`CheckReviewBatch26Async`，共 60 余条断言，逐项做过反向验证）与四个 JS 模块单测（REV-163：Checkbox、DialogProvider、Menu、ThemeProvider）；浏览器检查新增 REV-140/146/148 五项。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`（68 文案键 / 1 退役成员 / 0 待修）、`check-css-comments.mjs`（74 文件）、`check-contrast.mjs`（315 项）、`node --test`（73 项）全部通过；CI 的 build 与 browser 两个 job 绿。
+- 已知边界：第十轮仅剩 REV-159（示例缺口包）；`DatePicker` 族的 RTL 方向键映射、`.aeterni-dark` 手写入口、`AlertOptions.CloseOnEscape` 的可达范围已按 REV-162 逐项登记在交付文档中。
 
 ## 第十轮审阅修复批次 27（进行中：REV-160 卫生包已收口，版本号未递增）
 

@@ -34,9 +34,9 @@ public partial class Tooltip : AeterniComponent
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
-        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase);
-        if (!string.IsNullOrWhiteSpace(AriaLabel)) attributes["aria-label"] = AriaLabel!;
-        return attributes;
+        // REV-162: the root is a generic <span>, where aria-label is ignored. The
+        // accessible name belongs on the element that owns the tooltip role.
+        return base.BuildAttributes();
     }
 
     protected override void OnParametersSet()

@@ -16,8 +16,12 @@ public partial class DateTimePicker : AeterniComponent
 
     private readonly EditContextSubscription _validation;
 
-    public DateTimePicker() =>
+    public DateTimePicker()
+    {
         _validation = new EditContextSubscription(RequestStateHasChanged);
+        // One stable delegate: see DisabledDateTimeProbe (REV-161).
+        _disabledTimeProbe = time => DisabledDateTime?.Invoke(CreateValue(ProbeDate, time)) == true;
+    }
 
     [Parameter] public DateTime? Value { get; set; }
     [Parameter] public EventCallback<DateTime?> ValueChanged { get; set; }
@@ -46,6 +50,26 @@ public partial class DateTimePicker : AeterniComponent
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
     private readonly Dictionary<DateOnly, bool> _dateDisabledCache = [];
+
+    /// <summary>
+    /// Reference identity of everything the day grid reads. The cache is only thrown
+    /// away when one of these changes, which is what keeps a parent render from
+    /// re-scanning 42 days (REV-161).
+    /// </summary>
+    private (Func<DateTime, bool>? DisabledDateTime, Func<DateOnly, bool>? DisabledDate, TimeSpan Step, DateTime? Min, DateTime? Max)? _disabledDateCacheKey;
+
+    /// <summary>
+    /// Stable probe instance so the time map's own reuse check can hit: a fresh lambda
+    /// per render made <c>CreateMap</c>'s cache unreachable (REV-161).
+    /// </summary>
+    private readonly Func<TimeOnly, bool> _disabledTimeProbe;
+    private Func<TimeOnly, bool> DisabledDateTimeProbe => _disabledTimeProbe;
+
+    /// <summary>
+    /// The day whose grid is currently being built. The probe is created once (so it
+    /// can be cached) and reads this field instead of closing over a changing date.
+    /// </summary>
+    private DateOnly ProbeDate { get; set; }
     private DateOnly _displayMonth = FirstOfMonth(DateOnly.FromDateTime(DateTime.Today));
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private DateTime? WorkingValue => _open ? _draftValue : Value;
@@ -86,7 +110,10 @@ public partial class DateTimePicker : AeterniComponent
         }
 
         _lastParameterValue = Value;
-        _dateDisabledCache.Clear();
+        // REV-161: the day grid asks for up to 42 days per render, so clearing the
+        // cache on every parameter set threw the work away even when nothing that
+        // feeds it had changed.
+        InvalidateDisabledDateCacheIfNeeded();
         UpdateEditContextSubscription();
     }
 
@@ -103,14 +130,21 @@ public partial class DateTimePicker : AeterniComponent
             return cached;
         }
 
+        ProbeDate = date;
+        var window = MinimumTime(date) ?? MaximumTime(date);
         var disabled = DisabledDate?.Invoke(date) == true ||
             (MinDateTime.HasValue && date < DateOnly.FromDateTime(MinDateTime.Value)) ||
             (MaxDateTime.HasValue && date > DateOnly.FromDateTime(MaxDateTime.Value)) ||
-            !TimePickerOptions.HasAvailable(
-                TimeStep,
-                MinimumTime(date),
-                MaximumTime(date),
-                time => DisabledDateTime?.Invoke(CreateValue(date, time)) == true);
+            // REV-161: without a DisabledDateTime delegate and without a bound day the
+            // time grid cannot exclude anything, so the per-second scan (86,400 steps
+            // for a one-second step) is skipped entirely.
+            (DisabledDateTime is not null || window is not null
+                ? !TimePickerOptions.HasAvailable(
+                    TimeStep,
+                    MinimumTime(date),
+                    MaximumTime(date),
+                    DisabledDateTimeProbe)
+                : false);
         _dateDisabledCache[date] = disabled;
         return disabled;
     }
@@ -153,12 +187,27 @@ public partial class DateTimePicker : AeterniComponent
         _open = !close;
     }
 
-    private TimeSelectionMap BuildTimeMap(DateOnly date) =>
-        TimePickerOptions.CreateMap(
+    private TimeSelectionMap BuildTimeMap(DateOnly date)
+    {
+        ProbeDate = date;
+        return TimePickerOptions.CreateMap(
             TimeStep,
             MinimumTime(date),
             MaximumTime(date),
-            time => DisabledDateTime?.Invoke(CreateValue(date, time)) == true);
+            DisabledDateTime is null ? null : DisabledDateTimeProbe);
+    }
+
+    private void InvalidateDisabledDateCacheIfNeeded()
+    {
+        var key = (DisabledDateTime, DisabledDate, TimeStep, MinDateTime, MaxDateTime);
+        if (_disabledDateCacheKey == key)
+        {
+            return;
+        }
+
+        _disabledDateCacheKey = key;
+        _dateDisabledCache.Clear();
+    }
 
     private TimeOnly? MinimumTime(DateOnly date) =>
         MinDateTime.HasValue && DateOnly.FromDateTime(MinDateTime.Value) == date
