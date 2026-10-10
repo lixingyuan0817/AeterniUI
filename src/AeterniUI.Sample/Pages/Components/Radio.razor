@@ -37,16 +37,20 @@
             </RadioGroup>
             </FormField>
             <div class="preview-state-row" aria-label="Radio 与 Checkbox 视觉重量对照">
-                <Radio TValue="string" Value="@("独立")" Size="_radioSize">独立 Radio</Radio>
+                <Radio TValue="bool" @bind-Value="_standaloneRadio" Size="_radioSize">独立 Radio</Radio>
                 <Checkbox Size="_radioSize">同尺寸 Checkbox</Checkbox>
             </div>
-            <code class="preview-value">Value: @_radioValue</code>
+            <code class="preview-value">Value: @_radioValue · 独立 Value: @_standaloneRadio</code>
         </div>
     </Preview>
 </ComponentPreview>
 
 @code {
     private string? _radioValue = "开发";
+
+    // REV-133: a standalone (ungrouped) Radio renders its checked state from the
+    // bound value, so the sample binds one to show the display actually follows it.
+    private bool _standaloneRadio = true;
 
     private bool _radioDisabled;
 

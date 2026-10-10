@@ -336,8 +336,8 @@ public partial class InputNumber<TValue> : AeterniComponent
             return Task.CompletedTask;
         }
 
-        var delta = EffectiveStep * TValue.CreateChecked(multiplier * direction);
-        return CommitAsync(ClampAndRound(StepBasis + delta), reformat: true);
+        var delta = NumericValue.SaturatingMultiply(EffectiveStep, multiplier * direction);
+        return CommitAsync(ClampAndRound(NumericValue.SaturatingAdd(StepBasis, delta)), reformat: true);
     }
 
     private async Task CommitAsync(TValue? value, bool reformat)
@@ -370,6 +370,12 @@ public partial class InputNumber<TValue> : AeterniComponent
 
     private TValue ClampAndRound(TValue value)
     {
+        // Round first, then clamp: rounding after the clamp could push the result
+        // back outside the bound (Max = 0.35 with Precision = 1 turned the clamped
+        // 0.35 into 0.4), which then contradicted aria-valuemax and the
+        // increment/decrement disabled logic (REV-135).
+        value = NumericValue.Round(value, EffectivePrecision);
+
         if (Min is { } min && value < min)
         {
             value = min;
@@ -380,7 +386,7 @@ public partial class InputNumber<TValue> : AeterniComponent
             value = max;
         }
 
-        return NumericValue.Round(value, EffectivePrecision);
+        return value;
     }
 
     private void ValidateParameters()

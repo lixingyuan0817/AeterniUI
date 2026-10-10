@@ -12,6 +12,17 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 第十轮审阅修复批次 23（P1，版本号未递增）
+
+- [x] REV-133：独立 `Radio` 的选中态改由绑定的 `Value` 直接驱动（`bool` 取真值、字符串按非空、其他类型取非默认值），分组模式继续比较分组值；示例页的独立用例改为真实绑定并显示其值。
+- [x] REV-134 / REV-135：`InputNumber` 步进改走 `NumericValue.SaturatingAdd` / `SaturatingMultiply`，无界字段在值类型极限处饱和（`int` 不再回绕、`decimal` 不再抛 `OverflowException`）；`ClampAndRound` 改为先按精度取整再夹取，`Max` 不齐精度网格时不再提交越界值，增减禁用判断随之恢复一致。
+- [x] REV-136：`MultiSelect` 触发器采用 `FormField` 的输入 ID，字段标签的 `for` 重新解析到触发器本身。
+- [x] REV-137：`Descriptions` 空值占位的无障碍名称改由 `AeterniUITextOptions.DescriptionsEmptyValueLabel` 提供，去掉全库唯一硬编码 `aria-label`。
+- [x] REV-138：`IconButton` 的禁用规则排除加载态并新增 `--aeterni-icon-button-loading-foreground` 角色，忙碌字形保留变体墨色。
+- [x] REV-139：`Badge` 补 `:dir(rtl)` 反向位移，RTL 下角标回到镜像角外侧；同步该处 CSS 注释与交付文档 §31 措辞。
+- [x] 契约门禁新增 `CheckReviewBatch23Async`（Radio 独立/分组、多选触发器 `for`、Descriptions 文案表覆写、IconButton 加载角色、无界步进的饱和与越界夹取），并逐项做反向验证：回退修复即红，其中 `InputNumber` 的旧路径直接抛 `OverflowException`。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过。批次 23 已从审阅计划移除，第十轮剩余 REV-140～REV-163 共 24 条。
+
 ## 10.30.0 Descriptions 与 Timeline 溢出修复
 
 - [x] 修复 Timeline 横向模式在受限父容器中因自身固有宽度导致的页面级横向溢出；组件继续保留内部横向滚动。

@@ -46,7 +46,20 @@ public partial class Radio<TValue> : AeterniComponent
     // FormField adopts the field input id instead, so the field label's `for`
     // resolves to the input.
     private string InputId => (Group is null ? FormField?.InputId : null) ?? $"{ElementId}-input";
-    private bool IsChecked => Group?.IsSelected(Value) ?? false;
+
+    // REV-133: grouped radios compare against the group value; a standalone radio
+    // has no peer to compare with, so its own bound value drives the display —
+    // `true` for bool, non-empty for strings, anything but `default` otherwise.
+    // Without this the standalone shape could never render `checked`, so an
+    // initial value, a programmatic assignment and a form reset were all invisible.
+    private bool IsChecked => Group?.IsSelected(Value) ?? IsStandaloneChecked();
+    private bool IsStandaloneChecked() => (object?)Value switch
+    {
+        bool flag => flag,
+        string text => text.Length > 0,
+        null => false,
+        var other => !Equals(other, default(TValue))
+    };
     private bool IsDisabled => Disabled || (Group?.Disabled ?? false) || (FormField?.Disabled ?? false);
     private string? EffectiveName => Name ?? Group?.Name;
     private bool EffectiveRequired => Required || (Group?.Required ?? false) || (FormField?.Required ?? false);

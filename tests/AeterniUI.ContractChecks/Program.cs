@@ -64,6 +64,7 @@ await CheckQualityStatesAsync();
 await CheckDateBoundariesAsync();
 await CheckOverlayTransitionsAsync();
 await CheckArchitectureP0Async();
+await CheckReviewBatch23Async();
 await CheckJsLifecycleAsync();
 await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
@@ -2085,6 +2086,165 @@ async Task CheckFlashCardGroupAsync()
     {
         // Expected validation failure.
     }
+}
+
+// Regression guards for the tenth review round's batch 23 (P1). One assertion
+// per REV item so the pre-fix shape cannot come back unnoticed.
+async Task CheckReviewBatch23Async()
+{
+    // REV-133: a standalone Radio (no RadioGroup) hard-wired IsChecked to false,
+    // so an initial value, a programmatic assignment and a form reset were all
+    // invisible. Grouped radios keep comparing against the group value.
+    var standaloneOn = await RenderAsync<AeterniUI.Components.Radio.Radio<bool>>(new Dictionary<string, object?>
+    {
+        ["Value"] = true
+    });
+    Require(Regex.IsMatch(standaloneOn, "<input[^>]*type=\"radio\"[^>]*checked"),
+        "A standalone Radio must render checked when its bound value is set.");
+    Require(Regex.IsMatch(standaloneOn, "<label[^>]*is-checked[^>]*>"),
+        "The standalone Radio root must carry is-checked so the visual circle follows the input.");
+
+    var standaloneOff = await RenderAsync<AeterniUI.Components.Radio.Radio<bool>>(new Dictionary<string, object?>
+    {
+        ["Value"] = false
+    });
+    Require(!standaloneOff.Contains("checked"),
+        "A standalone Radio must stay unchecked when its bound value is false.");
+
+    var standaloneEmpty = await RenderAsync<AeterniUI.Components.Radio.Radio<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = string.Empty
+    });
+    Require(!standaloneEmpty.Contains("checked"),
+        "A standalone Radio must stay unchecked for an empty string value.");
+
+    var standaloneText = await RenderAsync<AeterniUI.Components.Radio.Radio<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "independent"
+    });
+    Require(standaloneText.Contains("checked"),
+        "A standalone Radio must render checked for a non-empty value.");
+
+    // The grouped shape must not regress: only the option matching the group
+    // value renders checked.
+    var grouped = await RenderAsync<AeterniUI.Components.Radio.RadioGroup<string>>(new Dictionary<string, object?>
+    {
+        ["Value"] = "b",
+        ["ChildContent"] = (RenderFragment)(builder =>
+        {
+            builder.OpenComponent<AeterniUI.Components.Radio.Radio<string>>(0);
+            builder.AddAttribute(1, "Value", "a");
+            builder.CloseComponent();
+            builder.OpenComponent<AeterniUI.Components.Radio.Radio<string>>(2);
+            builder.AddAttribute(3, "Value", "b");
+            builder.CloseComponent();
+        })
+    });
+    var groupedInputs = Regex.Matches(grouped, "<input[^>]*type=\"radio\"[^>]*>");
+    Require(groupedInputs.Count == 2 && !groupedInputs[0].Value.Contains("checked") && groupedInputs[1].Value.Contains("checked"),
+        "A grouped Radio must still derive its checked state from the RadioGroup value.");
+
+    // REV-136: the MultiSelect trigger had no id, so the FormField label's `for`
+    // resolved to nothing and clicking the label could not focus the control.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        MultiSelectContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<MultiSelectContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<MultiSelectContractHost>)(x => host = x)
+        }));
+
+        var html = root.ToHtmlString();
+        var trigger = Regex.Match(html, "<div[^>]*role=\"combobox\"[^>]*>").Value;
+        var triggerId = Regex.Match(trigger, "id=\"([^\"]+)\"").Groups[1].Value;
+        Require(triggerId.EndsWith("-input", StringComparison.Ordinal),
+            "The MultiSelect trigger must adopt the FormField input id.");
+        Require(html.Contains($"for=\"{triggerId}\"", StringComparison.Ordinal),
+            "The FormField label must target the MultiSelect trigger so clicking it focuses the control.");
+        Require(host.Field.ElementId != triggerId,
+            "The wrapper keeps the component id; only the trigger adopts the field id.");
+    });
+
+    // REV-137: Descriptions rendered a hard-coded English `aria-label="Empty value"`,
+    // the only literal aria-label in the library. It must come from the text table
+    // and follow an override, otherwise a locally-hosted app cannot localise it.
+    var descriptionsDefault = await RenderAsync<Descriptions>(new Dictionary<string, object?>
+    {
+        ["Items"] = new[] { new DescriptionItem("Owner") }
+    });
+    Require(descriptionsDefault.Contains("aria-label=\"Empty value\"", StringComparison.Ordinal),
+        "Descriptions must take the empty-value accessible name from the text table default.");
+
+    var overrideServices = new ServiceCollection();
+    overrideServices.AddLogging();
+    overrideServices.AddSingleton<IJSRuntime, NoopJsRuntime>();
+    overrideServices.AddAeterniUI(options => options.Text.DescriptionsEmptyValueLabel = "Kein Wert");
+    await using var overrideProvider = overrideServices.BuildServiceProvider();
+    await using var overrideRenderer = new HtmlRenderer(overrideProvider, overrideProvider.GetRequiredService<ILoggerFactory>());
+    var descriptionsOverride = await overrideRenderer.Dispatcher.InvokeAsync(async () =>
+    {
+        var output = await overrideRenderer.RenderComponentAsync<Descriptions>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Items"] = new[] { new DescriptionItem("Owner") }
+        }));
+        return output.ToHtmlString();
+    });
+    Require(descriptionsOverride.Contains("aria-label=\"Kein Wert\"", StringComparison.Ordinal),
+        "Descriptions empty-value label must follow AeterniUIOptions.Text instead of a hard-coded string.");
+
+    // REV-138: IconButton painted its loading state with the disabled ink, so the
+    // busy glyph fell to ~2.5:1 grey. Loading must be excluded from that paint and
+    // keep a variant ink role of its own.
+    var iconButtonCss = await File.ReadAllTextAsync(Path.Combine(FindRepositoryRoot(), "src", "AeterniUI", "Components", "IconButton", "IconButton.razor.css"));
+    Require(iconButtonCss.Contains(":disabled:not(.is-loading)"),
+        "IconButton must exclude its loading state from the disabled paint.");
+    Require(iconButtonCss.Contains("--aeterni-icon-button-loading-foreground"),
+        "IconButton loading must carry a variant ink role instead of the disabled colour.");
+    Require(iconButtonCss.Contains("color: var(--aeterni-icon-button-loading-foreground)"),
+        "The IconButton loading glyph must consume that ink role.");
+
+    // REV-134/135: stepping an unbounded field used to wrap (int) or throw
+    // (decimal), and clamping before rounding could commit a value above Max.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        UnboundedInputNumberContractHost host = null!;
+        var root = await renderer.RenderComponentAsync<UnboundedInputNumberContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<UnboundedInputNumberContractHost>)(x => host = x)
+        }));
+
+        async Task Press(object field, string key)
+        {
+            var method = field.GetType().GetMethod("HandleKeyDownAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            await (Task)method.Invoke(field, [new KeyboardEventArgs { Key = key }])!;
+        }
+
+        await Press(host.IntField, "ArrowUp");
+        Require(host.IntValue == int.MaxValue,
+            $"Stepping an unbounded int field at its maximum must saturate, got {host.IntValue}.");
+        Require(host.Changes.Count == 0,
+            "A saturated step reports no change instead of wrapping to the opposite extreme.");
+
+        await Press(host.DecimalField, "ArrowUp");
+        Require(host.DecimalValue == decimal.MaxValue,
+            $"Stepping an unbounded decimal field at its maximum must saturate, got {host.DecimalValue}.");
+        await Press(host.DecimalField, "PageUp");
+        Require(host.DecimalValue == decimal.MaxValue,
+            "A coarse step must saturate as well instead of overflowing in the multiplier.");
+        Require(host.Changes.Count == 0, "Saturated decimal steps report no change.");
+
+        await Press(host.GridField, "ArrowUp");
+        Require(host.GridValue == 0.35m,
+            $"Stepping into an off-grid Max must land on that Max, got {host.GridValue}.");
+
+        // With the value on the bound, the increment affordance has to agree: the
+        // step basis comparison used to be made against a value that had already
+        // been rounded back above Max.
+        host.Changes.Clear();
+        await Press(host.GridField, "ArrowUp");
+        Require(host.Changes.Count == 0 && host.GridValue == 0.35m,
+            "A field sitting on its off-grid Max must report no further increase.");
+    });
 }
 
 // Regression guards for the ninth review round's P0 batch. Each assertion locks a

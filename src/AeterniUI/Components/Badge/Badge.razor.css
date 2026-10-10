@@ -25,7 +25,10 @@
 }
 
 .aeterni-badge__indicator {
-    /* Logical insets: in RTL the indicator mirrors to the other corner. */
+    /* Logical insets mirror the corner in RTL, but the percentage translate below
+       is a physical displacement, so it needs the mirrored value too — see the
+       :dir(rtl) rule. Without it the indicator lands inside the anchor instead of
+       hanging off the mirrored corner. */
     position: absolute;
     inset-block-start: 0;
     inset-inline-end: 0;
@@ -50,6 +53,12 @@
     line-height: 1;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+/* The inset is logical but the percentage translate is physical, so RTL needs the
+   mirrored displacement to push the indicator back out of the corner (REV-139). */
+.aeterni-badge__indicator:dir(rtl) {
+    transform: translate(-50%, -50%);
 }
 
 /* A dot carries no number, so it collapses to a circle of its own size. */

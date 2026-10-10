@@ -128,4 +128,63 @@ internal static class NumericValue
         var steps = Math.Round(ToDouble(value - min) / ToDouble(step), MidpointRounding.AwayFromZero);
         return min + step * FromDouble<TValue>(steps);
     }
+
+    /// <summary>
+    /// Adds two values without wrapping or throwing: a result that leaves
+    /// <typeparamref name="TValue" />'s range saturates at its extreme. Stepping an
+    /// unbounded <c>InputNumber&lt;int&gt;</c> past <c>int.MaxValue</c> used to wrap
+    /// to the most negative value, and the decimal shape threw
+    /// <see cref="OverflowException" /> instead of stopping.
+    /// </summary>
+    internal static TValue SaturatingAdd<TValue>(TValue left, TValue right)
+        where TValue : struct, INumber<TValue>
+    {
+        // The guards compare against the headroom that is left, so the addition
+        // itself never sees an out-of-range operand pair.
+        if (right > TValue.Zero && left > MaxOf<TValue>() - right)
+        {
+            return MaxOf<TValue>();
+        }
+
+        if (right < TValue.Zero && left < MinOf<TValue>() - right)
+        {
+            return MinOf<TValue>();
+        }
+
+        return left + right;
+    }
+
+    /// <summary>
+    /// Scales a value by a small integer factor with the same saturation contract
+    /// as <see cref="SaturatingAdd{TValue}" />. The multiplication is expressed as
+    /// repeated additions because a single product would overflow before any guard
+    /// could look at it.
+    /// </summary>
+    internal static TValue SaturatingMultiply<TValue>(TValue value, int factor)
+        where TValue : struct, INumber<TValue>
+    {
+        var count = factor < 0 ? -(long)factor : factor;
+        var addend = factor < 0 ? -value : value;
+        var result = TValue.Zero;
+        for (long i = 0; i < count; i++)
+        {
+            result = SaturatingAdd(result, addend);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Largest value <typeparamref name="TValue" /> can hold. Generic math exposes
+    /// no <c>MaxValue</c> member across every numeric type it supports, so the
+    /// extreme is obtained by saturating <see cref="double" />'s own extreme.
+    /// </summary>
+    private static TValue MaxOf<TValue>()
+        where TValue : struct, INumber<TValue> =>
+        TValue.CreateSaturating(double.MaxValue);
+
+    /// <summary>Smallest value <typeparamref name="TValue" /> can hold.</summary>
+    private static TValue MinOf<TValue>()
+        where TValue : struct, INumber<TValue> =>
+        TValue.CreateSaturating(double.MinValue);
 }

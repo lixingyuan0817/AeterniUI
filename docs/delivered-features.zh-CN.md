@@ -125,7 +125,7 @@
 - `ChildContent`、`Loading`、`Disabled`、`FullWidth`。
 - `AriaLabel`、`OnClick`。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
-- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Loading`、`Disabled` 和 `OnClick`。
+- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Loading`、`Disabled` 和 `OnClick`。`Loading` 期间控件对交互禁用（输出原生 `disabled`、`aria-disabled` 与 `aria-busy`），但加载字形不继承禁用灰：它消费 `--aeterni-icon-button-loading-foreground`（实心档取变体前景色、Outline/Soft/Ghost/Link 取变体本体色），因此忙碌指示在浅色与深色下都保持可读。
 - `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Label`、`Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`AriaLabel`、`OnItemSelected`、`Loading` 和 `FullWidth`（默认 `Variant=Outline`、`Intent=Neutral`、`Size=Default`、`Placement=BottomStart`；普通 `Button` 默认值不变）；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
 - MenuButton 的弹出内容使用 Menu，不使用 List；PopupHost 仅定位、无 padding。仅其 Popover 外围 padding 从 12px 收至 spacing-1（4px），Menu 行内横向 padding 从 12px 收至 control-padding-x-sm（8px），保留 Menu 的 spacing-2（8px）子项缩进表达折叠层级；参照现有 List 的 4px 外围与 8px 行内留白，Menu 根不重复加外围 padding，List 本身不变。折叠或无可见子项的分组不保留标题后的 gap，避免末组产生额外底部留白；Popover 上下各 4px。菜单行高仍为 32px，普通内容 Popover 和独立 Menu 保持原留白。SplitButton 复用此紧凑菜单。
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
@@ -362,7 +362,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
+触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
 
 ### 实现边界
 
@@ -388,13 +388,13 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 - `Value`（`TValue?`）、`ValueChanged`、`ValueExpression`，兼容标准绑定与 `EditContext` 校验；空值表示“未填写”，配合 `Required` 参与表单校验。
 - `Min` / `Max`（空表示无界）、`Step`（默认 1）、`Precision`（显示与提交的小数位，默认取 `Step` 的小数位）。
 - `ShowControls`（默认关闭）：在输入框尾部追加连体的减/增按钮，与输入框共用边界；到达上下限时对应按钮自动禁用。
-- 方向键按 `Step` 增减，PageUp/PageDown 一次走 10 步。
+- 方向键按 `Step` 增减，PageUp/PageDown 一次走 10 步；无界字段到达值类型极限时步进饱和（`int.MaxValue` 不再回绕、`decimal` 不再抛 `OverflowException`），越界的乘法与加法都在 `NumericValue.Saturating*` 里收口。
 - `ReadOnly`、`Required`、`Invalid`、`FullWidth`、`Size`、`Placeholder`、`Name`、`AutoComplete`、`InputMode`、`AriaLabel`、`AriaDescribedBy`、`IncrementLabel`、`DecrementLabel`；`InputMode` 默认按值类型取 `numeric`（整数）或 `decimal`。
 - 增减按钮的无障碍名称使用 `AeterniUITextOptions.InputNumberIncrementLabel` 和 `InputNumberDecrementLabel` 默认值，可由实例参数覆盖。
 
 ### 行为与无障碍
 
-输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时做上下限夹取与精度取整（四舍五入、远离零）。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
+输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时先按精度取整再做上下限夹取——顺序不能颠倒，否则 `Max` 不在精度网格上时（`Max=0.35`、`Precision=1`）夹取结果会被取整重新推回 `0.4`，提交值越界并让增减禁用判断错位。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
 
 组件复用 `Input` 的字段状态：在 `FormField` 中时内部输入采用字段输入 ID，`label for` 解析到可编辑元素，禁用、必填与无效状态沿级联上下文合并。`InputNumber` 的 JS 只拦截被处理按键的默认行为（`ArrowUp` / `ArrowDown` / `PageUp` / `PageDown`），避免 PageUp/PageDown 在步进的同时滚动页面；步进逻辑全部在 C#。
 
@@ -523,6 +523,8 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 单选值通过 RadioGroup 级联上下文统一绑定；禁用、必填、无效和尺寸档位会传递到选项，并输出相应的原生/ARIA 语义。RadioGroup 与独立 Radio 均合并 FormField 的 Disabled / Required / Invalid，动态更新可恢复正常状态。垂直布局时容器切换为单列，并由 `aria-orientation="vertical"` 同步表达。
 
 位于 `FormField` 中的独立 `Radio` 会采用字段的输入 ID（点击标签可直接聚焦），`RadioGroup` 则让 fieldset 采用该 ID 并用 `aria-labelledby` 关联字段标签。
+
+独立 `Radio`（不在 `RadioGroup` 内）没有可比较的同组值，其显示由自身绑定的 `Value` 直接驱动：`bool` 取真值，字符串以非空判定，其他类型为非默认值即选中；`false`、空字符串、`null` 与默认值均为未选中。因此在 `Radio<bool>` 上 `@bind-Value` 的初始值、程序化赋值与表单重置都会立即反映到屏幕，`checked` 与根节点的 `is-checked` 同源。分组模式不受影响，仍然只让与分组值相等的选项渲染为选中。
 
 ### 实现边界
 
@@ -1046,7 +1048,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 - `Count`（`int?`）、`Max`（默认 99）、`Dot`、`Color`、`AriaLabel` 与 `ChildContent`（被附着的图标、头像或按钮）。
 - 数字上限：`Count > Max` 时显示 `{Max}+`；`Count` 为 `null` 且未开启 `Dot` 时不渲染指示器；显式 0 显示为 0；负数与 `Max < 1` 抛出参数异常。
-- 指示器压在锚点右上角（逻辑 `inset-*`，RTL 下自动镜像），用自身尺寸的百分比位移精确对准角点；最小 16px 胶囊、最大宽度 40px，超长数字做省略处理；`Dot` 模式是 12px 圆点。
+- 指示器压在锚点右上角（逻辑 `inset-*`，RTL 下自动镜像；百分比位移是物理量，因此另有 `:dir(rtl)` 的反向位移与之配对），用自身尺寸的百分比位移精确对准角点；最小 16px 胶囊、最大宽度 40px，超长数字做省略处理；`Dot` 模式是 12px 圆点。
 - 颜色分两个角色：`--aeterni-badge-fill`（指示器底）与 `--aeterni-badge-ink`（文字/圆点）。品牌填充配 `--aeterni-text-inverse`，中性与语意填充（亮档）配 `--aeterni-color-on-semantic`。
 
 ### 行为与无障碍
@@ -1227,6 +1229,7 @@ builder.Services.AddAeterniUI(options =>
     options.Text.SpinnerLabel = "加载中";
     options.Text.EmptyTitle = "暂无数据";
     options.Text.BadgeLabel = "有新内容";
+    options.Text.DescriptionsEmptyValueLabel = "空值";
     options.Text.DrawerLabel = "面板";
     options.Text.DrawerCloseLabel = "关闭面板";
     options.Text.InputNumberIncrementLabel = "增加数值";
@@ -1475,7 +1478,7 @@ builder.Services.AddAeterniUI(options =>
 
 `Descriptions` 使用非 null 的 `IReadOnlyList<DescriptionItem>` 按宿主给定顺序展示标签和值，不自行排序或推断业务状态。`DescriptionItem` 包含必填 `Label`、可选纯文本 `Content`、`Span`（默认 1）和 `Visible`；`Columns`（默认 3）支持 1～4 列，`Orientation` 支持 `Horizontal`（默认）与 `Vertical`。空白标签、null 项、超出列数的 `Span` 或无效列数会在参数设置阶段抛出参数异常。
 
-- `ItemTemplate`（`RenderFragment<DescriptionItem>`）只接管值区域，标签仍由组件输出；没有内容且未提供模板时显示中性破折号占位。
+- `ItemTemplate`（`RenderFragment<DescriptionItem>`）只接管值区域，标签仍由组件输出；没有内容且未提供模板时显示中性破折号占位，该占位符的无障碍名称取 `AeterniUITextOptions.DescriptionsEmptyValueLabel`（默认 `Empty value`），非英文宿主可整体覆写。
 - 横向布局把标签与值放在同一行，纵向布局把每项堆叠；`Span` 控制项目占用的网格列数，窄屏自动收为单列。
 - `Bordered` 绘制中性边框，不给描述内容添加彩色容器背景；根元素通过 `AriaLabel` 可选命名。
 

@@ -6,6 +6,7 @@
         <div @ref="RootElement" @attributes="BuildAttributes()">
             <div @ref="_triggerElement"
                  class="aeterni-multi-select__trigger"
+                 id="@FormField?.InputId"
                  role="combobox"
                  tabindex="@(IsDisabled || ReadOnly ? "-1" : "0")"
                  aria-labelledby="@FormField?.LabelId"

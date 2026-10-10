@@ -1,6 +1,9 @@
 .aeterni-icon-button {
     --aeterni-icon-button-size: var(--aeterni-control-height-md);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-md);
+    /* The busy glyph is the only feedback left once interaction is blocked, so
+       loading keeps the variant's ink instead of the disabled tier (REV-138). */
+    --aeterni-icon-button-loading-foreground: var(--aeterni-button-foreground);
 
     position: relative;
     box-sizing: border-box;
@@ -60,6 +63,16 @@
     height: 100%;
 }
 
+/* Loading icon: same rule as Button — the glyph keeps the variant ink while the
+   control is disabled for interaction. */
+.aeterni-icon-button__loading {
+    color: var(--aeterni-icon-button-loading-foreground);
+}
+
+.aeterni-icon-button.is-loading {
+    cursor: progress;
+}
+
 .aeterni-icon-button--sm {
     --aeterni-icon-button-size: var(--aeterni-control-height-sm);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
@@ -76,6 +89,8 @@
 .aeterni-icon-button--soft,
 .aeterni-icon-button--ghost,
 .aeterni-icon-button--link {
+    --aeterni-icon-button-loading-foreground: var(--aeterni-button-color);
+
     background: transparent;
     color: var(--aeterni-button-color);
 }
@@ -169,15 +184,15 @@
     --aeterni-button-soft-active: var(--aeterni-button-intent-danger-soft-active);
 }
 
-.aeterni-icon-button:disabled {
+.aeterni-icon-button:disabled:not(.is-loading) {
     border-color: var(--aeterni-state-border-disabled);
     background: var(--aeterni-state-background-disabled);
     color: var(--aeterni-state-color-disabled);
 }
 
-.aeterni-icon-button--outline:disabled,
-.aeterni-icon-button--ghost:disabled,
-.aeterni-icon-button--link:disabled {
+.aeterni-icon-button--outline:disabled:not(.is-loading),
+.aeterni-icon-button--ghost:disabled:not(.is-loading),
+.aeterni-icon-button--link:disabled:not(.is-loading) {
     border-color: transparent;
     background: transparent;
 }
