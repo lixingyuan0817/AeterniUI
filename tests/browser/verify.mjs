@@ -728,6 +728,13 @@ check('REV-140 holo splits rainbow and white light into separate blend layers',
 
 // Screenshot the viewport, decode it *in the page* (the browser is the only PNG
 // decoder available to a dependency-free harness) and average the sampled region.
+// A style change is only visible once the browser painted it: capturing straight
+// after toggling the finish produced the *previous* frame (REV-140 measured 0.0).
+async function settleFrame() {
+    await evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+    await sleep(80);
+}
+
 async function sampleAverage(rect) {
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     return evaluate(`(async () => {
@@ -784,8 +791,10 @@ async function measureFinishDelta(fill) {
     })()`);
 
     await setFinishOpacity('0');
+    await settleFrame();
     const without = await sampleAverage(rect);
     await setFinishOpacity('');
+    await settleFrame();
     const withFinish = await sampleAverage(rect);
     const delta = withFinish.reduce((sum, value, index) => sum + Math.abs(value - without[index]), 0) / 3;
     return { delta };
@@ -839,7 +848,12 @@ if (comboTrigger) {
             await sleep(120);
             const hovered = await evaluate(`(() => {
                 const option = document.querySelector('.aeterni-combobox__option.is-selected');
-                return { background: getComputedStyle(option).backgroundColor, matches: option.matches(':hover') };
+                const at = document.elementFromPoint(${selectedPoint.x}, ${selectedPoint.y});
+                return {
+                    background: getComputedStyle(option).backgroundColor,
+                    matches: option.matches(':hover'),
+                    elementAtPoint: at ? at.className : null
+                };
             })()`);
             check('REV-146 a selected ComboBox option steps its fill on hover',
                 hovered.matches && hovered.background !== before,
@@ -863,9 +877,11 @@ if (searchPoint) {
     await sleep(120);
     const hovered = await evaluate(`(() => {
         const wrapper = document.querySelector('.aeterni-search__input-wrap');
+        const at = document.elementFromPoint(${searchPoint.x}, ${searchPoint.y});
         return {
             border: getComputedStyle(wrapper).borderTopColor,
             matches: wrapper.matches(':hover'),
+            elementAtPoint: at ? at.className : null,
             state: wrapper.closest('.aeterni-search').className
         };
     })()`);
