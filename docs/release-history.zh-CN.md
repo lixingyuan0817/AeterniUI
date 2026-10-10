@@ -19,6 +19,7 @@
 - [x] 门禁本身的三处缺陷同步修复：`verify.mjs` 失败不再返回 0（此前 browser job 把失败当成功）、主题切换检查的就绪门槛（WASM 冷启动竞态）、`check-docs.sh` 纳入 `AGENTS.md` 版本头校验。
 - [x] 契约门禁新增四个批次函数（`CheckReviewBatch23Async`～`CheckReviewBatch26Async`，共 60 余条断言，逐项做过反向验证）与四个 JS 模块单测（REV-163：Checkbox、DialogProvider、Menu、ThemeProvider）；浏览器检查新增 REV-140/146/148 五项。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`（68 文案键 / 1 退役成员 / 0 待修）、`check-css-comments.mjs`（74 文件）、`check-contrast.mjs`（315 项）、`node --test`（73 项）全部通过；CI 的 build 与 browser 两个 job 绿。
+- [x] 发布：在 `main` 上打注解 tag `v10.31.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 `Directory.Build.props` 版本，再经 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`；全流程绿（41s）。
 - 已知边界：第十轮仅剩 REV-159（示例缺口包）；`DatePicker` 族的 RTL 方向键映射、`.aeterni-dark` 手写入口、`AlertOptions.CloseOnEscape` 的可达范围已按 REV-162 逐项登记在交付文档中。
 
 ## 第十轮审阅修复批次 27（进行中：REV-160 卫生包已收口，版本号未递增）
