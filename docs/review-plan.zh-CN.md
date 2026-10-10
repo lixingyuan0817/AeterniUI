@@ -2,7 +2,7 @@
 
 文档版本：`10.30.1`
 
-文档状态：当前活动审阅计划；第十轮 REV-133～REV-163 共 31 条，全部待修复。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：当前活动审阅计划；第十轮剩余 REV-140～REV-163 共 24 条，全部待修复（批次 23 的 REV-133～REV-139 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读第十轮问题与建议的修复批次。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -38,7 +38,7 @@
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
-## 第十轮：全库组件审核（REV-133～REV-163，共 31 条；P0 无，全部待修复）
+## 第十轮：全库组件审核（剩余 REV-140～REV-163，共 24 条；P0 无，全部待修复）
 
 范围：全库 53 个组件目录 / 65 个组件文件、49 个 `delivered-features` 章节、示例页、契约与浏览器测试。审阅维度为文档-实现对齐、视觉、功能、设计一致性，另做组件与文档颗粒度的横切比对（参数覆盖率、章节结构、默认值一致性与文案表漏网）。
 
@@ -50,13 +50,6 @@
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
-| REV-133 / P1 | **独立 `Radio` 的显示永不跟随 `Value`。** `Radio.razor.cs` 的 `IsChecked => Group?.IsSelected(Value) ?? false`——无分组时恒为 false，`Radio.razor` 的 `checked="@IsChecked"` 永不渲染为真。`delivered-features` §13 明列 `Radio` 提供 `Value`/`ValueChanged`/`ValueExpression`，示例页也有独立用法（恰好未绑定，掩盖了问题）。影响：独立模式下 `@bind-Value` 的初始值、程序化赋值与表单重置都不会显示选中 | 独立模式的显示改由 `Value` 驱动（组模式维持现状）；契约断言「设置 `Value` 后渲染输出 `checked`」。若判定独立绑定不受支持，则改 §13 与示例——二选一并成文，不能维持现状 |
-| REV-134 / P1 | **`InputNumber` 无界步进溢出。** `StepAsync` 的 `StepBasis + delta`（`InputNumber.razor.cs`）在 Min/Max 均空时无界，项目为默认 unchecked 上下文：`InputNumber<int>` 在 `int.MaxValue` 按 ↑ 回绕为 `int.MinValue` 并提交；`decimal` 同场景抛未处理 `OverflowException` | 饱和加法或按 `TValue.MaxValue` 预判夹取；补「Max 留空时的步进」契约断言（现有断言只覆盖 Max=100 有界场景） |
-| REV-135 / P1 | **`InputNumber` 先夹取后取整，可提交越界值。** `ClampAndRound` 先 Clamp 后 `NumericValue.Round`（半离零）；Max 不在精度网格上时（Max=0.35、Precision=1）按 ↑ 从 0.3 步进：0.4 → 夹到 0.35 → 取整回 **0.4 > Max**，且 `aria-valuemax="0.35"` 与 `aria-valuenow="0.4"` 自相矛盾、增减禁用判断随之错位 | 先 Round 再 Clamp；补「Max 不齐精度网格」断言（现有断言 Max=100 恰在网格上，抓不到此类） |
-| REV-136 / P1 | **`MultiSelect` 触发器未采用 FormField 输入 ID。** 触发器（`MultiSelect.razor` 的 combobox 根元素）无 `id`，而 `FormField` 的 `<label for="{ElementId}-input">` 因此解析不到目标——§7.3 容器型控件三形态缺第一个（`for` 可解析）。同族 `ComboBox`、日期时间触发器均已接入。影响：点击标签不聚焦控件 | 触发器补 `id="@FormField?.InputId"`；契约断言 label 的 `for` 命中触发器 |
-| REV-137 / P1 | **`Descriptions` 空值占位硬编码 `aria-label="Empty value"`**（`Descriptions.razor`），`AeterniUITextOptions` 无对应键（全库唯一字面量 aria-label）。中文宿主读屏会听到英文；属 REV-114 同类问题在最新组件（10.30.0 交付）上的复发 | 新增文案表条目并走回退；断言默认文案集中可覆写 |
-| REV-138 / P1 | **`IconButton` 加载态落在禁用墨上。** `Loading` 直接输出原生 `disabled`（`IconButton.razor`），`:disabled` 规则把 `color` 置为 `--aeterni-state-color-disabled`，没有 Button 的 `:disabled:not(.is-loading)` 排除。默认 Ghost 变体加载时只剩一枚约 2.5:1 的灰色 Spinner（全库无 `--aeterni-icon-button-loading-foreground`），实心变体整块变灰 | 仿 Button 排除 `.is-loading` 并保留变体墨色；浏览器断言 Spinner 与底色对比度 |
-| REV-139 / P1 | **`Badge` RTL 镜像失效且文档谎报。** `inset-inline-end: 0` 是逻辑属性（RTL 会镜像），但 `transform: translate(50%, -50%)`（`Badge.razor.css`）是物理位移不随方向翻转——RTL 下角标被推入锚点内部而非镜像探出。`delivered-features` §31「RTL 下自动镜像」与 CSS 注释同属虚报；无浏览器覆盖 | 补 `:dir(rtl)` 反向位移；浏览器断言 RTL 下角标位于镜像角外侧 |
 | REV-140 / P1 | **`FlashCard` Holo 混合模式三方矛盾。** 实现用 `mix-blend-mode: screen`（`FlashCard.razor.css` 全息层）；设计契约 §13 明文「彩虹镭射用 `color`……用 `screen` 让浅色图片完全看不出闪光」；示例页注释写 `color`；`delivered-features` §45 写「都以 screen」。三处两派，且按混色算术浅色卡面上的镭射确实几乎不可见 | 定调并同步四处：按契约回 `color`（白光反射另层）或修契约成文为 screen 方案；补浏览器在浅色/深色图各验一次 |
 | REV-141 / P1 | **Rating / ComboBox 的 `OnChange` 声明是幽灵 API。** `delivered-features` §17/§18 仍写「已弃用……仍会被调用，将在后续版本移除」；源码已移除，契约断言锁定「旧名字必须不存在」（REV-115 收尾）。按文档迁移的消费者会编译失败 | 删句改记「已于 10.14.3 移除，用 `ValueChanged` / `OnItemSelected`」；由新门禁 `check-doc-drift` 锁定该名字不再被表述为仍可用（允许以「已移除」形式提及） |
 | REV-142 / P1 | **`AlertOptions.CloseText` 是死参数 + 不可达分支。** 该属性只在 `DialogProvider.razor` 的 Alert 堆栈分支渲染，而 Kind=Alert 的堆栈项无人创建（`AlertAsync` 全部进 `_alerts` → `NoticeCard`，其关闭名称另走 `UiText.AlertCloseLabel`）；文档 §26 把它登记为支持项、Feedback 示例称其为「无障碍名称」。宿主设置它不会产生任何效果 | 删除 property 与死分支，或接线到 `NoticeCard.CloseLabel`；同步文档与示例；`check-doc-drift` 的 CloseText 项由 pending 转 enforced |
@@ -96,38 +89,22 @@
 
 | 批次 | 范围 | 说明 |
 | --- | --- | --- |
-| 批次 23 ⏳（待开始） | REV-133 ~ REV-139 | P1 功能与可访问性：Radio 独立绑定、InputNumber 数值边界 ×2、MultiSelect `for` 关联、Descriptions 文案、IconButton 加载墨、Badge RTL。均为小改动 + 契约/浏览器断言 |
 | 批次 24 ⏳（待开始） | REV-140 ~ REV-143 | Holo 混合模式定调（含契约/文档四处同步）、`OnChange`/`CloseText` 文档契约收口、契约断言可移植性。含决策项（Holo 方向），需先定调再改 |
 | 批次 25 ⏳（待开始） | REV-146 ~ REV-148、REV-153 ~ REV-155 | P2 行为高置信：hover 缺口、RootElement 传参、退场时序、JSException 守卫、`_displayMonth` 重置、`AriaDescribedBy` 合并。以浏览器验收为主 |
-| 批次 26 ⏳（待开始） | REV-144、REV-145、REV-149 ~ REV-152、REV-156、REV-157 | 文档对账（漂移簇、玻璃名单）、宿主别名收敛、死类群、校验与文案表补齐、文件职责。可与批次 23/25 合并提交 |
+| 批次 26 ⏳（待开始） | REV-144、REV-145、REV-149 ~ REV-152、REV-156、REV-157 | 文档对账（漂移簇、玻璃名单）、宿主别名收敛、死类群、校验与文案表补齐、文件职责。可与批次 25 合并提交 |
 | 批次 27 ⏳（待开始） | REV-158 ~ REV-163 | P3 收尾：文档颗粒度、示例补齐、死代码、性能、小功能与测试覆盖 |
 
 ### 执行计划评审（第十轮）
 
-#### 前置决策（阻塞批次 23/24，定调后再改）
+#### 前置决策（D2/D3 阻塞批次 24，定调后再改）
 
 | 编号 | 决策 | 选项与建议 | 影响面 |
 | --- | --- | --- | --- |
-| D1 | 独立 `Radio` 是否支持值绑定 | 建议**支持**：显示改由 `Value` 驱动（组模式不变）。理由：§13 已公开 `Value`/`ValueChanged`/`ValueExpression` 与独立用法示例，删除属公共承诺回退 | REV-133、§13、Radio 示例页、契约断言 |
+| D1 ✅ | 独立 `Radio` 是否支持值绑定 | **已定调（支持）**：显示改由 `Value` 驱动，组模式不变；已在批次 23 落地并归档 | REV-133、§13、Radio 示例页、契约断言 |
 | D2 | `FlashCard` Holo 混合模式 | 建议**回落 `color`** 并按契约补白光反射层；若判定保留 `screen`，则需改设计契约 §13 与交付文档成文为 screen 方案 | REV-140、`FlashCard.razor.css`、`engineering-reference` §13、`delivered-features` §45、示例注释（四处必须同向） |
 | D3 | `AlertOptions.CloseText` 去留 | 建议**接线到 `NoticeCard.CloseLabel`**：保住已登记的公共参数并让文档成真；删除则需同步 §26、示例并把契约断言改为「该名字必须不存在」 | REV-142、`DialogProvider`、`NoticeCard`、§26、Feedback 示例、`check-doc-drift` 的 pending 项 |
 
-D1 与 D2 会改变可见行为，结论落定后必须同步交付功能、示例与契约检查；D3 完成后把 `check-doc-drift` 中 `CloseText` 由 `pending` 转为 `enforced`，使批次 26 收尾时该门禁无待修复项。
-
-#### 批次 23（REV-133 ~ REV-139，P1）
-
-建议次序：REV-133（含 D1）→ REV-136 → REV-137 → REV-138 → REV-139 → REV-134/135 合并提交（两项同在 `InputNumber` 的步进/夹取路径）。
-
-| 条目 | 改动面 | 验收 |
-| --- | --- | --- |
-| REV-133 | `Radio.razor.cs` 独立模式显示 | 契约：「设置 `Value` 后渲染输出 `checked`」+ 组内互斥仍成立 |
-| REV-136 | `MultiSelect.razor` 触发器补 `id="@FormField?.InputId"` | 契约：`label` 的 `for` 命中触发器 |
-| REV-137 | 新增文案表键并回退 | 契约：默认文案可覆写且非英文宿主可替换 |
-| REV-138 | `IconButton` 加载态排除 `:disabled` 灰墨 | 浏览器：Spinner 与底色对比度 + 变体墨色保留 |
-| REV-139 | `Badge.razor.css` 补 `:dir(rtl)` 反向位移并订正 §31 措辞 | 浏览器：RTL 角标位于镜像角外侧 |
-| REV-134/135 | `InputNumber` 饱和步进；先取整再夹取 | 契约：「Max 留空时步进」「Max 不齐精度网格」，覆盖 `int`/`decimal` |
-
-风险：REV-133 需同时保住组模式语义；REV-134/135 的取整顺序变化会影响 `aria-valuenow` 与增减禁用判断，需一并断言。
+D2 会改变可见行为，结论落定后必须同步交付功能、示例与契约检查；D3 完成后把 `check-doc-drift` 中 `CloseText` 由 `pending` 转为 `enforced`，使批次 26 收尾时该门禁无待修复项。
 
 #### 批次 24（REV-140 ~ REV-143，P1）
 

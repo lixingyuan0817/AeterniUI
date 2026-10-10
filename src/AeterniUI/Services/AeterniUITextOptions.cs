@@ -200,6 +200,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a dot-mode <c>Badge</c> indicator.</summary>
     public string BadgeLabel { get; set; } = "New";
 
+    /// <summary>Accessible name of the em dash a <c>Descriptions</c> cell shows for an empty value.</summary>
+    public string DescriptionsEmptyValueLabel { get; set; } = "Empty value";
+
     /// <summary>Fallback name of a <c>Drawer</c> without a title.</summary>
     public string DrawerLabel { get; set; } = "Panel";
 
@@ -281,6 +284,7 @@ public sealed class AeterniUITextOptions
         SpinnerLabel = Or(SpinnerLabel, defaults.SpinnerLabel);
         EmptyTitle = Or(EmptyTitle, defaults.EmptyTitle);
         BadgeLabel = Or(BadgeLabel, defaults.BadgeLabel);
+        DescriptionsEmptyValueLabel = Or(DescriptionsEmptyValueLabel, defaults.DescriptionsEmptyValueLabel);
         DrawerLabel = Or(DrawerLabel, defaults.DrawerLabel);
         DrawerCloseLabel = Or(DrawerCloseLabel, defaults.DrawerCloseLabel);
         InputNumberIncrementLabel = Or(InputNumberIncrementLabel, defaults.InputNumberIncrementLabel);
