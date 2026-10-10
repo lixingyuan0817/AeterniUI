@@ -795,50 +795,45 @@ check('REV-140 finish stays visible on light and dark artwork',
 await goto(`${BASE}/components/combobox`);
 await waitForApp();
 
-const comboTrigger = await evaluate(`(() => {
-    const trigger = document.querySelector('.aeterni-combobox__trigger');
-    if (!trigger) return null;
-    const rect = trigger.getBoundingClientRect();
+// Coordinates come from the viewport, so every probe scrolls its target into view
+// first — otherwise the pointer lands outside the page and no :hover state exists.
+const pointOf = selector => evaluate(`(() => {
+    const element = document.querySelector('${selector}');
+    if (!element) return null;
+    element.scrollIntoView({ block: 'center', inline: 'center' });
+    const rect = element.getBoundingClientRect();
     return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
 })()`);
-if (comboTrigger) {
-    await mouse('mousePressed', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
-    await mouse('mouseReleased', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
+
+const clickAt = async point => {
+    await mouse('mousePressed', point.x, point.y, { button: 'left', clickCount: 1 });
+    await mouse('mouseReleased', point.x, point.y, { button: 'left', clickCount: 1 });
     await sleep(150);
+};
+
+const comboTrigger = await pointOf('.aeterni-combobox__trigger');
+if (comboTrigger) {
+    await clickAt(comboTrigger);
 
     // Select the first option so there is a selected row to hover, then reopen.
-    const optionPoint = await evaluate(`(() => {
-        const option = document.querySelector('.aeterni-combobox__option');
-        if (!option) return null;
-        const rect = option.getBoundingClientRect();
-        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-    })()`);
+    const optionPoint = await pointOf('.aeterni-combobox__option');
     if (optionPoint) {
-        await mouse('mousePressed', optionPoint.x, optionPoint.y, { button: 'left', clickCount: 1 });
-        await mouse('mouseReleased', optionPoint.x, optionPoint.y, { button: 'left', clickCount: 1 });
-        await sleep(150);
-        await mouse('mousePressed', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
-        await mouse('mouseReleased', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
-        await sleep(150);
+        await clickAt(optionPoint);
+        const reopened = await pointOf('.aeterni-combobox__trigger');
+        await clickAt(reopened ?? comboTrigger);
 
-        const selectedPoint = await evaluate(`(() => {
-            const option = document.querySelector('.aeterni-combobox__option.is-selected');
-            if (!option) return null;
-            const rect = option.getBoundingClientRect();
-            window.__selectedBackgroundAtRest = getComputedStyle(option).backgroundColor;
-            return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-        })()`);
-
+        const selectedPoint = await pointOf('.aeterni-combobox__option.is-selected');
         if (selectedPoint) {
+            const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-combobox__option.is-selected')).backgroundColor`);
             await mouse('mouseMoved', selectedPoint.x, selectedPoint.y);
             await sleep(120);
             const hovered = await evaluate(`(() => {
                 const option = document.querySelector('.aeterni-combobox__option.is-selected');
-                return { background: getComputedStyle(option).backgroundColor, rest: window.__selectedBackgroundAtRest };
+                return { background: getComputedStyle(option).backgroundColor, matches: option.matches(':hover') };
             })()`);
             check('REV-146 a selected ComboBox option steps its fill on hover',
-                hovered.background !== hovered.rest,
-                JSON.stringify(hovered));
+                hovered.matches && hovered.background !== before,
+                JSON.stringify({ before, ...hovered }));
         } else {
             check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no selected option to hover');
         }
@@ -851,25 +846,24 @@ if (comboTrigger) {
 
 await goto(`${BASE}/components/search`);
 await waitForApp();
-const searchHover = await evaluate(`(() => {
-    const wrapper = document.querySelector('.aeterni-search__input-wrap');
-    if (!wrapper) return { error: 'search wrapper missing' };
-    const rect = wrapper.getBoundingClientRect();
-    window.__searchBorderAtRest = getComputedStyle(wrapper).borderTopColor;
-    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-})()`);
-if (!searchHover.error) {
-    await mouse('mouseMoved', searchHover.x, searchHover.y);
+const searchPoint = await pointOf('.aeterni-search__input-wrap');
+if (searchPoint) {
+    const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-search__input-wrap')).borderTopColor`);
+    await mouse('mouseMoved', searchPoint.x, searchPoint.y);
     await sleep(120);
     const hovered = await evaluate(`(() => {
         const wrapper = document.querySelector('.aeterni-search__input-wrap');
-        return { border: getComputedStyle(wrapper).borderTopColor, rest: window.__searchBorderAtRest };
+        return {
+            border: getComputedStyle(wrapper).borderTopColor,
+            matches: wrapper.matches(':hover'),
+            state: wrapper.closest('.aeterni-search').className
+        };
     })()`);
     check('REV-146 the connected Search group lights its border on hover',
-        hovered.border !== hovered.rest,
-        JSON.stringify(hovered));
+        hovered.matches && hovered.border !== before,
+        JSON.stringify({ before, ...hovered }));
 } else {
-    check('REV-146 the connected Search group lights its border on hover', false, searchHover.error);
+    check('REV-146 the connected Search group lights its border on hover', false, 'no search wrapper');
 }
 
 // ---------------------------------------------------------------- REV-148
