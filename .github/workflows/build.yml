@@ -18,7 +18,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -59,7 +59,7 @@ jobs:
       # The upstream package is cached under the script's own temp directory;
       # a cache miss (including any manifest edit) installs it from npm.
       - name: Cache Font Awesome package
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/aeterni-fontawesome-*
           key: fontawesome-${{ hashFiles('scripts/generate-fontawesome-icons.mjs') }}
@@ -99,7 +99,7 @@ jobs:
 
       # The harness uses the global WebSocket that Node 22 added.
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
