@@ -10,12 +10,55 @@
 
 <ComponentPreview AnchorId="progress" Category="状态反馈" Title="Progress" ComponentName="Progress" Description="线性进度条，支持确定和不确定状态。" Parameters="@ProgressParameters">
     <Preview>
-        <Progress Value="68" ShowValue AriaLabel="完成进度" />
-        <Progress Indeterminate Color="Color.Info" AriaLabel="处理中" />
+        <div class="preview-stack">
+            <Progress Value="@_progressValue" Max="@_progressMax" Color="@_progressColor"
+                      Size="@_progressSize" ShowValue="@_progressShowValue"
+                      Indeterminate="@_progressIndeterminate" AriaLabel="完成进度" />
+
+            <div class="preview-state-row">
+                @foreach (var color in new[] { Color.Primary, Color.Success, Color.Warning, Color.Danger, Color.Info })
+                {
+                    <Progress Value="68" Color="@color" Size="Size.Small" AriaLabel="@($"{color} 进度")" />
+                }
+            </div>
+
+            <div class="preview-state-row">
+                <Progress Indeterminate Color="Color.Info" AriaLabel="处理中" />
+                <Progress Value="35" Color="Color.Success" Size="Size.Large" ShowValue AriaLabel="大号进度" />
+            </div>
+        </div>
     </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="progress-value">Value</label>
+            <input id="progress-value" type="range" min="0" max="100" step="1" @bind="_progressValue" />
+        </div>
+        <div class="control-field">
+            <span>Color</span>
+            <ShowcaseSelect TValue="Color" Id="progress-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_progressColor" />
+        </div>
+        <div class="control-field">
+            <span>Size</span>
+            <ShowcaseSelect TValue="Size" Id="progress-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_progressSize" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_progressShowValue">ShowValue</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_progressIndeterminate">Indeterminate</Checkbox>
+    </Controls>
 </ComponentPreview>
 
 @code {
+    private double _progressValue = 68;
+
+    private double _progressMax = 100;
+
+    private Color _progressColor = Color.Primary;
+
+    private Size _progressSize = Size.Default;
+
+    private bool _progressShowValue = true;
+
+    private bool _progressIndeterminate;
+
     private static readonly ShowcaseParameter[] ProgressParameters =
     [
         new("Value", "double?", "确定进度时的当前值；为 null 且 Indeterminate 为 false 时按 0 处理。"),

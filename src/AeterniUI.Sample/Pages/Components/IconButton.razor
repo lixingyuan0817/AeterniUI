@@ -20,6 +20,15 @@
             <IconButton Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Icon="@InfoIcon" AriaLabel="查看警告" OnClick="MarkInteraction" />
             <IconButton Loading AriaLabel="正在加载" />
         </div>
+
+        <div class="preview-action-row">
+            <IconButton Size="Size.Small" Icon="@SearchIcon" AriaLabel="小号搜索" OnClick="MarkInteraction" />
+            <IconButton Size="Size.Large" Icon="@SearchIcon" AriaLabel="大号搜索" OnClick="MarkInteraction" />
+            <IconButton Disabled Icon="@SettingsIcon" AriaLabel="已禁用设置" />
+            <form method="post" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+                <IconButton Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Icon="@InfoIcon" AriaLabel="提交表单" />
+            </form>
+        </div>
         <span class="preview-feedback" role="status">@_interactionNote</span>
     </Preview>
     <Notes>
@@ -29,6 +38,10 @@
 </ComponentPreview>
 
 @code {
+    // The submit variant is only meaningful inside a form, so the demo keeps one and
+    // reports the native submit through the same feedback line.
+    private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
+
     private static readonly ShowcaseParameter[] Parameters =
     [
         new("Variant", "ButtonVariant", "按钮视觉变体。", "Ghost"),

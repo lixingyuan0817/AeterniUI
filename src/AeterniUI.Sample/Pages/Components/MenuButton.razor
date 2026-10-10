@@ -18,10 +18,15 @@
             <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
             <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
             <MenuButton Label="占满容器" FullWidth Class="preview-menu-button-contract" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+
+            <MenuButton Label="受控打开" Open="_menuOpen" OpenChanged="SetMenuOpen" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="禁用" Disabled Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+            <MenuButton Label="加载中" Loading Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
         </div>
         <span class="preview-feedback" role="status">@_interactionNote</span>
     </Preview>
     <Notes>
+        <span>使用受控 <code>Open</code> / <code>OpenChanged</code> 时菜单的开关状态由宿主决定（示例中的「受控打开」按钮由宿主维护状态）；<code>Disabled</code> 禁用整体，<code>Loading</code> 只让主动作忙碌、不阻止菜单。</span>
         <span>菜单不是 List：PopupHost 仅定位，参照 List 保留 4px 外围与 8px 行内横向留白，子项保留 Menu 的 8px 缩进表达层级，折叠或空组不留尾部间距；保留 32px 菜单行高。普通内容 Popover 与独立 Menu 不受影响。</span>
         <span>MenuButton 的菜单由现有 <code>Popover</code> 和 <code>Menu</code> 承载，支持 Escape、外部点击、键盘导航和视口翻转。</span>
         <span>触发按钮和菜单都放在同一个 <code>PopupHost</code> 内，避免点击触发器时被误判为外部点击。</span>
@@ -29,6 +34,10 @@
 </ComponentPreview>
 
 @code {
+    private bool _menuOpen;
+
+    private void SetMenuOpen(bool open) => _menuOpen = open;
+
     private static readonly IReadOnlyList<MenuGroup> MenuItems =
     [
         new MenuGroup("actions", "操作", [

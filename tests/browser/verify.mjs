@@ -906,6 +906,55 @@ check('REV-148 reduced motion collapses the exit wait instead of blocking',
     !reducedExit.error && !reducedExit.stillThere && reducedExit.removedAfter <= 250,
     JSON.stringify(reducedExit));
 
+// ---------------------------------------------------------------- REV-159
+// The sample pages are the library's runnable contract: the demos the review asked
+// for are asserted here instead of being trusted to exist.
+const sampleDemos = [
+    { path: '/components/progress', selector: '#progress-value', note: 'interactive Value/Color/Size controls' },
+    { path: '/components/progress', selector: '.aeterni-progress', minimum: 5, note: 'a bar per semantic colour' },
+    { path: '/components/icon-button', selector: 'button.aeterni-icon-button[disabled]', note: 'disabled state' },
+    { path: '/components/icon-button', selector: 'form button.aeterni-icon-button[type="submit"]', note: 'submit type inside a form' },
+    { path: '/components/menu-button', selector: '.aeterni-menu-button', minimum: 4, note: 'controlled open, disabled and loading variants' },
+    { path: '/components/segmented', selector: '[aria-invalid="true"]', note: 'invalid state' },
+    { path: '/components/segmented', selector: '[aria-required="true"]', note: 'required state' },
+    { path: '/components/tag', selector: '.aeterni-tag__icon', minimum: 2, note: 'start and end icons' },
+    { path: '/components/avatar', selector: '.aeterni-avatar img', note: 'image avatar with fallback' },
+    { path: '/components/input-number', selector: 'form input[role="spinbutton"]', note: 'EditContext validation chain' },
+];
+
+let currentPage = null;
+for (const demo of sampleDemos) {
+    if (currentPage !== demo.path) {
+        await goto(`${BASE}${demo.path}`);
+        await waitForApp();
+        currentPage = demo.path;
+    }
+
+    const found = await evaluate(`(() => {
+        const nodes = document.querySelectorAll('${demo.selector}');
+        return nodes.length;
+    })()`);
+    const ok = demo.minimum ? found >= demo.minimum : found > 0;
+    check(`REV-159 ${demo.path} demonstrates ${demo.note}`, ok, `${found} match(es) for ${demo.selector}`);
+}
+
+// Presets only exist while the range picker is open, so the demo opens it first.
+await goto(`${BASE}/components/date-picker`);
+await waitForApp();
+const presets = await evaluate(`(async () => {
+    const trigger = document.querySelector('.aeterni-date-range-picker button, button[aria-haspopup="dialog"]');
+    if (!trigger) return { error: 'no range picker trigger' };
+    trigger.click();
+    const deadline = performance.now() + 4000;
+    while (performance.now() < deadline && !document.querySelector('.aeterni-date-range-picker__preset')) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    return { count: document.querySelectorAll('.aeterni-date-range-picker__preset').length };
+})()`);
+check('REV-159 /components/date-picker demonstrates host presets',
+    !presets.error && presets.count >= 3,
+    JSON.stringify(presets));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

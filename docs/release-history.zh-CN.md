@@ -1,6 +1,6 @@
 # AeterniUI 发布历史
 
-文档版本：`10.31.0`
+文档版本：`10.31.1`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
@@ -11,6 +11,24 @@
 - [x] 修复示例将 `Columns` 切换为 1 或 2 时仍向 `DescriptionItem` 传入 `Span=3` 的参数异常。
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
+
+## 10.31.1 示例缺口包（REV-159）与第十轮收口
+
+- [x] REV-159 逐项补齐，示例页新增或修正的演示均有浏览器断言覆盖：
+  - `Progress` 从静态两条变成可交互演示：`Value` 滑块、`Color` / `Size` 选择、`ShowValue` 与 `Indeterminate` 开关，另加「每个语意色一条」与「大号 + 不确定」两组状态对照。
+  - `Radio` 参数表按归属重写：`RadioGroup.*` 与 `Radio.*` 分别点名，`AriaDescribedBy` 归回独立 `Radio`（此前被挂在小组名下）。
+  - `IconButton` 补 `Size`（Small/Large）、`Disabled` 与 `Type=Submit`（放在真实 `<form>` 里，提交经 `@onsubmit:preventDefault` 拦截并回显）。
+  - `MenuButton` 补受控 `Open`/`OpenChanged`、`Disabled`、`Loading` 三个变体并说明 `Loading` 只让主动作忙碌。
+  - `Segmented` 补 `Required` + `Invalid` 与整组禁用两个状态。
+  - `Tag` 补 `StartIcon` / `EndIcon`（含两端同时使用的组合）。
+  - `Avatar` 补 `Src` + `Alt`（含 `Alt=""` 装饰用法与故意 404 的回退缩写）。
+  - `DateRangePicker` 补宿主 `Presets`（近 7 天 / 本月 / 上季度）与 `PresetsAriaLabel` 演示。
+  - `InputNumber` 补 EditContext 链路演示：`EditForm` + `DataAnnotationsValidator` + `FormField.For` + `@bind` 三件套（`Value`/`ValueChanged`/`ValueExpression`）+ `ValidationMessage`。
+  - `Rating` 示例事件表在 10.31.0 批次 24 已把已移除的 `OnChange` 改为 `ValueChanged` 并注明移除。
+- [x] 版本号 `10.31.0` → `10.31.1`（示例与演示口径调整，公共 API 无变化，按仓库约定递增第三位）；`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
+- [x] 浏览器检查新增 11 项「示例演示覆盖」断言（每个演示页面按选择器计数），并含「打开范围选择器后出现 ≥3 个预设」一项；这些断言随 10.31.1 的 browser job 一起验证。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`node --test`（73 项）通过；CI build / browser / Publish 三个工作流绿。
+- 至此第十轮 31 条全部收口（批次 23～27 分别归档在上方对应小节）。
 
 ## 10.31.0 第十轮审阅修复（REV-133～REV-157 与 REV-160～REV-162）
 

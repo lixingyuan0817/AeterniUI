@@ -1,8 +1,8 @@
 # AeterniUI 审阅计划
 
-文档版本：`10.31.0`
+文档版本：`10.31.1`
 
-文档状态：当前活动审阅计划；`10.31.0` 已发布，第十轮仅剩 REV-159（示例缺口包）待修复（REV-133～REV-158、REV-160～REV-163 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：第十轮 31 条（REV-133～REV-163）已全部收口，随 `10.31.1` 归档；本文件暂无活动条目，下一轮审阅开始时重新登记。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读第十轮问题与建议的修复批次。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -38,7 +38,7 @@
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
-## 第十轮：全库组件审核（剩余 REV-159，共 1 条；P0 无，待修复）
+## 第十轮：全库组件审核（REV-133～REV-163，31 条已全部修复，归档见发布历史）
 
 范围：全库 53 个组件目录 / 65 个组件文件、49 个 `delivered-features` 章节、示例页、契约与浏览器测试。审阅维度为文档-实现对齐、视觉、功能、设计一致性，另做组件与文档颗粒度的横切比对（参数覆盖率、章节结构、默认值一致性与文案表漏网）。
 
@@ -46,7 +46,7 @@
 
 本轮的突出模式：**多处文档漂移是「实现改了、文档没跟」**（REV-38/71/115/121/122/123 等修复批次的文档侧未同步），此类项中 REV-141/142 已在批次 24 收口，剩余集中在 REV-144/157，按批次 26 的对账方式处理；另新增 `scripts/check-doc-drift.mjs` 门禁用于拦截同类复发。
 
-（P1 已清空：REV-133～REV-143 分别在批次 23、批次 24 修复；P2 的 REV-144～REV-157 随批次 25、批次 26 收口。逐项证据见发布历史中的对应批次记录。）
+（第十轮已全部收口：P1 的 REV-133～REV-143 随批次 23/24、P2 的 REV-144～REV-157 随批次 25/26、P3 的 REV-158～REV-163 随批次 27 与 `10.31.1` 完成。逐项证据见发布历史中的对应批次记录。）
 
 ### P2：一致性、Token 纪律与文档同步（待修复）
 
@@ -57,7 +57,6 @@
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
-| REV-159 / P3 | **示例缺口包。** Progress 页最薄（29 行、无交互控件、无 Color/Size）；Rating 示例 Events 表列出已删除的 `OnChange`；Radio 参数表把 `AriaDescribedBy`（仅 Radio 有）挂在 RadioGroup 名下；Tag `StartIcon/EndIcon`、Avatar 图片路径（Src/Alt/装饰分支）、FormField/InputNumber 的 EditContext 链路、DatePicker `Presets`、Segmented Required/Invalid、MenuButton `Open`/Disabled/Loading、IconButton Size/Disabled/Type 均无演示 | 逐页补可交互演示与状态对照；示例参数表与组件真实参数对齐 |
 
 ### 建议的修复批次（第十轮）
 

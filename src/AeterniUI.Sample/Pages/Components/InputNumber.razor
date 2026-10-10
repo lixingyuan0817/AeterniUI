@@ -37,6 +37,32 @@
                              AriaLabel="采购数量" />
             </FormField>
             <span class="preview-feedback" role="status">@_status</span>
+
+            @* REV-159: the EditContext chain end to end — FormField.For, the picker's
+               ValueExpression and DataAnnotations all drive the same field state. *@
+            <EditForm Model="_orderModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <FormField Label="采购数量（1~50）" For="@(() => _orderModel.Quantity)">
+                    @* ValueExpression is what wires the field into the EditContext that
+                       FormField.For targets; binding to a non-nullable model property
+                       needs the explicit three-parameter form. *@
+                    <AeterniUI.Components.InputNumber.InputNumber TValue="int"
+                                 Value="_orderModel.Quantity"
+                                 ValueChanged="@(value => _orderModel.Quantity = value ?? 0)"
+                                 ValueExpression="@(() => _orderModel.Quantity)"
+                                 Min="1"
+                                 Max="50"
+                                 ShowControls
+                                 Placeholder="请输入 1~50"
+                                 AriaLabel="采购数量（校验）" />
+                </FormField>
+                <ValidationMessage For="@(() => _orderModel.Quantity)" />
+                <Button Type="ButtonType.Submit" Size="Size.Small">校验数量</Button>
+                @if (_orderSubmitted)
+                {
+                    <span class="preview-feedback" role="status">数量校验通过。</span>
+                }
+            </EditForm>
         </div>
     </Preview>
     <Controls>
@@ -58,6 +84,7 @@
         <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
     </Controls>
     <Notes>
+        <span>在 <code>EditForm</code> 中把 <code>ValueExpression</code>（<code>@("@bind-Value")</code> 会自动提供）交给 <code>FormField.For</code> 关联的字段即可：校验消息经 <code>FormField</code> 的 <code>aria-describedby</code> 与危险色一并呈现，无需宿主自己接线。</span>
         <span>值类型为 <code>TValue?</code>：空值表示“未填写”，配合 FormField 的 Required 参与 EditContext 校验；显示精度默认取自 Step 的小数位。</span>
         <span>输入过程中不拦截、不整形草稿，blur 时才做上下限夹取与精度取整；越界但仍可解析的输入由宿主校验负责提示。</span>
         <span>ShowControls 在输入框尾部追加连体的减/增按钮；只读与禁用同时作用于输入框和按钮。</span>
@@ -65,6 +92,18 @@
 </ComponentPreview>
 
 @code {
+    private readonly OrderModel _orderModel = new();
+
+    private bool _orderSubmitted;
+
+    private void HandleValidSubmit() => _orderSubmitted = true;
+
+    private sealed class OrderModel
+    {
+        [System.ComponentModel.DataAnnotations.Range(1, 50, ErrorMessage = "数量必须在 1 到 50 之间。")]
+        public int Quantity { get; set; } = 12;
+    }
+
     private decimal? _quantity = 12.5m;
     private string _status = "当前值：12.5";
     private Size _size = Size.Default;

@@ -43,7 +43,13 @@
         <div class="control-field">
             <label for="tag-text">标签文字</label>
             <input id="tag-text" @bind="_tagText" />
-        </div>
+
+
+            <div class="preview-state-row">
+                <Tag Color="Color.Success" StartIcon="@IconStart" AriaLabel="已完成构建">已通过</Tag>
+                <Tag Color="Color.Info" EndIcon="@IconEnd" AriaLabel="含跳转">查看详情</Tag>
+                <Tag Color="Color.Neutral" StartIcon="@IconStart" EndIcon="@IconEnd" AriaLabel="两端图标">双向</Tag>
+            </div>        </div>
         <div class="control-grid">
             <div class="control-field">
                 <span>Color</span>
@@ -63,6 +69,12 @@
 </ComponentPreview>
 
 @code {
+    // StartIcon / EndIcon take any RenderFragment; the shared Icon component keeps
+    // the glyph sizing on --aeterni-icon-render-size (REV-150/159).
+    private RenderFragment IconStart => @<Icon Definition="@AeterniIcons.Check" Size="Size.Small" />;
+
+    private RenderFragment IconEnd => @<Icon Definition="@AeterniIcons.ChevronRight" Size="Size.Small" />;
+
     private string _tagText = "预览标签";
 
     private Color _tagColor = Color.Primary;

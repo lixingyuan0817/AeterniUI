@@ -11,6 +11,10 @@
             <Avatar Name="User" Size="Size.Large" Color="Color.Warning" />
             <Avatar Name="Info" Color="Color.Info" />
             <Avatar AriaLabel="自定义机器人头像" Size="@_size" Color="@_color"><Icon Definition="@AeterniIcons.Star" /></Avatar>
+
+            <Avatar Src="@InlinePortrait" Alt="示例用户头像" Name="Ada" Size="@_size" />
+            <Avatar Src="@InlinePortrait" Alt="" Name="装饰头像" Size="@_size" />
+            <Avatar Src="/images/missing-avatar.png" Name="加载失败回退" Size="@_size" Color="Color.Warning" />
         </div>
     </Preview>
     <Controls>
@@ -24,12 +28,18 @@
         </div>
     </Controls>
     <Notes>
+        <span><code>Src</code> 提供图片头像并需要 <code>Alt</code>：<code>Alt=""</code> 表示装饰图片，此时名称取 <code>Name</code> 或 <code>AriaLabel</code>；图片加载失败时回退到姓名缩写，示例第三张故意指向不存在的文件。</span>
         <span>图片路径只由内部 <code>img alt</code> 命名；缩写和自定义内容由外层图像语义命名，避免重复朗读。</span>
         <span>自定义内容必须提供 <code>AriaLabel</code>、<code>Alt</code> 或 <code>Name</code> 之一。</span>
     </Notes>
 </ComponentPreview>
 
 @code {
+    // A data-URI keeps the demo self-contained; Alt="" marks the image decorative, so
+    // the fallback initials are not announced twice.
+    private const string InlinePortrait =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' fill='%236446B8'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%23F4F1FB'/%3E%3Crect x='12' y='40' width='40' height='24' rx='12' fill='%23F4F1FB'/%3E%3C/svg%3E";
+
     private Size _size = Size.Default;
     private Color _color = Color.Primary;
 

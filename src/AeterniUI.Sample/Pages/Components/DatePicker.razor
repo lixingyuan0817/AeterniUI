@@ -18,7 +18,9 @@
                              AriaLabel="选择日期范围"
                              Size="@_size"
                              Disabled="@_disabled"
-                             Invalid="@_invalid" />
+                             Invalid="@_invalid"           Presets="@_rangePresets"
+                      PresetsAriaLabel="快捷范围"
+                      />
             <div class="preview-state-row" aria-label="日期控件尺寸对照">
                 <DatePicker Value="@_date" Size="Size.Small" AriaLabel="小号日期选择" />
                 <DatePicker Value="@_date" AriaLabel="默认日期选择" />
@@ -69,6 +71,16 @@
 </ComponentPreview>
 
 @code {
+    // Quick ranges are host data: the picker only renders them and validates that
+    // each range is ordered and free of disabled dates.
+    private static readonly IReadOnlyList<DateRangePreset> _rangePresets =
+    [
+        new("近 7 天", DateOnly.FromDateTime(DateTime.Today).AddDays(-6), DateOnly.FromDateTime(DateTime.Today)),
+        new("本月", new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), DateOnly.FromDateTime(DateTime.Today)),
+        new("上季度", new DateOnly(DateTime.Today.Year, ((DateTime.Today.Month - 1) / 3) * 3 + 1, 1).AddMonths(-3),
+            new DateOnly(DateTime.Today.Year, ((DateTime.Today.Month - 1) / 3) * 3 + 1, 1).AddDays(-1))
+    ];
+
     private DateOnly? _boundaryDate = DateOnly.MaxValue;
     private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly? _date = DateOnly.FromDateTime(DateTime.Today);

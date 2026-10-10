@@ -43,6 +43,13 @@
 
             <Segmented TValue="string" Items="@_two" Value="@_twoValue" ValueChanged="SelectTwo" AriaLabel="两项" />
             <Segmented TValue="string" Items="@_five" Value="@_fiveValue" ValueChanged="SelectFive" AriaLabel="五项" FullWidth />
+
+            <div class="preview-state-row">
+                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView"
+                           Required Invalid AriaLabel="必填且无效" />
+                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView"
+                           Disabled AriaLabel="整组禁用" />
+            </div>
         </div>
     </Preview>
     <Controls>

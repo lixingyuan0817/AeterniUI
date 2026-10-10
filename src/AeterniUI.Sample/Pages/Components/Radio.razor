@@ -11,7 +11,7 @@
 <ComponentPreview AnchorId="radio"
                   Category="表单组件"
                   Title="Radio / RadioGroup"
-                  ComponentName="RadioGroup"
+                  ComponentName="RadioGroup / Radio"
                   Description="原生单选语义与分组绑定，支持禁用、必填和无效状态。"
                   Parameters="@RadioParameters">
     <Controls>
@@ -62,18 +62,20 @@
 
     private Orientation _radioOrientation = Orientation.Horizontal;
 
+    // Ownership matters here: AriaDescribedBy belongs to Radio, the group-level
+    // parameters to RadioGroup (REV-159).
     private static readonly ShowcaseParameter[] RadioParameters =
     [
-        new("Value", "TValue?", "当前选中值。"),
-        new("ValueChanged", "EventCallback<TValue?>", "标准绑定回调。"),
-        new("ChildContent", "RenderFragment?", "Radio 选项内容。"),
-        new("Name", "string?", "原生单选组名称。"),
-        new("Size", "Size?", "尺寸档位；未设置时使用分组值，分组也未设置时为 Default。"),
-        new("Orientation", "Orientation", "分组布局方向，与 aria-orientation 一致。", "Horizontal"),
-        new("Disabled", "bool", "禁用整个分组。", "false"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("AriaLabel", "string?", "单选组无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素的 id。")
+        new("RadioGroup.Value / ValueChanged", "TValue? / EventCallback<TValue?>", "分组当前值，支持 @bind-Value。"),
+        new("RadioGroup.Orientation", "Orientation", "分组布局方向，与 aria-orientation 一致。", "Horizontal"),
+        new("RadioGroup.AriaLabel", "string?", "分组无障碍名称。"),
+        new("Radio.Value / ValueChanged", "TValue? / EventCallback<TValue?>", "独立 Radio 的绑定值（无分组时显示由它驱动），组内使用时同时作为该选项的值。"),
+        new("Radio.ValueExpression", "Expression<Func<TValue?>>?", "独立 Radio 接入 EditContext 校验的字段表达式。"),
+        new("Radio.ChildContent", "RenderFragment?", "选项内容。"),
+        new("Radio.Size", "Size?", "尺寸档位；未设置时使用分组值，分组也未设置时为 Default。"),
+        new("Radio.AriaLabel", "string?", "选项无障碍名称。"),
+        new("Radio.AriaDescribedBy", "string?", "仅独立 Radio 提供：与该选项关联的描述元素 id。"),
+        new("Radio.Name", "string?", "原生单选组名称；组内一般由 RadioGroup 统一提供。"),
+        new("RadioGroup / Radio.Disabled / Required / Invalid", "bool", "分组下发到选项；独立 Radio 也可单独设置。", "false")
     ];
 }
