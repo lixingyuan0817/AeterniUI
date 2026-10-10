@@ -128,7 +128,8 @@
    and the overlay only earns full strength while the pointer is on it (or the card
    is tilted or focused), so the image stays readable when the user is not
    interacting with it. */
-.aeterni-flash-card__sheen {
+.aeterni-flash-card__sheen,
+.aeterni-flash-card__sheen-light {
     position: absolute;
     inset: 0;
     opacity: calc(var(--aeterni-flash-card-sheen-opacity) * 0.5);
@@ -140,7 +141,10 @@
 
 .aeterni-flash-card:hover .aeterni-flash-card__sheen,
 .aeterni-flash-card:focus-visible .aeterni-flash-card__sheen,
-.aeterni-flash-card.is-tilting .aeterni-flash-card__sheen {
+.aeterni-flash-card.is-tilting .aeterni-flash-card__sheen,
+.aeterni-flash-card:hover .aeterni-flash-card__sheen-light,
+.aeterni-flash-card:focus-visible .aeterni-flash-card__sheen-light,
+.aeterni-flash-card.is-tilting .aeterni-flash-card__sheen-light {
     opacity: var(--aeterni-flash-card-sheen-opacity);
 }
 
@@ -162,21 +166,35 @@
     background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
 }
 
-/* Holographic finish: the diffraction grating of a foil card. Narrow rainbow bands,
-   brushed lines and a pointer-phased radial reflection sit over the media, while
-   the separate glint layer provides the brief white sweep on pointer entry. The
-   screen blend keeps the reflection visible on both dark and bright artwork. */
+/* Holographic finish: the diffraction grating of a foil card. The rainbow bands
+   replace hue and saturation while keeping the artwork's own luminosity, which is
+   exactly what the `color` blend does; that is also why the metallic light cannot
+   share this layer — a desaturated source under `color` would flatten the image
+   instead of lighting it. The white reflection therefore lives on the sibling
+   `.aeterni-flash-card__sheen-light` layer below, which stays on `screen`. The
+   glint layer still provides the brief white sweep on pointer entry. */
 .aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen {
-    mix-blend-mode: screen;
+    mix-blend-mode: color;
     background-image:
-        radial-gradient(circle at var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y),
-            rgb(var(--aeterni-decor-sheen) / 0.74) 0%, rgb(var(--aeterni-decor-sheen) / 0.2) 16%, transparent 42%),
         repeating-linear-gradient(112deg,
             rgb(var(--aeterni-decor-holo-1) / 0.2) 0 30px,
             rgb(var(--aeterni-decor-holo-2) / 0.2) 30px 60px,
             rgb(var(--aeterni-decor-holo-3) / 0.2) 60px 90px,
             rgb(var(--aeterni-decor-holo-4) / 0.2) 90px 120px,
-            rgb(var(--aeterni-decor-holo-5) / 0.2) 120px 150px),
+            rgb(var(--aeterni-decor-holo-5) / 0.2) 120px 150px);
+    background-size: 100% 100%;
+    background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+}
+
+/* White light of the holo finish: the pointer-phased radial reflection, the
+   brushed metal lines and the full-bleed sweep. It has to be its own layer
+   because `screen` lightens a dark image without tinting a bright one, while the
+   rainbow layer above preserves luminance and therefore cannot lighten at all. */
+.aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen-light {
+    mix-blend-mode: screen;
+    background-image:
+        radial-gradient(circle at var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y),
+            rgb(var(--aeterni-decor-sheen) / 0.74) 0%, rgb(var(--aeterni-decor-sheen) / 0.2) 16%, transparent 42%),
         repeating-linear-gradient(112deg,
             rgb(var(--aeterni-decor-sheen) / 0) 0 4px, rgb(var(--aeterni-decor-sheen) / 0.18) 4px 5px, rgb(var(--aeterni-decor-sheen) / 0) 5px 9px),
         linear-gradient(112deg,
@@ -185,8 +203,8 @@
             rgb(var(--aeterni-decor-sheen) / 0.1) 58%,
             rgb(var(--aeterni-decor-sheen) / 0.38) 86%,
             rgb(var(--aeterni-decor-sheen) / 0.14) 100%);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 320% 320%;
-    background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y), 0 0, 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
+    background-size: 100% 100%, 100% 100%, 320% 320%;
+    background-position: var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y), 0 0, var(--aeterni-flash-card-sheen-x) var(--aeterni-flash-card-sheen-y);
 }
 
 /* A narrow moving reflection gives the card a readable flash when the pointer
@@ -276,6 +294,7 @@
     .aeterni-flash-card__inner,
     .aeterni-flash-card__face,
     .aeterni-flash-card__sheen,
+    .aeterni-flash-card__sheen-light,
     .aeterni-flash-card__glint,
     .aeterni-flash-card__glint-sweep {
         transition: none;

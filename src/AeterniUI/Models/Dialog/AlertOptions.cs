@@ -9,7 +9,12 @@ public sealed class AlertOptions : DialogOptions
         Severity = Severity.Info;
     }
 
-    public string CloseText { get; set; } = "Close";
+    /// <summary>
+    /// Accessible name of the alert's close button. An empty or null value falls
+    /// back to <see cref="AeterniUITextOptions.AlertCloseLabel" />, so a host that
+    /// localises through the text table keeps working without setting this.
+    /// </summary>
+    public string? CloseText { get; set; }
 
     /// <summary>
     /// The placement of the alert. A null value uses the service default

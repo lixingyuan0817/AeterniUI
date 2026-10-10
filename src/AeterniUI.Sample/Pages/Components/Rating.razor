@@ -74,7 +74,7 @@
     ];
 
     private static readonly ShowcaseEvent[] RatingEvents =
-    [new("OnChange", "EventCallback<int>", "评分值发生变化时触发。")];
+    [new("ValueChanged", "EventCallback<int>", "评分值变化时触发；`OnChange` 已于 10.14.3 移除。")];
 
     private Task HandleRatingChanged(int value)
     {

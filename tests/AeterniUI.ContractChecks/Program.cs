@@ -6,6 +6,7 @@ using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.Descriptions;
+using AeterniUI.Components.Dialog;
 using AeterniUI.Components.FlashCard;
 using AeterniUI.Components.FlashCardGroup;
 using AeterniUI.Components.InputNumber;
@@ -20,6 +21,7 @@ using AeterniUI.Components.TimePicker;
 using AeterniUI.Components.VirtualList;
 using AeterniUI.Enums;
 using AeterniUI.Icons;
+using AeterniUI.Models.Dialog;
 using AeterniUI.Services;
 using AeterniUI.Services.Impl;
 using Microsoft.AspNetCore.Components;
@@ -65,6 +67,7 @@ await CheckDateBoundariesAsync();
 await CheckOverlayTransitionsAsync();
 await CheckArchitectureP0Async();
 await CheckReviewBatch23Async();
+await CheckReviewBatch24Async();
 await CheckJsLifecycleAsync();
 await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
@@ -804,10 +807,16 @@ async Task CheckTimelineAsync()
         timestamp.ToString("O", CultureInfo.InvariantCulture));
     var encodedSecondTimestamp = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(
         timestamp.AddMinutes(5).ToString("O", CultureInfo.InvariantCulture));
+    // REV-143: the expected value has to be encoded exactly like the rendered one.
+    // ICU 72+ uses U+202F in the short time format, and Blazor renders it as
+    // `&#x202F;`, so an unencoded expectation would only pass on the CI runner's
+    // older ICU data while failing on any host with current data.
+    var cultureTimestamp = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(
+        timestamp.AddMinutes(5).ToString("g", CultureInfo.CurrentCulture));
     Require(html.Contains($"datetime=\"{encodedTimestamp}\"", StringComparison.Ordinal)
         && html.Contains(">09:30</time>", StringComparison.Ordinal)
         && html.Contains($"datetime=\"{encodedSecondTimestamp}\"", StringComparison.Ordinal)
-        && html.Contains(timestamp.AddMinutes(5).ToString("g", CultureInfo.CurrentCulture), StringComparison.Ordinal),
+        && html.Contains(cultureTimestamp, StringComparison.Ordinal),
         "Timeline renders machine-readable timestamps and custom or culture-formatted visible time.");
     Require(html.Contains($"d=\"{icon.Paths[0]}\"", StringComparison.Ordinal)
         && html.Contains("aeterni-timeline__dot", StringComparison.Ordinal)
@@ -1910,6 +1919,8 @@ async Task CheckFlashCardAsync()
         && flippable.Contains("aeterni-flash-card__sheen", StringComparison.Ordinal)
         && flippable.Contains("--aeterni-flash-card-sheen-opacity: 0.6", StringComparison.Ordinal),
         "The default finish must render the holographic overlay with its strength token.");
+    Require(flippable.Contains("aeterni-flash-card__sheen-light", StringComparison.Ordinal),
+        "The holographic finish must render its white reflection on a second layer.");
 
     var hiddenBackTag = Regex.Match(flippable, "<div[^>]*aeterni-flash-card__face--back[^>]*>").Value;
     Require(hiddenBackTag.Contains("aria-hidden=\"true\"", StringComparison.Ordinal) && hiddenBackTag.Contains("inert", StringComparison.Ordinal),
@@ -1965,6 +1976,17 @@ async Task CheckFlashCardAsync()
         && !noSheen.Contains("--sheen-holo", StringComparison.Ordinal),
         "Sheen=None must render no finish overlay at all.");
 
+    var shineSheen = await RenderAsync<FlashCard>(new Dictionary<string, object?>
+    {
+        [nameof(FlashCard.ImageSrc)] = "/cover.svg",
+        [nameof(FlashCard.Sheen)] = FlashCardSheen.Shine
+    });
+
+    Require(shineSheen.Contains("aeterni-flash-card--sheen-shine", StringComparison.Ordinal)
+        && shineSheen.Contains("aeterni-flash-card__sheen", StringComparison.Ordinal)
+        && !shineSheen.Contains("aeterni-flash-card__sheen-light", StringComparison.Ordinal),
+        "The shine finish keeps its single screen layer; only holo needs the white-light layer.");
+
     var hoverPreview = await RenderAsync<FlashCard>(new Dictionary<string, object?>
     {
         [nameof(FlashCard.Back)] = back,
@@ -2011,10 +2033,15 @@ async Task CheckFlashCardAsync()
     Require(css.Contains(".aeterni-flash-card.is-flip-hover:not(.is-disabled):hover .aeterni-flash-card__inner", StringComparison.Ordinal),
         "The Hover trigger must have a matching style rule.");
     Require(css.Contains(".aeterni-flash-card--sheen-shine .aeterni-flash-card__sheen", StringComparison.Ordinal)
-        && css.Contains(".aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen", StringComparison.Ordinal)
-        && css.Contains("mix-blend-mode: screen", StringComparison.Ordinal)
-        && css.Contains("mix-blend-mode: screen", StringComparison.Ordinal),
-        "Both finish layers must use the screen blend recipe so the reflection remains visible on light and dark images.");
+        && css.Contains(".aeterni-flash-card--sheen-holo .aeterni-flash-card__sheen", StringComparison.Ordinal),
+        "Both finishes need their own sheen rule.");
+    // REV-140: the rainbow replaces hue and saturation (`color`) while the white
+    // reflection lightens the artwork (`screen`). A single `screen` layer made the
+    // finish invisible on light artwork, so the two roles must stay split.
+    Require(Regex.IsMatch(css, @"--sheen-holo \.aeterni-flash-card__sheen \{[^}]*mix-blend-mode: color", RegexOptions.Singleline),
+        "The holo rainbow must blend with `color` so it keeps the artwork's own luminosity.");
+    Require(Regex.IsMatch(css, @"--sheen-holo \.aeterni-flash-card__sheen-light \{[^}]*mix-blend-mode: screen", RegexOptions.Singleline),
+        "The holo white reflection must live on its own `screen` layer.");
     Require(css.Contains("radial-gradient", StringComparison.Ordinal)
         && css.Contains("aeterni-flash-card__glint-sweep", StringComparison.Ordinal),
         "The finish must combine a pointer-phased highlight with a separate moving glint.");
@@ -2245,6 +2272,59 @@ async Task CheckReviewBatch23Async()
         Require(host.Changes.Count == 0 && host.GridValue == 0.35m,
             "A field sitting on its off-grid Max must report no further increase.");
     });
+}
+
+// Regression guards for the tenth review round's batch 24 (P1).
+async Task CheckReviewBatch24Async()
+{
+    // REV-142: AlertOptions.CloseText was a dead parameter — the only place that
+    // rendered it was an Alert dialog branch nothing created, while the alert
+    // notification read the text table directly. It now names the close button of
+    // the alert notification and falls back to the table when left empty.
+    async Task<string> RenderAlertsAsync(Action<AeterniUIOptions>? configure)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IJSRuntime, NoopJsRuntime>();
+        if (configure is null)
+        {
+            services.AddAeterniUI();
+        }
+        else
+        {
+            services.AddAeterniUI(configure);
+        }
+
+        await using var currentProvider = services.BuildServiceProvider();
+        await using var currentRenderer = new HtmlRenderer(currentProvider, currentProvider.GetRequiredService<ILoggerFactory>());
+        var dialogs = currentProvider.GetRequiredService<IDialogService>();
+        // TimeSpan.Zero keeps both alerts in the stack instead of racing a timeout.
+        dialogs.DefaultAlertDuration = TimeSpan.Zero;
+        _ = dialogs.AlertAsync("Saved", new AlertOptions { CloseText = "Dismiss notice" });
+        _ = dialogs.AlertAsync("Queued");
+
+        return await currentRenderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await currentRenderer.RenderComponentAsync<DialogProvider>(ParameterView.Empty);
+            return output.ToHtmlString();
+        });
+    }
+
+    var alertHtml = await RenderAlertsAsync(null);
+    Require(alertHtml.Contains("aria-label=\"Dismiss notice\"", StringComparison.Ordinal),
+        "AlertOptions.CloseText must name the alert notification's close button.");
+    Require(alertHtml.Contains("aria-label=\"Close alert\"", StringComparison.Ordinal),
+        "An alert without CloseText must fall back to the text table's AlertCloseLabel.");
+
+    var localizedAlerts = await RenderAlertsAsync(options => options.Text.AlertCloseLabel = "关闭提示");
+    // Attribute values are HTML-encoded by the renderer, so the expectation has to
+    // be encoded the same way (the same trap REV-143 fixed for the Timeline timestamps).
+    var localizedLabel = System.Text.Encodings.Web.HtmlEncoder.Default.Encode("关闭提示");
+    var localizedLabels = string.Join(" | ", System.Text.RegularExpressions.Regex.Matches(localizedAlerts, "aria-label=\"([^\"]+)\"")
+        .Select(m => m.Groups[1].Value));
+    Require(localizedAlerts.Contains($"aria-label=\"{localizedLabel}\"", StringComparison.Ordinal)
+        && localizedAlerts.Contains("aria-label=\"Dismiss notice\"", StringComparison.Ordinal),
+        $"The alert close label must read the text table, and an explicit CloseText must still win (found: {localizedLabels}).");
 }
 
 // Regression guards for the ninth review round's P0 batch. Each assertion locks a

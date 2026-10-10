@@ -26,7 +26,7 @@
                             NoBlur="@(alert.Options is AlertOptions { Blur: false })"
                             IsClosing="@alert.IsClosing"
                             Duration="@alert.Duration"
-                            CloseLabel="@UiText.AlertCloseLabel"
+                            CloseLabel="@((alert.Options as AlertOptions)?.CloseText)"
                             CloseRequested="@(() => CloseDialogAsync(alert, DialogResult.Dismiss()))" />
             }
 
@@ -109,7 +109,7 @@
                             <footer class="aeterni-dialog-provider__footer">
                                 <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
-                                    @alertOptions.CloseText
+                                    @(string.IsNullOrWhiteSpace(alertOptions.CloseText) ? UiText.AlertCloseLabel : alertOptions.CloseText)
                                 </Button>
                             </footer>
                         }

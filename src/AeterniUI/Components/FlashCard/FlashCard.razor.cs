@@ -236,6 +236,13 @@ public partial class FlashCard : AeterniComponent
     /// </summary>
     private bool HasSheen => HasImage && Sheen != FlashCardSheen.None;
 
+    /// <summary>
+    /// The holographic finish is the only one that needs two layers: its rainbow
+    /// bands replace hue and saturation (<c>color</c>) while the white reflection
+    /// has to lighten the artwork (<c>screen</c>).
+    /// </summary>
+    private bool HasHoloSheen => HasSheen && Sheen == FlashCardSheen.Holo;
+
     // Each mapper returns null for the tier that the component's base rule already
     // renders, so no modifier class is emitted without a matching rule.
     private string? SheenClass => Sheen switch

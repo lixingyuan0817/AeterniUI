@@ -17,6 +17,14 @@
                         @if (HasSheen)
                         {
                             <span class="aeterni-flash-card__sheen" aria-hidden="true"></span>
+                            @if (HasHoloSheen)
+                            {
+                                @* REV-140: `color` cannot carry the white reflection — a
+                                   desaturated source would flatten the image instead of
+                                   lighting it — so the holo finish paints its light on a
+                                   second `screen` layer next to the rainbow one. *@
+                                <span class="aeterni-flash-card__sheen-light" aria-hidden="true"></span>
+                            }
                             <span class="aeterni-flash-card__glint" aria-hidden="true">
                                 <span class="aeterni-flash-card__glint-sweep"></span>
                             </span>

@@ -927,7 +927,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 
 - 非模态、不阻塞页面、不显示模态遮罩的单条提示，默认底部居中；消息内容最多显示两行，超出部分截断。
 - 支持 Toast 的八个位置，可通过 `AlertOptions.Position` 或 Service 的位置重载覆盖，也可在全局配置中修改默认位置，便于避开顶部页面元素。
-- `AlertOptions` 支持 `Position`、`Duration`、`Blur`、`CloseText`、`OnClosedAsync`，并继承 `DialogOptions` 的语意色、图标和关闭设置。
+- `AlertOptions` 支持 `Position`、`Duration`、`Blur`、`CloseText`、`OnClosedAsync`，并继承 `DialogOptions` 的语意色、图标和关闭设置。`CloseText` 命名通知右侧关闭按钮的无障碍名称；留空（默认）时回退到 `AeterniUITextOptions.AlertCloseLabel`，因此按文案表整体本地化的宿主不需要逐处设置它。
 - 使用 Button 相同的 `Info`、`Success`、`Warning`、`Danger` 语意色映射。
 - 语意背景使用浅色混合，去除左侧语意边框。
 - 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并上下居中。
@@ -1421,7 +1421,7 @@ builder.Services.AddAeterniUI(options =>
 - 未翻出的一面标记 `aria-hidden="true"` 并输出 `inert`，屏幕阅读器与 Tab 序列因此只面对当前可见的一面；静态卡片与 Hover 预览都不输出这两类语义。
 - `Disabled` 时根元素输出 `aria-disabled="true"`、移出 Tab 序列、不注册指针跟随，并消费 `--aeterni-state-*` 禁用 Token。
 - 3D 跟随只写旋转变量（`--aeterni-flash-card-rotate-x` / `-rotate-y`）、光泽位置（`--aeterni-flash-card-sheen-x` / `-y`）和扫光位移（`--aeterni-flash-card-glint-x` / `-y`），并在跟随期间标记 `is-tilting`；旋转、悬停缩放、光泽配方、扫光动画、翻面与全部过渡都留在 `FlashCard.razor.css`。
-- 光泽层是叠在媒体区之上的装饰：`Holo` 与 `Shine` 都以 `screen` 叠加，前者使用彩色衍射纹和随指针移动的径向高光，后者使用金属白光；另有一次性的扫光层在进入、聚焦或倾斜时划过。所有层只覆盖图片、不覆盖图文说明区，也不参与容器背景填充；`Sheen` 关闭或没有 `ImageSrc` 时完全不渲染。指针位置同时改变 3D 旋转、光泽相位和扫光位移，因此反射会跟随卡面倾斜。
+- 光泽层是叠在媒体区之上的装饰，一层只承担一种混色效果：`Holo` 的彩色衍射纹走 `color` 层（替换色相与饱和度、保留图片明度），白光反射另起 `screen` 层（随指针移动的径向高光、金属拉丝与整面扫光），因此浅色与深色图片都能看到闪光；`Shine` 只有白光一层。另有一次性的扫光层在进入、聚焦或倾斜时划过。所有层只覆盖图片、不覆盖图文说明区，也不参与容器背景填充；`Sheen` 关闭或没有 `ImageSrc` 时完全不渲染。指针位置同时改变 3D 旋转、光泽相位和扫光位移，因此反射会跟随卡面倾斜。
 - `Tilt="false"`、`Disabled` 与系统「减少动态效果」都不注册指针监听器：卡片保持平整、光泽停在原位（默认居中），但仍可翻面；减少动态效果同时移除过渡。
 - 参数校验：`AspectRatio`、`Perspective` 与 `TiltScale` 必须为正的有限数，`MaxTiltAngle` 必须为非负有限数，`SheenIntensity` 必须落在 `0`～`1`；正面与背面内容全部缺省时抛出异常。
 

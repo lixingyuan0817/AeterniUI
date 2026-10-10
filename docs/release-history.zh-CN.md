@@ -12,6 +12,15 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 第十轮审阅修复批次 24（P1，版本号未递增）
+
+- [x] REV-140：`FlashCard` Holo 拆成两层——彩虹走 `color`（替换色相与饱和度、保留图片明度），白光反射另起 `.aeterni-flash-card__sheen-light` 走 `screen`（径向高光、金属拉丝、整面扫光）。四处同向：实现、`engineering-reference` 的玻璃/光泽硬规则、`delivered-features` §45、示例说明。新增真实浏览器检查：断言两层 `mix-blend-mode` 与层面覆盖，并用「浅色 #DCDCDC / 深色 #1F1F1F 平铺底 + 截图取像素」验证两种底色下光泽都真实改变画面（差分 ≥ 6/255）。
+- [x] REV-141：`Rating` / `ComboBox` 的 `OnChange` 文档与示例收口——正文早已改记「已于 10.14.3 移除」，本次把示例事件表里仍把它列为可用回调的两行改成 `ValueChanged` / `OnItemSelected` 并注明移除；`check-doc-drift` 的 §17/§18 锁定继续生效。
+- [x] REV-142：`AlertOptions.CloseText` 从死参数改为通知关闭按钮的无障碍名称；留空（默认 `null`）回退 `AeterniUITextOptions.AlertCloseLabel`，宿主显式设置时优先。`DialogProvider` 的 Alert 页脚分支改用同一回退，避免空标签；同步 §26 与 Feedback 示例说明。
+- [x] REV-143：`ContractChecks` 的 Timeline 可视时间断言先对期望值做 `HtmlEncoder.Default.Encode`——ICU 72+ 的 U+202F 会被渲染成 `&#x202F;`，未编码的期望值只在旧 ICU 的 CI 上侥幸通过。同批的 Alert 断言也遵循同一规则。
+- [x] 门禁收尾：`CloseText` 不再是退役成员，`scripts/check-doc-drift.mjs` 删除该条目（现为 66 个文案键、1 条退役成员、0 条待修复）。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过；浏览器检查在 CI 的 browser job 上验证新增的 REV-140 两项断言。批次 24 已从审阅计划移除，第十轮剩余 REV-144～REV-163 共 20 条。
+
 ## Agent 指南审计、图标门禁接入与图标脚本大小写修复（版本号未递增）
 
 - [x] 审计 `AGENTS.md`：门禁与索引事实逐条核对通过；补齐 §2 必读路由（图标清单/生成脚本、CI 与工作流）、§3.3 根目录树（`LICENSE`、`.github/workflows` 点名）与组件目录模板的聚合目录例外（`Dialog`／`Popup`／`Theme`）、§4.8 门禁的 token 选择器检查命令。

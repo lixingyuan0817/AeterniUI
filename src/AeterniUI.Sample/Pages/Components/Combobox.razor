@@ -87,7 +87,7 @@
     ];
 
     private static readonly ShowcaseEvent[] ComboBoxEvents =
-    [new("OnChange", "EventCallback<TItem?>", "选项确认后触发。")];
+    [new("OnItemSelected", "EventCallback<TItem?>", "选项确认后触发；`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除。")];
 
     private static readonly ShowcaseContract[] ComboBoxContracts =
     [new("ComboBox<TItem>", "泛型组件", "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。")];

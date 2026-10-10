@@ -33,12 +33,6 @@ const RETIRED = [
         replacedBy: 'ValueChanged / OnItemSelected',
         status: 'enforced',
     },
-    {
-        token: 'CloseText',
-        sections: null,
-        replacedBy: '删除属性或接线到 NoticeCard.CloseLabel（第十轮批次 24）',
-        status: 'pending',
-    },
 ];
 
 const features = readFileSync(FEATURES, 'utf8');

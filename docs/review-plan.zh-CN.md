@@ -2,7 +2,7 @@
 
 文档版本：`10.30.1`
 
-文档状态：当前活动审阅计划；第十轮剩余 REV-140～REV-163 共 24 条，全部待修复（批次 23 的 REV-133～REV-139 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：当前活动审阅计划；第十轮剩余 REV-144～REV-163 共 20 条，全部待修复（批次 23 的 REV-133～REV-139、批次 24 的 REV-140～REV-143 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读第十轮问题与建议的修复批次。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -38,22 +38,15 @@
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
-## 第十轮：全库组件审核（剩余 REV-140～REV-163，共 24 条；P0 无，全部待修复）
+## 第十轮：全库组件审核（剩余 REV-144～REV-163，共 20 条；P0 无，全部待修复）
 
 范围：全库 53 个组件目录 / 65 个组件文件、49 个 `delivered-features` 章节、示例页、契约与浏览器测试。审阅维度为文档-实现对齐、视觉、功能、设计一致性，另做组件与文档颗粒度的横切比对（参数覆盖率、章节结构、默认值一致性与文案表漏网）。
 
 方法：按组件族通读源码并逐条取证，关键结论经二次核实——源码行、**编译后的作用域 CSS**（`dist` 产物）、几何/混色推导、全库消费者 grep。前九轮修复做了回归抽查（REV-98/101/103/104/106/107/108/116/117/121/122/123/126/127/130/131 未见回归）。限制：视觉类结论（混合模式可见性、RTL 几何、hover 反馈）已按推导确认，修复时仍需补浏览器验收；不含真实触屏与读屏验收。
 
-本轮的突出模式：**多处文档漂移是「实现改了、文档没跟」**（REV-38/71/115/121/122/123 等修复批次的文档侧未同步），此类项集中在 REV-141/142/144/157，建议按批次 24/26 的对账方式收口；另新增 `scripts/check-doc-drift.mjs` 门禁用于拦截同类复发。
+本轮的突出模式：**多处文档漂移是「实现改了、文档没跟」**（REV-38/71/115/121/122/123 等修复批次的文档侧未同步），此类项中 REV-141/142 已在批次 24 收口，剩余集中在 REV-144/157，按批次 26 的对账方式处理；另新增 `scripts/check-doc-drift.mjs` 门禁用于拦截同类复发。
 
-### P1：功能、可访问性与文档契约（待修复）
-
-| 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
-| --- | --- | --- |
-| REV-140 / P1 | **`FlashCard` Holo 混合模式三方矛盾。** 实现用 `mix-blend-mode: screen`（`FlashCard.razor.css` 全息层）；设计契约 §13 明文「彩虹镭射用 `color`……用 `screen` 让浅色图片完全看不出闪光」；示例页注释写 `color`；`delivered-features` §45 写「都以 screen」。三处两派，且按混色算术浅色卡面上的镭射确实几乎不可见 | 定调并同步四处：按契约回 `color`（白光反射另层）或修契约成文为 screen 方案；补浏览器在浅色/深色图各验一次 |
-| REV-141 / P1 | **Rating / ComboBox 的 `OnChange` 声明是幽灵 API。** `delivered-features` §17/§18 仍写「已弃用……仍会被调用，将在后续版本移除」；源码已移除，契约断言锁定「旧名字必须不存在」（REV-115 收尾）。按文档迁移的消费者会编译失败 | 删句改记「已于 10.14.3 移除，用 `ValueChanged` / `OnItemSelected`」；由新门禁 `check-doc-drift` 锁定该名字不再被表述为仍可用（允许以「已移除」形式提及） |
-| REV-142 / P1 | **`AlertOptions.CloseText` 是死参数 + 不可达分支。** 该属性只在 `DialogProvider.razor` 的 Alert 堆栈分支渲染，而 Kind=Alert 的堆栈项无人创建（`AlertAsync` 全部进 `_alerts` → `NoticeCard`，其关闭名称另走 `UiText.AlertCloseLabel`）；文档 §26 把它登记为支持项、Feedback 示例称其为「无障碍名称」。宿主设置它不会产生任何效果 | 删除 property 与死分支，或接线到 `NoticeCard.CloseLabel`；同步文档与示例；`check-doc-drift` 的 CloseText 项由 pending 转 enforced |
-| REV-143 / P1 | **契约检查在本机必红（断言可移植性）。** `ContractChecks` 的 Timeline 断言用未编码的 `CurrentCulture` 字符串做 `Contains`；ICU 72+ 的短时间格式含 U+202F，Blazor 渲染时编码为 `&#x202F;` 导致失配（已实测复现），CI 旧 ICU 侥幸通过；任何非 ASCII 时间标记的语言环境都会红。影响：本机预提交门禁失真 | 断言前对期望值做 `HtmlEncoder.Default.Encode` 或固定测试文化；本机与 CI 双绿 |
+（P1 已清空：REV-133～REV-143 分别在批次 23、批次 24 修复，逐项证据见发布历史中的对应批次记录。）
 
 ### P2：一致性、Token 纪律与文档同步（待修复）
 
@@ -89,26 +82,21 @@
 
 | 批次 | 范围 | 说明 |
 | --- | --- | --- |
-| 批次 24 ⏳（待开始） | REV-140 ~ REV-143 | Holo 混合模式定调（含契约/文档四处同步）、`OnChange`/`CloseText` 文档契约收口、契约断言可移植性。含决策项（Holo 方向），需先定调再改 |
 | 批次 25 ⏳（待开始） | REV-146 ~ REV-148、REV-153 ~ REV-155 | P2 行为高置信：hover 缺口、RootElement 传参、退场时序、JSException 守卫、`_displayMonth` 重置、`AriaDescribedBy` 合并。以浏览器验收为主 |
 | 批次 26 ⏳（待开始） | REV-144、REV-145、REV-149 ~ REV-152、REV-156、REV-157 | 文档对账（漂移簇、玻璃名单）、宿主别名收敛、死类群、校验与文案表补齐、文件职责。可与批次 25 合并提交 |
 | 批次 27 ⏳（待开始） | REV-158 ~ REV-163 | P3 收尾：文档颗粒度、示例补齐、死代码、性能、小功能与测试覆盖 |
 
 ### 执行计划评审（第十轮）
 
-#### 前置决策（D2/D3 阻塞批次 24，定调后再改）
+#### 前置决策（D1～D3 已全部定调，无阻塞项）
 
 | 编号 | 决策 | 选项与建议 | 影响面 |
 | --- | --- | --- | --- |
 | D1 ✅ | 独立 `Radio` 是否支持值绑定 | **已定调（支持）**：显示改由 `Value` 驱动，组模式不变；已在批次 23 落地并归档 | REV-133、§13、Radio 示例页、契约断言 |
-| D2 | `FlashCard` Holo 混合模式 | 建议**回落 `color`** 并按契约补白光反射层；若判定保留 `screen`，则需改设计契约 §13 与交付文档成文为 screen 方案 | REV-140、`FlashCard.razor.css`、`engineering-reference` §13、`delivered-features` §45、示例注释（四处必须同向） |
-| D3 | `AlertOptions.CloseText` 去留 | 建议**接线到 `NoticeCard.CloseLabel`**：保住已登记的公共参数并让文档成真；删除则需同步 §26、示例并把契约断言改为「该名字必须不存在」 | REV-142、`DialogProvider`、`NoticeCard`、§26、Feedback 示例、`check-doc-drift` 的 pending 项 |
+| D2 ✅ | `FlashCard` Holo 混合模式 | **已定调（回 `color` + 白光另起 `screen` 层）**：彩虹层 `color`、白光层 `screen`，四处文档与示例注释同向；已在批次 24 落地并归档 | REV-140、`FlashCard.razor.css`、`engineering-reference` §13、`delivered-features` §45、示例注释 |
+| D3 ✅ | `AlertOptions.CloseText` 去留 | **已定调（接线到通知关闭按钮）**：`CloseText` 留空回退 `AeterniUITextOptions.AlertCloseLabel`；因其不再是退役成员，`check-doc-drift` 的 CloseText 条目已删除（该门禁现无待修复项） | REV-142、`DialogProvider`、`NoticeCard`、§26、Feedback 示例、`check-doc-drift` |
 
-D2 会改变可见行为，结论落定后必须同步交付功能、示例与契约检查；D3 完成后把 `check-doc-drift` 中 `CloseText` 由 `pending` 转为 `enforced`，使批次 26 收尾时该门禁无待修复项。
-
-#### 批次 24（REV-140 ~ REV-143，P1）
-
-D2 定调 → 四处同步 Holo → REV-141 删改 §17/§18 措辞（改记「已于 10.14.3 移除」）→ REV-142 按 D3 落地 → REV-143 断言前对期望值做 `HtmlEncoder.Default.Encode`（或固定测试文化），要求本机与 CI 双绿。
+D1～D3 均已落定并随批次 23/24 归档：三项都同步了交付功能、示例与契约检查，`check-doc-drift` 随之不再有待修复项。
 
 #### 批次 25（REV-146 ~ REV-148、REV-153 ~ REV-155，P2）
 

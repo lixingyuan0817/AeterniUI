@@ -645,6 +645,96 @@ check('VirtualList selected and hovered surfaces retain the List row gap',
         && Math.abs(virtualListStateGap.visualGap - parseFloat(listItem.rowGap)) <= 0.5,
     JSON.stringify({ virtualListStateGap, listRowGap: listItem.rowGap }));
 
+// ---------------------------------------------------------------- REV-140
+// The holo finish is split by blend role: the rainbow has to replace hue and
+// saturation (`color`) while the white reflection has to lighten (`screen`). Both
+// have to stay visible on light and dark artwork, which is what a real screenshot
+// can answer and computed styles cannot.
+await goto(`${BASE}/components/flash-card`);
+await waitForApp();
+
+const finish = await evaluate(`(() => {
+    const card = document.querySelector('.aeterni-flash-card');
+    if (!card) return { error: 'flash card not rendered' };
+    const sheen = card.querySelector('.aeterni-flash-card__sheen');
+    const light = card.querySelector('.aeterni-flash-card__sheen-light');
+    if (!sheen || !light) return { error: 'finish layers missing' };
+    const media = card.querySelector('.aeterni-flash-card__media').getBoundingClientRect();
+    const sheenRect = sheen.getBoundingClientRect();
+    return {
+        sheenBlend: getComputedStyle(sheen).mixBlendMode,
+        lightBlend: getComputedStyle(light).mixBlendMode,
+        lightBackground: getComputedStyle(light).backgroundImage !== 'none',
+        covers: Math.abs(sheenRect.width - media.width) <= 1 && Math.abs(sheenRect.height - media.height) <= 1
+    };
+})()`);
+check('REV-140 holo splits rainbow and white light into separate blend layers',
+    !finish.error && finish.sheenBlend === 'color' && finish.lightBlend === 'screen'
+    && finish.lightBackground && finish.covers,
+    JSON.stringify(finish));
+
+// Screenshot the viewport, decode it *in the page* (the browser is the only PNG
+// decoder available to a dependency-free harness) and average the sampled region.
+async function sampleAverage(rect) {
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    return evaluate(`(async () => {
+        const bytes = Uint8Array.from(atob('${shot.data}'), c => c.charCodeAt(0));
+        const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+        const dpr = window.devicePixelRatio || 1;
+        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+        const data = ctx.getImageData(
+            Math.round(${rect.x} * dpr), Math.round(${rect.y} * dpr),
+            Math.max(1, Math.round(${rect.w} * dpr)), Math.max(1, Math.round(${rect.h} * dpr))).data;
+        const sum = [0, 0, 0];
+        for (let i = 0; i < data.length; i += 4) {
+            sum[0] += data[i]; sum[1] += data[i + 1]; sum[2] += data[i + 2];
+        }
+        const count = data.length / 4;
+        return sum.map(value => value / count);
+    })()`);
+}
+
+// Replaces the artwork with a flat fill so light and dark backdrops are exact,
+// then measures how much the finish moves the pixels. The one-shot glint is
+// suppressed in both samples so only the finish is compared.
+async function measureFinishDelta(fill) {
+    const rect = await evaluate(`(async () => {
+        const card = document.querySelector('.aeterni-flash-card');
+        card.scrollIntoView({ block: 'center' });
+        const img = card.querySelector('.aeterni-flash-card__media img');
+        img.src = 'data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${fill}"/></svg>');
+        await img.decode();
+        card.classList.add('is-tilting');
+        card.querySelector('.aeterni-flash-card__glint').style.opacity = '0';
+        const media = card.querySelector('.aeterni-flash-card__media').getBoundingClientRect();
+        const inset = 14;
+        return { x: media.x + inset, y: media.y + inset, w: media.width - inset * 2, h: media.height - inset * 2 };
+    })()`);
+
+    const setFinishOpacity = opacity => evaluate(`(() => {
+        const card = document.querySelector('.aeterni-flash-card');
+        card.querySelector('.aeterni-flash-card__sheen').style.opacity = '${opacity}';
+        card.querySelector('.aeterni-flash-card__sheen-light').style.opacity = '${opacity}';
+    })()`);
+
+    await setFinishOpacity('0');
+    const without = await sampleAverage(rect);
+    await setFinishOpacity('');
+    const withFinish = await sampleAverage(rect);
+    const delta = withFinish.reduce((sum, value, index) => sum + Math.abs(value - without[index]), 0) / 3;
+    return { delta };
+}
+
+const lightArt = await measureFinishDelta('#DCDCDC');
+const darkArt = await measureFinishDelta('#1F1F1F');
+check('REV-140 finish stays visible on light and dark artwork',
+    Number.isFinite(lightArt.delta) && Number.isFinite(darkArt.delta)
+    && lightArt.delta >= 6 && darkArt.delta >= 6,
+    JSON.stringify({ lightDelta: lightArt.delta.toFixed(1), darkDelta: darkArt.delta.toFixed(1) }));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 console.log(results.some(r => !r.ok) ? 'RESULT: FAIL' : 'RESULT: PASS');
 close();
