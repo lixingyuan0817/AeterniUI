@@ -144,10 +144,6 @@ public partial class VirtualList<TItem> : AeterniComponent
             _activeIndex = previousActiveKey is null
                 ? (_rows.Count == 0 ? -1 : Math.Clamp(_activeIndex, -1, _rows.Count - 1))
                 : _rows.FindIndex(row => Equals(row.Key, previousActiveKey));
-            if (_activeIndex < 0 && _rows.Count > 0)
-            {
-                _activeIndex = -1;
-            }
         }
 
         if (Items is not null)
@@ -323,7 +319,7 @@ public partial class VirtualList<TItem> : AeterniComponent
         if (_activeIndex == index) return;
         _activeIndex = index;
         if (requestScroll) _scrollRequestIndex = index;
-        _ = InvokeAsync(StateHasChanged);
+        RequestStateHasChanged();
     }
 
     private async Task ToggleAsync(VirtualRow row, bool allowClear = true)

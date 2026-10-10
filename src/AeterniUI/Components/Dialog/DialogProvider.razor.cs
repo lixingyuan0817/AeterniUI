@@ -88,7 +88,7 @@ public partial class DialogProvider : AeterniComponent
     {
         if (!IsDisposed)
         {
-            _ = InvokeAsync(StateHasChanged);
+            RequestStateHasChanged();
         }
     }
 

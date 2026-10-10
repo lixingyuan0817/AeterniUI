@@ -59,7 +59,7 @@ public partial class ListItem<TItem> : AeterniComponent
     /// Re-renders this option. The List calls it when the active option moves so
     /// the keyboard cue stays visible without focus leaving the container.
     /// </summary>
-    internal void Refresh() => _ = InvokeAsync(StateHasChanged);
+    internal void Refresh() => RequestStateHasChanged();
 
     protected override ClassBuilder BuildClass()
     {

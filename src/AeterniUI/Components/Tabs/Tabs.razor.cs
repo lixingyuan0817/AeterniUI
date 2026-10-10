@@ -87,14 +87,14 @@ public partial class Tabs : AeterniComponent
         // The strip is rendered by this component from the registered children, so it
         // has to render once more after the children registered themselves. Deferred
         // on purpose: Register runs while the current render batch is being built.
-        _ = InvokeAsync(StateHasChanged);
+        RequestStateHasChanged();
     }
 
     internal void Unregister(Tab tab)
     {
         if (_tabs.Remove(tab) && !IsDisposed)
         {
-            _ = InvokeAsync(StateHasChanged);
+            RequestStateHasChanged();
         }
     }
 
@@ -103,7 +103,7 @@ public partial class Tabs : AeterniComponent
         if (string.IsNullOrWhiteSpace(tab.Value) ||
             _tabs.Any(other => !ReferenceEquals(other, tab) && other.Value == tab.Value))
             throw new InvalidOperationException("Tab values must be non-empty and unique.");
-        if (!IsDisposed) _ = InvokeAsync(StateHasChanged);
+        RequestStateHasChanged();
     }
 
     internal async Task SelectAsync(Tab tab, bool moveFocus = false)

@@ -2,7 +2,7 @@
 
 文档版本：`10.30.1`
 
-文档状态：当前活动审阅计划；第十轮剩余 REV-158～REV-163 共 6 条，全部待修复（批次 23～26 的 REV-133～REV-157 共 25 条已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：当前活动审阅计划；第十轮剩余 REV-158、REV-159、REV-161～REV-163 共 5 条，全部待修复（批次 23～26 的 REV-133～REV-157 与批次 27 的 REV-160 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读第十轮问题与建议的修复批次。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -38,7 +38,7 @@
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
-## 第十轮：全库组件审核（剩余 REV-158～REV-163，共 6 条；P0 无，全部待修复）
+## 第十轮：全库组件审核（剩余 REV-158、REV-159、REV-161～REV-163，共 5 条；P0 无，全部待修复）
 
 范围：全库 53 个组件目录 / 65 个组件文件、49 个 `delivered-features` 章节、示例页、契约与浏览器测试。审阅维度为文档-实现对齐、视觉、功能、设计一致性，另做组件与文档颗粒度的横切比对（参数覆盖率、章节结构、默认值一致性与文案表漏网）。
 
@@ -59,7 +59,6 @@
 | --- | --- | --- |
 | REV-158 / P3 | **章节结构与参数颗粒度。** §41 Toolbar、§42 ToggleGroup 是仅有的两个无「支持能力/行为与无障碍/实现边界」小节的组件章；§46 FlashCardGroup 缺实现边界；Accordion 章无参数清单（`Multiple`/`AriaLabel` 未点名，`AccordionItem` 字段未枚举）；Drawer 缺 `CloseLabel`/`AriaLabel`；Segmented 缺 `AriaLabel`；DatePicker 用「对应回调和字段表达式参数」统称代替点名；InputNumber 章漏写 `Min`/`Max` 的有限数校验；多处默认值未记录（MenuButton 四个、Button `Intent`/`Size`、Progress `Color=Primary`、Descriptions `Columns=3`、VirtualList `Height`/`LoadMoreThreshold`） | 逐章补齐（锁名使用既有小节标题）；参数逐一点名；默认值补记——与 REV-159 之外的文档侧统一收口 |
 | REV-159 / P3 | **示例缺口包。** Progress 页最薄（29 行、无交互控件、无 Color/Size）；Rating 示例 Events 表列出已删除的 `OnChange`；Radio 参数表把 `AriaDescribedBy`（仅 Radio 有）挂在 RadioGroup 名下；Tag `StartIcon/EndIcon`、Avatar 图片路径（Src/Alt/装饰分支）、FormField/InputNumber 的 EditContext 链路、DatePicker `Presets`、Segmented Required/Invalid、MenuButton `Open`/Disabled/Loading、IconButton Size/Disabled/Type 均无演示 | 逐页补可交互演示与状态对照；示例参数表与组件真实参数对齐 |
-| REV-160 / P3 | **死代码与卫生包。** VirtualList 恒等死分支（`_activeIndex < 0 && _rows.Count > 0` 置 -1）；VirtualList/ListItem/Tabs 等仍用裸 `_ = InvokeAsync(StateHasChanged)`（第九轮新增的 `RequestStateHasChanged()` 只有 Slider 采用）；Pagination reduced-motion 块重复基础声明；Radio 禁用态两条规则两个同值别名；Theme 示例 `_feedbackNote` 是死字段；Pagination Notes 提到不存在的「缩放过渡」；ComboBox `_visibleItems` 纯拷贝（REV-124 删了 MultiSelect 同构未同步）；TimeOptionList 传给 JS 的 `ActiveOptionId`/`shouldAlign` 未被使用 | 逐项清理或改走统一入口；随相关组件改动合并 |
 | REV-161 / P3 | **性能。** DateTimePicker 每次 `OnParametersSet` 清空日期禁用缓存，1 秒步长下最坏单次 86,400 次迭代 × 42 格；`DisabledDateTime` 非空时 `CreateMap` 的实例复用永不命中；DateRangePicker `ValidatePresets` 在 `DisabledDate` 非空时按天枚举预设区间（全范围最大约 365 万次委托调用，发生在 `OnParametersSet`） | DateTimePicker 在无禁用委托时跳过缓存；预设校验设区间宽度上限或惰性化 |
 | REV-162 / P3 | **小功能与待复核项。** Tooltip `AriaLabel` 落在无 role 的 `<span>` 上（通用角色不参与可访问名称计算，参数实际无效）；Alert 的 `CloseOnEscape` 依赖根元素 keydown、非模态时不抢焦点故基本不可达；RTL 下日历/时间滚轮键盘方向不翻转；`.aeterni-dark` 类主题入口 token 层有 3 处声明与示例依赖、但全库无代码应用且文档未登记；§7/§19 对比度数字在 REV-129/131 改档后未复算 | 逐项决策：修复、登记为宿主契约或删除；对比度数字以脚本重跑结果为准更新 |
 | REV-163 / P3 | **JS 模块单测覆盖。** Checkbox、DialogProvider、Menu、ThemeProvider 四个 `.razor.js` 无直接模块测试（其余 16 个有；DialogProvider/ThemeProvider 有浏览器级覆盖） | 补模块测试或成文说明由浏览器检查覆盖 |

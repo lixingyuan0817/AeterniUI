@@ -113,7 +113,7 @@ public partial class ThemeSwitch : AeterniComponent
     {
         if (!IsDisposed)
         {
-            _ = InvokeAsync(StateHasChanged);
+            RequestStateHasChanged();
         }
     }
 }

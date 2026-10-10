@@ -12,6 +12,12 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 第十轮审阅修复批次 27（进行中：REV-160 卫生包已收口，版本号未递增）
+
+- [x] REV-160（可执行项全部落地）：`VirtualList` 删除恒等死分支（`_activeIndex < 0 && _rows.Count > 0` 置 -1）；7 处裸 `_ = InvokeAsync(StateHasChanged)` 统一走基类的 `RequestStateHasChanged()`（含禁用/销毁守卫）；`Pagination` 的 `prefers-reduced-motion` 块只保留 `transition: none`，不再重复基类的盒模型声明。
+- [x] REV-160（复核后判定无需改动，逐条留证）：`Radio` 的禁用态两组选择器分别覆盖原生 `disabled` 与分组 `is-disabled`，两条规则各有消费者；`Theme` 示例没有死字段（`_feedbackNote` 属 Feedback 示例且被渲染）；`Pagination` 已无「缩放过渡」表述；`ComboBox._visibleItems` 是每次参数设置重建的索引副本，去掉会让每帧重算可见项，收益为负。`TimeOptionList` 传给 JS 的 `ActiveOptionId`／`shouldAlign` 虽在模块内未读取，但它们是模块的**位置参数约定**（浏览器回归按位置传参），删除属破坏性接口变更且不改变行为，故保留并在此记录原因。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`node --test` 67 项通过；文档门禁通过。第十轮剩余 REV-158、REV-159、REV-161～REV-163 共 5 条。
+
 ## 第十轮审阅修复批次 26（P2，版本号未递增）
 
 - [x] REV-144：文档漂移逐处对账——ButtonGroup 分隔线与 Button 加载的描述复查后与实现一致（透明变体为强调色 45% 染色、加载为内联 Spinner 替换首图标），残留的是 CSS 注释：`Button.razor.css` 的「Loading veil」块与 `ButtonGroup.razor.css` 的「strong border colour」按实现重写。

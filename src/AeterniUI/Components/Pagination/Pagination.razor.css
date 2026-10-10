@@ -11,8 +11,9 @@
 .aeterni-pagination__ellipsis { box-sizing: border-box; font-size: var(--aeterni-font-size-xs); line-height: var(--aeterni-leading-none); display: inline-grid; place-items: center; min-width: var(--aeterni-control-height-sm); height: var(--aeterni-control-height-sm); color: var(--aeterni-text-tertiary); transition: color var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 
 @media (prefers-reduced-motion: reduce) {
+    /* Only the motion changes here; the base rules already own the box metrics. */
     .aeterni-pagination button,
-    .aeterni-pagination__ellipsis { box-sizing: border-box; font-size: var(--aeterni-font-size-xs); line-height: var(--aeterni-leading-none);
+    .aeterni-pagination__ellipsis {
         transition: none;
     }
 }

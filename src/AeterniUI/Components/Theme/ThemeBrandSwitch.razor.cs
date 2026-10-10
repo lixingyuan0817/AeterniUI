@@ -100,7 +100,7 @@ public partial class ThemeBrandSwitch : AeterniComponent
     {
         if (!IsDisposed)
         {
-            _ = InvokeAsync(StateHasChanged);
+            RequestStateHasChanged();
         }
     }
 }

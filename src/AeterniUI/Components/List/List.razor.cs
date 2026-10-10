@@ -137,7 +137,7 @@ public partial class List<TItem> : AeterniComponent
         if (ReferenceEquals(_focusedItem, item))
         {
             _focusedItem = null;
-            if (!_disposed) _ = InvokeAsync(StateHasChanged);
+            RequestStateHasChanged();
         }
     }
 
