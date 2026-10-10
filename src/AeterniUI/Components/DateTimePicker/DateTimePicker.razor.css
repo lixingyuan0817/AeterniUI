@@ -45,7 +45,7 @@
     padding-inline: var(--aeterni-control-padding-x-lg);
     font-size: var(--aeterni-font-size-base);
 }
-.aeterni-date-time-picker__trigger .is-placeholder { color: var(--aeterni-state-color-placeholder); }
+.aeterni-date-time-picker__trigger .is-placeholder { color: var(--aeterni-control-foreground-placeholder); }
 .aeterni-date-time-picker__icon { --aeterni-icon-render-size: var(--aeterni-icon-size-md); display: inline-flex; color: var(--aeterni-text-tertiary); }
 
 .aeterni-date-time-picker__panel {

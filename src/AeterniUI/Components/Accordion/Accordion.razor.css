@@ -1,7 +1,7 @@
 .aeterni-accordion { display: grid; width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--aeterni-border); border-radius: var(--aeterni-radius-surface); overflow: hidden; background: var(--aeterni-bg-elevated); }
 .aeterni-accordion__item + .aeterni-accordion__item { border-top: 1px solid var(--aeterni-separator); }
 .aeterni-accordion h3 { margin: 0; }
-.aeterni-accordion__trigger { display: flex; align-items: center; justify-content: space-between; gap: var(--aeterni-gap-sm); width: 100%; box-sizing: border-box; min-width: 0; min-height: var(--aeterni-control-height-md); padding: 0 var(--aeterni-control-padding-x-md); border: 0; background: transparent; color: var(--aeterni-text-primary); font: inherit; font-weight: var(--aeterni-font-weight-semibold); text-align: start; cursor: pointer; }
+.aeterni-accordion__trigger { display: flex; align-items: center; justify-content: space-between; gap: var(--aeterni-spacing-2); width: 100%; box-sizing: border-box; min-width: 0; min-height: var(--aeterni-control-height-md); padding: 0 var(--aeterni-control-padding-x-md); border: 0; background: transparent; color: var(--aeterni-text-primary); font: inherit; font-weight: var(--aeterni-font-weight-semibold); text-align: start; cursor: pointer; }
 .aeterni-accordion__trigger:hover:not(:disabled) { background: var(--aeterni-state-background-hover); }
 .aeterni-accordion__trigger:focus-visible { outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color); outline-offset: calc(var(--aeterni-focus-offset) * -1); }
 .aeterni-accordion__trigger > span:first-child { min-width: 0; flex: 1 1 auto; }

@@ -117,11 +117,11 @@
     transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
 }
 
-/* Loading veil --------------------------------------------------------------
-   One treatment for every variant: a translucent veil of the control's own
-   surface plus a soft blur of the label underneath. The veil is inset by a
-   negative border width so it also covers the control's border, which keeps the
-   busy state reading as one continuous surface. */
+/* Loading -------------------------------------------------------------------
+   One treatment for every variant: the leading icon is replaced by an inline
+   Spinner while the label stays readable, and the Spinner takes the button's own
+   loading ink. The retired veil is gone — the comment described a translucent
+   blur layer that no longer exists (REV-144). */
 .aeterni-button.is-loading {
     cursor: progress;
 }

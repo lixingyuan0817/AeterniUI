@@ -100,6 +100,10 @@ public partial class Menu : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        // REV-156: an explicitly null list used to surface as an internal NRE instead of
+        // an argument exception naming the parameter.
+        ArgumentNullException.ThrowIfNull(Items);
+
 
         if (!IsControlled)
         {

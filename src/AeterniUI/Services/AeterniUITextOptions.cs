@@ -203,6 +203,12 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of the em dash a <c>Descriptions</c> cell shows for an empty value.</summary>
     public string DescriptionsEmptyValueLabel { get; set; } = "Empty value";
 
+    /// <summary>Label of the confirm action in a confirmation dialog.</summary>
+    public string ConfirmAcceptLabel { get; set; } = "Confirm";
+
+    /// <summary>Label of the cancel action in a confirmation dialog.</summary>
+    public string ConfirmCancelLabel { get; set; } = "Cancel";
+
     /// <summary>Fallback name of a <c>Drawer</c> without a title.</summary>
     public string DrawerLabel { get; set; } = "Panel";
 
@@ -285,6 +291,8 @@ public sealed class AeterniUITextOptions
         EmptyTitle = Or(EmptyTitle, defaults.EmptyTitle);
         BadgeLabel = Or(BadgeLabel, defaults.BadgeLabel);
         DescriptionsEmptyValueLabel = Or(DescriptionsEmptyValueLabel, defaults.DescriptionsEmptyValueLabel);
+        ConfirmAcceptLabel = Or(ConfirmAcceptLabel, defaults.ConfirmAcceptLabel);
+        ConfirmCancelLabel = Or(ConfirmCancelLabel, defaults.ConfirmCancelLabel);
         DrawerLabel = Or(DrawerLabel, defaults.DrawerLabel);
         DrawerCloseLabel = Or(DrawerCloseLabel, defaults.DrawerCloseLabel);
         InputNumberIncrementLabel = Or(InputNumberIncrementLabel, defaults.InputNumberIncrementLabel);

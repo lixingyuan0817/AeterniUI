@@ -143,8 +143,16 @@ test('shared density tokens retain the spacing scale and wheel geometry', async 
     })) assert.equal(resolve(name), value, name);
     const wheel = await readFile(new URL('../src/AeterniUI/Components/TimePicker/TimeOptionList.razor.css', import.meta.url), 'utf8');
     assert.match(wheel, /height: calc\(var\(--aeterni-row-height-compact\) \* 5\)/);
+    // REV-145: components consume the shared spacing scale directly — the padding /
+    // gap / margin aliases are host-facing and must not appear inside a component.
+    // The tiers asserted here are the same ones the aliases resolve to.
     for (const component of ['Card', 'Surface']) {
         const surface = await readFile(new URL(`../src/AeterniUI/Components/${component}/${component}.razor.css`, import.meta.url), 'utf8');
-        for (const tier of ['sm', 'lg', 'xl', '2xl']) assert.ok(surface.includes(`var(--aeterni-padding-${tier})`));
+        for (const tier of ['spacing-2', 'spacing-3', 'spacing-5', 'spacing-6']) {
+            assert.ok(surface.includes(`var(--aeterni-${tier})`), `${component} must use ${tier}`);
+        }
+        assert.ok(
+            !/var\(--aeterni-(padding|gap|margin)-/.test(surface),
+            `${component} must not consume the host-facing spacing aliases`);
     }
 });

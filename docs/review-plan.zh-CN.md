@@ -2,7 +2,7 @@
 
 文档版本：`10.30.1`
 
-文档状态：当前活动审阅计划；第十轮剩余 REV-144、REV-145、REV-149～REV-163 共 14 条，全部待修复（批次 23 的 REV-133～REV-139、批次 24 的 REV-140～REV-143、批次 25 的 REV-146～REV-148 与 REV-153～REV-155 已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：当前活动审阅计划；第十轮剩余 REV-158～REV-163 共 6 条，全部待修复（批次 23～26 的 REV-133～REV-157 共 25 条已修复并归档到发布历史）。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读第十轮问题与建议的修复批次。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -38,7 +38,7 @@
 - 对比度数值由 token 十六进制值按 WCAG 2.1 相对亮度公式计算（含 `color-mix` 的 sRGB 通道混合与半透明叠加），修复前需实测确认。
 - "证据位置"给的是文件加选择器/成员名，而不是行号，便于在后续重构后继续定位。
 
-## 第十轮：全库组件审核（剩余 REV-144、REV-145、REV-149～REV-163，共 14 条；P0 无，全部待修复）
+## 第十轮：全库组件审核（剩余 REV-158～REV-163，共 6 条；P0 无，全部待修复）
 
 范围：全库 53 个组件目录 / 65 个组件文件、49 个 `delivered-features` 章节、示例页、契约与浏览器测试。审阅维度为文档-实现对齐、视觉、功能、设计一致性，另做组件与文档颗粒度的横切比对（参数覆盖率、章节结构、默认值一致性与文案表漏网）。
 
@@ -46,20 +46,12 @@
 
 本轮的突出模式：**多处文档漂移是「实现改了、文档没跟」**（REV-38/71/115/121/122/123 等修复批次的文档侧未同步），此类项中 REV-141/142 已在批次 24 收口，剩余集中在 REV-144/157，按批次 26 的对账方式处理；另新增 `scripts/check-doc-drift.mjs` 门禁用于拦截同类复发。
 
-（P1 已清空：REV-133～REV-143 分别在批次 23、批次 24 修复，逐项证据见发布历史中的对应批次记录。）
+（P1 已清空：REV-133～REV-143 分别在批次 23、批次 24 修复；P2 的 REV-144～REV-157 随批次 25、批次 26 收口。逐项证据见发布历史中的对应批次记录。）
 
 ### P2：一致性、Token 纪律与文档同步（待修复）
 
 | 编号 / 优先级 | 问题与证据 | 修复方向与验收 |
 | --- | --- | --- |
-| REV-144 / P2 | **文档漂移簇（实现已改、文档未跟）。** ① ButtonGroup 分隔线：`delivered-features` §5 写「透明变体改用 `--aeterni-border-strong`」，实现为按钮强调色 45% 染色（REV-38）；② Button 加载：§4 写「半透明层 + blur(2px)」，实现为内联 Spinner 替换首图标，`Button.razor.css` 与 `ButtonGroup.razor.css:2-5` 注释同为 veil/strong-border 时代（veil 在 9c04dbb 移除，ButtonGroup 透明变体的注释仍写「use the strong border colour」）；③ ToggleGroup：§42 末句「模块独立，不提前抽象共享基础设施」，实为与 Toolbar 共用 `aeterni_roving_focus.js`（REV-123）；④ `delivered-features` 称 Tooltip 是 PopupHost/Popover 的宿主消费者，实际 0 处使用（Tooltip 自渲染，只共享 `aeterni_floating.js`）；⑤ Feedback 示例把 `CloseText` 描述为「Alert 关闭按钮的无障碍名称」 | 按实现逐处订正 `delivered-features` 与示例描述（属本任务文档侧）；Button veil 时代 CSS 注释随批次 26 清理；订正后各处与源码逐条对账 |
-| REV-145 / P2 | **组件样式使用宿主别名 `--aeterni-padding-/gap-/margin-*`。** 共 12 个文件 27 处：Surface、Card、DialogProvider、Drawer、List、VirtualList、FlashCard、Textarea、Popover、DateCalendar、DateRangePicker、Accordion。§5.5 明文这些别名留给宿主、组件内部不得使用（值等值但语义违规，宿主按文档覆写别名会误伤组件内边距） | 换为等值 `--aeterni-spacing-*` 档；断言组件 CSS 三类别名清零（可并入 `check-css-comments` 或新门禁） |
-| REV-149 / P2 | **`Rating` 输出 `is-invalid` 死类且无效态无控件级视觉。** `Rating.razor.cs` 输出该类，`Rating.razor.css` 无匹配规则；同族 Checkbox/Switch/Radio/Slider 均以危险色表达 invalid，Rating 只有 FormField 错误文案可看 | 补 invalid 视觉（如空星/描边走 danger）或删除死类并成文「invalid 仅由 aria + FormField 表达」 |
-| REV-150 / P2 | **`Tag` 图标死规则与默认修饰类。** ① `.aeterni-tag__icon > svg` 经 CSS 隔离改写为 `svg[b-…]`（已从编译产物证实），该 svg 由子组件 `Icon` 渲染、永不命中——尺寸实际靠 `font-size` 间接生效，即 §5.7 禁止的两条路径（REV-46 回归）；② `Variant=Default` 恒输出 `aeterni-tag--default`，违反 §5.5「默认档不输出修饰类」 | ① 用 `--aeterni-icon-render-size` 在包装元素上传递，删除死规则；② 删 `--default` 类并把默认配方并入基础规则 |
-| REV-151 / P2 | **同角色令牌旁路。** ① Timeline 滚动条直写 `--aeterni-border-strong`，其余 7 处用 `--aeterni-scrollbar-thumb/track`；② Segmented invalid 边框直取 `--aeterni-color-danger-default`，应走已存在的 `--aeterni-state-border-invalid`（宿主覆写别名不生效）；③ 日期族 placeholder 两种别名并存（`--aeterni-state-color-placeholder` vs `--aeterni-control-foreground-placeholder`） | 统一到角色别名；组件 CSS 令牌审查通过 |
-| REV-152 / P2 | **死类群与死关键帧。** MenuButton `is-open`/`is-disabled`、SplitButton/ButtonGroup/IconButton 的 `is-disabled`、RadioGroup 恒输出 `--horizontal` 均无任何 CSS 规则；`aeterni-dialog-slide-in` 关键帧无引用；PopupHost 传入的 `aeterni-*-__host` 类无消费者。§5.4 要求「组件发出的每个类名都必须有匹配规则」 | 清理死类/死关键帧/死传类，或成文为宿主样式钩子并保持两处同步 |
-| REV-156 / P2 | **参数校验与文案表缺口。** ① Menu/Segmented 的 `Items` 无 `ArgumentNullException.ThrowIfNull`（ToggleGroup/Breadcrumb 有）——显式传 null 得到组件内部 NRE 而非带参数名的异常；② `ConfirmOptions.ConfirmText`/`CancelText` 与 `AlertOptions.CloseText` 三个**可见按钮文案**为英文硬编码类型默认值、未入 `AeterniUITextOptions`——非英文宿主整体本地化后确认弹窗仍是英文 | ① 两处补 null 校验；② 三键入表（留空回退）或成文为例外；契约断言覆盖 |
-| REV-157 / P2 | **IconButton 文件职责 + 玻璃名单文档漂移。** ① `IconButton` 的 `BuildClass`/`BuildAttributes`/事件逻辑写在 `.razor` 的 `@code` 而非 `.razor.cs`，同族 Button/SplitButton/ToggleGroup 均按 §2.3 分文件；② 设计规范 §5.3/§12 与 `delivered-features` §3 要求磨砂面接管「五个角色名」，但 7 处玻璃块实际只接管 4 个——`--aeterni-state-color-muted` 已在 REV-122 作为死声明删除（全库 0 消费者） | ① 逻辑迁入 `.razor.cs`（纯结构移动）；② 文档改为四角色并注明第五个为何不接管，防将来被重新加回 |
 
 ### P3：体验增强、卫生与示例（待修复；分组条目内含多项发现）
 
@@ -76,7 +68,6 @@
 
 | 批次 | 范围 | 说明 |
 | --- | --- | --- |
-| 批次 26 ⏳（待开始） | REV-144、REV-145、REV-149 ~ REV-152、REV-156、REV-157 | 文档对账（漂移簇、玻璃名单）、宿主别名收敛、死类群、校验与文案表补齐、文件职责 |
 | 批次 27 ⏳（待开始） | REV-158 ~ REV-163 | P3 收尾：文档颗粒度、示例补齐、死代码、性能、小功能与测试覆盖 |
 
 ### 执行计划评审（第十轮）
@@ -90,10 +81,6 @@
 | D3 ✅ | `AlertOptions.CloseText` 去留 | **已定调（接线到通知关闭按钮）**：`CloseText` 留空回退 `AeterniUITextOptions.AlertCloseLabel`；因其不再是退役成员，`check-doc-drift` 的 CloseText 条目已删除（该门禁现无待修复项） | REV-142、`DialogProvider`、`NoticeCard`、§26、Feedback 示例、`check-doc-drift` |
 
 D1～D3 均已落定并随批次 23/24 归档：三项都同步了交付功能、示例与契约检查，`check-doc-drift` 随之不再有待修复项。
-
-#### 批次 26（REV-144/145、REV-149 ~ REV-152、REV-156/157，P2）
-
-文档对账 + Token 纪律收口，可与批次 23/25 合并提交。收口判据：`delivered-features` 与实现逐条对账、组件 CSS 中 `--aeterni-padding-/gap-/margin-*` 清零（REV-145 断言）、死类与死关键帧清理（REV-152）、无效态与文案表补齐（REV-149/156）、`IconButton` 逻辑迁入 `.razor.cs`（REV-157）。
 
 #### 批次 27（REV-158 ~ REV-163，P3）
 

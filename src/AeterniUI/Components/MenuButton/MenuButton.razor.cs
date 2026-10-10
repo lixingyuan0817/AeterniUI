@@ -72,8 +72,8 @@ public partial class MenuButton : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-menu-button")
-        .Add("is-open", EffectiveOpen)
-        .Add("is-disabled", Disabled || Loading)
+        // REV-152: `is-open`/`is-disabled` had no rule anywhere; the state is carried
+        // by `aria-expanded` and the native disabled attribute the trigger renders.
         .Add("is-full-width", FullWidth);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()

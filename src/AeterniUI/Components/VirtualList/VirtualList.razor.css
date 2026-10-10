@@ -6,7 +6,7 @@
     height: var(--aeterni-virtual-list-height);
     min-width: 0;
     overflow: hidden;
-    padding: var(--aeterni-padding-xs);
+    padding: var(--aeterni-spacing-1);
     border: var(--aeterni-border-width) solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-lg);
     background: var(--aeterni-bg-surface);
@@ -98,7 +98,7 @@
     overflow: hidden;
     height: auto;
     min-height: var(--aeterni-row-height-compact);
-    padding: var(--aeterni-padding-xs);
+    padding: var(--aeterni-spacing-1);
 }
 
 @media (prefers-reduced-motion: reduce) {

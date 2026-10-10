@@ -49,6 +49,14 @@
     --aeterni-rating-star: var(--aeterni-color-warning-text);
 }
 
+/* REV-149: the invalid state had no control-level cue at all — the class was
+   emitted with no rule and only the FormField message reported the problem. The
+   empty stars now carry the danger ink, matching how Checkbox/Switch/Radio show
+   invalid on the control itself. */
+.aeterni-rating.is-invalid .aeterni-rating__item:not(.is-filled) {
+    --aeterni-rating-star: var(--aeterni-color-danger-text);
+}
+
 .aeterni-rating__item:hover:not(:disabled) {
     background: var(--aeterni-state-background-hover);
     transform: translateY(-1px);

@@ -137,7 +137,7 @@
     overflow-x: auto;
     padding-block-end: var(--aeterni-spacing-2);
     scrollbar-width: thin;
-    scrollbar-color: var(--aeterni-border-strong) transparent;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
 }
 
 .aeterni-timeline--horizontal .aeterni-timeline__item {

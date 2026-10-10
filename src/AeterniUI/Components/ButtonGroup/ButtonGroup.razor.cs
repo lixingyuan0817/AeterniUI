@@ -33,14 +33,14 @@ public partial class ButtonGroup : AeterniComponent
         }
     }
 
+    // REV-152: no rule consumed `is-disabled`; the child buttons carry the state.
     protected override ClassBuilder BuildClass()
     {
         return base.BuildClass()
             .Add("aeterni-button-group")
             .Add($"aeterni-button-group--{OrientationClass}")
             .Add("is-connected", Connected)
-            .Add("is-full-width", FullWidth)
-            .Add("is-disabled", IsEffectivelyDisabled);
+            .Add("is-full-width", FullWidth);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()

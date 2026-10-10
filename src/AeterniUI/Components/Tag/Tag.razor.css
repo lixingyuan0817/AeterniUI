@@ -22,6 +22,11 @@
     padding: 0 var(--aeterni-tag-padding-inline);
     border: var(--aeterni-border-width) solid var(--aeterni-tag-border);
     border-radius: var(--aeterni-radius-full);
+    /* The default recipe lives in the base rule instead of a modifier class, so the
+       default variant emits nothing (REV-150). */
+    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
+    --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
+
     background: var(--aeterni-tag-bg);
     color: var(--aeterni-tag-fg);
     font: inherit;
@@ -35,11 +40,6 @@
 .aeterni-tag--primary {
     --aeterni-tag-color: var(--aeterni-color-brand-default);
     --aeterni-tag-ink: var(--aeterni-color-brand-text);
-}
-
-.aeterni-tag--default {
-    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
-    --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
 }
 
 .aeterni-tag--neutral {
@@ -94,17 +94,17 @@
 }
 
 .aeterni-tag__icon {
+    /* The glyph is rendered by the child Icon component, so its box is sized through
+       the shared token: a scoped `> svg` rule can never match a child component's
+       markup (REV-150). */
+    --aeterni-icon-render-size: 100%;
+
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     width: var(--aeterni-tag-icon-size);
     height: var(--aeterni-tag-icon-size);
-}
-
-.aeterni-tag__icon > svg {
-    width: 100%;
-    height: 100%;
 }
 
 .aeterni-tag__content {

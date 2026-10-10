@@ -121,11 +121,11 @@
                                 <Button Variant="ButtonVariant.Outline"
                                         Intent="ButtonIntent.Neutral"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Cancel()))">
-                                    @confirmOptions.CancelText
+                                    @(string.IsNullOrWhiteSpace(confirmOptions.CancelText) ? UiText.ConfirmCancelLabel : confirmOptions.CancelText)
                                 </Button>
                                 <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Confirm()))">
-                                    @confirmOptions.ConfirmText
+                                    @(string.IsNullOrWhiteSpace(confirmOptions.ConfirmText) ? UiText.ConfirmAcceptLabel : confirmOptions.ConfirmText)
                                 </Button>
                             </footer>
                         }

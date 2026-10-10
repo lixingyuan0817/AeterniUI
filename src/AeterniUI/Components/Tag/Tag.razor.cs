@@ -72,11 +72,13 @@ public partial class Tag : AeterniComponent
             .Add(SizeClass);
     }
 
-    private string VariantClass => Variant switch
+    // The default recipe lives in the base rule, so Default emits no modifier; Soft
+    // and Outline keep their own (REV-150).
+    private string? VariantClass => Variant switch
     {
         TagVariant.Soft => "soft",
         TagVariant.Outline => "outline",
-        _ => "default"
+        _ => null
     };
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-tag", Size);

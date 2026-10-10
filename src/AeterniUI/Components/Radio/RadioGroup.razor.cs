@@ -54,7 +54,10 @@ public partial class RadioGroup<TValue> : AeterniComponent
         .Add("aeterni-radio-group")
         .Add($"aeterni-radio-group--{OrientationClass}");
 
-    private string OrientationClass => Orientation == Orientation.Vertical ? "vertical" : "horizontal";
+    // The horizontal layout is the base rule, so the default emits no modifier (REV-152).
+    private string? OrientationClass => Orientation == Orientation.Vertical ? "vertical" : null;
+
+    private string AriaOrientation => Orientation == Orientation.Vertical ? "vertical" : "horizontal";
 
     protected override void OnParametersSet()
     {
@@ -77,7 +80,8 @@ public partial class RadioGroup<TValue> : AeterniComponent
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase);
 
-        attributes["aria-orientation"] = OrientationClass;
+        // ARIA keeps the explicit value: only the CSS modifier is silent by default.
+        attributes["aria-orientation"] = AriaOrientation;
 
         if (FormField?.LabelId is { } labelId)
         {

@@ -15,6 +15,7 @@ using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.MultiSelect;
 using AeterniUI.Components.Search;
+using AeterniUI.Components.Segmented;
 using AeterniUI.Components.Slider;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.Timeline;
@@ -70,6 +71,7 @@ await CheckArchitectureP0Async();
 await CheckReviewBatch23Async();
 await CheckReviewBatch24Async();
 await CheckReviewBatch25Async();
+await CheckReviewBatch26Async();
 await CheckJsLifecycleAsync();
 await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
@@ -2327,6 +2329,190 @@ async Task CheckReviewBatch24Async()
     Require(localizedAlerts.Contains($"aria-label=\"{localizedLabel}\"", StringComparison.Ordinal)
         && localizedAlerts.Contains("aria-label=\"Dismiss notice\"", StringComparison.Ordinal),
         $"The alert close label must read the text table, and an explicit CloseText must still win (found: {localizedLabels}).");
+}
+
+// Regression guards for the tenth review round's batch 26 (P2). Hygiene items:
+// token discipline, dead classes, parameter validation and file responsibility.
+async Task CheckReviewBatch26Async()
+{
+    var root = FindRepositoryRoot();
+    var components = Path.Combine(root, "src", "AeterniUI", "Components");
+    var componentCss = Directory.GetFiles(components, "*.razor.css", SearchOption.AllDirectories);
+
+    // REV-145: component styles must not consume the host aliases; those belong to
+    // the host so overriding them there cannot move a component's inner spacing.
+    var aliasOffenders = componentCss
+        .Where(file => Regex.IsMatch(File.ReadAllText(file), @"var\(--aeterni-(padding|gap|margin)-"))
+        .Select(file => Path.GetFileName(file))
+        .ToArray();
+    Require(aliasOffenders.Length == 0,
+        $"Component styles must use --aeterni-spacing-* instead of the host aliases, found: {string.Join(", ", aliasOffenders)}.");
+
+    // REV-149: the invalid class used to be emitted with no rule at all.
+    var ratingCss = await File.ReadAllTextAsync(Path.Combine(components, "Rating", "Rating.razor.css"));
+    Require(Regex.IsMatch(ratingCss, @"\.aeterni-rating\.is-invalid[^\{]*\{[^}]*--aeterni-rating-star", RegexOptions.Singleline),
+        "Rating must show its invalid state on the control, not only through the field message.");
+
+    // REV-150: a scoped `> svg` rule can never match a child component's markup, and
+    // the default variant must not emit a modifier class.
+    var tagCss = await File.ReadAllTextAsync(Path.Combine(components, "Tag", "Tag.razor.css"));
+    Require(!tagCss.Contains(".aeterni-tag__icon > svg", StringComparison.Ordinal)
+        && tagCss.Contains("--aeterni-icon-render-size: 100%", StringComparison.Ordinal),
+        "Tag must size the child Icon through the shared token instead of a scoped svg rule.");
+    var defaultTag = await RenderAsync<AeterniUI.Components.Tag.Tag>(new Dictionary<string, object?>
+    {
+        ["ChildContent"] = (RenderFragment)(builder => builder.AddContent(0, "tag"))
+    });
+    var softTag = await RenderAsync<AeterniUI.Components.Tag.Tag>(new Dictionary<string, object?>
+    {
+        ["Variant"] = TagVariant.Soft,
+        ["ChildContent"] = (RenderFragment)(builder => builder.AddContent(0, "tag"))
+    });
+    var outlineTag = await RenderAsync<AeterniUI.Components.Tag.Tag>(new Dictionary<string, object?>
+    {
+        ["Variant"] = TagVariant.Outline,
+        ["ChildContent"] = (RenderFragment)(builder => builder.AddContent(0, "tag"))
+    });
+    Require(!defaultTag.Contains("aeterni-tag--default", StringComparison.Ordinal)
+        && softTag.Contains("aeterni-tag--soft", StringComparison.Ordinal)
+        && outlineTag.Contains("aeterni-tag--outline", StringComparison.Ordinal),
+        "Only the default Tag variant may stay silent; Soft and Outline keep their modifiers.");
+
+    // REV-151: one role token per effect, no side doors.
+    var timelineCss = await File.ReadAllTextAsync(Path.Combine(components, "Timeline", "Timeline.razor.css"));
+    Require(timelineCss.Contains("var(--aeterni-scrollbar-thumb)", StringComparison.Ordinal)
+        && !timelineCss.Contains("var(--aeterni-border-strong)", StringComparison.Ordinal),
+        "Timeline must use the shared scrollbar role tokens.");
+    var segmentedCss = await File.ReadAllTextAsync(Path.Combine(components, "Segmented", "Segmented.razor.css"));
+    Require(!segmentedCss.Contains("var(--aeterni-color-danger-default)", StringComparison.Ordinal)
+        && segmentedCss.Contains("var(--aeterni-state-border-invalid)", StringComparison.Ordinal),
+        "Segmented must express invalid through the state role token so a host override applies.");
+    var placeholderOffenders = componentCss
+        .Where(file => File.ReadAllText(file).Contains("var(--aeterni-state-color-placeholder)", StringComparison.Ordinal))
+        .Select(file => Path.GetFileName(file))
+        .ToArray();
+    Require(placeholderOffenders.Length == 0,
+        $"The date and time fields must agree on the control placeholder role, found: {string.Join(", ", placeholderOffenders)}.");
+
+    // REV-152: classes with no consumer and a keyframe with no animation.
+    foreach (var (component, dead) in new[]
+    {
+        ("MenuButton", "is-open"),
+        ("SplitButton", "is-disabled"),
+        ("ButtonGroup", "is-disabled"),
+        ("IconButton", "is-disabled"),
+    })
+    {
+        var code = await File.ReadAllTextAsync(Path.Combine(components, component, $"{component}.razor.cs"));
+        var markup = File.Exists(Path.Combine(components, component, $"{component}.razor"))
+            ? await File.ReadAllTextAsync(Path.Combine(components, component, $"{component}.razor"))
+            : string.Empty;
+        Require(!code.Contains($"\"{dead}\"", StringComparison.Ordinal) && !markup.Contains($"\"{dead}\"", StringComparison.Ordinal),
+            $"{component} must not emit the dead class '{dead}'.");
+    }
+
+    var horizontalGroup = await RenderAsync<AeterniUI.Components.Radio.RadioGroup<string>>(new Dictionary<string, object?>
+    {
+        ["ChildContent"] = (RenderFragment)(_ => { })
+    });
+    var verticalGroup = await RenderAsync<AeterniUI.Components.Radio.RadioGroup<string>>(new Dictionary<string, object?>
+    {
+        ["Orientation"] = Orientation.Vertical,
+        ["ChildContent"] = (RenderFragment)(_ => { })
+    });
+    Require(!horizontalGroup.Contains("aeterni-radio-group--horizontal", StringComparison.Ordinal)
+        && horizontalGroup.Contains("aria-orientation=\"horizontal\"", StringComparison.Ordinal),
+        "The default RadioGroup orientation must keep its ARIA value without emitting a modifier class.");
+    Require(verticalGroup.Contains("aeterni-radio-group--vertical", StringComparison.Ordinal)
+        && verticalGroup.Contains("aria-orientation=\"vertical\"", StringComparison.Ordinal),
+        "The vertical RadioGroup keeps both its modifier class and its ARIA value.");
+    var dialogCss = await File.ReadAllTextAsync(Path.Combine(components, "Dialog", "DialogProvider.razor.css"));
+    Require(!dialogCss.Contains("aeterni-dialog-slide-in", StringComparison.Ordinal),
+        "An animation with no reference must be deleted.");
+    var docs = await File.ReadAllTextAsync(Path.Combine(root, "docs", "delivered-features.zh-CN.md"));
+    Require(docs.Contains("aeterni-{component}__host", StringComparison.Ordinal),
+        "The popup host class must be documented as a host styling hook (or removed).");
+
+    // REV-156 ①: an explicitly null list has to name the parameter instead of
+    // surfacing as an internal NRE somewhere inside the component.
+    const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+    foreach (var (name, instance) in new (string, object)[]
+    {
+        ("Menu", new Menu { Items = null! }),
+        ("Segmented", new Segmented<string> { Items = null! }),
+    })
+    {
+        var threw = false;
+        try
+        {
+            instance.GetType().GetMethod("OnParametersSet", flags)!.Invoke(instance, null);
+        }
+        catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException is ArgumentNullException)
+        {
+            threw = true;
+        }
+
+        Require(threw, $"{name} must reject an explicitly null Items collection with ArgumentNullException.");
+    }
+
+    // REV-156 ②: the confirmation buttons read the text table when the host leaves
+    // the labels empty, and an explicit label still wins.
+    async Task<string> RenderConfirmAsync(Action<AeterniUIOptions>? configure, ConfirmOptions options)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IJSRuntime, NoopJsRuntime>();
+        if (configure is null)
+        {
+            services.AddAeterniUI();
+        }
+        else
+        {
+            services.AddAeterniUI(configure);
+        }
+
+        await using var currentProvider = services.BuildServiceProvider();
+        await using var currentRenderer = new HtmlRenderer(currentProvider, currentProvider.GetRequiredService<ILoggerFactory>());
+        var dialogs = currentProvider.GetRequiredService<IDialogService>();
+        _ = dialogs.ConfirmAsync("Publish the package?", options);
+
+        return await currentRenderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await currentRenderer.RenderComponentAsync<DialogProvider>(ParameterView.Empty);
+            return output.ToHtmlString();
+        });
+    }
+
+    var defaultConfirm = await RenderConfirmAsync(null, new ConfirmOptions());
+    Require(defaultConfirm.Contains(">Confirm<", StringComparison.Ordinal)
+        && defaultConfirm.Contains(">Cancel<", StringComparison.Ordinal),
+        "An unset confirmation dialog must fall back to the text table labels.");
+
+    var localisedConfirm = await RenderConfirmAsync(options => options.Text.ConfirmAcceptLabel = "发布", new ConfirmOptions());
+    // Text content is HTML-encoded by the renderer, so the expectation has to be too.
+    var encodedLabel = System.Text.Encodings.Web.HtmlEncoder.Default.Encode("发布");
+    Require(localisedConfirm.Contains($">{encodedLabel}<", StringComparison.Ordinal),
+        "The confirmation labels must come from the text table so a localised host gets them.");
+
+    var explicitConfirm = await RenderConfirmAsync(
+        options => options.Text.ConfirmAcceptLabel = "发布",
+        new ConfirmOptions { ConfirmText = "Ship it" });
+    Require(explicitConfirm.Contains(">Ship it<", StringComparison.Ordinal)
+        && !explicitConfirm.Contains(">发布<", StringComparison.Ordinal),
+        "An explicitly set confirmation label must win over the text table.");
+
+    // REV-156 ② + REV-157 ①: the visible confirmation labels fall back to the text
+    // table, and IconButton's render logic lives in its code-behind.
+    var iconButtonMarkup = await File.ReadAllTextAsync(Path.Combine(components, "IconButton", "IconButton.razor"));
+    var iconButtonCode = await File.ReadAllTextAsync(Path.Combine(components, "IconButton", "IconButton.razor.cs"));
+    Require(!iconButtonMarkup.Contains("@code", StringComparison.Ordinal)
+        && iconButtonCode.Contains("protected override ClassBuilder BuildClass()", StringComparison.Ordinal)
+        && iconButtonCode.Contains("private async Task HandleClickAsync", StringComparison.Ordinal),
+        "IconButton render logic belongs in the code-behind like its siblings.");
+
+    var designDocs = await File.ReadAllTextAsync(Path.Combine(root, "docs", "engineering-reference.zh-CN.md"));
+    Require(designDocs.Contains("四个角色名", StringComparison.Ordinal) && !designDocs.Contains("五个角色名", StringComparison.Ordinal),
+        "The glass role list must say four roles, matching the implementation.");
 }
 
 // Regression guards for the tenth review round's batch 25 (P2). Each assertion

@@ -64,10 +64,11 @@ public partial class SplitButton : AeterniComponent
         }
     }
 
+    // REV-152: `is-disabled` had no rule; the disabled state is carried by the native
+    // disabled attribute and aria-disabled on the two child actions.
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-split-button")
-        .Add("is-full-width", FullWidth)
-        .Add("is-disabled", IsDisabled);
+        .Add("is-full-width", FullWidth);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

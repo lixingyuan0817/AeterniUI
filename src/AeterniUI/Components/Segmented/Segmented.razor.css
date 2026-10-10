@@ -158,7 +158,7 @@
 }
 
 .aeterni-segmented.is-invalid {
-    border-color: var(--aeterni-color-danger-default);
+    border-color: var(--aeterni-state-border-invalid);
 }
 
 .aeterni-segmented--sm {

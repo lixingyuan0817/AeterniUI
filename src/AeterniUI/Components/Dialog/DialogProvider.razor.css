@@ -30,7 +30,7 @@
     display: grid;
     place-items: center;
     box-sizing: border-box;
-    padding: var(--aeterni-padding-xl);
+    padding: var(--aeterni-spacing-5);
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-scrim);
     backdrop-filter: var(--aeterni-blur-scrim);
@@ -244,7 +244,7 @@
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-3);
-    padding: var(--aeterni-padding-md) var(--aeterni-padding-lg);
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-3);
 }
 
 .aeterni-dialog-provider__header {
@@ -293,7 +293,7 @@
 
 .aeterni-dialog-provider__body {
     min-width: 0;
-    padding: var(--aeterni-padding-lg);
+    padding: var(--aeterni-spacing-3);
     overflow-wrap: anywhere;
 }
 
@@ -324,10 +324,6 @@
 }
 
 /* Keyframe offsets are motion distances, not layout sizes. */
-@keyframes aeterni-dialog-slide-in {
-    from { opacity: 0; transform: translateY(8px) scale(.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 @keyframes aeterni-dialog-shake {
     0%, 100% { transform: translateX(0); }

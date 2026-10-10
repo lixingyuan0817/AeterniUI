@@ -12,6 +12,19 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 第十轮审阅修复批次 26（P2，版本号未递增）
+
+- [x] REV-144：文档漂移逐处对账——ButtonGroup 分隔线与 Button 加载的描述复查后与实现一致（透明变体为强调色 45% 染色、加载为内联 Spinner 替换首图标），残留的是 CSS 注释：`Button.razor.css` 的「Loading veil」块与 `ButtonGroup.razor.css` 的「strong border colour」按实现重写。
+- [x] REV-145：组件样式不再消费宿主别名，13 个文件 31 处 `--aeterni-padding-*`／`gap-*` 换为等值 `--aeterni-spacing-*`，门禁断言组件 CSS 中三类别名清零。
+- [x] REV-149：`Rating` 的无效态补上控件级视觉——未点亮星星改用 `--aeterni-color-danger-text`，`is-invalid` 不再是死类。
+- [x] REV-150：`Tag` 的图标尺寸改由 `--aeterni-icon-render-size` 传给子组件 `Icon`（删除永不命中的 `.aeterni-tag__icon > svg`），默认变体配方并入基础规则、不再输出 `aeterni-tag--default`；Soft／Outline 修饰类保持不变。
+- [x] REV-151：同角色令牌旁路收敛——Timeline 滚动条改用 `--aeterni-scrollbar-thumb/track`，Segmented 无效边框改走 `--aeterni-state-border-invalid`，日期与时间字段统一到 `--aeterni-control-foreground-placeholder`。
+- [x] REV-152：死类与死关键帧清理——MenuButton 的 `is-open`／`is-disabled`、SplitButton／ButtonGroup／IconButton 的 `is-disabled`、RadioGroup 恒输出的 `--horizontal` 修饰类（`aria-orientation` 仍显式输出）以及无引用的 `aeterni-dialog-slide-in` 关键帧删除；`aeterni-{component}__host` 作为宿主样式钩子写入文档（库内不消费，改名视为破坏性变更）。
+- [x] REV-156：`Menu`／`Segmented` 的 `Items` 补 `ArgumentNullException.ThrowIfNull`；`ConfirmOptions.ConfirmText`／`CancelText` 改为可空并回退新增的 `AeterniUITextOptions.ConfirmAcceptLabel`／`ConfirmCancelLabel`，与 `AlertOptions.CloseText` 同一约定。
+- [x] REV-157：`IconButton` 的 `BuildClass`／`BuildAttributes`／点击处理迁入 `IconButton.razor.cs`；玻璃接管名单复查后交付文档与工程参考均为四角色（`--aeterni-state-color-muted` 早已退出），无需再改。
+- [x] 契约门禁新增 `CheckReviewBatch26Async`：宿主别名清零、Rating 无效规则、Tag 图标机制与变体类、三处同角色令牌、死类与死关键帧、PopupHost 钩子成文、`Menu`／`Segmented` 的 null 校验、确认按钮文案回退与显式优先、IconButton 文件职责、玻璃名单为四角色。断言在修复前实测为红（别名残留、DateTimePicker placeholder、RadioGroup `--horizontal`、slide-in 关键帧四项），修复后转绿。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过。第十轮仅剩 REV-158～REV-163 共 6 条（批次 27）。
+
 ## 第十轮审阅修复批次 25（P2，版本号未递增）
 
 - [x] REV-146：指针反馈补齐两处——`ComboBox` 已选中项悬浮整块深一档（`--aeterni-state-background-active`，与键盘游标同档），`Search`／`Autocomplete`／`InputNumber` 的连体分组补上悬浮边框（排除聚焦、无效、禁用、只读），与独立 `Input`、`ComboBox`、日期触发器一致。

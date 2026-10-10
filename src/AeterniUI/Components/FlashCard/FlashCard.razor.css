@@ -102,7 +102,7 @@
    leaving it unrotated would mirror its content. */
 .aeterni-flash-card__face--back {
     justify-content: center;
-    padding: var(--aeterni-padding-lg);
+    padding: var(--aeterni-spacing-3);
     transform: rotateY(180deg);
 }
 
@@ -254,7 +254,7 @@
     flex-direction: column;
     gap: var(--aeterni-spacing-1);
     min-width: 0;
-    padding: var(--aeterni-padding-lg);
+    padding: var(--aeterni-spacing-3);
 }
 
 .aeterni-flash-card__caption.is-media {

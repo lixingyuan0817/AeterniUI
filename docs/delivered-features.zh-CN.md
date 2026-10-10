@@ -648,6 +648,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 
 ### 支持能力
 
+- 无效状态落在控件本身：`Invalid`（或 `FormField` 级联的无效态）让未点亮的星星改用危险墨（`--aeterni-color-danger-text`），不再只靠字段文案提示；`is-invalid`、`is-filled`、`is-disabled` 都有匹配规则。
 - 整数评分：`Value` / `ValueChanged` / `ValueExpression`，`Max`（默认 5）与越界钳制。`OnChange` 已于 10.14.3 直接移除（它曾与 `ValueChanged` 在同一次交互上重复触发），绑定值统一使用 `ValueChanged`。
 - 支持 `ReadOnly`、`Disabled`、`AllowClear`（再次点击当前值清零）与 `Icon` 自定义（缺省使用内置 `AeterniIcons.Star`）。Disabled 合并 FormField 状态；只读/禁用星级不进入 Tab 序列。方向键/Home/End 同步真实焦点与值、不清零、不滚动页面，空格继续激活当前聚焦星级；主 JS module 仅处理默认键盘行为。
 - 按 `radiogroup` / `radio` 语义输出，支持方向键与 Home/End；`AriaLabel` 缺省取 `AeterniUITextOptions.RatingLabel`，每颗星的无障碍名称与 tooltip 取 `AeterniUITextOptions.RatingStarLabelFormat`（默认 `{0} of {1}`，即读作"3 of 5"而不是裸数字）。
@@ -706,6 +707,8 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
 
 ## 20. PopupHost / Popover
+
+`PopupHost` 的包裹层带 `aeterni-popup-host` 与调用方传入的 `aeterni-{component}__host` 类（`ComboBox`、`Autocomplete`、`MultiSelect` 各一个）。后者是**宿主样式钩子**：库内没有规则消费它，它的用途是让宿主或示例针对某个组件的浮层包裹层写样式，因此改名会被视为破坏性变更；组件自己的外观仍由组件根元素负责。
 
 10.14.3：模态/非模态均遵守动态 CloseOnEscape；受控关闭只提议 OpenChanged，父级拒绝时继续显示。退出过渡等待实际 CSS 动画结束才隐藏、恢复焦点及解锁滚动；重开/销毁取消旧完成，reduced-motion 立即完成，Visible=false 不保留退出层。
 
@@ -921,7 +924,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 ### Confirm
 
 - 通过 `IDialogService.ConfirmAsync` 提供基于 Dialog 的确认交互。
-- `ConfirmOptions` 提供 `ConfirmText`、`CancelText`，并继承 `DialogOptions`。
+- `ConfirmOptions` 提供 `ConfirmText`、`CancelText`，并继承 `DialogOptions`。两者留空（默认）时分别回退到 `AeterniUITextOptions.ConfirmAcceptLabel` 与 `ConfirmCancelLabel`，因此按文案表本地化的宿主不必逐个确认框设置；显式设置的值优先。
 - 提供取消和确认两个动作，返回 `Task<bool>`。
 - 点击不可关闭的外部遮罩时，弹窗会进行轻微抖动反馈。
 
@@ -1232,6 +1235,8 @@ builder.Services.AddAeterniUI(options =>
     options.Text.EmptyTitle = "暂无数据";
     options.Text.BadgeLabel = "有新内容";
     options.Text.DescriptionsEmptyValueLabel = "空值";
+    options.Text.ConfirmAcceptLabel = "确定";
+    options.Text.ConfirmCancelLabel = "取消";
     options.Text.DrawerLabel = "面板";
     options.Text.DrawerCloseLabel = "关闭面板";
     options.Text.InputNumberIncrementLabel = "增加数值";
