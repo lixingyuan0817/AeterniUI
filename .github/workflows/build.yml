@@ -75,6 +75,8 @@ jobs:
           echo '--- diagnostics ---'
           ls -la /tmp/aeterni-fontawesome-7.3.1 2>&1 | head -20
           find /tmp/aeterni-fontawesome-7.3.1 -maxdepth 4 2>/dev/null | head -30
+          echo '--- computed path probe ---'
+          node -e "const fs=require('node:fs'),path=require('node:path');const root='/tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome';const pkg='free-solid-svg-icons';const p=path.join(root,pkg,'faAlignCenter.js');console.log('probe path',p,'exists',fs.existsSync(p));const dir=path.join(root,pkg);console.log('entries',fs.readdirSync(dir).length);console.log('alignMatches',fs.readdirSync(dir).filter(f=>f.startsWith('faAlign')).slice(0,6));console.log('cwd',process.cwd(),'tmp',require('node:os').tmpdir());"
           echo '--- package dir ---'
           ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>&1 | head -15
           ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>/dev/null | wc -l
