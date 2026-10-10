@@ -61,7 +61,7 @@ jobs:
       - name: Cache Font Awesome package
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/aeterni-fontawesome-*
+          path: /tmp/aeterni-fontawesome-*
           key: fontawesome-${{ hashFiles('scripts/generate-fontawesome-icons.mjs') }}
 
       - name: Font Awesome icon manifest check
