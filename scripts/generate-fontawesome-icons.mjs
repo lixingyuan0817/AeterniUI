@@ -160,8 +160,11 @@ function resolveFontAwesomeRoot(explicitDir) {
 
 /** Loads one icon definition from the installed Font Awesome packages. */
 function loadIcon(requireFn, fontAwesomeRoot, style, name) {
-    const camelCase = name.split('-').map((part, index) => (index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1))).join('');
-    const modulePath = path.join(fontAwesomeRoot, style.package, `fa${camelCase}.js`);
+    // Font Awesome ships one module per icon under the canonical PascalCase name
+    // (`faAlignCenter.js`), not the lowercase-first camelCase the icon name would
+    // suggest. A case-insensitive filesystem hides the difference, so `faAlignCenter`
+    // has to be built from `toPascalCase` for this to work on Linux and macOS.
+    const modulePath = path.join(fontAwesomeRoot, style.package, `fa${toPascalCase(name)}.js`);
     if (!existsSync(modulePath)) {
         throw new Error(`Unknown Font Awesome icon "${name}" (${style.package}@${FA_VERSION})`);
     }

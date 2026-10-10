@@ -61,32 +61,12 @@ jobs:
       - name: Cache Font Awesome package
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/aeterni-fontawesome-*
+          path: /tmp/aeterni-fontawesome-*
           key: fontawesome-${{ hashFiles('scripts/generate-fontawesome-icons.mjs') }}
 
       - name: Font Awesome icon manifest check
-        shell: bash
-        run: |
-          cat > /tmp/probe.mjs <<'PROBE'
-          import { existsSync, readdirSync } from 'node:fs';
-          import path from 'node:path';
-          const root = '/tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome';
-          const pkg = 'free-solid-svg-icons';
-          for (const name of ['align-center', 'check', 'circle-check', 'wallet']) {
-            const camel = name.split('-').map((p, i) => (i === 0 ? p : p[0].toUpperCase() + p.slice(1))).join('');
-            const target = path.join(root, pkg, `fa${camel}.js`);
-            console.log('probe', name, '->', target, existsSync(target));
-          }
-          const dir = path.join(root, pkg);
-          const entries = existsSync(dir) ? readdirSync(dir) : [];
-          console.log('entries', entries.length);
-          console.log('align', entries.filter((f) => f.startsWith('faAlign')).slice(0, 5));
-          console.log('check', entries.filter((f) => f.startsWith('faCheck')).slice(0, 5));
-          console.log('tmpdir', (await import('node:os')).tmpdir());
-          PROBE
-          node /tmp/probe.mjs || true
-          node scripts/generate-fontawesome-icons.mjs --check || true
-          echo 'probe finished'
+        run: node scripts/generate-fontawesome-icons.mjs --check
+
       - name: Token file must not contain component rules
         shell: bash
         run: |
