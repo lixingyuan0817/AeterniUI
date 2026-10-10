@@ -102,3 +102,52 @@
 | 批次 26 ⏳（待开始） | REV-144、REV-145、REV-149 ~ REV-152、REV-156、REV-157 | 文档对账（漂移簇、玻璃名单）、宿主别名收敛、死类群、校验与文案表补齐、文件职责。可与批次 23/25 合并提交 |
 | 批次 27 ⏳（待开始） | REV-158 ~ REV-163 | P3 收尾：文档颗粒度、示例补齐、死代码、性能、小功能与测试覆盖 |
 
+### 执行计划评审（第十轮）
+
+#### 前置决策（阻塞批次 23/24，定调后再改）
+
+| 编号 | 决策 | 选项与建议 | 影响面 |
+| --- | --- | --- | --- |
+| D1 | 独立 `Radio` 是否支持值绑定 | 建议**支持**：显示改由 `Value` 驱动（组模式不变）。理由：§13 已公开 `Value`/`ValueChanged`/`ValueExpression` 与独立用法示例，删除属公共承诺回退 | REV-133、§13、Radio 示例页、契约断言 |
+| D2 | `FlashCard` Holo 混合模式 | 建议**回落 `color`** 并按契约补白光反射层；若判定保留 `screen`，则需改设计契约 §13 与交付文档成文为 screen 方案 | REV-140、`FlashCard.razor.css`、`engineering-reference` §13、`delivered-features` §45、示例注释（四处必须同向） |
+| D3 | `AlertOptions.CloseText` 去留 | 建议**接线到 `NoticeCard.CloseLabel`**：保住已登记的公共参数并让文档成真；删除则需同步 §26、示例并把契约断言改为「该名字必须不存在」 | REV-142、`DialogProvider`、`NoticeCard`、§26、Feedback 示例、`check-doc-drift` 的 pending 项 |
+
+D1 与 D2 会改变可见行为，结论落定后必须同步交付功能、示例与契约检查；D3 完成后把 `check-doc-drift` 中 `CloseText` 由 `pending` 转为 `enforced`，使批次 26 收尾时该门禁无待修复项。
+
+#### 批次 23（REV-133 ~ REV-139，P1）
+
+建议次序：REV-133（含 D1）→ REV-136 → REV-137 → REV-138 → REV-139 → REV-134/135 合并提交（两项同在 `InputNumber` 的步进/夹取路径）。
+
+| 条目 | 改动面 | 验收 |
+| --- | --- | --- |
+| REV-133 | `Radio.razor.cs` 独立模式显示 | 契约：「设置 `Value` 后渲染输出 `checked`」+ 组内互斥仍成立 |
+| REV-136 | `MultiSelect.razor` 触发器补 `id="@FormField?.InputId"` | 契约：`label` 的 `for` 命中触发器 |
+| REV-137 | 新增文案表键并回退 | 契约：默认文案可覆写且非英文宿主可替换 |
+| REV-138 | `IconButton` 加载态排除 `:disabled` 灰墨 | 浏览器：Spinner 与底色对比度 + 变体墨色保留 |
+| REV-139 | `Badge.razor.css` 补 `:dir(rtl)` 反向位移并订正 §31 措辞 | 浏览器：RTL 角标位于镜像角外侧 |
+| REV-134/135 | `InputNumber` 饱和步进；先取整再夹取 | 契约：「Max 留空时步进」「Max 不齐精度网格」，覆盖 `int`/`decimal` |
+
+风险：REV-133 需同时保住组模式语义；REV-134/135 的取整顺序变化会影响 `aria-valuenow` 与增减禁用判断，需一并断言。
+
+#### 批次 24（REV-140 ~ REV-143，P1）
+
+D2 定调 → 四处同步 Holo → REV-141 删改 §17/§18 措辞（改记「已于 10.14.3 移除」）→ REV-142 按 D3 落地 → REV-143 断言前对期望值做 `HtmlEncoder.Default.Encode`（或固定测试文化），要求本机与 CI 双绿。
+
+#### 批次 25（REV-146 ~ REV-148、REV-153 ~ REV-155，P2）
+
+以真实浏览器验收为主，前置条件为可发布示例站与无头 Chrome：REV-146 hover 缺口逐控件比对、REV-147 `RootElement` 内部 `ElementReference` 化后方向键与单一 Tab 停留点仍有效、REV-148 退场时序改实测信号、REV-153 `JSException` 守卫对称、REV-154 弹层内翻月不被宿主重渲染重置、REV-155 `AriaDescribedBy` 合并语义统一。
+
+#### 批次 26（REV-144/145、REV-149 ~ REV-152、REV-156/157，P2）
+
+文档对账 + Token 纪律收口，可与批次 23/25 合并提交。收口判据：`delivered-features` 与实现逐条对账、组件 CSS 中 `--aeterni-padding-/gap-/margin-*` 清零（REV-145 断言）、死类与死关键帧清理（REV-152）、无效态与文案表补齐（REV-149/156）、`IconButton` 逻辑迁入 `.razor.cs`（REV-157）。
+
+#### 批次 27（REV-158 ~ REV-163，P3）
+
+文档颗粒度与示例补齐、死代码卫生、性能（缓存与预设校验上限）、小功能决策（REV-162 需逐项判定修复/登记为宿主契约/删除）、JS 模块测试补齐（REV-163）。REV-162 涉及 §7/§19 的对比度数字，必须以 `node scripts/check-contrast.mjs` 重跑结果为准更新。
+
+#### 每批必过门禁
+
+`dotnet build aeterni_ui.slnx`、`AeterniUI.ContractChecks`、`bash scripts/check-docs.sh`、token 文件组件选择器检查、`check-css-comments.mjs`、`check-contrast.mjs`、`check-doc-drift.mjs`、`node --test tests/*.test.mjs`；涉及浏览器行为时加 `tests/browser/run.sh`，涉及图标时加 `generate-fontawesome-icons.mjs --check`（CI 已接入）。
+
+版本定档：纯行为与文档修复递增第三位；若批次引入新的公共成员（例如 REV-137 与 REV-156 的文案表键），按 `AGENTS.md` §4.9 递增第二位。
+
