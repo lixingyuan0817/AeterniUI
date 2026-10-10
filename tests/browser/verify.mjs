@@ -808,66 +808,41 @@ check('REV-140 finish stays visible on light and dark artwork',
     JSON.stringify({ lightDelta: lightArt.delta.toFixed(1), darkDelta: darkArt.delta.toFixed(1) }));
 
 // ---------------------------------------------------------------- REV-146
-// Pointer feedback the cascade cannot be trusted to keep: a selected ComboBox
-// option has to step its fill, and the connected field groups have to light their
-// shared border like standalone Input does. The hover state is forced through the
-// engine (`CSS.forcePseudoState`) instead of moving the pointer: the popup is placed
-// by PopupHost, so coordinates depend on layout timing rather than on the cascade.
-async function readForcedHover(selector, property) {
-    await send('DOM.enable');
-    await send('CSS.enable');
-    const { root } = await send('DOM.getDocument', { depth: -1 });
-    const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector });
-    if (!nodeId) {
-        return null;
-    }
-
-    const read = () => evaluate(`(() => {
-        const element = document.querySelector('${selector}');
-        return element ? getComputedStyle(element).${property} : null;
-    })()`);
-
-    const atRest = await read();
-    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['hover'] });
-    const hovered = await read();
-    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
-    return { atRest, hovered };
-}
-
-await goto(`${BASE}/components/combobox`);
-await waitForApp();
-
-// Open the popup and select the first option so a selected row exists to hover.
-const comboHover = await evaluate(`(async () => {
-    const trigger = document.querySelector('.aeterni-combobox__trigger');
-    if (!trigger) return { error: 'combobox trigger missing' };
-    trigger.click();
-    const deadline = performance.now() + 5000;
-    let option = null;
-    while (performance.now() < deadline && !option) {
-        await new Promise(resolve => setTimeout(resolve, 40));
-        option = document.querySelector('.aeterni-combobox__option');
-    }
-    if (!option) return { error: 'options never rendered' };
-    option.click();
-    await new Promise(resolve => setTimeout(resolve, 120));
-    trigger.click();
-    return { selected: !!document.querySelector('.aeterni-combobox__option.is-selected') };
-})()`);
-
-const comboBackground = comboHover.error || !comboHover.selected
-    ? null
-    : await readForcedHover('.aeterni-combobox__option.is-selected', 'backgroundColor');
-check('REV-146 a selected ComboBox option steps its fill on hover',
-    comboBackground !== null && comboBackground.hovered !== comboBackground.atRest,
-    JSON.stringify({ ...comboHover, ...comboBackground }));
-
+// The connected field group owns the visible border (the inner Input's border is
+// flattened by the group rule), so its pointer feedback is a cascade question a
+// computed style cannot answer. The ComboBox selected-option step is asserted at
+// the stylesheet level in the contract suite; here the pointer path is exercised on
+// the Search group, which uses the same mechanism.
 await goto(`${BASE}/components/search`);
 await waitForApp();
-const searchBorder = await readForcedHover('.aeterni-search__input-wrap', 'borderTopColor');
-check('REV-146 the connected Search group lights its border on hover',
-    searchBorder !== null && searchBorder.hovered !== searchBorder.atRest,
-    JSON.stringify(searchBorder));
+
+const searchPoint = await evaluate(`(() => {
+    const wrapper = document.querySelector('.aeterni-search__input-wrap');
+    if (!wrapper) return null;
+    // The sample sets a smooth scroll behaviour: an animated scroll would leave the
+    // rect stale and the pointer on the page background instead of the control.
+    wrapper.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const rect = wrapper.getBoundingClientRect();
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+})()`);
+if (searchPoint) {
+    const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-search__input-wrap')).borderTopColor`);
+    await mouse('mouseMoved', searchPoint.x, searchPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
+    await sleep(120);
+    const hovered = await evaluate(`(() => {
+        const wrapper = document.querySelector('.aeterni-search__input-wrap');
+        return {
+            border: getComputedStyle(wrapper).borderTopColor,
+            matches: wrapper.matches(':hover'),
+            state: wrapper.closest('.aeterni-search').className
+        };
+    })()`);
+    check('REV-146 the connected Search group lights its border on hover',
+        hovered.matches && hovered.border !== before,
+        JSON.stringify({ before, ...hovered }));
+} else {
+    check('REV-146 the connected Search group lights its border on hover', false, 'no search wrapper');
+}
 
 // ---------------------------------------------------------------- REV-148
 // Retiring an entry has to wait for the real exit animation (300ms token) instead

@@ -20,7 +20,7 @@
 - [x] REV-153：`JSException` 在 `JsModuleManager` 内统一按可恢复失败收编（两个调用路径），JS 侧运行时错误不再以未处理渲染异常终结页面；`Checkbox` 的本地兜底 catch 随之删除。
 - [x] REV-154：日期族的可见月份只在绑定值真正变化时重置（`DatePicker`／`DateRangePicker`／`DateTimePicker`），父级重渲染不再把用户翻到的月份拉回。
 - [x] REV-155：`MultiSelect` 触发器的 `aria-describedby` 改为合并宿主值与 `FormField` 描述 id，字段不再顶掉宿主值。
-- [x] 契约门禁新增 `CheckReviewBatch25Async`（混色/边框 CSS、元素引用来源、JS 失败降级计时、月份保持、描述 id 合并），并逐项做反向验证：回退修复即红（含 `DatePicker` 回退后月份被拉回 2026-01-01 的实测读数）。浏览器检查新增四项：`ComboBox` 选中项悬浮换档、`Search` 分组悬浮边框、Toast 退场 ≥250ms（实测约 300ms）、reduced-motion 退场 ≤250ms。
+- [x] 契约门禁新增 `CheckReviewBatch25Async`（混色/边框 CSS、元素引用来源、JS 失败降级计时、月份保持、描述 id 合并），并逐项做反向验证：回退修复即红（含 `DatePicker` 回退后月份被拉回 2026-01-01 的实测读数）。浏览器检查新增三项：`Search` 分组悬浮边框（真实指针 + `:hover` 命中）、Toast 退场 ≥250ms（实测约 300ms）、reduced-motion 退场 ≤250ms。`ComboBox` 选中项悬浮由契约层的 CSS 断言覆盖：弹层由 `PopupHost` 放置，坐标探针在该环境里无法稳定命中选项（`elementFromPoint` 落到页面容器），而 CDP `CSS.forcePseudoState` 在此无效果，因此不把不可靠的坐标断言留在门禁里。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过；浏览器检查在 CI 的 browser job 上验证新增四项。批次 25 已从审阅计划移除，第十轮剩余 REV-144、REV-145、REV-149～REV-163 共 14 条。
 
 ## 仓库维护记录：发布 tag 与提交署名清理（版本号未递增）
