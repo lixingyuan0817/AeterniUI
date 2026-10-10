@@ -919,7 +919,8 @@ const sampleDemos = [
     { path: '/components/segmented', selector: '[aria-required="true"]', note: 'required state' },
     { path: '/components/tag', selector: '.aeterni-tag__icon', minimum: 2, note: 'start and end icons' },
     { path: '/components/avatar', selector: '.aeterni-avatar img', note: 'image avatar with fallback' },
-    { path: '/components/input-number', selector: 'form input[role="spinbutton"]', note: 'EditContext validation chain' },
+    { path: '/components/input-number', selector: 'input[role="spinbutton"]', note: 'numeric field' },
+    { path: '/components/input-number', selector: 'form button[type="submit"]', note: 'EditContext validation chain' },
 ];
 
 let currentPage = null;
@@ -935,7 +936,18 @@ for (const demo of sampleDemos) {
         return nodes.length;
     })()`);
     const ok = demo.minimum ? found >= demo.minimum : found > 0;
-    check(`REV-159 ${demo.path} demonstrates ${demo.note}`, ok, `${found} match(es) for ${demo.selector}`);
+    const detail = ok
+        ? `${found} match(es) for ${demo.selector}`
+        : `${found} match(es) for ${demo.selector}; ${JSON.stringify(await evaluate(`(() => {
+            const errorUi = document.querySelector('#blazor-error-ui');
+            return {
+                forms: document.querySelectorAll('form').length,
+                spinbuttons: document.querySelectorAll('input[role="spinbutton"]').length,
+                errorUiVisible: errorUi ? getComputedStyle(errorUi).display : null,
+                head: document.body.innerText.replace(/\s+/g, ' ').slice(0, 120)
+            };
+        })()`))}`;
+    check(`REV-159 ${demo.path} demonstrates ${demo.note}`, ok, detail);
 }
 
 // Presets only exist while the range picker is open, so the demo opens it first.
