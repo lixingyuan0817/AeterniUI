@@ -17,6 +17,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Restore & build
         run: dotnet build aeterni_ui.slnx -c Debug --nologo
 
@@ -48,6 +53,19 @@ jobs:
 
       - name: Brand palette contrast check
         run: node scripts/check-contrast.mjs
+
+      # The icon adapter is generated, so the committed FontAwesomeIcons.cs must
+      # stay in sync with the manifest in scripts/generate-fontawesome-icons.mjs.
+      # The upstream package is cached under the script's own temp directory;
+      # a cache miss (including any manifest edit) installs it from npm.
+      - name: Cache Font Awesome package
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/aeterni-fontawesome-*
+          key: fontawesome-${{ hashFiles('scripts/generate-fontawesome-icons.mjs') }}
+
+      - name: Font Awesome icon manifest check
+        run: node scripts/generate-fontawesome-icons.mjs --check
 
       - name: Token file must not contain component rules
         shell: bash

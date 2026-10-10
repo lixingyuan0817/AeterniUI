@@ -34,6 +34,7 @@ if [[ ! "$version" =~ ^10\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 for doc in \
+  AGENTS.md \
   docs/delivered-features.zh-CN.md \
   docs/component-plan.zh-CN.md \
   docs/review-plan.zh-CN.md \

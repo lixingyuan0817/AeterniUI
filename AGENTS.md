@@ -1,5 +1,7 @@
 # AeterniUI Agent 指南
 
+文档版本：`10.30.1`
+
 ## 1. 前言
 
 AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库。本文件是 Agent 执行任务的首要入口，定义任务分类、定位与阅读顺序、工作边界和开发约束；项目索引与组件现状、后续计划、审阅任务及历史记录按需维护在本文档和 `docs/` 中。
@@ -272,12 +274,12 @@ node --check <改动的>.razor.js                 # 组件 JS
 node --test tests/*.test.mjs                   # 浏览器行为
 tests/browser/run.sh                           # 层叠、时序、焦点环、键盘焦点模型
 node scripts/generate-fontawesome-icons.mjs --check
-                                                   # 图标清单或组件字形
+                                                   # 图标清单或组件字形（CI 已接入；冷缓存需 npm 联网）
 ```
 
 ### 4.9 版本与提交纪律
 
 - 第一位固定为当前 .NET 主版本 `10`；不得把它当作普通 SemVer 主版本递增。
 - 功能新增递增第二位；修复与优化递增第三位；内部重构按是否改变公共行为判断。
-- 修改版本时同步 `AGENTS.md` 的当前版本、带文档版本头的当前文档、README tag 示例和 `release-history`，随后运行 `bash scripts/check-docs.sh`。
+- 修改版本时同步 `AGENTS.md` 的文档版本头、项目索引中的「当前版本」、其余带文档版本头的文档、README tag 示例和 `release-history`，随后运行 `bash scripts/check-docs.sh`。
 - 提交前使用 `git diff --name-status` 核对职责文档、示例、测试和生成目录边界。
