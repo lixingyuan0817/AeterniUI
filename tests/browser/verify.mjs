@@ -88,8 +88,23 @@ async function measureTransition(optionIndex) {
 }
 
 const normal = await measureTransition(2);
+const themeDiag = await evaluate(`JSON.stringify((() => {
+    const group = [...document.querySelectorAll('[role="radiogroup"]')]
+        .find(g => g.querySelectorAll('input[type=radio]').length === 3 && /主题|Theme/.test(g.getAttribute('aria-label') || ''));
+    const options = group ? [...group.querySelectorAll('input[type=radio]')] : [];
+    return {
+        groupLabel: group ? group.getAttribute('aria-label') : null,
+        optionLabels: options.map(o => o.getAttribute('aria-label')),
+        checked: options.findIndex(o => o.checked),
+        reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        prefersDark: matchMedia('(prefers-color-scheme: dark)').matches,
+        htmlClass: document.documentElement.className,
+        blazor: typeof window.Blazor,
+        dataTheme: document.documentElement.getAttribute('data-theme')
+    };
+})())`);
 check('REV-121 the transition class is applied on a real theme switch', normal.appliedImmediately && normal.sawClass,
-    `applied=${normal.appliedImmediately} observed=${normal.sawClass}`);
+    `applied=${normal.appliedImmediately} observed=${normal.sawClass} diag=${themeDiag}`);
 check('REV-121 it is removed once the token-derived duration elapses (~620ms)',
     normal.removedAfter !== null && normal.removedAfter >= 550 && normal.removedAfter <= 750,
     `removed after ${normal.removedAfter}ms`);
