@@ -810,114 +810,64 @@ check('REV-140 finish stays visible on light and dark artwork',
 // ---------------------------------------------------------------- REV-146
 // Pointer feedback the cascade cannot be trusted to keep: a selected ComboBox
 // option has to step its fill, and the connected field groups have to light their
-// shared border like standalone Input does.
+// shared border like standalone Input does. The hover state is forced through the
+// engine (`CSS.forcePseudoState`) instead of moving the pointer: the popup is placed
+// by PopupHost, so coordinates depend on layout timing rather than on the cascade.
+async function readForcedHover(selector, property) {
+    await send('DOM.enable');
+    await send('CSS.enable');
+    const { root } = await send('DOM.getDocument', { depth: -1 });
+    const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector });
+    if (!nodeId) {
+        return null;
+    }
+
+    const read = () => evaluate(`(() => {
+        const element = document.querySelector('${selector}');
+        return element ? getComputedStyle(element).${property} : null;
+    })()`);
+
+    const atRest = await read();
+    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['hover'] });
+    const hovered = await read();
+    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
+    return { atRest, hovered };
+}
+
 await goto(`${BASE}/components/combobox`);
 await waitForApp();
 
-// Coordinates come from the viewport, so every probe scrolls its target into view
-// first — otherwise the pointer lands outside the page and no :hover state exists.
-// `behavior: 'instant'` matters: the sample sets a smooth scroll behaviour, so a
-// plain scrollIntoView animates and the rect read right after is mid-flight — the
-// pointer then landed on the page background instead of the target.
-const pointOf = selector => evaluate(`(() => {
-    const element = document.querySelector('${selector}');
-    if (!element) return null;
-    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
-    const rect = element.getBoundingClientRect();
-    const at = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    return {
-        x: rect.x + rect.width / 2,
-        y: rect.y + rect.height / 2,
-        hits: at ? (at === element || element.contains(at)) : false
-    };
+// Open the popup and select the first option so a selected row exists to hover.
+const comboHover = await evaluate(`(async () => {
+    const trigger = document.querySelector('.aeterni-combobox__trigger');
+    if (!trigger) return { error: 'combobox trigger missing' };
+    trigger.click();
+    const deadline = performance.now() + 5000;
+    let option = null;
+    while (performance.now() < deadline && !option) {
+        await new Promise(resolve => setTimeout(resolve, 40));
+        option = document.querySelector('.aeterni-combobox__option');
+    }
+    if (!option) return { error: 'options never rendered' };
+    option.click();
+    await new Promise(resolve => setTimeout(resolve, 120));
+    trigger.click();
+    return { selected: !!document.querySelector('.aeterni-combobox__option.is-selected') };
 })()`);
 
-const clickAt = async point => {
-    await mouse('mousePressed', point.x, point.y, { button: 'left', clickCount: 1 });
-    await mouse('mouseReleased', point.x, point.y, { button: 'left', clickCount: 1 });
-    await sleep(150);
-};
-
-const comboTrigger = await pointOf('.aeterni-combobox__trigger');
-if (comboTrigger) {
-    await clickAt(comboTrigger);
-
-    // Select the first option so there is a selected row to hover, then reopen.
-    const optionPoint = await pointOf('.aeterni-combobox__option');
-    if (optionPoint) {
-        await clickAt(optionPoint);
-        const reopened = await pointOf('.aeterni-combobox__trigger');
-        await clickAt(reopened ?? comboTrigger);
-
-        // The popup is placed by PopupHost, which re-measures after a frame, so the
-        // option's box can still move once; probe until the pointer really lands on it.
-        let selectedPoint = null;
-        for (let attempt = 0; attempt < 6 && !selectedPoint; attempt++) {
-            const probe = await evaluate(`(() => {
-                const option = document.querySelector('.aeterni-combobox__option.is-selected');
-                if (!option) return null;
-                const rect = option.getBoundingClientRect();
-                const x = rect.x + rect.width / 2;
-                const y = rect.y + rect.height / 2;
-                const at = document.elementFromPoint(x, y);
-                return { x, y, hits: !!at && (at === option || option.contains(at) || at.contains(option)) };
-            })()`);
-            if (probe?.hits) {
-                selectedPoint = probe;
-            } else {
-                await sleep(180);
-            }
-        }
-
-        if (selectedPoint) {
-            const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-combobox__option.is-selected')).backgroundColor`);
-            await mouse('mouseMoved', selectedPoint.x, selectedPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
-            await sleep(120);
-            const hovered = await evaluate(`(() => {
-                const option = document.querySelector('.aeterni-combobox__option.is-selected');
-                const at = document.elementFromPoint(${selectedPoint.x}, ${selectedPoint.y});
-                return {
-                    background: getComputedStyle(option).backgroundColor,
-                    matches: option.matches(':hover'),
-                    elementAtPoint: at ? at.className : null
-                };
-            })()`);
-            check('REV-146 a selected ComboBox option steps its fill on hover',
-                hovered.matches && hovered.background !== before,
-                JSON.stringify({ before, ...hovered }));
-        } else {
-            check('REV-146 a selected ComboBox option steps its fill on hover', false, 'the popup never placed the selected option under the pointer');
-        }
-    } else {
-        check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no option to select');
-    }
-} else {
-    check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no combobox trigger');
-}
+const comboBackground = comboHover.error || !comboHover.selected
+    ? null
+    : await readForcedHover('.aeterni-combobox__option.is-selected', 'backgroundColor');
+check('REV-146 a selected ComboBox option steps its fill on hover',
+    comboBackground !== null && comboBackground.hovered !== comboBackground.atRest,
+    JSON.stringify({ ...comboHover, ...comboBackground }));
 
 await goto(`${BASE}/components/search`);
 await waitForApp();
-const searchPoint = await pointOf('.aeterni-search__input-wrap');
-if (searchPoint) {
-    const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-search__input-wrap')).borderTopColor`);
-    await mouse('mouseMoved', searchPoint.x, searchPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
-    await sleep(120);
-    const hovered = await evaluate(`(() => {
-        const wrapper = document.querySelector('.aeterni-search__input-wrap');
-        const at = document.elementFromPoint(${searchPoint.x}, ${searchPoint.y});
-        return {
-            border: getComputedStyle(wrapper).borderTopColor,
-            matches: wrapper.matches(':hover'),
-            elementAtPoint: at ? at.className : null,
-            state: wrapper.closest('.aeterni-search').className
-        };
-    })()`);
-    check('REV-146 the connected Search group lights its border on hover',
-        hovered.matches && hovered.border !== before,
-        JSON.stringify({ before, ...hovered }));
-} else {
-    check('REV-146 the connected Search group lights its border on hover', false, 'no search wrapper');
-}
+const searchBorder = await readForcedHover('.aeterni-search__input-wrap', 'borderTopColor');
+check('REV-146 the connected Search group lights its border on hover',
+    searchBorder !== null && searchBorder.hovered !== searchBorder.atRest,
+    JSON.stringify(searchBorder));
 
 // ---------------------------------------------------------------- REV-148
 // Retiring an entry has to wait for the real exit animation (300ms token) instead
