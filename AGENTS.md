@@ -39,6 +39,8 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 修复质量或一致性问题 | 先读本文件；再读 [`docs/review-plan.zh-CN.md`](docs/review-plan.zh-CN.md) 的相关批次与受影响组件章节 |
 | 修改色板、玻璃配方、复杂焦点模型或特殊组件机制 | 先读本文件；再读 [`docs/engineering-reference.zh-CN.md`](docs/engineering-reference.zh-CN.md) 的对应章节 |
 | 修改版本、整理发布或追溯历史决定 | 先读本文件；再读 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
+| 修改图标清单、生成脚本或 Font Awesome 适配包 | 先读本文件；再读 [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) 的图标章节；生成物只由脚本改写，改后运行 `node scripts/generate-fontawesome-icons.mjs --check` |
+| 修改 CI、工作流或发布流程 | 先读本文件；再读 `.github/workflows/` 中的三个工作流与 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
 
 代理阅读原则：
 - 先搜后看，先定位后读；不要在没有目标文件名时翻目录。
@@ -85,10 +87,13 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 
 ### 3.3 目录结构
 
+以下只列与任务相关的路径，不追求根目录完整清单；生成输出（`bin/`、`obj/`、`dist/`、`.sample-publish/`）、`.gitignore` 和本机配置不在此列出。
+
 ```text
 AeterniUI/
 ├── AGENTS.md
 ├── README.md
+├── LICENSE
 ├── Directory.Build.props
 ├── aeterni_ui.slnx
 ├── docs/
@@ -115,18 +120,20 @@ AeterniUI/
 │       ├── Pages/Components/        # 每个组件一个示例页
 │       └── wwwroot/
 ├── tests/                            # Node 行为回归、契约检查和浏览器检查
-└── .github/workflows/
+└── .github/workflows/                # build、nuget-release、pages
 ```
 
-组件采用一组件一目录：
+组件采用一组件一目录（聚合目录见下方例外）：
 
 ```text
 Components/<Component>/
 ├── <Component>.razor       # DOM、语义属性、事件绑定和渲染分支
 ├── <Component>.razor.cs    # 参数、状态、生命周期和 class/style 构建
-├── <Component>.razor.css   # 组件隔离样式
-└── <Component>.razor.js    # 必要的浏览器行为
+├── <Component>.razor.css   # 仅在需要 CSS isolation 时添加
+└── <Component>.razor.js    # 仅在需要浏览器行为时添加
 ```
+
+例外：`Components/Dialog/`（`DialogProvider.*`，另含 `Notice/`）、`Components/Popup/`（`Popover.*` + `PopupHost.*`）和 `Components/Theme/`（`ThemeProvider.*`、`ThemeSwitch.*`、`ThemeBrandSwitch.*`）按功能聚合，一个目录承载多个组件，因此没有同名 `<目录>.razor` / `<目录>.razor.css` 和无条件四文件；目录内各组件仍按上述职责分文件。
 
 ### 3.4 核心入口
 
@@ -257,6 +264,8 @@ dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csp
                                                    # 根属性、ARIA、焦点或公开变体
 bash scripts/check-docs.sh                     # 文档、结构、入口或命令
 node scripts/check-css-comments.mjs            # 任意 CSS
+grep -E '^\.aeterni-' src/AeterniUI/wwwroot/css/aeterni_ui.css | grep -v '^\.aeterni-dark'
+                                               # token 文件不得含组件选择器（无输出即通过）
 node scripts/check-contrast.mjs                # 色阶、品牌或对比度相关 Token
 node scripts/check-doc-drift.mjs               # 交付功能或文案表
 node --check <改动的>.razor.js                 # 组件 JS
