@@ -761,10 +761,20 @@ async function measureFinishDelta(fill) {
             '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${fill}"/></svg>');
         await img.decode();
         card.classList.add('is-tilting');
+        // Pin the reflection at the centre: the pointer drives the sheen phase, and
+        // an earlier check may have parked it outside the card, which made the
+        // measured delta depend on test order instead of on the finish (REV-140).
+        card.style.setProperty('--aeterni-flash-card-sheen-x', '50%');
+        card.style.setProperty('--aeterni-flash-card-sheen-y', '50%');
         card.querySelector('.aeterni-flash-card__glint').style.opacity = '0';
         const media = card.querySelector('.aeterni-flash-card__media').getBoundingClientRect();
-        const inset = 14;
-        return { x: media.x + inset, y: media.y + inset, w: media.width - inset * 2, h: media.height - inset * 2 };
+        const size = Math.min(24, media.width / 3, media.height / 3);
+        return {
+            x: media.x + media.width / 2 - size / 2,
+            y: media.y + media.height / 2 - size / 2,
+            w: size,
+            h: size
+        };
     })()`);
 
     const setFinishOpacity = opacity => evaluate(`(() => {
@@ -825,7 +835,7 @@ if (comboTrigger) {
         const selectedPoint = await pointOf('.aeterni-combobox__option.is-selected');
         if (selectedPoint) {
             const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-combobox__option.is-selected')).backgroundColor`);
-            await mouse('mouseMoved', selectedPoint.x, selectedPoint.y);
+            await mouse('mouseMoved', selectedPoint.x, selectedPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
             await sleep(120);
             const hovered = await evaluate(`(() => {
                 const option = document.querySelector('.aeterni-combobox__option.is-selected');
@@ -849,7 +859,7 @@ await waitForApp();
 const searchPoint = await pointOf('.aeterni-search__input-wrap');
 if (searchPoint) {
     const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-search__input-wrap')).borderTopColor`);
-    await mouse('mouseMoved', searchPoint.x, searchPoint.y);
+    await mouse('mouseMoved', searchPoint.x, searchPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
     await sleep(120);
     const hovered = await evaluate(`(() => {
         const wrapper = document.querySelector('.aeterni-search__input-wrap');
