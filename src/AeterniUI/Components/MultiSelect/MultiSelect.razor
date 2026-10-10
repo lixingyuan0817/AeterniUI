@@ -10,7 +10,7 @@
                  role="combobox"
                  tabindex="@(IsDisabled || ReadOnly ? "-1" : "0")"
                  aria-labelledby="@FormField?.LabelId"
-                 aria-describedby="@(FormField?.DescribedBy ?? AriaDescribedBy)"
+                 aria-describedby="@EffectiveDescribedBy"
                  aria-label="@(FormField?.LabelId is null ? EffectiveAriaLabel : null)"
                  aria-expanded="@(_open ? "true" : "false")"
                  aria-controls="@ListboxId"

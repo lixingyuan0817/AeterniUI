@@ -5,6 +5,7 @@ using AeterniUI.Components.Autocomplete;
 using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
 using AeterniUI.Components.DatePicker;
+using AeterniUI.Components.DateTimePicker;
 using AeterniUI.Components.Descriptions;
 using AeterniUI.Components.Dialog;
 using AeterniUI.Components.FlashCard;
@@ -68,6 +69,7 @@ await CheckOverlayTransitionsAsync();
 await CheckArchitectureP0Async();
 await CheckReviewBatch23Async();
 await CheckReviewBatch24Async();
+await CheckReviewBatch25Async();
 await CheckJsLifecycleAsync();
 await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
@@ -2325,6 +2327,207 @@ async Task CheckReviewBatch24Async()
     Require(localizedAlerts.Contains($"aria-label=\"{localizedLabel}\"", StringComparison.Ordinal)
         && localizedAlerts.Contains("aria-label=\"Dismiss notice\"", StringComparison.Ordinal),
         $"The alert close label must read the text table, and an explicit CloseText must still win (found: {localizedLabels}).");
+}
+
+// Regression guards for the tenth review round's batch 25 (P2). Each assertion
+// locks one REV item in place.
+async Task CheckReviewBatch25Async()
+{
+    var root = FindRepositoryRoot();
+
+    // REV-146 ①: the pointer needs the same feedback the keyboard cursor already
+    // had, so a selected option must step its fill one level deeper on hover.
+    var comboCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/ComboBox/ComboBox.razor.css"));
+    Require(Regex.IsMatch(comboCss,
+            @"\.aeterni-combobox__option\.is-selected:hover:not\(\.is-disabled\) \{[^}]*background: var\(--aeterni-state-background-active\)",
+            RegexOptions.Singleline),
+        "A hovered selected ComboBox option must step its fill to the active stop.");
+
+    // REV-146 ②: the connected groups own the visible border (the inner Input has
+    // its own border flattened), so they need the hover border standalone Input has.
+    foreach (var (component, group, wrapper) in new[]
+    {
+        ("Search", ".aeterni-search", ".aeterni-search__input-wrap"),
+        ("Autocomplete", ".aeterni-autocomplete", ".aeterni-autocomplete__input-wrap"),
+        ("InputNumber", ".aeterni-input-number", ".aeterni-input-number__field"),
+    })
+    {
+        var css = await File.ReadAllTextAsync(Path.Combine(root, $"src/AeterniUI/Components/{component}/{component}.razor.css"));
+        Require(css.Contains($"{group}:not(.is-invalid):not(.is-disabled):not(.is-readonly) {wrapper}:hover:not(:focus-within)", StringComparison.Ordinal),
+            $"{component} must give its connected field a hover border that excludes focus, invalid, disabled and read-only.");
+        Require(Regex.IsMatch(css,
+                $@"{Regex.Escape(group)}:not\(\.is-invalid\):not\(\.is-disabled\):not\(\.is-readonly\) {Regex.Escape(wrapper)}:hover:not\(:focus-within\) \{{[^}}]*--aeterni-control-border-hover",
+                RegexOptions.Singleline),
+            $"{component} must use the shared hover border colour for that state.");
+    }
+
+    // REV-147: the roving modules of Toolbar/ToggleGroup/Menu must receive the node
+    // they render, not RootElement — a host-supplied Element parameter replaces
+    // RootElement, which used to fail the module's ownership check silently.
+    foreach (var component in new[] { "Toolbar", "ToggleGroup", "Menu" })
+    {
+        var code = await File.ReadAllTextAsync(Path.Combine(root, $"src/AeterniUI/Components/{component}/{component}.razor.cs"));
+        Require(!code.Contains("InstanceId, RootElement", StringComparison.Ordinal),
+            $"{component} must not hand RootElement to its JS module.");
+        Require(code.Contains("RenderedRootElement", StringComparison.Ordinal),
+            $"{component} must keep an internal reference to the element it renders.");
+        var markup = await File.ReadAllTextAsync(Path.Combine(root, $"src/AeterniUI/Components/{component}/{component}.razor"));
+        Require(markup.Contains("@ref=\"RenderedRootElement\"", StringComparison.Ordinal),
+            $"{component} must bind that internal reference on its rendered root.");
+    }
+
+    // REV-153: a JS-side runtime error has to degrade like a disconnected circuit;
+    // it used to escape as an unhandled render exception.
+    var faultRuntime = new JsFaultRuntime();
+    await using (var faultManager = new JsModuleManager(faultRuntime))
+    {
+        faultManager.ScanComponent(typeof(Slider<int>));
+        var escaped = false;
+        try
+        {
+            await faultManager.InvokeModuleVoidAsync("slider", "sync", "instance", default(ElementReference), true);
+        }
+        catch (JSException)
+        {
+            escaped = true;
+        }
+
+        Require(!escaped, "A throwing JS module must not surface as an unhandled render exception.");
+
+        // Reported instead of thrown: a gate has to list this failure rather than
+        // abort the whole run with the exception it is asserting about.
+        bool? queried = null;
+        try
+        {
+            queried = await faultManager.InvokeModuleAsync<bool>("slider", "isDragging");
+        }
+        catch (JSException)
+        {
+        }
+
+        Require(queried == false, "A throwing JS module must resolve the querying path to its default value.");
+    }
+
+    // REV-154: the visible month may only follow a real value change. OnParametersSet
+    // runs on every parent render, which used to undo a month the user paged to.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+
+        async Task CheckMonthHoldsAsync<TComponent>(string valueKey, object initialValue, object changedValue, DateOnly paged)
+            where TComponent : IComponent
+        {
+            ParameterContractHost<TComponent> host = null!;
+            await renderer.RenderComponentAsync<ParameterContractHost<TComponent>>(ParameterView.FromDictionary(new Dictionary<string, object?>
+            {
+                ["Ready"] = (Action<ParameterContractHost<TComponent>>)(x => host = x)
+            }));
+            host.Values = new Dictionary<string, object?> { [valueKey] = initialValue };
+            host.Update();
+
+            var month = typeof(TComponent).GetField("_displayMonth", flags)!;
+            var name = typeof(TComponent).Name;
+            Require((DateOnly)month.GetValue(host.Inner)! == new DateOnly(2026, 1, 1),
+                $"{name} must open on the month of its value.");
+
+            month.SetValue(host.Inner, paged);
+
+            // Re-supplying the same parameters is exactly what a parent render does
+            // (and what used to snap the month back).
+            await ((IComponent)host.Inner).SetParametersAsync(ParameterView.FromDictionary(host.Values));
+            var afterRender = (DateOnly)month.GetValue(host.Inner)!;
+            Require(afterRender == paged,
+                $"{name} must keep a paged month when its parameters are re-applied unchanged (REV-154); got {afterRender:yyyy-MM-dd} instead of {paged:yyyy-MM-dd}.");
+
+            host.Values[valueKey] = changedValue;
+            await ((IComponent)host.Inner).SetParametersAsync(ParameterView.FromDictionary(host.Values));
+            Require((DateOnly)month.GetValue(host.Inner)! == new DateOnly(2026, 3, 1),
+                $"{name} must follow the month of a changed value.");
+        }
+
+        var paged = new DateOnly(2026, 6, 1);
+        await CheckMonthHoldsAsync<DatePicker>("Value", new DateOnly(2026, 1, 15), new DateOnly(2026, 3, 10), paged);
+        await CheckMonthHoldsAsync<DateRangePicker>("StartDate", new DateOnly(2026, 1, 15), new DateOnly(2026, 3, 10), paged);
+        await CheckMonthHoldsAsync<DateTimePicker>("Value", new DateTime(2026, 1, 15, 9, 30, 0), new DateTime(2026, 3, 10, 9, 30, 0), paged);
+    });
+
+    // REV-148: retiring a closing entry waits for the measured exit animation instead
+    // of a fixed 180/220ms delay that cut the 300ms animation off. The provider
+    // reports the measured end; the bounded fallback keeps a provider-less host
+    // (or a runtime without modules) from hanging.
+    var dialogCode = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Services/Impl/DialogService.cs"));
+    Require(!dialogCode.Contains("Task.Delay(TimeSpan.FromMilliseconds(180)", StringComparison.Ordinal)
+        && !dialogCode.Contains("Task.Delay(TimeSpan.FromMilliseconds(220)", StringComparison.Ordinal),
+        "The service must not retire a closing entry after a fixed delay.");
+    Require(dialogCode.Contains("GetClosingIds", StringComparison.Ordinal)
+        && dialogCode.Contains("SignalExit", StringComparison.Ordinal)
+        && dialogCode.Contains("ExitSignalFallback", StringComparison.Ordinal),
+        "The service must expose the measured exit signal and keep a bounded fallback.");
+    var dialogModule = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Dialog/DialogProvider.razor.js"));
+    Require(dialogModule.Contains("export async function waitForExitSignals", StringComparison.Ordinal)
+        && dialogModule.Contains("waitForExit(", StringComparison.Ordinal),
+        "The dialog module must measure the real exit animation.");
+    var dialogProvider = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Dialog/DialogProvider.razor.cs"));
+    Require(dialogProvider.Contains("\"waitForExitSignals\"", StringComparison.Ordinal)
+        && dialogProvider.Contains("DialogService.SignalExit(id)", StringComparison.Ordinal),
+        "The provider must drive the exit signal back into the service.");
+
+    // HtmlRenderer is a static renderer: it never runs OnAfterRenderAsync, so the
+    // provider's own hook-up is covered by the assertions above plus the browser
+    // check, and the signal contract is exercised against the service directly.
+    async Task<TimeSpan> MeasureToastCloseAsync(bool signal)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IJSRuntime, NoopJsRuntime>();
+        services.AddAeterniUI();
+        await using var toastProvider = services.BuildServiceProvider();
+        var dialogs = (DialogService)toastProvider.GetRequiredService<IDialogService>();
+        dialogs.DefaultToastDuration = TimeSpan.Zero;
+
+        var toast = dialogs.ShowToast("Saved");
+        var close = toast.CloseAsync();
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        if (signal)
+        {
+            // A closing entry is only visible while the close is pending, so the
+            // signal has to arrive from another task, like the provider's does.
+            await Task.Delay(30);
+            var signalMethod = typeof(DialogService).GetMethod("SignalExit", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            signalMethod.Invoke(dialogs, [toast.Id]);
+        }
+
+        await close;
+        stopwatch.Stop();
+        return stopwatch.Elapsed;
+    }
+
+    var signalled = await MeasureToastCloseAsync(signal: true);
+    Require(signalled < TimeSpan.FromMilliseconds(700),
+        $"The measured exit signal must retire the entry promptly, took {signalled.TotalMilliseconds:0}ms.");
+    var fallback = await MeasureToastCloseAsync(signal: false);
+    Require(fallback >= TimeSpan.FromMilliseconds(900),
+        $"Without a signal the bounded fallback must apply, took {fallback.TotalMilliseconds:0}ms.");
+
+    // REV-155: a field must join the host's description id instead of replacing it,
+    // matching ComboBox and Autocomplete.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        MultiSelectContractHost host = null!;
+        var output = await renderer.RenderComponentAsync<MultiSelectContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<MultiSelectContractHost>)(x => host = x)
+        }));
+        host.AriaDescribedBy = "host-hint";
+        host.Update();
+
+        var html = output.ToHtmlString();
+        var describedBy = Regex.Match(html, "<div[^>]*role=\"combobox\"[^>]*aria-describedby=\"([^\"]+)\"");
+        var ids = describedBy.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Require(ids.Contains("host-hint") && ids.Length >= 2,
+            $"MultiSelect must merge the host description id with the field's own (got '{describedBy.Groups[1].Value}').");
+    });
 }
 
 // Regression guards for the ninth review round's P0 batch. Each assertion locks a

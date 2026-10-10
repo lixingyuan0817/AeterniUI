@@ -17,7 +17,7 @@
 - 本文档以当前源码中的公开组件、`[Parameter]`、`EventCallback`、公开服务和配置类型为准；实现细节不等同于公共 API。
 - 本文档是交付功能的唯一事实源；任何“已实现/已交付”表述必须能在源码、示例或契约检查中定位证据，不能仅靠历史记录或陈述式摘要维持。
 - 若某能力被移除、降级或重构，必须同步删除或更新相关章节，并在 [`release-history.zh-CN.md`](release-history.zh-CN.md) 记录修订；不能在本文件保留已失效的承诺。
-- 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。
+- 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。需要 JS 模块的组件把**自己渲染的节点**交给模块，而不是 `RootElement`：宿主传入 `Element` 会把 `RootElement` 换成外部元素，模块的所有权校验随之失败，方向键与单一 Tab 停留点会静默失效（Toolbar、ToggleGroup、Menu 与三个 combobox 均已按此实现）。
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
 - 公共枚举参数一律在 `OnParametersSet` 用 `Enum.IsDefined` 校验，非法值抛带实际值与原因的 `ArgumentOutOfRangeException`；不再有"非法值静默降级为默认档"的组件。`ToggleGroup.SelectionMode` 例外：它是取值白名单（`SelectionMode.None` 是已定义成员但对动作组无意义，仍需拒绝）。需要无障碍名称的组件（`IconButton`、`ToggleGroup`、`Toolbar`、`ToolbarGroup`）在留空时抛 `ArgumentException`，`FlashCardGroup` 改为回退文案表。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，不会写入交付功能。
@@ -362,7 +362,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
+触发器的 `aria-describedby` 合并宿主传入值与该组件所处的 `FormField` 描述 id（与 `ComboBox`、`Autocomplete` 同一合并语义，字段不再顶掉宿主值）；触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
 
 ### 实现边界
 
@@ -397,6 +397,8 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 输入过程不拦截、不整形草稿：可解析的文本实时提交，无法解析的草稿保留到 blur 时回退为最近一次提交值；blur 时先按精度取整再做上下限夹取——顺序不能颠倒，否则 `Max` 不在精度网格上时（`Max=0.35`、`Precision=1`）夹取结果会被取整重新推回 `0.4`，提交值越界并让增减禁用判断错位。内部输入输出 `role="spinbutton"` 和不变的 `aria-valuenow` / `aria-valuemin` / `aria-valuemax` 字符串，空值时不输出 `aria-valuenow`；不使用原生 `type="number"`（其原生 spinner 会与 `ShowControls` 重复，且值格式不接受文化设置）。参数校验在参数设置阶段执行：`Step` 必须为有限正数、`Min` 不得大于 `Max`、`Precision` 必须在 0～15 之间且不低于 `Step` 的小数位，非法配置抛出 `ArgumentException`。
 
 组件复用 `Input` 的字段状态：在 `FormField` 中时内部输入采用字段输入 ID，`label for` 解析到可编辑元素，禁用、必填与无效状态沿级联上下文合并。`InputNumber` 的 JS 只拦截被处理按键的默认行为（`ArrowUp` / `ArrowDown` / `PageUp` / `PageDown`），避免 PageUp/PageDown 在步进的同时滚动页面；步进逻辑全部在 C#。
+
+连体分组自己拥有可见边框（内部 `Input` 的边框已被分组规则压平），因此指针悬浮反馈也由分组负责：`Search`、`Autocomplete` 与 `InputNumber` 的分组在悬浮时切到 `--aeterni-control-border-hover`，并排除聚焦、无效、禁用与只读状态。
 
 ### 实现边界
 
@@ -670,7 +672,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；选项的指针悬浮与键盘游标同档：普通项悬浮走 `--aeterni-state-background-hover`，已选中项悬浮再深一档（`--aeterni-state-background-active`），因此选中行在指针下也有可见反馈；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
@@ -934,7 +936,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 默认自动关闭，四边环绕进度边框显示剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
-- 支持 Alert 滑出动画。
+- 支持 Alert 滑出动画。退场等待实测动画结束（`--aeterni-duration-slow`，约 300ms）后才移除条目并完成 `AlertAsync` / `CloseAsync`：此前的固定 180/220ms 会在动画 60%/73% 处把节点摘掉，reduced-motion 下还会原地冻结；现在只有宿主没有渲染 Provider 时才退回到 1 秒上限。
 
 ### Toast
 
@@ -1245,7 +1247,7 @@ builder.Services.AddAeterniUI(options =>
 
 ## 38. DatePicker / DateRangePicker
 
-10.14.3：最小/最大日期的月份导航与键盘运算不会越界；日历维持 6×7 网格，超出 DateOnly 范围的位置为空白不可操作格。最大年份不足指定月份数时只显示存在的月份，范围预设允许结束于 DateOnly.MaxValue。
+10.14.3：最小/最大日期的月份导航与键盘运算不会越界；日历维持 6×7 网格，超出 DateOnly 范围的位置为空白不可操作格。可见月份只跟随**真正变化的绑定值**：父级重渲染（`OnParametersSet` 每次都会执行）不再把用户在弹层里翻到的月份拉回所选值所在的月份，值真的改变时才重新对齐。最大年份不足指定月份数时只显示存在的月份，范围预设允许结束于 DateOnly.MaxValue。
 
 日期时间字段（`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker`）的 Small / Default / Large 触发器统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），字号与 Input / ComboBox 对齐为 12 / 14 / 16px，保持 `line-height-normal`、原有最小高度及宽度 / FullWidth 行为；不调整日历或时间面板。Segmented 选项的三档水平留白也改用同组 control Token（数值不变），轨道 padding、滑块几何与字号均不变。
 

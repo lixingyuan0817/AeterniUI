@@ -1,6 +1,6 @@
 @inherits AeterniComponent
 
-<nav @ref="RootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel" @onkeydown="HandleKeyDownAsync">
+<nav @ref="RenderedRootElement" @attributes="BuildAttributes()" aria-label="@AriaLabel" @onkeydown="HandleKeyDownAsync">
     <ul class="aeterni-menu__list" role="list">
         @for (var groupIndex = 0; groupIndex < Items.Count; groupIndex++)
         {

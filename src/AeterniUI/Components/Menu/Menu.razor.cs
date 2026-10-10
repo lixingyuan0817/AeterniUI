@@ -32,6 +32,23 @@ public sealed record MenuGroup(
 [JsModule("Components/Menu/Menu.razor.js", Name = "menu", Interactive = true)]
 public partial class Menu : AeterniComponent
 {
+    private ElementReference _renderedRootElement;
+
+    /// <summary>
+    /// The rendered root node, bound instead of <see cref="AeterniComponent.RootElement" />.
+    /// A host-supplied <c>Element</c> parameter replaces <c>RootElement</c> with an
+    /// element the component does not own, which made the module's ownership check
+    /// fail and silently disabled the roving keyboard model (REV-147).
+    /// </summary>
+    private ElementReference RenderedRootElement
+    {
+        get => _renderedRootElement;
+        set
+        {
+            _renderedRootElement = value;
+            RootElement = value;
+        }
+    }
     private const string ModuleName = "menu";
 
     /// <summary>Item slot value used when the focused node is a group toggle.</summary>
@@ -202,7 +219,7 @@ public partial class Menu : AeterniComponent
     {
         if (firstRender && RootElementInitialized)
         {
-            await JsModuleManager.InvokeModuleVoidAsync(ModuleName, "attach", InstanceId, RootElement);
+            await JsModuleManager.InvokeModuleVoidAsync(ModuleName, "attach", InstanceId, RenderedRootElement);
         }
     }
 

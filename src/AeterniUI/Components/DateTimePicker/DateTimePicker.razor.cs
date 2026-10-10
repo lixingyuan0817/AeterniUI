@@ -74,12 +74,20 @@ public partial class DateTimePicker : AeterniComponent
         if (MinDateTime.HasValue && MaxDateTime.HasValue && MinDateTime.Value > MaxDateTime.Value)
             throw new ArgumentException("The minimum date and time cannot be later than the maximum date and time.");
         TimePickerOptions.Validate(TimeStep, null, null);
-        if (Value != _lastParameterValue) _draftValue = Value;
+        if (Value != _lastParameterValue)
+        {
+            _draftValue = Value;
+            // REV-154: the visible month follows a real value change only; a parent
+            // render used to pull the calendar back to the selected date's month.
+            if (Value.HasValue)
+            {
+                _displayMonth = FirstOfMonth(DateOnly.FromDateTime(Value.Value));
+            }
+        }
+
         _lastParameterValue = Value;
         _dateDisabledCache.Clear();
         UpdateEditContextSubscription();
-        if (Value.HasValue)
-            _displayMonth = FirstOfMonth(DateOnly.FromDateTime(Value.Value));
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()

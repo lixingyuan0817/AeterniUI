@@ -8,6 +8,23 @@ namespace AeterniUI.Components.ToggleGroup;
 [JsModule("Components/ToggleGroup/ToggleGroup.razor.js", Name = "toggle-group", Interactive = true)]
 public partial class ToggleGroup : AeterniComponent
 {
+    private ElementReference _renderedRootElement;
+
+    /// <summary>
+    /// The rendered root node, bound instead of <see cref="AeterniComponent.RootElement" />.
+    /// A host-supplied <c>Element</c> parameter replaces <c>RootElement</c> with an
+    /// element the component does not own, which made the module's ownership check
+    /// fail and silently disabled the roving keyboard model (REV-147).
+    /// </summary>
+    private ElementReference RenderedRootElement
+    {
+        get => _renderedRootElement;
+        set
+        {
+            _renderedRootElement = value;
+            RootElement = value;
+        }
+    }
     [Parameter, EditorRequired] public IReadOnlyList<ToggleGroupItem> Items { get; set; } = [];
     [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
     [Parameter] public SelectionMode SelectionMode { get; set; } = SelectionMode.Single;
@@ -71,7 +88,7 @@ public partial class ToggleGroup : AeterniComponent
     }
 
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
-        JsModuleManager.InvokeModuleVoidAsync("toggle-group", "sync", InstanceId, RootElement);
+        JsModuleManager.InvokeModuleVoidAsync("toggle-group", "sync", InstanceId, RenderedRootElement);
 
     private bool IsSelected(string id) => SelectedValues.Contains(id, StringComparer.Ordinal);
 

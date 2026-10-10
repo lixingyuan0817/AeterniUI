@@ -44,6 +44,9 @@ public partial class DateRangePicker : AeterniComponent
     private FieldIdentifier _endFieldIdentifier;
     private bool _hasFieldIdentifiers;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
+
+    /// <summary>The start date that last moved <see cref="_displayMonth" />.</summary>
+    private DateOnly? _monthSourceStart;
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private IReadOnlyList<DateRangePreset> PresetItems => Presets ?? [];
     private string EffectivePlaceholder => string.IsNullOrWhiteSpace(Placeholder) ? UiText.DatePickerPlaceholder : Placeholder.Trim();
@@ -66,7 +69,13 @@ public partial class DateRangePicker : AeterniComponent
     {
         base.OnParametersSet();
         UpdateEditContextSubscription();
-        if (StartDate.HasValue) _displayMonth = StartDate.Value.AddDays(1 - StartDate.Value.Day);
+        // REV-154: same guard as DatePicker — only a real start-date change may move
+        // the visible month, otherwise paging forward is undone by any parent render.
+        if (StartDate != _monthSourceStart)
+        {
+            if (StartDate.HasValue) _displayMonth = StartDate.Value.AddDays(1 - StartDate.Value.Day);
+            _monthSourceStart = StartDate;
+        }
         if (VisibleMonths is < 1 or > 3)
             throw new ArgumentOutOfRangeException(nameof(VisibleMonths), VisibleMonths, "Visible months must be between 1 and 3.");
         if (MinDate.HasValue && MaxDate.HasValue && MinDate.Value > MaxDate.Value)

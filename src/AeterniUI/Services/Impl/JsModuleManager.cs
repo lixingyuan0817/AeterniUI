@@ -83,7 +83,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
             Array.Copy(args, 0, initArgs, 1, args.Length);
             await module.InvokeVoidAsync("init", initArgs);
         }
-        catch (Exception ex) when (IsJsUnavailableException(ex) || ex is JSException)
+        catch (Exception ex) when (IsRecoverableJsFailure(ex) || ex is JSException)
         {
             return;
         }
@@ -112,7 +112,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
 
             await module.InvokeVoidAsync("dispose", instanceId);
         }
-        catch (Exception ex) when (IsJsUnavailableException(ex) || ex is JSException)
+        catch (Exception ex) when (IsRecoverableJsFailure(ex) || ex is JSException)
         {
         }
     }
@@ -132,7 +132,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
             {
                 await module.InvokeVoidAsync(functionName, args);
             }
-            catch (Exception ex) when (IsJsUnavailableException(ex))
+            catch (Exception ex) when (IsRecoverableJsFailure(ex))
             {
             }
         }
@@ -150,7 +150,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
         {
             return await module.InvokeAsync<T>(functionName, args);
         }
-        catch (Exception ex) when (IsJsUnavailableException(ex))
+        catch (Exception ex) when (IsRecoverableJsFailure(ex))
         {
             return default;
         }
@@ -291,7 +291,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
     private async Task<IJSObjectReference?> ImportModuleAsync(string path)
     {
         try { return await _jsRuntime.InvokeAsync<IJSObjectReference>("import", path); }
-        catch (Exception ex) when (IsJsUnavailableException(ex)) { return null; }
+        catch (Exception ex) when (IsRecoverableJsFailure(ex)) { return null; }
     }
 
     private static string ResolveModulePath(string path, Assembly componentAssembly)
@@ -325,7 +325,7 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
                     await module.DisposeAsync();
                 }
             }
-            catch (Exception ex) when (IsJsUnavailableException(ex) || ex is JSException)
+            catch (Exception ex) when (IsRecoverableJsFailure(ex) || ex is JSException)
             {
             }
         }
@@ -339,6 +339,14 @@ public sealed class JsModuleManager(IJSRuntime jsRuntime) : IAsyncDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static bool IsJsUnavailableException(Exception ex) => ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException;
+    /// <summary>
+    /// Failures a component is expected to survive. <see cref="JSException" /> is
+    /// included on purpose (REV-153): a JS-side runtime error used to surface as an
+    /// unhandled render exception that broke the whole page, while the documented
+    /// contract is that a broken module only costs the component its JS behaviour.
+    /// The error stays visible in the browser console.
+    /// </summary>
+    private static bool IsRecoverableJsFailure(Exception ex) =>
+        ex is JSDisconnectedException or InvalidOperationException or TaskCanceledException or JSException;
 
 }

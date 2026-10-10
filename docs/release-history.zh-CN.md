@@ -12,6 +12,17 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 第十轮审阅修复批次 25（P2，版本号未递增）
+
+- [x] REV-146：指针反馈补齐两处——`ComboBox` 已选中项悬浮整块深一档（`--aeterni-state-background-active`，与键盘游标同档），`Search`／`Autocomplete`／`InputNumber` 的连体分组补上悬浮边框（排除聚焦、无效、禁用、只读），与独立 `Input`、`ComboBox`、日期触发器一致。
+- [x] REV-147：`Toolbar`、`ToggleGroup`、`Menu` 改为把**自己渲染的节点**交给 JS 模块（新增内部 `RenderedRootElement`，并在 `@ref` 上转交 `RootElement`）。此前传 `RootElement`：宿主一旦传入基类 `Element` 参数，`RootElement` 变成外部元素，模块所有权校验失败，方向键与单一 Tab 停留点静默失效。
+- [x] REV-148：Dialog/Toast 退场改走实测动画结束信号——服务在条目标记关闭后等待 Provider 回报的动画完成（`waitForExitSignals`，复用 `aeterni_floating.js` 的 `waitForExit`），仅在没有 Provider 时退回到 1 秒上限；原固定 180/220ms 会在 300ms 动画的 60%/73% 处摘掉节点，reduced-motion 下原地冻结。通知条目现在也带稳定 `Id`。
+- [x] REV-153：`JSException` 在 `JsModuleManager` 内统一按可恢复失败收编（两个调用路径），JS 侧运行时错误不再以未处理渲染异常终结页面；`Checkbox` 的本地兜底 catch 随之删除。
+- [x] REV-154：日期族的可见月份只在绑定值真正变化时重置（`DatePicker`／`DateRangePicker`／`DateTimePicker`），父级重渲染不再把用户翻到的月份拉回。
+- [x] REV-155：`MultiSelect` 触发器的 `aria-describedby` 改为合并宿主值与 `FormField` 描述 id，字段不再顶掉宿主值。
+- [x] 契约门禁新增 `CheckReviewBatch25Async`（混色/边框 CSS、元素引用来源、JS 失败降级计时、月份保持、描述 id 合并），并逐项做反向验证：回退修复即红（含 `DatePicker` 回退后月份被拉回 2026-01-01 的实测读数）。浏览器检查新增四项：`ComboBox` 选中项悬浮换档、`Search` 分组悬浮边框、Toast 退场 ≥250ms（实测约 300ms）、reduced-motion 退场 ≤250ms。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过；浏览器检查在 CI 的 browser job 上验证新增四项。批次 25 已从审阅计划移除，第十轮剩余 REV-144、REV-145、REV-149～REV-163 共 14 条。
+
 ## 仓库维护记录：发布 tag 与提交署名清理（版本号未递增）
 
 - 全部 27 个 `v10.x` 注解 tag 已删除（本地与远程），仓库内不再有 tag；版本溯源以本文档为准。GitHub 上不存在 Release 条目，因此没有遗留的悬空发布页。

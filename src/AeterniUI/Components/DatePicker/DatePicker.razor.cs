@@ -37,6 +37,9 @@ public partial class DatePicker : AeterniComponent
     private FieldIdentifier _fieldIdentifier;
     private bool _hasFieldIdentifier;
     private DateOnly _displayMonth = DateOnly.FromDateTime(DateTime.Today).AddDays(1 - DateTime.Today.Day);
+
+    /// <summary>The value that last moved <see cref="_displayMonth" />.</summary>
+    private DateOnly? _monthSourceValue;
     private CultureInfo Culture => CultureInfo.CurrentCulture;
     private string EffectivePlaceholder => string.IsNullOrWhiteSpace(Placeholder) ? UiText.DatePickerPlaceholder : Placeholder.Trim();
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DatePickerLabel : AriaLabel.Trim();
@@ -56,7 +59,14 @@ public partial class DatePicker : AeterniComponent
     {
         base.OnParametersSet();
         UpdateEditContextSubscription();
-        if (Value.HasValue) _displayMonth = Value.Value.AddDays(1 - Value.Value.Day);
+        // REV-154: OnParametersSet runs on every parent render, so resetting the
+        // month unconditionally snapped a month the user had paged to back to the
+        // selected value's month as soon as any host state changed.
+        if (Value != _monthSourceValue)
+        {
+            if (Value.HasValue) _displayMonth = Value.Value.AddDays(1 - Value.Value.Day);
+            _monthSourceValue = Value;
+        }
         if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown date picker placement.");
         if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown date picker size.");
     }

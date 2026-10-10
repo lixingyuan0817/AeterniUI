@@ -27,6 +27,13 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
+/* The connected group owns the visible border (the inner Input's own border is
+   flattened by the group rule), so the pointer feedback has to live here too.
+   Focus, invalid, disabled and read-only keep their own border colour. */
+.aeterni-search:not(.is-invalid):not(.is-disabled):not(.is-readonly) .aeterni-search__input-wrap:hover:not(:focus-within) {
+    border-color: var(--aeterni-control-border-hover);
+}
+
 .aeterni-search__actions {
     display: flex;
     align-items: center;

@@ -196,6 +196,13 @@
     background: var(--aeterni-state-background-active);
 }
 
+/* The pointer gets the same feedback: without it a selected row looked identical
+   whether or not the pointer was on it (MultiSelect and DateCalendar step one
+   level deeper on hover as well). */
+.aeterni-combobox__option.is-selected:hover:not(.is-disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
 /* Options are non-focusable elements inside a select-only combobox: focus stays
    on the trigger and the active option is reported with aria-activedescendant,
    so `.is-active` (not `:focus-visible`) carries the keyboard cue. */

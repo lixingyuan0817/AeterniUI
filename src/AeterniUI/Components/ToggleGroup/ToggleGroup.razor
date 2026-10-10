@@ -1,6 +1,6 @@
 @inherits AeterniComponent
 
-<div @ref="RootElement" @attributes="BuildAttributes()">
+<div @ref="RenderedRootElement" @attributes="BuildAttributes()">
     @foreach (var item in Items)
     {
         <button @key="item.Id" type="button" class="@ItemClass(item)"

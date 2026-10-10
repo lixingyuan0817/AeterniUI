@@ -405,6 +405,70 @@ public sealed class DialogService : IDialogService, IDisposable
         }
     }
 
+    /// <summary>
+    /// The exit animation is 300ms (<c>--aeterni-duration-slow</c>) while the retired
+    /// 180/220ms delays cut it off at 60%/73% and froze entirely under reduced
+    /// motion. The provider reports the measured animation end instead; the bound
+    /// only covers a provider that never rendered or a JS runtime without modules.
+    /// </summary>
+    private static readonly TimeSpan ExitSignalFallback = TimeSpan.FromSeconds(1);
+
+    private static async Task WaitForExitAsync(DialogEntry entry)
+    {
+        try
+        {
+            await entry.WaitForExitAsync().WaitAsync(ExitSignalFallback);
+        }
+        catch (TimeoutException)
+        {
+        }
+    }
+
+    private static async Task WaitForExitAsync(ToastEntry entry)
+    {
+        try
+        {
+            await entry.WaitForExitAsync().WaitAsync(ExitSignalFallback);
+        }
+        catch (TimeoutException)
+        {
+        }
+    }
+
+    /// <summary>Ids of the entries whose chrome is playing its exit animation.</summary>
+    internal IReadOnlyList<string> GetClosingIds()
+    {
+        lock (_sync)
+        {
+            return [.. _dialogs.Where(entry => entry.IsClosing).Select(entry => entry.Id),
+                .. _alerts.Where(entry => entry.IsClosing).Select(entry => entry.Id),
+                .. _toasts.Where(entry => entry.IsClosing).Select(entry => entry.Id)];
+        }
+    }
+
+    /// <summary>Retires a closing entry as soon as its exit animation finished.</summary>
+    internal void SignalExit(string id)
+    {
+        lock (_sync)
+        {
+            var dialog = _dialogs.FirstOrDefault(candidate => candidate.Id == id);
+            if (dialog is not null)
+            {
+                dialog.SignalExit();
+                return;
+            }
+
+            var alert = _alerts.FirstOrDefault(candidate => candidate.Id == id);
+            if (alert is not null)
+            {
+                alert.SignalExit();
+                return;
+            }
+
+            _toasts.FirstOrDefault(candidate => candidate.Id == id)?.SignalExit();
+        }
+    }
+
     private async Task CloseDialogAsync(
         string id,
         DialogResult result,
@@ -424,7 +488,7 @@ public sealed class DialogService : IDialogService, IDisposable
         }
 
         NotifyChanged();
-        await Task.Delay(TimeSpan.FromMilliseconds(180));
+        await WaitForExitAsync(entry!);
 
         var closingEntry = entry!;
         lock (_sync)
@@ -462,7 +526,7 @@ public sealed class DialogService : IDialogService, IDisposable
         }
 
         NotifyChanged();
-        await Task.Delay(TimeSpan.FromMilliseconds(220));
+        await WaitForExitAsync(entry!);
 
         var closingEntry = entry!;
         lock (_sync)
@@ -628,7 +692,18 @@ internal sealed class DialogEntry(
 
     public CancellationTokenSource CancellationTokenSource { get; } = new();
 
+    /// <summary>
+    /// Completed by the provider once the chrome's exit animation has actually
+    /// finished (REV-148), so the entry is retired exactly when the animation ends
+    /// instead of after a fixed delay that truncated it.
+    /// </summary>
+    private readonly TaskCompletionSource _exitSignal = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     internal void MarkClosing() => IsClosing = true;
+
+    internal Task WaitForExitAsync() => _exitSignal.Task;
+
+    internal void SignalExit() => _exitSignal.TrySetResult();
 }
 
 internal sealed class ToastEntry(
@@ -657,5 +732,16 @@ internal sealed class ToastEntry(
 
     public bool IsClosing { get; private set; }
 
+    /// <summary>
+    /// Completed by the provider once the chrome's exit animation has actually
+    /// finished (REV-148), so the entry is retired exactly when the animation ends
+    /// instead of after a fixed delay that truncated it.
+    /// </summary>
+    private readonly TaskCompletionSource _exitSignal = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     internal void MarkClosing() => IsClosing = true;
+
+    internal Task WaitForExitAsync() => _exitSignal.Task;
+
+    internal void SignalExit() => _exitSignal.TrySetResult();
 }

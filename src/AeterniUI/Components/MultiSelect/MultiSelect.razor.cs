@@ -91,6 +91,15 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
+    /// <summary>
+    /// Description ids of both the host and the surrounding form field, merged the
+    /// same way ComboBox and Autocomplete do it: a field used to replace the host
+    /// value instead of joining it, so a host-supplied id silently disappeared
+    /// (REV-155).
+    /// </summary>
+    private string? EffectiveDescribedBy => string.Join(" ", new[] { AriaDescribedBy, FormField?.DescribedBy }
+        .Where(value => !string.IsNullOrWhiteSpace(value)));
+
     [Parameter]
     public string? SelectAllLabel { get; set; }
 

@@ -788,6 +788,152 @@ check('REV-140 finish stays visible on light and dark artwork',
     && lightArt.delta >= 6 && darkArt.delta >= 6,
     JSON.stringify({ lightDelta: lightArt.delta.toFixed(1), darkDelta: darkArt.delta.toFixed(1) }));
 
+// ---------------------------------------------------------------- REV-146
+// Pointer feedback the cascade cannot be trusted to keep: a selected ComboBox
+// option has to step its fill, and the connected field groups have to light their
+// shared border like standalone Input does.
+await goto(`${BASE}/components/combobox`);
+await waitForApp();
+
+const comboTrigger = await evaluate(`(() => {
+    const trigger = document.querySelector('.aeterni-combobox__trigger');
+    if (!trigger) return null;
+    const rect = trigger.getBoundingClientRect();
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+})()`);
+if (comboTrigger) {
+    await mouse('mousePressed', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
+    await mouse('mouseReleased', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
+    await sleep(150);
+
+    // Select the first option so there is a selected row to hover, then reopen.
+    const optionPoint = await evaluate(`(() => {
+        const option = document.querySelector('.aeterni-combobox__option');
+        if (!option) return null;
+        const rect = option.getBoundingClientRect();
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    })()`);
+    if (optionPoint) {
+        await mouse('mousePressed', optionPoint.x, optionPoint.y, { button: 'left', clickCount: 1 });
+        await mouse('mouseReleased', optionPoint.x, optionPoint.y, { button: 'left', clickCount: 1 });
+        await sleep(150);
+        await mouse('mousePressed', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
+        await mouse('mouseReleased', comboTrigger.x, comboTrigger.y, { button: 'left', clickCount: 1 });
+        await sleep(150);
+
+        const selectedPoint = await evaluate(`(() => {
+            const option = document.querySelector('.aeterni-combobox__option.is-selected');
+            if (!option) return null;
+            const rect = option.getBoundingClientRect();
+            window.__selectedBackgroundAtRest = getComputedStyle(option).backgroundColor;
+            return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+        })()`);
+
+        if (selectedPoint) {
+            await mouse('mouseMoved', selectedPoint.x, selectedPoint.y);
+            await sleep(120);
+            const hovered = await evaluate(`(() => {
+                const option = document.querySelector('.aeterni-combobox__option.is-selected');
+                return { background: getComputedStyle(option).backgroundColor, rest: window.__selectedBackgroundAtRest };
+            })()`);
+            check('REV-146 a selected ComboBox option steps its fill on hover',
+                hovered.background !== hovered.rest,
+                JSON.stringify(hovered));
+        } else {
+            check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no selected option to hover');
+        }
+    } else {
+        check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no option to select');
+    }
+} else {
+    check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no combobox trigger');
+}
+
+await goto(`${BASE}/components/search`);
+await waitForApp();
+const searchHover = await evaluate(`(() => {
+    const wrapper = document.querySelector('.aeterni-search__input-wrap');
+    if (!wrapper) return { error: 'search wrapper missing' };
+    const rect = wrapper.getBoundingClientRect();
+    window.__searchBorderAtRest = getComputedStyle(wrapper).borderTopColor;
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+})()`);
+if (!searchHover.error) {
+    await mouse('mouseMoved', searchHover.x, searchHover.y);
+    await sleep(120);
+    const hovered = await evaluate(`(() => {
+        const wrapper = document.querySelector('.aeterni-search__input-wrap');
+        return { border: getComputedStyle(wrapper).borderTopColor, rest: window.__searchBorderAtRest };
+    })()`);
+    check('REV-146 the connected Search group lights its border on hover',
+        hovered.border !== hovered.rest,
+        JSON.stringify(hovered));
+} else {
+    check('REV-146 the connected Search group lights its border on hover', false, searchHover.error);
+}
+
+// ---------------------------------------------------------------- REV-148
+// Retiring an entry has to wait for the real exit animation (300ms token) instead
+// of the retired 180/220ms delays, and reduced motion has to collapse it.
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+
+const toastExit = await evaluate(`(async () => {
+    const trigger = [...document.querySelectorAll('button')].find(button => /^Toast$/.test(button.textContent.trim()));
+    if (!trigger) return { error: 'toast trigger missing' };
+    trigger.click();
+
+    const deadline = performance.now() + 5000;
+    let toast = null;
+    while (performance.now() < deadline && !toast) {
+        await new Promise(resolve => setTimeout(resolve, 40));
+        toast = document.querySelector('.aeterni-dialog-provider__toast');
+    }
+    if (!toast) return { error: 'toast never appeared' };
+
+    const close = toast.querySelector('button');
+    if (!close) return { error: 'toast close button missing' };
+
+    const start = performance.now();
+    close.click();
+    while (performance.now() - start < 3000 && document.body.contains(toast)) {
+        await new Promise(resolve => setTimeout(resolve, 8));
+    }
+    return { removedAfter: Math.round(performance.now() - start), stillThere: document.body.contains(toast) };
+})()`);
+check('REV-148 the toast plays its full exit animation before it is retired',
+    !toastExit.error && !toastExit.stillThere && toastExit.removedAfter >= 250 && toastExit.removedAfter <= 900,
+    JSON.stringify(toastExit));
+
+await setReducedMotion(true);
+const reducedExit = await evaluate(`(async () => {
+    const trigger = [...document.querySelectorAll('button')].find(button => /^Toast$/.test(button.textContent.trim()));
+    if (!trigger) return { error: 'toast trigger missing' };
+    trigger.click();
+
+    const deadline = performance.now() + 5000;
+    let toast = null;
+    while (performance.now() < deadline && !toast) {
+        await new Promise(resolve => setTimeout(resolve, 40));
+        toast = document.querySelector('.aeterni-dialog-provider__toast');
+    }
+    if (!toast) return { error: 'toast never appeared' };
+
+    const close = toast.querySelector('button');
+    if (!close) return { error: 'toast close button missing' };
+
+    const start = performance.now();
+    close.click();
+    while (performance.now() - start < 2000 && document.body.contains(toast)) {
+        await new Promise(resolve => setTimeout(resolve, 8));
+    }
+    return { removedAfter: Math.round(performance.now() - start), stillThere: document.body.contains(toast) };
+})()`);
+await setReducedMotion(false);
+check('REV-148 reduced motion collapses the exit wait instead of blocking',
+    !reducedExit.error && !reducedExit.stillThere && reducedExit.removedAfter <= 250,
+    JSON.stringify(reducedExit));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

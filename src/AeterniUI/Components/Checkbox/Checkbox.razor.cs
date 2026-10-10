@@ -155,17 +155,13 @@ public partial class Checkbox : AeterniComponent
         {
             _lastAppliedIndeterminate = target;
 
-            try
-            {
-                await JsModuleManager.InvokeModuleVoidAsync(
-                    "checkbox",
-                    "setIndeterminate",
-                    _inputElement,
-                    target);
-            }
-            catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException or TaskCanceledException)
-            {
-            }
+            // The manager already degrades on a disconnected circuit or a JS-side
+            // failure, so this call needs no local guard (REV-153).
+            await JsModuleManager.InvokeModuleVoidAsync(
+                "checkbox",
+                "setIndeterminate",
+                _inputElement,
+                target);
         }
     }
 

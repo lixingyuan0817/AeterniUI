@@ -18,6 +18,7 @@
             @foreach (var alert in alerts)
             {
                 <NoticeCard IsAlert="true"
+                            Id="@alert.Id"
                             Severity="@alert.Options.Severity"
                             Icon="@alert.Options.Icon"
                             Title="@alert.Options.Title"
@@ -33,6 +34,7 @@
             @foreach (var toast in toasts)
             {
                 <NoticeCard IsAlert="false"
+                            Id="@toast.Id"
                             Severity="@toast.Options.Severity"
                             Icon="@toast.Options.Icon"
                             Title="@toast.Options.Title"

@@ -60,6 +60,24 @@ public partial class DialogProvider : AeterniComponent
                 "initProgress",
                 InstanceId,
                 RootElement);
+
+            // REV-148: retiring an entry waits for its measured exit animation. The
+            // previous fixed delays cut the 300ms animation off at 60%/73%, and under
+            // reduced motion there is no animation left, so this returns immediately.
+            var closingIds = DialogService.GetClosingIds();
+            if (closingIds.Count > 0)
+            {
+                await JsModuleManager.InvokeModuleVoidAsync(
+                    "dialog-provider",
+                    "waitForExitSignals",
+                    InstanceId,
+                    closingIds);
+
+                foreach (var id in closingIds)
+                {
+                    DialogService.SignalExit(id);
+                }
+            }
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException or TaskCanceledException)
         {

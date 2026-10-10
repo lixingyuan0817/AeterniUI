@@ -8,6 +8,24 @@ namespace AeterniUI.Components.Toolbar;
 [JsModule("Components/Toolbar/Toolbar.razor.js", Name = "toolbar", Interactive = true)]
 public partial class Toolbar : AeterniComponent
 {
+    private ElementReference _renderedRootElement;
+
+    /// <summary>
+    /// The rendered root node, bound instead of <see cref="AeterniComponent.RootElement" />.
+    /// A host-supplied <c>Element</c> parameter replaces <c>RootElement</c> with an
+    /// element the component does not own, which made the module's ownership check
+    /// fail and silently disabled the roving keyboard model (REV-147).
+    /// </summary>
+    private ElementReference RenderedRootElement
+    {
+        get => _renderedRootElement;
+        set
+        {
+            _renderedRootElement = value;
+            RootElement = value;
+        }
+    }
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
     [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
@@ -49,5 +67,5 @@ public partial class Toolbar : AeterniComponent
     }
 
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
-        JsModuleManager.InvokeModuleVoidAsync("toolbar", "sync", InstanceId, RootElement);
+        JsModuleManager.InvokeModuleVoidAsync("toolbar", "sync", InstanceId, RenderedRootElement);
 }

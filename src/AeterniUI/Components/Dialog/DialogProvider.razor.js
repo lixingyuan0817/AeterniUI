@@ -2,9 +2,29 @@
 // floating-layer helpers, so Dialog, Popover and (later) Drawer agree on what
 // "lock the page" and "first focusable" mean. The Tab/Escape handling stays local:
 // dialogs form a stack and only the topmost one may respond.
-import { focusableWithin, focusFirst, lockScroll } from '../../js/aeterni_floating.js';
+import { focusableWithin, focusFirst, lockScroll, waitForExit } from '../../js/aeterni_floating.js';
 
 const instances = new Map();
+
+/** Waits for the real exit animation of the closing chrome (dialog panel or notice
+ * card). Resolving on the measured animation end is what keeps the animation from
+ * being cut off, and it resolves immediately when nothing is animating — the
+ * reduced-motion path collapses to zero instead of blocking for a fixed delay
+ * (REV-148). */
+export async function waitForExitSignals(key, ids) {
+    if (!instances.has(key) || !ids?.length) {
+        return;
+    }
+
+    const elements = ids
+        .map(id => document.getElementById(id) ?? document.querySelector(`[data-aeterni-dialog-id="${id}"]`))
+        .filter(Boolean);
+    if (elements.length === 0) {
+        return;
+    }
+
+    await new Promise(resolve => waitForExit(elements, resolve));
+}
 
 export function init(_reference, key) {
     dispose(key);
