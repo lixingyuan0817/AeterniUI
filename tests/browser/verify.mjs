@@ -762,7 +762,7 @@ async function sampleAverage(rect) {
 async function measureFinishDelta(fill) {
     const rect = await evaluate(`(async () => {
         const card = document.querySelector('.aeterni-flash-card');
-        card.scrollIntoView({ block: 'center' });
+        card.scrollIntoView({ block: 'center', behavior: 'instant' });
         const img = card.querySelector('.aeterni-flash-card__media img');
         img.src = 'data:image/svg+xml,' + encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${fill}"/></svg>');
@@ -816,12 +816,20 @@ await waitForApp();
 
 // Coordinates come from the viewport, so every probe scrolls its target into view
 // first — otherwise the pointer lands outside the page and no :hover state exists.
+// `behavior: 'instant'` matters: the sample sets a smooth scroll behaviour, so a
+// plain scrollIntoView animates and the rect read right after is mid-flight — the
+// pointer then landed on the page background instead of the target.
 const pointOf = selector => evaluate(`(() => {
     const element = document.querySelector('${selector}');
     if (!element) return null;
-    element.scrollIntoView({ block: 'center', inline: 'center' });
+    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
     const rect = element.getBoundingClientRect();
-    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    const at = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return {
+        x: rect.x + rect.width / 2,
+        y: rect.y + rect.height / 2,
+        hits: at ? (at === element || element.contains(at)) : false
+    };
 })()`);
 
 const clickAt = async point => {
