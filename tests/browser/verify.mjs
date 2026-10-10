@@ -849,7 +849,26 @@ if (comboTrigger) {
         const reopened = await pointOf('.aeterni-combobox__trigger');
         await clickAt(reopened ?? comboTrigger);
 
-        const selectedPoint = await pointOf('.aeterni-combobox__option.is-selected');
+        // The popup is placed by PopupHost, which re-measures after a frame, so the
+        // option's box can still move once; probe until the pointer really lands on it.
+        let selectedPoint = null;
+        for (let attempt = 0; attempt < 6 && !selectedPoint; attempt++) {
+            const probe = await evaluate(`(() => {
+                const option = document.querySelector('.aeterni-combobox__option.is-selected');
+                if (!option) return null;
+                const rect = option.getBoundingClientRect();
+                const x = rect.x + rect.width / 2;
+                const y = rect.y + rect.height / 2;
+                const at = document.elementFromPoint(x, y);
+                return { x, y, hits: !!at && (at === option || option.contains(at) || at.contains(option)) };
+            })()`);
+            if (probe?.hits) {
+                selectedPoint = probe;
+            } else {
+                await sleep(180);
+            }
+        }
+
         if (selectedPoint) {
             const before = await evaluate(`getComputedStyle(document.querySelector('.aeterni-combobox__option.is-selected')).backgroundColor`);
             await mouse('mouseMoved', selectedPoint.x, selectedPoint.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
@@ -867,7 +886,7 @@ if (comboTrigger) {
                 hovered.matches && hovered.background !== before,
                 JSON.stringify({ before, ...hovered }));
         } else {
-            check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no selected option to hover');
+            check('REV-146 a selected ComboBox option steps its fill on hover', false, 'the popup never placed the selected option under the pointer');
         }
     } else {
         check('REV-146 a selected ComboBox option steps its fill on hover', false, 'no option to select');
