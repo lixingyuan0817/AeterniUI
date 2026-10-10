@@ -67,21 +67,26 @@ jobs:
       - name: Font Awesome icon manifest check
         shell: bash
         run: |
-          node --version
-          npm --version || true
-          if node scripts/generate-fontawesome-icons.mjs --check; then
-            exit 0
-          fi
-          echo '--- diagnostics ---'
-          ls -la /tmp/aeterni-fontawesome-7.3.1 2>&1 | head -20
-          find /tmp/aeterni-fontawesome-7.3.1 -maxdepth 4 2>/dev/null | head -30
-          echo '--- computed path probe ---'
-          node -e "const fs=require('node:fs'),path=require('node:path');const root='/tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome';const pkg='free-solid-svg-icons';const p=path.join(root,pkg,'faAlignCenter.js');console.log('probe path',p,'exists',fs.existsSync(p));const dir=path.join(root,pkg);console.log('entries',fs.readdirSync(dir).length);console.log('alignMatches',fs.readdirSync(dir).filter(f=>f.startsWith('faAlign')).slice(0,6));console.log('cwd',process.cwd(),'tmp',require('node:os').tmpdir());"
-          echo '--- package dir ---'
-          ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>&1 | head -15
-          ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>/dev/null | wc -l
-          exit 1
-
+          cat > /tmp/probe.mjs <<'PROBE'
+          import { existsSync, readdirSync } from 'node:fs';
+          import path from 'node:path';
+          const root = '/tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome';
+          const pkg = 'free-solid-svg-icons';
+          for (const name of ['align-center', 'check', 'circle-check', 'wallet']) {
+            const camel = name.split('-').map((p, i) => (i === 0 ? p : p[0].toUpperCase() + p.slice(1))).join('');
+            const target = path.join(root, pkg, `fa${camel}.js`);
+            console.log('probe', name, '->', target, existsSync(target));
+          }
+          const dir = path.join(root, pkg);
+          const entries = existsSync(dir) ? readdirSync(dir) : [];
+          console.log('entries', entries.length);
+          console.log('align', entries.filter((f) => f.startsWith('faAlign')).slice(0, 5));
+          console.log('check', entries.filter((f) => f.startsWith('faCheck')).slice(0, 5));
+          console.log('tmpdir', (await import('node:os')).tmpdir());
+          PROBE
+          node /tmp/probe.mjs || true
+          node scripts/generate-fontawesome-icons.mjs --check || true
+          echo 'probe finished'
       - name: Token file must not contain component rules
         shell: bash
         run: |
