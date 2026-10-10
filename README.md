@@ -17,7 +17,7 @@ AeterniUI 是一个 Blazor 组件库，面向 Blazor Server 和 Blazor WebAssemb
 - `src/AeterniUI.Icons.FontAwesome`：可选的 Font Awesome Free 7.3.1
   图标定义，由 `scripts/generate-fontawesome-icons.mjs` 生成。
 - `src/AeterniUI.Sample`：Blazor WebAssembly 示例项目。
-- `AGENTS.md`：项目索引、开发规范与任务阅读入口。
+- `AGENTS.md`：Agent 任务执行手册，包含任务分类、阅读路由、项目索引与开发约束。
 - `docs/delivered-features.zh-CN.md`：当前已经交付的公共能力。
 - `docs/component-plan.zh-CN.md`：尚未完成的组件与能力计划。
 
@@ -102,7 +102,7 @@ Font Awesome 的版权和许可说明。详情请参阅：
 
 | 主题 | 文档 |
 | --- | --- |
-| 项目索引、开发规范与任务入口 | [`AGENTS.md`](AGENTS.md) |
+| Agent 任务执行流程、项目索引与开发约束 | [`AGENTS.md`](AGENTS.md) |
 | 当前交付功能 | [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) |
 | 当前组件计划 | [`docs/component-plan.zh-CN.md`](docs/component-plan.zh-CN.md) |
 | 当前审阅计划 | [`docs/review-plan.zh-CN.md`](docs/review-plan.zh-CN.md) |

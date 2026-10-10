@@ -2,7 +2,7 @@
 
 ## 1. 前言
 
-AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库。本文件是开发代理与人类协作者的统一入口，集中维护项目索引、工作边界和具有约束力的开发规范；组件现状、后续计划、审阅任务与历史记录按需存放在 `docs/`。
+AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库。本文件是 Agent 执行任务的首要入口，定义任务分类、定位与阅读顺序、工作边界和开发约束；项目索引与组件现状、后续计划、审阅任务及历史记录按需维护在本文档和 `docs/` 中。
 
 发生冲突时按以下顺序判断：
 
