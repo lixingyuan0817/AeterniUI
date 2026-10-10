@@ -42,26 +42,49 @@ const pick = index => evaluate(`(() => {
 // and the remove with performance.now(), so the number is the duration the
 // browser actually applied.
 async function measureTransition(optionIndex) {
-    await evaluate(`(() => {
-        window.__obs && window.__obs.disconnect();
-        window.__seen = false; window.__t0 = null; window.__t1 = null;
-        window.__obs = new MutationObserver(() => {
-            const on = document.documentElement.classList.contains('aeterni-theme-transitioning');
-            if (on) { window.__seen = true; if (window.__t0 === null) window.__t0 = performance.now(); }
-            else if (window.__t0 !== null && window.__t1 === null) { window.__t1 = performance.now(); }
-        });
-        window.__obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    })()`);
-    await pick(optionIndex);
-    const appliedImmediately = await evaluate(`document.documentElement.classList.contains('aeterni-theme-transitioning')`);
-    const deadline = Date.now() + 5000;
+    // Blazor WebAssembly attaches its handlers asynchronously: `waitForApp` only
+    // proves the markup rendered, so the very first click can land before the
+    // interactive runtime is live and silently do nothing. An unhandled click
+    // cannot change the theme, so retrying the same option is safe and the loop
+    // only exits once the browser has actually seen the transition class.
+    const deadline = Date.now() + 30000;
     while (Date.now() < deadline) {
-        if (await evaluate('window.__t1 !== null')) break;
-        await sleep(25);
+        await evaluate(`(() => {
+            window.__obs && window.__obs.disconnect();
+            window.__seen = false; window.__t0 = null; window.__t1 = null;
+            window.__obs = new MutationObserver(() => {
+                const on = document.documentElement.classList.contains('aeterni-theme-transitioning');
+                if (on) { window.__seen = true; if (window.__t0 === null) window.__t0 = performance.now(); }
+                else if (window.__t0 !== null && window.__t1 === null) { window.__t1 = performance.now(); }
+            });
+            window.__obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        })()`);
+        await pick(optionIndex);
+        const appliedImmediately = await evaluate(`document.documentElement.classList.contains('aeterni-theme-transitioning')`);
+        const classSeen = appliedImmediately || await (async () => {
+            const waitUntil = Date.now() + 1500;
+            while (Date.now() < waitUntil) {
+                if (await evaluate('window.__seen')) return true;
+                await sleep(25);
+            }
+            return false;
+        })();
+        if (!classSeen) {
+            await sleep(300);
+            continue;
+        }
+
+        const endOfCycle = Date.now() + 5000;
+        while (Date.now() < endOfCycle) {
+            if (await evaluate('window.__t1 !== null')) break;
+            await sleep(25);
+        }
+        const observed = await evaluate(`JSON.stringify({ seen: window.__seen, t0: window.__t0, t1: window.__t1 })`);
+        const { seen, t0, t1 } = JSON.parse(observed);
+        return { appliedImmediately, sawClass: seen, removedAfter: t0 !== null && t1 !== null ? Math.round(t1 - t0) : null };
     }
-    const observed = await evaluate(`JSON.stringify({ seen: window.__seen, t0: window.__t0, t1: window.__t1 })`);
-    const { seen, t0, t1 } = JSON.parse(observed);
-    return { appliedImmediately, sawClass: seen, removedAfter: t0 !== null && t1 !== null ? Math.round(t1 - t0) : null };
+
+    return { appliedImmediately: false, sawClass: false, removedAfter: null };
 }
 
 const normal = await measureTransition(2);
@@ -736,5 +759,11 @@ check('REV-140 finish stays visible on light and dark artwork',
     JSON.stringify({ lightDelta: lightArt.delta.toFixed(1), darkDelta: darkArt.delta.toFixed(1) }));
 
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
-console.log(results.some(r => !r.ok) ? 'RESULT: FAIL' : 'RESULT: PASS');
+const failed = results.some(r => !r.ok);
+console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');
 close();
+// Without this the harness printed FAIL and still exited 0, so `run.sh` (and the
+// CI browser job) reported success while checks were broken.
+if (failed) {
+    process.exitCode = 1;
+}
