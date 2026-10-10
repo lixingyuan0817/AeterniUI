@@ -65,7 +65,20 @@ jobs:
           key: fontawesome-${{ hashFiles('scripts/generate-fontawesome-icons.mjs') }}
 
       - name: Font Awesome icon manifest check
-        run: node scripts/generate-fontawesome-icons.mjs --check
+        shell: bash
+        run: |
+          node --version
+          npm --version || true
+          if node scripts/generate-fontawesome-icons.mjs --check; then
+            exit 0
+          fi
+          echo '--- diagnostics ---'
+          ls -la /tmp/aeterni-fontawesome-7.3.1 2>&1 | head -20
+          find /tmp/aeterni-fontawesome-7.3.1 -maxdepth 4 2>/dev/null | head -30
+          echo '--- package dir ---'
+          ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>&1 | head -15
+          ls /tmp/aeterni-fontawesome-7.3.1/node_modules/@fortawesome/free-solid-svg-icons 2>/dev/null | wc -l
+          exit 1
 
       - name: Token file must not contain component rules
         shell: bash
