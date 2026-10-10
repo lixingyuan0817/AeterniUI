@@ -19,7 +19,7 @@
 - [x] REV-142：`AlertOptions.CloseText` 从死参数改为通知关闭按钮的无障碍名称；留空（默认 `null`）回退 `AeterniUITextOptions.AlertCloseLabel`，宿主显式设置时优先。`DialogProvider` 的 Alert 页脚分支改用同一回退，避免空标签；同步 §26 与 Feedback 示例说明。
 - [x] REV-143：`ContractChecks` 的 Timeline 可视时间断言先对期望值做 `HtmlEncoder.Default.Encode`——ICU 72+ 的 U+202F 会被渲染成 `&#x202F;`，未编码的期望值只在旧 ICU 的 CI 上侥幸通过。同批的 Alert 断言也遵循同一规则。
 - [x] 门禁收尾：`CloseText` 不再是退役成员，`scripts/check-doc-drift.mjs` 删除该条目（现为 66 个文案键、1 条退役成员、0 条待修复）。
-- [x] 浏览器门禁顺带修两处：① `verify.mjs` 在打印 `RESULT: FAIL` 后仍以 0 退出，`run.sh` 与 CI 的 browser job 因此把失败当成功——现在失败会置非零退出码，browser job 才真正成为门禁；② REV-121 的主题切换检查存在冷启动竞态（`waitForApp` 只证明标记渲染完成，首次点击可能早于 WASM 交互运行时挂载）：改为在观察到过渡类之前重试同一选项（未处理的点击不会改变主题，因此重试安全），并在等待类出现时给足窗口。
+- [x] 浏览器门禁顺带修两处：① `verify.mjs` 在打印 `RESULT: FAIL` 后仍以 0 退出，`run.sh` 与 CI 的 browser job 因此把失败当成功——现在失败会置非零退出码，browser job 才真正成为门禁；② REV-121 的主题切换检查存在冷启动竞态（`waitForApp` 只证明标记渲染完成，首次点击可能早于 WASM 交互运行时挂载，被静默丢弃）：先等待 `ThemeProvider` 通过交互运行时写出的 `<html data-theme>` 作为就绪门槛（最多 60 秒），再以「观察到过渡类之前重试同一选项」兜底（未处理的点击不会改变主题，因此重试安全）；失败信息里保留环境诊断，便于后续定位。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过；浏览器检查在 CI 的 browser job 上验证新增的 REV-140 两项断言（混色角色与层面覆盖；浅色 `#DCDCDC` 差分 32.4/255、深色 `#1F1F1F` 差分 19.0/255）。批次 24 已从审阅计划移除，第十轮剩余 REV-144～REV-163 共 20 条。
 
 ## Agent 指南审计、图标门禁接入与图标脚本大小写修复（版本号未递增）

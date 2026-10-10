@@ -25,6 +25,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 await goto(`${BASE}/components/theme`);
 await waitForApp();
 
+// The ThemeProvider writes `data-theme` on <html> through the interactive runtime,
+// so its presence proves the wasm runtime is live and the switch's handlers are
+// wired. `waitForApp` only proves the markup rendered, and a click before that
+// point is silently dropped (it was the source of this check's flakiness).
+async function waitForInteractiveTheme(selector = '[data-theme]') {
+    const deadline = Date.now() + 60000;
+    while (Date.now() < deadline) {
+        if (await evaluate(`!!document.querySelector('${selector}')`)) return true;
+        await sleep(200);
+    }
+    return false;
+}
+
+const themeReady = await waitForInteractiveTheme();
+
 // The sample's ThemeSwitch is the radiogroup labelled "主题模式"; option 2 is Dark.
 const pick = index => evaluate(`(() => {
     const group = [...document.querySelectorAll('[role="radiogroup"]')]
@@ -104,7 +119,7 @@ const themeDiag = await evaluate(`JSON.stringify((() => {
     };
 })())`);
 check('REV-121 the transition class is applied on a real theme switch', normal.appliedImmediately && normal.sawClass,
-    `applied=${normal.appliedImmediately} observed=${normal.sawClass} diag=${themeDiag}`);
+    `applied=${normal.appliedImmediately} observed=${normal.sawClass} ready=${themeReady} diag=${themeDiag}`);
 check('REV-121 it is removed once the token-derived duration elapses (~620ms)',
     normal.removedAfter !== null && normal.removedAfter >= 550 && normal.removedAfter <= 750,
     `removed after ${normal.removedAfter}ms`);
