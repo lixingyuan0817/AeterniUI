@@ -12,6 +12,15 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## Agent 指南审计、图标门禁接入与图标脚本大小写修复（版本号未递增）
+
+- [x] 审计 `AGENTS.md`：门禁与索引事实逐条核对通过；补齐 §2 必读路由（图标清单/生成脚本、CI 与工作流）、§3.3 根目录树（`LICENSE`、`.github/workflows` 点名）与组件目录模板的聚合目录例外（`Dialog`／`Popup`／`Theme`）、§4.8 门禁的 token 选择器检查命令。
+- [x] 统一文档版本头：`AGENTS.md` 增加「文档版本」头并纳入 `scripts/check-docs.sh` 校验，版本纪律措辞同步。
+- [x] CI 接入 `node scripts/generate-fontawesome-icons.mjs --check`：此前 `AGENTS.md` 已把它列为门禁，但没有任何工作流执行；新增 Node 22 与 `/tmp/aeterni-fontawesome-*` 包缓存。
+- [x] 修复图标生成脚本的模块名大小写缺陷：原实现拼出 `faalignCenter.js`，而 Font Awesome 包内是 `faAlignCenter.js`；生成时所在的大小写不敏感文件系统掩盖了差异，Linux 上 343 个图标在门禁里全部解析失败。改用既有的 `toPascalCase` 拼接，缓存路径改为脚本实际使用的 `/tmp`。
+- [x] 第十轮批次 23～27 的执行计划评审写入审阅计划（前置决策 D1～D3、逐批改动面与验收判据、每批必过门禁、版本定档口径）；D1（独立 `Radio` 值绑定）已定调并随批次 23 落地。
+- 验证：PR #27 的 build 工作流全绿，图标步骤输出 `FontAwesomeIcons.cs is up to date (343 icons)`；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（66 文案键）、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过。
+
 ## 第十轮审阅修复批次 23（P1，版本号未递增）
 
 - [x] REV-133：独立 `Radio` 的选中态改由绑定的 `Value` 直接驱动（`bool` 取真值、字符串按非空、其他类型取非默认值），分组模式继续比较分组值；示例页的独立用例改为真实绑定并显示其值。
