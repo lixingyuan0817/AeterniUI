@@ -12,6 +12,12 @@
 - [x] 示例根据当前列数收窄说明项跨度，保留组件对非法 `Span > Columns` 的严格参数校验。
 - [x] 增加真实浏览器回归，验证 `Columns=1` 与 `Columns=2` 均可切换且页面没有异常或横向溢出。
 
+## 仓库维护记录：发布 tag 与提交署名清理（版本号未递增）
+
+- 全部 27 个 `v10.x` 注解 tag 已删除（本地与远程），仓库内不再有 tag；版本溯源以本文档为准。GitHub 上不存在 Release 条目，因此没有遗留的悬空发布页。
+- `main` 的提交不使用工具署名或共创者 trailer；随 tag 历史移除的旧提交仍在本地对象库中，已通过 reflog 过期 + `git gc --prune=now` 清理（悬空提交 134 → 0），本地已无任何带共创行的提交。
+- 27 个 PR 的正文都不含共创行；其中 26 个已合并、#26 为已关闭未合并。PR 在 GitHub 上不可删除，`refs/pull/*/head` 亦拒绝改写（实测 `deny updating a hidden ref`），因此 18 个历史 PR 的 head 提交仍保留旧的工具署名行——这属平台保留内容（连同其不可达对象），仓库侧无法清理。
+
 ## 第十轮审阅修复批次 24（P1，版本号未递增）
 
 - [x] REV-140：`FlashCard` Holo 拆成两层——彩虹走 `color`（替换色相与饱和度、保留图片明度），白光反射另起 `.aeterni-flash-card__sheen-light` 走 `screen`（径向高光、金属拉丝、整面扫光）。四处同向：实现、`engineering-reference` 的玻璃/光泽硬规则、`delivered-features` §45、示例说明。新增真实浏览器检查：断言两层 `mix-blend-mode` 与层面覆盖，并用「浅色 #DCDCDC / 深色 #1F1F1F 平铺底 + 截图取像素」验证两种底色下光泽都真实改变画面（差分 ≥ 6/255）。
