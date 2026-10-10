@@ -27,7 +27,8 @@
   - `Rating` 示例事件表在 10.31.0 批次 24 已把已移除的 `OnChange` 改为 `ValueChanged` 并注明移除。
 - [x] 版本号 `10.31.0` → `10.31.1`（示例与演示口径调整，公共 API 无变化，按仓库约定递增第三位）；`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
 - [x] 浏览器检查新增 11 项「示例演示覆盖」断言（每个演示页面按选择器计数），并含「打开范围选择器后出现 ≥3 个预设」一项；这些断言随 10.31.1 的 browser job 一起验证。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`node --test`（73 项）通过；CI build / browser / Publish 三个工作流绿。
+- [x] 发布：注解 tag `v10.31.1` 触发 `Publish NuGet packages`，Validate release tag → Release 构建 → Pack → NuGet Trusted Publishing（OIDC）→ 发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`，40s 全绿。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`node --test`（73 项）通过；浏览器检查 52/52；CI build / browser / Publish 三个工作流绿。
 - 至此第十轮 31 条全部收口（批次 23～27 分别归档在上方对应小节）。
 
 ## 10.31.0 第十轮审阅修复（REV-133～REV-157 与 REV-160～REV-162）
