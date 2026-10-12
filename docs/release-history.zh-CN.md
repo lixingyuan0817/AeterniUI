@@ -93,7 +93,7 @@
 - [x] 统一文档版本头：`AGENTS.md` 增加「文档版本」头并纳入 `scripts/check-docs.sh` 校验，版本纪律措辞同步。
 - [x] CI 接入 `node scripts/generate-fontawesome-icons.mjs --check`：此前 `AGENTS.md` 已把它列为门禁，但没有任何工作流执行；新增 Node 22 与 `/tmp/aeterni-fontawesome-*` 包缓存。
 - [x] 修复图标生成脚本的模块名大小写缺陷：原实现拼出 `faalignCenter.js`，而 Font Awesome 包内是 `faAlignCenter.js`；生成时所在的大小写不敏感文件系统掩盖了差异，Linux 上 343 个图标在门禁里全部解析失败。改用既有的 `toPascalCase` 拼接，缓存路径改为脚本实际使用的 `/tmp`。
-- [x] 第十轮批次 23～27 的执行计划评审写入审阅计划（前置决策 D1～D3、逐批改动面与验收判据、每批必过门禁、版本定档口径）；D1（独立 `Radio` 值绑定）已定调并随批次 23 落地。
+- [x] 第十轮批次 23～27 的执行计划评审写入审阅计划（前置决策 D1～D3、逐批改动面与验收判据、每批必过门禁、版本定档口径）；D1（独立 `Radio` 值绑定）已定调并随批次 23 落地。该执行计划评审随第十轮收口从审阅计划移除，D1～D3 的结论以本文档对应批次记录为准。
 - 验证：PR #27 的 build 工作流全绿，图标步骤输出 `FontAwesomeIcons.cs is up to date (343 icons)`；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（66 文案键）、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过。
 
 ## 第十轮审阅修复批次 23（P1，版本号未递增）
