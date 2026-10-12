@@ -1,4 +1,4 @@
-@page "/components/descriptions"
+﻿@page "/components/descriptions"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 
@@ -8,8 +8,7 @@
                   Category="基础组件"
                   Title="Descriptions"
                   ComponentName="Descriptions"
-                  Description="用原生描述列表语义展示一组标签与值，支持横向/纵向排列、跨列和自定义值模板。"
-                  Parameters="@Parameters">
+                  Description="用原生描述列表语义展示一组标签与值，支持横向/纵向排列、跨列和自定义值模板。">
     <Preview>
         <div class="preview-stack preview-stack--fill">
             <Descriptions Items="@Items"
@@ -63,16 +62,4 @@
             ? @<Tag Color="Color.Success" Size="Size.Small">@item.Content</Tag>
             : @<span>@item.Content</span>;
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<DescriptionItem>", "按展示顺序提供标签和值。", "必填"),
-        new("DescriptionItem.Label / Content", "string / string?", "默认标签和值文本。"),
-        new("DescriptionItem.Span", "int", "占用的网格列数，不能超过 Columns。", "1"),
-        new("DescriptionItem.Visible", "bool", "是否渲染当前项目。", "true"),
-        new("ItemTemplate", "RenderFragment<DescriptionItem>?", "替换值区域，保留标签和 dd 语义。", "null"),
-        new("Orientation", "Orientation", "横向或纵向排列。", "Horizontal"),
-        new("Columns", "int", "网格列数，范围 1～4。", "3"),
-        new("Bordered", "bool", "是否显示中性边框。", "false"),
-        new("AriaLabel", "string?", "描述列表的可访问名称。", "null")
-    ];
 }

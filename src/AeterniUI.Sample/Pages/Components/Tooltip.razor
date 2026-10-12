@@ -1,4 +1,4 @@
-@page "/components/tooltip"
+﻿@page "/components/tooltip"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -8,7 +8,7 @@
 
 <PageTitle>Aeterni UI · Tooltip</PageTitle>
 
-<ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明，并在视口边缘自动翻转与偏移。" Parameters="@TooltipParameters">
+<ComponentPreview AnchorId="tooltip" Category="通知组件" Title="Tooltip" ComponentName="Tooltip" Description="通过悬停或键盘焦点显示辅助说明，并在视口边缘自动翻转与偏移。">
     <Preview>
         <div class="preview-overlay-demo">
             <p class="preview-overlay-demo__hint">将鼠标悬停在按钮上，或使用 Tab 聚焦按钮，查看 Tooltip 内容：</p>
@@ -44,12 +44,4 @@
     private TooltipPlacement _tooltipPlacement = TooltipPlacement.Top;
     private bool _tooltipDisabled;
 
-    private static readonly ShowcaseParameter[] TooltipParameters =
-    [
-        new("Text", "string?", "提示内容；只有它会被渲染为 tooltip，为空白时不显示。"),
-        new("ChildContent", "RenderFragment?", "被描述的触发元素；其中第一个可聚焦元素会获得 aria-describedby。"),
-        new("Placement", "TooltipPlacement", "首选方位，越界时自动翻转到对侧并在交叉轴偏移。", "Top"),
-        new("AriaLabel", "string?", "触发元素的无障碍名称。"),
-        new("Disabled", "bool", "禁用后不显示提示。", "false")
-    ];
 }

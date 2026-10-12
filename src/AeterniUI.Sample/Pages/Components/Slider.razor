@@ -1,4 +1,4 @@
-@page "/components/slider"
+﻿@page "/components/slider"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -9,10 +9,7 @@
                   Category="表单组件"
                   Title="Slider"
                   ComponentName="Slider&lt;TValue&gt;"
-                  Description="单值滑块：默认无级调节，也可配置步进吸附；支持横向与竖向布局、完整键盘模型与指针拖拽。"
-                  Parameters="@SliderParameters"
-                  Events="@SliderEvents"
-                  Contracts="@SliderContracts">
+                  Description="单值滑块：默认无级调节，也可配置步进吸附；支持横向与竖向布局、完整键盘模型与指针拖拽。">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <FormField Label="音量"
@@ -75,31 +72,4 @@
         return Task.CompletedTask;
     }
 
-    private static readonly ShowcaseParameter[] SliderParameters =
-    [
-        new("Value", "TValue", "受控数值。"),
-        new("ValueChanged", "EventCallback<TValue>", "标准绑定回调。"),
-        new("ValueExpression", "Expression<Func<TValue>>?", "EditContext 字段表达式。"),
-        new("Min", "TValue?", "下限，默认 0。", "0"),
-        new("Max", "TValue?", "上限，默认 100。", "100"),
-        new("Step", "TValue?", "可选步进增量；null 表示无级调节，正数表示吸附到步网格。", "null"),
-        new("Precision", "int?", "aria-valuetext 的小数位；步进模式默认取 Step 小数位，无级模式按键盘增量推导。"),
-        new("Orientation", "Orientation", "横向或竖向布局。", "Horizontal"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("Size", "Size", "轨道与滑块尺寸。", "Default"),
-        new("AriaLabel", "string", "无 FormField 标签时的无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
-    ];
-
-    private static readonly ShowcaseEvent[] SliderEvents =
-    [
-        new("ValueChanged", "EventCallback<TValue>", "键盘步进或指针拖动改变数值时触发。")
-    ];
-
-    private static readonly ShowcaseContract[] SliderContracts =
-    [
-        new("Slider", "role=slider", "根元素是唯一可聚焦节点；禁用时移出 Tab 序列。"),
-        new("Slider", "aria-valuetext", "按当前文化格式化；valuemin/max/now 为不变文化字符串。"),
-        new("Slider", "连续 / 步进", "Step=null 不吸附；显式正数同时约束指针与键盘。")
-    ];
 }

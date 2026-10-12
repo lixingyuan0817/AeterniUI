@@ -1,4 +1,4 @@
-@page "/components/button"
+﻿@page "/components/button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="基础组件"
                   Title="Button"
                   ComponentName="Button"
-                  Description="用于触发动作的原生按钮，统一承载类型、变体、尺寸、图标、加载和禁用状态。"
-                  Parameters="@ButtonParameters"
-                  Events="@ButtonEvents">
+                  Description="用于触发动作的原生按钮，统一承载类型、变体、尺寸、图标、加载和禁用状态。">
     <Preview>
         <div class="preview-stack">
             <Button Variant="@_buttonVariant"
@@ -98,24 +96,6 @@
     private bool _buttonFullWidth;
 
     private bool _buttonHasIcon = true;
-
-    private static readonly ShowcaseParameter[] ButtonParameters =
-    [
-        new("Variant", "ButtonVariant", "按钮视觉变体：Solid、Outline、Soft、Ghost、Link。", "Solid"),
-        new("Intent", "ButtonIntent", "按钮语义类型：Default、Neutral、Warning、Danger。", "Default"),
-        new("Size", "Size", "按钮尺寸。", "Default"),
-        new("Type", "ButtonType", "原生 button 类型。", "Button"),
-        new("Icon", "RenderFragment?", "兼容旧 API 的起始图标。"),
-        new("StartIcon", "RenderFragment?", "按钮左侧图标。"),
-        new("EndIcon", "RenderFragment?", "按钮右侧图标。"),
-        new("ChildContent", "RenderFragment?", "按钮文本或自定义内容。"),
-        new("AriaLabel", "string?", "无障碍名称。"),
-        new("Loading", "bool", "加载状态。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false")
-    ];
-
-    private static readonly ShowcaseEvent[] ButtonEvents =
-    [new("OnClick", "EventCallback<MouseEventArgs>", "按钮被点击时触发。")];
 
     private RenderFragment? ButtonIcon => _buttonHasIcon ? CheckIcon : null;
 

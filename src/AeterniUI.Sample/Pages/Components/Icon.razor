@@ -1,4 +1,4 @@
-@page "/components/icon"
+﻿@page "/components/icon"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,8 +12,7 @@
                   Category="基础组件"
                   Title="Icon"
                   ComponentName="Icon"
-                  Description="渲染供应商无关的 SVG 图标定义，并通过语义颜色、尺寸和无障碍名称接入其他组件。"
-                  Parameters="@IconParameters">
+                  Description="渲染供应商无关的 SVG 图标定义，并通过语义颜色、尺寸和无障碍名称接入其他组件。">
     <Preview>
         <div class="preview-icon-wrap">
             <Icon Definition="@FontAwesomeIcons.Solid.Sun"
@@ -51,12 +50,4 @@
 
     private bool _iconTitle;
 
-    private static readonly ShowcaseParameter[] IconParameters =
-    [
-        new("Definition", "IconDefinition", "必填的 SVG 图标定义。"),
-        new("Size", "Size", "图标尺寸。", "Default"),
-        new("Color", "Color", "语义颜色。", "Default"),
-        new("AriaLabel", "string?", "提供后作为可访问图标；未提供时 aria-hidden。"),
-        new("Title", "string?", "SVG title 文本。")
-    ];
 }

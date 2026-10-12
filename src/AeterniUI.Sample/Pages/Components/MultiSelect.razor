@@ -1,4 +1,4 @@
-@page "/components/multi-select"
+﻿@page "/components/multi-select"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,9 +10,6 @@
                   Title="MultiSelect"
                   ComponentName="MultiSelect&lt;TItem&gt;"
                   Description="多值绑定、已选项标签、移除操作以及可选的全选和清空动作。"
-                  Parameters="@MultiSelectParameters"
-                  Events="@MultiSelectEvents"
-                  Contracts="@MultiSelectContracts"
                   Code="@UsageCode">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
@@ -64,39 +61,6 @@
     private bool _disabled;
     private bool _invalid;
     private bool _fullWidth;
-
-    private static readonly ShowcaseParameter[] MultiSelectParameters =
-    [
-        new("Items", "IReadOnlyList<TItem>", "宿主提供的选项集合。"),
-        new("SelectedValues", "IReadOnlyList<TItem>", "当前选中的值列表。", "空列表"),
-        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<TItem>>", "多值绑定回调。"),
-        new("SelectedValuesExpression", "Expression<Func<IReadOnlyList<TItem>>>?", "EditContext 字段表达式。"),
-        new("TextSelector", "Func<TItem, string>?", "将选项映射为展示文本。"),
-        new("DisabledSelector", "Func<TItem, bool>?", "按选项决定是否禁用。"),
-        new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
-        new("SelectedItemTemplate", "RenderFragment<TItem>?", "自定义已选项内容。"),
-        new("EmptyContent", "RenderFragment?", "无选项时的自定义内容。"),
-        new("Size", "Size", "触发器与选项共同尺寸。", "Default"),
-        new("AllowSelectAll", "bool", "显示全选动作。", "false"),
-        new("AllowClear", "bool", "显示清空动作。", "false"),
-        new("ReadOnly", "bool", "只读状态。", "false"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("Placeholder", "string?", "无选中值时的占位文本。"),
-        new("AriaLabel", "string?", "控件和选项列表的无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID，与 FormField 描述合并。"),
-        new("SelectAllLabel / ClearAllLabel / RemoveLabel", "string?", "批量动作与移除动作的无障碍名称。")
-    ];
-
-    private static readonly ShowcaseEvent[] MultiSelectEvents =
-    [
-        new("OnItemSelected", "EventCallback<TItem>", "选项被切换后触发。"),
-        new("OnClear", "EventCallback", "清空全部选项后触发。")
-    ];
-
-    private static readonly ShowcaseContract[] MultiSelectContracts =
-    [new("MultiSelect<TItem>", "combobox + listbox[aria-multiselectable]", "不请求远程数据、不缓存结果，异步数据由宿主提供。")];
 
     private const string UsageCode = """
         <MultiSelect TItem="Category"

@@ -6,6 +6,16 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程 API 表改为源码生成（批次 2，版本号未递增）
+
+- [x] 新增 `scripts/generate-api-reference.mjs`：解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `ShowcaseApiReference.generated.cs`（53 页 / 596 行）。生成物提交进仓库，CI 新增 `--check` 步骤拒绝过期产物——改参数忘记重生成会失败，而不是悄悄漂移。
+- [x] 编辑内容与生成物分离：`scripts/api-descriptions.json`（548 条中文说明，从原来的手写表一次性抽出，不丢内容）、`scripts/api-extra-rows.json`（48 行生成器推不出来的行：模型属性、服务方法、`Value / StartDate / EndDate` 这类汇总写法）、`scripts/api-since.json`（「自哪个版本」，只登记 release-history 明确记录过的新增成员，首批为 Upload 的 18 个成员）。`DateRangePicker` 的 `StartDateChanged` 等 4 条说明一并补齐。
+- [x] 53 个页面迁移：删除手写 `ShowcaseParameter` / `ShowcaseEvent` / `ShowcaseContract` 表与对应参数，API 段改由生成物渲染，新增「自 x.y.z」列；基类参数由渲染端并入，不随页面重复生成；没有组件的页面（安装、设计基础、实验室）不再输出空的「参数」段。唯一保留手写表的是 `Feedback`（记录服务与选项类型），已在门禁里显式列出。
+- [x] `ComponentPreview` 在页面未提供手写表时读取生成物，按 `属性 / 事件回调 / 接口 / 服务` 分组渲染；字段缺失时按空处理，避免手写编辑文件的形状问题变成崩溃。
+- [x] 门禁改写：`tests/sample-docs.test.mjs` 第二项由「页面表覆盖组件参数」改为「每个有组件的条目都出现在生成物里」+「页面不再手写表」，覆盖范围与例外都在门禁里显式声明。
+- [x] 文档同步：`AGENTS.md` 的必读路由新增「示例工程内容、API 表或生成脚本」一行，门禁清单新增 `--check`；`component-plan` §4 按市面组件文档（三条栏 + 五段式 + 生成式 API 表）重写目标结构与批次。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`node scripts/generate-api-reference.mjs --check` 通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`node --test tests/*.test.mjs`（84 项）通过。
+
 ## 示例工程内容与信息架构（批次 1，版本号未递增）
 
 - [x] 按标准组件文档项目收敛示例页结构：每页固定为「01 外观预览 / 02 调整属性 / 03 示例代码 / 04 参数、事件与接口 / 05 说明与边界」，段号按实际存在的段计算，不再出现跳号；说明区由 API 段内的提示盒改为独立段。

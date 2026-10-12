@@ -1,4 +1,4 @@
-@page "/components/form-field"
+﻿@page "/components/form-field"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="表单组件"
                   Title="FormField"
                   ComponentName="FormField"
-                  Description="将标签、描述、错误信息和内部控件组合为一个可访问的表单字段。"
-                  Parameters="@FormFieldParameters"
-                  Contracts="@FormFieldContracts">
+                  Description="将标签、描述、错误信息和内部控件组合为一个可访问的表单字段。">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <FormField Label="@_formLabel"
@@ -51,17 +49,4 @@
 
     private bool _formInvalid;
 
-    private static readonly ShowcaseParameter[] FormFieldParameters =
-    [
-        new("Label", "string?", "字段标签。"),
-        new("Description", "string?", "帮助说明。"),
-        new("Error", "string?", "显式错误信息，优先于验证消息。"),
-        new("ChildContent", "RenderFragment?", "内部表单控件。"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("For", "Expression<Func<object?>>?", "关联 EditContext 字段。")
-    ];
-
-    private static readonly ShowcaseContract[] FormFieldContracts =
-    [new("FormFieldContext", "级联上下文", "向内部控件传递输入 ID、描述、禁用和校验状态。")];
 }

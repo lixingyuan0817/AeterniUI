@@ -1,4 +1,4 @@
-@page "/components/badge"
+﻿@page "/components/badge"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,8 +10,7 @@
                   Category="基础组件"
                   Title="Badge"
                   ComponentName="Badge"
-                  Description="附着在图标、头像或按钮右上角的数字或圆点角标，位置随书写方向镜像。"
-                  Parameters="@BadgeParameters">
+                  Description="附着在图标、头像或按钮右上角的数字或圆点角标，位置随书写方向镜像。">
     <Preview>
         <div class="preview-badge-demo">
             <div class="preview-state-row">
@@ -88,13 +87,4 @@
     // child content resolves to Button's legacy Icon parameter, not the component.
     private RenderFragment NotifyIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Bell" />;
 
-    private static readonly ShowcaseParameter[] BadgeParameters =
-    [
-        new("Count", "int?", "要显示的数字；null 时不渲染角标，0 会显示为 0。"),
-        new("Max", "int", "完整显示的最大值，超过时显示为 {Max}+。", "99"),
-        new("Dot", "bool", "圆点模式，忽略 Count。", "false"),
-        new("Color", "Color", "指示器语义颜色；Default 是品牌填充。", "Default"),
-        new("AriaLabel", "string?", "可访问名称：数字模式替换裸数字，圆点模式替换默认文案。"),
-        new("ChildContent", "RenderFragment?", "被附着的图标、头像或按钮。")
-    ];
 }

@@ -1,4 +1,4 @@
-@page "/components/skeleton"
+﻿@page "/components/skeleton"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -9,8 +9,7 @@
                   Category="状态反馈"
                   Title="Skeleton"
                   ComponentName="Skeleton"
-                  Description="内容加载占位：文本行、矩形和圆形，以及由它们拼出的常见组合。"
-                  Parameters="@SkeletonParameters">
+                  Description="内容加载占位：文本行、矩形和圆形，以及由它们拼出的常见组合。">
     <Preview>
         <div class="preview-skeleton-demo">
             <section class="preview-skeleton-block">
@@ -73,11 +72,4 @@
 
     private string? _skeletonHeight;
 
-    private static readonly ShowcaseParameter[] SkeletonParameters =
-    [
-        new("Variant", "SkeletonVariant", "占位形状：Text / Rectangle / Circle。", "Text"),
-        new("Lines", "int", "堆叠的占位条数量（至少 1）。", "1"),
-        new("Width", "string?", "占位条宽度（CSS 长度）；默认占满容器。"),
-        new("Height", "string?", "占位条高度（CSS 长度）；默认按变体取值。")
-    ];
 }

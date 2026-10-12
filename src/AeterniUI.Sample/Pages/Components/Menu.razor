@@ -1,4 +1,4 @@
-@page "/components/menu"
+﻿@page "/components/menu"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,10 +12,7 @@
                   Category="导航组件"
                   Title="Menu"
                   ComponentName="Menu"
-                  Description="分组可折叠的菜单导航，支持链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。"
-                  Parameters="@MenuParameters"
-                  Events="@MenuEvents"
-                  Contracts="@MenuContracts">
+                  Description="分组可折叠的菜单导航，支持链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。">
     <Preview>
         <div class="preview-menu-demo">
             <Surface Variant="SurfaceVariant.Elevated" Bordered>
@@ -90,29 +87,6 @@
     }
 
     private void HandleMenuGroupToggled(MenuGroup group) => _menuNote = $"切换分组：{group.Label}";
-
-    private static readonly ShowcaseParameter[] MenuParameters =
-    [
-        new("Items", "IReadOnlyList<MenuGroup>", "分组与菜单项。", "必填"),
-        new("SelectedId", "string?", "当前选中项的 Id，用于选中态和 aria-current。"),
-        new("Accordion", "bool", "同一时间只展开一个分组。", "false"),
-        new("OpenKeys", "IReadOnlyList<string>?", "受控的展开分组键；为 null 时由组件自行维护状态。"),
-        new("AriaLabel", "string?", "导航区域的可访问名称。")
-    ];
-
-    private static readonly ShowcaseEvent[] MenuEvents =
-    [
-        new("SelectedIdChanged", "EventCallback<string>", "选中项变化时触发，支持 @bind-SelectedId。"),
-        new("OnItemSelected", "EventCallback<MenuItem>", "激活非禁用菜单项时触发（链接项也会导航）。"),
-        new("OpenKeysChanged", "EventCallback<IReadOnlyList<string>>", "展开状态变化时触发；传入 OpenKeys 后由消费者接管状态。"),
-        new("OnGroupToggled", "EventCallback<MenuGroup>", "分组折叠或展开后触发。")
-    ];
-
-    private static readonly ShowcaseContract[] MenuContracts =
-    [
-        new("MenuGroup", "record", "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。"),
-        new("MenuItem", "record", "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。")
-    ];
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;

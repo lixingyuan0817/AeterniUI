@@ -1,4 +1,4 @@
-@page "/components/spinner"
+﻿@page "/components/spinner"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -9,8 +9,7 @@
                   Category="状态反馈"
                   Title="Spinner"
                   ComponentName="Spinner"
-                  Description="独立加载指示器，供内容区、对话框和页面级加载复用；环形定义与 Button 的加载态共用一份实现。"
-                  Parameters="@SpinnerParameters">
+                  Description="独立加载指示器，供内容区、对话框和页面级加载复用；环形定义与 Button 的加载态共用一份实现。">
     <Preview>
         <div class="preview-spinner-demo">
             <div class="preview-state-row">
@@ -65,10 +64,4 @@
 
     private string _spinnerLabel = "内容区加载中";
 
-    private static readonly ShowcaseParameter[] SpinnerParameters =
-    [
-        new("Size", "Size", "环形尺寸档位：Small 16px、Default 20px、Large 32px。", "Default"),
-        new("Color", "Color", "语义颜色；Default 继承当前文字色。", "Default"),
-        new("AriaLabel", "string?", "可访问名称；为空时使用文案表默认值。")
-    ];
 }

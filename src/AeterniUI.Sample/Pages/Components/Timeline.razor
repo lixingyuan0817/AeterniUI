@@ -1,4 +1,4 @@
-@page "/components/timeline"
+﻿@page "/components/timeline"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 @using AeterniUI.Icons
@@ -9,8 +9,7 @@
                   Category="基础组件"
                   Title="Timeline"
                   ComponentName="Timeline"
-                  Description="以原生有序列表展示宿主提供的时间事件，支持时间戳、语义色、图标与正文模板。"
-                  Parameters="@Parameters">
+                  Description="以原生有序列表展示宿主提供的时间事件，支持时间戳、语义色、图标与正文模板。">
     <Preview>
         <div class="preview-stack preview-stack--fill">
             <Timeline Items="@Items"
@@ -79,17 +78,4 @@
             <span>@item.Description</span>
         </div>;
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<TimelineItem>", "按展示顺序提供事件。", "必填"),
-        new("TimelineItem.Title / Description", "string / string?", "默认事件标题与可选说明。"),
-        new("TimelineItem.Timestamp", "DateTimeOffset?", "机器可读的事件时间；未提供 TimeText 时也生成可见文案。", "null"),
-        new("TimelineItem.TimeText", "string?", "覆盖 Timestamp 的可见时间文案。", "null"),
-        new("TimelineItem.Icon", "IconDefinition?", "标记图标；未提供时显示圆点。", "null"),
-        new("TimelineItem.Color", "Color", "标记的品牌色或语义色。", "Default"),
-        new("TimelineItem.Visible", "bool", "是否渲染当前事件。", "true"),
-        new("ItemTemplate", "RenderFragment<TimelineItem>?", "替换每项默认的标题与描述内容。", "null"),
-        new("Orientation", "Orientation", "纵向或横向事件轴。", "Vertical"),
-        new("AriaLabel", "string?", "有序列表的可访问名称。", "null")
-    ];
 }

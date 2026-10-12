@@ -1,0 +1,384 @@
+{
+  "rows": {
+    "autocomplete": [
+      {
+        "name": "Autocomplete<TItem>",
+        "type": "combobox + listbox",
+        "description": "建议数据由宿主提供；组件不请求远程数据、不缓存结果。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "breadcrumb": [
+      {
+        "name": "BreadcrumbItem.Label",
+        "type": "string",
+        "description": "非空白层级文本。",
+        "default": "必填",
+        "kind": "属性"
+      },
+      {
+        "name": "BreadcrumbItem.Href",
+        "type": "string?",
+        "description": "非当前项的浏览器链接地址；组件不注入路由。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "BreadcrumbItem.Target",
+        "type": "string?",
+        "description": "可选浏览上下文；取 _blank 时自动补 rel=\\\"noopener noreferrer\\\"。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "BreadcrumbItem.Icon",
+        "type": "RenderFragment?",
+        "description": "可选装饰图标。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "BreadcrumbItem.Disabled / Visible",
+        "type": "bool",
+        "description": "禁用或隐藏层级；禁用项保留链接但移出 Tab 序列，隐藏项不参与当前项判断。",
+        "default": "false / true",
+        "kind": "属性"
+      }
+    ],
+    "combobox": [
+      {
+        "name": "ComboBox<TItem>",
+        "type": "泛型组件",
+        "description": "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "date-picker": [
+      {
+        "name": "*Changed",
+        "type": "EventCallback<DateOnly?>",
+        "description": "标准 Blazor 绑定回调。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "*Expression",
+        "type": "Expression<Func<DateOnly?>>?",
+        "description": "EditContext 字段表达式；配合 FormField 与 DataAnnotationsValidator 使用。",
+        "default": "",
+        "kind": "属性"
+      }
+    ],
+    "descriptions": [
+      {
+        "name": "DescriptionItem.Label / Content",
+        "type": "string / string?",
+        "description": "默认标签和值文本。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "DescriptionItem.Span",
+        "type": "int",
+        "description": "占用的网格列数，不能超过 Columns。",
+        "default": "1",
+        "kind": "属性"
+      },
+      {
+        "name": "DescriptionItem.Visible",
+        "type": "bool",
+        "description": "是否渲染当前项目。",
+        "default": "true",
+        "kind": "属性"
+      }
+    ],
+    "drawer": [
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "description": "锁定面板：忽略关闭按钮、Escape 与外部点击的关闭请求。",
+        "default": "false",
+        "kind": "属性"
+      }
+    ],
+    "form-field": [
+      {
+        "name": "FormFieldContext",
+        "type": "级联上下文",
+        "description": "向内部控件传递输入 ID、描述、禁用和校验状态。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "input-number": [
+      {
+        "name": "InputNumber",
+        "type": "role=spinbutton",
+        "description": "步进逻辑在 C#，JS 只拦截被处理按键的默认行为。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "InputNumber",
+        "type": "aria-valuenow/min/max",
+        "description": "上下限与当前值输出为字符串；空值时不输出 aria-valuenow。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "menu": [
+      {
+        "name": "MenuGroup",
+        "type": "record",
+        "description": "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "MenuItem",
+        "type": "record",
+        "description": "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "multi-select": [
+      {
+        "name": "MultiSelect<TItem>",
+        "type": "combobox + listbox[aria-multiselectable]",
+        "description": "不请求远程数据、不缓存结果，异步数据由宿主提供。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "radio": [
+      {
+        "name": "RadioGroup / Radio.Disabled",
+        "type": "bool",
+        "description": "分组下发到选项；独立 Radio 也可单独设置。",
+        "default": "false",
+        "kind": "属性"
+      }
+    ],
+    "search": [
+      {
+        "name": "Search",
+        "type": "role=search",
+        "description": "不渲染建议弹层；建议列表属于后续 Autocomplete。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "slider": [
+      {
+        "name": "Slider",
+        "type": "role=slider",
+        "description": "根元素是唯一可聚焦节点；禁用时移出 Tab 序列。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "Slider",
+        "type": "aria-valuetext",
+        "description": "按当前文化格式化；valuemin/max/now 为不变文化字符串。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "Slider",
+        "type": "连续 / 步进",
+        "description": "Step=null 不吸附；显式正数同时约束指针与键盘。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "split-button": [
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "description": "整体与独立禁用。",
+        "default": "false",
+        "kind": "属性"
+      }
+    ],
+    "stepper": [
+      {
+        "name": "StepperItem.Completed",
+        "type": "bool",
+        "description": "由宿主显式表示完成状态。",
+        "default": "false",
+        "kind": "属性"
+      },
+      {
+        "name": "StepperItem.Disabled / Visible",
+        "type": "bool",
+        "description": "禁用或隐藏单个步骤。",
+        "default": "false / true",
+        "kind": "属性"
+      },
+      {
+        "name": "StepperItem.Icon",
+        "type": "IconDefinition?",
+        "description": "单个步骤的标记图标；完成步骤仍显示勾选字形。",
+        "default": "null",
+        "kind": "属性"
+      }
+    ],
+    "tabs": [
+      {
+        "name": "Tab.Disabled",
+        "type": "bool",
+        "description": "禁用标签：不可点、不可选中、跳过方向键循环。",
+        "default": "false",
+        "kind": "属性"
+      }
+    ],
+    "theme": [
+      {
+        "name": "ThemeProvider",
+        "type": "无组件参数",
+        "description": "负责主题恢复、系统主题监听和页面主题同步。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "ThemeSwitch.Disabled",
+        "type": "bool",
+        "description": "是否禁用模式切换。",
+        "default": "false",
+        "kind": "属性"
+      },
+      {
+        "name": "ThemeBrandSwitch.Disabled",
+        "type": "bool",
+        "description": "是否禁用品牌切换。",
+        "default": "false",
+        "kind": "属性"
+      },
+      {
+        "name": "ThemeService.BrandChanged",
+        "type": "event EventHandler",
+        "description": "品牌色层变化时触发，外部改动也会同步控件。",
+        "default": "",
+        "kind": "事件回调"
+      },
+      {
+        "name": "ThemeService.Mode",
+        "type": "ThemeMode",
+        "description": "System、Light、Dark 三种模式。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "ThemeService.CurrentTheme",
+        "type": "ThemeKind",
+        "description": "实际生效的浅色 / 深色。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "ThemeService.Brand",
+        "type": "ThemeBrand",
+        "description": "当前品牌色层，默认 Purple。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "ThemeService.SetBrand",
+        "type": "方法",
+        "description": "切换品牌色层，落为 <html> 上的 data-aeterni-brand。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "timeline": [
+      {
+        "name": "TimelineItem.Title / Description",
+        "type": "string / string?",
+        "description": "默认事件标题与可选说明。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "TimelineItem.Timestamp",
+        "type": "DateTimeOffset?",
+        "description": "机器可读的事件时间；未提供 TimeText 时也生成可见文案。",
+        "default": "null",
+        "kind": "属性"
+      },
+      {
+        "name": "TimelineItem.TimeText",
+        "type": "string?",
+        "description": "覆盖 Timestamp 的可见时间文案。",
+        "default": "null",
+        "kind": "属性"
+      },
+      {
+        "name": "TimelineItem.Icon",
+        "type": "IconDefinition?",
+        "description": "标记图标；未提供时显示圆点。",
+        "default": "null",
+        "kind": "属性"
+      },
+      {
+        "name": "TimelineItem.Color",
+        "type": "Color",
+        "description": "标记的品牌色或语义色。",
+        "default": "Default",
+        "kind": "属性"
+      },
+      {
+        "name": "TimelineItem.Visible",
+        "type": "bool",
+        "description": "是否渲染当前事件。",
+        "default": "true",
+        "kind": "属性"
+      }
+    ],
+    "toggle-group": [
+      {
+        "name": "Disabled / Visible",
+        "type": "bool",
+        "description": "整组禁用或隐藏。",
+        "default": "false / true",
+        "kind": "属性"
+      }
+    ],
+    "toolbar": [
+      {
+        "name": "Toolbar.Disabled / Visible",
+        "type": "bool",
+        "description": "整条工具栏禁用或隐藏。",
+        "default": "false / true",
+        "kind": "属性"
+      }
+    ],
+    "tooltip": [
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "description": "禁用后不显示提示。",
+        "default": "false",
+        "kind": "属性"
+      }
+    ],
+    "upload": [
+      {
+        "name": "UploadFile",
+        "type": "Content / Status / Percent / ErrorMessage",
+        "description": "宿主读取 Content 传输，并用 Status、Percent、ErrorMessage 回写状态。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "Upload",
+        "type": "input[type=file] + role=list",
+        "description": "不定义传输协议、不缓存内容；拖放经模块写入同一个原生输入后由框架读取。",
+        "default": "",
+        "kind": "接口"
+      }
+    ]
+  }
+}

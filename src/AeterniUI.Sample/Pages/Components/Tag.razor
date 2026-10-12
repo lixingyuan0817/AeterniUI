@@ -1,4 +1,4 @@
-@page "/components/tag"
+﻿@page "/components/tag"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="基础组件"
                   Title="Tag"
                   ComponentName="Tag"
-                  Description="用于分类、状态和筛选条件的紧凑标签，关闭动作复用 Button 的图标能力。"
-                  Parameters="@TagParameters"
-                  Events="@TagEvents">
+                  Description="用于分类、状态和筛选条件的紧凑标签，关闭动作复用 Button 的图标能力。">
     <Preview>
         @if (_tagRemoved)
         {
@@ -86,21 +84,6 @@
     private bool _tagDismissible = true;
 
     private bool _tagRemoved;
-
-    private static readonly ShowcaseParameter[] TagParameters =
-    [
-        new("ChildContent", "RenderFragment?", "标签内容。"),
-        new("StartIcon", "RenderFragment?", "起始图标。"),
-        new("EndIcon", "RenderFragment?", "结束图标。"),
-        new("Color", "Color", "语义颜色。", "Default"),
-        new("Variant", "TagVariant", "标签变体。", "Default"),
-        new("Size", "Size", "标签尺寸。", "Default"),
-        new("Dismissible", "bool", "是否显示关闭按钮。", "false"),
-        new("DismissLabel", "string", "关闭按钮的无障碍名称。", "Remove tag")
-    ];
-
-    private static readonly ShowcaseEvent[] TagEvents =
-    [new("OnDismiss", "EventCallback", "关闭按钮被点击时触发。")];
 
     private void DismissTag()
     {

@@ -1,4 +1,4 @@
-@page "/components/search"
+﻿@page "/components/search"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,10 +12,7 @@
                   Category="表单组件"
                   Title="Search"
                   ComponentName="Search"
-                  Description="关键词查询入口，输入框内置清除与搜索图标按钮，支持 Enter 提交和受控加载状态；不渲染建议列表或查询结果。"
-                  Parameters="@SearchParameters"
-                  Events="@SearchEvents"
-                  Contracts="@SearchContracts">
+                  Description="关键词查询入口，输入框内置清除与搜索图标按钮，支持 Enter 提交和受控加载状态；不渲染建议列表或查询结果。">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <FormField Label="组件查询"
@@ -71,37 +68,6 @@
     private bool _disabled;
     private bool _invalid;
     private bool _fullWidth;
-
-    private static readonly ShowcaseParameter[] SearchParameters =
-    [
-        new("Value", "string?", "当前关键词。"),
-        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
-        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
-        new("Size", "Size", "输入框以及内置清除/搜索按钮的共同尺寸。", "Default"),
-        new("Clearable", "bool", "是否在有值时显示清除动作。", "true"),
-        new("Loading", "bool", "暂时禁用整个组合，阻止重复提交并输出 aria-busy。", "false"),
-        new("SubmitOnEnter", "bool", "是否允许 Enter 提交。", "true"),
-        new("ReadOnly", "bool", "只读状态。", "false"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("Placeholder", "string?", "占位文本。"),
-        new("Name", "string?", "原生 name 属性。"),
-        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
-        new("AriaLabel", "string?", "搜索区域与输入的无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
-        new("SubmitLabel", "string?", "内置搜索按钮的无障碍标签。"),
-        new("ClearLabel", "string?", "清除按钮无障碍标签。")
-    ];
-
-    private static readonly ShowcaseEvent[] SearchEvents =
-    [
-        new("OnSearch", "EventCallback<string?>", "点击提交或按 Enter 后触发。"),
-        new("OnClear", "EventCallback", "清除关键词后触发。")
-    ];
-
-    private static readonly ShowcaseContract[] SearchContracts =
-    [new("Search", "role=search", "不渲染建议弹层；建议列表属于后续 Autocomplete。")];
 
     private Task HandleSearchAsync(string? value)
     {

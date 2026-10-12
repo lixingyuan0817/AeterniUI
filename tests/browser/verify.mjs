@@ -1029,6 +1029,23 @@ check('复制按钮点击后回报结果而不是静默失败',
     copyState.state === 'copied' || copyState.state === 'failed',
     JSON.stringify(copyState));
 
+// 生成式 API 表：迁移之后页面不再手写任何参数行，这里验证渲染结果确实来自生成物——
+// `MaxFileSize` 是 Upload 的公共参数，而且只由 10.32.0 引入，所以「自 10.32.0」这一列
+// 同时证明了生成物与编辑源（api-since.json）都被用上了。
+const apiTable = await evaluate(`(() => {
+    const rows = [...document.querySelectorAll('.component-preview__api-row')]
+        .map(row => row.textContent.replace(/\\s+/g, ' ').trim());
+    return {
+        count: rows.length,
+        upload: rows.find(text => text.startsWith('MaxFileSize')) ?? '',
+        base: rows.find(text => text.startsWith('Id ')) ?? rows.find(text => text.startsWith('Id')) ?? ''
+    };
+})()`);
+check('API 表由生成物渲染，并带“自哪个版本”列',
+    apiTable.count > 15 && /MaxFileSize/.test(apiTable.upload) && /自 10\.32\.0/.test(apiTable.upload),
+    JSON.stringify(apiTable));
+check('基类参数并入生成表', /AeterniComponent|组件基类|根元素/.test(apiTable.base), apiTable.base);
+
 // 侧栏检索过滤：输入“日期”后菜单项应明显减少，且状态行报出匹配数。
 const filtered = await evaluate(`(async () => {
     const search = document.querySelector('#showcase-search');

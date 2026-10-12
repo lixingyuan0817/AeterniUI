@@ -1,11 +1,11 @@
-@page "/components/date-time-picker"
+﻿@page "/components/date-time-picker"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · DateTimePicker</PageTitle>
 
-<ComponentPreview AnchorId="date-time-picker" Category="表单组件" Title="DateTimePicker" ComponentName="DateTimePicker" Description="使用单一 DateTime? 值组合日期网格与时间选项，不执行时区转换。" Parameters="@Parameters">
+<ComponentPreview AnchorId="date-time-picker" Category="表单组件" Title="DateTimePicker" ComponentName="DateTimePicker" Description="使用单一 DateTime? 值组合日期网格与时间选项，不执行时区转换。">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <DateTimePicker @bind-Value="_value"
@@ -48,21 +48,4 @@
     private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
     private DateTime MaxValue => DateTime.SpecifyKind(DateTime.Today.AddDays(30).AddHours(18), DateTimeKind.Local);
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Value / ValueChanged", "DateTime? / EventCallback<DateTime?>", "当前日期时间与标准 Blazor 绑定回调。"),
-        new("MinDateTime / MaxDateTime", "DateTime?", "可选日期时间边界。"),
-        new("DisabledDate", "Func<DateOnly, bool>?", "禁用整个日期。"),
-        new("DisabledDateTime", "Func<DateTime, bool>?", "禁用具体日期时间候选项。"),
-        new("TimeStep", "TimeSpan", "时间滚轮的候选间隔；支持时、分、秒精度。", "00:00:01"),
-        new("TimeFormat", "TimeFormat", "时间部分的 12/24 小时显示策略。", "TwentyFourHour"),
-        new("Format", "string?", "完整日期时间显示格式。"),
-        new("CancelText / ConfirmText", "string?", "取消与确定按钮的实例级文案。"),
-        new("Kind", "DateTimeKind", "新值的 Kind 标记，不执行时区转换。", "Unspecified"),
-        new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
-        new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
-        new("FullWidth", "bool", "触发器铺满父容器；默认最小宽度与 TimePicker 一致，长文本可撑开。", "false"),
-        new("ValueExpression", "Expression<Func<DateTime?>>?", "EditContext 字段表达式。"),
-        new("Required / Invalid", "bool", "必填和无效状态。", "false")
-    ];
 }

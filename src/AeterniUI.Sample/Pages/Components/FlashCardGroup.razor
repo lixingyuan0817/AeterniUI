@@ -1,4 +1,4 @@
-@page "/components/flash-card-group"
+﻿@page "/components/flash-card-group"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 
@@ -8,8 +8,7 @@
                   Category="基础组件"
                   Title="FlashCardGroup"
                   ComponentName="FlashCardGroup"
-                  Description="把多张闪卡收拢成牌堆，悬浮或键盘聚焦时展开成扇形，适合抽卡式展示。"
-                  Parameters="@Parameters">
+                  Description="把多张闪卡收拢成牌堆，悬浮或键盘聚焦时展开成扇形，适合抽卡式展示。">
     <Preview>
         <div class="preview-flash-card-group-demo">
             <div class="preview-flash-card-group-stage">
@@ -95,17 +94,6 @@
         _status = $"抽到：{Cards[0].Title} · 当前牌堆共 {Cards.Count} 张";
         _expanded = true;
     }
-
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("ChildContent", "RenderFragment", "组合多张 FlashCard；子卡片保留自身翻面、光泽与键盘语义。"),
-        new("AriaLabel", "string", "牌堆的可访问名称。", "Flash cards"),
-        new("Expanded", "bool", "是否保持扇形展开。", "false"),
-        new("HoverExpand", "bool", "悬浮或 focus-within 时是否展开。", "true"),
-        new("CardWidth", "double", "每张卡片宽度，单位像素。", "220"),
-        new("ExpandedSpacing", "double", "展开时的水平间距，单位像素。", "72"),
-        new("CollapsedOffset", "double", "折叠时卡片的垂直错位，单位像素。", "5")
-    ];
 
     private sealed record DeckCard(string Id, string Title, string Description, string Alt, FlashCardSheen Sheen);
 }

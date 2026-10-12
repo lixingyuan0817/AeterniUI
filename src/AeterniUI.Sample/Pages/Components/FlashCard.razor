@@ -1,4 +1,4 @@
-@page "/components/flash-card"
+﻿@page "/components/flash-card"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 
@@ -8,9 +8,7 @@
                   Category="基础组件"
                   Title="FlashCard"
                   ComponentName="FlashCard"
-                  Description="图片闪卡：卡面可以只放一张图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。"
-                  Parameters="@Parameters"
-                  Events="@Events">
+                  Description="图片闪卡：卡面可以只放一张图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。">
     <Preview>
         <div class="preview-flash-card-grid">
             <FlashCard ImageSrc="@CoverImage"
@@ -118,25 +116,4 @@
         _lastEvent = "宿主直接设置 IsFlipped";
     }
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("ImageSrc / ImageAlt", "string?", "卡面图片与替代文本；Alt 为空表示装饰性图片。只传 ImageSrc 即为纯图片闪卡。"),
-        new("AspectRatio", "double", "卡面宽高比，必须为正数。", "1"),
-        new("Sheen", "FlashCardSheen", "卡面光泽：Holo 镭射彩虹、Shine 金属白光、None 关闭。只作用于图片区域。", "Holo"),
-        new("SheenIntensity", "double", "光泽强度，取值 0～1。", "0.6"),
-        new("Title / Description", "string?", "可选的正面图文说明，两者都缺省时不渲染说明区。"),
-        new("Back", "RenderFragment?", "可选背面内容；提供后卡片才可翻转。"),
-        new("IsFlipped / IsFlippedChanged", "bool / EventCallback<bool>", "受控翻转状态；只绑定前者时由组件自己维护状态。"),
-        new("FlipTrigger", "FlashCardFlipTrigger", "翻面触发方式：Click 是可聚焦控件，Hover 是由样式表驱动的纯指针预览。", "Click"),
-        new("Tilt", "bool", "是否随指针做 3D 跟随；减少动态效果时始终跳过。", "true"),
-        new("MaxTiltAngle", "double", "卡片边缘处的最大旋转角度，单位为度。", "16"),
-        new("TiltScale", "double", "指针在卡片上时的缩放倍数。", "1.02"),
-        new("Perspective", "double", "CSS 透视距离，单位为像素。", "800"),
-        new("AriaLabel", "string?", "翻转按钮的可访问名称；缺省使用 Title。")
-    ];
-
-    private static readonly ShowcaseEvent[] Events =
-    [
-        new("IsFlippedChanged", "EventCallback<bool>", "点击或键盘激活后提出新的翻转状态；Hover 触发不会触发该回调。")
-    ];
 }

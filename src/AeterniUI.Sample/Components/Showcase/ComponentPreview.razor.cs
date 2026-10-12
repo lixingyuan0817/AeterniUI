@@ -55,6 +55,68 @@ public partial class ComponentPreview : ComponentBase
     private IReadOnlyList<ShowcaseParameter> EffectiveParameters =>
         CommonParameters.Concat(Parameters ?? []).ToArray();
 
+    /// <summary>
+    /// Rows generated from the library source for this page, used when the page declares no
+    /// hand-written table. A page that still passes <see cref="Parameters"/> or
+    /// <see cref="Events"/> keeps rendering its own rows, so the migration can proceed page by
+    /// page without a half-converted build.
+    /// </summary>
+    private IReadOnlyList<ShowcaseApiMember> GeneratedMembers =>
+        Parameters is null && Events is null && ShowcaseApiReference.ByPage.TryGetValue(AnchorId, out var rows)
+            ? rows
+            : [];
+
+    private IReadOnlyList<ShowcaseApiMember> GeneratedContracts =>
+        Contracts is null && ShowcaseApiReference.Contracts.TryGetValue(AnchorId, out var rows)
+            ? rows
+            : [];
+
+    /// <summary>
+    /// The base parameters every component inherits, in the generated table's shape. They are
+    /// one shared list documented once in <c>delivered-features</c>, so they are merged in at
+    /// render time instead of being repeated for all 53 pages in the generated artifact.
+    /// </summary>
+    /// <remarks>
+    /// A computed property rather than a static field: <c>CommonParameters</c> is declared
+    /// further down the file, and a static initializer would read it while it is still null.
+    /// Eight rows per render is not worth the trap.
+    /// </remarks>
+    private static IReadOnlyList<ShowcaseApiMember> BaseMembers => CommonParameters
+        .Select(parameter => new ShowcaseApiMember(
+            parameter.Name,
+            parameter.Type,
+            parameter.DefaultValue ?? string.Empty,
+            parameter.Description,
+            "属性",
+            string.Empty))
+        .ToArray();
+
+    /// <summary>Whether this page documents an API at all.</summary>
+    private bool HasApiSection =>
+        GeneratedGroups.Count > 0 || Parameters is not null || Events is not null || Contracts is not null;
+
+    /// <summary>
+    /// Generated rows grouped for rendering, in reading order. Empty groups are dropped: an
+    /// empty table with a heading reads like a missing section.
+    /// </summary>
+    private IReadOnlyList<(string Label, IReadOnlyList<ShowcaseApiMember> Rows)> GeneratedGroups
+    {
+        get
+        {
+            if (GeneratedMembers.Count == 0 && GeneratedContracts.Count == 0)
+            {
+                return [];
+            }
+
+            return new (string Label, IReadOnlyList<ShowcaseApiMember> Rows)[]
+            {
+                ("属性", [.. BaseMembers, .. GeneratedMembers.Where(row => row.Kind == "属性")]),
+                ("事件回调", [.. GeneratedMembers.Where(row => row.Kind == "事件回调")]),
+                ("接口 / 服务", GeneratedContracts)
+            }.Where(group => group.Rows.Count > 0).ToArray();
+        }
+    }
+
     private static readonly ShowcaseParameter[] CommonParameters =
     [
         new("Id", "string?", "覆盖根元素的 DOM id。"),

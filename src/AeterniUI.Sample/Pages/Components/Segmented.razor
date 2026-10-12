@@ -1,4 +1,4 @@
-@page "/components/segmented"
+﻿@page "/components/segmented"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,9 +10,7 @@
                   Category="表单组件"
                   Title="Segmented"
                   ComponentName="Segmented"
-                  Description="互斥选项切换：原生 radio 提供单选语义、一个 Tab 停留点和方向键（含 RTL 方向），滑块位置由选项数量推导而不是写死列数。"
-                  Parameters="@SegmentedParameters"
-                  Events="@SegmentedEvents">
+                  Description="互斥选项切换：原生 radio 提供单选语义、一个 Tab 停留点和方向键（含 RTL 方向），滑块位置由选项数量推导而不是写死列数。">
     <Preview>
         <div class="preview-segmented-demo">
             <Segmented TValue="string"
@@ -116,20 +114,4 @@
 
     private void SelectRange(int value) => _range = value;
 
-    private static readonly ShowcaseParameter[] SegmentedParameters =
-    [
-        new("Items", "IReadOnlyList<TValue>", "选项集合，按显示顺序排列；每项等宽。"),
-        new("Value", "TValue?", "当前选项；不匹配任何项时不显示选中态与滑块。"),
-        new("Size", "Size", "尺寸档位（28 / 36 / 44px）。", "Default"),
-        new("FullWidth", "bool", "占满父容器宽度，否则宽度跟随内容。", "false"),
-        new("TextSelector", "Func<TValue, string>?", "选项文字；缺省用值的 ToString。"),
-        new("ItemTemplate", "RenderFragment<TValue>?", "自定义选项内容（图标 + 文字等）。"),
-        new("DisabledSelector", "Func<TValue, bool>?", "把单个选项标记为禁用；禁用项跳过方向键循环。"),
-        new("Required", "bool", "在 FormField 中输出 aria-required。", "false"),
-        new("Invalid", "bool", "输出 aria-invalid 与危险色边框。", "false"),
-        new("AriaLabel", "string?", "选项组的无障碍名称。")
-    ];
-
-    private static readonly ShowcaseEvent[] SegmentedEvents =
-    [new("ValueChanged", "EventCallback<TValue>", "选中项变化时触发，配合 @bind-Value 使用。")];
 }

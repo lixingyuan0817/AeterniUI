@@ -1,4 +1,4 @@
-@page "/components/label"
+﻿@page "/components/label"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,8 +12,7 @@
                   Category="表单组件"
                   Title="Label"
                   ComponentName="Label"
-                  Description="独立的原生 label 元素，用 For 将说明文字关联到指定输入控件。"
-                  Parameters="@LabelParameters">
+                  Description="独立的原生 label 元素，用 For 将说明文字关联到指定输入控件。">
     <Preview>
         <div class="preview-form-control">
             <Label For="label-preview-input">独立 Label</Label>
@@ -31,9 +30,4 @@
 @code {
     private string _labelText = "独立 Label";
 
-    private static readonly ShowcaseParameter[] LabelParameters =
-    [
-        new("ChildContent", "RenderFragment?", "标签内容。"),
-        new("For", "string?", "关联输入元素的 id。")
-    ];
 }

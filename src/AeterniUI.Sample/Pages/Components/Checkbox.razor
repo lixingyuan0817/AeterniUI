@@ -1,4 +1,4 @@
-@page "/components/checkbox"
+﻿@page "/components/checkbox"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="表单组件"
                   Title="Checkbox"
                   ComponentName="Checkbox"
-                  Description="保留原生复选框语义，支持稳定布尔绑定、三态初始显示和 EditContext 校验。"
-                  Parameters="@CheckboxParameters"
-                  Events="@CheckboxEvents">
+                  Description="保留原生复选框语义，支持稳定布尔绑定、三态初始显示和 EditContext 校验。">
     <Preview>
         <div class="preview-stack">
             <Checkbox @bind-Value="_checkboxValue"
@@ -55,24 +53,6 @@
     private bool _checkboxDisabled;
 
     private string _checkboxNote = "等待交互。";
-
-    private static readonly ShowcaseParameter[] CheckboxParameters =
-    [
-        new("Value", "bool", "当前选中值。"),
-        new("ValueChanged", "EventCallback<bool>", "标准绑定回调。"),
-        new("ValueExpression", "Expression<Func<bool>>?", "EditContext 字段表达式。"),
-        new("Indeterminate", "bool", "仅显示三态提示，交互后落定为 true/false。", "false"),
-        new("ChildContent", "RenderFragment?", "标签内容。"),
-        new("Name", "string?", "原生 name 属性。"),
-        new("AriaLabel", "string?", "无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
-        new("Size", "Size", "复选框尺寸。", "Default"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false")
-    ];
-
-    private static readonly ShowcaseEvent[] CheckboxEvents =
-    [new("OnChange", "EventCallback<ChangeEventArgs>", "原生复选框发生变化时触发。")];
 
     private void HandleCheckboxChange(ChangeEventArgs _)
     {

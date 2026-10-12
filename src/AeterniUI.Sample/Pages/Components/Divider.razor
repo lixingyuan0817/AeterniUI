@@ -1,4 +1,4 @@
-@page "/components/divider"
+﻿@page "/components/divider"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,8 +10,7 @@
                   Category="基础组件"
                   Title="Divider"
                   ComponentName="Divider"
-                  Description="水平或垂直分隔线，可以在线段中缝放置文字或图标；两种形态共用同一个分隔语义。"
-                  Parameters="@DividerParameters">
+                  Description="水平或垂直分隔线，可以在线段中缝放置文字或图标；两种形态共用同一个分隔语义。">
     <Preview>
         <div class="preview-divider-demo">
             <p>无中缝内容</p>
@@ -54,9 +53,4 @@
 
     private Orientation _dividerOrientation = Orientation.Horizontal;
 
-    private static readonly ShowcaseParameter[] DividerParameters =
-    [
-        new("Orientation", "Orientation", "分隔线方向；垂直形态拉伸到 flex 行的高度。", "Horizontal"),
-        new("ChildContent", "RenderFragment?", "中缝内容（文字或图标）；为空时渲染一条连续线段。")
-    ];
 }

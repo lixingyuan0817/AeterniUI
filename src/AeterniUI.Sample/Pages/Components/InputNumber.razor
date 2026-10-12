@@ -1,4 +1,4 @@
-@page "/components/input-number"
+﻿@page "/components/input-number"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -9,10 +9,7 @@
                   Category="表单组件"
                   Title="InputNumber"
                   ComponentName="InputNumber&lt;TValue&gt;"
-                  Description="数值输入控件：受控数值绑定、上下限与步进、方向键与 PageUp/PageDown 步进、可选内置增减按钮；不提供千分位与自定义格式化。"
-                  Parameters="@InputNumberParameters"
-                  Events="@InputNumberEvents"
-                  Contracts="@InputNumberContracts">
+                  Description="数值输入控件：受控数值绑定、上下限与步进、方向键与 PageUp/PageDown 步进、可选内置增减按钮；不提供千分位与自定义格式化。">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             @* 这里必须使用完全限定标签：`Microsoft.AspNetCore.Components.Forms`
@@ -126,39 +123,4 @@
         return Task.CompletedTask;
     }
 
-    private static readonly ShowcaseParameter[] InputNumberParameters =
-    [
-        new("Value", "TValue?", "受控数值，空值表示未填写。"),
-        new("ValueChanged", "EventCallback<TValue?>", "标准绑定回调。"),
-        new("ValueExpression", "Expression<Func<TValue?>>?", "EditContext 字段表达式。"),
-        new("Min", "TValue?", "下限，空表示无下界。"),
-        new("Max", "TValue?", "上限，空表示无上界。"),
-        new("Step", "TValue?", "步进增量，默认 1。", "1"),
-        new("Precision", "int?", "显示与提交的小数位，默认取 Step 的小数位。"),
-        new("ShowControls", "bool", "是否在尾部显示减/增按钮。", "false"),
-        new("ReadOnly", "bool", "只读状态。", "false"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("Size", "Size", "控件尺寸。", "Default"),
-        new("Placeholder", "string?", "占位文本。"),
-        new("Name", "string?", "原生 name 属性。"),
-        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
-        new("InputMode", "string?", "虚拟键盘提示，默认按值类型取 numeric/decimal。"),
-        new("IncrementLabel", "string?", "增加按钮的无障碍名称。"),
-        new("DecrementLabel", "string?", "减少按钮的无障碍名称。"),
-        new("AriaLabel", "string?", "输入框无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
-    ];
-
-    private static readonly ShowcaseEvent[] InputNumberEvents =
-    [
-        new("ValueChanged", "EventCallback<TValue?>", "输入、步进或按钮改变数值时触发。")
-    ];
-
-    private static readonly ShowcaseContract[] InputNumberContracts =
-    [
-        new("InputNumber", "role=spinbutton", "步进逻辑在 C#，JS 只拦截被处理按键的默认行为。"),
-        new("InputNumber", "aria-valuenow/min/max", "上下限与当前值输出为字符串；空值时不输出 aria-valuenow。")
-    ];
 }

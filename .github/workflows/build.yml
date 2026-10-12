@@ -39,6 +39,11 @@ jobs:
             done
           fi
 
+      # 示例工程的 API 表由组件源码生成，生成物与 JSON 编辑源都必须与源码一致：
+      # 一个组件的参数改了却忘记重新生成，会在这里失败，而不是悄悄漂移到文档里。
+      - name: API reference is up to date
+        run: node scripts/generate-api-reference.mjs --check
+
       - name: Documentation consistency check
         run: bash scripts/check-docs.sh
 

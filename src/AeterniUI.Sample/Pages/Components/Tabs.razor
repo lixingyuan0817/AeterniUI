@@ -1,4 +1,4 @@
-@page "/components/tabs"
+﻿@page "/components/tabs"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="导航组件"
                   Title="Tabs"
                   ComponentName="Tabs / Tab"
-                  Description="标签页导航：tablist/tab/tabpanel 三件套、roving tabindex、方向键自动激活与窄屏横向滚动。"
-                  Parameters="@TabsParameters"
-                  Events="@TabsEvents">
+                  Description="标签页导航：tablist/tab/tabpanel 三件套、roving tabindex、方向键自动激活与窄屏横向滚动。">
     <Preview>
         <div class="preview-stack preview-stack--fill">
             <Surface Variant="SurfaceVariant.Elevated" Bordered>
@@ -67,17 +65,4 @@
     private string? _tabValue = "overview";
     private bool _hideOverview;
 
-    private static readonly ShowcaseParameter[] TabsParameters =
-    [
-        new("Value", "string?", "当前选中标签的值，支持 @bind-Value。"),
-        new("AriaLabel", "string?", "标签栏可访问名称。", "Tabs"),
-        new("ChildContent", "RenderFragment?", "由一个或多个 Tab 组成。"),
-        new("Tab.Value", "string", "标签标识，必须在同一个 Tabs 内唯一且非空。", "必填"),
-        new("Tab.Header", "RenderFragment?", "标签按钮内容。"),
-        new("Tab.ChildContent", "RenderFragment?", "面板内容。"),
-        new("Tab.Disabled", "bool", "禁用标签：不可点、不可选中、跳过方向键循环。", "false")
-    ];
-
-    private static readonly ShowcaseEvent[] TabsEvents =
-    [new("ValueChanged", "EventCallback<string?>", "选中标签变化时触发（点击或方向键）。")];
 }

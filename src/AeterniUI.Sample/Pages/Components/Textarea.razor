@@ -12,9 +12,7 @@
                   Category="表单组件"
                   Title="Textarea"
                   ComponentName="Textarea"
-                  Description="多行原生文本控件，复用 Input 的绑定、校验、禁用、只读和无障碍语义。"
-                  Parameters="@TextareaParameters"
-                  Events="@TextareaEvents">
+                  Description="多行原生文本控件，复用 Input 的绑定、校验、禁用、只读和无障碍语义。">
     <Preview>
         <div class="preview-form-control">
             <Textarea @bind-Value="_textareaValue"
@@ -72,31 +70,4 @@
 
     private bool _textareaFullWidth;
 
-    private static readonly ShowcaseParameter[] TextareaParameters =
-    [
-        new("Value", "string?", "当前文本值。"),
-        new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
-        new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
-        new("Placeholder", "string?", "占位文本。"),
-        new("Name", "string?", "原生 name 属性。"),
-        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
-        new("MinLength / MaxLength", "int?", "最小与最大长度；两者同时设置时不能倒置。"),
-        new("Rows", "int?", "初始行数。", "4"),
-        new("Resize", "TextareaResize", "是否允许垂直调整大小。", "Vertical"),
-        new("ReadOnly", "bool", "只读状态。", "false"),
-        new("Required", "bool", "必填状态。", "false"),
-        new("Invalid", "bool", "无效状态。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("AriaLabel", "string?", "无障碍名称。"),
-        new("AriaDescribedBy", "string?", "关联描述元素 ID。")
-    ];
-
-    private static readonly ShowcaseEvent[] TextareaEvents =
-    [
-        new("OnInput", "EventCallback<ChangeEventArgs>", "输入过程中触发。"),
-        new("OnChange", "EventCallback<ChangeEventArgs>", "值提交时触发。"),
-        new("OnFocus", "EventCallback<FocusEventArgs>", "获得焦点时触发。"),
-        new("OnBlur", "EventCallback<FocusEventArgs>", "失去焦点时触发。"),
-        new("OnKeyDown", "EventCallback<KeyboardEventArgs>", "键盘按键时触发。")
-    ];
 }

@@ -1,4 +1,4 @@
-@page "/components/surface"
+﻿@page "/components/surface"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,8 +12,7 @@
                   Category="基础组件"
                   Title="Surface"
                   ComponentName="Surface"
-                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。"
-                  Parameters="@SurfaceParameters">
+                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。">
     <Preview>
         <div class="preview-glass-scene">
             <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
@@ -71,14 +70,4 @@
 
     private bool _surfaceFullWidth;
 
-    private static readonly ShowcaseParameter[] SurfaceParameters =
-    [
-        new("Variant", "SurfaceVariant", "表面视觉变体。", "Default"),
-        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
-        new("Padding", "SurfacePadding", "内容内边距。", "Medium"),
-        new("Radius", "SurfaceRadius", "圆角级别。", "Default"),
-        new("Bordered", "bool", "是否显示边框。", "false"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("ChildContent", "RenderFragment?", "容器内容。")
-    ];
 }

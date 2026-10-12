@@ -7,7 +7,9 @@
 //
 //   1. 目录里的每个条目都有真正的页面文件，且路由与条目 id 一致（侧栏的“在 GitHub
 //      编辑”链接就是按文件名拼的，文件名错了只会得到一个 404）。
-//   2. 页面的参数/事件表覆盖了对应组件的全部公共 `[Parameter]`。
+//   2. 组件的公共表由 `scripts/generate-api-reference.mjs` 生成，页面不再手写；因此这里
+//      断言的是“生成物覆盖了每个有组件的条目”，以及“页面没有退回手写表”。生成物本身是否
+//      与源码一致由 CI 的 `--check` 负责——那需要重新生成，属于独立的一步。
 //   3. 提供代码块的页面必须真的定义了该常量，且片段用到了它宣称记录的组件。
 //
 // 有意不做的事：不校验参数说明的文字，也不校验示例的视觉结果——那属于浏览器检查。
@@ -103,21 +105,28 @@ test('目录里的每个条目都有页面文件，且路由与条目 id 一致'
     }
 });
 
-test('每个组件的公共参数都在对应示例页登记过', () => {
-    const reported = [];
+test('每个有组件的条目都出现在生成的 API 表里，且页面不再手写表', () => {
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    const covered = new Set([...generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]/g)].map(match => match[1]));
+
+    // 安装、设计基础与实验室页讲的是用法与 Token，没有单一组件；反馈页记录的是服务与选项
+    // 类型，目前仍手写。两处例外都写在这里，而不是靠“没有断言”默认放过。
+    const noComponent = new Set(['install', 'colors', 'glass', 'feedback']);
+
+    const missing = entries
+        .filter(entry => !noComponent.has(entry.id) && componentDirs.has(entry.page ?? pascal(entry.id)))
+        .filter(entry => !covered.has(entry.id))
+        .map(entry => entry.id);
+    assert.deepEqual(missing, [], `这些条目没有生成 API 表：${missing.join(', ')}`);
+
+    const handWritten = [];
     for (const entry of entries) {
+        if (noComponent.has(entry.id)) continue;
         const file = `${PAGES}/${entry.page ?? pascal(entry.id)}.razor`;
-        const directory = [...componentDirs].find(name => name.toLowerCase() === pascal(entry.id).toLowerCase());
-        if (!directory || !existsSync(file)) continue;
-
-        const listed = pageNames(file);
-        const missing = [...componentParameters(directory)].filter(name => !covered(name, listed));
-        if (missing.length > 0) {
-            reported.push(`${entry.id}: ${missing.sort().join(', ')}`);
-        }
+        if (!existsSync(file)) continue;
+        if (/Showcase(Parameter|Event|Contract)\[\]/.test(read(file))) handWritten.push(entry.id);
     }
-
-    assert.deepEqual(reported, [], `示例页参数表缺少组件的公共参数：\n  ${reported.join('\n  ')}`);
+    assert.deepEqual(handWritten, [], `这些页面仍在手写 API 表：${handWritten.join(', ')}`);
 });
 
 test('提供代码块的页面都定义了片段，且片段用到了它记录的组件', () => {

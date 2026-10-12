@@ -1,4 +1,4 @@
-@page "/components/button-group"
+﻿@page "/components/button-group"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,8 +12,7 @@
                           Category="基础组件"
                           Title="ButtonGroup"
                           ComponentName="ButtonGroup"
-                          Description="将多个 Button 组合为水平或垂直的操作组，并通过级联上下文传递禁用状态。"
-                          Parameters="@ButtonGroupParameters">
+                          Description="将多个 Button 组合为水平或垂直的操作组，并通过级联上下文传递禁用状态。">
             <Preview>
 <ButtonGroup Orientation="@_buttonGroupOrientation"
              Connected="@_buttonGroupConnected"
@@ -54,15 +53,6 @@
     private bool _buttonGroupDisabled;
 
     private static readonly bool[] BooleanOptions = [true, false];
-
-    private static readonly ShowcaseParameter[] ButtonGroupParameters =
-    [
-        new("ChildContent", "RenderFragment?", "按钮组内容。"),
-        new("Orientation", "Orientation", "水平或垂直排列。", "Horizontal"),
-        new("Connected", "bool", "是否使用连体样式。", "true"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("AriaLabel", "string?", "按钮组无障碍名称。")
-    ];
 
     private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
 

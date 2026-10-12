@@ -1,4 +1,4 @@
-@page "/components/stepper"
+﻿@page "/components/stepper"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 @using AeterniUI.Icons
@@ -9,9 +9,7 @@
                   Category="导航组件"
                   Title="Stepper"
                   ComponentName="Stepper"
-                  Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。"
-                  Parameters="@Parameters"
-                  Events="@Events">
+                  Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。">
     <Preview>
         <div class="preview-stack preview-stack--fill">
             <Stepper Items="@Items"
@@ -137,21 +135,4 @@
         }
     }
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<StepperItem>", "按流程顺序提供步骤，Id 必须唯一。", "必填"),
-        new("Value / ValueChanged", "string? / EventCallback<string?>", "受控当前步骤标识。"),
-        new("StepperItem.Completed", "bool", "由宿主显式表示完成状态。", "false"),
-        new("StepperItem.Disabled / Visible", "bool", "禁用或隐藏单个步骤。", "false / true"),
-        new("StepperItem.Icon", "IconDefinition?", "单个步骤的标记图标；完成步骤仍显示勾选字形。", "null"),
-        new("ItemTemplate", "RenderFragment<StepperItem>?", "每步唯一的内容区，接管按钮内全部内容（含图标）；Label 仍是无障碍名称。", "null"),
-        new("Orientation", "Orientation", "横向或纵向布局。", "Horizontal"),
-        new("AriaLabel", "string?", "流程指示器的可访问名称；缺省使用全局文案表。")
-    ];
-
-    private static readonly ShowcaseEvent[] Events =
-    [
-        new("ValueChanged", "EventCallback<string?>", "激活可用步骤时提出新的当前步骤。"),
-        new("OnStepClick", "EventCallback<StepperItem>", "激活步骤后通知宿主。")
-    ];
 }

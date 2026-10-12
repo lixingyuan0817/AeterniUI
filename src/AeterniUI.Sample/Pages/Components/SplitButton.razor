@@ -1,4 +1,4 @@
-@page "/components/split-button"
+﻿@page "/components/split-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -6,8 +6,7 @@
 <PageTitle>Aeterni UI · SplitButton</PageTitle>
 
 <ComponentPreview AnchorId="split-button" Category="基础组件" Title="SplitButton"
-                  ComponentName="SplitButton" Description="独立主动作与菜单动作，共享按钮外观，不共享动作状态。"
-                  Parameters="@Parameters" Events="@Events">
+                  ComponentName="SplitButton" Description="独立主动作与菜单动作，共享按钮外观，不共享动作状态。">
     <Preview>
         <div class="preview-action-row">
             <SplitButton Label="保存" AriaLabel="保存当前文档" MenuAriaLabel="更多保存操作"
@@ -46,20 +45,6 @@
     private string _status = "等待操作";
     private static readonly IReadOnlyList<MenuGroup> Items =
     [new("save", "保存方式", [new("copy", "另存副本"), new("export", "导出"), new("locked", "不可用", Disabled: true)])];
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Label / AriaLabel", "string", "主动作文本及可选可访问名称。"),
-        new("MenuAriaLabel", "string", "必填的独立菜单名称。"),
-        new("Items", "IReadOnlyList<MenuGroup>", "复用 Menu 模型。"),
-        new("Disabled / PrimaryDisabled / MenuDisabled", "bool", "整体与独立禁用。", "false"),
-        new("Loading", "bool", "仅主动作加载、禁用。", "false"),
-        new("Variant / Intent / Size", "按钮枚举", "两侧共享现有 Button 外观，可显式覆盖紧凑默认值。", "Ghost / Neutral / Small"),
-        new("FullWidth", "bool", "主动作填满剩余宽度。", "false"),
-        new("Open / OpenChanged", "bool / EventCallback<bool>", "可选受控菜单；禁用菜单时不显示。"),
-        new("Placement", "PopupPlacement", "相对菜单按钮定位。", "BottomEnd")
-    ];
-    private static readonly ShowcaseEvent[] Events =
-    [new("OnClick", "EventCallback<MouseEventArgs>", "主动作。"), new("OnItemSelected", "EventCallback<MenuItem>", "菜单动作。")];
     private Task SaveAsync(MouseEventArgs args)
     {
         MarkInteraction(args);

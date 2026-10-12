@@ -1,8 +1,8 @@
-@page "/components/accordion"
+﻿@page "/components/accordion"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 
-<ComponentPreview AnchorId="accordion" Category="基础组件" Title="Accordion" ComponentName="Accordion" Description="支持单开或多开的可访问折叠面板。" Parameters="@Parameters">
+<ComponentPreview AnchorId="accordion" Category="基础组件" Title="Accordion" ComponentName="Accordion" Description="支持单开或多开的可访问折叠面板。">
     <Preview><Accordion Items="@Items" Multiple="@_multiple" AriaLabel="常见问题" /></Preview>
     <Controls>
         <Checkbox Size="Size.Small" @bind-Value="_multiple">允许同时展开多项</Checkbox>
@@ -24,11 +24,4 @@
         new("third", "可以组合使用吗？", @<p>组件可以通过 RenderFragment 和现有布局组件组合。</p>, _disableThird)
     ];
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<AccordionItem>", "面板 ID、标题、内容与禁用状态。"),
-        new("Multiple", "bool", "是否允许同时展开多个面板。", "false"),
-        new("OpenKeys / OpenKeysChanged", "IReadOnlyList<string>? / EventCallback", "可选受控展开状态。"),
-        new("AriaLabel", "string?", "折叠面板组的无障碍名称。")
-    ];
 }

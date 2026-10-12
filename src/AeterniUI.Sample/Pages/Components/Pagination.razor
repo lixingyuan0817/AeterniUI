@@ -1,8 +1,8 @@
-@page "/components/pagination"
+﻿@page "/components/pagination"
 @layout ComponentsLayout
 @using AeterniUI.Enums
 
-<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。" Parameters="@Parameters">
+<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。">
     <Preview>
         <div class="preview-form-control">
             <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" />
@@ -24,13 +24,4 @@
     private int _page = 3;
     private void OnPageChanged(int page) => _page = page;
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("CurrentPage / CurrentPageChanged", "int / EventCallback<int>", "当前页和标准绑定回调。", "1"),
-        new("TotalPages", "int", "总页数，至少为 1。", "1"),
-        new("SiblingCount", "int", "当前页两侧显示的页码数量。", "1"),
-        new("AriaLabel", "string?", "分页区域名称；缺省取全局文案表。"),
-        new("PreviousLabel / NextLabel", "string?", "前后页操作的实例级名称。"),
-        new("PageLabelFormat", "string?", "页码按钮复合格式，{0} 为页码。")
-    ];
 }

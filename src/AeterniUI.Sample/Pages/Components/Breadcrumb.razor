@@ -1,4 +1,4 @@
-@page "/components/breadcrumb"
+﻿@page "/components/breadcrumb"
 @layout ComponentsLayout
 
 <PageTitle>Aeterni UI · Breadcrumb</PageTitle>
@@ -7,8 +7,7 @@
                   Category="导航组件"
                   Title="Breadcrumb"
                   ComponentName="Breadcrumb"
-                  Description="用链接和当前项表达页面层级；路由跳转由宿主应用和浏览器负责。"
-                  Parameters="@Parameters">
+                  Description="用链接和当前项表达页面层级；路由跳转由宿主应用和浏览器负责。">
     <Preview>
         <div class="preview-stack preview-stack--fill">
             <Breadcrumb Items="@Items" AriaLabel="文档层级" Separator="@(_customSeparator ? CustomSeparator : null)" />
@@ -41,15 +40,4 @@
         new("AeterniUI")
     ];
 
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<BreadcrumbItem>", "按层级顺序提供导航项；列表、列表项和 Label 不可为 null 或空白，不可见项不渲染。", "必填"),
-        new("BreadcrumbItem.Label", "string", "非空白层级文本。", "必填"),
-        new("BreadcrumbItem.Href", "string?", "非当前项的浏览器链接地址；组件不注入路由。"),
-        new("BreadcrumbItem.Target", "string?", "可选浏览上下文；取 _blank 时自动补 rel=\"noopener noreferrer\"。"),
-        new("BreadcrumbItem.Icon", "RenderFragment?", "可选装饰图标。"),
-        new("BreadcrumbItem.Disabled / Visible", "bool", "禁用或隐藏层级；禁用项保留链接但移出 Tab 序列，隐藏项不参与当前项判断。", "false / true"),
-        new("AriaLabel", "string?", "导航区域名称；缺省使用全局文案表。"),
-        new("Separator", "RenderFragment?", "自定义分隔内容，缺省使用核心 Chevron 图标。")
-    ];
 }

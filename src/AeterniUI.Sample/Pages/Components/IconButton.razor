@@ -1,4 +1,4 @@
-@page "/components/icon-button"
+﻿@page "/components/icon-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,9 +10,7 @@
                   Category="基础组件"
                   Title="IconButton"
                   ComponentName="IconButton"
-                  Description="用于单一图标动作的方形按钮，强制提供无障碍名称，并支持尺寸、语义、加载和禁用状态。"
-                  Parameters="@Parameters"
-                  Events="@Events">
+                  Description="用于单一图标动作的方形按钮，强制提供无障碍名称，并支持尺寸、语义、加载和禁用状态。">
     <Preview>
         <div class="preview-action-row">
             <IconButton Icon="@SearchIcon" AriaLabel="搜索" OnClick="MarkInteraction" />
@@ -41,20 +39,6 @@
     // The submit variant is only meaningful inside a form, so the demo keeps one and
     // reports the native submit through the same feedback line.
     private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
-
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Variant", "ButtonVariant", "按钮视觉变体。", "Ghost"),
-        new("Intent", "ButtonIntent", "按钮语义类型。", "Neutral"),
-        new("Size", "Size", "正方形尺寸档位。", "Default"),
-        new("Type", "ButtonType", "原生 button 类型。", "Button"),
-        new("AriaLabel", "string", "图标动作的无障碍名称。"),
-        new("Loading", "bool", "是否显示加载状态。", "false"),
-        new("Icon / ChildContent", "RenderFragment?", "图标内容；二选一，ChildContent 是兼容的默认内容插槽。")
-    ];
-
-    private static readonly ShowcaseEvent[] Events =
-    [new("OnClick", "EventCallback<MouseEventArgs>", "按钮被点击时触发。")];
 
     private RenderFragment SearchIcon => @<Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />;
     private RenderFragment SettingsIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;

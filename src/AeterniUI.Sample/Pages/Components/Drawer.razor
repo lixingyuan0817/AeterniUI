@@ -1,4 +1,4 @@
-@page "/components/drawer"
+﻿@page "/components/drawer"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,9 +10,7 @@
                   Category="通知组件"
                   Title="Drawer"
                   ComponentName="Drawer"
-                  Description="从视口边缘滑出的面板：模态形态带遮罩、焦点陷阱与背景滚动锁，非模态形态不抢焦点、页面照常可用。"
-                  Parameters="@DrawerParameters"
-                  Events="@DrawerEvents">
+                  Description="从视口边缘滑出的面板：模态形态带遮罩、焦点陷阱与背景滚动锁，非模态形态不抢焦点、页面照常可用。">
     <Preview>
         <div class="preview-drawer-demo">
             <div class="preview-action-row">
@@ -120,22 +118,4 @@
         _drawerNote = $"底部操作：{action}";
     }
 
-    private static readonly ShowcaseParameter[] DrawerParameters =
-    [
-        new("Open", "bool", "面板是否显示；关闭状态整个面板不参与布局与焦点。", "false"),
-        new("Placement", "DrawerPlacement", "滑出边缘：Start / End / Top / Bottom。", "End"),
-        new("Modal", "bool", "模态形态：遮罩、aria-modal、焦点陷阱、背景滚动锁、焦点回归。", "true"),
-        new("CloseOnEscape", "bool", "Escape 是否请求关闭。", "true"),
-        new("CloseOnOutsideClick", "bool", "遮罩（模态）或面板外指针（非模态）是否请求关闭。", "true"),
-        new("ShowCloseButton", "bool", "是否显示内置关闭按钮。", "true"),
-        new("Title", "string?", "面板标题；同时作为面板的无障碍名称。"),
-        new("CloseLabel", "string?", "关闭按钮的无障碍名称；缺省取文案表 DrawerCloseLabel。"),
-        new("AriaLabel", "string?", "无 Title 时面板的无障碍名称；缺省取文案表 DrawerLabel。"),
-        new("ChildContent", "RenderFragment?", "面板主体，超出高度时自身滚动。"),
-        new("Footer", "RenderFragment?", "可选的底部操作条，不随主体滚动。"),
-        new("Disabled", "bool", "锁定面板：忽略关闭按钮、Escape 与外部点击的关闭请求。", "false")
-    ];
-
-    private static readonly ShowcaseEvent[] DrawerEvents =
-    [new("OpenChanged", "EventCallback<bool>", "关闭请求（Escape、遮罩/外部点击、关闭按钮）通过它上报给使用方。")];
 }

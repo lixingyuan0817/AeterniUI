@@ -1,4 +1,4 @@
-@page "/components/empty"
+﻿@page "/components/empty"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -10,8 +10,7 @@
                   Category="基础组件"
                   Title="Empty"
                   ComponentName="Empty"
-                  Description="空状态占位：图标、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。"
-                  Parameters="@EmptyParameters">
+                  Description="空状态占位：图标、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。">
     <Preview>
         @* Real usage: the placeholder lives inside the container that owns the
            surface, so the demo shows the host rather than a floating block. *@
@@ -73,12 +72,4 @@
         </text>
         : null;
 
-    private static readonly ShowcaseParameter[] EmptyParameters =
-    [
-        new("Size", "Size", "插画与排版档位。", "Default"),
-        new("Icon", "RenderFragment?", "自定义图标或插画；为空时使用内置 AeterniIcons.EmptyBox。"),
-        new("Title", "string?", "标题；为空时使用文案表默认值。"),
-        new("Description", "string?", "描述段落；为空时不渲染。"),
-        new("ChildContent", "RenderFragment?", "操作区内容；为 null 时不渲染操作容器。")
-    ];
 }

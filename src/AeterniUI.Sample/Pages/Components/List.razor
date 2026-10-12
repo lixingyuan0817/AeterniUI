@@ -1,4 +1,4 @@
-@page "/components/list"
+﻿@page "/components/list"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="导航组件"
                   Title="List + ListItem"
                   ComponentName="List / ListItem"
-                  Description="可组合的静态选项列表，支持无选择、单选、多选、键盘导航和长列表滚动。"
-                  Parameters="@ListParameters"
-                  Events="@ListEvents">
+                  Description="可组合的静态选项列表，支持无选择、单选、多选、键盘导航和长列表滚动。">
     <Preview>
         <div class="preview-list-wrap">
             @if (_listSelectionMode == SelectionMode.Multiple)
@@ -142,32 +140,6 @@
     private const string ProductValue = "产品";
 
     private const string OperationsValue = "运营";
-
-    private static readonly ShowcaseParameter[] ListParameters =
-    [
-        new("List.Items", "IEnumerable<TItem>?", "自动推断类型；非 null 时优先于 ChildContent。"),
-        new("List.ItemTemplate", "RenderFragment<TItem>?", "普通行内容，默认 ToString。"),
-        new("List.CardMode", "bool", "使用 Card 外壳。", "false"),
-        new("List.CardTemplate", "RenderFragment<TItem>?", "卡片内容，无模板时显示文本。"),
-        new("List.MaxHeight", "string?", "设置滚动视口的最大高度；超出后由 List 内部滚动。"),
-        new("List.ChildContent", "RenderFragment?", "列表内容。"),
-        new("List.SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
-        new("List.SelectedValue", "object?", "单选当前值。"),
-        new("List.SelectedValues", "IReadOnlyList<object?>?", "多选当前值。"),
-        new("List.AllowClear", "bool", "单选时允许再次点击清除。", "false"),
-        new("List.AriaLabel", "string?", "列表无障碍名称。"),
-        new("ListItem.Value", "object?", "选项值。"),
-        new("ListItem.ChildContent", "RenderFragment?", "选项内容。"),
-        new("ListItem.LeadingContent", "RenderFragment?", "选项前置内容。"),
-        new("ListItem.TrailingContent", "RenderFragment?", "选项尾部内容。")
-    ];
-
-    private static readonly ShowcaseEvent[] ListEvents =
-    [
-        new("SelectedValueChanged", "EventCallback<object?>", "单选值发生变化时触发。"),
-        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<object?>>", "多选值发生变化时触发。"),
-        new("OnItemSelected", "EventCallback<object?>", "选项被选中或切换时触发。")
-    ];
 
     private Task HandleListSingleChanged(object? value)
     {

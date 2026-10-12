@@ -9,8 +9,7 @@
                   Category="导航组件"
                   Title="VirtualList"
                   ComponentName="VirtualList&lt;TItem&gt;"
-                  Description="只渲染视口附近的固定行高项目，适合大数据量内存集合。"
-                  Parameters="@Parameters">
+                  Description="只渲染视口附近的固定行高项目，适合大数据量内存集合。">
     <Preview>
         <div class="preview-list-wrap">
             <VirtualList Items="@_rows"
@@ -45,30 +44,6 @@
     private object? _selected;
     private bool _hasMoreItems = true;
     private bool _loadingMore;
-
-    private static readonly ShowcaseParameter[] Parameters =
-    [
-        new("Items", "IReadOnlyList<TItem>", "固定内存数据源。"),
-        new("ItemTemplate", "RenderFragment<TItem>?", "可见行模板。"),
-        new("Height", "string", "滚动视口高度。", "320px"),
-        new("ItemSize", "double", "固定行高，单位为 CSS px。", "32"),
-        new("OverscanCount", "int", "视口外预渲染行数。", "5"),
-        new("ItemKeySelector", "Func<TItem, object?>?", "稳定且唯一的项目 key。"),
-        new("HasMoreItems", "bool", "是否仍有更多项目可加载。", "false"),
-        new("LoadingMore", "bool", "宿主当前是否正在加载更多项目。", "false"),
-        new("LoadMoreThreshold", "double", "距视口底部多少 CSS px 时触发加载。", "96"),
-        new("OnLoadMore", "EventCallback", "触底后通知宿主追加项目。"),
-        new("SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
-        new("SelectedValue", "object?", "单选模式下的选中值。"),
-        new("SelectedValueChanged", "EventCallback<object?>", "单选绑定回调。"),
-        new("SelectedValues", "IReadOnlyList<object?>?", "多选模式下的选中值集合。"),
-        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<object?>>", "多选绑定回调。"),
-        new("AllowClear", "bool", "允许清空已选项。", "false"),
-        new("DisabledSelector", "Func<TItem, bool>?", "按项目决定是否禁用。"),
-        new("EmptyContent", "RenderFragment?", "空集合时的自定义内容。"),
-        new("AriaLabel", "string?", "列表的无障碍名称。"),
-        new("OnItemSelected", "EventCallback<object?>", "项目被选中后触发。")
-    ];
 
     private async Task LoadMoreAsync()
     {

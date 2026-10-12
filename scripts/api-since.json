@@ -1,0 +1,23 @@
+{
+  "_comment": "成员 → 首次出现的版本。只登记 release-history 明确记录为“新增公共成员”的批次；未登记的成员在文档里显示为空，不猜测。键格式：<类型名>.<成员名>。",
+  "members": {
+    "Upload.SelectedFiles": "10.32.0",
+    "Upload.SelectedFilesChanged": "10.32.0",
+    "Upload.SelectedFilesExpression": "10.32.0",
+    "Upload.Multiple": "10.32.0",
+    "Upload.Accept": "10.32.0",
+    "Upload.MaxFileSize": "10.32.0",
+    "Upload.MaxFileCount": "10.32.0",
+    "Upload.AllowRemove": "10.32.0",
+    "Upload.ItemTemplate": "10.32.0",
+    "Upload.OnFileSelected": "10.32.0",
+    "Upload.Size": "10.32.0",
+    "Upload.Required": "10.32.0",
+    "Upload.Invalid": "10.32.0",
+    "Upload.FullWidth": "10.32.0",
+    "Upload.DropText": "10.32.0",
+    "Upload.RemoveLabel": "10.32.0",
+    "Upload.AriaLabel": "10.32.0",
+    "Upload.AriaDescribedBy": "10.32.0"
+  }
+}

@@ -1,4 +1,4 @@
-@page "/components/card"
+﻿@page "/components/card"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -12,9 +12,7 @@
                   Category="基础组件"
                   Title="Card"
                   ComponentName="Card"
-                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。"
-                  Parameters="@CardParameters"
-                  Events="@CardEvents">
+                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。">
     <Preview>
         <div class="preview-glass-scene">
             <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
@@ -67,23 +65,6 @@
     private bool _cardInteractive = true;
 
     private string _cardNote = "点击卡片查看 OnClick。";
-
-    private static readonly ShowcaseParameter[] CardParameters =
-    [
-        new("Variant", "SurfaceVariant", "卡片视觉变体。", "Default"),
-        new("Elevation", "SurfaceElevation", "阴影层级。", "None"),
-        new("Padding", "SurfacePadding", "区域内边距。", "Medium"),
-        new("Bordered", "bool", "是否显示边框。", "true"),
-        new("FullWidth", "bool", "是否占满父容器。", "false"),
-        new("Interactive", "bool", "是否启用整卡交互语义。", "false"),
-        new("Header", "RenderFragment?", "头部区域。"),
-        new("ChildContent", "RenderFragment?", "主体区域。"),
-        new("Footer", "RenderFragment?", "底部区域。"),
-        new("AriaLabel", "string?", "交互卡片无障碍名称。")
-    ];
-
-    private static readonly ShowcaseEvent[] CardEvents =
-    [new("OnClick", "EventCallback", "交互卡片被点击或键盘触发时调用。")];
 
     private void MarkCardInteraction()
     {
