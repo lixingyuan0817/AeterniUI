@@ -1757,6 +1757,44 @@
     border-radius: var(--aeterni-radius-xs);
 }
 
+/* 预览 / 代码 tab：一组 tab 只有一个 Tab 停留点，选中项之外 tabindex=-1（由组件输出）。 */
+.component-demo__toolbar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 10px;
+    padding: 2px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-tertiary);
+    width: fit-content;
+}
+
+.component-demo__tab {
+    min-height: 26px;
+    padding: 2px 12px;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-xs);
+    cursor: pointer;
+}
+
+.component-demo__tab:hover {
+    color: var(--aeterni-text-primary);
+}
+
+.component-demo__tab.is-active {
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.component-demo__tab:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-offset));
+}
+
 /* API 表在窄屏下横向滚动，而不是把卡片撑破。 */
 .component-preview__api-table {
     overflow-x: auto;
