@@ -969,11 +969,16 @@ while (Date.now() < deadline) {
 }
 check('Upload renders the host-reported transfer status', uploaded, 'the row never reached the success state');
 
-const second = await dropFile('second.txt');
+await dropFile('second.txt');
 const twoRows = await waitForRows(2);
+// The picker's `files` is deliberately not asserted: whether the framework has
+// already read them is a timing detail, and asserting it would pin the harness to
+// a race instead of to the behaviour. What must hold is that both files are listed.
+const names = await evaluate(
+    `[...document.querySelectorAll('.aeterni-upload__item-name')].map(node => node.textContent.trim()).join(',')`);
 check('Upload appends a second drop instead of replacing the list',
-    second.files === 1 && twoRows >= 2,
-    `input.files=${second.files} rows=${twoRows}`);
+    twoRows >= 2 && names.includes('dragged.txt') && names.includes('second.txt'),
+    `rows=${twoRows} names=${names}`);
 
 // ---------------------------------------------------------------- REV-159
 // The sample pages are the library's runnable contract: the demos the review asked

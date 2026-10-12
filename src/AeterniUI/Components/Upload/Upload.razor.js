@@ -10,10 +10,12 @@
 // itself (a drop is such a case). When an engine refuses the assignment the drop
 // is ignored instead of being reported as a selection that would stream nothing.
 //
-// `reset` clears the input after C# handled a change. Without it, picking the
-// same file twice in a row raises no change event at all — the value did not
-// change — so the second attempt looks like nothing happened. The File objects
-// Blazor already holds stay valid; they live in the framework, not in the element.
+// Clearing happens when the picker is clicked, not after C# handled a change:
+// a file input fires no `change` at all when the same file is chosen twice, so the
+// value has to be gone *before* the dialog opens. Clearing afterwards instead
+// races with the next interaction — the round trip back from C# can land after a
+// following drop has already filled the input, and the selection is then wiped
+// before the framework reads it.
 //
 // The listener set is attached to the drop zone, not to the root: the zone is the
 // element that paints `is-dragover`, and a host-provided `Element` replaces the
@@ -30,10 +32,12 @@ export function init(reference, key) {
         bound: false,
         enabled: false,
         multiple: false,
+        inputBound: false,
         onDragEnter: null,
         onDragOver: null,
         onDragLeave: null,
-        onDrop: null
+        onDrop: null,
+        onInputClick: null
     });
 }
 
@@ -46,7 +50,11 @@ export function sync(key, zone, input, enabled, multiple) {
         state.zone = zone;
     }
 
-    state.input = input ?? null;
+    if (state.input !== input) {
+        detachInput(state);
+        state.input = input ?? null;
+    }
+
     state.enabled = Boolean(enabled);
     state.multiple = Boolean(multiple);
 
@@ -55,21 +63,18 @@ export function sync(key, zone, input, enabled, multiple) {
     // navigate away to that file. `enabled` only decides whether the drop is
     // accepted and whether the highlight is painted.
     attach(state);
+    attachInput(state);
 
     if (!state.enabled) {
         state.zone?.classList.remove('is-dragover');
     }
 }
 
-export function reset(key) {
-    const state = instances.get(key);
-    if (state?.input) state.input.value = '';
-}
-
 export function dispose(key) {
     const state = instances.get(key);
     if (!state) return;
     detach(state);
+    detachInput(state);
     instances.delete(key);
 }
 
@@ -113,6 +118,23 @@ function detach(state) {
     state.zone.removeEventListener('dragleave', state.onDragLeave);
     state.zone.removeEventListener('drop', state.onDrop);
     state.bound = false;
+}
+
+function attachInput(state) {
+    if (state.inputBound || !state.input) return;
+    state.onInputClick = () => {
+        // Runs while the dialog is opening, so the picker always reports its
+        // selection as a change even when it is the file already in the list.
+        state.input.value = '';
+    };
+    state.inputBound = true;
+    state.input.addEventListener('click', state.onInputClick);
+}
+
+function detachInput(state) {
+    if (!state.inputBound || !state.input) return;
+    state.input.removeEventListener('click', state.onInputClick);
+    state.inputBound = false;
 }
 
 function accept(state, transfer) {

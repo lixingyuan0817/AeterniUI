@@ -118,9 +118,38 @@ test('the drop zone paints is-dragover only for a file drag and clears it on exi
     assert.equal(zone.classList.contains('is-dragover'), false);
 });
 
-test('a disabled zone stays inert but still swallows the drop', () => {
+test('clicking the picker clears it so the same file can be chosen again', () => {
+    const { input } = environment();
+    input.value = 'C:\\fakepath\\report.pdf';
+
+    input.emit('click');
+
+    assert.equal(input.value, '', 'the value must be gone before the dialog fills it again');
+});
+
+test('dispose releases the zone and the picker listeners', () => {
+    const { zone, input } = environment();
+    assert.equal(zone.listenerCount('dragenter'), 1);
+    assert.equal(zone.listenerCount('dragover'), 1);
+    assert.equal(zone.listenerCount('dragleave'), 1);
+    assert.equal(zone.listenerCount('drop'), 1);
+    assert.equal(input.listenerCount('click'), 1);
+
+    upload.dispose('upload-1');
+
+    for (const name of ['dragenter', 'dragover', 'dragleave', 'drop']) {
+        assert.equal(zone.listenerCount(name), 0, `${name} must be released`);
+    }
+    assert.equal(input.listenerCount('click'), 0, 'the picker listener must be released');
+});
+
+test('a disabled zone keeps the click clear and still swallows the drop', () => {
     const { zone, input } = environment();
     upload.sync('upload-1', zone, input, false, true);
+
+    input.value = 'C:\\fakepath\\report.pdf';
+    input.emit('click');
+    assert.equal(input.value, '', 'the picker keeps its own clearing behaviour');
 
     dragOver(zone);
     assert.equal(zone.classList.contains('is-dragover'), false, 'a disabled zone never highlights');
@@ -130,34 +159,9 @@ test('a disabled zone stays inert but still swallows the drop', () => {
     assert.equal(event.prevented, true, 'dropping on a disabled zone must not navigate away');
     assert.deepEqual(input.files, [], 'nothing is reported as selected');
     assert.equal(input.changes, 0);
-    assert.equal(zone.listenerCount('drop'), 1, 'the drop must still be swallowed');
-});
-
-test('reset clears the picker so the same file can be chosen again', () => {
-    const { input } = environment();
-    input.value = 'C:\\fakepath\\report.pdf';
-
-    upload.reset('upload-1');
-
-    assert.equal(input.value, '');
-});
-
-test('dispose releases every drag listener', () => {
-    const { zone } = environment();
-    assert.equal(zone.listenerCount('dragenter'), 1);
-    assert.equal(zone.listenerCount('dragover'), 1);
-    assert.equal(zone.listenerCount('dragleave'), 1);
-    assert.equal(zone.listenerCount('drop'), 1);
-
-    upload.dispose('upload-1');
-
-    for (const name of ['dragenter', 'dragover', 'dragleave', 'drop']) {
-        assert.equal(zone.listenerCount(name), 0, `${name} must be released`);
-    }
 });
 
 test('disposing before init and syncing an unknown key are no-ops', () => {
     assert.doesNotThrow(() => upload.dispose('missing'));
     assert.doesNotThrow(() => upload.sync('missing', new Element(), new Element(), true, true));
-    assert.doesNotThrow(() => upload.reset('missing'));
 });

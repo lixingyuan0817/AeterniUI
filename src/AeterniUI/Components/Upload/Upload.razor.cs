@@ -240,10 +240,6 @@ public partial class Upload : AeterniComponent
                 await OnFileSelected.InvokeAsync(file);
             }
         }
-
-        // Clearing the picker is what lets the same file be chosen twice in a row;
-        // the file references C# already holds stay valid.
-        await JsModuleManager.InvokeModuleVoidAsync("upload", "reset", InstanceId);
     }
 
     internal async Task RemoveAsync(UploadFile file)

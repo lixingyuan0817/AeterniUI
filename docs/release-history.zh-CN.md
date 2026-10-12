@@ -11,13 +11,14 @@
 - [x] 新增公共组件 `Upload`（`Components/Upload/`，razor / cs / css / js 四文件）：原生选择器加拖放的文件收集，组件负责选择、可按元数据判定的校验、文件列表与状态渲染；传输、协议与存储归宿主。
 - [x] 新增公共模型与枚举：`AeterniUI.Models.UploadFile`（`Content`、`Id`、`Name`、`Size`、`ContentType`、`Status`、`Percent`、`ErrorMessage`，不支持库外构造）与 `AeterniUI.Enums.UploadStatus`（Pending / Uploading / Success / Error）。宿主在收到的实例上直接改状态即可，重渲染不替换对象。
 - [x] 新增 10 个公共文案表键：`UploadLabel`、`UploadFileListLabel`、`UploadDropText`、`UploadRemoveLabel`、`UploadStatusPendingLabel`、`UploadStatusUploadingLabel`、`UploadStatusSuccessLabel`、`UploadStatusErrorLabel`、`UploadFileTooLargeErrorFormat`、`UploadTooManyFilesErrorFormat`；已在交付文档 §37 的覆写示例中登记，`check-doc-drift` 的文案键覆盖随之通过。
-- [x] 拖放实现为单模块 `Upload.razor.js`：把 `drop` 事件的 `FileList` 写进同一个原生输入再派发 `change`，C# 因此复用与选择器完全一致的路径；模块只负责拖放状态与输入清空，业务状态仍留在 C#；禁用时仍吞掉拖放，避免浏览器跳转到被拖入的文件。
+- [x] 拖放实现为单模块 `Upload.razor.js`：把 `drop` 事件的 `FileList` 写进同一个原生输入再派发 `change`，C# 因此复用与选择器完全一致的路径；模块只负责拖放状态与点击时的输入清空，业务状态仍留在 C#；禁用时仍吞掉拖放，避免浏览器跳转到被拖入的文件。
+- [x] 清空时机由 CI 的真实浏览器检查纠正：最初把清空放在 C# 处理完 change 之后，浏览器 job 复现了它与紧随其后的第二次拖放抢同一轮往返、把新选择抹掉的竞态；改为在点击选择器时（对话框打开前）清空，同一文件仍可重复选择，且不再有该竞态。这条断言随后按「行的内容」而不是「输入框的瞬时状态」重写，避免把测试绑在时序细节上。
 - [x] 无障碍：`<input type="file">` 铺满拖放区承担点击与键盘激活，可见文案 `aria-hidden`；字段内输入采用 `FormField` 的输入 id（标签 `for` 解析到输入而非根元素），`aria-describedby` 合并宿主值与字段描述 id；`focus-visible` 焦点环画在拖放区上，`invalid` 使用无效态焦点色。
 - [x] 交付物齐备：可交互示例页 `/components/upload`（含宿主侧模拟传输，展示 `Status` / `Percent` 回写）、交付文档 §49、组件目录新增 `ShowcaseCatalog` 条目、契约检查新增第 34 组、`tests/upload.test.mjs` 8 项模块断言、浏览器检查 6 项（真实 `DataTransfer` 拖放端到端）随 CI 的 browser job 验证。
 - [x] 版本号 `10.31.1` → `10.32.0`（新增公共组件、模型与文案表键，按仓库约定递增第二位）；`Directory.Build.props` 四处齐动，`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
 - [x] 组件计划：优先级 9 排序中的第 1 项 `Upload` 已交付并从计划移除，排序表与现有能力对照同步；后台数据录入场景的下一候选为 `Cascader`。
 - [x] 顺带收口计划文档漂移：`review-plan` 头部已声明第十轮收口、正文却仍留「待修复」表与 `批次 27 ⏳（待开始）`，`component-plan` 仍把优先级 10 登记为「未开始」；两文件统一为「收口即归档」，并在 `check-docs.sh` 增加两条状态一致性断言（反向注入残留时以退出码 1 拒绝）。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、token 文件组件选择器检查通过；`node --test tests/*.test.mjs` 81 项通过。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、token 文件组件选择器检查通过；`node --test tests/*.test.mjs` 81 项通过。CI 的 build job（同一组门禁）已绿；browser job 首次运行 58/59，唯一失败项即上面这条清空竞态，修复后随下一次 push 复验。
 
 ## 10.30.1 Descriptions 示例列数切换修复
 
