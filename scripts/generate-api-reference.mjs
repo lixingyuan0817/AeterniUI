@@ -63,12 +63,25 @@ function catalogIds() {
     return [...source.matchAll(/new\("([a-z0-9-]+)",/g)].map(match => match[1]);
 }
 
+// 组件目录名只从一次目录列举里查，不用 existsSync：后者在大小写不敏感的文件系统上会
+// 解析出实际上不存在（大小写不符）的目录，于是同一份源码在 Windows 与 Linux 上生成出
+// 不同的页面集合，`--check` 在 CI 报过期却看不出差在哪。
+const COMPONENT_DIRECTORIES = new Map(
+    readdirSync(join(LIBRARY, 'Components'), { withFileTypes: true })
+        .filter(entry => entry.isDirectory())
+        .map(entry => [entry.name.toLowerCase(), entry.name])
+);
+
 /// 组件目录名：目录 id 的 Pascal 形式，或显式例外。
 function componentDirectory(id) {
     const explicit = COMPONENT_DIRECTORY_OVERRIDES[id];
-    if (explicit) return explicit;
-    const derived = pascal(id);
-    return existsSync(join(LIBRARY, 'Components', derived)) ? derived : null;
+    if (explicit) {
+        const found = COMPONENT_DIRECTORIES.get(explicit.toLowerCase());
+        if (!found) throw new Error(`组件目录 ${explicit} 不存在（${id} 页的例外映射已过期）`);
+        return found;
+    }
+
+    return COMPONENT_DIRECTORIES.get(pascal(id).toLowerCase()) ?? null;
 }
 
 function cleanDocComment(block) {
@@ -244,6 +257,24 @@ function render(entries) {
     return lines.join('\n');
 }
 
+/// 只说“过期”会让人无从下手：列出前若干处差异，并单独指出行尾差异——那是平台差异
+/// （检出时的 CRLF）而不是内容差异，两者要分清。
+function reportDifference(current, generated) {
+    const currentLines = current.split(/\r?\n/);
+    const generatedLines = generated.split('\n');
+    console.error(`  行数：仓库 ${currentLines.length}，生成 ${generatedLines.length}` +
+        (current.includes('\r\n') ? '；仓库文件使用 CRLF，生成器输出 LF' : ''));
+
+    let shown = 0;
+    for (let index = 0; index < Math.max(currentLines.length, generatedLines.length) && shown < 10; index++) {
+        if (currentLines[index] === generatedLines[index]) continue;
+        console.error(`  L${index + 1}\n    仓库：${currentLines[index] ?? '<缺行>'}\n    生成：${generatedLines[index] ?? '<缺行>'}`);
+        shown++;
+    }
+
+    if (shown === 0) console.error('  逐行比较没有差异，差异只可能来自行尾或末尾换行。');
+}
+
 const entries = pageEntries();
 const generated = render(entries);
 
@@ -251,6 +282,7 @@ if (process.argv.includes('--check')) {
     const current = existsSync(OUTPUT) ? read(OUTPUT) : '';
     if (current !== generated) {
         console.error(`${OUTPUT} 已过期：请运行 node scripts/generate-api-reference.mjs 后提交生成物。`);
+        reportDifference(current, generated);
         process.exit(1);
     }
 
