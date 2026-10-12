@@ -74,13 +74,14 @@ function bindToc() {
     boundToc = toc;
     if (!toc) return;
 
-    // 高亮带取视口上三分之一：一段进入这条带就认为"正在读它"，向上滚回去同样成立。
+    // 高亮带取视口顶部三成：段的顶边进入这条带就认为"正在读它"，向上滚回去同样成立。
+    // 不要用居中的窄带：短段（例如说明盒）滚到中间时不会与任何窄带相交，高亮就会漏。
     sectionObserver = new IntersectionObserver(entries => {
         for (const entry of entries) {
             if (!entry.isIntersecting) continue;
             setCurrent(toc, entry.target.id);
         }
-    }, { rootMargin: '-15% 0px -70% 0px' });
+    }, { rootMargin: '0px 0px -70% 0px' });
 
     for (const link of toc.querySelectorAll('.component-page__toc-link')) {
         const id = (link.getAttribute('href') ?? '').slice(1);

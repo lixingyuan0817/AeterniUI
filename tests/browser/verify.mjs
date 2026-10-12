@@ -1131,7 +1131,7 @@ check('右栏目录列出本页各段，且没有死链',
 // 滚动到最后一段（说明与边界）：要验证的是"我的高亮逻辑"，不是浏览器的锚点跳转——点 hash
 // 链接会让 Blazor 走一次路由，目录随之离场，把断言绑在它上面只会测到路由行为。
 // 目录里的链接是普通锚点，跳转本身由浏览器负责，不需要在这里重复验证。
-await evaluate(`document.getElementById('upload-notes-title').scrollIntoView({ block: 'center' })`);
+await evaluate(`document.getElementById('upload-notes-title').scrollIntoView({ block: 'start' })`);
 
 // 高亮由一个 IntersectionObserver 标记，滚动后需要等它回调（最多 4 秒）。
 async function waitForCurrentSection(deadlineMs = 4000) {
@@ -1151,7 +1151,8 @@ async function waitForCurrentSection(deadlineMs = 4000) {
                 ariaCurrent: current ? current.getAttribute('aria-current') : null
             };
         })()`);
-        if (state && state.current) return state;
+        // 必须等到"目标段"成为当前段：一进循环就返回的话，采样点会落在滚动完成之前。
+        if (state && state.current === '#upload-notes-title') return state;
         await sleep(150);
     }
     return state;
