@@ -149,8 +149,15 @@ async function waitForRoving(host, item) {
 }
 
 // Real keyboard focus, so :focus-visible matches instead of a programmatic .focus().
+// 顺序焦点起点必须先归零：Chrome 会记住最后一次点击/拖动的元素，之后的 Tab 从它**后面**
+// 继续。P7 先拖了第一个滑块，于是 Tab 从它后面开始，断言落在了第二个实例上（日志里的
+// focus.index=1 就是这么来的）。把 body 变成可聚焦元素并聚焦它，起点就回到文档开头。
 async function tabUntil(selector, maxPresses = 40) {
-    await evaluate('document.activeElement && document.activeElement.blur(); document.body.focus();');
+    await evaluate(`(() => {
+        if (document.body.tabIndex !== -1) document.body.tabIndex = -1;
+        document.activeElement && document.activeElement.blur();
+        document.body.focus();
+    })()`);
     for (let i = 0; i < maxPresses; i++) {
         await key('Tab', 'Tab', 9);
         await sleep(20);
