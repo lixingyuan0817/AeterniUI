@@ -1131,7 +1131,9 @@ check('右栏目录列出本页各段，且没有死链',
 // 滚动到最后一段（说明与边界）：要验证的是"我的高亮逻辑"，不是浏览器的锚点跳转——点 hash
 // 链接会让 Blazor 走一次路由，目录随之离场，把断言绑在它上面只会测到路由行为。
 // 目录里的链接是普通锚点，跳转本身由浏览器负责，不需要在这里重复验证。
-await evaluate(`document.getElementById('upload-notes-title').scrollIntoView({ block: 'start' })`);
+// 目标取页中的一段：页尾那一段（说明与边界）滚不到视口顶部——页面已经到底了，它永远进不了
+// 高亮带，拿它断言等于在测"浏览器能不能把页尾滚到顶部"（不能），而不是测高亮逻辑。
+await evaluate(`document.getElementById('upload-host-progress-title').scrollIntoView({ block: 'start' })`);
 
 // 高亮由一个 IntersectionObserver 标记，滚动后需要等它回调（最多 4 秒）。
 async function waitForCurrentSection(deadlineMs = 4000) {
@@ -1142,7 +1144,7 @@ async function waitForCurrentSection(deadlineMs = 4000) {
             const links = [...document.querySelectorAll('.component-page__toc-link')];
             if (links.length === 0) return { error: 'toc went away' };
             const current = document.querySelector('.component-page__toc-link.is-current');
-            const section = document.getElementById('upload-notes-title');
+            const section = document.getElementById('upload-host-progress-title');
             return {
                 count: links.length,
                 scrolled: window.scrollY > 0,
@@ -1152,7 +1154,7 @@ async function waitForCurrentSection(deadlineMs = 4000) {
             };
         })()`);
         // 必须等到"目标段"成为当前段：一进循环就返回的话，采样点会落在滚动完成之前。
-        if (state && state.current === '#upload-notes-title') return state;
+        if (state && state.current === '#upload-host-progress-title') return state;
         await sleep(150);
     }
     return state;
@@ -1163,7 +1165,7 @@ check('目录在页面滚动后仍完整（跳转/滚动不会把它弄丢）',
     tocAfterScroll && tocAfterScroll.count >= 6 && tocAfterScroll.scrolled && tocAfterScroll.sectionVisible,
     JSON.stringify(tocAfterScroll));
 check('滚动到某段后高亮它（is-current + aria-current）',
-    tocAfterScroll && tocAfterScroll.current === '#upload-notes-title' && tocAfterScroll.ariaCurrent === 'location',
+    tocAfterScroll && tocAfterScroll.current === '#upload-host-progress-title' && tocAfterScroll.ariaCurrent === 'location',
     JSON.stringify(tocAfterScroll));
 
 await send('Emulation.clearDeviceMetricsOverride');
