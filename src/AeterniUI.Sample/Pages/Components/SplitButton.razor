@@ -25,6 +25,7 @@
             <Preview>
                 <div class="preview-stack">
                     <SplitButton Label="保存"
+                                 MenuAriaLabel="保存到其它位置"
                                  Items="@MenuItems"
                                  OnClick="HandlePrimaryAsync"
                                  OnItemSelected="HandleSelectedAsync" />
@@ -39,9 +40,9 @@
                   Code="@StateCode">
             <Preview>
                 <div class="preview-stack">
-                    <SplitButton Label="主动作禁用" PrimaryDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
-                    <SplitButton Label="菜单禁用" MenuDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
-                    <SplitButton Label="主动作忙碌" Loading Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                    <SplitButton Label="主动作禁用" MenuAriaLabel="主动作禁用的菜单" PrimaryDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                    <SplitButton Label="菜单禁用" MenuAriaLabel="已禁用的菜单" MenuDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                    <SplitButton Label="主动作忙碌" MenuAriaLabel="保存到其它位置" Loading Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
                 </div>
             </Preview>
         </DemoCard>
