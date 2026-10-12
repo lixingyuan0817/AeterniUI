@@ -1090,7 +1090,7 @@ check('文档壳按目录顺序给出前后邻居',
     shell.prevHref === '/components/multi-select' && shell.nextHref === '/components/combobox',
     `prev=${shell.prevHref} next=${shell.nextHref}`);
 check('示例代码段渲染了可复制的片段',
-    (shell.codeHead ?? '').startsWith('<Upload') && shell.copyBlockExists && (shell.copyTarget ?? '').endsWith('-code'),
+    (shell.codeHead ?? '').startsWith('<Upload') && shell.copyBlockExists && (shell.copyTarget ?? '').endsWith('-code-block'),
     JSON.stringify(shell));
 
 // 复制按钮的接线：真实点击必须走到脚本并把结果写回按钮（成功或失败都算接线正确，
@@ -1105,7 +1105,12 @@ check('复制按钮点击后回报结果而不是静默失败',
     copyState.state === 'copied' || copyState.state === 'failed',
     JSON.stringify(copyState));
 
-// 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。这是市面组件文档的页面模板，
+// 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。先重新导航一次——折叠态说的是初始
+// 状态，而上面的壳检查已经点开过一个"代码"tab。
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+
+//这是市面组件文档的页面模板，
 // 也是批次 3 的可见成果——此前每页只有一段演示。
 const cards = await evaluate(`(() => {
     const sections = [...document.querySelectorAll('.component-demo')];
@@ -1113,8 +1118,10 @@ const cards = await evaluate(`(() => {
         count: sections.length,
         anchors: sections.map(node => node.id),
         codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
-        // 代码默认折叠：没有任何代码块出现在 DOM 里，直到读者切到"代码"tab。
-        visibleCode: document.querySelectorAll('.component-preview__code-block').length,
+        // 代码默认折叠：代码面板仍带 hidden。注意不能数 DOM 里的代码块——querySelectorAll
+        // 照样会数到隐藏面板内部，那样断言永远是"折叠失败"。
+        openCodePanels: [...document.querySelectorAll('[role="tabpanel"][id$="-code"]')]
+            .filter(panel => !panel.hasAttribute('hidden')).length,
         when: !!document.querySelector('.component-page__when'),
         related: document.querySelectorAll('.component-page__related a').length,
         api: document.querySelectorAll('.component-preview__api-row').length,
@@ -1124,7 +1131,7 @@ const cards = await evaluate(`(() => {
 check('组件页按 demo 卡片组织，每段带锚点与"代码"tab',
     cards.count >= 3 && cards.codeTabs === cards.count && cards.anchors.every(anchor => anchor.length > 0),
     JSON.stringify(cards));
-check('代码默认折叠在 tab 后面', cards.visibleCode === 0, JSON.stringify(cards));
+check('代码默认折叠在 tab 后面', cards.openCodePanels === 0, JSON.stringify(cards));
 check('「在 GitHub 编辑」在卡片内部',
     (cards.edit ?? '').endsWith('/src/AeterniUI.Sample/Pages/Components/Upload.razor'),
     `href=${cards.edit}`);
@@ -1188,8 +1195,9 @@ const filtered = await evaluate(`(async () => {
     }
     return { before, after, status: document.querySelector('.showcase-search__status')?.textContent?.trim() ?? null };
 })()`);
+// 不再断言计数行：条目计数已从侧栏移除，筛选结果本身就是反馈。
 check('侧栏检索按查询过滤条目',
-    filtered.after > 0 && filtered.after < filtered.before && /匹配/.test(filtered.status ?? ''),
+    filtered.after > 0 && filtered.after < filtered.before,
     JSON.stringify(filtered));
 
 // ---------------------------------------------------------------- REV-159
