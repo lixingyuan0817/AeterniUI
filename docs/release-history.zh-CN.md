@@ -18,6 +18,7 @@
 - [x] 版本号 `10.31.1` → `10.32.0`（新增公共组件、模型与文案表键，按仓库约定递增第二位）；`Directory.Build.props` 四处齐动，`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
 - [x] 组件计划：优先级 9 排序中的第 1 项 `Upload` 已交付并从计划移除，排序表与现有能力对照同步；后台数据录入场景的下一候选为 `Cascader`。
 - [x] 顺带收口计划文档漂移：`review-plan` 头部已声明第十轮收口、正文却仍留「待修复」表与 `批次 27 ⏳（待开始）`，`component-plan` 仍把优先级 10 登记为「未开始」；两文件统一为「收口即归档」，并在 `check-docs.sh` 增加两条状态一致性断言（反向注入残留时以退出码 1 拒绝）。
+- [x] 发布：在 `main` 上打注解 tag `v10.32.0` 触发 `Publish NuGet packages`，Validate release tag → Release 构建 → Pack → NuGet Trusted Publishing（OIDC），`AeterniUI.10.32.0.nupkg` 与 `AeterniUI.Icons.FontAwesome.10.32.0.nupkg` 均被 nuget.org 接收（`Created`，非 `--skip-duplicate` 跳过），44s 全绿。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、token 文件组件选择器检查通过；`node --test tests/*.test.mjs` 81 项通过。CI 上 build job 同批全绿，browser job 首次运行 58/59（唯一失败项即上面这条清空竞态），修复后复验 59/59 通过，其中 6 项为真实的 `DataTransfer` 拖放端到端断言。
 
 ## 10.30.1 Descriptions 示例列数切换修复
