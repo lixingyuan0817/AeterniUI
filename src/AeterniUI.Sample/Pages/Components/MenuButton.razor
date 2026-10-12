@@ -1,54 +1,118 @@
 ﻿@page "/components/menu-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
+@using AeterniUI.Components.Menu
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · MenuButton</PageTitle>
 
-<ComponentPreview AnchorId="menu-button"
-                  Category="基础组件"
-                  Title="MenuButton"
-                  ComponentName="MenuButton"
-                  Description="将 Button、Popover 与 Menu 组合为一个带锚定下拉菜单的操作入口。">
-    <Preview>
-        <div class="preview-action-row">
-            <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
-            <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
-            <MenuButton Label="占满容器" FullWidth Class="preview-menu-button-contract" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+<ComponentPage AnchorId="menu-button"
+               Category="基础组件"
+               Title="MenuButton"
+               ComponentName="MenuButton"
+               Description="菜单触发按钮：一个动作按钮带一份分组菜单。"
+               Related="@MenuButtonRelated">
+    <WhenToUse>
+        <p>一个主动作后面挂着若干次要动作时使用：新建旁边的"新建自模板"、行操作里的"更多"。菜单本身就是页面导航时用 <code>Menu</code>；只有图标时用 <code>IconButton</code>。</p>
+        <p>需要"主按钮 + 菜单"并列时用 <code>SplitButton</code>：主动作与菜单各自独立可点。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="menu-button-basic"
+                  Title="基础用法"
+                  Description="点击触发、Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                        <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                    </div>
+                    <span class="preview-feedback" role="status">@_status</span>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <MenuButton Label="受控打开" Open="_menuOpen" OpenChanged="SetMenuOpen" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
-            <MenuButton Label="禁用" Disabled Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
-            <MenuButton Label="加载中" Loading Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
-        </div>
-        <span class="preview-feedback" role="status">@_interactionNote</span>
-    </Preview>
+        <DemoCard Id="menu-button-controlled"
+                  Title="受控打开"
+                  Description="给了 Open/OpenChanged 之后开关由宿主决定：示例里的按钮由宿主状态驱动，组件只上报请求。"
+                  Code="@ControlledCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="ToggleMenu">@(_menuOpen ? "关闭菜单" : "打开菜单")</Button>
+                        <MenuButton Label="受控菜单" Open="_menuOpen" OpenChanged="SetMenuOpen" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                    </div>
+                    <span class="preview-feedback" role="status">菜单状态：@(_menuOpen ? "打开" : "关闭")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="menu-button-states"
+                  Title="禁用、加载与整宽"
+                  Description="Disabled 禁用整体；Loading 只让主动作忙碌，菜单仍可打开；FullWidth 让触发器撑满容器。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <MenuButton Label="禁用" Disabled Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                        <MenuButton Label="加载中" Loading Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                    </div>
+                    <MenuButton Label="占满容器" FullWidth Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>使用受控 <code>Open</code> / <code>OpenChanged</code> 时菜单的开关状态由宿主决定（示例中的「受控打开」按钮由宿主维护状态）；<code>Disabled</code> 禁用整体，<code>Loading</code> 只让主动作忙碌、不阻止菜单。</span>
-        <span>菜单不是 List：PopupHost 仅定位，参照 List 保留 4px 外围与 8px 行内横向留白，子项保留 Menu 的 8px 缩进表达层级，折叠或空组不留尾部间距；保留 32px 菜单行高。普通内容 Popover 与独立 Menu 不受影响。</span>
-        <span>MenuButton 的菜单由现有 <code>Popover</code> 和 <code>Menu</code> 承载，支持 Escape、外部点击、键盘导航和视口翻转。</span>
-        <span>触发按钮和菜单都放在同一个 <code>PopupHost</code> 内，避免点击触发器时被误判为外部点击。</span>
+        <span>菜单由现有的 <code>Popover</code> 与 <code>Menu</code> 承载：Escape、外部点击、方向键导航与视口翻转都沿用它们的行为。</span>
+        <span><code>Loading</code> 只让主动作忙碌（图标按钮位置的忙碌指示），不禁用菜单；要禁整体用 <code>Disabled</code>。</span>
+        <span>触发按钮与菜单在同一个宿主层内，点击触发器不会被判成外部点击。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private bool _menuOpen;
+    private static readonly ShowcaseRelatedLink[] MenuButtonRelated =
+    [
+        new("SplitButton", "/components/split-button"),
+        new("Menu", "/components/menu"),
+        new("IconButton", "/components/icon-button")
+    ];
 
-    private void SetMenuOpen(bool open) => _menuOpen = open;
+    private const string BasicCode = """
+        <MenuButton Label="更多操作" Items="MenuItems" OnItemSelected="HandleSelected" />
+        """;
+
+    private const string ControlledCode = """
+        <MenuButton Label="受控菜单" Open="MenuOpen" OpenChanged="SetMenuOpen" Items="MenuItems" />
+        """;
+
+    private const string StateCode = """
+        <MenuButton Label="加载中" Loading Items="MenuItems" />
+        <MenuButton Label="占满容器" FullWidth Items="MenuItems" />
+        """;
+
+    private bool _menuOpen;
+    private string _status = "尚未选择菜单项";
 
     private static readonly IReadOnlyList<MenuGroup> MenuItems =
     [
-        new MenuGroup("actions", "操作", [
-            new MenuItem("edit", "编辑", "修改当前内容", Icon: null),
+        new("actions", "操作", [
+            new MenuItem("edit", "编辑", "修改当前内容"),
             new MenuItem("duplicate", "复制", "创建一个副本"),
-            new MenuItem("delete", "删除", "移除当前内容")
+            new MenuItem("archive", "归档", "移到归档区", Disabled: true)
         ]),
-        new MenuGroup("export", "导出", [new MenuItem("export-copy", "导出副本")], InitiallyOpen: false)
+        new("danger", "危险操作", [
+            new MenuItem("delete", "删除", "删除后不可恢复")
+        ])
     ];
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+
+    private void SetMenuOpen(bool open) => _menuOpen = open;
 
     private Task HandleSelectedAsync(MenuItem item)
     {
-        MarkInteraction(new MouseEventArgs());
+        _status = $"已选择：{item.Label}";
         return Task.CompletedTask;
     }
 }

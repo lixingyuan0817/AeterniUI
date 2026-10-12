@@ -1,59 +1,128 @@
 ﻿@page "/components/split-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
+@using AeterniUI.Components.Menu
 @using AeterniUI.Enums
+@using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · SplitButton</PageTitle>
 
-<ComponentPreview AnchorId="split-button" Category="基础组件" Title="SplitButton"
-                  ComponentName="SplitButton" Description="独立主动作与菜单动作，共享按钮外观，不共享动作状态。">
-    <Preview>
-        <div class="preview-action-row">
-            <SplitButton Label="保存" AriaLabel="保存当前文档" MenuAriaLabel="更多保存操作"
-                         Items="@Items" Loading="@_loading" PrimaryDisabled="@_primaryDisabled"
-                         MenuDisabled="@_menuDisabled" Disabled="@_disabled" OnClick="SaveAsync" OnItemSelected="Selected" />
-            <SplitButton Label="发布" MenuAriaLabel="更多发布操作" Items="@Items" Size="Size.Default"
-                         Variant="ButtonVariant.Solid" Intent="ButtonIntent.Default" OnClick="SaveAsync" OnItemSelected="Selected" />
-            <SplitButton Label="轮廓" MenuAriaLabel="轮廓菜单" Items="@Items" Size="Size.Small"
-                         Variant="ButtonVariant.Outline" OnClick="SaveAsync" OnItemSelected="Selected" />
-            <span dir="rtl">
-                <SplitButton Label="RTL" MenuAriaLabel="RTL 菜单" Items="@Items" Size="Size.Large"
-                             Variant="ButtonVariant.Soft" OnClick="SaveAsync" OnItemSelected="Selected" />
-            </span>
-        </div>
-        <div class="preview-action-row">
-            <Checkbox @bind-Value="_primaryDisabled">禁用主动作</Checkbox>
-            <Checkbox @bind-Value="_menuDisabled">禁用菜单</Checkbox>
-            <Checkbox @bind-Value="_disabled">整体禁用</Checkbox>
-            <Checkbox @bind-Value="_loading">主动作加载中（菜单仍可用）</Checkbox>
-        </div>
-        <SplitButton Label="全宽受控菜单" MenuAriaLabel="全宽按钮的更多操作" Items="@Items"
-                     FullWidth Variant="ButtonVariant.Ghost" @bind-Open="_open"
-                     OnClick="SaveAsync" OnItemSelected="Selected" />
-        <span class="preview-feedback" role="status">@_status；受控菜单：@(_open ? "打开" : "关闭")</span>
-    </Preview>
+<ComponentPage AnchorId="split-button"
+               Category="基础组件"
+               Title="SplitButton"
+               ComponentName="SplitButton"
+               Description="分裂按钮：主动作与同族次要动作并列，两半各自可点。"
+               Related="@SplitButtonRelated">
+    <WhenToUse>
+        <p>一个动作是主路径、另有若干同族变体时使用：保存 / 另存为、导出 / 导出为 PDF。主次动作不同族时分别用 <code>Button</code> 与 <code>MenuButton</code>。</p>
+        <p>两半的禁用与加载分开控制：主动作忙碌不该连菜单一起锁住，反之亦然。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="split-button-basic"
+                  Title="基础用法"
+                  Description="左半执行主动作并回调 OnClick，右半打开菜单并回调 OnItemSelected；两半共用变体与尺寸。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <SplitButton Label="保存"
+                                 Items="@MenuItems"
+                                 OnClick="HandlePrimaryAsync"
+                                 OnItemSelected="HandleSelectedAsync" />
+                    <span class="preview-feedback" role="status">@_status</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="split-button-states"
+                  Title="分开的禁用与加载"
+                  Description="PrimaryDisabled 只锁主动作，MenuDisabled 只锁菜单，Loading 表示主动作正在执行。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <SplitButton Label="主动作禁用" PrimaryDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                    <SplitButton Label="菜单禁用" MenuDisabled Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                    <SplitButton Label="主动作忙碌" Loading Items="@MenuItems" OnClick="HandlePrimaryAsync" OnItemSelected="HandleSelectedAsync" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="split-button-controlled"
+                  Title="受控打开与语意"
+                  Description="Open/OpenChanged 让宿主掌握菜单开关；菜单的无障碍名称可以由 MenuAriaLabel 单独指定。"
+                  Code="@ControlledCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="ToggleMenu">@(_menuOpen ? "关闭菜单" : "打开菜单")</Button>
+                        <SplitButton Label="导出"
+                                     Intent="ButtonIntent.Neutral"
+                                     MenuAriaLabel="导出为其它格式"
+                                     Open="_menuOpen"
+                                     OpenChanged="SetMenuOpen"
+                                     Items="@MenuItems"
+                                     OnClick="HandlePrimaryAsync"
+                                     OnItemSelected="HandleSelectedAsync" />
+                    </div>
+                    <span class="preview-feedback" role="status">菜单状态：@(_menuOpen ? "打开" : "关闭")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>默认 Small / Ghost / Neutral：紧凑主动作、窄箭头段与弱分隔线，悬浮原位高亮；菜单沿用 Menu 的紧凑行高。可显式指定 Size / Variant / Intent；发布按钮展示标准尺寸实心品牌色。</span>
-        <span>主按钮使用 Label / AriaLabel，箭头按钮必须提供 MenuAriaLabel。Loading 只锁定主动作；Disabled 优先禁用两侧。</span>
-        <span>Tab 分别停留两侧，Enter / Space 触发；菜单内方向键、Home / End、Escape、外部点击、关闭焦点回归与视口翻转复用 MenuButton。</span>
-        <span>无提交、链接主动作、自动替换主动作、异步编排、Toolbar roving-focus 集成或自动溢出能力。</span>
+        <span>两半是各自独立的按钮：键盘可以用 Tab 分别到达，方向键不会在它们之间移动焦点。</span>
+        <span><code>Loading</code> 只作用在主动作上，菜单仍然可以打开；需要整体禁用时同时给 <code>PrimaryDisabled</code> 与 <code>MenuDisabled</code>。</span>
+        <span>菜单沿用 <code>Popover</code> + <code>Menu</code> 的行为：Escape、外部点击、键盘导航与视口翻转。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private bool _loading, _primaryDisabled, _menuDisabled, _disabled, _open;
-    private string _status = "等待操作";
-    private static readonly IReadOnlyList<MenuGroup> Items =
-    [new("save", "保存方式", [new("copy", "另存副本"), new("export", "导出"), new("locked", "不可用", Disabled: true)])];
-    private Task SaveAsync(MouseEventArgs args)
+    private static readonly ShowcaseRelatedLink[] SplitButtonRelated =
+    [
+        new("MenuButton", "/components/menu-button"),
+        new("ButtonGroup", "/components/button-group"),
+        new("Button", "/components/button")
+    ];
+
+    private const string BasicCode = """
+        <SplitButton Label="保存" Items="MenuItems"
+                     OnClick="HandlePrimary" OnItemSelected="HandleSelected" />
+        """;
+
+    private const string StateCode = """
+        <SplitButton Label="主动作禁用" PrimaryDisabled Items="MenuItems" />
+        <SplitButton Label="菜单禁用" MenuDisabled Items="MenuItems" />
+        """;
+
+    private const string ControlledCode = """
+        <SplitButton Label="导出" Open="MenuOpen" OpenChanged="SetMenuOpen" Items="MenuItems"
+                     MenuAriaLabel="导出为其它格式" />
+        """;
+
+    private bool _menuOpen;
+    private string _status = "尚未触发动作";
+
+    private static readonly IReadOnlyList<MenuGroup> MenuItems =
+    [
+        new("formats", "导出格式", [
+            new MenuItem("pdf", "PDF", "适合打印"),
+            new MenuItem("csv", "CSV", "适合表格处理"),
+            new MenuItem("xlsx", "XLSX", "保留公式")
+        ])
+    ];
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+
+    private void SetMenuOpen(bool open) => _menuOpen = open;
+
+    private Task HandlePrimaryAsync()
     {
-        MarkInteraction(args);
-        _status = "已执行主动作";
+        _status = "已执行主动作。";
         return Task.CompletedTask;
     }
-    private void Selected(MenuItem item)
+
+    private Task HandleSelectedAsync(MenuItem item)
     {
-        MarkInteraction(new MouseEventArgs());
         _status = $"已选择：{item.Label}";
+        return Task.CompletedTask;
     }
 }

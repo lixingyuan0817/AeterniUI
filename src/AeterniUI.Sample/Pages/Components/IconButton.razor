@@ -6,41 +6,100 @@
 
 <PageTitle>Aeterni UI · IconButton</PageTitle>
 
-<ComponentPreview AnchorId="icon-button"
-                  Category="基础组件"
-                  Title="IconButton"
-                  ComponentName="IconButton"
-                  Description="用于单一图标动作的方形按钮，强制提供无障碍名称，并支持尺寸、语义、加载和禁用状态。">
-    <Preview>
-        <div class="preview-action-row">
-            <IconButton Icon="@SearchIcon" AriaLabel="搜索" OnClick="MarkInteraction" />
-            <IconButton Variant="ButtonVariant.Outline" Icon="@SettingsIcon" AriaLabel="设置" OnClick="MarkInteraction" />
-            <IconButton Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Icon="@InfoIcon" AriaLabel="查看警告" OnClick="MarkInteraction" />
-            <IconButton Loading AriaLabel="正在加载" />
-        </div>
+<ComponentPage AnchorId="icon-button"
+               Category="基础组件"
+               Title="IconButton"
+               ComponentName="IconButton"
+               Description="图标按钮：只有图标的动作按钮，无障碍名称由 AriaLabel 提供。"
+               Related="@IconButtonRelated">
+    <WhenToUse>
+        <p>动作的图标比文字更直观、且位置紧张时使用：工具栏、卡片角、列表行尾。动作需要文字说明时用 <code>Button</code>。</p>
+        <p><code>AriaLabel</code> 是必需项：没有可见文字，读屏只能靠这个名字识别动作。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="icon-button-basic"
+                  Title="基础用法"
+                  Description="默认是 Ghost + Neutral，适合工具栏与低强调动作；每个按钮都要给出自己的无障碍名称。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <IconButton Icon="@SearchIcon" AriaLabel="搜索" OnClick="MarkInteraction" />
+                        <IconButton Variant="ButtonVariant.Outline" Icon="@SettingsIcon" AriaLabel="设置" OnClick="MarkInteraction" />
+                        <IconButton Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Icon="@InfoIcon" AriaLabel="查看警告" OnClick="MarkInteraction" />
+                    </div>
+                    <span class="preview-feedback" role="status">@_interactionNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
 
-        <div class="preview-action-row">
-            <IconButton Size="Size.Small" Icon="@SearchIcon" AriaLabel="小号搜索" OnClick="MarkInteraction" />
-            <IconButton Size="Size.Large" Icon="@SearchIcon" AriaLabel="大号搜索" OnClick="MarkInteraction" />
-            <IconButton Disabled Icon="@SettingsIcon" AriaLabel="已禁用设置" />
-            <form method="post" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
-                <IconButton Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Icon="@InfoIcon" AriaLabel="提交表单" />
-            </form>
-        </div>
-        <span class="preview-feedback" role="status">@_interactionNote</span>
-    </Preview>
+        <DemoCard Id="icon-button-states"
+                  Title="尺寸、加载与禁用"
+                  Description="三档尺寸与文字按钮共用 Token；加载时只保留忙碌指示并输出 aria-busy，禁用态不进入 Tab 序列。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-action-row">
+                    <IconButton Size="Size.Small" Icon="@SearchIcon" AriaLabel="小号搜索" OnClick="MarkInteraction" />
+                    <IconButton Icon="@SearchIcon" AriaLabel="默认搜索" OnClick="MarkInteraction" />
+                    <IconButton Size="Size.Large" Icon="@SearchIcon" AriaLabel="大号搜索" OnClick="MarkInteraction" />
+                    <IconButton Loading Icon="@SettingsIcon" AriaLabel="正在保存" />
+                    <IconButton Disabled Icon="@InfoIcon" AriaLabel="已禁用" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="icon-button-form"
+                  Title="表单提交"
+                  Description="Type 与文字按钮同一套映射：默认 Button 不会误提交，放进表单提交需显式写 Submit。"
+                  Code="@FormCode">
+            <Preview>
+                <form method="post" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+                    <div class="preview-action-row">
+                        <IconButton Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Icon="@CheckIcon" AriaLabel="提交表单" />
+                        <IconButton Type="ButtonType.Reset" Icon="@XmarkIcon" AriaLabel="重置表单" />
+                    </div>
+                </form>
+                <span class="preview-feedback" role="status">@_interactionNote</span>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>IconButton 默认是 <code>Ghost + Neutral</code>，适合工具栏、关闭、搜索和设置等低强调图标动作。</span>
-        <span><code>AriaLabel</code> 是必需的无障碍名称；加载时只显示 Spinner，并输出 <code>aria-busy</code>。</span>
+        <span><code>AriaLabel</code> 不是可选项：图标按钮没有可见文字，缺了它读屏只会播报"按钮"。</span>
+        <span>默认变体是 <code>Ghost + Neutral</code>，可用 <code>Variant</code> / <code>Intent</code> 改成与文字按钮一致的强调层级。</span>
+        <span>加载态只显示 Spinner 并输出 <code>aria-busy</code>；禁用态使用禁用墨，不整块降低透明度。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    // The submit variant is only meaningful inside a form, so the demo keeps one and
-    // reports the native submit through the same feedback line.
-    private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
+    private static readonly ShowcaseRelatedLink[] IconButtonRelated =
+    [
+        new("Button", "/components/button"),
+        new("MenuButton", "/components/menu-button"),
+        new("Toolbar", "/components/toolbar")
+    ];
 
-    private RenderFragment SearchIcon => @<Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />;
-    private RenderFragment SettingsIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;
-    private RenderFragment InfoIcon => @<Icon Definition="@FontAwesomeIcons.Solid.CircleInfo" />;
+    private const string BasicCode = """
+        <IconButton Icon="SearchIcon" AriaLabel="搜索" OnClick="HandleSearch" />
+        <IconButton Variant="ButtonVariant.Outline" Icon="SettingsIcon" AriaLabel="设置" />
+        """;
+
+    private const string StateCode = """
+        <IconButton Size="Size.Large" Icon="SearchIcon" AriaLabel="搜索" />
+        <IconButton Loading Icon="SettingsIcon" AriaLabel="正在保存" />
+        <IconButton Disabled Icon="InfoIcon" AriaLabel="已禁用" />
+        """;
+
+    private const string FormCode = """
+        <form method="post" @onsubmit="HandleSubmit">
+            <IconButton Type="ButtonType.Submit" Icon="CheckIcon" AriaLabel="提交表单" />
+        </form>
+        """;
+
+    private RenderFragment SearchIcon => @<Icon Definition="@AeterniIcons.MagnifyingGlass" />;
+    private RenderFragment SettingsIcon => @<Icon Definition="@AeterniIcons.Plus" />;
+    private RenderFragment InfoIcon => @<Icon Definition="@AeterniIcons.Info" />;
+    private RenderFragment CheckIcon => @<Icon Definition="@AeterniIcons.Check" />;
+    private RenderFragment XmarkIcon => @<Icon Definition="@AeterniIcons.Xmark" />;
+
+    private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
 }
