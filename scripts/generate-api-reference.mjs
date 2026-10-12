@@ -103,7 +103,7 @@ function cleanDocComment(block) {
 
 /// 参数声明：`[Parameter]`（可带 CapturingUnmatchedValues）后跟属性声明。说明取该成员上方
 /// 最近的 XML 文档注释——没有注释就是空说明，生成器不会替作者编。
-function parseMembers(source) {
+function parseMembers(declaringType, source) {
     const members = [];
     const pattern = /((?:\s*\/\/\/[^\n]*\n)*)\s*\[Parameter[^\]]*\]\s*public\s+([\w<>?,\[\]\.\s]+?)\s+(\w+)\s*\{([^}]*)\}/g;
 
@@ -114,6 +114,7 @@ function parseMembers(source) {
         const initializer = /=\s*([^;]+);/.exec(body)?.[1]?.trim() ?? '';
         members.push({
             name,
+            declaringType,
             type: type.replace(/\s+/g, ' ').trim(),
             defaultValue: simpleDefault(initializer),
             description: cleanDocComment(doc),
@@ -122,6 +123,33 @@ function parseMembers(source) {
     }
 
     return members;
+}
+
+/// 同名参数可能由同一目录下的不同类型声明（`Tab` 与 `Tabs` 各有一个 `Value`，类型还不同）。
+/// 这类歧义必须显式消解：以前只看谁最后被读到，于是生成物取决于文件系统的列举顺序，
+/// Windows 与 Linux 会生成不同的表（本批被 CI 抓到过一次）。消解方式是双方都保留并加上
+/// 类型名前缀，信息不丢，顺序也只由源码决定。
+function qualify(members, pageId) {
+    const byName = new Map();
+    for (const member of members) {
+        byName.set(member.name, [...(byName.get(member.name) ?? []), member]);
+    }
+
+    const collisions = [];
+    const resolved = [];
+    for (const [name, declarations] of byName) {
+        if (declarations.length === 1) {
+            resolved.push(declarations[0]);
+            continue;
+        }
+
+        collisions.push(`${pageId}.${name}`);
+        for (const declaration of declarations) {
+            resolved.push({ ...declaration, name: `${declaration.declaringType}.${name}`, qualified: name });
+        }
+    }
+
+    return { members: resolved, collisions };
 }
 
 /// 默认值只在字面量或简单成员访问时才写出来：`new(...)`、方法调用这类表达式对读者没有
@@ -135,6 +163,8 @@ function simpleDefault(initializer) {
     if (/^\[\s*\]$/.test(initializer)) return '空列表';
     return '';
 }
+
+const collisionWarnings = [];
 
 const since = existsSync(SINCE_FILE)
     ? JSON.parse(read(SINCE_FILE))
@@ -157,16 +187,29 @@ function pageEntries() {
         if (!directory) continue;
 
         const dir = join(LIBRARY, 'Components', directory);
-        const source = readdirSync(dir)
+        // 文件名排序：解析结果随后按名字排序，但同名成员谁先出现也会影响合并，所以顺序
+        // 必须由源码决定，而不是由文件系统的列举顺序决定。
+        const files = readdirSync(dir)
             .filter(file => file.endsWith('.razor.cs') && !INTERNAL_PARTS.has(basename(file, '.razor.cs')))
-            .map(file => read(join(dir, file)))
-            .join('\n');
+            .sort();
 
-        const members = parseMembers(source).map(member => ({
+        const parsed = files.flatMap(file => parseMembers(basename(file, '.razor.cs'), read(join(dir, file))));
+        const { members: qualified, collisions } = qualify(parsed, id);
+        for (const collision of collisions) collisionWarnings.push(collision);
+
+        // 同名歧义行在抽说明时是按带前缀的名字存进编辑文件的（`Radio.AriaLabel`），
+        // 因为原来的手写表就是这么写的；生成器这边也要按同一把键回查，否则这些行会
+        // 只剩源码里通常为空的 XML 说明。
+        const extraDescriptions = new Map((extraRows[id] ?? []).map(row => [row.name, row.description]));
+
+        const members = qualified.map(member => ({
             ...member,
             // 说明优先取编辑文件：源码里的 XML 注释只覆盖了一部分成员，而中文散文一直是
             // 写在页面上的，抽出来之后就以这个文件为准。
-            description: descriptions[id]?.[member.name] ?? member.description,
+            description: descriptions[id]?.[member.qualified ?? member.name]
+                ?? descriptions[id]?.[member.name]
+                ?? extraDescriptions.get(member.name)
+                ?? member.description,
             since: since.members[`${directory}.${member.name}`] ?? ''
         }));
 
@@ -213,7 +256,8 @@ function render(entries) {
     for (const entry of entries) {
         lines.push(`            ["${entry.id}"] = new ShowcaseApiMember[]`);
         lines.push('            {');
-        for (const member of [...entry.members, ...entry.extras.filter(row => row.kind !== '接口')]) {
+        const emitted = new Set(entry.members.map(member => member.name));
+        for (const member of [...entry.members, ...entry.extras.filter(row => row.kind !== '接口' && !emitted.has(row.name))]) {
             const parts = [
                 `"${escape(member.name ?? '')}"`,
                 `"${escape(member.type ?? '')}"`,
@@ -278,6 +322,14 @@ function reportDifference(current, generated) {
 const entries = pageEntries();
 const generated = render(entries);
 
+const totalRows = entries.reduce((total, entry) => total + entry.members.length + entry.extras.length, 0);
+
+// 歧义只在生成时报告：`--check` 是门禁，成功时应当安静，否则 CI 日志里每次都会出现
+// 一长串与本次改动无关的提示。
+if (collisionWarnings.length > 0 && !process.argv.includes('--check')) {
+    console.log(`同名参数已按类型前缀展开：${collisionWarnings.join(', ')}`);
+}
+
 if (process.argv.includes('--check')) {
     const current = existsSync(OUTPUT) ? read(OUTPUT) : '';
     if (current !== generated) {
@@ -286,10 +338,8 @@ if (process.argv.includes('--check')) {
         process.exit(1);
     }
 
-    console.log(`API reference is up to date (${entries.length} pages, ` +
-        `${entries.reduce((total, entry) => total + entry.members.length, 0)} members).`);
+    console.log(`API reference is up to date (${entries.length} pages, ${totalRows} rows).`);
 } else {
     writeFileSync(OUTPUT, generated);
-    console.log(`Wrote ${OUTPUT} (${entries.length} pages, ` +
-        `${entries.reduce((total, entry) => total + entry.members.length, 0)} members).`);
+    console.log(`Wrote ${OUTPUT} (${entries.length} pages, ${totalRows} rows).`);
 }

@@ -8,7 +8,8 @@
 
 ## 示例工程 API 表改为源码生成（批次 2，版本号未递增）
 
-- [x] 新增 `scripts/generate-api-reference.mjs`：解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `ShowcaseApiReference.generated.cs`（53 页 / 596 行）。生成物提交进仓库，CI 新增 `--check` 步骤拒绝过期产物——改参数忘记重生成会失败，而不是悄悄漂移。
+- [x] 新增 `scripts/generate-api-reference.mjs`：解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `ShowcaseApiReference.generated.cs`（53 页 / 644 行，零空说明）。生成物提交进仓库，CI 新增 `--check` 步骤拒绝过期产物——改参数忘记重生成会失败，而不是悄悄漂移。
+- [x] 生成器的确定性被 CI 抓出两处并修掉：一是排序用了 `localeCompare(..., 'en')`，ICU 规则随 Node 构建变化；二是同名参数（`Tab.Value` 与 `Tabs.Value` 类型不同）的消解依赖文件系统列举顺序。前者改为代码点排序，后者改为同名跨类型时双方保留并加类型前缀（26 组），并把「解析顺序由源码决定」写进注释。`--check` 同时改为打印逐行差异与行尾差异——起初它只报一句“已过期”，诊断成本全落在人身上。
 - [x] 编辑内容与生成物分离：`scripts/api-descriptions.json`（548 条中文说明，从原来的手写表一次性抽出，不丢内容）、`scripts/api-extra-rows.json`（48 行生成器推不出来的行：模型属性、服务方法、`Value / StartDate / EndDate` 这类汇总写法）、`scripts/api-since.json`（「自哪个版本」，只登记 release-history 明确记录过的新增成员，首批为 Upload 的 18 个成员）。`DateRangePicker` 的 `StartDateChanged` 等 4 条说明一并补齐。
 - [x] 53 个页面迁移：删除手写 `ShowcaseParameter` / `ShowcaseEvent` / `ShowcaseContract` 表与对应参数，API 段改由生成物渲染，新增「自 x.y.z」列；基类参数由渲染端并入，不随页面重复生成；没有组件的页面（安装、设计基础、实验室）不再输出空的「参数」段。唯一保留手写表的是 `Feedback`（记录服务与选项类型），已在门禁里显式列出。
 - [x] `ComponentPreview` 在页面未提供手写表时读取生成物，按 `属性 / 事件回调 / 接口 / 服务` 分组渲染；字段缺失时按空处理，避免手写编辑文件的形状问题变成崩溃。
