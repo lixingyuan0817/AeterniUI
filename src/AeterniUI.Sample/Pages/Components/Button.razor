@@ -3,101 +3,176 @@
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Button</PageTitle>
 
-<ComponentPreview AnchorId="button"
-                  Category="基础组件"
-                  Title="Button"
-                  ComponentName="Button"
-                  Description="用于触发动作的原生按钮，统一承载类型、变体、尺寸、图标、加载和禁用状态。">
-    <Preview>
-        <div class="preview-stack">
-            <Button Variant="@_buttonVariant"
-                    Intent="@_buttonIntent"
-                    Size="@_buttonSize"
-                    Type="@_buttonType"
-                    Loading="@_buttonLoading"
-                    Disabled="@_buttonDisabled"
-                    FullWidth="@_buttonFullWidth"
-                    StartIcon="@ButtonIcon"
-                    OnClick="MarkInteraction">
-                @_buttonText
-            </Button>
-            <span class="preview-feedback" role="status">@_interactionNote</span>
-        </div>
-        <div class="preview-state-row" aria-label="Loading 状态在各变体下的对照">
-            <Button Variant="ButtonVariant.Solid" Loading="true">Solid</Button>
-            <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
-            <Button Variant="ButtonVariant.Soft" Loading="true">Soft</Button>
-            <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
-            <Button Variant="ButtonVariant.Link" Loading="true">Link</Button>
-        </div>
-        <div class="preview-state-row" aria-label="按钮类型对照">
-            <Button Intent="ButtonIntent.Default">Default</Button>
-            <Button Intent="ButtonIntent.Neutral">Neutral</Button>
-            <Button Intent="ButtonIntent.Warning">Warning</Button>
-            <Button Intent="ButtonIntent.Danger">Danger</Button>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="button-text">按钮文本</label>
-            <input id="button-text" @bind="_buttonText" />
-        </div>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Variant</span>
-                <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_buttonVariant" />
-            </div>
-            <div class="control-field">
-                <span>Intent</span>
-                <ShowcaseSelect TValue="ButtonIntent" Id="button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_buttonIntent" />
-            </div>
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_buttonSize" />
-            </div>
-            <div class="control-field">
-                <span>Type</span>
-                <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="Type" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_buttonType" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_buttonLoading">Loading</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_buttonDisabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_buttonFullWidth">FullWidth</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_buttonHasIcon">显示起始图标</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="button"
+               Category="基础组件"
+               Title="Button"
+               ComponentName="Button"
+               Description="动作按钮：变体、语意色、尺寸、加载与图标。"
+               Related="@ButtonRelated">
+    <WhenToUse>
+        <p>执行一个动作时使用：提交、保存、删除。跳转到别的地址用链接，切换状态用 <code>Switch</code>，只有图标没有文字时用 <code>IconButton</code>。</p>
+        <p>一屏里主次分明：一个主要动作（<code>Solid</code> + 默认语意），其余用 <code>Outline</code>、<code>Soft</code> 或 <code>Ghost</code>；危险动作才用 <code>Danger</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="button-basic"
+                  Title="基础用法"
+                  Description="变体决定强调层级，Intent 决定语意色；Type 映射到原生 button 类型（默认 Button，不会误提交表单）。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-action-row">
+                    <Button Variant="ButtonVariant.Solid" OnClick="MarkInteraction">保存</Button>
+                    <Button Variant="ButtonVariant.Outline" OnClick="MarkInteraction">另存为</Button>
+                    <Button Variant="ButtonVariant.Ghost" OnClick="MarkInteraction">取消</Button>
+                    <Button Variant="ButtonVariant.Soft" Intent="ButtonIntent.Danger" OnClick="MarkInteraction">删除</Button>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="button-variants"
+                  Title="变体与语意对照"
+                  Description="同一语意色在五个变体下的表现一致；加载态不改变变体的墨色，只把内容换成忙碌指示。"
+                  Code="@VariantCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-state-row" aria-label="变体对照">
+                        <Button Variant="ButtonVariant.Solid">Solid</Button>
+                        <Button Variant="ButtonVariant.Outline">Outline</Button>
+                        <Button Variant="ButtonVariant.Soft">Soft</Button>
+                        <Button Variant="ButtonVariant.Ghost">Ghost</Button>
+                        <Button Variant="ButtonVariant.Link">Link</Button>
+                    </div>
+                    <div class="preview-state-row" aria-label="语意对照">
+                        <Button Intent="ButtonIntent.Default">Default</Button>
+                        <Button Intent="ButtonIntent.Neutral">Neutral</Button>
+                        <Button Intent="ButtonIntent.Warning">Warning</Button>
+                        <Button Intent="ButtonIntent.Danger">Danger</Button>
+                    </div>
+                    <div class="preview-state-row" aria-label="加载态对照">
+                        <Button Variant="ButtonVariant.Solid" Loading="true">Solid</Button>
+                        <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
+                        <Button Variant="ButtonVariant.Soft" Loading="true">Soft</Button>
+                        <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="button-states"
+                  Title="尺寸、图标与状态"
+                  Description="三档尺寸、两端图标、加载与禁用；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Button Variant="@_variant"
+                            Intent="@_intent"
+                            Size="@_size"
+                            Type="@_type"
+                            Loading="@_loading"
+                            Disabled="@_disabled"
+                            FullWidth="@_fullWidth"
+                            StartIcon="@(_hasIcon ? CheckIcon : null)"
+                            OnClick="MarkInteraction">@_text</Button>
+                    <span class="preview-feedback" role="status">@_interactionNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="button-text">文本</label>
+                    <input id="button-text" @bind="_text" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Intent</span>
+                        <ShowcaseSelect TValue="ButtonIntent" Id="button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                    </div>
+                    <div class="control-field">
+                        <span>Type</span>
+                        <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="Type" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_type" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_hasIcon">StartIcon</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="button-form"
+                  Title="表单提交"
+                  Description="需要提交表单时显式给 Type=Submit；默认的 Button 类型不会触发提交，避免误提交。"
+                  Code="@FormCode">
+            <Preview>
+                <form method="post" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+                    <div class="preview-action-row">
+                        <Button Type="ButtonType.Submit">提交</Button>
+                        <Button Type="ButtonType.Reset" Variant="ButtonVariant.Outline">重置</Button>
+                    </div>
+                </form>
+                <span class="preview-feedback" role="status">@_interactionNote</span>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>点击预览按钮会触发 <code>OnClick</code>，加载状态会同时输出 <code>aria-busy</code> 并阻止交互。</span>
-        <span>按钮类型由 <code>Intent</code> 表达，视觉形式由 <code>Variant</code> 表达，两者职责分离。</span>
-        <span>禁用状态会随 <code>Variant</code> 和 <code>Intent</code> 保留层级与语义底色，不使用透明背景。</span>
-        <span>加载状态在五种变体下保持尺寸稳定，并通过 <code>aria-busy</code> 表达忙碌状态。</span>
+        <span>渲染为原生 <code>button</code>：键盘用 Enter/空格激活，禁用态同时输出 <code>disabled</code> 与 <code>aria-disabled</code>。</span>
+        <span><code>Type</code> 的默认值是 <code>Button</code> 而不是浏览器默认的 <code>submit</code>：放进表单也不会误提交，需要提交时显式声明。</span>
+        <span>加载态只把内容换成忙碌指示并输出 <code>aria-busy</code>，不改变按钮墨色；宽度由内容或 <code>FullWidth</code> 决定。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private string _buttonText = "保存更改";
+    private static readonly ShowcaseRelatedLink[] ButtonRelated =
+    [
+        new("IconButton", "/components/icon-button"),
+        new("MenuButton", "/components/menu-button"),
+        new("SplitButton", "/components/split-button"),
+        new("ButtonGroup", "/components/button-group")
+    ];
 
-    private ButtonVariant _buttonVariant = ButtonVariant.Solid;
+    private const string BasicCode = """
+        <Button Variant="ButtonVariant.Solid" OnClick="Save">保存</Button>
+        <Button Variant="ButtonVariant.Outline">另存为</Button>
+        <Button Variant="ButtonVariant.Ghost">取消</Button>
+        """;
 
-    private ButtonIntent _buttonIntent = ButtonIntent.Default;
+    private const string VariantCode = """
+        <Button Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Loading="IsSaving">提交</Button>
+        """;
 
-    private Size _buttonSize = Size.Medium;
+    private const string StateCode = """
+        <Button Variant="ButtonVariant.Solid" Size="Size.Large" StartIcon="CheckIcon" FullWidth>
+            保存更改
+        </Button>
+        """;
 
-    private ButtonType _buttonType = ButtonType.Button;
+    private const string FormCode = """
+        <form method="post" @onsubmit="HandleSubmit">
+            <Button Type="ButtonType.Submit">提交</Button>
+            <Button Type="ButtonType.Reset" Variant="ButtonVariant.Outline">重置</Button>
+        </form>
+        """;
 
-    private bool _buttonLoading;
+    private string _text = "保存更改";
+    private ButtonVariant _variant = ButtonVariant.Solid;
+    private ButtonIntent _intent = ButtonIntent.Default;
+    private Size _size = Size.Medium;
+    private ButtonType _type = ButtonType.Button;
+    private bool _loading;
+    private bool _disabled;
+    private bool _fullWidth;
+    private bool _hasIcon = true;
 
-    private bool _buttonDisabled;
+    private RenderFragment? CheckIcon => @<Icon Definition="@AeterniIcons.Check" />;
 
-    private bool _buttonFullWidth;
-
-    private bool _buttonHasIcon = true;
-
-    private RenderFragment? ButtonIcon => _buttonHasIcon ? CheckIcon : null;
-
-    private RenderFragment CheckIcon => @<Icon Definition="@FontAwesomeIcons.Solid.Check" />;
+    private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
 }
