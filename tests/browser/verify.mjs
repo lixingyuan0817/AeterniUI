@@ -914,19 +914,23 @@ check('REV-148 reduced motion collapses the exit wait instead of blocking',
 await goto(`${BASE}/components/upload`);
 await waitForApp();
 
+// 断言限定在「宿主驱动传输进度」那张卡片上：卡片化之后一页有四个 Upload 实例，
+// 全局选择器会命中第一张（基础用法，没有传输逻辑），检查就会对着一个不该有进度的
+// 实例断言进度。
+//
 // `drop` hands over files the page built, exactly like a real transfer: the
 // FileList a drop carries is the one form a script is allowed to assign.
 const dragEnter = () => evaluate(`(() => {
-    const zone = document.querySelector('.aeterni-upload__drop');
+    const zone = document.querySelector('#upload-host-progress .aeterni-upload__drop');
     const transfer = new DataTransfer();
     transfer.items.add(new File(['aeterni'], 'dragged.txt', { type: 'text/plain' }));
     zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, dataTransfer: transfer }));
-    return { highlighted: zone.classList.contains('is-dragover'), files: document.querySelector('.aeterni-upload input[type=file]').files.length };
+    return { highlighted: zone.classList.contains('is-dragover'), files: document.querySelector('#upload-host-progress input[type=file]').files.length };
 })()`);
 
 const dropFile = name => evaluate(`(() => {
-    const zone = document.querySelector('.aeterni-upload__drop');
-    const input = document.querySelector('.aeterni-upload input[type=file]');
+    const zone = document.querySelector('#upload-host-progress .aeterni-upload__drop');
+    const input = document.querySelector('#upload-host-progress input[type=file]');
     const transfer = new DataTransfer();
     transfer.items.add(new File(['aeterni'], '${name}', { type: 'text/plain' }));
     zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer: transfer }));
@@ -938,7 +942,7 @@ async function waitForRows(count) {
     const deadline = Date.now() + 10000;
     let rows = 0;
     while (Date.now() < deadline) {
-        rows = await evaluate(`document.querySelectorAll('.aeterni-upload__item').length`);
+        rows = await evaluate(`document.querySelectorAll('#upload-host-progress .aeterni-upload__item').length`);
         if (rows >= count) break;
         await sleep(100);
     }
@@ -956,14 +960,14 @@ check('Upload clears the drop state on drop', !dropped.highlighted, `highlighted
 const firstRow = await waitForRows(1);
 check('Upload reports the dropped file to Blazor through the native picker', firstRow >= 1, `${firstRow} row(s)`);
 const metadata = await evaluate(
-    `/7 B/.test(document.querySelector('.aeterni-upload__item')?.innerText ?? '')`);
+    `/7 B/.test(document.querySelector('#upload-host-progress .aeterni-upload__item')?.innerText ?? '')`);
 check('Upload reads the dropped file metadata', metadata, 'the dropped File size must reach C#');
 
 // The sample fabricates the transport on the host side; the row must follow it.
 const deadline = Date.now() + 10000;
 let uploaded = false;
 while (Date.now() < deadline) {
-    uploaded = await evaluate(`/Uploaded/.test(document.querySelector('.aeterni-upload__item')?.innerText ?? '')`);
+    uploaded = await evaluate(`/Uploaded/.test(document.querySelector('#upload-host-progress .aeterni-upload__item')?.innerText ?? '')`);
     if (uploaded) break;
     await sleep(100);
 }
@@ -975,7 +979,7 @@ const twoRows = await waitForRows(2);
 // already read them is a timing detail, and asserting it would pin the harness to
 // a race instead of to the behaviour. What must hold is that both files are listed.
 const names = await evaluate(
-    `[...document.querySelectorAll('.aeterni-upload__item-name')].map(node => node.textContent.trim()).join(',')`);
+    `[...document.querySelectorAll('#upload-host-progress .aeterni-upload__item-name')].map(node => node.textContent.trim()).join(',')`);
 check('Upload appends a second drop instead of replacing the list',
     twoRows >= 2 && names.includes('dragged.txt') && names.includes('second.txt'),
     `rows=${twoRows} names=${names}`);
