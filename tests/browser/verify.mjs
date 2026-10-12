@@ -471,7 +471,9 @@ await evaluate(`(() => {
 })()`);
 await sleep(100);
 const horizontalTimeline = await evaluate(`(() => {
-    const root = document.querySelector('.aeterni-timeline');
+    // 必须锁定被那个复选框控制的实例：卡片化之后一页有三段时间轴，first-match 拿到的是
+    // "基础用法"里那一段，它不该跟着变（检查项因此误报 horizontal=false）。
+    const root = document.querySelector('#timeline-controls .aeterni-timeline');
     const markers = [...root.querySelectorAll('.aeterni-timeline__marker')].map(node => node.getBoundingClientRect());
     const connector = getComputedStyle(root.querySelector('.aeterni-timeline__item'), '::after');
     return {
