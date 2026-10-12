@@ -24,6 +24,9 @@
     /* 卡片内边距只在这里定义一次：页头、demo 卡、API 段、说明段共用，任何一段单独写
        padding 都会让卡片的左右边界与侧栏错开。窄屏由 clamp 收窄，避免内容被挤到溢出。 */
     --showcase-card-padding: clamp(16px, 3vw, 28px);
+    /* 段的纵向节奏：单独写在各段里时，任何一次 padding 重构都会把它清零（本批踩过：
+       卡片底部的说明段丢了底部内边距，段与段之间也贴在一起）。 */
+    --showcase-card-block: clamp(20px, 3vw, 30px);
     display: grid;
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
@@ -108,8 +111,11 @@
 /* 检索独立成块：与导航分区之间用分隔线分开，读者一眼能看出"这是筛选，下面是条目"。 */
 .showcase-search {
     display: grid;
-    padding: 14px 0 12px;
+    /* 与 .showcase-nav 同一条右侧出血（为滚动条留的 18px）：不加这一条，检索框会比菜单项
+       窄 18px，右侧看起来空一截。 */
+    margin-right: -18px;
     margin-bottom: 4px;
+    padding: 14px 18px 12px 0;
     border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
@@ -1299,7 +1305,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
-    padding: 26px 28px 22px;
+    padding: 26px var(--showcase-card-padding) 22px;
     border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
@@ -1668,9 +1674,19 @@
     margin-bottom: 6px;
 }
 
-/* 组件页骨架：标题区、何时使用、demo 列表、API、相关组件、说明与边界。 */
-.component-page__section {
-    padding: 0 var(--showcase-card-padding);
+/* 组件页骨架：标题区、何时使用、demo 列表、API、相关组件、说明与边界。
+   每一段的横向内边距都来自 --showcase-card-padding，纵向间距来自 --showcase-card-block；
+   最后一段（说明与边界）还带底部内边距，卡片底部因此不会贴住文字。 */
+.component-page__demos,
+.component-page__when,
+.component-page__related,
+.component-preview__api {
+    padding: var(--showcase-card-block) var(--showcase-card-padding) 0;
+}
+
+.component-page__section,
+.component-preview__notes-section {
+    padding: var(--showcase-card-block) var(--showcase-card-padding) var(--showcase-card-block);
 }
 
 .component-page__section h2 {
@@ -1715,10 +1731,7 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
-.component-page__related,
-.component-page__when {
-    padding: 0 var(--showcase-card-padding);
-}
+/* 相关组件与何时使用的内边距由上面的成组规则给出。 */
 
 /* 卡片内的页头元信息：类型名与"在 GitHub 编辑"竖排在右侧，跟标题区同一行。 */
 .component-preview__meta {

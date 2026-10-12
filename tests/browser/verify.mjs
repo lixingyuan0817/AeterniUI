@@ -1132,6 +1132,28 @@ check('组件页按 demo 卡片组织，每段带锚点与"代码"tab',
     cards.count >= 3 && cards.codeTabs === cards.count && cards.anchors.every(anchor => anchor.length > 0),
     JSON.stringify(cards));
 check('代码默认折叠在 tab 后面', cards.openCodePanels === 0, JSON.stringify(cards));
+const insets = await evaluate(`(() => {
+    const card = document.querySelector('.component-preview');
+    const left = node => node ? Math.round(node.getBoundingClientRect().left - card.getBoundingClientRect().left) : null;
+    const container = document.querySelector('#upload');
+    const notes = document.querySelector('.component-page__section');
+    return {
+        header: left(document.querySelector('.component-preview__header h1')),
+        demo: left(document.querySelector('.component-demo h3')),
+        api: left(document.querySelector('.component-preview__api h4')),
+        notesBottom: notes
+            ? Math.round(card.getBoundingClientRect().bottom - notes.getBoundingClientRect().bottom)
+            : null,
+        container: container ? Math.round(container.getBoundingClientRect().width) : null
+    };
+})()`);
+check('卡片各段左右内边距一致（页头 / demo / API）',
+    insets.header !== null && insets.header === insets.demo && insets.header === insets.api,
+    JSON.stringify(insets));
+check('说明与边界仍保留底部内边距',
+    insets.notesBottom !== null && insets.notesBottom > 8,
+    JSON.stringify(insets));
+
 check('「在 GitHub 编辑」在卡片内部',
     (cards.edit ?? '').endsWith('/src/AeterniUI.Sample/Pages/Components/Upload.razor'),
     `href=${cards.edit}`);
