@@ -1136,7 +1136,9 @@ const insets = await evaluate(`(() => {
     const card = document.querySelector('.component-preview');
     const left = node => node ? Math.round(node.getBoundingClientRect().left - card.getBoundingClientRect().left) : null;
     const container = document.querySelector('#upload');
-    const notes = document.querySelector('.component-page__section');
+    // 量内容盒而不是段元素：padding 在段元素内部，段的 rect 底边本来就贴着卡片底边，
+    // 量段本身只会得到 0（这一版断言就写错过一次）。
+    const notes = document.querySelector('.component-preview__notes');
     return {
         header: left(document.querySelector('.component-preview__header h1')),
         demo: left(document.querySelector('.component-demo h3')),
