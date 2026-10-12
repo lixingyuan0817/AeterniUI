@@ -918,6 +918,28 @@ await waitForApp();
 // 全局选择器会命中第一张（基础用法，没有传输逻辑），检查就会对着一个不该有进度的
 // 实例断言进度。
 //
+// 拖放监听由组件的 JS 模块在渲染后 attach。`waitForApp` 只证明标记渲染完成，卡片化之后
+// 一张页面上有四个 Upload 实例，第四个实例的模块还没接上监听时，派发 dragenter 会毫无
+// 反应——所以先用探针确认区域已经会画拖放态，再断言（CI 抓到的正是这次的时序）。
+async function dropZoneReady(selector) {
+    const deadline = Date.now() + 10000;
+    while (Date.now() < deadline) {
+        const ready = await evaluate(`(() => {
+            const zone = document.querySelector('${selector}');
+            if (!zone) return false;
+            const transfer = new DataTransfer();
+            transfer.items.add(new File(['aeterni'], 'probe.txt', { type: 'text/plain' }));
+            zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, dataTransfer: transfer }));
+            const painted = zone.classList.contains('is-dragover');
+            zone.classList.remove('is-dragover');
+            return painted;
+        })()`);
+        if (ready) return true;
+        await sleep(150);
+    }
+    return false;
+}
+
 // `drop` hands over files the page built, exactly like a real transfer: the
 // FileList a drop carries is the one form a script is allowed to assign.
 const dragEnter = () => evaluate(`(() => {
@@ -949,10 +971,11 @@ async function waitForRows(count) {
     return rows;
 }
 
+const zoneReady = await dropZoneReady('#upload-host-progress .aeterni-upload__drop');
 const drag = await dragEnter();
 check('Upload paints its drop state while a file is dragged over the zone',
-    drag.highlighted && drag.files === 0,
-    `highlighted=${drag.highlighted} files=${drag.files}`);
+    zoneReady && drag.highlighted && drag.files === 0,
+    `ready=${zoneReady} highlighted=${drag.highlighted} files=${drag.files}`);
 
 const dropped = await dropFile('dragged.txt');
 check('Upload clears the drop state on drop', !dropped.highlighted, `highlighted=${dropped.highlighted}`);
