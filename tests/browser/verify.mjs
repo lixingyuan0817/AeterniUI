@@ -1133,20 +1133,30 @@ await evaluate(`(() => {
     const links = [...document.querySelectorAll('.component-page__toc-link')];
     links[links.length - 1].click();
 })()`);
-await sleep(600);
-const tocAfterJump = await evaluate(`(() => {
-    const links = [...document.querySelectorAll('.component-page__toc-link')];
-    const last = links[links.length - 1];
-    const id = (last.getAttribute('href') ?? '').slice(1);
-    const section = document.getElementById(id);
-    const current = document.querySelector('.component-page__toc-link.is-current');
-    return {
-        scrolled: window.scrollY > 0,
-        sectionVisible: section ? section.getBoundingClientRect().top < window.innerHeight : false,
-        current: current ? current.getAttribute('href') : null,
-        ariaCurrent: current ? current.getAttribute('aria-current') : null
-    };
-})()`);
+// 点 hash 链接会让 Blazor 走一次路由重渲染，目录会短暂离场；等它回来并标好当前段再断言。
+async function waitForTocState(deadlineMs = 4000) {
+    const deadline = Date.now() + deadlineMs;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const links = [...document.querySelectorAll('.component-page__toc-link')];
+            if (links.length === 0) return null;
+            const current = document.querySelector('.component-page__toc-link.is-current');
+            return {
+                scrolled: window.scrollY > 0,
+                sectionVisible: !!document.getElementById('upload-notes-title')
+                    && document.getElementById('upload-notes-title').getBoundingClientRect().top < window.innerHeight,
+                current: current ? current.getAttribute('href') : null,
+                ariaCurrent: current ? current.getAttribute('aria-current') : null
+            };
+        })()`);
+        if (state && state.current) return state;
+        await sleep(150);
+    }
+    return state ?? { error: 'toc never came back' };
+}
+
+const tocAfterJump = await waitForTocState();
 check('目录链接跳到对应段落',
     tocAfterJump.scrolled && tocAfterJump.sectionVisible, JSON.stringify(tocAfterJump));
 check('滚动后高亮当前段（is-current + aria-current）',
