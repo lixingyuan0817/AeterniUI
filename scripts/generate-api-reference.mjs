@@ -162,7 +162,10 @@ function pageEntries() {
         entries.push({
             id,
             directory,
-            members: members.sort((left, right) => left.name.localeCompare(right.name, 'en')),
+            // 排序必须是代码点序，不能用 localeCompare：ICU 的排序规则随 Node 构建变化，
+            // 生成物会因此在 CI 与本地不一致，`--check` 报“过期”却看不出差在哪（本批真的
+            // 被 CI 抓到过一次）。生成物的内容只能取决于源码。
+            members: members.sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0)),
             // 额外行排在组件成员之后：它们记录的是同页的模型、服务与汇总写法，读者先看组件本身。
             extras: extraRows[id] ?? []
         });
