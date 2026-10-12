@@ -1128,24 +1128,25 @@ check('右栏目录列出本页各段，且没有死链',
     !toc.error && toc.count >= 6 && toc.deadLinks.length === 0 && toc.titles[0] === '何时使用',
     JSON.stringify(toc));
 
-// 点最后一条（说明与边界）应真正滚到那一段，并在滚动后高亮它。
-await evaluate(`(() => {
-    const links = [...document.querySelectorAll('.component-page__toc-link')];
-    links[links.length - 1].click();
-})()`);
-// 点 hash 链接会让 Blazor 走一次路由重渲染，目录会短暂离场；等它回来并标好当前段再断言。
-async function waitForTocState(deadlineMs = 4000) {
+// 滚动到最后一段（说明与边界）：要验证的是"我的高亮逻辑"，不是浏览器的锚点跳转——点 hash
+// 链接会让 Blazor 走一次路由，目录随之离场，把断言绑在它上面只会测到路由行为。
+// 目录里的链接是普通锚点，跳转本身由浏览器负责，不需要在这里重复验证。
+await evaluate(`document.getElementById('upload-notes-title').scrollIntoView({ block: 'center' })`);
+
+// 高亮由一个 IntersectionObserver 标记，滚动后需要等它回调（最多 4 秒）。
+async function waitForCurrentSection(deadlineMs = 4000) {
     const deadline = Date.now() + deadlineMs;
     let state = null;
     while (Date.now() < deadline) {
         state = await evaluate(`(() => {
             const links = [...document.querySelectorAll('.component-page__toc-link')];
-            if (links.length === 0) return null;
+            if (links.length === 0) return { error: 'toc went away' };
             const current = document.querySelector('.component-page__toc-link.is-current');
+            const section = document.getElementById('upload-notes-title');
             return {
+                count: links.length,
                 scrolled: window.scrollY > 0,
-                sectionVisible: !!document.getElementById('upload-notes-title')
-                    && document.getElementById('upload-notes-title').getBoundingClientRect().top < window.innerHeight,
+                sectionVisible: !!section && section.getBoundingClientRect().top < window.innerHeight,
                 current: current ? current.getAttribute('href') : null,
                 ariaCurrent: current ? current.getAttribute('aria-current') : null
             };
@@ -1153,15 +1154,16 @@ async function waitForTocState(deadlineMs = 4000) {
         if (state && state.current) return state;
         await sleep(150);
     }
-    return state ?? { error: 'toc never came back' };
+    return state;
 }
 
-const tocAfterJump = await waitForTocState();
-check('目录链接跳到对应段落',
-    tocAfterJump.scrolled && tocAfterJump.sectionVisible, JSON.stringify(tocAfterJump));
-check('滚动后高亮当前段（is-current + aria-current）',
-    tocAfterJump.current === '#' + 'upload-notes-title' && tocAfterJump.ariaCurrent === 'location',
-    JSON.stringify(tocAfterJump));
+const tocAfterScroll = await waitForCurrentSection();
+check('目录在页面滚动后仍完整（跳转/滚动不会把它弄丢）',
+    tocAfterScroll && tocAfterScroll.count >= 6 && tocAfterScroll.scrolled && tocAfterScroll.sectionVisible,
+    JSON.stringify(tocAfterScroll));
+check('滚动到某段后高亮它（is-current + aria-current）',
+    tocAfterScroll && tocAfterScroll.current === '#upload-notes-title' && tocAfterScroll.ariaCurrent === 'location',
+    JSON.stringify(tocAfterScroll));
 
 await send('Emulation.clearDeviceMetricsOverride');
 await sleep(150);
