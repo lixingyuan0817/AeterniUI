@@ -64,6 +64,28 @@
                 </div>
             </Preview>
         </DemoCard>
+        <DemoCard Id="segmented-states"
+                  Title="在 FormField 中使用"
+                  Description="字段的必填与无效状态传给分段控件与每个选项；分段控件不是表单提交控件，是否阻止提交由宿主决定。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="计费周期"
+                               Description="字段状态会同时作用在分段控件与选项上。"
+                               Required="@_formRequired" Invalid="@_formInvalid">
+                        <Segmented TValue="string"
+                                   Items="@_cycles"
+                                   Value="@_cycle"
+                                   ValueChanged="SelectCycle"
+                                   AriaLabel="计费周期" />
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>选项数量变化时滑块几何按当前项重新计算，2 项与 5 项使用同一套 Token，不需要宿主额外配置。</span>
@@ -90,6 +112,12 @@
         <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView" FullWidth />
         """;
 
+    private const string StateCode = """
+        <FormField Label="计费周期" Required>
+            <Segmented TValue="string" Items="Cycles" Value="Cycle" ValueChanged="SelectCycle" />
+        </FormField>
+        """;
+
     private const string OptionCode = """
         <Segmented TValue="int"
                    Items="Ranges"
@@ -103,6 +131,10 @@
     private static readonly int[] _ranges = [1, 2, 3, 4, 5];
     private string _view = "列表";
     private int _range = 2;
+    private static readonly string[] _cycles = ["按月", "按季", "按年"];
+    private string _cycle = "按月";
+    private bool _formRequired = true;
+    private bool _formInvalid = true;
 
     private static bool IsRangeDisabled(int range) => range == 3;
 
@@ -111,6 +143,12 @@
     private Task SelectView(string value)
     {
         _view = value;
+        return Task.CompletedTask;
+    }
+
+    private Task SelectCycle(string value)
+    {
+        _cycle = value;
         return Task.CompletedTask;
     }
 

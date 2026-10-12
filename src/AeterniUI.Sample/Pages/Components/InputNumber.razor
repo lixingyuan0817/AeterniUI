@@ -52,6 +52,36 @@
             </Preview>
         </DemoCard>
 
+        <DemoCard Id="input-number-form"
+                  Title="在 EditForm 中校验"
+                  Description="FormField.For 指向模型字段，组件的 ValueExpression 把同一字段接进 EditContext；提交时 DataAnnotations 的 Range 决定字段是否无效。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <EditForm Model="_orderModel" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <FormField Label="采购数量（1~50）" For="@(() => _orderModel.Quantity)">
+                            <AeterniUI.Components.InputNumber.InputNumber TValue="int"
+                                         Value="_orderModel.Quantity"
+                                         ValueChanged="@(value => _orderModel.Quantity = value ?? 0)"
+                                         ValueExpression="@(() => _orderModel.Quantity)"
+                                         Min="@(1)"
+                                         Max="@(50)"
+                                         ShowControls
+                                         Placeholder="请输入 1~50"
+                                         AriaLabel="采购数量（校验）" />
+                        </FormField>
+                        <ValidationMessage For="@(() => _orderModel.Quantity)" />
+                        <Button Type="ButtonType.Submit" Size="Size.Small">校验数量</Button>
+                        @if (_orderSubmitted)
+                        {
+                            <span class="preview-feedback" role="status">数量校验通过。</span>
+                        }
+                    </EditForm>
+                </div>
+            </Preview>
+        </DemoCard>
+
         <DemoCard Id="input-number-states"
                   Title="状态与尺寸"
                   Description="只读、禁用、必填与无效状态，以及三档尺寸和整宽；右侧控件即时生效。"
@@ -108,6 +138,21 @@
         <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="Quantity" Min="@(1m)" Max="@(50m)" Step="@(1m)" Precision="0" />
         """;
 
+    private const string FormCode = """
+        <EditForm Model="Order" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <FormField Label="采购数量（1~50）" For="@(() => Order.Quantity)">
+                <InputNumber TValue="int"
+                             Value="Order.Quantity"
+                             ValueChanged="@(value => Order.Quantity = value ?? 0)"
+                             ValueExpression="@(() => Order.Quantity)"
+                             Min="@(1)" Max="@(50)" ShowControls />
+            </FormField>
+            <ValidationMessage For="@(() => Order.Quantity)" />
+            <Button Type="ButtonType.Submit">校验数量</Button>
+        </EditForm>
+        """;
+
     private const string StateCode = """
         <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="Quantity" Size="Size.Large" Required Invalid FullWidth />
         """;
@@ -117,6 +162,9 @@
 
     private decimal? _quantity = 10m;
 
+    private readonly OrderModel _orderModel = new();
+    private bool _orderSubmitted;
+
     private decimal? _stateValue = 5m;
     private Size _size = Size.Default;
     private bool _readOnly;
@@ -124,4 +172,12 @@
     private bool _invalid;
     private bool _disabled;
     private bool _fullWidth;
+
+    private void HandleValidSubmit() => _orderSubmitted = true;
+
+    private sealed class OrderModel
+    {
+        [System.ComponentModel.DataAnnotations.Range(1, 50, ErrorMessage = "数量必须在 1 到 50 之间。")]
+        public int Quantity { get; set; } = 12;
+    }
 }

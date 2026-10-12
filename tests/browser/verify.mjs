@@ -1095,7 +1095,12 @@ for (const path of ['/components/input', '/components/checkbox', '/components/ra
         JSON.stringify(shape));
 }
 
-// 生成式 API 表：迁移之后页面不再手写任何参数行，这里验证渲染结果确实来自生成物——
+// 生成式 API 表：断言必须回到 upload 页再跑——上面那组跨页卡片抽查把浏览器留在了别的
+// 路由上，而这里要核对的是 Upload 自己的那一行。
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+
+// 迁移之后页面不再手写任何参数行，这里验证渲染结果确实来自生成物——
 // `MaxFileSize` 是 Upload 的公共参数，而且只由 10.32.0 引入，所以「自 10.32.0」这一列
 // 同时证明了生成物与编辑源（api-since.json）都被用上了。
 const apiTable = await evaluate(`(() => {
