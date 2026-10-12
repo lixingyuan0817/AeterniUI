@@ -1,5 +1,4 @@
 ﻿@namespace AeterniUI.Sample.Components.Showcase
-@using Microsoft.AspNetCore.Components.Web
 
 @* 一段演示：标题、说明、实时预览、可选属性控件、可复制代码。市面组件文档的 demo 卡片
    就是这个形状。id 是这段演示的锚点——右栏 TOC 与分享链接都指向它。 *@
@@ -12,52 +11,26 @@
         }
     </header>
 
-    @* 预览与代码用 tab 切换，代码默认折叠：读者先看效果，需要时再看写法。折叠态是真正的
-       不渲染（panel 带 hidden），不是用样式藏起来——否则读屏与搜索仍会读到隐藏内容。 *@
-    <div class="component-demo__toolbar" role="tablist" aria-label="@($"{Title}视图")">
-        <button type="button"
-                role="tab"
-                id="@($"{Id}-preview-tab")"
-                aria-controls="@($"{Id}-preview")"
-                aria-selected="@(_showCode ? "false" : "true")"
-                tabindex="@(_showCode ? "-1" : "0")"
-                class="@TabClass(!_showCode)"
-                @onclick="() => Select(false)"
-                @onkeydown="HandleTabKeyDown">预览</button>
+    @* 预览与代码用库内的 Tabs + Tab 切换，代码默认折叠：示例里出现的交互，应当是库自己
+       提供的那一套（AGENTS §4.7）。面板的 tab 语义、roving tabindex、方向键与 Home/End
+       的自动激活、aria-controls/labelledby 的成对 id 都由组件给出，这里不再自己实现一份。
+       未选中的面板由组件输出 hidden（隐藏渲染，而不是不渲染）：这是 Tabs 的既定行为，
+       代码片段因此常驻在 DOM 里。 *@
+    <Tabs Value="@_view" ValueChanged="HandleViewChanged" AriaLabel="@($"{Title}视图")">
+        <Tab Value="preview" Header="@PreviewHeader">
+            <div class="component-preview__canvas">@Preview</div>
+            @if (Controls is not null)
+            {
+                <div class="component-demo__controls">@Controls</div>
+            }
+        </Tab>
         @if (!string.IsNullOrWhiteSpace(Code))
         {
-            <button type="button"
-                    role="tab"
-                    id="@($"{Id}-code-tab")"
-                    aria-controls="@($"{Id}-code")"
-                    aria-selected="@(_showCode ? "true" : "false")"
-                    tabindex="@(_showCode ? "0" : "-1")"
-                    class="@TabClass(_showCode)"
-                    @onclick="() => Select(true)"
-                    @onkeydown="HandleTabKeyDown">代码</button>
+            <Tab Value="code" Header="@CodeHeader">
+                <ShowcaseCode Id="@($"{Id}-code-block")" Code="@Code" Label="@Title" />
+            </Tab>
         }
-    </div>
-
-    <div role="tabpanel"
-         id="@($"{Id}-preview")"
-         aria-labelledby="@($"{Id}-preview-tab")"
-         hidden="@(_showCode ? true : null)">
-        <div class="component-preview__canvas">@Preview</div>
-        @if (Controls is not null)
-        {
-            <div class="component-demo__controls">@Controls</div>
-        }
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(Code))
-    {
-        <div role="tabpanel"
-             id="@($"{Id}-code")"
-             aria-labelledby="@($"{Id}-code-tab")"
-             hidden="@(_showCode ? null : true)">
-            <ShowcaseCode Id="@($"{Id}-code-block")" Code="@Code" Label="@Title" />
-        </div>
-    }
+    </Tabs>
 </section>
 
 @code {
@@ -82,31 +55,15 @@
     [Parameter]
     public string? Code { get; set; }
 
-    private bool _showCode;
+    private const string PreviewView = "preview";
 
-    private string TabClass(bool active) => active ? "component-demo__tab is-active" : "component-demo__tab";
+    private string _view = PreviewView;
 
-    private void Select(bool showCode) => _showCode = showCode;
+    // Header 是 RenderFragment：Tab 的标签内容由调用方给，文字直接写成片段。
+    private RenderFragment PreviewHeader => @<text>预览</text>;
 
-    /// <summary>
-    /// 两个 tab 之间用方向键切换（Home/End 也走同一套），焦点跟着选中项走——这是 tab 模式
-    /// 的键盘约定：一组 tab 只有一个 Tab 停留点。
-    /// </summary>
-    private void HandleTabKeyDown(KeyboardEventArgs args)
-    {
-        if (string.IsNullOrWhiteSpace(Code))
-        {
-            return;
-        }
+    private RenderFragment CodeHeader => @<text>代码</text>;
 
-        switch (args.Key)
-        {
-            case "ArrowRight":
-            case "ArrowLeft":
-            case "Home":
-            case "End":
-                _showCode = !_showCode;
-                break;
-        }
-    }
+    private void HandleViewChanged(string? value) =>
+        _view = string.IsNullOrWhiteSpace(value) ? PreviewView : value;
 }

@@ -1062,8 +1062,10 @@ const shell = await evaluate(`(() => {
     const edit = document.querySelector('.component-page__edit');
     const prev = document.querySelector('.showcase-doc-nav__link[rel="prev"]');
     const next = document.querySelector('.showcase-doc-nav__link[rel="next"]');
-    // 代码默认折叠：先点开第一张卡片的"代码" tab，再检查代码块与复制按钮。
-    const codeTab = document.querySelector('.component-demo__tab[id$="-code-tab"]');
+    // 代码默认折叠：先点开第一张卡片的"代码" tab（库内 Tabs 的按钮 id 由注册顺序派生，
+    // 所以按可见文字找），再检查代码块与复制按钮。
+    const codeTab = [...document.querySelectorAll('.component-demo [role="tab"]')]
+        .find(node => node.textContent.trim() === '代码');
     codeTab?.click();
     const block = document.querySelector('.component-preview__code-block code');
     const copy = document.querySelector('[data-sample-copy]');
@@ -1117,11 +1119,12 @@ const cards = await evaluate(`(() => {
     return {
         count: sections.length,
         anchors: sections.map(node => node.id),
-        codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
-        // 代码默认折叠：代码面板仍带 hidden。注意不能数 DOM 里的代码块——querySelectorAll
-        // 照样会数到隐藏面板内部，那样断言永远是"折叠失败"。
-        openCodePanels: [...document.querySelectorAll('[role="tabpanel"][id$="-code"]')]
-            .filter(panel => !panel.hasAttribute('hidden')).length,
+        codeTabs: sections.filter(node => [...node.querySelectorAll('[role="tab"]')]
+            .some(tab => tab.textContent.trim() === '代码')).length,
+        // 折叠判据是"看不见"，不是"DOM 里没有"：Tabs 对未选中面板输出 hidden（隐藏渲染），
+        // 元素仍在文档里。hidden 会去掉布局盒，所以按是否有 client rect 判断。
+        visibleCode: [...document.querySelectorAll('.component-preview__code-block')]
+            .filter(node => node.getClientRects().length > 0).length,
         when: !!document.querySelector('.component-page__when'),
         related: document.querySelectorAll('.component-page__related a').length,
         api: document.querySelectorAll('.component-preview__api-row').length,
@@ -1131,7 +1134,7 @@ const cards = await evaluate(`(() => {
 check('组件页按 demo 卡片组织，每段带锚点与"代码"tab',
     cards.count >= 3 && cards.codeTabs === cards.count && cards.anchors.every(anchor => anchor.length > 0),
     JSON.stringify(cards));
-check('代码默认折叠在 tab 后面', cards.openCodePanels === 0, JSON.stringify(cards));
+check('代码默认折叠在 tab 后面', cards.visibleCode === 0, JSON.stringify(cards));
 const insets = await evaluate(`(() => {
     const card = document.querySelector('.component-preview');
     const left = node => node ? Math.round(node.getBoundingClientRect().left - card.getBoundingClientRect().left) : null;
@@ -1172,7 +1175,8 @@ for (const path of ['/components/input', '/components/checkbox', '/components/ra
         const sections = [...document.querySelectorAll('.component-demo')];
         return {
             cards: sections.length,
-            codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
+            codeTabs: sections.filter(node => [...node.querySelectorAll('[role="tab"]')]
+                .some(tab => tab.textContent.trim() === '代码')).length,
             uniqueAnchors: new Set(sections.map(node => node.id)).size,
             when: !!document.querySelector('.component-page__when')
         };
