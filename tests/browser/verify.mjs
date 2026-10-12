@@ -337,13 +337,24 @@ check('P7 the drag left no is-dragging state behind',
 
 // Real Tab so :focus-visible matches; the sidebar is long, so allow room.
 const sliderReached = await tabUntil('[role="slider"]', 80);
+// 诊断信息随断言一起打印：页面变长后"第几个滑块被聚焦"决定了下面两条断言的对象，
+// 猜不出来时就让日志说话。
+const sliderFocus = await evaluate(`(() => {
+    const sliders = [...document.querySelectorAll('[role="slider"]')];
+    return {
+        count: sliders.length,
+        index: sliders.indexOf(document.activeElement),
+        active: document.activeElement?.getAttribute('aria-label') ?? null,
+        tabindex: document.activeElement?.getAttribute('tabindex') ?? null
+    };
+})()`);
 const thumbRing = await evaluate(`(() => {
     const style = getComputedStyle(document.querySelector('.aeterni-slider__thumb'));
     return { width: style.outlineWidth, style: style.outlineStyle, color: style.outlineColor };
 })()`);
 check('P7 keyboard focus paints the ring on the thumb', sliderReached && parseFloat(thumbRing.width) > 0
     && thumbRing.style !== 'none' && !/rgba?\(0, 0, 0, 0\)/.test(thumbRing.color),
-    `reached=${sliderReached} width=${thumbRing.width} style=${thumbRing.style} color=${thumbRing.color}`);
+    `reached=${sliderReached} width=${thumbRing.width} style=${thumbRing.style} color=${thumbRing.color} focus=${JSON.stringify(sliderFocus)}`);
 
 // Tab-into-view scrolling can still be animating when the ring check returns;
 // two identical reads 120ms apart is a settled baseline.
@@ -368,7 +379,7 @@ const sliderAfterKeys = await evaluate(`({
 })`);
 check('P7 PageDown adjusts the continuous slider without scrolling the page',
     sliderAfterKeys.value === '65.00' && sliderAfterKeys.scrollable && sliderAfterKeys.scrollY === scrollTopBefore,
-    `value 75.00 -> ${sliderAfterKeys.value}, scrollY ${scrollTopBefore} -> ${sliderAfterKeys.scrollY} (scrollable=${sliderAfterKeys.scrollable})`);
+    `value 75.00 -> ${sliderAfterKeys.value}, scrollY ${scrollTopBefore} -> ${sliderAfterKeys.scrollY} (scrollable=${sliderAfterKeys.scrollable}) focus=${JSON.stringify(sliderFocus)}`);
 
 await goto(`${BASE}/components/input-number`);
 await waitForApp();
