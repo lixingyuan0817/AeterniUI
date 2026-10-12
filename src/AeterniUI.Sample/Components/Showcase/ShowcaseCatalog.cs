@@ -71,6 +71,7 @@ public static class ShowcaseCatalog
             new("search", "Search", "关键词查询"),
             new("autocomplete", "Autocomplete", "输入建议"),
             new("multi-select", "MultiSelect", "多值选择"),
+            new("upload", "Upload", "文件选择与拖放"),
             new("combobox", "ComboBox", "下拉选择"),
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
             new("time-picker", "TimePicker", "时间选择"),

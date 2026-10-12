@@ -906,10 +906,80 @@ check('REV-148 reduced motion collapses the exit wait instead of blocking',
     !reducedExit.error && !reducedExit.stillThere && reducedExit.removedAfter <= 250,
     JSON.stringify(reducedExit));
 
+// ---------------------------------------------------------------- Upload (10.32.0)
+// A file drop never lands in the input element by itself: the module copies the
+// event's FileList onto the picker and dispatches `change` so Blazor reads it.
+// Whether that bridge actually works is a real-engine fact, so it is asserted
+// here rather than only in the module's DOM-double tests.
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+
+// `drop` hands over files the page built, exactly like a real transfer: the
+// FileList a drop carries is the one form a script is allowed to assign.
+const dragEnter = () => evaluate(`(() => {
+    const zone = document.querySelector('.aeterni-upload__drop');
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['aeterni'], 'dragged.txt', { type: 'text/plain' }));
+    zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, dataTransfer: transfer }));
+    return { highlighted: zone.classList.contains('is-dragover'), files: document.querySelector('.aeterni-upload input[type=file]').files.length };
+})()`);
+
+const dropFile = name => evaluate(`(() => {
+    const zone = document.querySelector('.aeterni-upload__drop');
+    const input = document.querySelector('.aeterni-upload input[type=file]');
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['aeterni'], '${name}', { type: 'text/plain' }));
+    zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer: transfer }));
+    zone.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: transfer }));
+    return { highlighted: zone.classList.contains('is-dragover'), files: input.files.length };
+})()`);
+
+async function waitForRows(count) {
+    const deadline = Date.now() + 10000;
+    let rows = 0;
+    while (Date.now() < deadline) {
+        rows = await evaluate(`document.querySelectorAll('.aeterni-upload__item').length`);
+        if (rows >= count) break;
+        await sleep(100);
+    }
+    return rows;
+}
+
+const drag = await dragEnter();
+check('Upload paints its drop state while a file is dragged over the zone',
+    drag.highlighted && drag.files === 0,
+    `highlighted=${drag.highlighted} files=${drag.files}`);
+
+const dropped = await dropFile('dragged.txt');
+check('Upload clears the drop state on drop', !dropped.highlighted, `highlighted=${dropped.highlighted}`);
+
+const firstRow = await waitForRows(1);
+check('Upload reports the dropped file to Blazor through the native picker', firstRow >= 1, `${firstRow} row(s)`);
+const metadata = await evaluate(
+    `/7 B/.test(document.querySelector('.aeterni-upload__item')?.innerText ?? '')`);
+check('Upload reads the dropped file metadata', metadata, 'the dropped File size must reach C#');
+
+// The sample fabricates the transport on the host side; the row must follow it.
+const deadline = Date.now() + 10000;
+let uploaded = false;
+while (Date.now() < deadline) {
+    uploaded = await evaluate(`/Uploaded/.test(document.querySelector('.aeterni-upload__item')?.innerText ?? '')`);
+    if (uploaded) break;
+    await sleep(100);
+}
+check('Upload renders the host-reported transfer status', uploaded, 'the row never reached the success state');
+
+const second = await dropFile('second.txt');
+const twoRows = await waitForRows(2);
+check('Upload appends a second drop instead of replacing the list',
+    second.files === 1 && twoRows >= 2,
+    `input.files=${second.files} rows=${twoRows}`);
+
 // ---------------------------------------------------------------- REV-159
 // The sample pages are the library's runnable contract: the demos the review asked
 // for are asserted here instead of being trusted to exist.
 const sampleDemos = [
+    { path: '/components/upload', selector: '.aeterni-upload input[type="file"]', note: 'file picker and drop zone' },
     { path: '/components/progress', selector: '#progress-value', note: 'interactive Value/Color/Size controls' },
     { path: '/components/progress', selector: '.aeterni-progress', minimum: 5, note: 'a bar per semantic colour' },
     { path: '/components/icon-button', selector: 'button.aeterni-icon-button[disabled]', note: 'disabled state' },

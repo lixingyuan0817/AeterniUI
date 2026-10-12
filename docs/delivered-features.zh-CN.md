@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.31.1`
+文档版本：`10.32.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1198,6 +1198,16 @@ builder.Services.AddAeterniUI(options =>
     options.Text.MultiSelectSelectAllLabel = "全选";
     options.Text.MultiSelectClearAllLabel = "清除";
     options.Text.MultiSelectRemoveLabel = "移除";
+    options.Text.UploadLabel = "上传文件";
+    options.Text.UploadFileListLabel = "已选文件";
+    options.Text.UploadDropText = "拖放文件到此处，或点击选择";
+    options.Text.UploadRemoveLabel = "移除";
+    options.Text.UploadStatusPendingLabel = "待上传";
+    options.Text.UploadStatusUploadingLabel = "上传中";
+    options.Text.UploadStatusSuccessLabel = "已上传";
+    options.Text.UploadStatusErrorLabel = "上传失败";
+    options.Text.UploadFileTooLargeErrorFormat = "超过 {0} 的大小限制";
+    options.Text.UploadTooManyFilesErrorFormat = "超过 {0} 个文件的数量限制";
     options.Text.TimePickerPlaceholder = "请选择时间";
     options.Text.TimePickerLabel = "时间选择器";
     options.Text.TimePickerOptionsLabel = "可用时间";
@@ -1502,7 +1512,55 @@ builder.Services.AddAeterniUI(options =>
 
 组件只负责结构化展示、列布局和模板插槽；富文本、链接、标签等值内容由 `ItemTemplate` 组合现有组件完成。示例：`/components/descriptions`。
 
-## 49. 当前边界
+## 49. Upload
+
+### 支持能力
+
+`Upload` 收集用户通过原生选择器或拖放选入的文件。组件负责选择、按元数据可判定的校验、文件列表和状态渲染；传输、协议和存储归宿主，宿主通过 `UploadFile` 回写进度与结果。
+
+- `SelectedFiles`（`IReadOnlyList<UploadFile>`）、`SelectedFilesChanged` 与 `SelectedFilesExpression`，支持标准绑定与 `EditContext` 校验。
+- `Multiple` 允许一次选择或拖入多个文件；`Accept` 交给原生选择器；`MaxFileSize` 与 `MaxFileCount` 按浏览器给出的元数据判定。
+- `AllowRemove`（默认 `true`）渲染单项移除动作；`ItemTemplate` 替换单项内容（名称、大小、进度），移除动作仍由组件渲染。
+- `Size`、`Required`、`Invalid`、`FullWidth` 以及继承的 `Disabled`；`DropText`、`RemoveLabel`、`AriaLabel`、`AriaDescribedBy`。
+- 自有文案使用 `AeterniUITextOptions.UploadLabel`、`UploadFileListLabel`、`UploadDropText`、`UploadRemoveLabel`、`UploadStatusPendingLabel`、`UploadStatusUploadingLabel`、`UploadStatusSuccessLabel`、`UploadStatusErrorLabel`、`UploadFileTooLargeErrorFormat` 和 `UploadTooManyFilesErrorFormat`。
+- `UploadFile` 暴露 `Content`（`IBrowserFile`）、`Name`、`Size`、`ContentType`、`Status`（`UploadStatus`）、`Percent` 和 `ErrorMessage`；宿主在收到的实例上直接改 `Status` / `Percent` / `ErrorMessage` 即可，重渲染不会替换对象。
+- 被 `MaxFileSize` 或 `MaxFileCount` 拒绝的文件仍进入列表并标记为 `UploadStatus.Error`，原因按文案表格式化，用户因此能看到被拒原因；这类条目不计入 `MaxFileCount` 的已接受数量。
+
+### 行为与无障碍
+
+真实 `<input type="file">` 铺满整个拖放区并保持 0 不透明度：点击、键盘激活都落在原生控件上，可见文案标记 `aria-hidden`，无障碍名称来自 `FormField` 标签或 `AriaLabel`，字段内标签的 `for` 因此解析到输入本身而不是组件根元素；`aria-describedby` 合并宿主传入值与字段描述 id。禁用时输入自身带 `disabled`、根元素补 `aria-disabled`，并改用禁用态描边与填充。拖放由组件模块把 `drop` 事件的 `FileList` 写进同一个输入再派发 `change`，C# 收到与选择器完全一致的事件；拖放期间拖放区显示 `is-dragover`，禁用时仍然吞掉拖放（避免浏览器跳到该文件）但不接受文件。每次事件处理完成后模块清空输入值，同一个文件可以重复选择；`focus-visible` 焦点环画在拖放区上，`invalid` 时改用无效态焦点色；状态同时以文本与色条表达，颜色不是唯一提示。已上传/失败的文件行由状态色条、状态文本与（上传中）`Progress` 共同表达。
+
+### 实现边界
+
+组件不定义传输协议、不发起请求、不缓存内容，也不判断文件类型：`Accept` 只作用于原生选择器，拖放不受它约束，类型与业务校验归宿主；`MaxFileSize` 与 `MaxFileCount` 只按浏览器给出的元数据判定，不读取文件内容。列表只包含本次会话中用户选入的文件，服务端既有文件由宿主自行渲染，`UploadFile` 因此不支持库外构造。拖放依赖浏览器允许把 drop 的 `FileList` 赋给 `input.files`，引擎拒绝该项赋值时拖放被忽略、原生选择器仍可用。示例：`/components/upload`。
+
+### 基础用法
+
+```razor
+<Upload @bind-SelectedFiles="Files"
+        Multiple
+        MaxFileSize="@(5 * 1024 * 1024)"
+        Accept="image/*,.pdf"
+        OnFileSelected="StartUpload" />
+```
+
+宿主在 `OnFileSelected` 或 `SelectedFilesChanged` 中读取 `file.Content` 传输，并把进度写回同一实例：
+
+```csharp
+async Task StartUpload(UploadFile file)
+{
+    file.Status = UploadStatus.Uploading;
+    await foreach (var percent in TransferAsync(file.Content))   // 宿主自己的传输
+    {
+        file.Percent = percent;
+        StateHasChanged();
+    }
+
+    file.Status = UploadStatus.Success;
+}
+```
+
+## 50. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

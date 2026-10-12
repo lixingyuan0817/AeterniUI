@@ -1,0 +1,245 @@
+/* The drop zone is a bordered box the native picker fills: the real <input
+   type="file"> is stretched over it at zero opacity, so a click, a keyboard
+   activation and the browser's own focus ring all belong to the control the user
+   is actually operating. The visible copy underneath is decorative for that
+   reason — it is marked aria-hidden and never supplies the accessible name.
+
+   Focus is painted on the decorative surface rather than on the input: the input
+   is transparent, and an outline on it would be invisible. The surface is the
+   input's next sibling, so the rule needs no :has() and no extra state class. */
+.aeterni-upload {
+    --aeterni-upload-radius: var(--aeterni-radius-input);
+    --aeterni-upload-padding: var(--aeterni-spacing-4);
+    --aeterni-upload-drop-height: calc(var(--aeterni-control-height-md) * 3);
+    --aeterni-upload-font-size: var(--aeterni-font-size-sm);
+    --aeterni-upload-item-accent: var(--aeterni-text-tertiary);
+
+    display: grid;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: min(100%, var(--aeterni-width-input-md));
+    max-width: 100%;
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-upload.is-full-width {
+    width: 100%;
+}
+
+.aeterni-upload--sm {
+    --aeterni-upload-radius: var(--aeterni-radius-input-sm);
+    --aeterni-upload-padding: var(--aeterni-spacing-3);
+    --aeterni-upload-drop-height: calc(var(--aeterni-control-height-sm) * 3);
+    --aeterni-upload-font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-upload--lg {
+    --aeterni-upload-radius: var(--aeterni-radius-input-lg);
+    --aeterni-upload-padding: var(--aeterni-spacing-6);
+    --aeterni-upload-drop-height: calc(var(--aeterni-control-height-lg) * 3);
+    --aeterni-upload-font-size: var(--aeterni-font-size-base);
+}
+
+.aeterni-upload__drop {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    border: var(--aeterni-border-width-medium) dashed var(--aeterni-control-border);
+    border-radius: var(--aeterni-upload-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+/* The picker is rendered by Blazor's <InputFile>, so it never carries this
+   component's CSS-isolation scope attribute: every rule that targets it goes
+   through ::deep from a scope-carrying ancestor. Without that, the overlay rules
+   silently do nothing and the native picker paints on top of the drop zone. */
+.aeterni-upload__drop ::deep .aeterni-upload__input {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.aeterni-upload__surface {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-1);
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: var(--aeterni-upload-drop-height);
+    padding: var(--aeterni-upload-padding);
+    border-radius: inherit;
+    color: var(--aeterni-control-foreground-placeholder);
+    font-size: var(--aeterni-upload-font-size);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: center;
+}
+
+.aeterni-upload__surface ::deep .aeterni-upload__drop-icon {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
+    fill: currentColor;
+}
+
+.aeterni-upload__drop-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.aeterni-upload:not(.is-invalid):not(.is-disabled) .aeterni-upload__drop:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+/* The drop target carries its own state: `is-dragover` is written by the module
+   while a drag is over the zone, and it has to beat the hover rule above. */
+.aeterni-upload__drop.is-dragover {
+    border-color: var(--aeterni-control-border-focus);
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-upload__drop ::deep .aeterni-upload__input:focus-visible + .aeterni-upload__surface {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
+}
+
+.aeterni-upload.is-invalid .aeterni-upload__drop {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-upload.is-invalid .aeterni-upload__drop ::deep .aeterni-upload__input:focus-visible + .aeterni-upload__surface {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-upload.is-disabled .aeterni-upload__drop {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-upload.is-disabled .aeterni-upload__surface {
+    color: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-upload.is-disabled .aeterni-upload__drop ::deep .aeterni-upload__input {
+    cursor: not-allowed;
+}
+
+.aeterni-upload__files {
+    display: grid;
+    gap: var(--aeterni-spacing-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aeterni-upload__item {
+    /* The status colour is a role, not a decoration: the item repaints one custom
+       property per status, and the accent bar, the status text and the progress
+       bar read it back. */
+    --aeterni-upload-item-accent: var(--aeterni-text-tertiary);
+
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: var(--aeterni-spacing-1) var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-inline-start: var(--aeterni-border-width-thick) solid var(--aeterni-upload-item-accent);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-tertiary);
+    font-size: var(--aeterni-upload-font-size);
+}
+
+.aeterni-upload__item--neutral {
+    --aeterni-upload-item-accent: var(--aeterni-color-neutral-text);
+}
+
+.aeterni-upload__item--primary {
+    --aeterni-upload-item-accent: var(--aeterni-color-brand-text);
+}
+
+.aeterni-upload__item--success {
+    --aeterni-upload-item-accent: var(--aeterni-color-success-text);
+}
+
+.aeterni-upload__item--danger {
+    --aeterni-upload-item-accent: var(--aeterni-color-danger-text);
+}
+
+.aeterni-upload__item-body {
+    display: grid;
+    flex: 1 1 auto;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+}
+
+.aeterni-upload__item-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--aeterni-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-upload__item-meta {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-upload__item-status {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--aeterni-upload-item-accent);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.aeterni-upload__item-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 var(--aeterni-touch-target-min);
+    width: var(--aeterni-touch-target-min);
+    height: var(--aeterni-touch-target-min);
+    padding: 0;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-tertiary);
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aeterni-upload__item-remove:hover:not(:disabled),
+.aeterni-upload__item-remove:active:not(:disabled) {
+    background: transparent;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-upload__item-remove:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
+}
+
+.aeterni-upload__item-remove ::deep svg {
+    --aeterni-icon-render-size: var(--aeterni-icon-size-xs);
+    fill: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-upload__drop {
+        transition: none;
+    }
+}

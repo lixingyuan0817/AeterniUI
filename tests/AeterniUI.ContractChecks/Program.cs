@@ -1,4 +1,5 @@
 using System.Globalization;
+using IBrowserFile = Microsoft.AspNetCore.Components.Forms.IBrowserFile;
 using System.Text.RegularExpressions;
 using AeterniUI.Components.Accordion;
 using AeterniUI.Components.Autocomplete;
@@ -20,9 +21,11 @@ using AeterniUI.Components.Slider;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.Timeline;
 using AeterniUI.Components.TimePicker;
+using AeterniUI.Components.Upload;
 using AeterniUI.Components.VirtualList;
 using AeterniUI.Enums;
 using AeterniUI.Icons;
+using AeterniUI.Models;
 using AeterniUI.Models.Dialog;
 using AeterniUI.Services;
 using AeterniUI.Services.Impl;
@@ -77,6 +80,7 @@ await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
 await CheckTextTableFallbackAsync();
 await CheckTokenSurfaceAsync();
+await CheckUploadAsync();
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -89,7 +93,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (33 groups).");
+Console.WriteLine("Component contract checks passed (34 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -3055,6 +3059,250 @@ async Task CheckTextTableFallbackAsync()
     });
     Require(slider.Contains("aria-label=\"Slider\"", StringComparison.Ordinal),
         "Slider must fall back to the text table for its accessible name.");
+}
+
+// Upload (10.32.0): the component owns selection, the limits it can check from
+// file metadata, and the list; the host owns the transfer and reports its state
+// back on the same UploadFile instances. The checks pin the picker markup, the
+// field wiring, the limit pipeline driven on a live instance, and the row markup
+// for host-reported status.
+async Task CheckUploadAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(Upload), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "upload",
+        "Upload declares its interactive drop module.");
+
+    var html = await RenderAsync<Upload>(new Dictionary<string, object?>
+    {
+        [nameof(Upload.Id)] = "contract-upload",
+        [nameof(Upload.Class)] = "consumer-upload",
+        [nameof(Upload.Style)] = "margin: 0",
+        [nameof(Upload.AdditionalAttributes)] = new Dictionary<string, object> { ["data-contract"] = "upload" },
+        [nameof(Upload.Multiple)] = true,
+        [nameof(Upload.Accept)] = ".pdf,image/*",
+        [nameof(Upload.Size)] = Size.Large,
+        [nameof(Upload.Required)] = true,
+        [nameof(Upload.Invalid)] = true,
+        [nameof(Upload.FullWidth)] = true,
+        [nameof(Upload.AriaLabel)] = "Supporting documents"
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-upload\"[^>]*>").Value;
+    foreach (var value in new[]
+    {
+        "consumer-upload", "margin: 0", "data-contract=\"upload\"", "aeterni-upload--lg", "is-full-width", "is-invalid"
+    })
+    {
+        Require(root.Contains(value, StringComparison.Ordinal), $"Upload root must render {value}.");
+    }
+
+    var input = Regex.Match(html, "<input[^>]*type=\"file\"[^>]*>").Value;
+    Require(input.Contains("id=\"contract-upload-input\"", StringComparison.Ordinal)
+        && input.Contains("multiple", StringComparison.Ordinal)
+        && input.Contains("accept=\".pdf,image/*\"", StringComparison.Ordinal)
+        && input.Contains("aria-label=\"Supporting documents\"", StringComparison.Ordinal)
+        && input.Contains("aria-required=\"true\"", StringComparison.Ordinal)
+        && input.Contains("aria-invalid=\"true\"", StringComparison.Ordinal),
+        "Upload must expose the native picker with the host filter and the field state.");
+    Require(html.Contains("class=\"aeterni-upload__surface\" aria-hidden=\"true\"", StringComparison.Ordinal)
+        && html.Contains("Drop files here or click to browse", StringComparison.Ordinal)
+        && !Regex.IsMatch(html, ">[^<]*[\\u4e00-\\u9fff][^<]*<"),
+        "Upload must render its English drop text, decorative-only, with no CJK defaults.");
+
+    var defaults = await RenderAsync<Upload>(new Dictionary<string, object?>());
+    var defaultInput = Regex.Match(defaults, "<input[^>]*type=\"file\"[^>]*>").Value;
+    Require(!defaultInput.Contains("multiple", StringComparison.Ordinal)
+        && !defaultInput.Contains("accept", StringComparison.Ordinal)
+        && !defaultInput.Contains("disabled", StringComparison.Ordinal)
+        && Regex.Match(defaultInput, "id=\"([^\"]+)\"").Groups[1].Value.EndsWith("-input", StringComparison.Ordinal),
+        "An unconfigured Upload renders a single-file picker with no filter, no disabled state and a derived id.");
+    Require(defaults.Contains("aeterni-upload__item", StringComparison.Ordinal) == false,
+        "An empty Upload renders no file rows.");
+
+    var disabled = await RenderAsync<Upload>(new Dictionary<string, object?>
+    {
+        [nameof(Upload.Disabled)] = true
+    });
+    var disabledInput = Regex.Match(disabled, "<input[^>]*type=\"file\"[^>]*>").Value;
+    Require(disabled.Contains("is-disabled", StringComparison.Ordinal)
+        && disabled.Contains("aria-disabled=\"true\"", StringComparison.Ordinal)
+        && disabledInput.Contains("disabled", StringComparison.Ordinal),
+        "A disabled Upload marks the root and disables the picker itself.");
+
+    // The field owns the picker id: the label has to resolve to the control the
+    // user operates, not to the component's root div.
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        UploadContractHost host = null!;
+        var fieldRoot = await renderer.RenderComponentAsync<UploadContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<UploadContractHost>)(x => host = x)
+        }));
+
+        var fieldHtml = fieldRoot.ToHtmlString();
+        var fieldInput = Regex.Match(fieldHtml, "<input[^>]*type=\"file\"[^>]*>").Value;
+        var fieldInputId = Regex.Match(fieldInput, "id=\"([^\"]+)\"").Groups[1].Value;
+        var labelId = Regex.Match(fieldHtml, "<label[^>]*id=\"([^\"]+)\"").Groups[1].Value;
+        Require(fieldInputId.EndsWith("-input", StringComparison.Ordinal)
+            && fieldHtml.Contains($"for=\"{fieldInputId}\"", StringComparison.Ordinal),
+            "The FormField label must target the Upload picker so clicking it opens the dialog.");
+        Require(fieldInput.Contains($"aria-labelledby=\"{labelId}\"", StringComparison.Ordinal),
+            "The Upload picker must take its name from the field label.");
+        var describedBy = Regex.Match(fieldInput, "aria-describedby=\"([^\"]+)\"").Groups[1].Value;
+        Require(describedBy.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains("host-hint")
+            && describedBy.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 2,
+            "The Upload picker must keep the host description id alongside the field's own.");
+        Require(host.Field.ElementId != fieldInputId,
+            "The Upload root keeps the component id; only the picker adopts the field id.");
+    });
+
+    // The pipeline itself: limits, append semantics and the events a host binds to.
+    var receiver = new UploadCallbackReceiver();
+    Upload upload = null!;
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        upload = await RenderComponentAsync<Upload>(new Dictionary<string, object?>
+        {
+            [nameof(Upload.Multiple)] = true,
+            [nameof(Upload.MaxFileSize)] = 2048L,
+            [nameof(Upload.MaxFileCount)] = 2,
+            [nameof(Upload.SelectedFilesChanged)] = EventCallback.Factory.Create<IReadOnlyList<UploadFile>>(
+                receiver, selection => receiver.Selections.Add(selection)),
+            [nameof(Upload.OnFileSelected)] = EventCallback.Factory.Create<UploadFile>(
+                receiver, file => receiver.SelectedNames.Add(file.Name))
+        });
+
+        var apply = typeof(Upload).GetMethod("ApplySelectionAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)apply.Invoke(upload, [new IBrowserFile[] { new StubBrowserFile("report.pdf", 1024) }])!;
+    });
+
+    Require(upload.SelectedFiles.Count == 1
+        && upload.SelectedFiles[0].Status == UploadStatus.Pending
+        && upload.SelectedFiles[0].Name == "report.pdf"
+        && upload.SelectedFiles[0].ContentType == "application/octet-stream",
+        "An accepted file is reported as pending with its browser metadata.");
+    Require(receiver.SelectedNames.SequenceEqual(["report.pdf"]) && receiver.Selections.Count == 1,
+        "Upload raises SelectedFilesChanged and OnFileSelected for an accepted file.");
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        var apply = typeof(Upload).GetMethod("ApplySelectionAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)apply.Invoke(upload, [new IBrowserFile[] { new StubBrowserFile("photo.png", 4096) }])!;
+    });
+    Require(upload.SelectedFiles.Count == 2
+        && upload.SelectedFiles[1].Status == UploadStatus.Error
+        && upload.SelectedFiles[1].ErrorMessage == "Exceeds the size limit of 2 KB",
+        "A file above MaxFileSize is kept in the list with the text-table reason.");
+    Require(receiver.SelectedNames.SequenceEqual(["report.pdf"]),
+        "A rejected file must not raise OnFileSelected.");
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        var apply = typeof(Upload).GetMethod("ApplySelectionAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)apply.Invoke(upload, [new IBrowserFile[] { new StubBrowserFile("notes.txt", 512) }])!;
+    });
+    Require(upload.SelectedFiles.Count == 3
+        && upload.SelectedFiles[2].ErrorMessage == "Exceeds the limit of 2 file(s)",
+        "MaxFileCount rejects the surplus with the text-table reason.");
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        var remove = typeof(Upload).GetMethod("RemoveAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)remove.Invoke(upload, [upload.SelectedFiles[0]])!;
+    });
+    Require(upload.SelectedFiles.Count == 2 && upload.SelectedFiles.All(file => file.Name != "report.pdf"),
+        "RemoveAsync drops exactly the requested row.");
+
+    // Row markup for host-reported state: progress while uploading, the host's own
+    // message on failure, and the remove action.
+    var rows = upload.SelectedFiles;
+    var rejected = await RenderAsync<Upload>(new Dictionary<string, object?>
+    {
+        [nameof(Upload.SelectedFiles)] = rows
+    });
+    Require(rejected.Contains("aeterni-upload__item--danger", StringComparison.Ordinal)
+        && rejected.Contains("Exceeds the limit of 2 file(s)", StringComparison.Ordinal)
+        && rejected.Contains("Exceeds the size limit of 2 KB", StringComparison.Ordinal),
+        "Rows rejected by a limit keep the text-table reason in the list.");
+
+    rows[0].Status = UploadStatus.Uploading;
+    rows[0].Percent = 40;
+    rows[0].ErrorMessage = null;
+    rows[1].Status = UploadStatus.Success;
+    rows[1].ErrorMessage = null;
+    var rendered = await RenderAsync<Upload>(new Dictionary<string, object?>
+    {
+        [nameof(Upload.SelectedFiles)] = rows
+    });
+    Require(rendered.Contains("aeterni-upload__item--primary", StringComparison.Ordinal)
+        && rendered.Contains("aeterni-upload__item--success", StringComparison.Ordinal)
+        && rendered.Contains(">Uploading<", StringComparison.Ordinal)
+        && rendered.Contains(">Uploaded<", StringComparison.Ordinal)
+        && rendered.Contains("aria-valuenow=\"40\"", StringComparison.Ordinal)
+        && rendered.Contains("Remove photo.png", StringComparison.Ordinal),
+        "Upload rows render the host-reported status, progress and remove action.");
+
+    var locked = await RenderAsync<Upload>(new Dictionary<string, object?>
+    {
+        [nameof(Upload.SelectedFiles)] = rows,
+        [nameof(Upload.AllowRemove)] = false
+    });
+    Require(!locked.Contains("aeterni-upload__item-remove", StringComparison.Ordinal),
+        "AllowRemove=false removes the per-file action.");
+
+    // A single-file upload reports one file even when the browser hands over more.
+    Upload single = null!;
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        single = await RenderComponentAsync<Upload>(new Dictionary<string, object?>());
+        var apply = typeof(Upload).GetMethod("ApplySelectionAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)apply.Invoke(single, [new IBrowserFile[] { new StubBrowserFile("a.txt", 10), new StubBrowserFile("b.txt", 20) }])!;
+    });
+    Require(single.SelectedFiles.Count == 1 && single.SelectedFiles[0].Name == "a.txt",
+        "A single-file Upload keeps the first file only.");
+
+    Upload frozen = null!;
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        frozen = await RenderComponentAsync<Upload>(new Dictionary<string, object?> { [nameof(Upload.Disabled)] = true });
+        var apply = typeof(Upload).GetMethod("ApplySelectionAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        await (Task)apply.Invoke(frozen, [new IBrowserFile[] { new StubBrowserFile("a.txt", 10) }])!;
+    });
+    Require(frozen.SelectedFiles.Count == 0, "A disabled Upload accepts no files.");
+
+    foreach (var (parameters, message) in new (Dictionary<string, object?>, string)[]
+    {
+        (new() { [nameof(Upload.Size)] = (Size)99 }, "Upload must reject unknown sizes."),
+        (new() { [nameof(Upload.MaxFileSize)] = 0L }, "Upload must reject a non-positive size limit."),
+        (new() { [nameof(Upload.MaxFileCount)] = 0 }, "Upload must reject a non-positive file count."),
+        (new() { [nameof(Upload.MaxFileCount)] = 2 }, "Upload must reject a file count it can never reach without Multiple."),
+        (new() { [nameof(Upload.SelectedFiles)] = null! }, "Upload must reject a null file list.")
+    })
+    {
+        try
+        {
+            await RenderAsync<Upload>(parameters);
+            Require(false, message);
+        }
+        catch (Exception ex) when (ex is ArgumentException or ArgumentOutOfRangeException or ArgumentNullException)
+        {
+        }
+    }
+
+    // The picker comes from <InputFile>, so it never carries this component's
+    // isolation scope attribute. A rule that targets it without ::deep compiles
+    // into a selector nothing matches, which would leave the native picker
+    // visible on top of the drop zone — the failure is silent, so it is pinned
+    // here instead of relying on review.
+    var repositoryRoot = FindRepositoryRoot();
+    var css = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/Upload/Upload.razor.css"));
+    var overlayRules = Regex.Matches(css, @"(?m)^[^{}\n]*aeterni-upload__input[^{}]*\{")
+        .Select(match => match.Value)
+        .ToArray();
+    Require(overlayRules.Length >= 3
+        && overlayRules.All(rule => rule.Contains("::deep", StringComparison.Ordinal)),
+        "Every Upload rule that styles the framework picker must go through ::deep.");
 }
 
 // Renders a component and hands back the instance, so a check can drive its

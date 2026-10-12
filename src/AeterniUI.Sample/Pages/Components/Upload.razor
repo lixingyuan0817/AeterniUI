@@ -1,0 +1,128 @@
+@page "/components/upload"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Models
+
+<PageTitle>Aeterni UI · Upload</PageTitle>
+
+<ComponentPreview AnchorId="upload"
+                  Category="表单组件"
+                  Title="Upload"
+                  ComponentName="Upload"
+                  Description="文件选择与拖放，组件负责校验与列表，传输由宿主驱动。"
+                  Parameters="@UploadParameters"
+                  Events="@UploadEvents"
+                  Contracts="@UploadContracts">
+    <Preview>
+        <div class="preview-form-control preview-form-control--fill">
+            <FormField Label="附件"
+                       Description="可拖放到虚线区域，或点击选择；单个文件不超过 2 MB。"
+                       Disabled="@_disabled"
+                       Invalid="@_invalid">
+                <Upload SelectedFiles="@_files"
+                        SelectedFilesChanged="HandleFilesChanged"
+                        OnFileSelected="HandleFileSelected"
+                        Multiple="@_multiple"
+                        AllowRemove="@_allowRemove"
+                        MaxFileSize="@(2 * 1024 * 1024)"
+                        Accept="image/*,.pdf"
+                        DropText="@_dropText"
+                        Disabled="@_disabled"
+                        Invalid="@_invalid"
+                        FullWidth="@_fullWidth"
+                        AriaLabel="项目附件" />
+            </FormField>
+            <span class="preview-feedback" role="status">@_note</span>
+        </div>
+    </Preview>
+    <Controls>
+        <div class="control-field">
+            <label for="upload-drop-text">DropText</label>
+            <input id="upload-drop-text" @bind="_dropText" />
+        </div>
+        <Checkbox Size="Size.Small" @bind-Value="_multiple">Multiple</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_allowRemove">AllowRemove</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+    </Controls>
+    <Notes>
+        <span>组件只做选择、元数据校验和列表渲染；传输、协议与存储归宿主，进度由宿主写回 UploadFile。</span>
+        <span>本页在 OnFileSelected 后模拟一次传输：Status 先进入 Uploading 并递增 Percent，完成后置为 Success。</span>
+        <span>Accept 只作用于原生选择器；拖放的文件不受浏览器过滤，因此类型与大小仍由宿主或 MaxFileSize 校验。</span>
+        <span>MaxFileSize 与 MaxFileCount 拒绝的文件仍会进入列表并标记为 Error，方便用户看到被拒原因。</span>
+    </Notes>
+</ComponentPreview>
+
+@code {
+    private IReadOnlyList<UploadFile> _files = [];
+    private string _dropText = "拖放文件到此处，或点击选择";
+    private bool _multiple = true;
+    private bool _allowRemove = true;
+    private bool _disabled;
+    private bool _invalid;
+    private bool _fullWidth = true;
+    private string _note = "选择或拖入文件后，这里会显示宿主侧的上传进度。";
+
+    private static readonly ShowcaseParameter[] UploadParameters =
+    [
+        new("SelectedFiles", "IReadOnlyList<UploadFile>", "当前文件列表；宿主可读取或整体替换。", "空列表"),
+        new("SelectedFilesChanged", "EventCallback<IReadOnlyList<UploadFile>>", "文件列表变化回调。"),
+        new("Multiple", "bool", "允许一次选择或拖入多个文件。", "false"),
+        new("Accept", "string?", "原生选择器的过滤条件；不约束拖放。"),
+        new("MaxFileSize", "long?", "单文件字节上限，超出即标记 Error。"),
+        new("MaxFileCount", "int?", "接受的文件数量上限，超出即标记 Error。"),
+        new("AllowRemove", "bool", "渲染单项移除动作。", "true"),
+        new("ItemTemplate", "RenderFragment<UploadFile>?", "替换单项内容（名称、大小、进度）；移除按钮仍由组件渲染。"),
+        new("OnFileSelected", "EventCallback<UploadFile>", "每个被接受的文件回调一次。"),
+        new("Size", "Size", "控件尺寸。", "Default"),
+        new("Required", "bool", "必填状态。", "false"),
+        new("Invalid", "bool", "无效状态。", "false"),
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("DropText", "string?", "拖放区文案；留空回退文案表。"),
+        new("RemoveLabel", "string?", "移除动作的无障碍名称前缀；留空回退文案表。"),
+        new("AriaLabel", "string?", "文件输入的无障碍名称。"),
+        new("AriaDescribedBy", "string?", "文件输入的描述 id，与 FormField 描述合并。")
+    ];
+
+    private static readonly ShowcaseEvent[] UploadEvents =
+    [
+        new("SelectedFilesChanged", "EventCallback<IReadOnlyList<UploadFile>>", "选择、拖放或移除后触发。"),
+        new("OnFileSelected", "EventCallback<UploadFile>", "每个通过校验的文件触发一次。")
+    ];
+
+    private static readonly ShowcaseContract[] UploadContracts =
+    [
+        new("UploadFile", "Content / Status / Percent / ErrorMessage", "宿主读取 Content 传输，并用 Status、Percent、ErrorMessage 回写状态。"),
+        new("Upload", "input[type=file] + role=list", "不定义传输协议、不缓存内容；拖放经模块写入同一个原生输入后由框架读取。")
+    ];
+
+    private Task HandleFilesChanged(IReadOnlyList<UploadFile> files)
+    {
+        _files = files;
+        return Task.CompletedTask;
+    }
+
+    // The upload here is the host's, not the component's: this page fabricates the
+    // progress a real transport would report, on the same UploadFile instances.
+    private void HandleFileSelected(UploadFile file) => _ = InvokeAsync(() => SimulateUploadAsync(file));
+
+    private async Task SimulateUploadAsync(UploadFile file)
+    {
+        file.Status = UploadStatus.Uploading;
+        file.Percent = 0;
+        await InvokeAsync(StateHasChanged);
+
+        while ((file.Percent ?? 0) < 100)
+        {
+            await Task.Delay(250);
+            file.Percent = Math.Min(100, (file.Percent ?? 0) + 20);
+            await InvokeAsync(StateHasChanged);
+        }
+
+        file.Status = UploadStatus.Success;
+        _note = $"宿主已完成 {file.Name} 的模拟传输（{file.Size} 字节）。";
+        await InvokeAsync(StateHasChanged);
+    }
+}

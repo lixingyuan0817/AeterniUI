@@ -1,0 +1,63 @@
+@inherits AeterniComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <div @ref="_dropZoneElement" class="aeterni-upload__drop">
+        <InputFile @ref="_inputFile"
+                   class="aeterni-upload__input"
+                   id="@InputElementId"
+                   multiple="@Multiple"
+                   accept="@Accept"
+                   aria-labelledby="@FormField?.LabelId"
+                   aria-describedby="@EffectiveDescribedBy"
+                   aria-label="@(FormField?.LabelId is null ? EffectiveAriaLabel : null)"
+                   aria-required="@(IsRequired ? "true" : null)"
+                   aria-invalid="@(IsInvalid ? "true" : null)"
+                   disabled="@(IsDisabled ? true : null)"
+                   OnChange="HandleFilesSelectedAsync" />
+        <div class="aeterni-upload__surface" aria-hidden="true">
+            <Icon Definition="@AeterniIcons.Plus" Class="aeterni-upload__drop-icon" />
+            <span class="aeterni-upload__drop-text">@DropTextValue</span>
+        </div>
+    </div>
+
+    @if (SelectedFiles.Count > 0)
+    {
+        <ul class="aeterni-upload__files" role="list" aria-label="@UiText.UploadFileListLabel">
+            @foreach (var file in SelectedFiles)
+            {
+                <li @key="file.Id" class="@ItemClass(file)">
+                    @if (ItemTemplate is not null)
+                    {
+                        @ItemTemplate(file)
+                    }
+                    else
+                    {
+                        <span class="aeterni-upload__item-body">
+                            <span class="aeterni-upload__item-name">@file.Name</span>
+                            <span class="aeterni-upload__item-meta">@FormatSize(file.Size)</span>
+                            @if (file.Status == UploadStatus.Uploading)
+                            {
+                                <Progress Value="@Math.Clamp(file.Percent ?? 0, 0, 100)"
+                                          Max="100"
+                                          Size="@(AeterniUI.Enums.Size.Small)"
+                                          Color="@StatusColor(file)"
+                                          AriaLabel="@StatusText(file)" />
+                            }
+                            <span class="aeterni-upload__item-status">@StatusText(file)</span>
+                        </span>
+                    }
+                    @if (AllowRemove && !IsDisabled)
+                    {
+                        <button type="button"
+                                class="aeterni-upload__item-remove"
+                                aria-label="@($"{EffectiveRemoveLabel} {file.Name}")"
+                                @onclick="() => RemoveAsync(file)">
+                            <Icon Definition="@AeterniIcons.Xmark" />
+                        </button>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>

@@ -61,6 +61,36 @@ public sealed class AeterniUITextOptions
     /// <summary>Prefix of a selected-item remove action.</summary>
     public string MultiSelectRemoveLabel { get; set; } = "Remove";
 
+    /// <summary>Accessible name of an <c>Upload</c> file input.</summary>
+    public string UploadLabel { get; set; } = "Upload";
+
+    /// <summary>Accessible name of the file list an <c>Upload</c> renders.</summary>
+    public string UploadFileListLabel { get; set; } = "Selected files";
+
+    /// <summary>Text of the <c>Upload</c> drop zone.</summary>
+    public string UploadDropText { get; set; } = "Drop files here or click to browse";
+
+    /// <summary>Prefix of an <c>Upload</c> file remove action.</summary>
+    public string UploadRemoveLabel { get; set; } = "Remove";
+
+    /// <summary>Status text of an <c>Upload</c> file that was selected but not transferred yet.</summary>
+    public string UploadStatusPendingLabel { get; set; } = "Ready";
+
+    /// <summary>Status text of an <c>Upload</c> file that is being transferred.</summary>
+    public string UploadStatusUploadingLabel { get; set; } = "Uploading";
+
+    /// <summary>Status text of an <c>Upload</c> file whose transfer finished.</summary>
+    public string UploadStatusSuccessLabel { get; set; } = "Uploaded";
+
+    /// <summary>Status text of an <c>Upload</c> file whose failure carries no message of its own.</summary>
+    public string UploadStatusErrorLabel { get; set; } = "Failed";
+
+    /// <summary>Size rejection of an <c>Upload</c> file; {0} is the formatted limit.</summary>
+    public string UploadFileTooLargeErrorFormat { get; set; } = "Exceeds the size limit of {0}";
+
+    /// <summary>Count rejection of an <c>Upload</c> file; {0} is the accepted file count.</summary>
+    public string UploadTooManyFilesErrorFormat { get; set; } = "Exceeds the limit of {0} file(s)";
+
     /// <summary>Trigger text of a <c>TimePicker</c> that has no value yet.</summary>
     public string TimePickerPlaceholder { get; set; } = "Select time";
 
@@ -246,6 +276,16 @@ public sealed class AeterniUITextOptions
         MultiSelectSelectAllLabel = Or(MultiSelectSelectAllLabel, defaults.MultiSelectSelectAllLabel);
         MultiSelectClearAllLabel = Or(MultiSelectClearAllLabel, defaults.MultiSelectClearAllLabel);
         MultiSelectRemoveLabel = Or(MultiSelectRemoveLabel, defaults.MultiSelectRemoveLabel);
+        UploadLabel = Or(UploadLabel, defaults.UploadLabel);
+        UploadFileListLabel = Or(UploadFileListLabel, defaults.UploadFileListLabel);
+        UploadDropText = Or(UploadDropText, defaults.UploadDropText);
+        UploadRemoveLabel = Or(UploadRemoveLabel, defaults.UploadRemoveLabel);
+        UploadStatusPendingLabel = Or(UploadStatusPendingLabel, defaults.UploadStatusPendingLabel);
+        UploadStatusUploadingLabel = Or(UploadStatusUploadingLabel, defaults.UploadStatusUploadingLabel);
+        UploadStatusSuccessLabel = Or(UploadStatusSuccessLabel, defaults.UploadStatusSuccessLabel);
+        UploadStatusErrorLabel = Or(UploadStatusErrorLabel, defaults.UploadStatusErrorLabel);
+        UploadFileTooLargeErrorFormat = Or(UploadFileTooLargeErrorFormat, defaults.UploadFileTooLargeErrorFormat);
+        UploadTooManyFilesErrorFormat = Or(UploadTooManyFilesErrorFormat, defaults.UploadTooManyFilesErrorFormat);
         TimePickerPlaceholder = Or(TimePickerPlaceholder, defaults.TimePickerPlaceholder);
         TimePickerLabel = Or(TimePickerLabel, defaults.TimePickerLabel);
         TimePickerOptionsLabel = Or(TimePickerOptionsLabel, defaults.TimePickerOptionsLabel);
