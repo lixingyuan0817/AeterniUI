@@ -1,4 +1,4 @@
-@page "/components/upload"
+﻿@page "/components/upload"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -13,7 +13,8 @@
                   Description="文件选择与拖放，组件负责校验与列表，传输由宿主驱动。"
                   Parameters="@UploadParameters"
                   Events="@UploadEvents"
-                  Contracts="@UploadContracts">
+                  Contracts="@UploadContracts"
+                  Code="@UsageCode">
     <Preview>
         <div class="preview-form-control preview-form-control--fill">
             <FormField Label="附件"
@@ -69,6 +70,7 @@
     [
         new("SelectedFiles", "IReadOnlyList<UploadFile>", "当前文件列表；宿主可读取或整体替换。", "空列表"),
         new("SelectedFilesChanged", "EventCallback<IReadOnlyList<UploadFile>>", "文件列表变化回调。"),
+        new("SelectedFilesExpression", "Expression<Func<IReadOnlyList<UploadFile>>>?", "EditContext 字段表达式。"),
         new("Multiple", "bool", "允许一次选择或拖入多个文件。", "false"),
         new("Accept", "string?", "原生选择器的过滤条件；不约束拖放。"),
         new("MaxFileSize", "long?", "单文件字节上限，超出即标记 Error。"),
@@ -91,6 +93,14 @@
         new("SelectedFilesChanged", "EventCallback<IReadOnlyList<UploadFile>>", "选择、拖放或移除后触发。"),
         new("OnFileSelected", "EventCallback<UploadFile>", "每个通过校验的文件触发一次。")
     ];
+
+    private const string UsageCode = """
+        <Upload @bind-SelectedFiles="Files"
+                Multiple
+                MaxFileSize="@(5 * 1024 * 1024)"
+                Accept="image/*,.pdf"
+                OnFileSelected="StartUpload" />
+        """;
 
     private static readonly ShowcaseContract[] UploadContracts =
     [

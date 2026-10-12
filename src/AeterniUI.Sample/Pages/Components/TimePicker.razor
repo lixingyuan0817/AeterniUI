@@ -1,4 +1,4 @@
-@page "/components/time-picker"
+﻿@page "/components/time-picker"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -72,6 +72,7 @@
         new("Format", "string?", "可选的显式 TimeOnly 显示格式。"),
         new("CancelText / ConfirmText", "string?", "取消与确定按钮的实例级文案。"),
         new("Placeholder / AriaLabel", "string?", "占位文本与无障碍名称。"),
+        new("OptionsAriaLabel", "string?", "时间选项列表的无障碍名称；留空回退文案表。"),
         new("Placement / Size", "PopupPlacement / Size", "弹层方位与控件尺寸。"),
         new("FullWidth", "bool", "是否占满父容器；默认按时间文本与图标紧凑显示。", "false"),
         new("ValueExpression", "Expression<Func<TimeOnly?>>?", "EditContext 字段表达式。"),

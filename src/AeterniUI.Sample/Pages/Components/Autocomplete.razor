@@ -1,4 +1,4 @@
-@page "/components/autocomplete"
+﻿@page "/components/autocomplete"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -99,6 +99,8 @@
         new("Invalid", "bool", "无效状态。", "false"),
         new("FullWidth", "bool", "是否占满父容器。", "false"),
         new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
         new("AriaLabel", "string?", "输入和建议列表的无障碍名称。"),
         new("AriaDescribedBy", "string?", "关联描述元素 ID。"),
         new("ClearLabel", "string?", "清除按钮无障碍标签。")

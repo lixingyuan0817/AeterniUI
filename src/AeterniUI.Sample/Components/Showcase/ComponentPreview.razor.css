@@ -325,3 +325,55 @@
         transition: none;
     }
 }
+
+/* 示例代码段。片段是消费者会复制的形态，而不是上面演示的逐行转写：演示用控件
+   驱动十来个参数，片段只保留最小可用写法。代码块使用中性表面与等宽字体，不引入
+   第二套配色。 */
+.component-preview__code {
+    padding: 26px 28px 30px;
+}
+
+.component-preview__copy {
+    min-height: var(--aeterni-touch-target-min);
+    padding: 4px 12px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-xs);
+    cursor: pointer;
+}
+
+.component-preview__copy:hover {
+    border-color: var(--aeterni-control-border-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.component-preview__copy:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.component-preview__code-block {
+    overflow-x: auto;
+    margin: 0;
+    padding: 16px 18px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-tertiary);
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    tab-size: 4;
+}
+
+/* 说明与边界现在是独立段：段标题负责与上一段的间距，notes 盒不再自带顶部外边距。 */
+.component-preview__notes-section {
+    padding: 0 28px 30px;
+}
+
+.component-preview__notes-section .component-preview__notes {
+    margin-top: 0;
+}

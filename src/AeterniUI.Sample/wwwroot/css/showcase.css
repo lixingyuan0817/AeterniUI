@@ -100,6 +100,89 @@
     box-sizing: border-box;
 }
 
+/* 侧栏检索：57 个条目靠翻菜单找不现实，搜索框是文档站的常规入口。状态行用
+   role="status" 报出匹配数量，键盘用户不必数条目。 */
+.showcase-search {
+    display: grid;
+    gap: 6px;
+    padding: 14px 0 10px;
+}
+
+.showcase-search__status {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-nav__empty {
+    margin: 0;
+    padding: 10px 4px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+/* 页面级文档栏：当前条目、源码入口，以及目录顺序里的前后一篇。 */
+.showcase-doc-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    margin-bottom: 14px;
+}
+
+.showcase-doc-head__label {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-doc-head__edit {
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    text-decoration: none;
+}
+
+.showcase-doc-head__edit:hover {
+    text-decoration: underline;
+}
+
+.showcase-doc-head__edit:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-xs);
+}
+
+.showcase-doc-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3);
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.showcase-doc-nav__link {
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-sm);
+    text-decoration: none;
+}
+
+.showcase-doc-nav__link--next {
+    margin-inline-start: auto;
+    text-align: end;
+}
+
+.showcase-doc-nav__link:hover {
+    text-decoration: underline;
+}
+
+.showcase-doc-nav__link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-xs);
+}
+
 .showcase-preview-host {
     min-width: 0;
 }

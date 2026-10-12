@@ -980,6 +980,74 @@ check('Upload appends a second drop instead of replacing the list',
     twoRows >= 2 && names.includes('dragged.txt') && names.includes('second.txt'),
     `rows=${twoRows} names=${names}`);
 
+// ---------------------------------------------------------------- 文档壳
+// 标准组件文档页的骨架：侧栏检索、每页的源码入口、目录顺序里的前后邻居，以及可复制
+// 的示例代码。这些结论都要真实 DOM 才成立——MenuItem 的 href 是运行时拼的，复制按钮
+// 走的是应用级事件委托，静态检查看不到任何一条。
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+
+const shell = await evaluate(`(() => {
+    const edit = document.querySelector('.showcase-doc-head__edit');
+    const prev = document.querySelector('.showcase-doc-nav__link[rel="prev"]');
+    const next = document.querySelector('.showcase-doc-nav__link[rel="next"]');
+    const block = document.querySelector('.component-preview__code-block code');
+    const copy = document.querySelector('[data-sample-copy]');
+    return {
+        hasSearch: !!document.querySelector('#showcase-search'),
+        status: document.querySelector('.showcase-search__status')?.textContent?.trim() ?? null,
+        editHref: edit?.getAttribute('href') ?? null,
+        editTarget: edit?.getAttribute('target') ?? null,
+        prevHref: prev?.getAttribute('href') ?? null,
+        nextHref: next?.getAttribute('href') ?? null,
+        codeHead: block?.textContent?.trim().slice(0, 20) ?? null,
+        copyTarget: copy?.dataset.sampleCopy ?? null,
+        copyBlockExists: copy ? !!document.getElementById(copy.dataset.sampleCopy) : false
+    };
+})()`);
+check('文档壳渲染侧栏检索与结果计数', shell.hasSearch && /条目/.test(shell.status ?? ''), JSON.stringify(shell));
+check('文档壳的源码入口指向本页文件',
+    shell.editHref === 'https://github.com/lixingyuan0817/AeterniUI/blob/main/src/AeterniUI.Sample/Pages/Components/Upload.razor'
+    && shell.editTarget === '_blank',
+    `href=${shell.editHref}`);
+check('文档壳按目录顺序给出前后邻居',
+    shell.prevHref === '/components/multi-select' && shell.nextHref === '/components/combobox',
+    `prev=${shell.prevHref} next=${shell.nextHref}`);
+check('示例代码段渲染了可复制的片段',
+    (shell.codeHead ?? '').startsWith('<Upload') && shell.copyBlockExists && shell.copyTarget === 'upload-code',
+    JSON.stringify(shell));
+
+// 复制按钮的接线：真实点击必须走到脚本并把结果写回按钮（成功或失败都算接线正确，
+// 无头浏览器里剪贴板权限本就不保证）。
+await evaluate(`document.querySelector('[data-sample-copy]')?.click()`);
+await sleep(200);
+const copyState = await evaluate(`(() => {
+    const button = document.querySelector('[data-sample-copy]');
+    return { state: button?.dataset.sampleCopyState ?? null, label: button?.textContent?.trim() ?? null };
+})()`);
+check('复制按钮点击后回报结果而不是静默失败',
+    copyState.state === 'copied' || copyState.state === 'failed',
+    JSON.stringify(copyState));
+
+// 侧栏检索过滤：输入“日期”后菜单项应明显减少，且状态行报出匹配数。
+const filtered = await evaluate(`(async () => {
+    const search = document.querySelector('#showcase-search');
+    const before = document.querySelectorAll('.aeterni-menu__item').length;
+    search.value = '日期';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    const deadline = performance.now() + 4000;
+    let after = before;
+    while (performance.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        after = document.querySelectorAll('.aeterni-menu__item').length;
+        if (after < before) break;
+    }
+    return { before, after, status: document.querySelector('.showcase-search__status')?.textContent?.trim() ?? null };
+})()`);
+check('侧栏检索按查询过滤条目',
+    filtered.after > 0 && filtered.after < filtered.before && /匹配/.test(filtered.status ?? ''),
+    JSON.stringify(filtered));
+
 // ---------------------------------------------------------------- REV-159
 // The sample pages are the library's runnable contract: the demos the review asked
 // for are asserted here instead of being trusted to exist.

@@ -17,6 +17,22 @@ public sealed record ShowcaseNavGroup(string Label, IconDefinition Icon, IReadOn
 public sealed record ShowcaseNavItem(string Id, string Label, string Summary)
 {
     public bool IsComponent { get; init; } = true;
+
+    private string? _page;
+
+    /// <summary>
+    /// Page file under <c>Pages/Components</c> that renders this entry, without the
+    /// extension. Derived from <see cref="Id"/> unless a page kept an older file
+    /// name (<c>glass</c> renders <c>GlassLab.razor</c>), in which case it is named
+    /// here. The sidebar builds its "edit on GitHub" link from this value, so a
+    /// wrong name produces a dead link instead of an obvious error — the sample
+    /// gate asserts every entry's file exists.
+    /// </summary>
+    public string Page
+    {
+        get => _page ?? string.Concat(Id.Split('-').Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
+        init => _page = value;
+    }
 }
 
 /// <summary>
@@ -32,7 +48,7 @@ public static class ShowcaseCatalog
         ]),
         new("设计基础", FontAwesomeIcons.Solid.Paintbrush, [
             new("colors", "色彩与语义", "色族、字体、圆角与阴影") { IsComponent = false },
-            new("glass", "玻璃与模糊", "模糊档位与填充不透明度对比") { IsComponent = false }
+            new("glass", "玻璃与模糊", "模糊档位与填充不透明度对比") { IsComponent = false, Page = "GlassLab" }
         ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),

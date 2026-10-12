@@ -1,4 +1,4 @@
-@page "/components/combobox"
+﻿@page "/components/combobox"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -83,7 +83,9 @@
         new("Size", "Size", "触发器与选项档位，与同排 Input/Textarea 对齐。", "Default"),
         new("ItemTemplate", "RenderFragment<TItem>?", "自定义选项模板。"),
         new("EmptyContent", "RenderFragment?", "空列表内容。"),
-        new("AriaLabel", "string?", "无障碍名称。")
+        new("FullWidth", "bool", "是否占满父容器。", "false"),
+        new("AriaLabel", "string?", "无障碍名称。"),
+        new("AriaDescribedBy", "string?", "关联描述元素 ID，与 FormField 描述合并。")
     ];
 
     private static readonly ShowcaseEvent[] ComboBoxEvents =

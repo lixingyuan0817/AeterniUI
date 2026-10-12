@@ -1,4 +1,4 @@
-@page "/components/virtual-list"
+﻿@page "/components/virtual-list"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -58,7 +58,16 @@
         new("LoadingMore", "bool", "宿主当前是否正在加载更多项目。", "false"),
         new("LoadMoreThreshold", "double", "距视口底部多少 CSS px 时触发加载。", "96"),
         new("OnLoadMore", "EventCallback", "触底后通知宿主追加项目。"),
-        new("SelectionMode", "SelectionMode", "无选择、单选或多选。", "None")
+        new("SelectionMode", "SelectionMode", "无选择、单选或多选。", "None"),
+        new("SelectedValue", "object?", "单选模式下的选中值。"),
+        new("SelectedValueChanged", "EventCallback<object?>", "单选绑定回调。"),
+        new("SelectedValues", "IReadOnlyList<object?>?", "多选模式下的选中值集合。"),
+        new("SelectedValuesChanged", "EventCallback<IReadOnlyList<object?>>", "多选绑定回调。"),
+        new("AllowClear", "bool", "允许清空已选项。", "false"),
+        new("DisabledSelector", "Func<TItem, bool>?", "按项目决定是否禁用。"),
+        new("EmptyContent", "RenderFragment?", "空集合时的自定义内容。"),
+        new("AriaLabel", "string?", "列表的无障碍名称。"),
+        new("OnItemSelected", "EventCallback<object?>", "项目被选中后触发。")
     ];
 
     private async Task LoadMoreAsync()

@@ -1,5 +1,6 @@
 @layout MainLayout
 @inherits LayoutComponentBase
+@using AeterniUI.Enums
 @using AeterniUI.Icons
 @using AeterniUI.Sample.Components.Showcase
 
@@ -8,15 +9,60 @@
    providers and the header stay in one place. *@
 <div class="showcase-layout">
     <aside class="showcase-sidebar">
+        <div class="showcase-search">
+            <Input Id="showcase-search"
+                   Value="@_query"
+                   ValueChanged="HandleQueryChanged"
+                   Size="Size.Small"
+                   Placeholder="搜索组件…"
+                   AriaLabel="搜索组件" />
+            <span class="showcase-search__status" role="status">@SearchStatus</span>
+        </div>
         <div class="showcase-nav">
-            <Menu Items="MenuGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
+            @if (FilteredGroups.Count > 0)
+            {
+                <Menu Items="FilteredGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
+            }
+            else
+            {
+                <p class="showcase-nav__empty">没有匹配“@_query”的组件。试试“选择”“日期”或“反馈”。</p>
+            }
         </div>
     </aside>
 
     <main class="showcase-main">
+        @* Every page carries the same chrome: what is being read, where its source
+           lives, and its neighbours in catalogue order. Page files are named after
+           the catalogue id, so the edit link needs no per-page parameter; the sample
+           gate asserts those files exist. *@
+        <div class="showcase-doc-head">
+            <span class="showcase-doc-head__label">@CurrentLabel</span>
+            <a class="showcase-doc-head__edit"
+               href="@EditHref"
+               target="_blank"
+               rel="noopener noreferrer">
+                在 GitHub 编辑<span aria-hidden="true"> ↗</span>
+            </a>
+        </div>
+
         <div class="showcase-preview-host" @key="SelectedId">
             @Body
         </div>
+
+        <nav class="showcase-doc-nav" aria-label="组件前后导航">
+            @if (Previous is { } previous)
+            {
+                <a class="showcase-doc-nav__link" rel="prev" href="@HrefFor(previous)">
+                    <span aria-hidden="true">←</span> @previous.Label
+                </a>
+            }
+            @if (Next is { } next)
+            {
+                <a class="showcase-doc-nav__link showcase-doc-nav__link--next" rel="next" href="@HrefFor(next)">
+                    @next.Label <span aria-hidden="true">→</span>
+                </a>
+            }
+        </nav>
     </main>
 </div>
 
@@ -24,20 +70,16 @@
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
+    private const string RepositoryUrl = "https://github.com/lixingyuan0817/AeterniUI";
+
     private static readonly IReadOnlyList<ShowcaseNavGroup> NavigationGroups = ShowcaseCatalog.Groups;
 
-    private static readonly IReadOnlyList<MenuGroup> MenuGroups = NavigationGroups
-        .Select(group => new MenuGroup(
-            group.Label,
-            group.Label,
-            group.Items
-                .Select(item => new MenuItem(
-                    item.Id,
-                    item.Label,
-                    Href: item.Id == "install" ? "/components" : $"/components/{item.Id}"))
-                .ToArray(),
-            GroupIcon(group.Icon)))
+    /// <summary>Catalogue order, flattened: the source of the previous/next links.</summary>
+    private static readonly IReadOnlyList<ShowcaseNavItem> FlatItems = NavigationGroups
+        .SelectMany(group => group.Items)
         .ToArray();
+
+    private string _query = string.Empty;
 
     /// <summary>
     /// Sidebar selection follows the route instead of a page parameter, because the
@@ -64,6 +106,81 @@
             return string.IsNullOrWhiteSpace(segment) ? "install" : segment;
         }
     }
+
+    private int CurrentIndex
+    {
+        get
+        {
+            for (var index = 0; index < FlatItems.Count; index++)
+            {
+                if (string.Equals(FlatItems[index].Id, SelectedId, StringComparison.Ordinal))
+                {
+                    return index;
+                }
+            }
+
+            return 0;
+        }
+    }
+
+    private ShowcaseNavItem CurrentItem => FlatItems[CurrentIndex];
+
+    private string CurrentLabel => CurrentItem.Label;
+
+    private ShowcaseNavItem? Previous => CurrentIndex > 0 ? FlatItems[CurrentIndex - 1] : null;
+
+    private ShowcaseNavItem? Next => CurrentIndex + 1 < FlatItems.Count ? FlatItems[CurrentIndex + 1] : null;
+
+    private string EditHref =>
+        $"{RepositoryUrl}/blob/main/src/AeterniUI.Sample/Pages/Components/{CurrentItem.Page}.razor";
+
+    private string SearchStatus => string.IsNullOrWhiteSpace(_query)
+        ? $"{FlatItems.Count} 个条目"
+        : $"匹配 {FilteredItems.Count} / {FlatItems.Count} 个条目";
+
+    private IReadOnlyList<ShowcaseNavItem> FilteredItems => string.IsNullOrWhiteSpace(_query)
+        ? FlatItems
+        : FlatItems.Where(Matches).ToArray();
+
+    /// <summary>
+    /// Groups are rebuilt from the filtered items: the sidebar keeps its category
+    /// headings, and a category a query emptied disappears instead of leaving an
+    /// empty disclosure. A flat result list would lose the organisation the pages
+    /// are grouped by.
+    /// </summary>
+    private IReadOnlyList<MenuGroup> FilteredGroups
+    {
+        get
+        {
+            var visible = FilteredItems.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+            return NavigationGroups
+                .Select(group => new MenuGroup(
+                    group.Label,
+                    group.Label,
+                    group.Items
+                        .Where(item => visible.Contains(item.Id))
+                        .Select(item => new MenuItem(item.Id, item.Label, Href: HrefFor(item)))
+                        .ToArray(),
+                    GroupIcon(group.Icon)))
+                .Where(group => group.Items.Count > 0)
+                .ToArray();
+        }
+    }
+
+    private bool Matches(ShowcaseNavItem item) =>
+        Contains(item.Id, _query) || Contains(item.Label, _query) || Contains(item.Summary, _query);
+
+    private static bool Contains(string value, string query) =>
+        value.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private Task HandleQueryChanged(string? value)
+    {
+        _query = value ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private static string HrefFor(ShowcaseNavItem item) =>
+        item.Id == "install" ? "/components" : $"/components/{item.Id}";
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;

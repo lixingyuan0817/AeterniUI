@@ -31,6 +31,18 @@ public partial class ComponentPreview : ComponentBase
     [Parameter]
     public RenderFragment? Notes { get; set; }
 
+    /// <summary>
+    /// Razor usage sample, rendered as a copyable code block.
+    /// </summary>
+    /// <remarks>
+    /// The snippet is the shape a consumer copies, not a transcript of the demo
+    /// above: the demo drives a dozen parameters through its controls, while a
+    /// snippet that long teaches nothing. Every parameter named here has to exist
+    /// on the component, and the sample gate asserts it.
+    /// </remarks>
+    [Parameter]
+    public string? Code { get; set; }
+
     [Parameter]
     public IReadOnlyList<ShowcaseParameter>? Parameters { get; set; }
 

@@ -1,4 +1,4 @@
-@page "/components/textarea"
+﻿@page "/components/textarea"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -78,6 +78,9 @@
         new("ValueChanged", "EventCallback<string?>", "标准绑定回调。"),
         new("ValueExpression", "Expression<Func<string?>>?", "EditContext 字段表达式。"),
         new("Placeholder", "string?", "占位文本。"),
+        new("Name", "string?", "原生 name 属性。"),
+        new("AutoComplete", "string?", "原生 autocomplete 属性。"),
+        new("MinLength / MaxLength", "int?", "最小与最大长度；两者同时设置时不能倒置。"),
         new("Rows", "int?", "初始行数。", "4"),
         new("Resize", "TextareaResize", "是否允许垂直调整大小。", "Vertical"),
         new("ReadOnly", "bool", "只读状态。", "false"),

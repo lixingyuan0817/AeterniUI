@@ -1,4 +1,4 @@
-@page "/components/input"
+﻿@page "/components/input"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -14,7 +14,8 @@
                   ComponentName="Input"
                   Description="单行原生输入控件，支持标准绑定、HTML 输入语义、校验状态、事件和 FormField 级联。"
                   Parameters="@InputParameters"
-                  Events="@InputEvents">
+                  Events="@InputEvents"
+                  Code="@UsageCode">
     <Preview>
         <div class="preview-form-control">
             <Input @bind-Value="_inputValue"
@@ -51,6 +52,12 @@
         <Checkbox Size="Size.Small" @bind-Value="_inputDisabled">Disabled</Checkbox>
         <Checkbox Size="Size.Small" @bind-Value="_inputFullWidth">FullWidth</Checkbox>
     </Controls>
+    <Notes>
+        <span><code>Type</code> 直接映射到原生 input 类型，密码等类型的自动填充由 <code>AutoComplete</code> 描述。</span>
+        <span>在 <code>FormField</code> 内输入采用字段的输入 id，字段标签的 <code>for</code> 因此解析到输入本身；<code>aria-describedby</code> 合并宿主值与字段描述 id。</span>
+        <span>禁用态同时输出 <code>disabled</code> 与 <code>aria-disabled="true"</code>；<code>ReadOnly</code> 只做只读，文本仍可选中、焦点仍可达。</span>
+        <span>组件不定义校验规则：<code>Invalid</code> 或 <code>EditContext</code> 的校验消息只决定无效态外观，是否阻止提交由宿主决定。</span>
+    </Notes>
 </ComponentPreview>
 
 @code {
@@ -93,6 +100,16 @@
         new("AriaLabel", "string?", "无障碍名称。"),
         new("AriaDescribedBy", "string?", "关联描述元素 ID。")
     ];
+
+    private const string UsageCode = """
+        <FormField Label="邮箱" Description="用于接收构建通知。">
+            <Input @bind-Value="Email"
+                   Type="InputType.Email"
+                   Placeholder="name@example.com"
+                   Required
+                   FullWidth />
+        </FormField>
+        """;
 
     private static readonly ShowcaseEvent[] InputEvents =
     [

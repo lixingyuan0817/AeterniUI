@@ -6,6 +6,17 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程内容与信息架构（批次 1，版本号未递增）
+
+- [x] 按标准组件文档项目收敛示例页结构：每页固定为「01 外观预览 / 02 调整属性 / 03 示例代码 / 04 参数、事件与接口 / 05 说明与边界」，段号按实际存在的段计算，不再出现跳号；说明区由 API 段内的提示盒改为独立段。
+- [x] 文档壳补齐：侧栏检索与匹配计数（`role="status"`）、每页页头的「在 GitHub 编辑」（按目录条目的页面文件名拼装）、页脚的上一页/下一页导航；`ShowcaseNavItem` 新增 `Page`，把 `glass` → `GlassLab.razor` 这个例外从推导逻辑里显式命名出来。
+- [x] 示例代码段：`ComponentPreview` 新增 `Code` 参数，渲染等宽代码块与复制按钮；复制走应用级事件委托脚本 `wwwroot/js/sample-docs.js`，`navigator.clipboard` 不可用时退回 `execCommand('copy')`，两条路径都失败时按钮显示「复制失败」而不是谎报成功。
+- [x] 参数表对账：补齐 19 行缺失登记（`Autocomplete` 2、`Combobox` 2、`Textarea` 3、`TimePicker` 1、`Upload` 1、`VirtualList` 9），并确认 `DatePicker` 页用 `Value / StartDate / EndDate`、`*Changed`、`*Expression` 这类汇总行覆盖 `DateRangePicker` 的绑定三元组是刻意写法。
+- [x] 新增内容门禁 `tests/sample-docs.test.mjs`（3 项）：目录条目 ↔ 页面文件与路由一致；页面参数/事件表覆盖组件全部公共 `[Parameter]`（排除非稳定内部部件 `DateCalendar`/`TimeOptionList`，支持汇总行通配）；提供代码块的页面必须定义 `UsageCode` 且片段用到该组件。已反向验证：删掉 `Upload` 的一行登记即失败并点名。
+- [x] 浏览器检查新增「文档壳」5 项：检索与计数、编辑链接指向本页文件且 `target="_blank"`、前后邻居（`upload` 的前后为 `multi-select`/`combobox`）、代码块渲染、复制按钮点击后回报结果；另加侧栏检索过滤断言。
+- [x] 试点页：`Input`（补 `Notes` 与用法片段）、`MultiSelect`（补 3 行登记与用法片段）、`Upload`（补 1 行登记与用法片段）。其余页面的代码块与缺失段落登记为批次 2。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（74 文件）、`node --test tests/*.test.mjs`（84 项）通过。
+
 ## 10.32.0 Upload 组件（优先级 9 第 1 项）
 
 - [x] 新增公共组件 `Upload`（`Components/Upload/`，razor / cs / css / js 四文件）：原生选择器加拖放的文件收集，组件负责选择、可按元数据判定的校验、文件列表与状态渲染；传输、协议与存储归宿主。
