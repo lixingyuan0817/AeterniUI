@@ -51,6 +51,23 @@ if ! grep -q 'delivered-features.zh-CN.md' docs/component-plan.zh-CN.md; then
   exit 1
 fi
 
+# 计划文档状态一致性：审阅计划声明无活动条目时，两份计划文件都不得再留收口与待办残留。
+if grep -q '暂无活动条目' docs/review-plan.zh-CN.md; then
+  pending=$(grep -nE '待修复|待开始|⏳|进行中' docs/review-plan.zh-CN.md | grep -vE '`\[[ x~]\]`' || true)
+  if [[ -n "$pending" ]]; then
+    echo "Review plan declares no active items but still keeps pending entries:" >&2
+    echo "$pending" >&2
+    exit 1
+  fi
+
+  closure=$(grep -nE '质量收口|审阅' docs/component-plan.zh-CN.md | grep -E '未开始|进行中|待修复|待开始' || true)
+  if [[ -n "$closure" ]]; then
+    echo "Review plan has no active items, but the component plan still lists a review closure as pending:" >&2
+    echo "$closure" >&2
+    exit 1
+  fi
+fi
+
 if ! grep -q 'docs/delivered-features.zh-CN.md' README.md; then
   echo "README documentation index is incomplete." >&2
   exit 1

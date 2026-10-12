@@ -264,7 +264,7 @@ node scripts/generate-fontawesome-icons.mjs --check
 dotnet build aeterni_ui.slnx                    # 所有代码改动
 dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
                                                    # 根属性、ARIA、焦点或公开变体
-bash scripts/check-docs.sh                     # 文档、结构、入口或命令
+bash scripts/check-docs.sh                     # 文档、结构、入口或命令、计划状态一致性
 node scripts/check-css-comments.mjs            # 任意 CSS
 grep -E '^\.aeterni-' src/AeterniUI/wwwroot/css/aeterni_ui.css | grep -v '^\.aeterni-dark'
                                                # token 文件不得含组件选择器（无输出即通过）
