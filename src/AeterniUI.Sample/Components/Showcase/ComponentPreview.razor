@@ -77,39 +77,9 @@
         </div>
 
         <div class="component-preview__api-grid">
-            @if (GeneratedGroups.Count > 0)
+            @if (HasGeneratedApi)
             {
-                @foreach (var group in GeneratedGroups)
-                {
-                    <div class="component-preview__api-group">
-                        <h4>@group.Label</h4>
-                        <div class="component-preview__api-table" role="table">
-                            <div class="component-preview__api-row component-preview__api-row--header" role="row">
-                                <span role="columnheader">名称</span>
-                                <span role="columnheader">类型 / 默认值</span>
-                                <span role="columnheader">说明</span>
-                            </div>
-                            @foreach (var row in group.Rows)
-                            {
-                                <div class="component-preview__api-row" role="row">
-                                    <code role="cell">@row.Name</code>
-                                    <span role="cell">
-                                        <code>@row.Type</code>
-                                        @if (!string.IsNullOrWhiteSpace(row.DefaultValue))
-                                        {
-                                            <small>默认 @row.DefaultValue</small>
-                                        }
-                                        @if (!string.IsNullOrWhiteSpace(row.Since))
-                                        {
-                                            <small>自 @row.Since</small>
-                                        }
-                                    </span>
-                                    <span role="cell">@row.Description</span>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
+                <ShowcaseApiTable AnchorId="@AnchorId" />
             }
             else
             {

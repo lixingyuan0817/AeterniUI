@@ -153,3 +153,27 @@ test('提供代码块的页面都定义了片段，且片段用到了它记录�
 
     assert.ok(withCode > 0, '示例工程里没有任何代码块，说明本门禁已失效');
 });
+
+test('卡片化的页面：demo 锚点唯一，每段都有自己的标题与代码', () => {
+    const files = readdirSync(PAGES).filter(name => name.endsWith('.razor'));
+    const migrated = [];
+
+    for (const file of files) {
+        const source = read(join(PAGES, file));
+        if (!source.includes('<ComponentPage')) continue;
+        migrated.push(file);
+
+        const ids = [...source.matchAll(/<DemoCard\s+Id="([^"]+)"/g)].map(match => match[1]);
+        assert.ok(ids.length >= 2, `${file} 至少要有两段 demo——卡片化的意义就在这里`);
+        assert.equal(new Set(ids).size, ids.length, `${file} 的 demo 锚点必须唯一（右栏 TOC 与分享链接都指向它）`);
+
+        for (const id of ids) {
+            const start = source.indexOf(`<DemoCard Id="${id}"`);
+            const block = source.slice(start, source.indexOf('</DemoCard>', start));
+            assert.match(block, /Title="/, `${file} 的 ${id} 缺少标题`);
+            assert.match(block, /Code="@\w+"/, `${file} 的 ${id} 缺少代码片段`);
+        }
+    }
+
+    assert.ok(migrated.length > 0, '没有任何卡片化页面，说明本门禁已失效');
+});

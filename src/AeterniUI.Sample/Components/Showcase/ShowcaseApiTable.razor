@@ -1,0 +1,71 @@
+@namespace AeterniUI.Sample.Components.Showcase
+
+@* 公共 API 表：行来自生成物（scripts/generate-api-reference.mjs），说明与额外行来自
+   scripts/api-*.json。页面不写任何一行——手写的表会漂移，审查实测过 8 页对不上。
+   分组按阅读顺序：属性、事件回调、接口 / 服务；空组不输出，避免出现只有标题的空表。 *@
+@if (Groups.Count > 0)
+{
+    <div class="component-preview__api-grid">
+        @foreach (var group in Groups)
+        {
+            <div class="component-preview__api-group">
+                <h4>@group.Label</h4>
+                <div class="component-preview__api-table" role="table">
+                    <div class="component-preview__api-row component-preview__api-row--header" role="row">
+                        <span role="columnheader">名称</span>
+                        <span role="columnheader">类型 / 默认值</span>
+                        <span role="columnheader">说明</span>
+                    </div>
+                    @foreach (var row in group.Rows)
+                    {
+                        <div class="component-preview__api-row" role="row">
+                            <code role="cell">@row.Name</code>
+                            <span role="cell">
+                                <code>@row.Type</code>
+                                @if (!string.IsNullOrWhiteSpace(row.DefaultValue))
+                                {
+                                    <small>默认 @row.DefaultValue</small>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(row.Since))
+                                {
+                                    <small>自 @row.Since</small>
+                                }
+                            </span>
+                            <span role="cell">@row.Description</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Page id; the same key the sidebar and the generated table are keyed by.</summary>
+    [Parameter, EditorRequired]
+    public string AnchorId { get; set; } = string.Empty;
+
+    private IReadOnlyList<ShowcaseApiMember> Members =>
+        ShowcaseApiReference.ByPage.TryGetValue(AnchorId, out var rows) ? rows : [];
+
+    private IReadOnlyList<ShowcaseApiMember> Contracts =>
+        ShowcaseApiReference.Contracts.TryGetValue(AnchorId, out var rows) ? rows : [];
+
+    private IReadOnlyList<(string Label, IReadOnlyList<ShowcaseApiMember> Rows)> Groups
+    {
+        get
+        {
+            if (Members.Count == 0 && Contracts.Count == 0)
+            {
+                return [];
+            }
+
+            return new (string Label, IReadOnlyList<ShowcaseApiMember> Rows)[]
+            {
+                ("参数", [.. ShowcaseApi.BaseMembers, .. Members.Where(row => row.Kind == "属性")]),
+                ("事件回调", [.. Members.Where(row => row.Kind == "事件回调")]),
+                ("接口 / 服务", Contracts)
+            }.Where(group => group.Rows.Count > 0).ToArray();
+        }
+    }
+}

@@ -1,0 +1,48 @@
+@namespace AeterniUI.Sample.Components.Showcase
+
+@* 一段演示：标题、说明、实时预览、可选属性控件、可复制代码。市面组件文档的 demo 卡片
+   就是这个形状。id 是这段演示的锚点——右栏 TOC 与分享链接都指向它。 *@
+<section class="component-demo" id="@Id" aria-labelledby="@($"{Id}-title")">
+    <header class="component-demo__header">
+        <h3 id="@($"{Id}-title")">@Title</h3>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="component-demo__description">@Description</p>
+        }
+    </header>
+
+    <div class="component-preview__canvas">@Preview</div>
+
+    @if (Controls is not null)
+    {
+        <div class="component-demo__controls">@Controls</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Code))
+    {
+        <ShowcaseCode Id="@($"{Id}-code")" Code="@Code" Label="@Title" />
+    }
+</section>
+
+@code {
+    /// <summary>Anchor for this demo; also the prefix of its code block id.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment Preview { get; set; } = default!;
+
+    /// <summary>Optional attribute controls. A demo that only shows one state needs none.</summary>
+    [Parameter]
+    public RenderFragment? Controls { get; set; }
+
+    /// <summary>The snippet a consumer copies; the shape, not a transcript of the demo.</summary>
+    [Parameter]
+    public string? Code { get; set; }
+}

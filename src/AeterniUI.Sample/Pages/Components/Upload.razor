@@ -6,82 +6,195 @@
 
 <PageTitle>Aeterni UI · Upload</PageTitle>
 
-<ComponentPreview AnchorId="upload"
-                  Category="表单组件"
-                  Title="Upload"
-                  ComponentName="Upload"
-                  Description="文件选择与拖放，组件负责校验与列表，传输由宿主驱动。"
-                  Code="@UsageCode">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <FormField Label="附件"
-                       Description="可拖放到虚线区域，或点击选择；单个文件不超过 2 MB。"
-                       Disabled="@_disabled"
-                       Invalid="@_invalid">
-                <Upload SelectedFiles="@_files"
-                        SelectedFilesChanged="HandleFilesChanged"
-                        OnFileSelected="HandleFileSelected"
-                        Multiple="@_multiple"
-                        AllowRemove="@_allowRemove"
-                        MaxFileSize="@(2 * 1024 * 1024)"
-                        Accept="image/*,.pdf"
-                        DropText="@_dropText"
-                        Disabled="@_disabled"
-                        Invalid="@_invalid"
-                        FullWidth="@_fullWidth"
-                        AriaLabel="项目附件" />
-            </FormField>
-            <span class="preview-feedback" role="status">@_note</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="upload-drop-text">DropText</label>
-            <input id="upload-drop-text" @bind="_dropText" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_multiple">Multiple</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_allowRemove">AllowRemove</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="upload"
+               Category="表单组件"
+               Title="Upload"
+               ComponentName="Upload"
+               Description="文件选择与拖放：组件负责选择、按元数据的校验与列表，传输由宿主驱动。"
+               Related="@UploadRelated">
+    <WhenToUse>
+        <p>需要用户提供文件时使用：附件、头像、批量导入。多个文件加 <code>Multiple</code>，需要数量或大小上限时加 <code>MaxFileCount</code> 与 <code>MaxFileSize</code>。</p>
+        <p>组件不定义传输协议，也不缓存内容：宿主在 <code>OnFileSelected</code> 或 <code>SelectedFilesChanged</code> 里读取 <code>UploadFile.Content</code> 传输，并把进度写回同一个实例。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="upload-basic"
+                  Title="基础用法"
+                  Description="单文件选择：Accept 交给原生对话框，MaxFileSize 按浏览器给出的元数据判定，超出即标记失败并给出原因。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Upload SelectedFiles="_single"
+                            SelectedFilesChanged="HandleSingleChanged"
+                            Accept="image/*,.pdf"
+                            MaxFileSize="@(2 * 1024 * 1024)"
+                            AriaLabel="上传凭证" />
+                    <span class="preview-feedback" role="status">@_singleNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="upload-multiple"
+                  Title="多文件与移除"
+                  Description="Multiple 允许一次选入或拖入多个文件，MaxFileCount 限制接受数量，AllowRemove 渲染单项移除动作。"
+                  Code="@MultipleCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Upload SelectedFiles="_multiple"
+                            SelectedFilesChanged="HandleMultipleChanged"
+                            Multiple
+                            MaxFileCount="3"
+                            MaxFileSize="@(1024 * 1024)"
+                            AriaLabel="批量附件" />
+                    <span class="preview-feedback" role="status">@_multipleNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="upload-host-progress"
+                  Title="宿主驱动传输进度"
+                  Description="本页模拟一次传输：Status 先进入 Uploading，Percent 递增，完成后置为 Success。真实宿主把这段换成自己的请求即可。"
+                  Code="@ProgressCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Upload SelectedFiles="_transferFiles"
+                            SelectedFilesChanged="HandleTransferChanged"
+                            OnFileSelected="StartTransfer"
+                            Multiple
+                            MaxFileSize="@(2 * 1024 * 1024)"
+                            AriaLabel="传输演示" />
+                    <span class="preview-feedback" role="status">@_transferNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="upload-states"
+                  Title="状态与属性"
+                  Description="禁用、无效、整宽与自定义拖放文案；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="附件"
+                               Description="可拖放到虚线区域，或点击选择。"
+                               Disabled="@_stateDisabled"
+                               Invalid="@_stateInvalid">
+                        <Upload SelectedFiles="_stateFiles"
+                                SelectedFilesChanged="HandleStateChanged"
+                                AllowRemove="@_stateAllowRemove"
+                                DropText="@_stateDropText"
+                                Disabled="@_stateDisabled"
+                                Invalid="@_stateInvalid"
+                                FullWidth="@_stateFullWidth"
+                                AriaLabel="状态演示附件" />
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="upload-drop-text">DropText</label>
+                    <input id="upload-drop-text" @bind="_stateDropText" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_stateAllowRemove">AllowRemove</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>组件只做选择、元数据校验和列表渲染；传输、协议与存储归宿主，进度由宿主写回 UploadFile。</span>
-        <span>本页在 OnFileSelected 后模拟一次传输：Status 先进入 Uploading 并递增 Percent，完成后置为 Success。</span>
-        <span>Accept 只作用于原生选择器；拖放的文件不受浏览器过滤，因此类型与大小仍由宿主或 MaxFileSize 校验。</span>
-        <span>MaxFileSize 与 MaxFileCount 拒绝的文件仍会进入列表并标记为 Error，方便用户看到被拒原因。</span>
+        <span>组件只做选择、元数据校验和列表渲染；传输、协议与存储归宿主，进度由宿主写回 <code>UploadFile</code>。</span>
+        <span><code>Accept</code> 只作用于原生选择器：拖放的文件不受浏览器过滤，类型与业务校验仍由宿主或 <code>MaxFileSize</code> 负责。</span>
+        <span>被 <code>MaxFileSize</code> 与 <code>MaxFileCount</code> 拒绝的文件仍会进入列表并标记为 <code>Error</code>，方便用户看到被拒原因；这类条目不计入已接受数量。</span>
+        <span>拖放依赖浏览器允许把 drop 的 <code>FileList</code> 赋给 <code>input.files</code>；引擎拒绝该项赋值时拖放被忽略，原生选择器仍可用。</span>
+        <span>点击选择器时会清空输入值，因此同一个文件可以重复选择；清空刻意不做在事件处理之后——从 C# 回来的那次清空会与紧随其后的拖放抢同一轮往返。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private IReadOnlyList<UploadFile> _files = [];
-    private string _dropText = "拖放文件到此处，或点击选择";
-    private bool _multiple = true;
-    private bool _allowRemove = true;
-    private bool _disabled;
-    private bool _invalid;
-    private bool _fullWidth = true;
-    private string _note = "选择或拖入文件后，这里会显示宿主侧的上传进度。";
+    private static readonly ShowcaseRelatedLink[] UploadRelated =
+    [
+        new("FormField", "/components/form-field"),
+        new("Progress", "/components/progress"),
+        new("Button", "/components/button"),
+        new("Dialog / Confirm / Alert / Toast", "/components/feedback")
+    ];
 
-    private const string UsageCode = """
+    private const string BasicCode = """
         <Upload @bind-SelectedFiles="Files"
-                Multiple
-                MaxFileSize="@(5 * 1024 * 1024)"
                 Accept="image/*,.pdf"
-                OnFileSelected="StartUpload" />
+                MaxFileSize="@(2 * 1024 * 1024)" />
         """;
 
-    private Task HandleFilesChanged(IReadOnlyList<UploadFile> files)
+    private const string MultipleCode = """
+        <Upload @bind-SelectedFiles="Files"
+                Multiple
+                MaxFileCount="3"
+                MaxFileSize="@(1024 * 1024)" />
+        """;
+
+    private const string ProgressCode = """
+        <Upload @bind-SelectedFiles="Files" OnFileSelected="StartUpload" Multiple />
+
+        async Task StartUpload(UploadFile file)
+        {
+            file.Status = UploadStatus.Uploading;
+            await foreach (var percent in TransferAsync(file.Content))   // 宿主自己的传输
+            {
+                file.Percent = percent;
+                StateHasChanged();
+            }
+
+            file.Status = UploadStatus.Success;
+        }
+        """;
+
+    private const string StateCode = """
+        <FormField Label="附件" Description="可拖放到虚线区域，或点击选择。">
+            <Upload @bind-SelectedFiles="Files" DropText="拖放文件到此处" FullWidth />
+        </FormField>
+        """;
+
+    private IReadOnlyList<UploadFile> _single = [];
+    private IReadOnlyList<UploadFile> _multiple = [];
+    private IReadOnlyList<UploadFile> _transferFiles = [];
+    private IReadOnlyList<UploadFile> _stateFiles = [];
+    private bool _stateAllowRemove = true;
+    private bool _stateDisabled;
+    private bool _stateInvalid;
+    private bool _stateFullWidth = true;
+    private string _stateDropText = "拖放文件到此处，或点击选择";
+    private string _singleNote = "选择或拖入一个文件试试：超过 2 MB 会被拒绝并给出原因。";
+    private string _multipleNote = "一次最多接受 3 个文件，超出部分留在列表里标为失败。";
+    private string _transferNote = "选择文件后这里会显示宿主侧的模拟传输进度。";
+
+    private Task HandleSingleChanged(IReadOnlyList<UploadFile> files)
     {
-        _files = files;
+        _single = files;
         return Task.CompletedTask;
     }
 
-    // The upload here is the host's, not the component's: this page fabricates the
-    // progress a real transport would report, on the same UploadFile instances.
-    private void HandleFileSelected(UploadFile file) => _ = InvokeAsync(() => SimulateUploadAsync(file));
+    private Task HandleMultipleChanged(IReadOnlyList<UploadFile> files)
+    {
+        _multiple = files;
+        return Task.CompletedTask;
+    }
 
-    private async Task SimulateUploadAsync(UploadFile file)
+    private Task HandleTransferChanged(IReadOnlyList<UploadFile> files)
+    {
+        _transferFiles = files;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleStateChanged(IReadOnlyList<UploadFile> files)
+    {
+        _stateFiles = files;
+        return Task.CompletedTask;
+    }
+
+    // 传输是宿主的职责：这里用一段定时递增的假进度顶替真实请求，演示 Status/Percent
+    // 的写回路径。组件本身不参与，也不会替宿主维护状态。
+    private void StartTransfer(UploadFile file) => _ = InvokeAsync(() => SimulateTransferAsync(file));
+
+    private async Task SimulateTransferAsync(UploadFile file)
     {
         file.Status = UploadStatus.Uploading;
         file.Percent = 0;
@@ -95,7 +208,7 @@
         }
 
         file.Status = UploadStatus.Success;
-        _note = $"宿主已完成 {file.Name} 的模拟传输（{file.Size} 字节）。";
+        _transferNote = $"宿主已完成 {file.Name} 的模拟传输（{file.Size} 字节）。";
         await InvokeAsync(StateHasChanged);
     }
 }

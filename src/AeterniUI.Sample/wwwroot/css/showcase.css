@@ -1274,3 +1274,478 @@
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-relaxed);
 }
+
+/*
+   组件文档页的排版：页头、demo 卡片、代码块、API 表与说明区。
+
+   这些规则原在 ComponentPreview.razor.css 里（CSS 隔离）。批 3 把一页一段 demo 拆成
+   多个 DemoCard，并由 ComponentPage 组织页头/API/相关组件，于是同一套类名要跨多个组件
+   复用——隔离样式只作用于声明它的组件，所以整块搬到文档样式表里，保持单一来源。
+*/
+.component-preview { position: relative; }
+.component-preview {
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-xl);
+    background: transparent;
+    box-shadow: var(--aeterni-shadow-sm);
+    /* Do not retain the opacity animation's compositing state around child popovers. */
+    animation: component-preview-enter var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) backwards;
+    transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
+}
+
+.component-preview::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--aeterni-bg-elevated);
+    -webkit-backdrop-filter: var(--aeterni-blur-md);
+    backdrop-filter: var(--aeterni-blur-md);
+    content: "";
+    pointer-events: none;
+}
+
+/* A modal backdrop must escape the preview card's isolated stacking context so
+   backdrop-filter samples the whole page rather than only this card. */
+.component-preview.component-preview--modal-open {
+    isolation: auto;
+    animation: none;
+}
+
+.component-preview.component-preview--modal-open::before {
+    display: none;
+}
+
+.component-preview:hover {
+    border-color: var(--aeterni-border-strong);
+    box-shadow: var(--aeterni-shadow-md);
+}
+
+.component-preview__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 26px 28px 22px;
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.component-preview__eyebrow,
+.component-preview__section-kicker {
+    margin: 0;
+    color: var(--aeterni-color-brand-text);
+    font-size: 11px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.component-preview__header h2 {
+    margin: 7px 0 8px;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.1;
+}
+
+.component-preview__description {
+    max-width: 640px;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.component-preview__name {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-text-secondary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 12px;
+}
+
+.component-preview__demo-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(270px, .6fr);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.component-preview__stage,
+.component-preview__controls {
+    min-width: 0;
+    padding: 24px 28px 28px;
+}
+
+.component-preview__stage {
+    border-right: 1px solid var(--aeterni-border-subtle);
+}
+
+.component-preview__section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.component-preview__section-heading > div {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.component-preview__section-heading h3 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.component-preview__hint {
+    color: var(--aeterni-text-muted);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.component-preview__canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    padding: 30px;
+    border: 1px dashed var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-lg);
+    background:
+        linear-gradient(var(--aeterni-border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--aeterni-border-subtle) 1px, transparent 1px),
+        var(--aeterni-bg-primary);
+    background-size: 24px 24px;
+}
+
+.component-preview__controls {
+    align-self: stretch;
+}
+
+.component-preview__control-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-content: start;
+}
+
+.component-preview__api {
+    padding: 26px 28px 30px;
+}
+
+.component-preview__api-grid {
+    display: grid;
+    gap: 22px;
+}
+
+.component-preview__api-group h4 {
+    margin: 0 0 10px;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.component-preview__api-table {
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-md);
+}
+
+.component-preview__api-row {
+    display: grid;
+    grid-template-columns: minmax(110px, .7fr) minmax(150px, 1fr) minmax(220px, 2fr);
+    gap: 14px;
+    align-items: start;
+    padding: 11px 14px;
+    border-top: 1px solid var(--aeterni-border-subtle);
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.component-preview__api-row:first-child {
+    border-top: 0;
+}
+
+.component-preview__api-row--header {
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-text-muted);
+    font-size: 10px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.component-preview__api-row code,
+.component-preview__contract code {
+    color: var(--aeterni-color-brand-text);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.component-preview__api-row span code + small {
+    display: block;
+    margin-top: 3px;
+    color: var(--aeterni-text-muted);
+    font-family: var(--aeterni-font-family-base);
+    font-size: 11px;
+}
+
+.component-preview__contract-list {
+    display: grid;
+    gap: 8px;
+}
+
+.component-preview__contract {
+    display: grid;
+    gap: 3px;
+    padding: 11px 14px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+}
+
+.component-preview__notes {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    padding: 12px 14px;
+    border: 1px solid var(--aeterni-info-soft);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-info-soft);
+    color: var(--aeterni-text-secondary);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.component-preview__notes-mark {
+    display: grid;
+    flex: 0 0 18px;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-info);
+    color: var(--aeterni-text-inverse);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 11px;
+    font-weight: var(--aeterni-font-weight-bold);
+}
+
+/* Below this width the preview card is a single column of stacked sections, so
+   the API table collapses here too: its three tracks have a ~508px minimum, which
+   is wider than the card once the sidebar occupies a column of the shell. */
+@media (max-width: 900px) {
+    .component-preview__demo-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .component-preview__stage {
+        border-right: 0;
+        border-bottom: 1px solid var(--aeterni-border-subtle);
+    }
+
+    .component-preview__api-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .component-preview__api-row--header {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .component-preview__header,
+    .component-preview__stage,
+    .component-preview__controls,
+    .component-preview__api {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .component-preview__header {
+        display: block;
+    }
+
+
+    .component-preview__name {
+        display: inline-block;
+        margin-top: 14px;
+    }
+
+    .component-preview__canvas {
+        min-height: 190px;
+        padding: 20px 14px;
+    }
+}
+
+@keyframes component-preview-enter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .component-preview {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* 示例代码段。片段是消费者会复制的形态，而不是上面演示的逐行转写：演示用控件
+   驱动十来个参数，片段只保留最小可用写法。代码块使用中性表面与等宽字体，不引入
+   第二套配色。 */
+.component-preview__code {
+    padding: 26px 28px 30px;
+}
+
+.component-preview__copy {
+    min-height: var(--aeterni-touch-target-min);
+    padding: 4px 12px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-xs);
+    cursor: pointer;
+}
+
+.component-preview__copy:hover {
+    border-color: var(--aeterni-control-border-hover);
+    color: var(--aeterni-text-primary);
+}
+
+.component-preview__copy:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.component-preview__code-block {
+    overflow-x: auto;
+    margin: 0;
+    padding: 16px 18px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-tertiary);
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    tab-size: 4;
+}
+
+/* 说明与边界现在是独立段：段标题负责与上一段的间距，notes 盒不再自带顶部外边距。 */
+.component-preview__notes-section {
+    padding: 0 28px 30px;
+}
+
+.component-preview__notes-section .component-preview__notes {
+    margin-top: 0;
+}
+
+/* demo 卡片：一页多段演示的载体。每张卡自带锚点（右栏 TOC 与分享链接用），标题用 h3，
+   说明紧跟其后；预览区沿用 .component-preview__canvas 的排版。 */
+.component-demo + .component-demo {
+    margin-top: 26px;
+}
+
+.component-demo__header {
+    margin: 0 0 12px;
+}
+
+.component-demo__header h3 {
+    margin: 0 0 6px;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+}
+
+.component-demo__description {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.component-demo__controls {
+    margin-top: 14px;
+}
+
+/* 复制按钮从段标题移到代码块上方后，需要自己撑起一行。 */
+.component-preview__code-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 6px;
+}
+
+/* 组件页骨架：标题区、何时使用、demo 列表、API、相关组件、说明与边界。 */
+.component-page__section {
+    padding: 26px 28px 30px;
+}
+
+.component-page__section h2 {
+    margin: 0 0 12px;
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+}
+
+.component-page__when p {
+    margin: 0 0 8px;
+    max-width: 72ch;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.component-page__related ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.component-page__related a {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-sm);
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    text-decoration: none;
+}
+
+.component-page__related a:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.component-page__related a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.component-page__related,
+.component-page__when {
+    padding: 18px 28px 0;
+}

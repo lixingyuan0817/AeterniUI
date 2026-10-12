@@ -2,89 +2,164 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Input</PageTitle>
 
-<ComponentPreview AnchorId="input"
-                  Category="表单组件"
-                  Title="Input"
-                  ComponentName="Input"
-                  Description="单行原生输入控件，支持标准绑定、HTML 输入语义、校验状态、事件和 FormField 级联。"
-                  Code="@UsageCode">
-    <Preview>
-        <div class="preview-form-control">
-            <Input @bind-Value="_inputValue"
-                   Type="@_inputType"
-                   Size="@_inputSize"
-                   Placeholder="@_inputPlaceholder"
-                   ReadOnly="@_inputReadOnly"
-                   Required="@_inputRequired"
-                   Invalid="@_inputInvalid"
-                   Disabled="@_inputDisabled"
-                   FullWidth="@_inputFullWidth"
-                   AriaLabel="预览输入框" />
-            <code class="preview-value">Value: @_inputValue</code>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="input-placeholder">Placeholder</label>
-            <input id="input-placeholder" @bind="_inputPlaceholder" />
-        </div>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Type</span>
-                <ShowcaseSelect TValue="InputType" Id="input-type" AriaLabel="Type" Options="@(Enum.GetValues<InputType>())" @bind-Value="_inputType" />
-            </div>
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="input-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_inputSize" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_inputReadOnly">ReadOnly</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_inputRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_inputInvalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_inputDisabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_inputFullWidth">FullWidth</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="input"
+               Category="表单组件"
+               Title="Input"
+               ComponentName="Input"
+               Description="单行原生输入控件：标准绑定、HTML 输入语义、字段状态与 FormField 级联。"
+               Related="@InputRelated">
+    <WhenToUse>
+        <p>需要用户录入一行短文本时使用：姓名、邮箱、搜索词、编码。多行文本用 <code>Textarea</code>，数值用 <code>InputNumber</code> 或 <code>Slider</code>。</p>
+        <p>输入本身不做校验：规则写在宿主的 <code>EditContext</code> 或 <code>DataAnnotations</code> 上，组件只负责呈现 <code>Invalid</code> 与必填状态。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="input-basic"
+                  Title="基础用法"
+                  Description="用 @@bind-Value 绑定字符串；Type 决定原生输入类型，浏览器据此提供键盘与自动填充。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Input @bind-Value="_name" Placeholder="请输入姓名" AriaLabel="姓名" />
+                    <code class="preview-value">Value: @_name</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="input-types"
+                  Title="输入类型与提示"
+                  Description="Type 走原生 input 类型；InputMode 与 Pattern 只在合适的场景补充提示，不替代宿主校验。"
+                  Code="@TypeCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Input @bind-Value="_email" Type="InputType.Email" AutoComplete="email" Placeholder="name@example.com" AriaLabel="邮箱" />
+                    <Input @bind-Value="_search" Type="InputType.Search" Placeholder="搜索组件" AriaLabel="搜索" />
+                    <Input @bind-Value="_code" InputMode="numeric" Pattern="[0-9]{6}" MaxLength="6" Placeholder="6 位验证码" AriaLabel="验证码" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="input-states"
+                  Title="状态与尺寸"
+                  Description="禁用、只读、必填与无效四种字段状态，以及三档尺寸和整宽；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Input @bind-Value="_stateValue"
+                           Type="@_stateType"
+                           Size="@_stateSize"
+                           Placeholder="@_statePlaceholder"
+                           ReadOnly="@_stateReadOnly"
+                           Required="@_stateRequired"
+                           Invalid="@_stateInvalid"
+                           Disabled="@_stateDisabled"
+                           FullWidth="@_stateFullWidth"
+                           AriaLabel="状态演示输入框" />
+                    <code class="preview-value">Value: @_stateValue</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="input-placeholder">Placeholder</label>
+                    <input id="input-placeholder" @bind="_statePlaceholder" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Type</span>
+                        <ShowcaseSelect TValue="InputType" Id="input-type" AriaLabel="Type" Options="@(Enum.GetValues<InputType>())" @bind-Value="_stateType" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="input-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_stateSize" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_stateReadOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="input-form"
+                  Title="在 FormField 中使用"
+                  Description="在字段内输入采用字段的输入 id，标签的 for 因此解析到输入本身；说明文字通过 aria-describedby 关联。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="工号"
+                               Description="6 位数字，用于门禁与考勤。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid">
+                        <Input @bind-Value="_employeeId" InputMode="numeric" MaxLength="6" Placeholder="000000" />
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span><code>Type</code> 直接映射到原生 input 类型，密码等类型的自动填充由 <code>AutoComplete</code> 描述。</span>
-        <span>在 <code>FormField</code> 内输入采用字段的输入 id，字段标签的 <code>for</code> 因此解析到输入本身；<code>aria-describedby</code> 合并宿主值与字段描述 id。</span>
+        <span>在 <code>FormField</code> 内输入采用字段的输入 id；<code>aria-describedby</code> 合并宿主值与字段描述 id，字段描述不会顶掉宿主传入的 id。</span>
         <span>禁用态同时输出 <code>disabled</code> 与 <code>aria-disabled="true"</code>；<code>ReadOnly</code> 只做只读，文本仍可选中、焦点仍可达。</span>
         <span>组件不定义校验规则：<code>Invalid</code> 或 <code>EditContext</code> 的校验消息只决定无效态外观，是否阻止提交由宿主决定。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private string? _inputValue;
+    private static readonly ShowcaseRelatedLink[] InputRelated =
+    [
+        new("FormField", "/components/form-field"),
+        new("Textarea", "/components/textarea"),
+        new("InputNumber", "/components/input-number"),
+        new("Label", "/components/label")
+    ];
 
-    private InputType _inputType = InputType.Text;
+    private const string BasicCode = """
+        <Input @bind-Value="Name" Placeholder="请输入姓名" />
+        """;
 
-    private Size _inputSize = Size.Medium;
+    private const string TypeCode = """
+        <Input @bind-Value="Email" Type="InputType.Email" AutoComplete="email" />
+        <Input @bind-Value="Code" InputMode="numeric" Pattern="[0-9]{6}" MaxLength="6" />
+        """;
 
-    private string _inputPlaceholder = "调整右侧属性后输入";
+    private const string StateCode = """
+        <Input @bind-Value="Value"
+               Size="Size.Large"
+               Required
+               Invalid
+               FullWidth
+               Placeholder="请输入" />
+        """;
 
-    private bool _inputReadOnly;
-
-    private bool _inputRequired;
-
-    private bool _inputInvalid;
-
-    private bool _inputDisabled;
-
-    private bool _inputFullWidth;
-
-    private const string UsageCode = """
-        <FormField Label="邮箱" Description="用于接收构建通知。">
-            <Input @bind-Value="Email"
-                   Type="InputType.Email"
-                   Placeholder="name@example.com"
-                   Required
-                   FullWidth />
+    private const string FormCode = """
+        <FormField Label="工号" Description="6 位数字，用于门禁与考勤。" Required>
+            <Input @bind-Value="EmployeeId" InputMode="numeric" MaxLength="6" />
         </FormField>
         """;
 
+    private string? _name;
+    private string? _email;
+    private string? _search;
+    private string? _code;
+    private string? _employeeId;
+
+    private string? _stateValue;
+    private InputType _stateType = InputType.Text;
+    private Size _stateSize = Size.Default;
+    private string _statePlaceholder = "调整右侧属性后输入";
+    private bool _stateReadOnly;
+    private bool _stateRequired;
+    private bool _stateInvalid;
+    private bool _stateDisabled;
+    private bool _stateFullWidth;
+
+    private bool _formRequired = true;
+    private bool _formInvalid;
 }

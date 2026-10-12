@@ -1014,7 +1014,7 @@ check('文档壳按目录顺序给出前后邻居',
     shell.prevHref === '/components/multi-select' && shell.nextHref === '/components/combobox',
     `prev=${shell.prevHref} next=${shell.nextHref}`);
 check('示例代码段渲染了可复制的片段',
-    (shell.codeHead ?? '').startsWith('<Upload') && shell.copyBlockExists && shell.copyTarget === 'upload-code',
+    (shell.codeHead ?? '').startsWith('<Upload') && shell.copyBlockExists && (shell.copyTarget ?? '').endsWith('-code'),
     JSON.stringify(shell));
 
 // 复制按钮的接线：真实点击必须走到脚本并把结果写回按钮（成功或失败都算接线正确，
@@ -1028,6 +1028,26 @@ const copyState = await evaluate(`(() => {
 check('复制按钮点击后回报结果而不是静默失败',
     copyState.state === 'copied' || copyState.state === 'failed',
     JSON.stringify(copyState));
+
+// 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。这是市面组件文档的页面模板，
+// 也是批次 3 的可见成果——此前每页只有一段演示。
+const cards = await evaluate(`(() => {
+    const sections = [...document.querySelectorAll('.component-demo')];
+    return {
+        count: sections.length,
+        anchors: sections.map(node => node.id),
+        withCode: sections.filter(node => node.querySelector('.component-preview__code-block')).length,
+        when: !!document.querySelector('.component-page__when'),
+        related: document.querySelectorAll('.component-page__related a').length,
+        api: document.querySelectorAll('.component-preview__api-row').length
+    };
+})()`);
+check('组件页按 demo 卡片组织，每段带锚点与代码',
+    cards.count >= 3 && cards.withCode === cards.count && cards.anchors.every(anchor => anchor.length > 0),
+    JSON.stringify(cards));
+check('页面带「何时使用」「相关组件」与生成式 API 表',
+    cards.when && cards.related >= 3 && cards.api > 15,
+    JSON.stringify(cards));
 
 // 生成式 API 表：迁移之后页面不再手写任何参数行，这里验证渲染结果确实来自生成物——
 // `MaxFileSize` 是 Upload 的公共参数，而且只由 10.32.0 引入，所以「自 10.32.0」这一列

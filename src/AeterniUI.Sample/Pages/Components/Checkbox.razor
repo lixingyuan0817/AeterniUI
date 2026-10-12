@@ -2,60 +2,189 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Checkbox</PageTitle>
 
-<ComponentPreview AnchorId="checkbox"
-                  Category="表单组件"
-                  Title="Checkbox"
-                  ComponentName="Checkbox"
-                  Description="保留原生复选框语义，支持稳定布尔绑定、三态初始显示和 EditContext 校验。">
-    <Preview>
-        <div class="preview-stack">
-            <Checkbox @bind-Value="_checkboxValue"
-                      Indeterminate="@_checkboxIndeterminate"
-                      Size="@_checkboxSize"
-                      Required="@_checkboxRequired"
-                      Invalid="@_checkboxInvalid"
-                      Disabled="@_checkboxDisabled"
-                      OnChange="HandleCheckboxChange">
-                同意服务条款
-            </Checkbox>
-            <span class="preview-feedback" role="status">Value: @_checkboxValue · @_checkboxNote</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="checkbox-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_checkboxSize" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_checkboxIndeterminate">Indeterminate</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_checkboxRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_checkboxInvalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_checkboxDisabled">Disabled</Checkbox>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="checkbox"
+               Category="表单组件"
+               Title="Checkbox"
+               ComponentName="Checkbox"
+               Description="保留原生复选框语义的布尔控件：稳定绑定、不确定态的初始显示与 EditContext 校验。"
+               Related="@CheckboxRelated">
+    <WhenToUse>
+        <p>在一组可选项里做独立勾选（可多选、互不影响）时使用；需要开关一个设置项用 <code>Switch</code>，需要在互斥选项里择一用 <code>RadioGroup</code>。</p>
+        <p>选中状态本身就是值，不存在"未选择"与"未决定"的中间态：<code>Indeterminate</code> 只用于表达"子项部分选中"这类显示语义。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="checkbox-basic"
+                  Title="基础用法"
+                  Description="布尔绑定；标签文本作为子内容，点击标签文字同样切换状态。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Checkbox @bind-Value="_terms">同意服务条款</Checkbox>
+                    <Checkbox @bind-Value="_newsletter">订阅产品更新</Checkbox>
+                    <span class="preview-feedback" role="status">条款：@_terms · 订阅：@_newsletter</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="checkbox-indeterminate"
+                  Title="不确定态"
+                  Description="Indeterminate 只改变显示（原生 indeterminate 属性），不改变 Value：用户一旦交互，该显示态即被清除并由 Value 决定外观。"
+                  Code="@IndeterminateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Checkbox Value="@AllSelected"
+                              Indeterminate="@SomeSelected"
+                              ValueChanged="HandleSelectAll"
+                              OnChange="HandleSelectAllChange">全选</Checkbox>
+                    <div class="preview-stack preview-stack--indent">
+                        @foreach (var item in _features)
+                        {
+                            <Checkbox Value="@item.Selected" ValueChanged="@(selected => ToggleFeature(item, selected))">@item.Name</Checkbox>
+                        }
+                    </div>
+                    <span class="preview-feedback" role="status">已选 @SelectedCount / @_features.Count 项</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="checkbox-states"
+                  Title="状态与尺寸"
+                  Description="禁用、必填与无效三种字段状态，以及三档尺寸；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Checkbox @bind-Value="_stateValue"
+                              Indeterminate="@_stateIndeterminate"
+                              Size="@_stateSize"
+                              Required="@_stateRequired"
+                              Invalid="@_stateInvalid"
+                              Disabled="@_stateDisabled"
+                              OnChange="HandleStateChange">同意服务条款</Checkbox>
+                    <span class="preview-feedback" role="status">Value: @_stateValue · @_stateNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="checkbox-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_stateSize" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_stateIndeterminate">Indeterminate</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="checkbox-form"
+                  Title="在 FormField 中使用"
+                  Description="字段提供标签、说明与状态；复选框采用字段的输入 id，标签点击因此直接切换勾选。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="数据处理授权"
+                               Description="同意后才会把匿名统计写入日志。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid">
+                        <Checkbox @bind-Value="_consent">我同意写入匿名统计</Checkbox>
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>内部是原生 <code>input[type="checkbox"]</code>，视觉部分为自绘：焦点环、键盘切换与读屏语义都来自原生控件。</span>
+        <span><code>Indeterminate</code> 是显示态而非第三种值。它只在 <code>Value = false</code> 时有意义，用户交互后由浏览器清除；<code>OnChange</code> 可用来在交互后同步宿主的本地显示标志。</span>
+        <span>禁用态使用禁用墨与禁用填充，不整块降低透明度；无效态在 <code>FormField</code> 内会随字段继承。</span>
+        <span>复选框不提供组语义：多个复选框是彼此独立的布尔值，成组互斥选择请用 <code>RadioGroup</code>。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private bool _checkboxValue;
+    private static readonly ShowcaseRelatedLink[] CheckboxRelated =
+    [
+        new("Radio / RadioGroup", "/components/radio"),
+        new("Switch", "/components/switch"),
+        new("FormField", "/components/form-field")
+    ];
 
-    private bool _checkboxIndeterminate = true;
+    private const string BasicCode = """
+        <Checkbox @bind-Value="Accepted">同意服务条款</Checkbox>
+        """;
 
-    private Size _checkboxSize = Size.Medium;
+    private const string IndeterminateCode = """
+        <Checkbox Value="AllSelected"
+                  Indeterminate="SomeSelected"
+                  ValueChanged="SelectAll"
+                  OnChange="ClearLocalIndeterminate">全选</Checkbox>
+        """;
 
-    private bool _checkboxRequired;
+    private const string StateCode = """
+        <Checkbox @bind-Value="Accepted" Size="Size.Large" Required Invalid>
+            同意服务条款
+        </Checkbox>
+        """;
 
-    private bool _checkboxInvalid;
+    private const string FormCode = """
+        <FormField Label="数据处理授权" Description="同意后才会把匿名统计写入日志。" Required>
+            <Checkbox @bind-Value="Consent">我同意写入匿名统计</Checkbox>
+        </FormField>
+        """;
 
-    private bool _checkboxDisabled;
+    private bool _terms;
+    private bool _newsletter;
 
-    private string _checkboxNote = "等待交互。";
+    private readonly System.Collections.Generic.List<Feature> _features =
+    [
+        new("导出报表"),
+        new("批量导入"),
+        new("审计日志")
+    ];
 
-    private void HandleCheckboxChange(ChangeEventArgs _)
+    private bool AllSelected => _features.All(feature => feature.Selected);
+    private bool SomeSelected => _features.Any(feature => feature.Selected) && !AllSelected;
+    private int SelectedCount => _features.Count(feature => feature.Selected);
+
+    private bool _stateValue;
+    private bool _stateIndeterminate;
+    private Size _stateSize = Size.Default;
+    private bool _stateRequired;
+    private bool _stateInvalid;
+    private bool _stateDisabled;
+    private string _stateNote = "等待交互。";
+
+    private bool _consent;
+    private bool _formRequired = true;
+    private bool _formInvalid;
+
+    private void HandleSelectAll(bool selected)
     {
-        _checkboxNote = $"OnChange 已触发，当前值为 {_checkboxValue}。";
+        foreach (var feature in _features)
+        {
+            feature.Selected = selected;
+        }
+    }
+
+    private void HandleSelectAllChange(ChangeEventArgs _) => _stateNote = "全选已交互。";
+
+    private void ToggleFeature(Feature feature, bool selected) => feature.Selected = selected;
+
+    private void HandleStateChange(ChangeEventArgs _)
+    {
+        _stateIndeterminate = false;
+        _stateNote = _stateValue ? "已切换到选中。" : "已切换到未选中。";
+    }
+
+    private sealed class Feature(string name)
+    {
+        public string Name { get; } = name;
+
+        public bool Selected { get; set; }
     }
 }

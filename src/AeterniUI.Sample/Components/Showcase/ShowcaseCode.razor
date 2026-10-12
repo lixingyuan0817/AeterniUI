@@ -1,0 +1,26 @@
+@namespace AeterniUI.Sample.Components.Showcase
+
+@* 代码块与复制按钮。复制由应用级脚本 event delegation 完成（wwwroot/js/sample-docs.js）：
+   按钮带上目标 <code> 的 id，脚本读它并写回结果，因此不需要为每个实例做 interop 接线，
+   一页里有十几段代码时也不会多出十几次往返。 *@
+<div class="component-preview__code-toolbar">
+    <button type="button"
+            class="component-preview__copy"
+            data-sample-copy="@Id"
+            aria-label="@($"复制 {Label ?? "示例"}代码")">复制</button>
+</div>
+<pre class="component-preview__code-block"><code id="@Id">@Code</code></pre>
+
+@code {
+    /// <summary>DOM id of the code block; the copy button points at it.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>The snippet itself. Kept as a string because it is documentation, not markup.</summary>
+    [Parameter, EditorRequired]
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>What is being copied, used in the button's accessible name.</summary>
+    [Parameter]
+    public string? Label { get; set; }
+}
