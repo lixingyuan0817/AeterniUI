@@ -2,65 +2,156 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
-<PageTitle>Aeterni UI · Radio / RadioGroup</PageTitle>
+<PageTitle>Aeterni UI · Radio</PageTitle>
 
-<ComponentPreview AnchorId="radio"
-                  Category="表单组件"
-                  Title="Radio / RadioGroup"
-                  ComponentName="RadioGroup / Radio"
-                  Description="原生单选语义与分组绑定，支持禁用、必填和无效状态。">
-    <Controls>
-        <Checkbox Size="Size.Small" @bind-Value="_radioDisabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_radioRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_radioInvalid">Invalid</Checkbox>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="radio-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_radioSize" />
-        </div>
-        <div class="control-field">
-            <span>Orientation</span>
-            <ShowcaseSelect TValue="Orientation" Id="radio-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_radioOrientation" />
-        </div>
-    </Controls>
-    <Preview>
-        <div class="preview-stack">
-            <FormField Label="部门" Disabled="@_radioDisabled" Required="@_radioRequired" Invalid="@_radioInvalid">
-            <RadioGroup TValue="string" @bind-Value="_radioValue" AriaLabel="部门" Size="_radioSize" Orientation="_radioOrientation">
-                <Radio TValue="string" Value="@("设计")">设计</Radio>
-                <Radio TValue="string" Value="@("开发")">开发</Radio>
-                <Radio TValue="string" Value="@("产品")">产品</Radio>
-            </RadioGroup>
-            </FormField>
-            <div class="preview-state-row" aria-label="Radio 与 Checkbox 视觉重量对照">
-                <Radio TValue="bool" @bind-Value="_standaloneRadio" Size="_radioSize">独立 Radio</Radio>
-                <Checkbox Size="_radioSize">同尺寸 Checkbox</Checkbox>
-            </div>
-            <code class="preview-value">Value: @_radioValue · 独立 Value: @_standaloneRadio</code>
-        </div>
-    </Preview>
-</ComponentPreview>
+<ComponentPage AnchorId="radio"
+               Category="表单组件"
+               Title="Radio / RadioGroup"
+               ComponentName="RadioGroup&lt;TValue&gt;"
+               Description="互斥单选：组负责焦点模型，项只声明自己的值。"
+               Related="@RadioRelated">
+    <WhenToUse>
+        <p>选项少（2～7 个）且互斥时使用：部门、优先级、性别。选项多改用 <code>ComboBox</code>；二态开关用 <code>Switch</code>，少量视图切换用 <code>Segmented</code>。</p>
+        <p>如果需要"一个都不选"作为合法状态，把某个选项当成"不限"显式列出来——单选组本身不表达空值。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="radio-group-basic"
+                  Title="基础用法"
+                  Description="组用单一 Tab 停留点，方向键在选项间移动并即时选中；项只写自己的 Value。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <RadioGroup TValue="string" @bind-Value="_department" AriaLabel="部门">
+                        <Radio TValue="string" Value="@("设计")">设计</Radio>
+                        <Radio TValue="string" Value="@("开发")">开发</Radio>
+                        <Radio TValue="string" Value="@("运营")">运营</Radio>
+                    </RadioGroup>
+                    <code class="preview-value">Value: @_department</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="radio-group-layout"
+                  Title="方向、尺寸与禁用项"
+                  Description="Orientation 决定横排或竖排；禁用项不进入方向键与 Tab 序列。"
+                  Code="@LayoutCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <RadioGroup TValue="string" @bind-Value="_layoutValue" Orientation="@_orientation" Size="@_size" AriaLabel="优先级">
+                        <Radio TValue="string" Value="@("高")">高</Radio>
+                        <Radio TValue="string" Value="@("中")">中</Radio>
+                        <Radio TValue="string" Value="@("低")">低</Radio>
+                    </RadioGroup>
+                    <code class="preview-value">Value: @_layoutValue</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Orientation</span>
+                    <ShowcaseSelect TValue="Orientation" Id="radio-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
+                </div>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="radio-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="radio-standalone"
+                  Title="独立 Radio"
+                  Description="脱离组时，Radio 自己就是可调控件：显示由绑定值驱动，布尔之外的语义仍与组内一致。"
+                  Code="@StandaloneCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Radio TValue="bool" Value="@_accepted" ValueChanged="HandleAcceptedChanged">我接受许可协议</Radio>
+                    <span class="preview-feedback" role="status">已接受：@_accepted</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="radio-group-form"
+                  Title="在 FormField 中使用"
+                  Description="字段的必填与无效状态会传给组与每个选项，标签指向组的第一个可聚焦项。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="部门" Description="提交后由管理员复核。"
+                               Disabled="@_formDisabled" Required="@_formRequired" Invalid="@_formInvalid">
+                        <RadioGroup TValue="string" @bind-Value="_formValue" AriaLabel="部门">
+                            <Radio TValue="string" Value="@("设计")">设计</Radio>
+                            <Radio TValue="string" Value="@("开发")">开发</Radio>
+                        </RadioGroup>
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>组是单一 Tab 停留点：Tab 进入组内当前选项，方向键在可选项之间移动并选中，Home/End 跳到首尾。</span>
+        <span>禁用选项既不响应方向键也不参与 Tab 序列，视觉上使用禁用墨而不是整体降透明度。</span>
+        <span>独立 <code>Radio</code> 支持值绑定（显示由绑定值驱动），组模式下仍由组的 <code>Value</code> 决定选中项——两者不叠加。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private string? _radioValue = "开发";
+    private static readonly ShowcaseRelatedLink[] RadioRelated =
+    [
+        new("Checkbox", "/components/checkbox"),
+        new("Switch", "/components/switch"),
+        new("Segmented", "/components/segmented"),
+        new("ComboBox", "/components/combobox")
+    ];
 
-    // REV-133: a standalone (ungrouped) Radio renders its checked state from the
-    // bound value, so the sample binds one to show the display actually follows it.
-    private bool _standaloneRadio = true;
+    private const string BasicCode = """
+        <RadioGroup TValue="string" @bind-Value="Department">
+            <Radio TValue="string" Value="@("设计")">设计</Radio>
+            <Radio TValue="string" Value="@("开发")">开发</Radio>
+        </RadioGroup>
+        """;
 
-    private bool _radioDisabled;
+    private const string LayoutCode = """
+        <RadioGroup TValue="string" @bind-Value="Priority"
+                    Orientation="Orientation.Horizontal" Size="Size.Large">
+            <Radio TValue="string" Value="@("高")">高</Radio>
+            <Radio TValue="string" Value="@("中")">中</Radio>
+        </RadioGroup>
+        """;
 
-    private bool _radioRequired;
+    private const string StandaloneCode = """
+        <Radio TValue="bool" Value="Accepted" ValueChanged="HandleAcceptedChanged">
+            我接受许可协议
+        </Radio>
+        """;
 
-    private bool _radioInvalid;
+    private const string FormCode = """
+        <FormField Label="部门" Required>
+            <RadioGroup TValue="string" @bind-Value="Department">
+                <Radio TValue="string" Value="@("设计")">设计</Radio>
+                <Radio TValue="string" Value="@("开发")">开发</Radio>
+            </RadioGroup>
+        </FormField>
+        """;
 
-    private Size _radioSize = Size.Default;
+    private string? _department = "开发";
+    private string? _layoutValue = "中";
+    private Orientation _orientation = Orientation.Vertical;
+    private Size _size = Size.Default;
 
-    private Orientation _radioOrientation = Orientation.Horizontal;
+    private bool _accepted;
+    private string? _formValue = "开发";
+    private bool _formRequired;
+    private bool _formInvalid;
+    private bool _formDisabled;
 
-    // Ownership matters here: AriaDescribedBy belongs to Radio, the group-level
-    // parameters to RadioGroup (REV-159).
+    private Task HandleAcceptedChanged(bool value)
+    {
+        _accepted = value;
+        return Task.CompletedTask;
+    }
 }

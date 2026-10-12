@@ -2,116 +2,123 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Segmented</PageTitle>
 
-<ComponentPreview AnchorId="segmented"
-                  Category="表单组件"
-                  Title="Segmented"
-                  ComponentName="Segmented"
-                  Description="互斥选项切换：原生 radio 提供单选语义、一个 Tab 停留点和方向键（含 RTL 方向），滑块位置由选项数量推导而不是写死列数。">
-    <Preview>
-        <div class="preview-segmented-demo">
-            <Segmented TValue="string"
-                       Items="@_views"
-                       Value="@_view"
-                       ValueChanged="SelectView"
-                       ItemTemplate="@ViewTemplate"
-                       AriaLabel="视图切换" />
+<ComponentPage AnchorId="segmented"
+               Category="表单组件"
+               Title="Segmented"
+               ComponentName="Segmented&lt;TValue&gt;"
+               Description="少量互斥选项的分段切换，滑块几何与选项数量无关。"
+               Related="@SegmentedRelated">
+    <WhenToUse>
+        <p>2～5 个互斥选项、且切换后立刻改变当前视图或范围时使用：列表/看板切换、时间范围。选项更多用 <code>RadioGroup</code>，切换会替换整块内容用 <code>Tabs</code>。</p>
+        <p>分段控件是单选控件而不是导航：它只报告当前值，路由与内容由宿主决定。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="segmented-basic"
+                  Title="基础用法"
+                  Description="Items 提供选项，ItemTemplate 可以给选项加图标等自定义内容；滑块与激活项位置一致。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Segmented TValue="string"
+                               Items="@_views"
+                               Value="@_view"
+                               ValueChanged="SelectView"
+                               ItemTemplate="@ViewTemplate"
+                               AriaLabel="视图切换" />
+                    <span class="preview-value">当前视图：@_view</span>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <span class="preview-value">当前视图：@_view</span>
+        <DemoCard Id="segmented-sizes"
+                  Title="尺寸与整宽"
+                  Description="三档尺寸共用同一份几何；FullWidth 让分段控件撑满容器，滑块仍按当前项移动。"
+                  Code="@SizeCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" Size="Size.Small" AriaLabel="小号" />
+                    <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" AriaLabel="默认档" />
+                    <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" Size="Size.Large" AriaLabel="大号" />
+                    <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" FullWidth AriaLabel="整宽" />
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <div class="preview-state-row">
-                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" Size="Size.Small" AriaLabel="小号" />
-                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" AriaLabel="默认档" />
-                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" Size="Size.Large" AriaLabel="大号" />
-            </div>
-
-            <Segmented TValue="int"
-                       Items="@_ranges"
-                       Value="@_range"
-                       ValueChanged="SelectRange"
-                       DisabledSelector="IsRangeDisabled"
-                       TextSelector="RangeLabel"
-                       FullWidth
-                       AriaLabel="评分区间（3 分档不可选）" />
-
-            <span class="preview-value">滑块与选项数量无关：2 项与 5 项用同一份几何</span>
-
-            <Segmented TValue="string" Items="@_two" Value="@_twoValue" ValueChanged="SelectTwo" AriaLabel="两项" />
-            <Segmented TValue="string" Items="@_five" Value="@_fiveValue" ValueChanged="SelectFive" AriaLabel="五项" FullWidth />
-
-            <div class="preview-state-row">
-                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView"
-                           Required Invalid AriaLabel="必填且无效" />
-                <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView"
-                           Disabled AriaLabel="整组禁用" />
-            </div>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="segmented-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <div class="control-field">
-            <span>当前档位预览</span>
-            <Segmented TValue="string" Items="@_views" Value="@_view" ValueChanged="SelectView" Size="@_size" FullWidth="@_fullWidth" Disabled="@_disabled" AriaLabel="档位预览" />
-        </div>
-    </Controls>
+        <DemoCard Id="segmented-options"
+                  Title="禁选项与非字符串值"
+                  Description="TValue 可以是任意类型；DisabledSelector 让个别选项不可选，TextSelector 负责显示文本。"
+                  Code="@OptionCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Segmented TValue="int"
+                               Items="@_ranges"
+                               Value="@_range"
+                               ValueChanged="SelectRange"
+                               DisabledSelector="IsRangeDisabled"
+                               TextSelector="RangeLabel"
+                               AriaLabel="评分区间（3 分档不可选）" />
+                    <span class="preview-value">当前区间：@RangeLabel(_range)</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>根元素输出 <code>role="radiogroup"</code> 与 <code>aria-orientation</code>；每个选项是一个原生 radio，因此 <code>aria-checked</code>、roving tabindex、方向键与 RTL 方向都由浏览器负责，组件没有键盘 JS。</span>
-        <span>滑块宽度是「一列」、位移是「index 列」，两者都来自 <code>--aeterni-segmented-count</code> / <code>--aeterni-segmented-index</code>；示例里 2 项、3 项、5 项共用同一份几何。</span>
-        <span><code>DisabledSelector</code> 只停用单个选项（跳过键盘循环），<code>Disabled</code> 停用整个控件并输出 <code>aria-disabled</code>。</span>
+        <span>选项数量变化时滑块几何按当前项重新计算，2 项与 5 项使用同一套 Token，不需要宿主额外配置。</span>
+        <span>禁用选项不进入键盘移动范围，也不会被点击选中；键盘用方向键在可选项之间移动，Home/End 跳到两端。</span>
+        <span>组件不承载导航语义：它没有 <code>tablist</code> 角色，切换后要替换内容请用 <code>Tabs</code>。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] SegmentedRelated =
+    [
+        new("Tabs / Tab", "/components/tabs"),
+        new("ToggleGroup", "/components/toggle-group"),
+        new("Radio / RadioGroup", "/components/radio")
+    ];
+
+    private const string BasicCode = """
+        <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView" />
+        """;
+
+    private const string SizeCode = """
+        <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView"
+                   Size="Size.Small" />
+        <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView" FullWidth />
+        """;
+
+    private const string OptionCode = """
+        <Segmented TValue="int"
+                   Items="Ranges"
+                   Value="Range"
+                   ValueChanged="SelectRange"
+                   DisabledSelector="IsRangeDisabled"
+                   TextSelector="RangeLabel" />
+        """;
+
     private static readonly string[] _views = ["列表", "看板", "时间线"];
-
-    private static readonly string[] _two = ["开", "关"];
-
-    private static readonly string[] _five = ["上午", "下午", "傍晚", "夜间", "全天"];
-
     private static readonly int[] _ranges = [1, 2, 3, 4, 5];
-
     private string _view = "列表";
-
-    private string _twoValue = "开";
-
-    private string _fiveValue = "傍晚";
-
     private int _range = 2;
 
-    private Size _size = Size.Default;
+    private static bool IsRangeDisabled(int range) => range == 3;
 
-    private bool _fullWidth;
+    private static string RangeLabel(int range) => $"{range} 分";
 
-    private bool _disabled;
+    private Task SelectView(string value)
+    {
+        _view = value;
+        return Task.CompletedTask;
+    }
 
-    private RenderFragment ViewTemplate(string view) => @<span class="preview-segmented-option">
-        <Icon Definition="@(view switch
-                            {
-                                "看板" => FontAwesomeIcons.Solid.TableCells,
-                                "时间线" => FontAwesomeIcons.Solid.BarsProgress,
-                                _ => FontAwesomeIcons.Solid.ListCheck
-                            })" />
-        <span>@view</span>
-    </span>;
+    private Task SelectRange(int range)
+    {
+        _range = range;
+        return Task.CompletedTask;
+    }
 
-    private static string RangeLabel(int value) => $"{value} 分";
-
-    private static bool IsRangeDisabled(int value) => value == 3;
-
-    private void SelectView(string view) => _view = view;
-
-    private void SelectTwo(string value) => _twoValue = value;
-
-    private void SelectFive(string value) => _fiveValue = value;
-
-    private void SelectRange(int value) => _range = value;
-
+    private RenderFragment ViewTemplate(string view) => @<span class="preview-segmented-option">@view</span>;
 }

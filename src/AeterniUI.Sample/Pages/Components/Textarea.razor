@@ -2,72 +2,146 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Textarea</PageTitle>
 
-<ComponentPreview AnchorId="textarea"
-                  Category="表单组件"
-                  Title="Textarea"
-                  ComponentName="Textarea"
-                  Description="多行原生文本控件，复用 Input 的绑定、校验、禁用、只读和无障碍语义。">
-    <Preview>
-        <div class="preview-form-control">
-            <Textarea @bind-Value="_textareaValue"
-                      Rows="@_textareaRows"
-                      Resize="@_textareaResize"
-                      Placeholder="@_textareaPlaceholder"
-                      ReadOnly="@_textareaReadOnly"
-                      Required="@_textareaRequired"
-                      Invalid="@_textareaInvalid"
-                      Disabled="@_textareaDisabled"
-                      FullWidth="@_textareaFullWidth"
-                      AriaLabel="预览文本域" />
-            <code class="preview-value">Value: @_textareaValue</code>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="textarea-placeholder">Placeholder</label>
-            <input id="textarea-placeholder" @bind="_textareaPlaceholder" />
-        </div>
-        <div class="control-grid">
-            <div class="control-field">
-                <label for="textarea-rows">Rows</label>
-                <input id="textarea-rows" type="number" min="1" @bind="_textareaRows" />
-            </div>
-            <div class="control-field">
-                <span>Resize</span>
-                <ShowcaseSelect TValue="TextareaResize" Id="textarea-resize" AriaLabel="Resize" Options="@(Enum.GetValues<TextareaResize>())" @bind-Value="_textareaResize" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_textareaReadOnly">ReadOnly</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_textareaRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_textareaInvalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_textareaDisabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_textareaFullWidth">FullWidth</Checkbox>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="textarea"
+               Category="表单组件"
+               Title="Textarea"
+               ComponentName="Textarea"
+               Description="多行原生文本控件，复用 Input 的绑定、字段状态与无障碍语义。"
+               Related="@TextareaRelated">
+    <WhenToUse>
+        <p>需要多行自由文本时使用：备注、描述、日志片段、粘贴的 JSON。单行内容用 <code>Input</code>，受长度或格式约束的结构化输入用对应的数值或日期组件。</p>
+        <p>多行不改变校验模型：规则仍写在 <code>EditContext</code> 上，组件只呈现必填与无效状态。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="textarea-basic"
+                  Title="基础用法"
+                  Description="Rows 决定初始高度，Resize 决定用户能否拖动尺寸（垂直、水平、两者或禁止）。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Textarea @bind-Value="_note"
+                              Rows="4"
+                              Resize="TextareaResize.Vertical"
+                              Placeholder="输入多行内容"
+                              AriaLabel="备注" />
+                    <code class="preview-value">Value: @_note</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="textarea-states"
+                  Title="状态与尺寸"
+                  Description="禁用、只读、必填与无效四种字段状态，以及整宽；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Textarea @bind-Value="_stateValue"
+                              Rows="@_stateRows"
+                              Resize="@_stateResize"
+                              Placeholder="@_statePlaceholder"
+                              ReadOnly="@_stateReadOnly"
+                              Required="@_stateRequired"
+                              Invalid="@_stateInvalid"
+                              Disabled="@_stateDisabled"
+                              FullWidth="@_stateFullWidth"
+                              AriaLabel="状态演示文本域" />
+                    <code class="preview-value">Value: @_stateValue</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="textarea-placeholder">Placeholder</label>
+                    <input id="textarea-placeholder" @bind="_statePlaceholder" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <label for="textarea-rows">Rows</label>
+                        <input id="textarea-rows" type="number" min="1" @bind="_stateRows" />
+                    </div>
+                    <div class="control-field">
+                        <span>Resize</span>
+                        <ShowcaseSelect TValue="TextareaResize" Id="textarea-resize" AriaLabel="Resize" Options="@(Enum.GetValues<TextareaResize>())" @bind-Value="_stateResize" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_stateReadOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="textarea-form"
+                  Title="在 FormField 中使用"
+                  Description="字段提供标签与说明，文本域采用字段的输入 id；MaxLength 交给原生属性，计数由宿主按需渲染。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="发布说明"
+                               Description="最多 200 字，超出部分浏览器会阻止输入。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid">
+                        <Textarea @bind-Value="_releaseNote" Rows="3" MaxLength="200" Placeholder="本次改动的要点" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">已输入 @(_releaseNote?.Length ?? 0) / 200</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>绑定、字段状态与 <code>Id</code> / <code>AriaLabel</code> / <code>AriaDescribedBy</code> 的语义与 <code>Input</code> 一致：在 <code>FormField</code> 内采用字段的输入 id，标签的 <code>for</code> 解析到文本域本身。</span>
+        <span><code>Resize</code> 是枚举而非自由的 CSS：<code>Vertical</code>（默认）、<code>Horizontal</code>、<code>Both</code> 与 <code>None</code>，避免宿主各自拼 <code>resize</code> 字符串。</span>
+        <span>自动增高、字数统计与富文本不在组件范围内：前两者由宿主按内容计算，富文本请换用专用编辑器。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private string? _textareaValue = "这是一个多行文本示例。";
+    private static readonly ShowcaseRelatedLink[] TextareaRelated =
+    [
+        new("Input", "/components/input"),
+        new("FormField", "/components/form-field"),
+        new("Label", "/components/label")
+    ];
 
-    private string _textareaPlaceholder = "输入多行内容";
+    private const string BasicCode = """
+        <Textarea @bind-Value="Note" Rows="4" Resize="TextareaResize.Vertical" />
+        """;
 
-    private int _textareaRows = 4;
+    private const string StateCode = """
+        <Textarea @bind-Value="Note"
+                  Rows="5"
+                  Resize="TextareaResize.None"
+                  Required
+                  Invalid
+                  FullWidth />
+        """;
 
-    private TextareaResize _textareaResize = TextareaResize.Vertical;
+    private const string FormCode = """
+        <FormField Label="发布说明" Description="最多 200 字。" Required>
+            <Textarea @bind-Value="ReleaseNote" Rows="3" MaxLength="200" />
+        </FormField>
+        """;
 
-    private bool _textareaReadOnly;
+    private string? _note = "这是一个多行文本示例。";
 
-    private bool _textareaRequired;
+    private string? _stateValue = "调整右侧属性后输入";
+    private string _statePlaceholder = "输入多行内容";
+    private int _stateRows = 4;
+    private TextareaResize _stateResize = TextareaResize.Vertical;
+    private bool _stateReadOnly;
+    private bool _stateRequired;
+    private bool _stateInvalid;
+    private bool _stateDisabled;
+    private bool _stateFullWidth;
 
-    private bool _textareaInvalid;
-
-    private bool _textareaDisabled;
-
-    private bool _textareaFullWidth;
-
+    private string? _releaseNote;
+    private bool _formRequired = true;
+    private bool _formInvalid;
 }

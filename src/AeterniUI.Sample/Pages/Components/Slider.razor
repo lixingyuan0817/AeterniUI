@@ -5,71 +5,123 @@
 
 <PageTitle>Aeterni UI · Slider</PageTitle>
 
-<ComponentPreview AnchorId="slider"
-                  Category="表单组件"
-                  Title="Slider"
-                  ComponentName="Slider&lt;TValue&gt;"
-                  Description="单值滑块：默认无级调节，也可配置步进吸附；支持横向与竖向布局、完整键盘模型与指针拖拽。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <FormField Label="音量"
-                       Description="拖动滑块，或聚焦后使用方向键 / Home / End / PageUp / PageDown。"
-                       Disabled="@_disabled"
-                       Invalid="@_invalid">
-                <Slider TValue="double"
-                        Value="@_value"
-                        ValueChanged="@HandleValueChanged"
-                        Min="0d"
-                        Max="100d"
-                        Step="@EffectiveStep"
-                        Precision="2"
-                        Size="@_size"
-                        Orientation="@_orientation"
-                        Disabled="@_disabled"
-                        Invalid="@_invalid"
-                        AriaLabel="音量" />
-            </FormField>
-            <span class="preview-feedback" role="status">当前值：@_value.ToString("0.00")</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="slider-size" AriaLabel="Slider Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-            </div>
-            <div class="control-field">
-                <span>Orientation</span>
-                <ShowcaseSelect TValue="Orientation" Id="slider-orientation" AriaLabel="Slider Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_useStep">按 5 步进</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="slider"
+               Category="表单组件"
+               Title="Slider"
+               ComponentName="Slider&lt;TValue&gt;"
+               Description="单值滑块：指针拖动与键盘步进落在同一个可调控件上。"
+               Related="@SliderRelated">
+    <WhenToUse>
+        <p>取值范围连续、精度要求不苛刻时使用：音量、缩放、阈值。需要精确输入具体数值用 <code>InputNumber</code>。</p>
+        <p><code>Step</code> 会把指针位置吸附到步长网格；不设 Step 时是连续值，RTL 下方向键与拖动方向自动镜像。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="slider-basic"
+                  Title="基础用法"
+                  Description="拖动或方向键改变数值；当前值同时写入 ARIA 与自定义属性，视觉与语义来自同一份数据。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Slider TValue="double" Value="@_volume" ValueChanged="HandleVolumeChanged" Min="0" Max="100" AriaLabel="音量" />
+                    <code class="preview-value">Value: @_volume</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="slider-step"
+                  Title="步长与精度"
+                  Description="Step 把指针吸附到网格（本例 5 一档），Precision 决定显示与提交的小数位。"
+                  Code="@StepCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Slider TValue="double" Value="@_stepValue" ValueChanged="HandleStepChanged"
+                            Min="0" Max="100" Step="5" Precision="0" AriaLabel="按 5 一档的音量" />
+                    <code class="preview-value">Value: @_stepValue</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="slider-states"
+                  Title="状态与尺寸"
+                  Description="无效态改用危险色焦点环，禁用态不进入 Tab 序列；三档尺寸只改变轨道与滑块几何。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="阈值" Description="超过阈值时触发告警。" Invalid="@_invalid" Disabled="@_disabled">
+                        <Slider TValue="double"
+                                Value="@_stateValue"
+                                ValueChanged="HandleStateChanged"
+                                Min="0" Max="10"
+                                Size="@_size"
+                                Precision="0"
+                                AriaLabel="告警阈值" />
+                    </FormField>
+                    <code class="preview-value">Value: @_stateValue</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="slider-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span><code>Step=null</code> 时指针无级跟随；设置正数后，指针与键盘都吸附到以 <code>Min</code> 为起点的步网格。</span>
-        <span>无级模式的方向键每次移动量程的 1%，PageUp / PageDown 每次移动 10%；整数类型仍受其可表示精度限制。</span>
-        <span>根元素就是滑块本体（<code>role="slider"</code> + 单一 Tab 停留点）；轨道、填充与滑块均为装饰节点。</span>
-        <span>竖向布局的值从底边向上增长，长度默认 12rem，可由宿主通过 <code>--aeterni-slider-length</code> 覆盖。</span>
-        <span>指针拖拽由 <code>Slider.razor.js</code> 处理；只有配置 <code>Step</code> 时才在 JS 内就近吸附，键盘与取值逻辑全部在 C#。</span>
+        <span>键盘模型由组件自己接管：方向键、Home/End、PageUp/PageDown 只改数值，不会同时滚动页面。</span>
+        <span><code>Step</code> 为 <code>null</code> 时是连续值；设置后指针位置会吸附到网格，拖动与键盘都按同一网格取值。</span>
+        <span>滑块不渲染刻度与数值标签：需要刻度、区间标注或双端范围请由宿主在轨道旁组合（双端范围不在当前范围内）。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private double _value = 40;
+    private static readonly ShowcaseRelatedLink[] SliderRelated =
+    [
+        new("InputNumber", "/components/input-number"),
+        new("Progress", "/components/progress"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string BasicCode = """
+        <Slider TValue="double" Value="Volume" ValueChanged="HandleVolumeChanged" Min="0" Max="100" />
+        """;
+
+    private const string StepCode = """
+        <Slider TValue="double" Value="Volume" ValueChanged="HandleVolumeChanged"
+                Min="0" Max="100" Step="5" Precision="0" />
+        """;
+
+    private const string StateCode = """
+        <FormField Label="阈值" Invalid>
+            <Slider TValue="double" Value="Threshold" ValueChanged="HandleChanged" Min="0" Max="10" />
+        </FormField>
+        """;
+
+    private double _volume = 40;
+    private double _stepValue = 40;
+
+    private double _stateValue = 6;
     private Size _size = Size.Default;
-    private Orientation _orientation = Orientation.Horizontal;
-    private bool _useStep;
-    private bool _disabled;
     private bool _invalid;
+    private bool _disabled;
 
-    private double? EffectiveStep => _useStep ? 5d : null;
-
-    private Task HandleValueChanged(double value)
+    private Task HandleVolumeChanged(double value)
     {
-        _value = value;
+        _volume = value;
         return Task.CompletedTask;
     }
 
+    private Task HandleStepChanged(double value)
+    {
+        _stepValue = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleStateChanged(double value)
+    {
+        _stateValue = value;
+        return Task.CompletedTask;
+    }
 }

@@ -1076,6 +1076,25 @@ check('页面带「何时使用」「相关组件」与生成式 API 表',
     cards.when && cards.related >= 3 && cards.api > 15,
     JSON.stringify(cards));
 
+// 卡片化的覆盖面：单独抽一两页断言不够——批次 3 的目标是整组页面都变成"多段 demo +
+// 每段代码"，所以按组分批抽查，任何一页退回单段形态都会在这里失败。
+for (const path of ['/components/input', '/components/checkbox', '/components/radio', '/components/multi-select']) {
+    await goto(`${BASE}${path}`);
+    await waitForApp();
+    const shape = await evaluate(`(() => {
+        const sections = [...document.querySelectorAll('.component-demo')];
+        return {
+            cards: sections.length,
+            withCode: sections.filter(node => node.querySelector('.component-preview__code-block')).length,
+            uniqueAnchors: new Set(sections.map(node => node.id)).size,
+            when: !!document.querySelector('.component-page__when')
+        };
+    })()`);
+    check(`卡片化 ${path}：多段 demo、锚点唯一、每段带代码、有何时使用`,
+        shape.cards >= 3 && shape.withCode === shape.cards && shape.uniqueAnchors === shape.cards && shape.when,
+        JSON.stringify(shape));
+}
+
 // 生成式 API 表：迁移之后页面不再手写任何参数行，这里验证渲染结果确实来自生成物——
 // `MaxFileSize` 是 Upload 的公共参数，而且只由 10.32.0 引入，所以「自 10.32.0」这一列
 // 同时证明了生成物与编辑源（api-since.json）都被用上了。

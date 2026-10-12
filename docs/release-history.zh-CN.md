@@ -11,8 +11,10 @@
 - [x] 页面模板换成市面组件文档的形状：新增 `ComponentPage`（标题区 → 何时使用 → demo 卡片 → API → 相关组件 → 说明与边界）与 `DemoCard`（标题、说明、实时预览、可选属性控件、可复制代码、自带锚点）。卡片化的页面不再给段编号——锚点与卡片标题已经表达了结构。
 - [x] 把文档排版样式从 `ComponentPreview.razor.css`（CSS 隔离）搬到示例的文档样式表：同一套类名现在要跨 `ComponentPage`、`DemoCard`、`ShowcaseCode`、`ShowcaseApiTable` 四个组件复用，隔离样式只作用于声明它的组件，放在隔离文件里会让新组件丢样式。
 - [x] 抽出两个共享件：`ShowcaseCode`（代码块与复制按钮，复制仍走应用级 event delegation）与 `ShowcaseApiTable`（生成式 API 表），`ComponentPreview` 的生成分支改为复用它，手写分支只留给 `Feedback`；基类参数清单移到 `ShowcaseApi`，不再随页面重复。
-- [x] 三页样例交付：`Input`（基础用法 / 输入类型与提示 / 状态与尺寸 / 在 FormField 中使用）、`Checkbox`（基础用法 / 不确定态 / 状态与尺寸 / 在 FormField 中使用）、`Upload`（基础用法 / 多文件与移除 / 宿主驱动传输进度 / 状态与属性）。每段都有独立的说明与代码片段，`Upload` 保留了宿主侧模拟传输的演示。
-- [x] 门禁与断言跟进：`tests/sample-docs.test.mjs` 新增「卡片化页面至少两段 demo、锚点唯一、每段都有标题与代码」；浏览器检查新增「组件页按 demo 卡片组织」「带何时使用、相关组件与生成式 API 表」，并把「代码片段」断言从单一 id 改为按 `-code` 后缀匹配。
+- [x] 表单组件组 15 页全部卡片化，每页 3～4 段演示、每段带锚点/说明/可复制代码，并补上「何时使用」（决定读者该不该用它、该换哪个）与「相关组件」（下一站指向），Notes 补齐到全组：
+  - `Input`、`Textarea`、`InputNumber`（范围与步进）、`Slider`（步长与精度）、`Search`（提交/清空/加载）、`Autocomplete`（加载态与交互开关）、`Label`（原生 label 关联）、`Checkbox`（不确定态是显示态）、`Switch`（即时生效的二态）、`Radio`（组焦点模型与独立值绑定）、`Segmented`（禁选项与非字符串值）、`Rating`（只读展示与范围）、`FormField`（包装原生控件）、`MultiSelect`（批量动作与禁用项）、`Upload`（宿主驱动传输进度）。
+  - 编译坑逐条记下：`InputNumber` 与框架同名类型冲突必须写全名并显式 `TValue`，`TValue=decimal` 时数值字面量要写 `@(0.5m)`，绑定字段需可空；示例导入了库的 `List` 与 `System.Collections.Generic.List<T>` 撞名；属性文本里的 `@bind-Value` 要转义。
+- [x] 门禁与断言跟进：`tests/sample-docs.test.mjs` 新增「卡片化页面至少两段 demo、锚点唯一、每段都有标题与代码」与「每段代码都声明了、且片段用到了本页记录过的组件」（多组件页面按生成物与额外行的类型前缀判定，`Radio` 与 `RadioGroup` 同页不误报）；浏览器检查新增「组件页按 demo 卡片组织」「带何时使用、相关组件与生成式 API 表」，并对表单组的四个页面做跨页抽查，代码片段断言从单一 id 改为按 `-code` 后缀匹配。拖放断言改为限定到具体卡片，并先等 JS 模块接上监听（一页多个实例时的时序）。
 - [x] 顺手修正示例工程的两处编译坑：属性文本里的 `@bind-Value` 需要转义；示例导入了库的 `List`，与 `System.Collections.Generic.List<T>` 撞名需写全限定。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`node --test tests/*.test.mjs`（85 项）通过。
 

@@ -5,76 +5,149 @@
 
 <PageTitle>Aeterni UI · MultiSelect</PageTitle>
 
-<ComponentPreview AnchorId="multi-select"
-                  Category="表单组件"
-                  Title="MultiSelect"
-                  ComponentName="MultiSelect&lt;TItem&gt;"
-                  Description="多值绑定、已选项标签、移除操作以及可选的全选和清空动作。"
-                  Code="@UsageCode">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <FormField Label="组件分类" Description="可以通过键盘方向键移动，按空格切换选项。" Disabled="@_disabled" Invalid="@_invalid">
-                <MultiSelect TItem="string"
-                             Items="@Categories"
-                             SelectedValues="@_selected"
-                             SelectedValuesChanged="HandleSelectedChanged"
-                             Size="@_size"
-                             Placeholder="@_placeholder"
-                             AllowSelectAll="@_allowSelectAll"
-                             AllowClear="@_allowClear"
-                             FullWidth="@_fullWidth"
-                             Disabled="@_disabled"
-                             Invalid="@_invalid"
-                             AriaLabel="组件分类" />
-            </FormField>
-            <span class="preview-feedback" role="status">已选择：@(_selected.Count == 0 ? "（空）" : string.Join("、", _selected))</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="multi-select-placeholder">Placeholder</label>
-            <input id="multi-select-placeholder" @bind="_placeholder" />
-        </div>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="multi-select-size" AriaLabel="MultiSelect Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_allowSelectAll">AllowSelectAll</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_allowClear">AllowClear</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="multi-select"
+               Category="表单组件"
+               Title="MultiSelect"
+               ComponentName="MultiSelect&lt;TItem&gt;"
+               Description="多值选择：触发器里承载已选项，浮层里承载候选列表。"
+               Related="@MultiSelectRelated">
+    <WhenToUse>
+        <p>从一组平铺选项里选多个值时使用：标签、分类、可见范围。选项多且需要输入过滤时用 <code>Autocomplete</code>；必须择一的场景用 <code>ComboBox</code>。</p>
+        <p>数据归宿主：<code>Items</code> 是当前快照，查询、缓存与分页都由宿主决定何时替换它。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="multi-select-basic"
+                  Title="基础用法"
+                  Description="方向键移动活动项，空格切换选中并保持列表打开，Backspace 移除最后一个已选项。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <MultiSelect TItem="string"
+                                 Items="@_categories"
+                                 SelectedValues="@_selected"
+                                 SelectedValuesChanged="HandleSelectedChanged"
+                                 Placeholder="选择组件分类…"
+                                 AriaLabel="组件分类" />
+                    <span class="preview-feedback" role="status">已选：@SelectedText</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="multi-select-actions"
+                  Title="批量动作与移除"
+                  Description="AllowSelectAll 与 AllowClear 在浮层内提供批量动作；已选项各自带独立移除按钮，键盘可达且有独立名称。"
+                  Code="@ActionsCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <MultiSelect TItem="string"
+                                 Items="@_categories"
+                                 SelectedValues="@_actionSelected"
+                                 SelectedValuesChanged="HandleActionSelectedChanged"
+                                 AllowSelectAll
+                                 AllowClear
+                                 Placeholder="选择组件分类…"
+                                 AriaLabel="带批量动作的组件分类" />
+                    <span class="preview-feedback" role="status">已选：@ActionSelectedText</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="multi-select-disabled"
+                  Title="禁用选项与字段状态"
+                  Description="DisabledSelector 标记不可选：这些选项既不进入键盘导航，也不会被批量选中。字段状态同时作用于触发器与浮层。"
+                  Code="@DisabledCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="可见范围" Description="“全员”为默认项，不可取消。"
+                               Disabled="@_disabled" Invalid="@_invalid">
+                        <MultiSelect TItem="string"
+                                     Items="@_scopes"
+                                     SelectedValues="@_scopeSelected"
+                                     SelectedValuesChanged="HandleScopeChanged"
+                                     DisabledSelector="@(scope => scope == "全员")"
+                                     Size="@_size"
+                                     FullWidth="@_fullWidth"
+                                     Placeholder="选择可见范围…"
+                                     AriaLabel="可见范围" />
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="multi-select-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>组件只负责展示和交互；Items、SelectedValues 以及异步数据由宿主应用控制。</span>
-        <span>选项使用 listbox/option 多选语义；已选项可以在触发器内单独移除，AllowSelectAll 和 AllowClear 控制批量动作。</span>
+        <span>触发器是 <code>combobox</code>，浮层是 <code>listbox[aria-multiselectable]</code>；活动项通过 <code>aria-activedescendant</code> 表达，输入焦点始终留在触发器上。</span>
+        <span>禁用选项不进入方向键移动范围，也不会被"全选"选中；它们只是不可选，而不是隐藏。</span>
+        <span>组件不请求远程数据、不做搜索历史与虚拟滚动：大数据量场景由宿主自行裁剪 <code>Items</code>（必要时配合 <code>VirtualList</code> 渲染候选内容）。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private static readonly string[] Categories = ["设计", "开发", "产品", "运营", "研究"];
-    private IReadOnlyList<string> _selected = ["设计", "开发"];
-    private string _placeholder = "选择组件分类…";
-    private Size _size = Size.Default;
-    private bool _allowSelectAll = true;
-    private bool _allowClear = true;
-    private bool _disabled;
-    private bool _invalid;
-    private bool _fullWidth;
+    private static readonly ShowcaseRelatedLink[] MultiSelectRelated =
+    [
+        new("ComboBox", "/components/combobox"),
+        new("Autocomplete", "/components/autocomplete"),
+        new("VirtualList", "/components/virtual-list"),
+        new("FormField", "/components/form-field")
+    ];
 
-    private const string UsageCode = """
-        <MultiSelect TItem="Category"
+    private const string BasicCode = """
+        <MultiSelect TItem="string"
                      Items="Categories"
                      @bind-SelectedValues="Selected"
-                     TextSelector="@(category => category.Name)"
-                     Placeholder="选择分类"
+                     Placeholder="选择组件分类…" />
+        """;
+
+    private const string ActionsCode = """
+        <MultiSelect TItem="string" Items="Categories" @bind-SelectedValues="Selected"
                      AllowSelectAll
                      AllowClear />
         """;
 
+    private const string DisabledCode = """
+        <MultiSelect TItem="string" Items="Scopes" @bind-SelectedValues="Selected"
+                     DisabledSelector="@(scope => scope == "全员")"
+                     FullWidth />
+        """;
+
+    private static readonly string[] _categories = ["设计", "开发", "产品", "运营", "研究"];
+    private static readonly string[] _scopes = ["全员", "本部门", "项目组", "仅自己"];
+
+    private IReadOnlyList<string> _selected = ["设计", "开发"];
+    private IReadOnlyList<string> _actionSelected = [];
+    private IReadOnlyList<string> _scopeSelected = ["全员", "本部门"];
+    private Size _size = Size.Default;
+    private bool _disabled;
+    private bool _invalid;
+    private bool _fullWidth = true;
+
+    private string SelectedText => _selected.Count == 0 ? "（空）" : string.Join("、", _selected);
+
+    private string ActionSelectedText => _actionSelected.Count == 0 ? "（空）" : string.Join("、", _actionSelected);
+
     private Task HandleSelectedChanged(IReadOnlyList<string> values)
     {
         _selected = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleActionSelectedChanged(IReadOnlyList<string> values)
+    {
+        _actionSelected = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleScopeChanged(IReadOnlyList<string> values)
+    {
+        _scopeSelected = values;
         return Task.CompletedTask;
     }
 }

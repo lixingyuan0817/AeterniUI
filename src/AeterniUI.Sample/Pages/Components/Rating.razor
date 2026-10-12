@@ -2,65 +2,131 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Rating</PageTitle>
 
-<ComponentPreview AnchorId="rating"
-                  Category="表单组件"
-                  Title="Rating"
-                  ComponentName="Rating"
-                  Description="整数评分输入，支持只读展示、清除、键盘操作和 EditContext 校验。">
-    <Preview>
-        <div class="preview-stack">
-            <Rating Value="@_ratingValue"
-                    Size="@_ratingSize"
-                    ValueChanged="HandleRatingChanged"
-                    Max="@_ratingMax"
-                    ReadOnly="@_ratingReadOnly"
-                    AllowClear="@_ratingAllowClear"
-                    Disabled="@_ratingDisabled"
-                    AriaLabel="评分预览" />
-            <span class="preview-feedback" role="status">当前评分：@_ratingValue / @_ratingMax</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="rating-max">Max</label>
-            <input id="rating-max" type="number" min="1" max="10" @bind="_ratingMax" />
-        </div>
-        <div class="control-field">
-            <label for="rating-value">Value</label>
-            <input id="rating-value" type="number" min="0" max="10" @bind="_ratingValue" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_ratingReadOnly">ReadOnly</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_ratingAllowClear">AllowClear</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_ratingDisabled">Disabled</Checkbox>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="rating-size" AriaLabel="Rating Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_ratingSize" />
-        </div>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="rating"
+               Category="表单组件"
+               Title="Rating"
+               ComponentName="Rating"
+               Description="整数评分控件：可交互打分，也可作为只读的评分展示。"
+               Related="@RatingRelated">
+    <WhenToUse>
+        <p>收集或展示整数评分时使用：满意度、优先级、星级。需要连续数值用 <code>Slider</code>，需要表达比例用 <code>Progress</code>。</p>
+        <p>评分的取值范围由 <code>Max</code> 决定（默认 5）；组件只处理整数，半星等分数展示不在范围内。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="rating-basic"
+                  Title="基础用法"
+                  Description="方向键与 Home/End 移动评分，Enter/空格确认；AllowClear 允许把评分清回 0。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Rating Value="@_score"
+                            ValueChanged="HandleScoreChanged"
+                            Max="5"
+                            AllowClear
+                            AriaLabel="满意度评分" />
+                    <span class="preview-feedback" role="status">当前评分：@_score / 5</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="rating-display"
+                  Title="只读展示"
+                  Description="ReadOnly 去掉交互与焦点停留点，只保留评分图形与无障碍名称，适合列表里的评分栏。"
+                  Code="@DisplayCode">
+            <Preview>
+                <div class="preview-stack">
+                    <span class="preview-value">交付质量</span>
+                    <Rating Value="4" ReadOnly AriaLabel="交付质量 4 分，满分 5 分" Max="5" />
+                    <span class="preview-value">文档完整度</span>
+                    <Rating Value="5" ReadOnly AriaLabel="文档完整度 5 分，满分 5 分" Max="5" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="rating-states"
+                  Title="范围与状态"
+                  Description="Max 决定总分、Size 决定图形尺寸；禁用态不进入 Tab 序列。右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Rating Value="@_value"
+                            ValueChanged="HandleValueChanged"
+                            Max="@_max"
+                            Size="@_size"
+                            ReadOnly="@_readOnly"
+                            AllowClear="@_allowClear"
+                            Disabled="@_disabled"
+                            AriaLabel="评分预览" />
+                    <span class="preview-feedback" role="status">当前评分：@_value / @_max</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="rating-max">Max</label>
+                    <input id="rating-max" type="number" min="1" max="10" @bind="_max" />
+                </div>
+                <div class="control-field">
+                    <label for="rating-value">Value</label>
+                    <input id="rating-value" type="number" min="0" max="10" @bind="_value" />
+                </div>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="rating-size" AriaLabel="Rating Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_allowClear">AllowClear</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>对外是单一的可调控件：方向键移动、Home/End 跳到两端、Enter 或空格确认；只读态没有停留点，禁用态不参与 Tab 序列。</span>
+        <span><code>AllowClear</code> 关闭后无法把评分退回 0——需要"未评分"这个状态时保持它开启。</span>
+        <span>取值范围只由 <code>Max</code> 决定，超出范围的值会被夹取；组件不做半星、不做自定义图标。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private int _ratingValue = 3;
+    private static readonly ShowcaseRelatedLink[] RatingRelated =
+    [
+        new("Slider", "/components/slider"),
+        new("Progress", "/components/progress"),
+        new("FormField", "/components/form-field")
+    ];
 
-    private int _ratingMax = 5;
+    private const string BasicCode = """
+        <Rating Value="Score" ValueChanged="HandleScoreChanged" Max="5" AllowClear />
+        """;
 
-    private bool _ratingReadOnly;
+    private const string DisplayCode = """
+        <Rating Value="4" Max="5" ReadOnly AriaLabel="交付质量 4 分，满分 5 分" />
+        """;
 
-    private bool _ratingAllowClear = true;
+    private const string StateCode = """
+        <Rating Value="Score" ValueChanged="HandleScoreChanged" Max="10" Size="Size.Large" />
+        """;
 
-    private bool _ratingDisabled;
+    private int _score = 3;
 
-    private Size _ratingSize = Size.Default;
+    private int _value = 3;
+    private int _max = 5;
+    private Size _size = Size.Default;
+    private bool _readOnly;
+    private bool _allowClear = true;
+    private bool _disabled;
 
-    private Task HandleRatingChanged(int value)
+    private Task HandleScoreChanged(int value)
     {
-        _ratingValue = value;
+        _score = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleValueChanged(int value)
+    {
+        _value = value;
         return Task.CompletedTask;
     }
 }

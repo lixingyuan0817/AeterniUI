@@ -2,51 +2,117 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · FormField</PageTitle>
 
-<ComponentPreview AnchorId="form-field"
-                  Category="表单组件"
-                  Title="FormField"
-                  ComponentName="FormField"
-                  Description="将标签、描述、错误信息和内部控件组合为一个可访问的表单字段。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <FormField Label="@_formLabel"
-                       Description="@(_formDescription ? "辅助说明会通过 aria-describedby 关联。" : null)"
-                       Error="@(_formInvalid ? "请检查此字段。" : null)"
-                       Required="@_formRequired"
-                       Invalid="@_formInvalid">
-                <Input @bind-Value="_formValue" Placeholder="填写字段内容" AriaLabel="@_formLabel" />
-            </FormField>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="field-label">Label</label>
-            <input id="field-label" @bind="_formLabel" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_formDescription">显示 Description</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid / Error</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="form-field"
+               Category="表单组件"
+               Title="FormField"
+               ComponentName="FormField"
+               Description="字段容器：把标签、说明、必填与错误状态集中到一处，并交给内部控件继承。"
+               Related="@FormFieldRelated">
+    <WhenToUse>
+        <p>任何带标签的表单控件都该放进字段里：标签、说明、必填与错误提示一次配好，内部控件自动采用字段的输入 id，标签的 <code>for</code> 因此能点得中。</p>
+        <p>库外的原生控件同样可以放进字段：只要把字段给它的 id 用在控件上，关联与状态继承就成立。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="form-field-basic"
+                  Title="基础用法"
+                  Description="Label 与 Description 分别生成标签与说明元素；说明通过 aria-describedby 关联到控件。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="显示名称" Description="会出现在个人资料页与邮件署名里。">
+                        <Input @bind-Value="_name" Placeholder="请输入显示名称" />
+                    </FormField>
+                    <code class="preview-value">Value: @_name</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="form-field-states"
+                  Title="必填、无效与错误消息"
+                  Description="Required 影响标签上的必填标记与 aria-required；Invalid 与 Error 决定错误文案，内部控件继承无效态。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="显示名称"
+                               Description="会出现在个人资料页与邮件署名里。"
+                               Error="@_error"
+                               Required="@_required"
+                               Invalid="@_invalid">
+                        <Input @bind-Value="_stateName" Placeholder="请输入显示名称" />
+                    </FormField>
+                    <code class="preview-value">Value: @_stateName</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="form-field-error">Error</label>
+                    <input id="form-field-error" @bind="_error" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_required">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="form-field-native"
+                  Title="包装原生控件"
+                  Description="原生控件也能进入字段语义：字段提供 id 与状态，宿主把 id 交给控件即可。"
+                  Code="@NativeCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="昵称前缀" Description="原生 input 元素，未使用库内组件。" Required="@_nativeRequired">
+                        <input id="form-field-native-input"
+                               class="preview-native-input"
+                               placeholder="例如 aeterni-"
+                               aria-required="@(_nativeRequired ? "true" : null)" />
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_nativeRequired">Required</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span><code>FormField</code> 通过级联上下文把输入 ID、描述 ID、禁用和校验状态传给内部控件。</span>
+        <span>字段只负责"这组说明属于哪个控件"以及状态传递；它不校验、不提交、不请求，规则仍写在宿主的 <code>EditContext</code> 上。</span>
+        <span><code>For</code> 用于把字段与绑定表达式关联起来，配合 <code>EditForm</code> 时校验消息会自动出现在字段的错误区域。</span>
+        <span>不要在字段内部再写 <code>Label</code>：一个控件被两个标签指向时，读屏会把两段文字拼成同一个名字。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private string _formLabel = "显示名称";
+    private static readonly ShowcaseRelatedLink[] FormFieldRelated =
+    [
+        new("Input", "/components/input"),
+        new("Label", "/components/label"),
+        new("Checkbox", "/components/checkbox"),
+        new("Upload", "/components/upload")
+    ];
 
-    private string? _formValue;
+    private const string BasicCode = """
+        <FormField Label="显示名称" Description="会出现在个人资料页与邮件署名里。">
+            <Input @bind-Value="Name" />
+        </FormField>
+        """;
 
-    private bool _formDescription = true;
+    private const string StateCode = """
+        <FormField Label="显示名称" Error="名称已被占用。" Required Invalid>
+            <Input @bind-Value="Name" />
+        </FormField>
+        """;
 
-    private bool _formRequired;
+    private const string NativeCode = """
+        <FormField Label="昵称前缀" Description="原生 input 元素。" Required>
+            <input id="nickname-prefix" placeholder="例如 aeterni-" />
+        </FormField>
+        """;
 
-    private bool _formInvalid;
-
+    private string? _name;
+    private string? _stateName;
+    private string _error = "名称已被占用。";
+    private bool _required = true;
+    private bool _invalid = true;
+    private bool _nativeRequired;
 }

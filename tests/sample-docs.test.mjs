@@ -129,29 +129,55 @@ test('每个有组件的条目都出现在生成的 API 表里，且页面不再
     assert.deepEqual(handWritten, [], `这些页面仍在手写 API 表：${handWritten.join(', ')}`);
 });
 
-test('提供代码块的页面都定义了片段，且片段用到了它记录的组件', () => {
+test('卡片化页面：每段代码都声明了，且片段用到了本页记录的组件', () => {
     const files = readdirSync(PAGES).filter(name => name.endsWith('.razor'));
-    let withCode = 0;
+
+    // 一页可能记录多个组件（Radio 与 RadioGroup、List 与 ListItem……），因此"片段里出现的
+    // 类型"取本页记录过的类型集合：主类型来自 ComponentName，其余来自携带类型前缀的记录行。
+    const extras = JSON.parse(read('scripts/api-extra-rows.json')).rows;
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    let cards = 0;
 
     for (const file of files) {
         const source = read(join(PAGES, file));
-        const usesCode = /Code="@UsageCode"/.test(source);
-        const declares = /private const string UsageCode = """/.test(source);
-        assert.equal(usesCode, declares, `${file} 的 Code 参数与 UsageCode 常量不匹配`);
+        if (!source.includes('<ComponentPage')) continue;
 
-        if (!usesCode) continue;
-        withCode += 1;
+        const page = /AnchorId="([a-z0-9-]+)"/.exec(source)?.[1] ?? '';
+        const name = /ComponentName="([^"]+)"/.exec(source)?.[1] ?? '';
+        const documented = new Set([name.split(/[<(&（]/)[0].trim()]);
 
-        const name = /ComponentName="([^"<]+)"/.exec(source)?.[1] ?? '';
-        const snippet = /private const string UsageCode = """\r?\n([\s\S]*?)""";/.exec(source)?.[1] ?? '';
-        // 泛型名在属性里是 HTML 转义的（`MultiSelect&lt;TItem&gt;`），只留类型名本身。
-        const type = name.split(/[<(&（]/)[0].trim();
+        // 一页可能记录多个组件（Radio 与 RadioGroup、List 与 ListItem），所以要把它记录过的
+        // 类型都算进来：生成物里带类型前缀的成员名给出主目录中的类型，额外行给出模型与服务。
+        const pageMembers = new RegExp(`\\["${page}"\\] = new ShowcaseApiMember\\[\\]\\r?\\n\\s*\\{([\\s\\S]*?)\\n\\s*\\},`)
+            .exec(generated)?.[1] ?? '';
+        for (const member of pageMembers.matchAll(/new\("([^"]+)"/g)) {
+            const owner = member[1].split('.')[0];
+            if (/^[A-Z]/.test(owner)) documented.add(owner);
+        }
 
-        assert.ok(snippet.trim().length > 0, `${file} 的 UsageCode 是空的`);
-        assert.ok(snippet.includes(type), `${file} 的用法片段没有出现 ${type}`);
+        for (const row of extras[page] ?? []) {
+            for (const part of row.name.split('/')) {
+                const owner = part.trim().split('.')[0];
+                if (owner && /^[A-Z]/.test(owner)) documented.add(owner);
+            }
+        }
+
+        for (const match of source.matchAll(/Code="@(\w+)"/g)) {
+            const constant = match[1];
+            // 用 indexOf 取原始字符串字面量，不走正则：跨语言的转义（\r?\n、[\s\S]）
+            // 在生成测试文件时极易被吃掉，这一处已经被自己踩过一次。
+            const marker = `private const string ${constant} = """`;
+            const start = source.indexOf(marker);
+            const end = start < 0 ? -1 : source.indexOf('"""', start + marker.length);
+            const snippet = start < 0 || end < 0 ? undefined : source.slice(start + marker.length, end);
+            assert.ok(snippet !== undefined, `${file} 引用了未声明的代码常量 ${constant}`);
+            assert.ok([...documented].some(type => snippet.includes(type)),
+                `${file} 的 ${constant} 片段没有出现本页记录的组件（${[...documented].join(' / ')}）`);
+            cards += 1;
+        }
     }
 
-    assert.ok(withCode > 0, '示例工程里没有任何代码块，说明本门禁已失效');
+    assert.ok(cards > 0, '示例工程里没有任何代码片段，说明本门禁已失效');
 });
 
 test('卡片化的页面：demo 锚点唯一，每段都有自己的标题与代码', () => {

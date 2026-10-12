@@ -2,56 +2,123 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Switch</PageTitle>
 
-<ComponentPreview AnchorId="switch"
-                  Category="表单组件"
-                  Title="Switch"
-                  ComponentName="Switch"
-                  Description="适用于即时设置的二态控件，内部使用原生 checkbox 并输出 switch 语义。">
-    <Preview>
-        <div class="preview-stack">
-            <Switch @bind-Value="_switchValue"
-                    Size="@_switchSize"
-                    Required="@_switchRequired"
-                    Invalid="@_switchInvalid"
-                    Disabled="@_switchDisabled"
-                    OnChange="HandleSwitchChange">
-                自动同步
-            </Switch>
-            <span class="preview-feedback" role="status">Value: @_switchValue · @_switchNote</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox Size="Size.Small" @bind-Value="_switchRequired">Required</Checkbox>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="switch-size" AriaLabel="Switch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_switchSize" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_switchInvalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_switchDisabled">Disabled</Checkbox>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="switch"
+               Category="表单组件"
+               Title="Switch"
+               ComponentName="Switch"
+               Description="即时生效的二态控件：内部使用原生复选框，对外输出 switch 语义。"
+               Related="@SwitchRelated">
+    <WhenToUse>
+        <p>改动立即生效的设置项用它：开启通知、切换开发模式。需要用户确认后再提交的选项用 <code>Checkbox</code>——开关的语义是"开关本身就是动作"。</p>
+        <p>开关不表达第三种状态：需要"部分开启"的中间态，用 <code>Checkbox</code> 的 <code>Indeterminate</code> 显示语义。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="switch-basic"
+                  Title="基础用法"
+                  Description="布尔绑定，标签文字作为子内容；空格键切换，读屏播报为开关而不是复选框。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Switch @bind-Value="_sync">自动同步</Switch>
+                    <Switch @bind-Value="_notify">接收构建通知</Switch>
+                    <span class="preview-feedback" role="status">同步：@_sync · 通知：@_notify</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="switch-states"
+                  Title="状态与尺寸"
+                  Description="禁用、必填与无效三种字段状态，以及三档尺寸；OnChange 用于在交互后同步宿主侧的提示。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Switch @bind-Value="_value"
+                            Size="@_size"
+                            Required="@_required"
+                            Invalid="@_invalid"
+                            Disabled="@_disabled"
+                            OnChange="HandleChange">自动同步</Switch>
+                    <span class="preview-feedback" role="status">Value: @_value · @_note</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="switch-size" AriaLabel="Switch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_required">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="switch-form"
+                  Title="在 FormField 中使用"
+                  Description="字段负责标签、说明与状态；开关采用字段的输入 id，点击标签同样切换。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="实验特性"
+                               Description="开启后工作区会启用预览版渲染管线。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid">
+                        <Switch @bind-Value="_experimental">启用预览版渲染管线</Switch>
+                    </FormField>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>开关的本质是"切换即提交"：它不等待表单确认，因此适合设置页，不适合需要成组校验后统一提交的表单。</span>
+        <span>原生控件是 <code>input[type="checkbox"]</code>，对外通过角色与状态属性表达开关语义，键盘用空格切换，不接管方向键。</span>
+        <span>禁用态使用禁用墨与禁用填充；<code>Invalid</code> 或 <code>FormField</code> 的无效态只改变外观，是否阻止提交由宿主决定。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private bool _switchValue;
+    private static readonly ShowcaseRelatedLink[] SwitchRelated =
+    [
+        new("Checkbox", "/components/checkbox"),
+        new("Radio / RadioGroup", "/components/radio"),
+        new("FormField", "/components/form-field")
+    ];
 
-    private Size _switchSize = Size.Default;
+    private const string BasicCode = """
+        <Switch @bind-Value="AutoSync">自动同步</Switch>
+        """;
 
-    private bool _switchRequired;
+    private const string StateCode = """
+        <Switch @bind-Value="AutoSync" Size="Size.Large" Required Invalid OnChange="HandleChange">
+            自动同步
+        </Switch>
+        """;
 
-    private bool _switchInvalid;
+    private const string FormCode = """
+        <FormField Label="实验特性" Description="开启后工作区会启用预览版渲染管线。" Required>
+            <Switch @bind-Value="Experimental">启用预览版渲染管线</Switch>
+        </FormField>
+        """;
 
-    private bool _switchDisabled;
+    private bool _sync;
+    private bool _notify;
 
-    private string _switchNote = "等待交互。";
+    private bool _value;
+    private Size _size = Size.Default;
+    private bool _required;
+    private bool _invalid;
+    private bool _disabled;
+    private string _note = "等待交互。";
 
-    private void HandleSwitchChange(ChangeEventArgs _)
-    {
-        _switchNote = $"OnChange 已触发，当前值为 {_switchValue}。";
-    }
+    private bool _experimental;
+    private bool _formRequired;
+    private bool _formInvalid;
+
+    private void HandleChange(ChangeEventArgs _) => _note = $"OnChange 已触发，当前值为 {_value}。";
 }

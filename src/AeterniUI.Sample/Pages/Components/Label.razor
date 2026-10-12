@@ -1,33 +1,72 @@
 ﻿@page "/components/label"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
-@using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Label</PageTitle>
 
-<ComponentPreview AnchorId="label"
-                  Category="表单组件"
-                  Title="Label"
-                  ComponentName="Label"
-                  Description="独立的原生 label 元素，用 For 将说明文字关联到指定输入控件。">
-    <Preview>
-        <div class="preview-form-control">
-            <Label For="label-preview-input">独立 Label</Label>
-            <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="独立 Label 示例" />
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="label-text">标签文字</label>
-            <input id="label-text" @bind="_labelText" />
-        </div>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="label"
+               Category="表单组件"
+               Title="Label"
+               ComponentName="Label"
+               Description="独立的原生 label 元素，用 For 把说明文字关联到指定控件。"
+               Related="@LabelRelated">
+    <WhenToUse>
+        <p>自建布局、控件不是库内组件，或要把标签放在控件之外时使用。表单内的常规字段不用它——<code>FormField</code> 已经会渲染标签并自动关联输入 id。</p>
+        <p>在 <code>FormField</code> 内部再写一个 <code>Label</code> 会得到两个标签指向同一个控件，读屏会把两段文字拼成同一个名字。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="label-basic"
+                  Title="基础用法"
+                  Description="For 指向控件的 id；点击标签即可聚焦或切换该控件，这是原生 label 的行为。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Label For="label-preview-input">项目名称</Label>
+                    <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="项目名称" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="label-multiple"
+                  Title="为多个控件提供标签"
+                  Description="同一个布局里可以有多个独立标签；每个 For 只指向一个控件，标签文字随控件变化。"
+                  Code="@MultipleCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Label For="label-demo-switch">构建完成通知</Label>
+                    <Switch Id="label-demo-switch" @bind-Value="_notify">每完成一次构建发送一次</Switch>
+                    <Label For="label-demo-check">统计上报</Label>
+                    <Checkbox Id="label-demo-check" @bind-Value="_telemetry">写入匿名使用统计</Checkbox>
+                    <span class="preview-feedback" role="status">通知：@_notify · 统计：@_telemetry</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>渲染为原生 <code>&lt;label&gt;</code>，因此点击、焦点转移与读屏关联都由浏览器完成，组件不加角色。</span>
+        <span><code>For</code> 必须是目标控件的 id：库内组件的 id 由 <code>Id</code> 参数决定，原生元素自己写。</span>
+        <span>带字段语义的场景（说明、必填、无效、错误消息）交给 <code>FormField</code>；<code>Label</code> 只负责"这段文字属于哪个控件"。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private string _labelText = "独立 Label";
+    private static readonly ShowcaseRelatedLink[] LabelRelated =
+    [
+        new("FormField", "/components/form-field"),
+        new("Input", "/components/input"),
+        new("Checkbox", "/components/checkbox")
+    ];
 
+    private const string BasicCode = """
+        <Label For="project-name">项目名称</Label>
+        <Input Id="project-name" @bind-Value="Name" />
+        """;
+
+    private const string MultipleCode = """
+        <Label For="build-notify">构建完成通知</Label>
+        <Switch Id="build-notify" @bind-Value="Notify">每完成一次构建发送一次</Switch>
+        """;
+
+    private bool _notify;
+    private bool _telemetry;
 }

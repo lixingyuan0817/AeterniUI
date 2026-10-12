@@ -5,122 +5,123 @@
 
 <PageTitle>Aeterni UI · InputNumber</PageTitle>
 
-<ComponentPreview AnchorId="input-number"
-                  Category="表单组件"
-                  Title="InputNumber"
-                  ComponentName="InputNumber&lt;TValue&gt;"
-                  Description="数值输入控件：受控数值绑定、上下限与步进、方向键与 PageUp/PageDown 步进、可选内置增减按钮；不提供千分位与自定义格式化。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            @* 这里必须使用完全限定标签：`Microsoft.AspNetCore.Components.Forms`
-               自带同名的 `InputNumber<TValue>`（.NET 8+），凡是使用 EditForm 的宿主都会
-               引入该命名空间，此时 `<InputNumber>` 会解析到框架类型。 *@
-            <FormField Label="采购数量"
-                       Description="方向键按步长增减，PageUp/PageDown 一次走 10 步；输入框聚焦时这些按键不会滚动页面。"
-                       Required="@_required"
-                       Disabled="@_disabled"
-                       Invalid="@_invalid">
-                <AeterniUI.Components.InputNumber.InputNumber TValue="decimal"
-                             Value="@_quantity"
-                             ValueChanged="@HandleQuantityChanged"
-                             Min="0"
-                             Max="100"
-                             Step="@_step"
-                             ShowControls="@_showControls"
-                             ReadOnly="@_readOnly"
-                             FullWidth="@_fullWidth"
-                             Size="@_size"
-                             Placeholder="请输入数量"
-                             AriaLabel="采购数量" />
-            </FormField>
-            <span class="preview-feedback" role="status">@_status</span>
+@* 必须写全名：示例工程导入了 Microsoft.AspNetCore.Components.Forms，其中的
+   InputNumber<TValue> 与库内组件同名，短标签会被 Razor 判为歧义。 *@
+<ComponentPage AnchorId="input-number"
+               Category="表单组件"
+               Title="InputNumber"
+               ComponentName="InputNumber"
+               Description="数值输入：步进按钮、键盘步进、范围夹取与精度控制。"
+               Related="@InputNumberRelated">
+    <WhenToUse>
+        <p>需要精确数值时使用：数量、金额、比例。范围感更强的场景用 <code>Slider</code>，自由文本用 <code>Input</code>。</p>
+        <p>Min/Max 与 Step 决定可用区间与步长；输入过程中不夹取，失焦或步进时才归一化，避免打断正在输入的中间值。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="input-number-basic"
+                  Title="基础用法"
+                  Description="步进按钮与方向键都能改变数值；Precision 决定小数位，ShowControls 控制按钮显隐。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="_amount"
+                                 Step="@(0.5m)"
+                                 Precision="1"
+                                 ShowControls="@_showControls"
+                                 Placeholder="输入金额"
+                                 AriaLabel="金额" />
+                    <code class="preview-value">Value: @_amount</code>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_showControls">ShowControls</Checkbox>
+            </Controls>
+        </DemoCard>
 
-            @* REV-159: the EditContext chain end to end — FormField.For, the picker's
-               ValueExpression and DataAnnotations all drive the same field state. *@
-            <EditForm Model="_orderModel" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <FormField Label="采购数量（1~50）" For="@(() => _orderModel.Quantity)">
-                    @* ValueExpression is what wires the field into the EditContext that
-                       FormField.For targets; binding to a non-nullable model property
-                       needs the explicit three-parameter form. *@
-                    <AeterniUI.Components.InputNumber.InputNumber TValue="int"
-                                 Value="_orderModel.Quantity"
-                                 ValueChanged="@(value => _orderModel.Quantity = value ?? 0)"
-                                 ValueExpression="@(() => _orderModel.Quantity)"
-                                 Min="1"
-                                 Max="50"
-                                 ShowControls
-                                 Placeholder="请输入 1~50"
-                                 AriaLabel="采购数量（校验）" />
-                </FormField>
-                <ValidationMessage For="@(() => _orderModel.Quantity)" />
-                <Button Type="ButtonType.Submit" Size="Size.Small">校验数量</Button>
-                @if (_orderSubmitted)
-                {
-                    <span class="preview-feedback" role="status">数量校验通过。</span>
-                }
-            </EditForm>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="input-number-size" AriaLabel="InputNumber Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-            </div>
-            <div class="control-field">
-                <span>Step</span>
-                <ShowcaseSelect TValue="decimal" Id="input-number-step" AriaLabel="InputNumber Step" Options="@_stepOptions" TextSelector="@FormatStep" @bind-Value="_step" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_showControls">ShowControls</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_required">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-    </Controls>
+        <DemoCard Id="input-number-range"
+                  Title="范围与步进"
+                  Description="Min/Max 定义区间，超出范围的值在失焦或步进时被夹取；PageUp/PageDown 按十倍步进。"
+                  Code="@RangeCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="采购数量（1~50）" Description="超出范围会在失焦时夹取到边界。">
+                        <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="_quantity" Min="@(1m)" Max="@(50m)" Step="@(1m)" Precision="0" AriaLabel="采购数量" />
+                    </FormField>
+                    <code class="preview-value">Value: @_quantity</code>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="input-number-states"
+                  Title="状态与尺寸"
+                  Description="只读、禁用、必填与无效状态，以及三档尺寸和整宽；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="_stateValue"
+                                 Size="@_size"
+                                 ReadOnly="@_readOnly"
+                                 Required="@_required"
+                                 Invalid="@_invalid"
+                                 Disabled="@_disabled"
+                                 FullWidth="@_fullWidth"
+                                 Step="@(1m)"
+                                 Precision="0"
+                                 Placeholder="输入数值"
+                                 AriaLabel="状态演示数值" />
+                    <code class="preview-value">Value: @_stateValue</code>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="input-number-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_required">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>在 <code>EditForm</code> 中把 <code>ValueExpression</code>（<code>@("@bind-Value")</code> 会自动提供）交给 <code>FormField.For</code> 关联的字段即可：校验消息经 <code>FormField</code> 的 <code>aria-describedby</code> 与危险色一并呈现，无需宿主自己接线。</span>
-        <span>值类型为 <code>TValue?</code>：空值表示“未填写”，配合 FormField 的 Required 参与 EditContext 校验；显示精度默认取自 Step 的小数位。</span>
-        <span>输入过程中不拦截、不整形草稿，blur 时才做上下限夹取与精度取整；越界但仍可解析的输入由宿主校验负责提示。</span>
-        <span>ShowControls 在输入框尾部追加连体的减/增按钮；只读与禁用同时作用于输入框和按钮。</span>
+        <span>输入过程中不夹取、不改写文本：只有失焦、步进或外部绑定值变化时才按 Min/Max/Precision 归一化，因此可以先把"1"打出来再补成"15"。</span>
+        <span>方向键步进一格，PageUp/PageDown 步进十倍；这些按键的默认滚动行为由组件的 JS 模块拦截。</span>
+        <span>组件不做单位换算与格式化展示：需要"¥ 12.50"这类显示请用相邻文本或用 <code>Input</code> 自行格式化。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private readonly OrderModel _orderModel = new();
+    private static readonly ShowcaseRelatedLink[] InputNumberRelated =
+    [
+        new("Input", "/components/input"),
+        new("Slider", "/components/slider"),
+        new("FormField", "/components/form-field")
+    ];
 
-    private bool _orderSubmitted;
+    private const string BasicCode = """
+        <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="Amount" Step="@(0.5m)" Precision="1" ShowControls />
+        """;
 
-    private void HandleValidSubmit() => _orderSubmitted = true;
+    private const string RangeCode = """
+        <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="Quantity" Min="@(1m)" Max="@(50m)" Step="@(1m)" Precision="0" />
+        """;
 
-    private sealed class OrderModel
-    {
-        [System.ComponentModel.DataAnnotations.Range(1, 50, ErrorMessage = "数量必须在 1 到 50 之间。")]
-        public int Quantity { get; set; } = 12;
-    }
+    private const string StateCode = """
+        <AeterniUI.Components.InputNumber.InputNumber TValue="decimal" @bind-Value="Quantity" Size="Size.Large" Required Invalid FullWidth />
+        """;
 
-    private decimal? _quantity = 12.5m;
-    private string _status = "当前值：12.5";
-    private Size _size = Size.Default;
-    private decimal _step = 0.5m;
+    private decimal? _amount = 12.5m;
     private bool _showControls = true;
+
+    private decimal? _quantity = 10m;
+
+    private decimal? _stateValue = 5m;
+    private Size _size = Size.Default;
     private bool _readOnly;
     private bool _required;
     private bool _invalid;
     private bool _disabled;
     private bool _fullWidth;
-
-    private static readonly decimal[] _stepOptions = [1m, 0.5m, 0.1m];
-
-    private static string FormatStep(decimal step) => step.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-    private Task HandleQuantityChanged(decimal? value)
-    {
-        _quantity = value;
-        _status = value is null ? "当前值为空（未填写）" : $"当前值：{value.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}";
-        return Task.CompletedTask;
-    }
-
 }
