@@ -352,7 +352,22 @@ const sliderFocus = await evaluate(`(() => {
         count: sliders.length,
         index: sliders.indexOf(document.activeElement),
         active: document.activeElement?.getAttribute('aria-label') ?? null,
-        tabindex: document.activeElement?.getAttribute('tabindex') ?? null
+        tabindex: document.activeElement?.getAttribute('tabindex') ?? null,
+        each: sliders.map((node, i) => {
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            return [
+                i,
+                node.getAttribute('aria-label'),
+                'tab=' + (node.getAttribute('tabindex') ?? '-'),
+                'display=' + style.display,
+                'visibility=' + style.visibility,
+                'w=' + Math.round(rect.width),
+                'h=' + Math.round(rect.height),
+                'inert=' + node.closest('[inert]')?.tagName,
+                'hidden-ancestor=' + (node.closest('[hidden]')?.tagName ?? '-')
+            ].join('|');
+        })
     };
 })()`);
 const thumbRing = await evaluate(`(() => {
