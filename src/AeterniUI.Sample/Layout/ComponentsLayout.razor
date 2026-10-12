@@ -1,4 +1,4 @@
-@layout MainLayout
+﻿@layout MainLayout
 @inherits LayoutComponentBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
@@ -9,6 +9,8 @@
    providers and the header stay in one place. *@
 <div class="showcase-layout">
     <aside class="showcase-sidebar">
+        @* 检索独立成块：与下面的导航分区之间用分隔线分开，避免"搜索框 + 57 条菜单"糊成一片。
+           不再显示条目计数——它对读者没有用，匹配结果本身就能说明问题。 *@
         <div class="showcase-search">
             <Input Id="showcase-search"
                    Value="@_query"
@@ -16,7 +18,6 @@
                    Size="Size.Small"
                    Placeholder="搜索组件…"
                    AriaLabel="搜索组件" />
-            <span class="showcase-search__status" role="status">@SearchStatus</span>
         </div>
         <div class="showcase-nav">
             @if (FilteredGroups.Count > 0)
@@ -31,20 +32,8 @@
     </aside>
 
     <main class="showcase-main">
-        @* Every page carries the same chrome: what is being read, where its source
-           lives, and its neighbours in catalogue order. Page files are named after
-           the catalogue id, so the edit link needs no per-page parameter; the sample
-           gate asserts those files exist. *@
-        <div class="showcase-doc-head">
-            <span class="showcase-doc-head__label">@CurrentLabel</span>
-            <a class="showcase-doc-head__edit"
-               href="@EditHref"
-               target="_blank"
-               rel="noopener noreferrer">
-                在 GitHub 编辑<span aria-hidden="true"> ↗</span>
-            </a>
-        </div>
-
+        @* 页头（名称与"在 GitHub 编辑"）已经移进页面容器内部：它原来悬在卡片外，卡片因此
+           比侧栏内缩一截。这里只保留目录顺序里的前后邻居。 *@
         <div class="showcase-preview-host" @key="SelectedId">
             @Body
         </div>
@@ -69,8 +58,6 @@
 @code {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
-
-    private const string RepositoryUrl = "https://github.com/lixingyuan0817/AeterniUI";
 
     private static readonly IReadOnlyList<ShowcaseNavGroup> NavigationGroups = ShowcaseCatalog.Groups;
 
@@ -125,18 +112,9 @@
 
     private ShowcaseNavItem CurrentItem => FlatItems[CurrentIndex];
 
-    private string CurrentLabel => CurrentItem.Label;
-
     private ShowcaseNavItem? Previous => CurrentIndex > 0 ? FlatItems[CurrentIndex - 1] : null;
 
     private ShowcaseNavItem? Next => CurrentIndex + 1 < FlatItems.Count ? FlatItems[CurrentIndex + 1] : null;
-
-    private string EditHref =>
-        $"{RepositoryUrl}/blob/main/src/AeterniUI.Sample/Pages/Components/{CurrentItem.Page}.razor";
-
-    private string SearchStatus => string.IsNullOrWhiteSpace(_query)
-        ? $"{FlatItems.Count} 个条目"
-        : $"匹配 {FilteredItems.Count} / {FlatItems.Count} 个条目";
 
     private IReadOnlyList<ShowcaseNavItem> FilteredItems => string.IsNullOrWhiteSpace(_query)
         ? FlatItems

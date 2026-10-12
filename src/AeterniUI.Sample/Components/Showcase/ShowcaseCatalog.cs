@@ -1,4 +1,4 @@
-using AeterniUI.Icons;
+﻿using AeterniUI.Icons;
 using AeterniUI.Icons.FontAwesome;
 
 namespace AeterniUI.Sample.Components.Showcase;
@@ -117,6 +117,21 @@ public static class ShowcaseCatalog
             new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
         ])
     ];
+
+    private const string RepositoryUrl = "https://github.com/lixingyuan0817/AeterniUI";
+
+    /// <summary>
+    /// GitHub 上该条目页面文件的编辑地址。
+    /// </summary>
+    /// <remarks>
+    /// 由目录自己给出：链接原来挂在布局的页头行上，而页头行已经移进组件页容器内部（卡片要和
+    /// 侧栏对齐），页面组件就直接从目录取这个地址。
+    /// </remarks>
+    public static string EditUrl(string id)
+    {
+        var item = Groups.SelectMany(group => group.Items).First(entry => entry.Id == id);
+        return $"{RepositoryUrl}/blob/main/src/AeterniUI.Sample/Pages/Components/{item.Page}.razor";
+    }
 
     /// <summary>Number of component entries, excluding non-component pages.</summary>
     public static int ComponentCount => Groups

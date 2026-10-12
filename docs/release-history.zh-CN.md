@@ -6,6 +6,15 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程文档模板调整（批次 3 续，版本号未递增）
+
+- [x] 侧栏检索独立成块：与导航分区之间加分隔线，让人一眼看出"上面是筛选、下面是条目"；移除条目计数——它是给开发者的信息，读者只需要筛选结果本身。
+- [x] 页头从卡片外移进卡片内：名称（`ComponentPreview__meta`：类型名 + 「在 GitHub 编辑」）随卡片排版，卡片的左右边界因此与侧栏对齐。编辑链接改由目录提供（`ShowcaseCatalog.EditUrl`），布局不再持有它；`<h1>` 保留 `tabindex="-1"` 作为跳转落点与浏览器测试的确定 Tab 起点。
+- [x] demo 卡的预览与代码改成 tab：预览默认显示，代码默认折叠（panel 带 `hidden`，真正不渲染，不是用样式藏起来），一组 tab 只有一个 Tab 停留点，方向键与 Home/End 在两个 tab 间切换，焦点随选中项走。
+- [x] 卡片内边距统一到 `.showcase-layout` 上的 `--showcase-card-padding`（`clamp(16px, 3vw, 28px)`）：页头、demo 卡、API 段、说明段共用一处，任一段单独写 padding 都会让卡片与侧栏错开；API 表在窄屏改为横向滚动；1000px 以下侧栏叠到内容之上，避免两栏把内容压成窄字。
+- [x] 断言跟进：检索块不再断言计数而是断言"计数已移除"；编辑链接改在卡片内断言；代码相关的断言先点开"代码"tab，并新增「代码默认折叠在 tab 后面」（三个页面抽查）。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（73 文件）、`generate-api-reference --check`（53 页 / 644 行）、`node --test`（85 项）通过；`sample-publish.sh Release` 成功。
+
 ## 示例工程 demo 卡片化（批次 3 起步，版本号未递增）
 
 - [x] 页面模板换成市面组件文档的形状：新增 `ComponentPage`（标题区 → 何时使用 → demo 卡片 → API → 相关组件 → 说明与边界）与 `DemoCard`（标题、说明、实时预览、可选属性控件、可复制代码、自带锚点）。卡片化的页面不再给段编号——锚点与卡片标题已经表达了结构。

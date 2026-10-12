@@ -21,6 +21,9 @@
 
 .showcase-layout {
     --showcase-sidebar-width: 276px;
+    /* 卡片内边距只在这里定义一次：页头、demo 卡、API 段、说明段共用，任何一段单独写
+       padding 都会让卡片的左右边界与侧栏错开。窄屏由 clamp 收窄，避免内容被挤到溢出。 */
+    --showcase-card-padding: clamp(16px, 3vw, 28px);
     display: grid;
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
@@ -102,15 +105,12 @@
 
 /* 侧栏检索：57 个条目靠翻菜单找不现实，搜索框是文档站的常规入口。状态行用
    role="status" 报出匹配数量，键盘用户不必数条目。 */
+/* 检索独立成块：与导航分区之间用分隔线分开，读者一眼能看出"这是筛选，下面是条目"。 */
 .showcase-search {
     display: grid;
-    gap: 6px;
-    padding: 14px 0 10px;
-}
-
-.showcase-search__status {
-    color: var(--aeterni-text-tertiary);
-    font-size: var(--aeterni-font-size-xs);
+    padding: 14px 0 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
 .showcase-nav__empty {
@@ -122,36 +122,6 @@
 }
 
 /* 页面级文档栏：当前条目、源码入口，以及目录顺序里的前后一篇。 */
-.showcase-doc-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--aeterni-spacing-2);
-    margin-bottom: 14px;
-}
-
-.showcase-doc-head__label {
-    color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-}
-
-.showcase-doc-head__edit {
-    color: var(--aeterni-color-brand-text);
-    font-size: var(--aeterni-font-size-xs);
-    text-decoration: none;
-}
-
-.showcase-doc-head__edit:hover {
-    text-decoration: underline;
-}
-
-.showcase-doc-head__edit:focus-visible {
-    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: var(--aeterni-focus-offset);
-    border-radius: var(--aeterni-radius-xs);
-}
-
 .showcase-doc-nav {
     display: flex;
     flex-wrap: wrap;
@@ -1441,7 +1411,7 @@
 }
 
 .component-preview__api {
-    padding: 26px 28px 30px;
+    padding: 0 var(--showcase-card-padding);
 }
 
 .component-preview__api-grid {
@@ -1615,7 +1585,7 @@
    驱动十来个参数，片段只保留最小可用写法。代码块使用中性表面与等宽字体，不引入
    第二套配色。 */
 .component-preview__code {
-    padding: 26px 28px 30px;
+    padding: 0 var(--showcase-card-padding);
 }
 
 .component-preview__copy {
@@ -1656,7 +1626,7 @@
 
 /* 说明与边界现在是独立段：段标题负责与上一段的间距，notes 盒不再自带顶部外边距。 */
 .component-preview__notes-section {
-    padding: 0 28px 30px;
+    padding: 0 var(--showcase-card-padding);
 }
 
 .component-preview__notes-section .component-preview__notes {
@@ -1700,7 +1670,7 @@
 
 /* 组件页骨架：标题区、何时使用、demo 列表、API、相关组件、说明与边界。 */
 .component-page__section {
-    padding: 26px 28px 30px;
+    padding: 0 var(--showcase-card-padding);
 }
 
 .component-page__section h2 {
@@ -1747,5 +1717,89 @@
 
 .component-page__related,
 .component-page__when {
-    padding: 18px 28px 0;
+    padding: 0 var(--showcase-card-padding);
+}
+
+/* 卡片内的页头元信息：类型名与"在 GitHub 编辑"竖排在右侧，跟标题区同一行。 */
+.component-preview__meta {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+    text-align: end;
+}
+
+.component-page__edit {
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    text-decoration: none;
+}
+
+.component-page__edit:hover {
+    text-decoration: underline;
+}
+
+.component-page__edit:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-xs);
+}
+
+/* 预览 / 代码 tab：一组 tab 只有一个 Tab 停留点，选中项之外 tabindex=-1（由组件输出）。 */
+.component-demo__toolbar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 10px;
+    padding: 2px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-tertiary);
+    width: fit-content;
+}
+
+.component-demo__tab {
+    min-height: 26px;
+    padding: 2px 12px;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-xs);
+    cursor: pointer;
+}
+
+.component-demo__tab:hover {
+    color: var(--aeterni-text-primary);
+}
+
+.component-demo__tab.is-active {
+    background: var(--aeterni-bg-surface);
+    color: var(--aeterni-text-primary);
+}
+
+.component-demo__tab:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-offset));
+}
+
+/* API 表在窄屏下横向滚动，而不是把卡片撑破。 */
+.component-preview__api-table {
+    overflow-x: auto;
+}
+
+/* 窄屏把侧栏叠到内容之上：两栏网格在 1000px 以下会把内容压成一列窄字，卡片与侧栏也就
+   对不齐了。断点取侧栏宽度加内容最小可读宽。 */
+@media (max-width: 1000px) {
+    .showcase-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .showcase-sidebar {
+        position: static;
+        width: 100%;
+    }
+
+    .showcase-nav {
+        max-height: 40vh;
+    }
 }

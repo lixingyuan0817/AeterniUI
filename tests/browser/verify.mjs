@@ -1059,14 +1059,18 @@ await goto(`${BASE}/components/upload`);
 await waitForApp();
 
 const shell = await evaluate(`(() => {
-    const edit = document.querySelector('.showcase-doc-head__edit');
+    const edit = document.querySelector('.component-page__edit');
     const prev = document.querySelector('.showcase-doc-nav__link[rel="prev"]');
     const next = document.querySelector('.showcase-doc-nav__link[rel="next"]');
+    // 代码默认折叠：先点开第一张卡片的"代码" tab，再检查代码块与复制按钮。
+    const codeTab = document.querySelector('.component-demo__tab[id$="-code-tab"]');
+    codeTab?.click();
     const block = document.querySelector('.component-preview__code-block code');
     const copy = document.querySelector('[data-sample-copy]');
     return {
         hasSearch: !!document.querySelector('#showcase-search'),
-        status: document.querySelector('.showcase-search__status')?.textContent?.trim() ?? null,
+        // 条目计数已从侧栏移除：它是给开发者的信息，读者只需要筛选结果本身。
+        hasCount: !!document.querySelector('.showcase-search__status'),
         editHref: edit?.getAttribute('href') ?? null,
         editTarget: edit?.getAttribute('target') ?? null,
         prevHref: prev?.getAttribute('href') ?? null,
@@ -1076,7 +1080,8 @@ const shell = await evaluate(`(() => {
         copyBlockExists: copy ? !!document.getElementById(copy.dataset.sampleCopy) : false
     };
 })()`);
-check('文档壳渲染侧栏检索与结果计数', shell.hasSearch && /条目/.test(shell.status ?? ''), JSON.stringify(shell));
+check('文档壳把检索独立成块，且不再显示条目计数',
+    shell.hasSearch && shell.hasCount === false, JSON.stringify(shell));
 check('文档壳的源码入口指向本页文件',
     shell.editHref === 'https://github.com/lixingyuan0817/AeterniUI/blob/main/src/AeterniUI.Sample/Pages/Components/Upload.razor'
     && shell.editTarget === '_blank',
@@ -1107,15 +1112,22 @@ const cards = await evaluate(`(() => {
     return {
         count: sections.length,
         anchors: sections.map(node => node.id),
-        withCode: sections.filter(node => node.querySelector('.component-preview__code-block')).length,
+        codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
+        // 代码默认折叠：没有任何代码块出现在 DOM 里，直到读者切到"代码"tab。
+        visibleCode: document.querySelectorAll('.component-preview__code-block').length,
         when: !!document.querySelector('.component-page__when'),
         related: document.querySelectorAll('.component-page__related a').length,
-        api: document.querySelectorAll('.component-preview__api-row').length
+        api: document.querySelectorAll('.component-preview__api-row').length,
+        edit: document.querySelector('.component-page__edit')?.getAttribute('href') ?? null
     };
 })()`);
-check('组件页按 demo 卡片组织，每段带锚点与代码',
-    cards.count >= 3 && cards.withCode === cards.count && cards.anchors.every(anchor => anchor.length > 0),
+check('组件页按 demo 卡片组织，每段带锚点与"代码"tab',
+    cards.count >= 3 && cards.codeTabs === cards.count && cards.anchors.every(anchor => anchor.length > 0),
     JSON.stringify(cards));
+check('代码默认折叠在 tab 后面', cards.visibleCode === 0, JSON.stringify(cards));
+check('「在 GitHub 编辑」在卡片内部',
+    (cards.edit ?? '').endsWith('/src/AeterniUI.Sample/Pages/Components/Upload.razor'),
+    `href=${cards.edit}`);
 check('页面带「何时使用」「相关组件」与生成式 API 表',
     cards.when && cards.related >= 3 && cards.api > 15,
     JSON.stringify(cards));
@@ -1129,13 +1141,13 @@ for (const path of ['/components/input', '/components/checkbox', '/components/ra
         const sections = [...document.querySelectorAll('.component-demo')];
         return {
             cards: sections.length,
-            withCode: sections.filter(node => node.querySelector('.component-preview__code-block')).length,
+            codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
             uniqueAnchors: new Set(sections.map(node => node.id)).size,
             when: !!document.querySelector('.component-page__when')
         };
     })()`);
-    check(`卡片化 ${path}：多段 demo、锚点唯一、每段带代码、有何时使用`,
-        shape.cards >= 3 && shape.withCode === shape.cards && shape.uniqueAnchors === shape.cards && shape.when,
+    check(`卡片化 ${path}：多段 demo、锚点唯一、每段带代码 tab、有何时使用`,
+        shape.cards >= 3 && shape.codeTabs === shape.cards && shape.uniqueAnchors === shape.cards && shape.when,
         JSON.stringify(shape));
 }
 

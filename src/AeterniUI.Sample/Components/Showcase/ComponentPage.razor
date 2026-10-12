@@ -1,9 +1,11 @@
-@namespace AeterniUI.Sample.Components.Showcase
+﻿@namespace AeterniUI.Sample.Components.Showcase
 
 @* 组件页骨架。按市面组件文档的页面模板组织：标题区 → 何时使用 → 多段演示 → API →
    相关组件 → 说明与边界。段号不再硬编码：卡片化的页面里"第几段"靠右栏 TOC 与锚点表达，
    给 demo 编号只会和卡片标题打架。 *@
 <article class="component-preview" id="@AnchorId">
+    @* 页头在容器内部：名称、"在 GitHub 编辑"与类型名都随卡片一起排版，卡片左右边界因此与
+       侧栏对齐；放在布局层会让卡片比侧栏内缩一截。 *@
     <header class="component-preview__header">
         <div>
             <p class="component-preview__eyebrow">@Category</p>
@@ -12,7 +14,15 @@
             <h1 tabindex="-1">@Title</h1>
             <p class="component-preview__description">@Description</p>
         </div>
-        <code class="component-preview__name">@ComponentName</code>
+        <div class="component-preview__meta">
+            <code class="component-preview__name">@ComponentName</code>
+            <a class="component-page__edit"
+               href="@EditHref"
+               target="_blank"
+               rel="noopener noreferrer">
+                在 GitHub 编辑<span aria-hidden="true"> ↗</span>
+            </a>
+        </div>
     </header>
 
     @if (WhenToUse is not null)
@@ -98,6 +108,8 @@
 
     [Parameter]
     public IReadOnlyList<ShowcaseRelatedLink>? Related { get; set; }
+
+    private string EditHref => ShowcaseCatalog.EditUrl(AnchorId);
 
     private bool HasApi =>
         ShowcaseApiReference.ByPage.ContainsKey(AnchorId)
