@@ -1733,6 +1733,73 @@
 
 /* 相关组件与何时使用的内边距由上面的成组规则给出。 */
 
+/* 正文 + 右栏目录：目录只在有位置时出现（1280px 以上），窄屏收起而不是挤压正文——
+   正文的可读宽度优先，这也是组件页右侧一直空着的那块空间的用途。 */
+.component-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 188px;
+    align-items: start;
+    gap: var(--aeterni-spacing-5);
+}
+
+.component-page__toc {
+    position: sticky;
+    top: var(--sample-content-top);
+    padding: 4px 0;
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.component-page__toc-title {
+    margin: 0 0 8px;
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.component-page__toc ul {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-inline-start: 1px solid var(--aeterni-border-subtle);
+}
+
+.component-page__toc-link {
+    display: block;
+    padding: 5px 10px;
+    border-inline-start: 2px solid transparent;
+    margin-inline-start: -1px;
+    color: var(--aeterni-text-secondary);
+    text-decoration: none;
+}
+
+.component-page__toc-link:hover {
+    color: var(--aeterni-text-primary);
+}
+
+.component-page__toc-link.is-current {
+    border-inline-start-color: var(--aeterni-color-brand-default);
+    color: var(--aeterni-color-brand-text);
+}
+
+.component-page__toc-link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: calc(-1 * var(--aeterni-focus-offset));
+    border-radius: var(--aeterni-radius-xs);
+}
+
+@media (max-width: 1280px) {
+    .component-page {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .component-page__toc {
+        display: none;
+    }
+}
+
 /* 卡片内的页头元信息：类型名与"在 GitHub 编辑"竖排在右侧，跟标题区同一行。 */
 .component-preview__meta {
     display: grid;

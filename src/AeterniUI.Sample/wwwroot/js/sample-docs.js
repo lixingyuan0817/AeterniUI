@@ -53,3 +53,56 @@ async function writeClipboard(text) {
         return false;
     }
 }
+
+// ---------------------------------------------------------------- 页内目录的滚动高亮
+//
+// 放在应用级脚本里而不是组件模块：示例组件不接库内的 JsModuleManager（它们不是
+// AeterniComponent），而且 Blazor 会整棵子树重渲染，目录元素随时可能被替换——绑定做成
+// "发现即（重新）绑定"最稳：MutationObserver 只负责在目录出现或换掉时重绑，滚动高亮本身
+// 用 IntersectionObserver。这是 JS 该用的地方（滚动观察），其余仍在 C#。
+let boundToc = null;
+let sectionObserver = null;
+let bindScheduled = false;
+
+function bindToc() {
+    bindScheduled = false;
+    const toc = document.querySelector('.component-page__toc');
+    if (toc === boundToc) return;
+
+    sectionObserver?.disconnect();
+    sectionObserver = null;
+    boundToc = toc;
+    if (!toc) return;
+
+    // 高亮带取视口上三分之一：一段进入这条带就认为"正在读它"，向上滚回去同样成立。
+    sectionObserver = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            setCurrent(toc, entry.target.id);
+        }
+    }, { rootMargin: '-15% 0px -70% 0px' });
+
+    for (const link of toc.querySelectorAll('.component-page__toc-link')) {
+        const id = (link.getAttribute('href') ?? '').slice(1);
+        const section = id ? document.getElementById(id) : null;
+        if (section) sectionObserver.observe(section);
+    }
+}
+
+function setCurrent(toc, id) {
+    for (const link of toc.querySelectorAll('.component-page__toc-link')) {
+        const current = (link.getAttribute('href') ?? '') === `#${id}`;
+        link.classList.toggle('is-current', current);
+        if (current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+    }
+}
+
+function scheduleBind() {
+    if (bindScheduled) return;
+    bindScheduled = true;
+    window.requestAnimationFrame(bindToc);
+}
+
+new MutationObserver(scheduleBind).observe(document.documentElement, { childList: true, subtree: true });
+document.addEventListener('DOMContentLoaded', scheduleBind);

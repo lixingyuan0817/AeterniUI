@@ -3,6 +3,10 @@
 @* 组件页骨架。按市面组件文档的页面模板组织：标题区 → 何时使用 → 多段演示 → API →
    相关组件 → 说明与边界。段号不再硬编码：卡片化的页面里"第几段"靠右栏 TOC 与锚点表达，
    给 demo 编号只会和卡片标题打架。 *@
+@* 页骨架外面套一层两列栅格：正文 + 右栏目录。目录只列本页真实存在的段，数据来自
+   DemoCard 的登记（ShowcaseSectionRegistry）与骨架自己知道的固定段，因此不会出现死链。 *@
+<div class="component-page">
+    <CascadingValue Value="_sections" IsFixed="true">
 <article class="component-preview" id="@AnchorId">
     @* 页头在容器内部：名称、"在 GitHub 编辑"与类型名都随卡片一起排版，卡片左右边界因此与
        侧栏对齐；放在布局层会让卡片比侧栏内缩一截。 *@
@@ -69,6 +73,23 @@
         </section>
     }
 </article>
+    </CascadingValue>
+
+    @if (TocEntries.Count > 0)
+    {
+        <aside class="component-page__toc" aria-label="本页目录">
+            <p class="component-page__toc-title">本页目录</p>
+            <ul>
+                @foreach (var entry in TocEntries)
+                {
+                    <li>
+                        <a class="component-page__toc-link" href="#@entry.Id">@entry.Title</a>
+                    </li>
+                }
+            </ul>
+        </aside>
+    }
+</div>
 
 @code {
     /// <summary>Page id: sidebar key, API table key and the page anchor.</summary>
@@ -104,6 +125,47 @@
 
     [Parameter]
     public IReadOnlyList<ShowcaseRelatedLink>? Related { get; set; }
+
+    private readonly ShowcaseSectionRegistry _sections = new();
+
+    protected override void OnInitialized() => _sections.OnChanged(RequestStateHasChanged);
+
+    private void RequestStateHasChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <summary>
+    /// 目录条目：固定段（何时使用、API、相关组件、说明与边界）+ 登记的 demo 段，按页面里的
+    /// 实际顺序排列。没有内容的段不会出现。
+    /// </summary>
+    private IReadOnlyList<ShowcaseSection> TocEntries
+    {
+        get
+        {
+            var entries = new System.Collections.Generic.List<ShowcaseSection>();
+            if (WhenToUse is not null)
+            {
+                entries.Add(new ShowcaseSection($"{AnchorId}-when-title", "何时使用"));
+            }
+
+            entries.AddRange(_sections.Sections);
+
+            if (HasApi)
+            {
+                entries.Add(new ShowcaseSection($"{AnchorId}-api-title", "参数与事件"));
+            }
+
+            if (Related is { Count: > 0 })
+            {
+                entries.Add(new ShowcaseSection($"{AnchorId}-related-title", "相关组件"));
+            }
+
+            if (Notes is not null)
+            {
+                entries.Add(new ShowcaseSection($"{AnchorId}-notes-title", "说明与边界"));
+            }
+
+            return entries;
+        }
+    }
 
     private bool HasApi =>
         ShowcaseApiReference.ByPage.ContainsKey(AnchorId)

@@ -1,4 +1,5 @@
 ﻿@namespace AeterniUI.Sample.Components.Showcase
+@implements IDisposable
 @using Microsoft.AspNetCore.Components.Web
 
 @* 一段演示：标题、说明、实时预览、可选属性控件、可复制代码。市面组件文档的 demo 卡片
@@ -61,6 +62,9 @@
 </section>
 
 @code {
+    [CascadingParameter]
+    private ShowcaseSectionRegistry? Sections { get; set; }
+
     /// <summary>Anchor for this demo; also the prefix of its code block id.</summary>
     [Parameter, EditorRequired]
     public string Id { get; set; } = string.Empty;
@@ -83,6 +87,11 @@
     public string? Code { get; set; }
 
     private bool _showCode;
+
+    // 段在首次渲染前登记，目录因此与卡片同时出现；卡片被移除时注销，目录不会留下死链。
+    protected override void OnInitialized() => Sections?.Register(new ShowcaseSection(Id, Title));
+
+    public void Dispose() => Sections?.Unregister(Id);
 
     private string TabClass(bool active) => active ? "component-demo__tab is-active" : "component-demo__tab";
 

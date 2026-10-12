@@ -1107,6 +1107,55 @@ check('复制按钮点击后回报结果而不是静默失败',
     copyState.state === 'copied' || copyState.state === 'failed',
     JSON.stringify(copyState));
 
+// 页内目录（右栏 TOC）：只在有位置时出现，所以先把视口临时撑到 1440×900 —— 无头 Chrome
+// 默认 800×600，窄屏下目录是收起的（正文可读宽度优先）。
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+await sleep(200);
+
+const toc = await evaluate(`(() => {
+    const aside = document.querySelector('.component-page__toc');
+    if (!aside) return { error: 'no toc' };
+    const links = [...aside.querySelectorAll('.component-page__toc-link')];
+    return {
+        count: links.length,
+        titles: links.map(node => node.textContent.trim()),
+        deadLinks: links
+            .map(node => (node.getAttribute('href') ?? '').slice(1))
+            .filter(id => !document.getElementById(id))
+    };
+})()`);
+check('右栏目录列出本页各段，且没有死链',
+    !toc.error && toc.count >= 6 && toc.deadLinks.length === 0 && toc.titles[0] === '何时使用',
+    JSON.stringify(toc));
+
+// 点最后一条（说明与边界）应真正滚到那一段，并在滚动后高亮它。
+await evaluate(`(() => {
+    const links = [...document.querySelectorAll('.component-page__toc-link')];
+    links[links.length - 1].click();
+})()`);
+await sleep(600);
+const tocAfterJump = await evaluate(`(() => {
+    const links = [...document.querySelectorAll('.component-page__toc-link')];
+    const last = links[links.length - 1];
+    const id = (last.getAttribute('href') ?? '').slice(1);
+    const section = document.getElementById(id);
+    const current = document.querySelector('.component-page__toc-link.is-current');
+    return {
+        scrolled: window.scrollY > 0,
+        sectionVisible: section ? section.getBoundingClientRect().top < window.innerHeight : false,
+        current: current ? current.getAttribute('href') : null,
+        ariaCurrent: current ? current.getAttribute('aria-current') : null
+    };
+})()`);
+check('目录链接跳到对应段落',
+    tocAfterJump.scrolled && tocAfterJump.sectionVisible, JSON.stringify(tocAfterJump));
+check('滚动后高亮当前段（is-current + aria-current）',
+    tocAfterJump.current === '#' + 'upload-notes-title' && tocAfterJump.ariaCurrent === 'location',
+    JSON.stringify(tocAfterJump));
+
+await send('Emulation.clearDeviceMetricsOverride');
+await sleep(150);
+
 // 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。先重新导航一次——折叠态说的是初始
 // 状态，而上面的壳检查已经点开过一个"代码"tab。
 await goto(`${BASE}/components/upload`);
