@@ -17,12 +17,7 @@
         @* 页头右侧只留"在 GitHub 编辑"：类型名徽标在标题区已有同样的信息，两个并排反而让步
            头右侧显得空。 *@
         <div class="component-preview__meta">
-            <a class="component-page__edit"
-               href="@EditHref"
-               target="_blank"
-               rel="noopener noreferrer">
-                在 GitHub 编辑<span aria-hidden="true"> ↗</span>
-            </a>
+            <ShowcaseEditLink AnchorId="@AnchorId" />
         </div>
     </header>
 
@@ -109,8 +104,6 @@
 
     [Parameter]
     public IReadOnlyList<ShowcaseRelatedLink>? Related { get; set; }
-
-    private string EditHref => ShowcaseCatalog.EditUrl(AnchorId);
 
     private bool HasApi =>
         ShowcaseApiReference.ByPage.ContainsKey(AnchorId)

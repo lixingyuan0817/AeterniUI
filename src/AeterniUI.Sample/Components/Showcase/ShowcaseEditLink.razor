@@ -1,0 +1,17 @@
+@namespace AeterniUI.Sample.Components.Showcase
+
+@* "在 GitHub 编辑"入口。组件页把它放在卡片页头里；设计基础、玻璃实验台与安装指南虽然不
+   是 demo 页（它们讲规格、做实验、给步骤），但同样应当有一个直达源码的入口，于是这个链接
+   抽成共享件：一处实现，所有页面一致。地址由目录给出（ShowcaseCatalog.EditUrl）。 *@
+<a class="component-page__edit"
+   href="@ShowcaseCatalog.EditUrl(AnchorId)"
+   target="_blank"
+   rel="noopener noreferrer">
+    在 GitHub 编辑<span aria-hidden="true"> ↗</span>
+</a>
+
+@code {
+    /// <summary>目录条目 id，与页面路由一致。</summary>
+    [Parameter, EditorRequired]
+    public string AnchorId { get; set; } = string.Empty;
+}

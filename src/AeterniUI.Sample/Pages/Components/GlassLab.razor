@@ -1,4 +1,4 @@
-@page "/components/glass"
+﻿@page "/components/glass"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -29,6 +29,7 @@
 <section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
     <p class="showcase-page-eyebrow">设计基础 · 对比实验</p>
     <h1 id="glass-lab-title">玻璃与模糊对比</h1>
+    <ShowcaseEditLink AnchorId="glass" />
     <p class="showcase-install__lead">
         把「玻璃填充不透明度 × 模糊半径 × 饱和度 × 遮罩」摊成一张矩阵，让同一块面板在七组变量下同屏出现。
         背景内容层可以切换成壁纸、细网格、App 图标墙和 12px 正文 —— 玻璃真正的短板不是模糊不够，
