@@ -7,7 +7,9 @@
     <header class="component-preview__header">
         <div>
             <p class="component-preview__eyebrow">@Category</p>
-            <h1>@Title</h1>
+            @* tabindex="-1"：标题是跳转链接的落点，也给了浏览器测试一个确定的 Tab 起点。
+               它本身不进入 Tab 序，因此不改变键盘用户的路径。 *@
+            <h1 tabindex="-1">@Title</h1>
             <p class="component-preview__description">@Description</p>
         </div>
         <code class="component-preview__name">@ComponentName</code>

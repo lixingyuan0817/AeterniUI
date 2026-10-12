@@ -152,8 +152,13 @@ async function waitForRoving(host, item) {
 // 顺序焦点起点必须先归零：Chrome 会记住最后一次点击/拖动的元素，之后的 Tab 从它**后面**
 // 继续。P7 先拖了第一个滑块，于是 Tab 从它后面开始，断言落在了第二个实例上（日志里的
 // focus.index=1 就是这么来的）。把 body 变成可聚焦元素并聚焦它，起点就回到文档开头。
-async function tabUntil(selector, maxPresses = 40) {
-    await evaluate(`(() => {
+async function tabUntil(selector, maxPresses = 40, anchor = null) {
+    // 有锚点时从锚点起 Tab：Chrome 的顺序焦点起点会被之前的点击/拖动带走（body.focus() 不会
+    // 把它归零），P7 先拖了第一个滑块，Tab 于是从它后面开始，断言落到了第二个实例上。
+    // 从页面标题（tabindex="-1"，不入 Tab 序）起走，第一步就落在页面内容的第一个可聚焦元素上。
+    await evaluate(anchor
+        ? `(() => { const node = document.querySelector('${anchor}'); if (node) node.focus(); })()`
+        : `(() => {
         if (document.body.tabIndex !== -1) document.body.tabIndex = -1;
         document.activeElement && document.activeElement.blur();
         document.body.focus();
@@ -343,7 +348,7 @@ check('P7 the drag left no is-dragging state behind',
     await evaluate(`!document.querySelector('[role="slider"]').classList.contains('is-dragging')`));
 
 // Real Tab so :focus-visible matches; the sidebar is long, so allow room.
-const sliderReached = await tabUntil('[role="slider"]', 140);
+const sliderReached = await tabUntil('[role="slider"]', 6, '#slider h1');
 // 诊断信息随断言一起打印：页面变长后"第几个滑块被聚焦"决定了下面两条断言的对象，
 // 猜不出来时就让日志说话。
 const sliderFocus = await evaluate(`(() => {
