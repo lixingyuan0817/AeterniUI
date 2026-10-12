@@ -1,47 +1,160 @@
-﻿@page "/components/feedback"
+@page "/components/feedback"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
 @using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Dialog、Alert、Confirm、Toast</PageTitle>
 
-<ComponentPreview AnchorId="feedback"
-                  Category="通知组件"
-                  Title="Dialog、Alert、Confirm、Toast"
-                  ComponentName="DialogProvider + IDialogService"
-                  Description="通过同一个 DialogProvider 展示模态对话框、非模态 Alert 和非阻塞 Toast。">
-    <Preview>
-        <div class="preview-stack preview-feedback-actions">
-            <div class="preview-action-row">
-                <Button Intent="@FeedbackIntent" OnClick="ShowPreviewAlert">Alert</Button>
-                <Button Variant="ButtonVariant.Outline" Intent="@FeedbackIntent" OnClick="ShowPreviewConfirm">Confirm</Button>
-                <Button Variant="ButtonVariant.Ghost" Intent="@FeedbackIntent" OnClick="ShowPreviewToast">Toast</Button>
-                <Button Variant="ButtonVariant.Soft" Intent="@FeedbackIntent" OnClick="ShowPreviewAlertAndToast">Alert + Toast</Button>
-            </div>
-            <span class="preview-feedback" role="status">@_feedbackNote</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Severity</span>
-            <ShowcaseSelect TValue="Severity" Id="feedback-severity" AriaLabel="Severity" Options="@FeedbackSeverityOptions" TextSelector="@FeedbackSeverityText" @bind-Value="_feedbackSeverity" />
-        </div>
-        <div class="control-field">
-            <span>ToastPosition</span>
-            <ShowcaseSelect TValue="ToastPosition" Id="feedback-position" AriaLabel="ToastPosition" Options="@(Enum.GetValues<ToastPosition>())" @bind-Value="_feedbackPosition" />
-        </div>
-    </Controls>
+<ComponentPage AnchorId="feedback"
+               Category="通知组件"
+               Title="Dialog、Alert、Confirm、Toast"
+               ComponentName="IDialogService"
+               Description="同一个 DialogProvider 承载模态 Dialog、非模态 Alert 与非阻塞 Toast；业务代码只调用 IDialogService。"
+               Related="@FeedbackRelated">
+    <WhenToUse>
+        <p>用户必须先做决定时用 <code>Confirm</code>，只需要告知结果时用 <code>Toast</code> 或 <code>Alert</code>；内容要自定义布局和底部操作时用 <code>Dialog</code>。</p>
+        <p>Toast 不打断操作、按 <code>Duration</code> 自动关闭；Alert 停在原地等用户或计时结束，两者都用 <code>TimeSpan.Zero</code> 保持常驻。类型由服务方法决定，选项类型只描述单次通知。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="feedback-dialog"
+                  Title="Dialog 与 Confirm 流程"
+                  Description="ConfirmAsync 等待用户决定并返回 bool；需要自定义内容与底部操作时改用 Show(内容, 选项) 的 RenderFragment 重载。"
+                  Code="@DialogCode">
+            <Preview>
+                <div class="preview-stack preview-feedback-actions">
+                    <p class="preview-overlay-demo__hint">Confirm 复用 Dialog 的模态容器：遮罩、焦点陷阱与焦点回归都相同，只是内容换成了消息加两个动作。</p>
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" Intent="@FeedbackIntent" OnClick="ShowPreviewConfirm">Confirm</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_feedbackNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="feedback-alert-toast"
+                  Title="Alert 与 Toast 通知"
+                  Description="AlertAsync 等待关闭后才返回，ShowToast 立即返回；下方的 Severity 与 ToastPosition 是本页所有通知共用的选项。"
+                  Code="@ToastCode">
+            <Preview>
+                <div class="preview-stack preview-feedback-actions">
+                    <div class="preview-action-row">
+                        <Button Intent="@FeedbackIntent" OnClick="ShowPreviewAlert">Alert</Button>
+                        <Button Variant="ButtonVariant.Outline" Intent="@FeedbackIntent" OnClick="ShowPreviewToast">Toast</Button>
+                        <Button Variant="ButtonVariant.Soft" Intent="@FeedbackIntent" OnClick="ShowPreviewAlertAndToast">Alert + Toast</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_feedbackNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Severity</span>
+                    <ShowcaseSelect TValue="Severity" Id="feedback-severity" AriaLabel="Severity" Options="@FeedbackSeverityOptions" TextSelector="@FeedbackSeverityText" @bind-Value="_feedbackSeverity" />
+                </div>
+                <div class="control-field">
+                    <span>ToastPosition</span>
+                    <ShowcaseSelect TValue="ToastPosition" Id="feedback-position" AriaLabel="ToastPosition" Options="@(Enum.GetValues<ToastPosition>())" @bind-Value="_feedbackPosition" />
+                </div>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="feedback-options"
+                  Title="选项与文案表"
+                  Description="覆盖按钮文案、关闭按钮名称与时长；留空的项回退到 AeterniUIOptions.Text 的文案表，语义色与位置沿用上卡选择的选项。"
+                  Code="@OptionsCode">
+            <Preview>
+                <div class="preview-stack preview-feedback-actions">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="ShowOptionsConfirm">覆盖文案的 Confirm</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="ShowOptionsAlert">覆盖关闭名称的 Alert</Button>
+                        <Button Variant="ButtonVariant.Ghost" OnClick="ShowPersistentToast">常驻 Toast</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_feedbackNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>Alert 和 Toast 使用 <code>Duration</code> 控制自动关闭；设置为 <code>TimeSpan.Zero</code> 时保持持久显示。</span>
-        <span><code>Alert + Toast</code> 会在同一 <code>ToastPosition</code> 同时发送两类通知，用于对照它们在同一个位置容器内的堆叠顺序。</span>
+        <span>Alert 与 Toast 共用同一个位置容器，不会互相遮挡；两者默认自动关闭，四边进度边框显示剩余时间，Toast 同时显示的数量上限是 <code>AeterniUIOptions.MaxToastCount</code>。</span>
+        <span><code>ConfirmAsync</code> 返回 <code>Task&lt;bool&gt;</code>，取消返回 <code>false</code>；<code>AlertAsync</code> 返回 <code>DialogResult</code>。Alert 是非模态的、不抢焦点，所以 <code>CloseOnEscape</code> 只在焦点位于通知内部时生效。</span>
+        <span>默认文案全部来自 <code>AeterniUIOptions.Text</code>（<code>ConfirmAcceptLabel</code>、<code>ConfirmCancelLabel</code>、<code>AlertCloseLabel</code> 等），实例上的 <code>ConfirmText</code> / <code>CancelText</code> / <code>CloseText</code> 留空即回退到它；容器 <code>DialogProvider</code> 在应用根部只放一次。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private Severity _feedbackSeverity = Severity.Info;    private ToastPosition _feedbackPosition = ToastPosition.TopEnd;
+    private static readonly ShowcaseRelatedLink[] FeedbackRelated =
+    [
+        new("Drawer", "/components/drawer"),
+        new("PopupHost / Popover", "/components/popup"),
+        new("Button", "/components/button")
+    ];
+
+    private const string DialogCode = """
+        // 容器在应用根部渲染一次：<DialogProvider />
+        [Inject] private IDialogService Dialogs { get; set; } = default!;
+
+        private async Task RemoveAsync()
+        {
+            if (!await Dialogs.ConfirmAsync("删除后无法恢复。", new ConfirmOptions
+                {
+                    Title = "删除确认",
+                    Severity = Severity.Danger
+                }))
+            {
+                return;
+            }
+
+            await Dialogs.AlertAsync("已删除。", ToastPosition.TopEnd, new AlertOptions { Title = "完成" });
+        }
+
+        // 内容需要自定义布局与底部操作时走 RenderFragment 重载
+        var dialog = Dialogs.Show(EditorContent, new DialogOptions { Title = "编辑", Footer = FooterContent });
+        await dialog.Result;
+        """;
+
+    private const string ToastCode = """
+        [Inject] private IDialogService Dialogs { get; set; } = default!;
+
+        // 非阻塞：立即返回一个句柄，句柄可以提前关闭这条通知
+        var toast = Dialogs.ShowToast("已保存到云端。", ToastPosition.TopEnd, new ToastOptions
+        {
+            Title = "保存成功",
+            Severity = Severity.Success
+        });
+
+        // 阻塞：等到用户关闭或计时结束才返回
+        var result = await Dialogs.AlertAsync("导入完成，共 42 条记录。", ToastPosition.BottomCenter, new AlertOptions
+        {
+            Title = "导入结果",
+            Severity = Severity.Info,
+            Duration = TimeSpan.FromSeconds(6)
+        });
+        """;
+
+    private const string OptionsCode = """
+        [Inject] private IDialogService Dialogs { get; set; } = default!;
+
+        // 留空即回退到 AeterniUIOptions.Text 的文案表，显式设置的值优先
+        await Dialogs.ConfirmAsync("删除后无法恢复。", new ConfirmOptions
+        {
+            Title = "删除确认",
+            ConfirmText = "删除",
+            CancelText = "保留",
+            CloseOnOverlayClick = true
+        });
+
+        // TimeSpan.Zero 表示不自动关闭，需要 ShowCloseButton 让用户手动关闭
+        Dialogs.ShowToast("不会自动关闭，需要手动关闭。", ToastPosition.TopEnd, new ToastOptions
+        {
+            Title = "常驻提示",
+            Duration = TimeSpan.Zero,
+            ShowCloseButton = true
+        });
+        """;
+
+    private Severity _feedbackSeverity = Severity.Info;
+
+    private ToastPosition _feedbackPosition = ToastPosition.TopEnd;
 
     private ButtonIntent FeedbackIntent => _feedbackSeverity switch
     {
@@ -50,6 +163,9 @@
         _ => ButtonIntent.Default
     };
 
+    // 本页记录的是服务与选项类型（IDialogService、DialogOptions、AlertOptions、
+    // ConfirmOptions、ToastOptions），生成的 API 表只覆盖组件页，所以这几张表仍在本页
+    // 手写登记；页面结构改动时不要删掉它们。
     private static readonly ShowcaseParameter[] FeedbackParameters =
     [
         new("DialogOptions.Title", "string?", "标题。"),
@@ -128,5 +244,49 @@
             _feedbackPosition,
             new AlertOptions { Title = "Alert 预览", Severity = _feedbackSeverity });
         _feedbackNote = "Alert 与 Toast 的组合演示已关闭。";
+    }
+
+    private async Task ShowOptionsConfirm(MouseEventArgs _)
+    {
+        var confirmed = await DialogService.ConfirmAsync(
+            "删除后无法恢复，确认继续吗？",
+            new ConfirmOptions
+            {
+                Title = "删除确认",
+                Severity = _feedbackSeverity,
+                ConfirmText = "删除",
+                CancelText = "保留",
+                CloseOnOverlayClick = true
+            });
+        _feedbackNote = confirmed ? "覆盖后的「删除」被点击，返回 true。" : "覆盖后的「保留」被点击，返回 false。";
+    }
+
+    private async Task ShowOptionsAlert(MouseEventArgs _)
+    {
+        await DialogService.AlertAsync(
+            "关闭按钮的名称由 AlertOptions.CloseText 覆盖。",
+            _feedbackPosition,
+            new AlertOptions
+            {
+                Title = "Alert 预览",
+                Severity = _feedbackSeverity,
+                CloseText = "关闭提示"
+            });
+        _feedbackNote = "Alert 已关闭。";
+    }
+
+    private void ShowPersistentToast(MouseEventArgs _)
+    {
+        DialogService.ShowToast(
+            "Duration 设为 TimeSpan.Zero 时不会自动关闭，需要用户点关闭。",
+            _feedbackPosition,
+            new ToastOptions
+            {
+                Title = "常驻 Toast",
+                Severity = _feedbackSeverity,
+                Duration = TimeSpan.Zero,
+                ShowCloseButton = true
+            });
+        _feedbackNote = "常驻 Toast 已发送，等待手动关闭。";
     }
 }

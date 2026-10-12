@@ -6,45 +6,105 @@
 
 <PageTitle>Aeterni UI · Empty</PageTitle>
 
-<ComponentPreview AnchorId="empty"
-                  Category="基础组件"
-                  Title="Empty"
-                  ComponentName="Empty"
-                  Description="空状态占位：图标、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。">
-    <Preview>
-        @* Real usage: the placeholder lives inside the container that owns the
-           surface, so the demo shows the host rather than a floating block. *@
-        <Surface Variant="SurfaceVariant.Elevated" Class="preview-empty-host">
-            <Empty Size="@_emptySize"
-                   Title="@_emptyTitle"
-                   Description="@_emptyDescription"
-                   Icon="@EmptyIcon"
-                   ChildContent="@EmptyActions" />
-        </Surface>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="empty-title">标题</label>
-            <input id="empty-title" @bind="_emptyTitle" />
-        </div>
-        <div class="control-field">
-            <label for="empty-description">描述</label>
-            <input id="empty-description" @bind="_emptyDescription" />
-        </div>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="empty-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_emptySize" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_emptyShowActions">操作区</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_emptyCustomIcon">自定义插画</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="empty"
+               Category="基础组件"
+               Title="Empty"
+               ComponentName="Empty"
+               Description="空状态占位：插图、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。"
+               Related="@EmptyRelated">
+    <WhenToUse>
+        <p>列表、搜索结果或面板没有任何内容可展示时使用，用一句话解释为什么空、下一步能做什么。还在加载中的占位用 <code>Skeleton</code>，需要承载外框用 <code>Card</code> 或 <code>Surface</code>。</p>
+        <p>组件不拥有表面与尺寸边界：把它放进真正提供背景的容器，空状态的留白才不会和外层容器打架。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="empty-basic"
+                  Title="基础用法"
+                  Description="标题与描述都来自参数；不给 Icon 时使用内置的 EmptyBox 字形。"
+                  Code="@BasicCode">
+            <Preview>
+                <Surface Variant="SurfaceVariant.Elevated" Class="preview-empty-host">
+                    <Empty Title="还没有项目" Description="创建第一个项目后，这里会显示它的运行状态与最近活动。" />
+                </Surface>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="empty-actions"
+                  Title="带操作区"
+                  Description="ChildContent 是操作区，通常放一主一辅两个按钮；不传片段时整块操作容器不渲染。"
+                  Code="@ActionCode">
+            <Preview>
+                <Surface Variant="SurfaceVariant.Elevated" Class="preview-empty-host">
+                    <Empty Title="还没有项目" Description="创建第一个项目后，这里会显示它的运行状态与最近活动。">
+                        <Button Size="Size.Small" OnClick="MarkInteraction">创建项目</Button>
+                        <Button Size="Size.Small" Variant="ButtonVariant.Ghost" Intent="ButtonIntent.Neutral" OnClick="MarkInteraction">查看文档</Button>
+                    </Empty>
+                </Surface>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="empty-controls"
+                  Title="文案、尺寸与自定义插画"
+                  Description="Title 为空时用文案表默认值，Description 为空时不渲染该段落；右侧控件即时生效。"
+                  Code="@IconCode">
+            <Preview>
+                <Surface Variant="SurfaceVariant.Elevated" Class="preview-empty-host">
+                    <Empty Size="@_emptySize"
+                           Title="@_emptyTitle"
+                           Description="@_emptyDescription"
+                           Icon="@EmptyIcon"
+                           ChildContent="@EmptyActions" />
+                </Surface>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="empty-title">标题</label>
+                    <input id="empty-title" @bind="_emptyTitle" />
+                </div>
+                <div class="control-field">
+                    <label for="empty-description">描述</label>
+                    <input id="empty-description" @bind="_emptyDescription" />
+                </div>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="empty-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_emptySize" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_emptyShowActions">操作区</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_emptyCustomIcon">自定义插画</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span><code>Title</code> 为空时使用 <code>AeterniUITextOptions.EmptyTitle</code>；<code>Description</code> 为空时不渲染该段落。</span>
-        <span>操作区只在 <code>ChildContent</code> 为 <c>null</c> 时不渲染；用 <code>@("@if")</code> 包住全部操作时会留下空包装元素，因此示例把片段放在 <code>@("@")EmptyActions</code> 字段里按需传 null。</span>
+        <span><code>Title</code> 为空时使用 <code>AeterniUITextOptions.EmptyTitle</code>；<code>Description</code> 为空时整段不渲染，因此可以只留标题。</span>
+        <span>操作区只在 <code>ChildContent</code> 为 <code>null</code> 时不渲染；用 <code>@@if</code> 包住全部操作会留下空包装元素，因此示例把片段放在 <code>@@EmptyActions</code> 字段里按需传 null。</span>
+        <span>默认插图是内置的 <code>AeterniIcons.EmptyBox</code>；一旦提供 <code>Icon</code>，插画内容整体替换，组件不负责新插画的尺寸。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] EmptyRelated =
+    [
+        new("Surface", "/components/surface"),
+        new("Skeleton", "/components/skeleton"),
+        new("Card", "/components/card")
+    ];
+
+    private const string BasicCode = """
+        <Surface Variant="SurfaceVariant.Elevated">
+            <Empty Title="还没有项目" Description="创建第一个项目后，这里会显示它的运行状态与最近活动。" />
+        </Surface>
+        """;
+
+    private const string ActionCode = """
+        <Empty Title="还没有项目" Description="创建第一个项目后，这里会显示它的运行状态与最近活动。">
+            <Button Size="Size.Small">创建项目</Button>
+            <Button Size="Size.Small" Variant="ButtonVariant.Ghost">查看文档</Button>
+        </Empty>
+        """;
+
+    private const string IconCode = """
+        <Empty Title="没有匹配的结果" Icon="EmptyIllustration" />
+        """;
+
     private string _emptyTitle = "还没有项目";
 
     private string _emptyDescription = "创建第一个项目后，这里会显示它的运行状态与最近活动。";
@@ -71,5 +131,4 @@
             <Button Size="Size.Small" Variant="ButtonVariant.Ghost" Intent="ButtonIntent.Neutral" OnClick="MarkInteraction">查看文档</Button>
         </text>
         : null;
-
 }

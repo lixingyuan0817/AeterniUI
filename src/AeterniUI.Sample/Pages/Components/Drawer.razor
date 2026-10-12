@@ -1,51 +1,90 @@
-﻿@page "/components/drawer"
+@page "/components/drawer"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Drawer</PageTitle>
 
-<ComponentPreview AnchorId="drawer"
-                  Category="通知组件"
-                  Title="Drawer"
-                  ComponentName="Drawer"
-                  Description="从视口边缘滑出的面板：模态形态带遮罩、焦点陷阱与背景滚动锁，非模态形态不抢焦点、页面照常可用。">
-    <Preview>
-        <div class="preview-drawer-demo">
-            <div class="preview-action-row">
-                <Button OnClick="() => OpenDrawer(DrawerPlacement.End)">右侧（End）</Button>
-                <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Start)">左侧（Start）</Button>
-                <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Top)">顶部（Top）</Button>
-                <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Bottom)">底部（Bottom）</Button>
-            </div>
+<ComponentPage AnchorId="drawer"
+               Category="通知组件"
+               Title="Drawer"
+               ComponentName="Drawer"
+               Description="从视口边缘滑出的面板：模态形态带遮罩、焦点陷阱与背景滚动锁，非模态形态不抢焦点。"
+               Related="@DrawerRelated">
+    <WhenToUse>
+        <p>需要从边缘推出一块面板时使用：筛选、详情、设置、窄屏导航。内容要保留页面上下文，所以用面板而不是跳转到新页面。</p>
+        <p>只有一两句话、需要用户立刻回答时用 <code>Confirm</code> / <code>Alert</code>；就地补充说明用 <code>Tooltip</code> 或 <code>Popover</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="drawer-placement"
+                  Title="从不同边缘打开"
+                  Description="四个按钮把面板分别贴到四条边上；按钮直接指定方位，右侧控件也能改同一个值。"
+                  Code="@PlacementCode">
+            <Preview>
+                <div class="preview-drawer-demo">
+                    <div class="preview-action-row">
+                        <Button OnClick="() => OpenDrawer(DrawerPlacement.End)">右侧（End）</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Start)">左侧（Start）</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Top)">顶部（Top）</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="() => OpenDrawer(DrawerPlacement.Bottom)">底部（Bottom）</Button>
+                    </div>
+                    <div class="preview-drawer-status">
+                        <span class="preview-value">Open：@(_drawerOpen ? "true" : "false") · Placement：@(_drawerPlacement) · Modal：@(_drawerModal ? "true" : "false")</span>
+                        <span class="preview-value">最近事件：@_drawerNote</span>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <div class="preview-drawer-status">
-                <span class="preview-value">Open：@(_drawerOpen ? "true" : "false") · Placement：@_drawerPlacement · Modal：@(_drawerModal ? "true" : "false")</span>
-                <span class="preview-value">最近事件：@_drawerNote</span>
-            </div>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Placement</span>
-            <ShowcaseSelect TValue="DrawerPlacement" Id="drawer-placement" AriaLabel="Placement" Options="@(Enum.GetValues<DrawerPlacement>())" @bind-Value="_drawerPlacement" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_drawerModal">Modal</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_drawerCloseOnEscape">CloseOnEscape</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_drawerCloseOnOutsideClick">CloseOnOutsideClick</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_drawerShowCloseButton">ShowCloseButton</Checkbox>
-    </Controls>
+        <DemoCard Id="drawer-dismiss"
+                  Title="关闭路径与遮罩"
+                  Description="遮罩点击、Escape 与关闭按钮都只请求关闭；下方控件决定 Modal、三个关闭开关与首选方位。"
+                  Code="@DismissCode">
+            <Preview>
+                <div class="preview-drawer-demo">
+                    <p class="preview-overlay-demo__hint">打开后点面板外的遮罩、按 Escape，或点标题栏的关闭按钮。</p>
+                    <div class="preview-action-row">
+                        <Button OnClick="OpenDrawer">打开面板</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">最近事件：@_drawerNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Placement</span>
+                    <ShowcaseSelect TValue="DrawerPlacement" Id="drawer-placement" AriaLabel="Placement" Options="@(Enum.GetValues<DrawerPlacement>())" @bind-Value="_drawerPlacement" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_drawerModal">Modal</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_drawerCloseOnEscape">CloseOnEscape</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_drawerCloseOnOutsideClick">CloseOnOutsideClick</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_drawerShowCloseButton">ShowCloseButton</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="drawer-non-modal"
+                  Title="非模态面板"
+                  Description="非模态形态不生成遮罩、不抢焦点、不锁滚动；按钮会先把 Modal 置为 false 再打开，上卡的 Modal 控件同步变化。"
+                  Code="@NonModalCode">
+            <Preview>
+                <div class="preview-drawer-demo">
+                    <p class="preview-overlay-demo__hint">面板打开时页面照常可点、可滚动，只有面板自己接收键盘焦点。</p>
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="OpenNonModalDrawer">以非模态打开</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">最近事件：@_drawerNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span>模态形态输出 <code>role="dialog"</code> + <code>aria-modal="true"</code>，锁定背景滚动、把 Tab 困在面板内，并在关闭后把焦点还给打开它的元素；非模态形态输出 <code>region</code>，不抢焦点也不锁滚动。</span>
-        <span>关闭始终由使用方决定：Escape、遮罩/外部点击与关闭按钮都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用。</span>
-        <span>面板是 <code>position: fixed</code>，所以示例把它放在页面层级而不是预览卡片内部：带 <code>transform</code> / <code>backdrop-filter</code> 的祖先会成为固定定位的包含块。</span>
-        <span>面板尺寸由 <code>--aeterni-drawer-size</code>（默认 <code>--aeterni-overlay-width-sm</code>）决定，可用 <code>Style</code> 覆盖；窄屏下自动收到 100%。</span>
+        <span>关闭始终由使用方决定：Escape、遮罩/外部点击与关闭按钮都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用；<code>Disabled</code> 会拦下所有关闭路径。</span>
+        <span>面板是 <code>position: fixed</code>，所以示例把它放在页面层级而不是预览卡片内部（卡片的模糊层会成为固定定位的包含块）；尺寸由 <code>--aeterni-drawer-size</code>（默认 <code>--aeterni-overlay-width-sm</code>）决定，可用 <code>Style</code> 覆盖，窄屏下自动收到 100%。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
-@* Outside the preview card on purpose: the card carries a backdrop-filter, which would
-   become the containing block of this fixed-position panel. *@
+@* Outside the page container on purpose: the card carries a backdrop-filter layer, which
+   would become the containing block of this fixed-position panel. *@
 <Drawer Open="@_drawerOpen"
         OpenChanged="HandleDrawerOpenChanged"
         Placement="@_drawerPlacement"
@@ -70,6 +109,39 @@
 </Drawer>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] DrawerRelated =
+    [
+        new("PopupHost / Popover", "/components/popup"),
+        new("Dialog / Confirm / Alert / Toast", "/components/feedback"),
+        new("Button", "/components/button")
+    ];
+
+    private const string PlacementCode = """
+        <Button OnClick="() => IsOpen = true">打开筛选</Button>
+
+        <Drawer @bind-Open="IsOpen" Placement="DrawerPlacement.Start" Title="筛选">
+            <FilterPanel />
+        </Drawer>
+        """;
+
+    private const string DismissCode = """
+        <Drawer @bind-Open="IsOpen"
+                Modal="@IsModal"
+                CloseOnEscape="@CloseOnEscape"
+                CloseOnOutsideClick="@CloseOnOutsideClick"
+                ShowCloseButton="@ShowCloseButton"
+                Title="面板设置"
+                Footer="DrawerActions">
+            <p>点遮罩、按 Escape 或点关闭按钮都通过 OpenChanged 请求关闭。</p>
+        </Drawer>
+        """;
+
+    private const string NonModalCode = """
+        <Drawer @bind-Open="IsOpen" Modal="false" Placement="DrawerPlacement.End" Title="快速查看">
+            <p>没有遮罩、不抢焦点、不锁滚动，页面照常可用。</p>
+        </Drawer>
+        """;
+
     private bool _drawerOpen;
 
     private DrawerPlacement _drawerPlacement = DrawerPlacement.End;
@@ -95,11 +167,21 @@
 
     private void HandleSaveClick(MouseEventArgs _) => CloseDrawer("保存");
 
+    private void OpenDrawer() => OpenDrawer(_drawerPlacement);
+
     private void OpenDrawer(DrawerPlacement placement)
     {
         _drawerPlacement = placement;
         _drawerOpen = true;
         _drawerNote = $"请求打开（{placement}）";
+    }
+
+    private void OpenNonModalDrawer()
+    {
+        _drawerModal = false;
+        _drawerPlacement = DrawerPlacement.End;
+        _drawerOpen = true;
+        _drawerNote = "以非模态形态打开（Modal = false）";
     }
 
     private void HandleDrawerOpenChanged(bool open)
@@ -117,5 +199,4 @@
         _drawerOpen = false;
         _drawerNote = $"底部操作：{action}";
     }
-
 }

@@ -1,42 +1,127 @@
 ﻿@page "/components/stepper"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Stepper</PageTitle>
 
-<ComponentPreview AnchorId="stepper"
-                  Category="导航组件"
-                  Title="Stepper"
-                  ComponentName="Stepper"
-                  Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。">
-    <Preview>
-        <div class="preview-stack preview-stack--fill">
-            <Stepper Items="@Items"
-                     Value="@_current"
-                     ValueChanged="OnStepChanged"
-                     OnStepClick="OnStepClicked"
-                     Orientation="@_orientation"
-                     ItemTemplate="@StepTemplate"
-                     AriaLabel="结账流程" />
-            <span class="preview-feedback" role="status">当前步骤：@Items.First(item => item.Id == _current).Label；最近事件：@_lastEvent</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Previous">上一步</Button>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Next">下一步</Button>
-        <Checkbox @bind-Value="_vertical">纵向</Checkbox>
-        <Checkbox @bind-Value="_lockPayment">禁用付款步骤</Checkbox>
-        <Checkbox @bind-Value="_useTemplate">自定义模板</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="stepper"
+               Category="导航组件"
+               Title="Stepper"
+               ComponentName="Stepper"
+               Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。"
+               Related="@StepperRelated">
+    <WhenToUse>
+        <p>流程有明确先后顺序、需要说明"走到哪一步"时使用：结账、开户、发布向导。层级跳转用 <code>Breadcrumb</code>，平级内容切换用 <code>Tabs</code>。</p>
+        <p>进度由宿主持有：<code>Value</code> 是当前步骤、<code>Completed</code> 是已完成，组件既不自动推进流程，也不推断完成状态。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="stepper-basic"
+                  Title="基础用法"
+                  Description="Value 由宿主持有，点击可用步骤会提出新的当前值；右侧控件即时生效。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Stepper Items="@Items"
+                             Value="@_current"
+                             ValueChanged="OnStepChanged"
+                             OnStepClick="OnStepClicked"
+                             Orientation="@_orientation"
+                             ItemTemplate="@StepTemplate"
+                             AriaLabel="结账流程" />
+                    <span class="preview-feedback" role="status">当前步骤：@CurrentLabel；最近事件：@_lastEvent</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Previous">上一步</Button>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="Next">下一步</Button>
+                <Checkbox @bind-Value="_vertical">纵向</Checkbox>
+                <Checkbox @bind-Value="_lockPayment">禁用付款步骤</Checkbox>
+                <Checkbox @bind-Value="_useTemplate">自定义模板</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="stepper-icons"
+                  Title="每步自带图标"
+                  Description="StepperItem.Icon 让单个步骤使用自己的标记字形；已完成步骤仍显示勾选，因此图标与完成态不冲突。"
+                  Code="@IconCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Stepper Items="@IconItems"
+                             Value="@_iconCurrent"
+                             ValueChanged="OnIconStepChanged"
+                             AriaLabel="发布流程" />
+                    <span class="preview-feedback" role="status">当前步骤：@IconCurrentLabel</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="stepper-vertical"
+                  Title="纵向布局与自定义模板"
+                  Description="Orientation 取 Vertical 把步骤竖排；ItemTemplate 接管按钮内的全部内容，标签、标记与辅助说明都可以按步骤自己排版。"
+                  Code="@VerticalCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Stepper Items="@IconItems"
+                             Value="@_verticalCurrent"
+                             ValueChanged="OnVerticalStepChanged"
+                             Orientation="Orientation.Vertical"
+                             ItemTemplate="@VerticalStepTemplate"
+                             AriaLabel="发布流程（纵向）" />
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span><code>Value</code>、<code>Completed</code> 和 <code>Disabled</code> 都由宿主控制；Stepper 不自动推进流程，也不推断完成状态。</span>
         <span>点击可用步骤会触发 <code>ValueChanged</code> 与 <code>OnStepClick</code>；横向和纵向布局都保留原生按钮键盘行为。</span>
         <span><code>StepperItem.Icon</code> 让单个步骤使用自己的标记图标，<code>ItemTemplate</code> 则是每步唯一的内容区，接管按钮内的全部内容（含图标），可按步骤渲染不同内容。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] StepperRelated =
+    [
+        new("Breadcrumb", "/components/breadcrumb"),
+        new("Tabs", "/components/tabs"),
+        new("Progress", "/components/progress")
+    ];
+
+    private const string BasicCode = """
+        <Stepper Items="CheckoutSteps"
+                 Value="Current"
+                 ValueChanged="HandleStepChanged"
+                 OnStepClick="HandleStepClick"
+                 Orientation="Orientation.Horizontal"
+                 AriaLabel="结账流程" />
+        """;
+
+    private const string IconCode = """
+        private IReadOnlyList<StepperItem> ReleaseSteps =>
+        [
+            new("draft", "起草", "整理本次发布内容", Completed: true, Icon: AeterniIcons.Plus),
+            new("review", "评审", "组件与文档逐条过审", Icon: AeterniIcons.MagnifyingGlass),
+            new("build", "构建", "生成包与静态站点", Icon: AeterniIcons.Calendar),
+            new("publish", "发布", "推送到 NuGet 与 Pages", Icon: AeterniIcons.Clock)
+        ];
+        """;
+
+    private const string VerticalCode = """
+        <Stepper Items="ReleaseSteps"
+                 Value="Current"
+                 ValueChanged="HandleStepChanged"
+                 Orientation="Orientation.Vertical"
+                 ItemTemplate="@StepTemplate"
+                 AriaLabel="发布流程" />
+
+        private RenderFragment<StepperItem> StepTemplate => step => @<span class="step-template step-template--vertical">
+            <span class="step-template__marker"><Icon Definition="@step.Icon" Size="Size.Small" /></span>
+            <span class="step-template__label">@step.Label</span>
+            <span class="step-template__meta">@step.Description</span>
+        </span>;
+        """;
+
     private string _current = "shipping";
     private string _lastEvent = "尚未激活步骤";
     private readonly System.Collections.Generic.List<string> _eventSequence = [];
@@ -44,7 +129,14 @@
     private bool _lockPayment;
     private bool _useTemplate;
 
+    private string _iconCurrent = "review";
+    private string _verticalCurrent = "review";
+
     private Orientation _orientation => _vertical ? Orientation.Vertical : Orientation.Horizontal;
+
+    private string CurrentLabel => Items.First(item => item.Id == _current).Label;
+
+    private string IconCurrentLabel => IconItems.First(item => item.Id == _iconCurrent).Label;
 
     private IReadOnlyList<StepperItem> Items =>
     [
@@ -52,6 +144,14 @@
         new("shipping", "配送", "填写收货地址", Icon: AeterniIcons.Clock),
         new("payment", "付款", "选择支付方式", Disabled: _lockPayment),
         new("done", "完成", "查看订单结果")
+    ];
+
+    private static IReadOnlyList<StepperItem> IconItems =>
+    [
+        new("draft", "起草", "整理本次发布内容", Completed: true, Icon: AeterniIcons.Plus),
+        new("review", "评审", "组件与文档逐条过审", Icon: AeterniIcons.MagnifyingGlass),
+        new("build", "构建", "生成包与静态站点", Icon: AeterniIcons.Calendar),
+        new("publish", "发布", "推送到 NuGet 与 Pages", Icon: AeterniIcons.Clock)
     ];
 
     private RenderFragment<StepperItem>? StepTemplate
@@ -72,6 +172,14 @@
             </span>;
         }
     }
+
+    private static RenderFragment<StepperItem> VerticalStepTemplate => step => @<span class="step-template step-template--vertical">
+        <span class="step-template__marker">
+            <Icon Definition="@(step.Icon ?? AeterniIcons.Check)" Size="Size.Small" />
+        </span>
+        <span class="step-template__label">@step.Label</span>
+        <span class="step-template__meta">@step.Description</span>
+    </span>;
 
     private static IconDefinition TemplateIcon(StepperItem step) => step.Id switch
     {
@@ -109,6 +217,26 @@
         return Task.CompletedTask;
     }
 
+    private Task OnIconStepChanged(string? value)
+    {
+        if (value is not null)
+        {
+            _iconCurrent = value;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnVerticalStepChanged(string? value)
+    {
+        if (value is not null)
+        {
+            _verticalCurrent = value;
+        }
+
+        return Task.CompletedTask;
+    }
+
     private void Previous()
     {
         MoveToSibling(-1);
@@ -134,5 +262,4 @@
             _current = navigableItems[targetIndex].Id;
         }
     }
-
 }

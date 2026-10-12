@@ -3,45 +3,112 @@
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Icon</PageTitle>
 
-<ComponentPreview AnchorId="icon"
-                  Category="基础组件"
-                  Title="Icon"
-                  ComponentName="Icon"
-                  Description="渲染供应商无关的 SVG 图标定义，并通过语义颜色、尺寸和无障碍名称接入其他组件。">
-    <Preview>
-        <div class="preview-icon-wrap">
-            <Icon Definition="@FontAwesomeIcons.Solid.Sun"
-                  Size="@_iconSize"
-                  Color="@_iconColor"
-                  AriaLabel="@(_iconAccessible ? "装饰图标" : null)"
-                  Title="@(_iconTitle ? "Icon title" : null)" />
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="icon-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_iconSize" />
-            </div>
-            <div class="control-field">
-                <span>Color</span>
-                <ShowcaseSelect TValue="Color" Id="icon-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_iconColor" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_iconAccessible">提供 AriaLabel</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_iconTitle">提供 Title</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="icon"
+               Category="基础组件"
+               Title="Icon"
+               ComponentName="Icon"
+               Description="渲染供应商无关的 SVG 图标定义，并通过语意颜色、尺寸和无障碍名称接入其他组件。"
+               Related="@IconRelated">
+    <WhenToUse>
+        <p>需要一枚可着色、可缩放并且能跟随主题的图标时使用。独立图标按钮用 <code>IconButton</code>，空状态插图用 <code>Empty</code>，项目自有品牌图形可以直接放内联 SVG。</p>
+        <p>图标默认是装饰：只有补上 <code>AriaLabel</code> 才会成为可访问的图形；当图标是唯一的信息来源时必须补。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="icon-sizes"
+                  Title="尺寸"
+                  Description="Size 有三档，Small 会收进父级的图标槽；不传时用默认档，跟随所在容器的图标尺寸。"
+                  Code="@SizeCode">
+            <Preview>
+                <div class="preview-state-row">
+                    <Icon Definition="@AeterniIcons.MagnifyingGlass" Size="Size.Small" />
+                    <Icon Definition="@AeterniIcons.Check" />
+                    <Icon Definition="@AeterniIcons.Plus" Size="Size.Large" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="icon-colors"
+                  Title="语意颜色"
+                  Description="Color 走全库统一的语意色 Token；不传时保持 currentColor，跟随父级墨色。"
+                  Code="@ColorCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-state-row">
+                        @foreach (var family in ColorFamilies)
+                        {
+                            <Icon Definition="@AeterniIcons.Star" Color="@family.Color" Size="Size.Large" />
+                        }
+                    </div>
+                    <div class="preview-state-row">
+                        @foreach (var family in ColorFamilies)
+                        {
+                            <span class="preview-value">@family.Label</span>
+                        }
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="icon-accessible"
+                  Title="无障碍名称与标题"
+                  Description="AriaLabel 把图标变成带名称的图形，Title 额外输出 SVG 标题；右侧控件即时生效。"
+                  Code="@AccessibleCode">
+            <Preview>
+                <div class="preview-icon-wrap">
+                    <Icon Definition="@FontAwesomeIcons.Solid.Sun"
+                          Size="@_iconSize"
+                          Color="@_iconColor"
+                          AriaLabel="@(_iconAccessible ? "切换到日间模式" : null)"
+                          Title="@(_iconTitle ? "Icon title" : null)" />
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="icon-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_iconSize" />
+                    </div>
+                    <div class="control-field">
+                        <span>Color</span>
+                        <ShowcaseSelect TValue="Color" Id="icon-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_iconColor" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_iconAccessible">提供 AriaLabel</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_iconTitle">提供 Title</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>没有 <code>AriaLabel</code> 时，Icon 会输出 <code>aria-hidden="true"</code>；核心库只接收 <code>IconDefinition</code>。</span>
+        <span>没有 <code>AriaLabel</code> 时输出 <code>aria-hidden="true"</code>，交给父级表达含义；提供后改为 <code>role="img"</code> 加名称。</span>
+        <span><code>Title</code> 输出为 SVG 的 <code>title</code>，只在悬停时可见，不能替代 <code>AriaLabel</code> 承担无障碍命名。</span>
+        <span><code>Definition</code> 必填且只接受 <code>IconDefinition</code>：核心库自带 <code>AeterniIcons</code>，Font Awesome 等外部图标要通过适配包换成本地定义。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] IconRelated =
+    [
+        new("IconButton", "/components/icon-button"),
+        new("Button", "/components/button"),
+        new("Empty", "/components/empty")
+    ];
+
+    private const string SizeCode = """
+        <Icon Definition="AeterniIcons.MagnifyingGlass" Size="Size.Small" />
+        <Icon Definition="AeterniIcons.Check" Size="Size.Large" />
+        """;
+
+    private const string ColorCode = """
+        <Icon Definition="AeterniIcons.Star" Color="Color.Warning" Size="Size.Large" />
+        """;
+
+    private const string AccessibleCode = """
+        <Icon Definition="FontAwesomeIcons.Solid.Sun" Size="Size.Large" AriaLabel="切换到日间模式" />
+        """;
+
     private Size _iconSize = Size.Large;
 
     private Color _iconColor = Color.Primary;
@@ -49,5 +116,4 @@
     private bool _iconAccessible;
 
     private bool _iconTitle;
-
 }

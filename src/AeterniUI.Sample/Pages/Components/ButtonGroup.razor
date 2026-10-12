@@ -1,58 +1,145 @@
-﻿@page "/components/button-group"
+@page "/components/button-group"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · ButtonGroup</PageTitle>
 
-        <ComponentPreview AnchorId="button-group"
-                          Category="基础组件"
-                          Title="ButtonGroup"
-                          ComponentName="ButtonGroup"
-                          Description="将多个 Button 组合为水平或垂直的操作组，并通过级联上下文传递禁用状态。">
+<ComponentPage AnchorId="button-group"
+               Category="基础组件"
+               Title="ButtonGroup"
+               ComponentName="ButtonGroup"
+               Description="把多个 Button 组合成一条操作带：排列、接缝与整组禁用由组统一负责。"
+               Related="@ButtonGroupRelated">
+    <WhenToUse>
+        <p>几个平级动作需要读成一个整体时使用：翻页、保存/另存为/取消、同一族动作的批处理。只有一个孤立动作用 <code>Button</code>，动作各自独立且只有图标时用 <code>IconButton</code>。</p>
+        <p>组只负责排列与接缝：每个 <code>Button</code> 仍自己决定变体与语意色。要让整组一起失效，用组上的 <code>Disabled</code>，而不是逐个按钮传。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="button-group-basic"
+                  Title="基础用法"
+                  Description="默认横向连体：相邻按钮共享一条单边接缝，只有首尾保留圆角，整条操作带读起来是一个控件。"
+                  Code="@BasicCode">
             <Preview>
-<ButtonGroup Orientation="@_buttonGroupOrientation"
-             Connected="@_buttonGroupConnected"
-             FullWidth="@_buttonGroupFullWidth"
-             Disabled="@_buttonGroupDisabled"
-             AriaLabel="按钮组预览">
-                    <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
-                    <Button OnClick="MarkInteraction">当前页</Button>
-                    <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
-                </ButtonGroup>
+                <div class="preview-action-row">
+                    <ButtonGroup AriaLabel="翻页">
+                        <Button StartIcon="@ArrowLeftIcon" Variant="ButtonVariant.Outline" OnClick="MarkInteraction">上一页</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="MarkInteraction">当前页</Button>
+                        <Button EndIcon="@ArrowRightIcon" Variant="ButtonVariant.Outline" OnClick="MarkInteraction">下一页</Button>
+                    </ButtonGroup>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="button-group-layout"
+                  Title="方向、接缝与整宽"
+                  Description="Orientation 决定排列方向；Connected 关掉后退回彼此独立的按钮；FullWidth 让组撑满父容器。"
+                  Code="@LayoutCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-state-row">
+                        <ButtonGroup AriaLabel="横向连体">
+                            <Button Variant="ButtonVariant.Solid">保存</Button>
+                            <Button Variant="ButtonVariant.Outline">另存为</Button>
+                            <Button Variant="ButtonVariant.Outline">取消</Button>
+                        </ButtonGroup>
+                    </div>
+                    <div class="preview-state-row">
+                        <ButtonGroup AriaLabel="横向分离" Connected="false">
+                            <Button Variant="ButtonVariant.Outline">左</Button>
+                            <Button Variant="ButtonVariant.Outline">中</Button>
+                            <Button Variant="ButtonVariant.Outline">右</Button>
+                        </ButtonGroup>
+                    </div>
+                    <div class="preview-state-row">
+                        <ButtonGroup AriaLabel="纵向连体" Orientation="Orientation.Vertical">
+                            <Button Variant="ButtonVariant.Outline">Markdown</Button>
+                            <Button Variant="ButtonVariant.Outline">HTML</Button>
+                        </ButtonGroup>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="button-group-states"
+                  Title="整组禁用与交互"
+                  Description="组的禁用通过级联上下文作用到内部按钮；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-stack">
+                    <ButtonGroup Orientation="@_orientation"
+                                 Connected="@_connected"
+                                 FullWidth="@_fullWidth"
+                                 Disabled="@_disabled"
+                                 AriaLabel="按钮组预览">
+                        <Button StartIcon="@ArrowLeftIcon" OnClick="MarkInteraction">上一页</Button>
+                        <Button OnClick="MarkInteraction">当前页</Button>
+                        <Button EndIcon="@ArrowRightIcon" OnClick="MarkInteraction">下一页</Button>
+                    </ButtonGroup>
+                    <span class="preview-feedback" role="status">@_interactionNote</span>
+                </div>
             </Preview>
             <Controls>
                 <div class="control-grid">
                     <div class="control-field">
                         <span>Orientation</span>
-                        <ShowcaseSelect TValue="Orientation" Id="group-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_buttonGroupOrientation" />
+                        <ShowcaseSelect TValue="Orientation" Id="group-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
                     </div>
                     <div class="control-field">
                         <span>Connected</span>
-                        <ShowcaseSelect TValue="bool" Id="group-connected" AriaLabel="Connected" Options="@BooleanOptions" @bind-Value="_buttonGroupConnected" />
+                        <ShowcaseSelect TValue="bool" Id="group-connected" AriaLabel="Connected" Options="@BooleanOptions" @bind-Value="_connected" />
                     </div>
                 </div>
-                <Checkbox Size="Size.Small" @bind-Value="_buttonGroupFullWidth">FullWidth</Checkbox>
-                <Checkbox Size="Size.Small" @bind-Value="_buttonGroupDisabled">禁用整个组</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">禁用整个组</Checkbox>
             </Controls>
-            <Notes>
-                <span>按钮组的 <code>Disabled</code> 会通过级联上下文作用到内部 Button。</span>
-            </Notes>
-        </ComponentPreview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>组是原生 <code>div</code> 加 <code>role="group"</code>：<code>Disabled</code> 经级联上下文传给内部的 <code>Button</code>、<code>IconButton</code> 与 <code>SplitButton</code>，按钮各自仍是原生 <code>button</code>，禁用态使用状态 Token 而不是整块降低透明度。</span>
+        <span><code>Connected</code> 默认开启：相邻按钮共享一条 1px 接缝，只有首尾保留圆角；关掉后退化成彼此独立的按钮，间距交回宿主布局。</span>
+        <span>组本身没有键盘模型：Tab 依次经过每个按钮，方向键不移动焦点。整组撑满父容器用 <code>FullWidth</code>；纵向组的宽度仍由内容决定。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private Orientation _buttonGroupOrientation = Orientation.Horizontal;
+    private static readonly ShowcaseRelatedLink[] ButtonGroupRelated =
+    [
+        new("Button", "/components/button"),
+        new("IconButton", "/components/icon-button"),
+        new("SplitButton", "/components/split-button"),
+        new("Toolbar", "/components/toolbar")
+    ];
 
-    private bool _buttonGroupConnected = true;
+    private const string BasicCode = """
+        <ButtonGroup AriaLabel="翻页">
+            <Button StartIcon="ArrowLeftIcon" Variant="ButtonVariant.Outline">上一页</Button>
+            <Button Variant="ButtonVariant.Outline">当前页</Button>
+            <Button EndIcon="ArrowRightIcon" Variant="ButtonVariant.Outline">下一页</Button>
+        </ButtonGroup>
+        """;
 
-    private bool _buttonGroupFullWidth;
+    private const string LayoutCode = """
+        <ButtonGroup Orientation="Orientation.Vertical" Connected="false" FullWidth AriaLabel="导出格式">
+            <Button Variant="ButtonVariant.Outline">Markdown</Button>
+            <Button Variant="ButtonVariant.Outline">HTML</Button>
+        </ButtonGroup>
+        """;
 
-    private bool _buttonGroupDisabled;
+    private const string StateCode = """
+        <ButtonGroup Connected="true" Disabled="IsReadOnly" AriaLabel="编辑动作">
+            <Button Variant="ButtonVariant.Outline">撤销</Button>
+            <Button Variant="ButtonVariant.Outline">重做</Button>
+        </ButtonGroup>
+        """;
 
     private static readonly bool[] BooleanOptions = [true, false];
+
+    private Orientation _orientation = Orientation.Horizontal;
+    private bool _connected = true;
+    private bool _fullWidth;
+    private bool _disabled;
 
     private RenderFragment ArrowLeftIcon => @<Icon Definition="@FontAwesomeIcons.Solid.ArrowLeft" />;
 

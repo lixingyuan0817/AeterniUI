@@ -1,41 +1,102 @@
 ﻿@page "/components/descriptions"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · Descriptions</PageTitle>
 
-<ComponentPreview AnchorId="descriptions"
-                  Category="基础组件"
-                  Title="Descriptions"
-                  ComponentName="Descriptions"
-                  Description="用原生描述列表语义展示一组标签与值，支持横向/纵向排列、跨列和自定义值模板。">
-    <Preview>
-        <div class="preview-stack preview-stack--fill">
-            <Descriptions Items="@Items"
-                          Columns="@_columns"
-                          Orientation="@CurrentOrientation"
-                          Bordered="@_bordered"
-                          ItemTemplate="@ValueTemplate"
-                          AriaLabel="订单摘要" />
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox @bind-Value="_vertical">纵向布局</Checkbox>
-        <Checkbox @bind-Value="_bordered">显示边框</Checkbox>
-        <Checkbox @bind-Value="_useTemplate">使用值模板</Checkbox>
-        <div class="control-field">
-            <span>Columns</span>
-            <ShowcaseSelect TValue="int" Id="descriptions-columns" AriaLabel="Columns" Options="@ColumnOptions" @bind-Value="_columns" />
-        </div>
-    </Controls>
+<ComponentPage AnchorId="descriptions"
+               Category="基础组件"
+               Title="Descriptions"
+               ComponentName="Descriptions"
+               Description="用原生描述列表语义展示一组标签与值，支持横向/纵向排列、跨列与自定义值模板。"
+               Related="@DescriptionsRelated">
+    <WhenToUse>
+        <p>把同一个对象的多个字段并排展示时使用：订单摘要、详情抽屉、审计信息。字段需要可编辑或带校验时，用 <code>FormField</code> 组合表单控件。</p>
+        <p>只读展示、不改写数据：组件输出原生 <code>dl</code>，排序、过滤与业务状态仍由宿主负责。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="descriptions-basic"
+                  Title="基础用法"
+                  Description="Columns 决定网格列数，Orientation 切换横纵排列，Bordered 加中性边框；右侧控件即时生效。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Descriptions Items="@Items"
+                                  Columns="@_columns"
+                                  Orientation="@CurrentOrientation"
+                                  Bordered="@_bordered"
+                                  ItemTemplate="@ValueTemplate"
+                                  AriaLabel="订单摘要" />
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox @bind-Value="_vertical">纵向布局</Checkbox>
+                <Checkbox @bind-Value="_bordered">显示边框</Checkbox>
+                <Checkbox @bind-Value="_useTemplate">使用值模板</Checkbox>
+                <div class="control-field">
+                    <span>Columns</span>
+                    <ShowcaseSelect TValue="int" Id="descriptions-columns" AriaLabel="Columns" Options="@ColumnOptions" @bind-Value="_columns" />
+                </div>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="descriptions-template"
+                  Title="值模板"
+                  Description="ItemTemplate 只接管值区域：标签仍由组件渲染、dd 语义不变，所以状态标签、代码与链接都能直接放进值里。"
+                  Code="@TemplateCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Descriptions Items="@TemplateItems" Columns="3" ItemTemplate="@StatusTemplate" AriaLabel="发布信息" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="descriptions-vertical"
+                  Title="纵向排列与空值"
+                  Description="Orientation 取 Vertical 时标签落在值上方，适合窄栏或字段名较长的场景；值缺省（Content 为 null）时渲染占位而不是空白。"
+                  Code="@VerticalCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Descriptions Items="@VerticalItems" Columns="2" Orientation="Orientation.Vertical" Bordered AriaLabel="部署详情" />
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span>组件输出原生 <code>dl</code>、<code>dt</code> 和 <code>dd</code>，不负责排序、编辑或业务状态推断。</span>
-        <span><code>Columns</code> 控制网格列数，单项可用 <code>DescriptionItem.Span</code> 跨列；示例会随列数收窄说明项跨度，窄屏也会自动收为单列。</span>
-        <span><code>ItemTemplate</code> 只替换值区域，标签仍由组件渲染并保持描述列表语义。</span>
+        <span><code>Columns</code> 控制网格列数，单项可用 <code>DescriptionItem.Span</code> 跨列；Span 不能超过 Columns，窄屏也会自动收为单列。</span>
+        <span><code>ItemTemplate</code> 只替换值区域，标签仍由组件渲染；描述列表不提供折叠与编辑，需要这两者请换 <code>List</code> 或表单组件。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] DescriptionsRelated =
+    [
+        new("FormField", "/components/form-field"),
+        new("List", "/components/list"),
+        new("Card", "/components/card")
+    ];
+
+    private const string BasicCode = """
+        <Descriptions Items="OrderSummary" Columns="3" Bordered AriaLabel="订单摘要" />
+        """;
+
+    private const string TemplateCode = """
+        <Descriptions Items="ReleaseInfo" Columns="3" ItemTemplate="@StatusTemplate" />
+
+        private RenderFragment<DescriptionItem> StatusTemplate => item => item.Label == "状态"
+            ? @<Tag Color="Color.Success" Size="Size.Small">@item.Content</Tag>
+            : @<span>@item.Content</span>;
+        """;
+
+    private const string VerticalCode = """
+        <Descriptions Items="DeployInfo"
+                      Columns="1"
+                      Orientation="Orientation.Vertical"
+                      Bordered />
+        """;
+
     private bool _vertical;
     private bool _bordered;
     private bool _useTemplate;
@@ -47,19 +108,41 @@
 
     private IReadOnlyList<DescriptionItem> Items =>
     [
-        new("订单编号", "AU-20261008-042", Span: 1),
-        new("客户", "林小远", Span: 1),
-        new("状态", "已完成", Span: 1),
-        new("创建时间", "2026-10-08 17:36", Span: 1),
+        new("订单编号", "AU-20261008-042"),
+        new("客户", "林小远"),
+        new("状态", "已完成"),
+        new("创建时间", "2026-10-08 17:36"),
         // Keep the interactive preview valid when Columns changes to 1 or 2.
         // DescriptionItem.Span is intentionally strict and cannot exceed Columns.
         new("说明", "组件库示例订单，用于展示长文本在描述列表中的换行行为。", Span: Math.Min(3, _columns))
     ];
+
+    private static IReadOnlyList<DescriptionItem> TemplateItems =>
+    [
+        new("版本", "10.31.1"),
+        new("状态", "已发布"),
+        new("提交", "a1b2c3d"),
+        new("发布时间", "2026-10-12 09:20")
+    ];
+
+    private static IReadOnlyList<DescriptionItem> VerticalItems =>
+    [
+        new("服务", "aeterni-web"),
+        new("区域", "cn-east-1"),
+        new("回滚版本"),
+        new("说明", "纵向排列把标签放在值上方，字段名较长时也不会挤压值列。")
+    ];
+
+    private static RenderFragment<DescriptionItem> StatusTemplate => item => item.Label switch
+    {
+        "状态" => @<Tag Color="Color.Success" Size="Size.Small">@item.Content</Tag>,
+        "提交" => @<code>@item.Content</code>,
+        _ => @<span>@item.Content</span>
+    };
 
     private RenderFragment<DescriptionItem>? ValueTemplate => !_useTemplate
         ? null
         : item => item.Label == "状态"
             ? @<Tag Color="Color.Success" Size="Size.Small">@item.Content</Tag>
             : @<span>@item.Content</span>;
-
 }

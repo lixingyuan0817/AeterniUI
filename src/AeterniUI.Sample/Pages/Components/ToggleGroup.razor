@@ -1,56 +1,171 @@
-﻿@page "/components/toggle-group"
+@page "/components/toggle-group"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Components.ToggleGroup
 
 <PageTitle>Aeterni UI · ToggleGroup</PageTitle>
-<ComponentPreview AnchorId="toggle-group" Category="基础组件" Title="ToggleGroup" ComponentName="ToggleGroup"
-                  Description="按钮动作切换，不是 Segmented 的表单值选择。方向键只移动焦点；Enter/Space 或点击切换动作。">
-    <Preview>
-        <Surface Bordered="true">
-            <div dir="@(_rtl ? "rtl" : "ltr")">
-                <p>单选：再次激活已选动作会清空。</p>
-                <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="对齐动作" Items="@AlignmentItems" SelectedValues="@_alignment" SelectedValuesChanged="ChangeAlignment"
-                    Disabled="@_disabled" Visible="@_visible" Orientation="@Direction" Size="@_size" />
-                <p role="status">对齐：@string.Join("、", _alignment)；最近提议：@_proposal</p>
-                <p>多选：每个格式动作独立开关。</p>
-                <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="文字格式" Items="@Formats" SelectionMode="SelectionMode.Multiple" @bind-SelectedValues="_formats"
-                    Disabled="@_disabled" Visible="@_visible" Orientation="@Direction" Size="@_size" />
-                <p role="status">格式：@string.Join("、", _formats)</p>
-                <Button OnClick="Reset">外部重置</Button>
-            </div>
-        </Surface>
-    </Preview>
-    <Controls>
-        <Checkbox @bind-Value="_vertical">纵向</Checkbox>
-        <Checkbox @bind-Value="_rtl">RTL</Checkbox>
-        <Checkbox @bind-Value="_disabled">整组禁用</Checkbox>
-        <Checkbox @bind-Value="_visible">可见</Checkbox>
-        <Checkbox @bind-Value="_disableCenter">禁用居中（保留按下状态）</Checkbox>
-        <Checkbox @bind-Value="_reverse">重排对齐动作</Checkbox>
-        <Checkbox @bind-Value="_reject">父级拒绝单选提议</Checkbox>
-        <AeterniUI.Components.Segmented.Segmented TValue="Size" Items="@Sizes" @bind-Value="_size" AriaLabel="尺寸" />
-    </Controls>
+
+<ComponentPage AnchorId="toggle-group"
+               Category="基础组件"
+               Title="ToggleGroup"
+               ComponentName="ToggleGroup"
+               Description="按钮式的动作切换组：按下与抬起一个动作，而不是选择一个表单值。"
+               Related="@ToggleGroupRelated">
+    <WhenToUse>
+        <p>一组可以独立按下或抬起的动作用它：对齐方式、文字格式、视图开关。要选择"一个值并替换整块内容"时用 <code>Segmented</code> 或 <code>RadioGroup</code>。</p>
+        <p>按下态是动作状态而不是表单值：选中列表严格受控，父级不回写就什么都不会变。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="toggle-group-basic"
+                  Title="基础用法"
+                  Description="默认单选：再次激活已选动作会把它清空，因此「没有选中项」也是一个合法状态。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="对齐动作"
+                                                                  Items="@AlignmentItems"
+                                                                  SelectedValues="@_alignment"
+                                                                  SelectedValuesChanged="ChangeAlignment" />
+                    <span class="preview-feedback" role="status">对齐：@Format(_alignment)</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="toggle-group-multiple"
+                  Title="多选与尺寸"
+                  Description="SelectionMode.Multiple 让每个动作独立开关；三档尺寸共用同一份几何，只改最小高度与留白。"
+                  Code="@MultipleCode">
+            <Preview>
+                <div class="preview-stack">
+                    <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="文字格式"
+                                                                  Items="@FormatItems"
+                                                                  SelectionMode="SelectionMode.Multiple"
+                                                                  @bind-SelectedValues="_formats" />
+                    <span class="preview-feedback" role="status">格式：@Format(_formats)</span>
+                    <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="文字格式（小号）"
+                                                                  Items="@FormatItems"
+                                                                  Size="Size.Small"
+                                                                  SelectionMode="SelectionMode.Multiple"
+                                                                  @bind-SelectedValues="_formats" />
+                    <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="文字格式（大号）"
+                                                                  Items="@FormatItems"
+                                                                  Size="Size.Large"
+                                                                  SelectionMode="SelectionMode.Multiple"
+                                                                  @bind-SelectedValues="_formats" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="toggle-group-states"
+                  Title="受控提议、方向与禁用"
+                  Description="父级可以拒绝一次提议（不回写选中列表），也可以整组禁用或隐藏；右侧控件即时生效。"
+                  Code="@StateCode">
+            <Preview>
+                <div dir="@(_rtl ? "rtl" : "ltr")">
+                    <div class="preview-stack">
+                        <AeterniUI.Components.ToggleGroup.ToggleGroup AriaLabel="受控对齐动作"
+                                                                      Items="@ProposalItems"
+                                                                      SelectedValues="@_proposalValues"
+                                                                      SelectedValuesChanged="ChangeProposal"
+                                                                      Disabled="@_disabled"
+                                                                      Visible="@_visible"
+                                                                      Orientation="@Direction"
+                                                                      Size="@_size" />
+                        <span class="preview-feedback" role="status">对齐：@Format(_proposalValues)；最近提议：@_proposal</span>
+                        <Button Variant="ButtonVariant.Outline" OnClick="Reset">外部重置</Button>
+                    </div>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Size</span>
+                        <AeterniUI.Components.Segmented.Segmented TValue="Size" Items="@Sizes" @bind-Value="_size" AriaLabel="尺寸" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_vertical">纵向</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_rtl">RTL</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">整组禁用</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_visible">可见</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disableCenter">禁用居中（保留按下状态）</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_reverse">重排对齐动作</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_reject">父级拒绝单选提议</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>默认连体分段外观：无项间距、共享单边接缝，仅首尾保留圆角；横向不自动换行。可切换纵向、RTL、尺寸与重排查看连接边，焦点环始终位于选中/悬浮项之上。</span>
-        <span>Small / Default / Large 最小高度为 28 / 36 / 44px，水平留白为 8 / 12 / 16px，垂直留白为 0；内容居中，字号、字重和行高与 Button 对齐。</span>
-        <span>Tab 进入一个停留点；所属方向键循环，Home/End 首尾，RTL 左右反转；禁用项跳过。Tab 离开，重新进入记住最后焦点。</span>
-        <span>SelectedValues 严格受控：父级不回写时不改变按下态；空列表有效。禁用不会清除选中值。Items 删除时必须同时移除对应选中 Id。</span>
-        <span>名称来自 AriaLabel 和每项 Text。两个模式均为按钮 aria-pressed，不使用 aria-checked 或表单 radio 语义。</span>
-        <span>不支持表单校验、图标模板、Toolbar 嵌套、自动溢出、异步动作编排或跨组焦点。主题、窄屏、reduced-motion 可通过示例宿主和系统设置验收。</span>
+        <span>默认连体分段外观：项之间没有间距，相邻项共享一条单边接缝，只有首尾保留圆角；横向不自动换行，纵向、尺寸与 RTL 都由参数切换，焦点环始终画在悬浮/选中项之上。</span>
+        <span>Tab 只停一次，方向键在同一组内循环，Home/End 到首尾，RTL 下左右反转，禁用项被跳过；重新进入时回到最后焦点的项。</span>
+        <span>两种模式都用按钮的 <code>aria-pressed</code>，不使用 <code>aria-checked</code> 或表单 radio 语义。<code>SelectedValues</code> 严格受控：父级不回写时按下态不变，空列表有效，禁用不会清除选中值。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private bool _vertical, _rtl, _disabled, _disableCenter, _reverse, _reject;
-    private bool _visible = true;
-    private Size _size = Size.Default;
-    private string _proposal = "无";
-    private IReadOnlyList<string> _alignment = ["center"], _formats = ["bold"];
+    private static readonly ShowcaseRelatedLink[] ToggleGroupRelated =
+    [
+        new("Segmented", "/components/segmented"),
+        new("Button", "/components/button"),
+        new("Toolbar", "/components/toolbar")
+    ];
+
+    private const string BasicCode = """
+        <ToggleGroup AriaLabel="对齐动作"
+                     Items="AlignmentItems"
+                     SelectedValues="Alignment"
+                     SelectedValuesChanged="ChangeAlignment" />
+        """;
+
+    private const string MultipleCode = """
+        <ToggleGroup AriaLabel="文字格式"
+                     Items="FormatItems"
+                     SelectionMode="SelectionMode.Multiple"
+                     SelectedValues="Formats"
+                     SelectedValuesChanged="ChangeFormats" />
+        """;
+
+    private const string StateCode = """
+        <ToggleGroup AriaLabel="对齐动作"
+                     Items="AlignmentItems"
+                     SelectedValues="Alignment"
+                     SelectedValuesChanged="ChangeAlignment"
+                     Orientation="Orientation.Vertical"
+                     Size="Size.Small"
+                     Disabled="IsReadOnly" />
+        """;
+
     private static readonly Size[] Sizes = [Size.Small, Size.Default, Size.Large];
-    private static readonly IReadOnlyList<ToggleGroupItem> Formats = [new("bold", "加粗"), new("italic", "斜体"), new("underline", "下划线")];
+
+    private static readonly IReadOnlyList<ToggleGroupItem> AlignmentItems =
+    [
+        new("start", "起始对齐"),
+        new("center", "居中"),
+        new("end", "末尾对齐")
+    ];
+
+    private static readonly IReadOnlyList<ToggleGroupItem> FormatItems =
+    [
+        new("bold", "加粗"),
+        new("italic", "斜体"),
+        new("underline", "下划线")
+    ];
+
+    private Size _size = Size.Default;
+    private bool _vertical;
+    private bool _rtl;
+    private bool _disabled;
+    private bool _visible = true;
+    private bool _disableCenter;
+    private bool _reverse;
+    private bool _reject;
+    private string _proposal = "无";
+    private IReadOnlyList<string> _alignment = ["center"];
+    private IReadOnlyList<string> _formats = ["bold"];
+    private IReadOnlyList<string> _proposalValues = ["center"];
+
     private Orientation Direction => _vertical ? Orientation.Vertical : Orientation.Horizontal;
-    private IReadOnlyList<ToggleGroupItem> AlignmentItems
+
+    private IReadOnlyList<ToggleGroupItem> ProposalItems
     {
         get
         {
@@ -58,10 +173,25 @@
             return _reverse ? items.Reverse().ToArray() : items;
         }
     }
-    private void ChangeAlignment(IReadOnlyList<string> values)
+
+    private static string Format(IReadOnlyList<string> values) => values.Count == 0 ? "无" : string.Join("、", values);
+
+    private void ChangeAlignment(IReadOnlyList<string> values) => _alignment = values;
+
+    private void ChangeProposal(IReadOnlyList<string> values)
     {
         _proposal = values.Count == 0 ? "清空" : string.Join("、", values);
-        if (!_reject) _alignment = values;
+
+        if (!_reject)
+        {
+            _proposalValues = values;
+        }
     }
-    private void Reset() { _alignment = []; _formats = []; }
+
+    private void Reset()
+    {
+        _alignment = [];
+        _formats = [];
+        _proposalValues = [];
+    }
 }

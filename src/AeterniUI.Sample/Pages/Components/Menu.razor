@@ -3,64 +3,162 @@
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Menu</PageTitle>
 
-<ComponentPreview AnchorId="menu"
-                  Category="导航组件"
-                  Title="Menu"
-                  ComponentName="Menu"
-                  Description="分组可折叠的菜单导航，支持链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。">
-    <Preview>
-        <div class="preview-menu-demo">
-            <Surface Variant="SurfaceVariant.Elevated" Bordered>
-                <Menu Items="MenuPreviewGroups"
-                      SelectedId="@_menuSelectedId"
-                      SelectedIdChanged="HandleMenuSelectedId"
-                      OnItemSelected="HandleMenuItemSelected"
-                      Accordion="_menuAccordion"
-                      OpenKeys="@(_menuControlled ? _menuOpenKeys : null)"
-                      OpenKeysChanged="HandleMenuOpenKeysChanged"
-                      OnGroupToggled="HandleMenuGroupToggled"
-                      AriaLabel="示例菜单" />
-            </Surface>
-            <span class="preview-feedback" role="status">@_menuNote</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox Size="Size.Small" @bind-Value="_menuAccordion">Accordion</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_menuHref">菜单项使用 Href</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_menuControlled">受控 OpenKeys</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_menuDisabledGroup">禁用第二个分组</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_menuHiddenItem">隐藏一个菜单项</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="menu"
+               Category="导航组件"
+               Title="Menu"
+               ComponentName="Menu"
+               Description="分组可折叠的菜单导航：链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。"
+               Related="@MenuRelated">
+    <WhenToUse>
+        <p>站内导航或设置项需要按分组收起展开时使用：侧边栏、设置中心。平铺的选项列表用 <code>List</code>，切换同一区域的内容用 <code>Tabs</code>。</p>
+        <p>Menu 是导航内容控件，自身不提供表面：底由宿主容器负责（示例用 <code>Surface</code> 模拟侧边栏），放进已有卡片不会出现双层底。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="menu-basic"
+                  Title="基础用法"
+                  Description="Items 提供分组与条目，SelectedId 表达选中项（同时写入 aria-current），激活条目通过 OnItemSelected 上报。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-menu-demo">
+                    <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                        <Menu Items="MenuBaseGroups"
+                              SelectedId="_selectedId"
+                              SelectedIdChanged="HandleSelectedId"
+                              OnItemSelected="HandleItemSelected"
+                              AriaLabel="示例菜单" />
+                    </Surface>
+                    <span class="preview-feedback" role="status">@_menuNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="menu-links"
+                  Title="链接项、图标与禁用项"
+                  Description="MenuItem 的 Href 让它渲染成真实的 a 元素（保留中键与新标签打开）；Disabled 的分组与条目都不进入键盘移动范围。"
+                  Code="@LinkCode">
+            <Preview>
+                <div class="preview-menu-demo">
+                    <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                        <Menu Items="MenuLinkGroups"
+                              SelectedId="_linkSelectedId"
+                              SelectedIdChanged="HandleLinkSelectedId"
+                              OnItemSelected="HandleItemSelected"
+                              AriaLabel="链接菜单" />
+                    </Surface>
+                    <span class="preview-feedback" role="status">@_menuNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="menu-options"
+                  Title="展开状态与可调属性"
+                  Description="手风琴、受控展开键、链接项、禁用分组与隐藏项都能单独切换；右侧控件即时生效。"
+                  Code="@OptionCode">
+            <Preview>
+                <div class="preview-menu-demo">
+                    <Surface Variant="SurfaceVariant.Elevated" Bordered>
+                        <Menu Items="MenuControlledGroups"
+                              SelectedId="_selectedId"
+                              SelectedIdChanged="HandleSelectedId"
+                              OnItemSelected="HandleItemSelected"
+                              Accordion="_menuAccordion"
+                              OpenKeys="@(_menuControlled ? _openKeys : null)"
+                              OpenKeysChanged="HandleOpenKeysChanged"
+                              OnGroupToggled="HandleGroupToggled"
+                              AriaLabel="可调属性菜单" />
+                    </Surface>
+                    <span class="preview-feedback" role="status">@_menuNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_menuAccordion">Accordion</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_menuControlled">受控 OpenKeys</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_menuHref">菜单项使用 Href</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_menuDisabledGroup">禁用第二个分组</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_menuHiddenItem">隐藏一个菜单项</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>Menu 是导航内容控件，自身不提供表面：底由宿主容器提供（示例用 <code>Surface</code> 模拟侧边栏，与页面左侧导航同观感）。</span>
-        <span>Tab 按原生顺序移动，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
+        <span>Menu 只负责导航内容与展开状态，底由宿主容器提供：示例统一套在 <code>Surface</code> 里，与页面左侧导航同观感。</span>
+        <span>键盘按导航模式工作：<code>Tab</code> 走原生顺序，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
+        <span>选中态与展开态是两份状态：<code>SelectedId</code> 决定 <code>aria-current</code> 与选中样式；传入 <code>OpenKeys</code> 后由消费者接管展开状态，每次变化都通过 <code>OpenKeysChanged</code> 上报，传 null 则组件自行维护。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] MenuRelated =
+    [
+        new("Tabs / Tab", "/components/tabs"),
+        new("List / ListItem", "/components/list"),
+        new("Breadcrumb", "/components/breadcrumb"),
+        new("Pagination", "/components/pagination")
+    ];
+
+    private const string BasicCode = """
+        <Menu Items="Groups"
+              SelectedId="SelectedId"
+              SelectedIdChanged="HandleSelectedId"
+              OnItemSelected="HandleItemSelected"
+              AriaLabel="示例菜单" />
+        """;
+
+    private const string LinkCode = """
+        new MenuGroup("guide", "文档", [
+            new MenuItem("install", "安装", "安装与初始化", Href: "/components"),
+            new MenuItem("soon", "即将推出", "禁用项示例", Disabled: true)
+        ], InitiallyOpen: true, Disabled: false)
+        """;
+
+    private const string OptionCode = """
+        <Menu Items="Groups"
+              Accordion
+              OpenKeys="OpenKeys"
+              OpenKeysChanged="HandleOpenKeysChanged"
+              OnGroupToggled="HandleGroupToggled" />
+        """;
+
+    private static readonly IReadOnlyList<MenuGroup> MenuBaseGroups =
+    [
+        new MenuGroup("components", "组件", [
+            new MenuItem("button", "Button", "动作按钮"),
+            new MenuItem("input", "Input", "单行输入")
+        ], GroupIcon(FontAwesomeIcons.Solid.Cubes)),
+        new MenuGroup("resources", "资源", [
+            new MenuItem("docs", "文档示例", "打开组件总览")
+        ], GroupIcon(FontAwesomeIcons.Solid.Book), InitiallyOpen: false)
+    ];
+
+    private static readonly IReadOnlyList<MenuGroup> MenuLinkGroups =
+    [
+        new MenuGroup("guide", "文档", [
+            new MenuItem("install", "安装", "安装与初始化", Href: "/components"),
+            new MenuItem("quickstart", "快速上手", "最小可运行示例"),
+            new MenuItem("soon", "即将推出", "禁用项示例", Disabled: true)
+        ], GroupIcon(FontAwesomeIcons.Solid.Rocket)),
+        new MenuGroup("components", "组件", [
+            new MenuItem("button", "Button", "跳转到 Button 页", Href: "/components/button"),
+            new MenuItem("tabs", "Tabs", "跳转到 Tabs 页", Href: "/components/tabs")
+        ], GroupIcon(FontAwesomeIcons.Solid.Cubes), Disabled: true)
+    ];
+
     private string _menuNote = "点击菜单项或分组查看事件反馈。";
 
+    private string? _selectedId = "button";
+    private string? _linkSelectedId = "install";
+
     private bool _menuAccordion = true;
-
     private bool _menuHref = true;
-
     private bool _menuControlled;
-
     private bool _menuDisabledGroup;
-
     private bool _menuHiddenItem;
 
-    private string _menuSelectedId = "button";
+    private IReadOnlyList<string> _openKeys = ["components"];
 
-    private IReadOnlyList<string> _menuOpenKeys = ["components"];
-
-    /// <summary>Demo groups exercised by the checkboxes in the Menu controls.</summary>
-    private IReadOnlyList<MenuGroup> MenuPreviewGroups =>
+    private IReadOnlyList<MenuGroup> MenuControlledGroups =>
     [
         new MenuGroup("getting-started", "开始", [
             new MenuItem("install", "安装", "安装与初始化", Href: _menuHref ? "/components" : null),
@@ -76,17 +174,19 @@
         ], GroupIcon(FontAwesomeIcons.Solid.Book), InitiallyOpen: false)
     ];
 
-    private void HandleMenuSelectedId(string id) => _menuSelectedId = id;
+    private void HandleSelectedId(string id) => _selectedId = id;
 
-    private void HandleMenuItemSelected(MenuItem item) => _menuNote = $"选中：{item.Label}";
+    private void HandleLinkSelectedId(string id) => _linkSelectedId = id;
 
-    private void HandleMenuOpenKeysChanged(IReadOnlyList<string> keys)
+    private void HandleItemSelected(MenuItem item) => _menuNote = $"选中：{item.Label}";
+
+    private void HandleOpenKeysChanged(IReadOnlyList<string> keys)
     {
-        _menuOpenKeys = keys;
+        _openKeys = keys;
         _menuNote = keys.Count == 0 ? "已全部折叠" : $"展开：{string.Join(" / ", keys)}";
     }
 
-    private void HandleMenuGroupToggled(MenuGroup group) => _menuNote = $"切换分组：{group.Label}";
+    private void HandleGroupToggled(MenuGroup group) => _menuNote = $"切换分组：{group.Label}";
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;

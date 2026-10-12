@@ -1,42 +1,122 @@
 ﻿@page "/components/timeline"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Timeline</PageTitle>
 
-<ComponentPreview AnchorId="timeline"
-                  Category="基础组件"
-                  Title="Timeline"
-                  ComponentName="Timeline"
-                  Description="以原生有序列表展示宿主提供的时间事件，支持时间戳、语义色、图标与正文模板。">
-    <Preview>
-        <div class="preview-stack preview-stack--fill">
-            <Timeline Items="@Items"
-                      ItemTemplate="@EventTemplate"
-                      Orientation="@TimelineOrientation"
-                      AriaLabel="版本发布记录" />
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox @bind-Value="_showReview">显示审核事件</Checkbox>
-        <Checkbox @bind-Value="_useTemplate">自定义事件正文</Checkbox>
-        <Checkbox @bind-Value="_horizontal">横向布局</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="timeline"
+               Category="基础组件"
+               Title="Timeline"
+               ComponentName="Timeline"
+               Description="以原生有序列表展示宿主提供的时间事件，支持时间戳、语意色、图标与正文模板。"
+               Related="@TimelineRelated">
+    <WhenToUse>
+        <p>要按时间轴讲述一串已经发生的事件时使用：发布记录、审批流转、订单轨迹。纯进度用 <code>Stepper</code>，成组的键值信息用 <code>Descriptions</code>。</p>
+        <p>组件是纯展示的：顺序、筛选与状态都在宿主的集合里决定，<code>Items</code> 给出什么就按什么顺序渲染。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="timeline-basic"
+                  Title="竖直时间轴"
+                  Description="每项可带时间戳、图标与语意色；不给 Icon 时用圆点标记。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Timeline Items="@BasicItems" AriaLabel="版本发布记录" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="timeline-horizontal"
+                  Title="横向时间轴"
+                  Description="Orientation 切到 Horizontal 后事件沿水平轴排布，为每项保留可读宽度。"
+                  Code="@HorizontalCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Timeline Items="@Items" Orientation="Orientation.Horizontal" AriaLabel="发布里程碑" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="timeline-controls"
+                  Title="筛选与自定义正文"
+                  Description="可见性由宿主的集合决定；ItemTemplate 接管标题与描述区域。右侧控件即时生效。"
+                  Code="@TemplateCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Timeline Items="@Items"
+                              ItemTemplate="@EventTemplate"
+                              Orientation="@TimelineOrientation"
+                              AriaLabel="版本发布记录" />
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_showReview">显示审核事件</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_useTemplate">自定义事件正文</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_horizontal">横向布局</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>组件按 <code>Items</code> 的既有顺序渲染，不排序、不推断状态；动态筛选或重新排序由宿主完成。</span>
-        <span><code>Timestamp</code> 输出机器可读的 <code>datetime</code>；<code>TimeText</code> 可覆盖其可见文案。</span>
-        <span><code>ItemTemplate</code> 只接管标题与描述区域，标记和时间仍由 Timeline 统一维护。</span>
-        <span>横向布局为每项保留可读宽度，空间不足时只在组件内部横向滚动。</span>
+        <span>组件按 <code>Items</code> 的既有顺序渲染，不排序、不推断状态；动态筛选或重新排序由宿主完成，示例里用 <code>TimelineItem.Visible</code> 隐藏一项。</span>
+        <span><code>Timestamp</code> 输出机器可读的 <code>datetime</code>；<code>TimeText</code> 可覆盖其可见文案，未提供时按当前区域性格式化时间戳。</span>
+        <span>标记、时间与列表结构由 Timeline 统一维护：<code>ItemTemplate</code> 只替换标题与描述区域，横向布局在空间不足时只在组件内部横向滚动。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] TimelineRelated =
+    [
+        new("Stepper", "/components/stepper"),
+        new("Descriptions", "/components/descriptions"),
+        new("List", "/components/list")
+    ];
+
+    private const string BasicCode = """
+        <Timeline Items="Events" AriaLabel="版本发布记录" />
+        """;
+
+    private const string HorizontalCode = """
+        <Timeline Items="Events" Orientation="Orientation.Horizontal" AriaLabel="发布里程碑" />
+        """;
+
+    private const string TemplateCode = """
+        // ItemTemplate 是 RenderFragment<TimelineItem>：只替换标题与描述区域。
+        <Timeline Items="Events" ItemTemplate="EventTemplate" />
+        """;
+
     private bool _showReview = true;
+
     private bool _useTemplate;
+
     private bool _horizontal;
 
     private Orientation TimelineOrientation => _horizontal ? Orientation.Horizontal : Orientation.Vertical;
+
+    // The first event has no icon, so it renders the built-in dot marker.
+    private IReadOnlyList<TimelineItem> BasicItems =>
+    [
+        new(
+            "创建发布任务",
+            null,
+            new DateTimeOffset(2026, 10, 8, 9, 0, 0, TimeSpan.FromHours(8)),
+            "09:00"),
+        new(
+            "完成自动检查",
+            "构建、契约与文档门禁全部通过。",
+            new DateTimeOffset(2026, 10, 8, 9, 8, 0, TimeSpan.FromHours(8)),
+            "09:08",
+            AeterniIcons.Check,
+            Color.Success),
+        new(
+            "发布组件包",
+            "完成后由宿主更新发布状态。",
+            new DateTimeOffset(2026, 10, 8, 9, 20, 0, TimeSpan.FromHours(8)),
+            "预计 09:20",
+            AeterniIcons.Calendar,
+            Color.Neutral)
+    ];
 
     private IReadOnlyList<TimelineItem> Items =>
     [
@@ -77,5 +157,4 @@
             <strong>@item.Title</strong>
             <span>@item.Description</span>
         </div>;
-
 }

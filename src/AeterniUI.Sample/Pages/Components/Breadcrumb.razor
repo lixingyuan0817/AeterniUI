@@ -1,38 +1,133 @@
 ﻿@page "/components/breadcrumb"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · Breadcrumb</PageTitle>
 
-<ComponentPreview AnchorId="breadcrumb"
-                  Category="导航组件"
-                  Title="Breadcrumb"
-                  ComponentName="Breadcrumb"
-                  Description="用链接和当前项表达页面层级；路由跳转由宿主应用和浏览器负责。">
-    <Preview>
-        <div class="preview-stack preview-stack--fill">
-            <Breadcrumb Items="@Items" AriaLabel="文档层级" Separator="@(_customSeparator ? CustomSeparator : null)" />
-            <span class="preview-feedback" role="status">当前项：@Items.Last(item => item.Visible).Label</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox @bind-Value="_showWorkspace">显示工作区层级</Checkbox>
-        <Checkbox @bind-Value="_disableProjects">禁用项目层级</Checkbox>
-        <Checkbox @bind-Value="_customSeparator">使用自定义分隔符</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="breadcrumb"
+               Category="导航组件"
+               Title="Breadcrumb"
+               ComponentName="Breadcrumb"
+               Description="用链接和当前项表达页面层级；路由跳转由宿主应用和浏览器负责。"
+               Related="@BreadcrumbRelated">
+    <WhenToUse>
+        <p>层级较深、用户需要知道"我在哪一层"并能横向跳回上层时使用：文档、后台目录、商品分类。线性流程用 <code>Stepper</code>，平级页面切换用 <code>Menu</code>。</p>
+        <p>组件不做路由：<code>Href</code> 交给浏览器，宿主用 <code>Visible</code> 决定哪些层级值得出现在窄屏上。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="breadcrumb-basic"
+                  Title="基础用法"
+                  Description="最后一个可见项自动成为当前项并带 aria-current=page；前面的层级渲染为原生链接。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Breadcrumb Items="@Items" AriaLabel="文档层级" />
+                    <span class="preview-feedback" role="status">当前项：@CurrentLabel</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="breadcrumb-separator"
+                  Title="自定义分隔符与层级边界"
+                  Description="Separator 替换默认的 Chevron；Visible 为 false 的层级不渲染也不参与当前项判断，Disabled 的层级保留链接但标记为不可用。"
+                  Code="@SeparatorCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Breadcrumb Items="@EdgeItems" AriaLabel="发布层级" Separator="@SlashSeparator" />
+                    <span class="preview-feedback" role="status">当前项：@EdgeCurrentLabel</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="breadcrumb-tuning"
+                  Title="层级与分隔符切换"
+                  Description="隐藏层级让路径在窄屏下变短，禁用层级保留位置但不可点击；右侧控件即时生效。"
+                  Code="@TuningCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <Breadcrumb Items="@TuningItems" AriaLabel="文档层级" Separator="@(_customSeparator ? SlashSeparator : null)" />
+                    <span class="preview-feedback" role="status">当前项：@TuningCurrentLabel</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox @bind-Value="_showWorkspace">显示工作区层级</Checkbox>
+                <Checkbox @bind-Value="_disableProjects">禁用项目层级</Checkbox>
+                <Checkbox @bind-Value="_customSeparator">使用自定义分隔符</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span>只有非当前项渲染为原生 <code>a</code> 链接；最后一个可见项自动带 <code>aria-current="page"</code>，被禁用的层级保留链接并标记 <code>aria-disabled</code>。</span>
         <span>组件不内置路由、折叠或响应式自动省略；窄屏下路径换行，宿主可通过 <code>Visible</code> 控制层级。</span>
+        <span><code>Separator</code> 只提供内容，装饰属性（<code>aria-hidden</code>）由组件补齐，所以自定义分隔符不会被读屏重复播报。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] BreadcrumbRelated =
+    [
+        new("Stepper", "/components/stepper"),
+        new("Menu", "/components/menu"),
+        new("Pagination", "/components/pagination")
+    ];
+
+    private const string BasicCode = """
+        <Breadcrumb Items="Trail" AriaLabel="文档层级" />
+        """;
+
+    private const string SeparatorCode = """
+        <Breadcrumb Items="Trail" Separator="@SlashSeparator" />
+
+        private RenderFragment SlashSeparator => builder => builder.AddContent(0, "/");
+
+        private IReadOnlyList<BreadcrumbItem> Trail =>
+        [
+            new("Home", "/"),
+            new("Releases", "/releases", @<Icon Definition="@AeterniIcons.Star" Size="Size.Small" />),
+            new("Draft", "/releases/draft", Visible: false),
+            new("Notes", "/releases/notes", Disabled: true),
+            new("AeterniUI")
+        ];
+        """;
+
+    private const string TuningCode = """
+        <Breadcrumb Items="Trail" Separator="@(_compact ? SlashSeparator : null)" />
+
+        private IReadOnlyList<BreadcrumbItem> Trail =>
+        [
+            new("Home", "/"),
+            new("Workspace", "/workspace", Visible: ShowWorkspace),
+            new("Projects", "/workspace/projects", Disabled: DisableProjects),
+            new("AeterniUI")
+        ];
+        """;
+
     private bool _showWorkspace = true;
     private bool _disableProjects;
     private bool _customSeparator;
 
-    private static RenderFragment CustomSeparator => builder => builder.AddContent(0, "/");
+    private static RenderFragment SlashSeparator => builder => builder.AddContent(0, "/");
 
-    private IReadOnlyList<BreadcrumbItem> Items =>
+    private static IReadOnlyList<BreadcrumbItem> Items =>
+    [
+        new("Home", "/"),
+        new("Components", "/components"),
+        new("导航组件", "/components/breadcrumb"),
+        new("Breadcrumb")
+    ];
+
+    private static IReadOnlyList<BreadcrumbItem> EdgeItems =>
+    [
+        new("Home", "/"),
+        new("Releases", "/releases", @<Icon Definition="@AeterniIcons.Star" Size="Size.Small" />),
+        new("Draft", "/releases/draft", Visible: false),
+        new("Notes", "/releases/notes", Disabled: true),
+        new("AeterniUI")
+    ];
+
+    private IReadOnlyList<BreadcrumbItem> TuningItems =>
     [
         new("Home", "/"),
         new("Workspace", "/workspace", Visible: _showWorkspace),
@@ -40,4 +135,9 @@
         new("AeterniUI")
     ];
 
+    private string CurrentLabel => Items.Last(item => item.Visible).Label;
+
+    private string EdgeCurrentLabel => EdgeItems.Last(item => item.Visible).Label;
+
+    private string TuningCurrentLabel => TuningItems.Last(item => item.Visible).Label;
 }

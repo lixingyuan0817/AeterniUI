@@ -1,27 +1,122 @@
 ﻿@page "/components/pagination"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 
-<ComponentPreview AnchorId="pagination" Category="导航组件" Title="Pagination" ComponentName="Pagination" Description="用于页面导航的轻量分页控件。">
-    <Preview>
-        <div class="preview-form-control">
-            <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" />
-            <span class="preview-feedback" role="status">当前第 @_page 页</span>
-            <Pagination CurrentPage="1" TotalPages="1" AriaLabel="单页分页（前后按钮均禁用）" />
-        </div>
-    </Preview>
-    <Controls>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 1)">第一页</Button>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 8)">中间页</Button>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(_ => _page = 15)">最后一页</Button>
-    </Controls>
-    <Notes>
-        <span>前后操作使用核心 Chevron 图标；区域、页码和前后按钮文案都可通过组件参数或全局文案表本地化。</span>
-        <span><code>prefers-reduced-motion: reduce</code> 下关闭当前页缩放相关过渡。</span>
-    </Notes>
-</ComponentPreview>
-@code {
-    private int _page = 3;
-    private void OnPageChanged(int page) => _page = page;
+<PageTitle>Aeterni UI · Pagination</PageTitle>
 
+<ComponentPage AnchorId="pagination"
+               Category="导航组件"
+               Title="Pagination"
+               ComponentName="Pagination"
+               Description="用于页面导航的轻量分页控件：页码窗口、相邻页与前后操作。"
+               Related="@PaginationRelated">
+    <WhenToUse>
+        <p>长列表按页切分时使用：表格、搜索结果、日志。只需要「上一页 / 下一页」时也用它，把 <code>TotalPages</code> 设小即可；整块内容切换用 <code>Tabs</code>。</p>
+        <p>组件只报告页码、不取数据：当前页由使用方持有，收到 <code>CurrentPageChanged</code> 后再去加载对应数据。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="pagination-basic"
+                  Title="基础用法"
+                  Description="CurrentPage 与 TotalPages 决定页码窗口，SiblingCount 决定当前页两侧显示几个页码；只有一页时前后操作同时禁用。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="内容分页" />
+                    <span class="preview-feedback" role="status">当前第 @_page 页</span>
+                    <Pagination CurrentPage="1" TotalPages="1" AriaLabel="单页分页（前后按钮均禁用）" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="pagination-siblings"
+                  Title="页码范围与文案"
+                  Description="SiblingCount 越大，当前页两侧保留的页码越多；页码与前后操作的文案都能按实例覆盖。"
+                  Code="@SiblingCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="0" AriaLabel="不显示相邻页" />
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="2" AriaLabel="两侧各两个页码" />
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1"
+                                PreviousLabel="上一页" NextLabel="下一页" PageLabelFormat="第 {0} 页"
+                                AriaLabel="自定义文案" />
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="pagination-controls"
+                  Title="跳转到指定页"
+                  Description="页码始终是受控值：按钮、输入框与组件内部的点击都只写同一个字段，组件不缓存任何分页状态。"
+                  Code="@ControlCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="可调分页" />
+                    <span class="preview-feedback" role="status">当前第 @_page 页，共 15 页</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => _page = 1)">第一页</Button>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => _page = 8)">中间页</Button>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => _page = 15)">最后一页</Button>
+                <div class="control-field">
+                    <label for="pagination-page">CurrentPage</label>
+                    <input id="pagination-page" type="number" min="1" max="15" @bind="PageInput" />
+                </div>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>前后操作使用核心 Chevron 图标；区域名称、页码与前后按钮文案都可通过实例参数或全局文案表本地化，<code>PageLabelFormat</code> 必须保留 <code>{0}</code> 页码占位符。</span>
+        <span><code>CurrentPage</code> 必须落在 1 到 <code>TotalPages</code> 之间，<code>SiblingCount</code> 不能为负数：越界值会在参数设置阶段抛出，避免页面渲染出空的分页条。</span>
+        <span>页码窗口固定保留第 1 页与最后一页，中间用省略号折叠；<code>prefers-reduced-motion: reduce</code> 下关闭当前页相关的过渡。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] PaginationRelated =
+    [
+        new("List / ListItem", "/components/list"),
+        new("VirtualList", "/components/virtual-list"),
+        new("Tabs / Tab", "/components/tabs"),
+        new("Stepper", "/components/stepper")
+    ];
+
+    private const string BasicCode = """
+        <Pagination CurrentPage="Page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" />
+
+        <Pagination CurrentPage="1" TotalPages="1" />
+        """;
+
+    private const string SiblingCode = """
+        <Pagination CurrentPage="Page" TotalPages="15" SiblingCount="2" />
+
+        <Pagination CurrentPage="Page" TotalPages="15"
+                    PreviousLabel="上一页"
+                    NextLabel="下一页"
+                    PageLabelFormat="第 {0} 页" />
+        """;
+
+    private const string ControlCode = """
+        <Pagination CurrentPage="Page" TotalPages="15" CurrentPageChanged="OnPageChanged" />
+
+        @code {
+            private int Page = 3;
+
+            private async Task OnPageChanged(int page)
+            {
+                Page = page;
+                await LoadPageAsync(page);   // 数据由宿主加载，组件只报告页码
+            }
+        }
+        """;
+
+    private int _page = 3;
+
+    private int PageInput
+    {
+        get => _page;
+        set => _page = Math.Clamp(value, 1, 15);
+    }
+
+    private void OnPageChanged(int page) => _page = page;
 }

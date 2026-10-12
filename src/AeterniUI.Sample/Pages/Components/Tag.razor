@@ -3,72 +3,127 @@
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Tag</PageTitle>
 
-<ComponentPreview AnchorId="tag"
-                  Category="基础组件"
-                  Title="Tag"
-                  ComponentName="Tag"
-                  Description="用于分类、状态和筛选条件的紧凑标签，关闭动作复用 Button 的图标能力。">
-    <Preview>
-        @if (_tagRemoved)
-        {
-            <div class="preview-empty">
-                <span>Tag 已触发 OnDismiss</span>
-                <Button Variant="ButtonVariant.Link"
-                        Size="Size.Small"
-                        OnClick="RestoreTag">
-                    恢复
-                </Button>
-            </div>
-        }
-        else
-        {
-            <Tag Color="@_tagColor"
-                 Variant="@_tagVariant"
-                 Size="@_tagSize"
-                 Dismissible="@_tagDismissible"
-                 DismissLabel="移除预览标签"
-                 OnDismiss="DismissTag">
-                @(_tagText)
-            </Tag>
-        }
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="tag-text">标签文字</label>
-            <input id="tag-text" @bind="_tagText" />
+<ComponentPage AnchorId="tag"
+               Category="基础组件"
+               Title="Tag"
+               ComponentName="Tag"
+               Description="分类、状态与筛选条件的紧凑标签，可带两端图标与关闭动作。"
+               Related="@TagRelated">
+    <WhenToUse>
+        <p>给列表项、卡片或记录打一个简短的分类、状态、筛选标记时使用：<code>已通过</code>、<code>待审核</code>、<code>后端</code>。需要一组可切换的筛选条件用 <code>Segmented</code> 或 <code>ToggleGroup</code>，只需要一个数字角标用 <code>Badge</code>。</p>
+        <p>标签默认是只读标记；<code>Dismissible</code> 只负责渲染关闭按钮，移除动作回传到 <code>OnDismiss</code>，由宿主决定何时把该标签从集合里删掉。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="tag-basic"
+                  Title="语意色与变体"
+                  Description="Color 决定语意色，Variant 决定强调层级：默认是柔和填充，Soft 更轻，Outline 只留描边。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-state-row">
+                    <Tag Color="Color.Primary">默认</Tag>
+                    <Tag Color="Color.Success" Variant="TagVariant.Soft">已通过</Tag>
+                    <Tag Color="Color.Warning" Variant="TagVariant.Outline">待审核</Tag>
+                    <Tag Color="Color.Danger">已拒绝</Tag>
+                    <Tag Color="Color.Neutral" Variant="TagVariant.Outline">已归档</Tag>
+                </div>
+            </Preview>
+        </DemoCard>
 
+        <DemoCard Id="tag-icons"
+                  Title="两端图标"
+                  Description="StartIcon 与 EndIcon 接收任意 RenderFragment；图标交给共享 Icon 组件负责尺寸，容器本身对读屏隐藏。"
+                  Code="@IconCode">
+            <Preview>
+                <div class="preview-state-row">
+                    <Tag Color="Color.Success" StartIcon="@IconStart" AriaLabel="已完成构建">已通过</Tag>
+                    <Tag Color="Color.Info" EndIcon="@IconEnd" AriaLabel="含跳转">查看详情</Tag>
+                    <Tag Color="Color.Neutral" StartIcon="@IconStart" EndIcon="@IconEnd" AriaLabel="两端图标">双向</Tag>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <div class="preview-state-row">
-                <Tag Color="Color.Success" StartIcon="@IconStart" AriaLabel="已完成构建">已通过</Tag>
-                <Tag Color="Color.Info" EndIcon="@IconEnd" AriaLabel="含跳转">查看详情</Tag>
-                <Tag Color="Color.Neutral" StartIcon="@IconStart" EndIcon="@IconEnd" AriaLabel="两端图标">双向</Tag>
-            </div>        </div>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Color</span>
-                <ShowcaseSelect TValue="Color" Id="tag-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_tagColor" />
-            </div>
-            <div class="control-field">
-                <span>Variant</span>
-                <ShowcaseSelect TValue="TagVariant" Id="tag-variant" AriaLabel="Variant" Options="@(Enum.GetValues<TagVariant>())" @bind-Value="_tagVariant" />
-            </div>
-            <div class="control-field">
-                <span>Size</span>
-                <ShowcaseSelect TValue="Size" Id="tag-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_tagSize" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_tagDismissible">Dismissible</Checkbox>
-    </Controls>
-</ComponentPreview>
+        <DemoCard Id="tag-dismissible"
+                  Title="尺寸与关闭动作"
+                  Description="Size 有三档；Dismissible 打开后多出一个关闭按钮，点击后由 OnDismiss 通知宿主。右侧控件即时生效。"
+                  Code="@DismissCode">
+            <Preview>
+                @if (_tagRemoved)
+                {
+                    <div class="preview-empty">
+                        <span>Tag 已触发 OnDismiss</span>
+                        <Button Variant="ButtonVariant.Link" Size="Size.Small" OnClick="RestoreTag">恢复</Button>
+                    </div>
+                }
+                else
+                {
+                    <Tag Color="@_tagColor"
+                         Variant="@_tagVariant"
+                         Size="@_tagSize"
+                         Dismissible="@_tagDismissible"
+                         DismissLabel="移除预览标签"
+                         OnDismiss="DismissTag">
+                        @_tagText
+                    </Tag>
+                }
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="tag-text">标签文字</label>
+                    <input id="tag-text" @bind="_tagText" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Color</span>
+                        <ShowcaseSelect TValue="Color" Id="tag-color" AriaLabel="Color" Options="@(Enum.GetValues<Color>())" @bind-Value="_tagColor" />
+                    </div>
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="TagVariant" Id="tag-variant" AriaLabel="Variant" Options="@(Enum.GetValues<TagVariant>())" @bind-Value="_tagVariant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="tag-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_tagSize" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_tagDismissible">Dismissible</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>渲染为内联 <code>span</code>，不生成交互角色：标签正文本身不可点，唯一可聚焦的元素是 <code>Dismissible</code> 打开后的关闭按钮。</span>
+        <span>关闭按钮是一个图标按钮，无障碍名称取自 <code>DismissLabel</code>，缺省用 <code>AeterniUITextOptions.TagDismissLabel</code>；同一屏里有多个可关闭标签时应逐个给出可区分的名称。</span>
+        <span>两端图标包在 <code>aria-hidden</code> 容器里：图标是装饰，标签的含义必须由可见文字（或 <code>AriaLabel</code>）表达。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    // StartIcon / EndIcon take any RenderFragment; the shared Icon component keeps
-    // the glyph sizing on --aeterni-icon-render-size (REV-150/159).
+    private static readonly ShowcaseRelatedLink[] TagRelated =
+    [
+        new("Badge", "/components/badge"),
+        new("Button", "/components/button"),
+        new("Segmented", "/components/segmented")
+    ];
+
+    private const string BasicCode = """
+        <Tag Color="Color.Success">已通过</Tag>
+        <Tag Color="Color.Warning" Variant="TagVariant.Outline">待审核</Tag>
+        <Tag Color="Color.Neutral" Size="Size.Small">后端</Tag>
+        """;
+
+    private const string IconCode = """
+        <Tag Color="Color.Success" StartIcon="CheckIcon">已通过</Tag>
+        <Tag Color="Color.Info" EndIcon="ChevronIcon" AriaLabel="含跳转">查看详情</Tag>
+        """;
+
+    private const string DismissCode = """
+        <Tag Color="Color.Primary" Dismissible OnDismiss="RemoveTag">
+            @Item.Name
+        </Tag>
+        """;
+
     private RenderFragment IconStart => @<Icon Definition="@AeterniIcons.Check" Size="Size.Small" />;
 
     private RenderFragment IconEnd => @<Icon Definition="@AeterniIcons.ChevronRight" Size="Size.Small" />;
@@ -85,13 +140,7 @@
 
     private bool _tagRemoved;
 
-    private void DismissTag()
-    {
-        _tagRemoved = true;
-    }
+    private void DismissTag() => _tagRemoved = true;
 
-    private void RestoreTag(MouseEventArgs _)
-    {
-        _tagRemoved = false;
-    }
+    private void RestoreTag(MouseEventArgs _) => _tagRemoved = false;
 }

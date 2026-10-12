@@ -1,86 +1,195 @@
 ﻿@page "/components/flash-card"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · FlashCard</PageTitle>
 
-<ComponentPreview AnchorId="flash-card"
-                  Category="基础组件"
-                  Title="FlashCard"
-                  ComponentName="FlashCard"
-                  Description="图片闪卡：卡面可以只放一张图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。">
-    <Preview>
-        <div class="preview-flash-card-grid">
-            <FlashCard ImageSrc="@CoverImage"
-                       ImageAlt="@CoverAlt"
-                       Title="魔法师"
-                       Description="指针移到卡面上观察闪光与 3D 跟随，点击或按 Enter 翻到背面。"
-                       AspectRatio="1"
-                       Sheen="@_sheen"
-                       SheenIntensity="@_sheenIntensity"
-                       MaxTiltAngle="@_maxTiltAngle"
-                       TiltScale="@_tiltScale"
-                       Tilt="@_tilt"
-                       Disabled="@_disabled"
-                       FlipTrigger="@_flipTrigger"
-                       IsFlipped="@_flipped"
-                       IsFlippedChanged="OnFlipChanged"
-                       AriaLabel="魔法师闪卡">
-                <Back>
-                    <span class="preview-flash-card-back">
-                        <span class="preview-flash-card-back__label">背面</span>
-                        <span>翻转状态由 <code>IsFlipped</code> 持有；未翻出的一面用 <code>aria-hidden</code> 与 <code>inert</code> 移出无障碍树。</span>
-                    </span>
-                </Back>
-            </FlashCard>
+<ComponentPage AnchorId="flash-card"
+               Category="基础组件"
+               Title="FlashCard"
+               ComponentName="FlashCard"
+               Description="图片闪卡：卡面可以只放一张图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。"
+               Related="@FlashCardRelated">
+    <WhenToUse>
+        <p>展示一张有实物感的图片卡片时使用：卡牌、皮肤、封面、收藏品。普通内容容器用 <code>Card</code>，多张闪卡要收成一堆用 <code>FlashCardGroup</code>。</p>
+        <p>闪光与倾斜是叠加在媒体区之上的装饰层：要承载表单或长文本请换 <code>Card</code>，那里的表面不带 3D 变换。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="flash-card-image"
+                  Title="纯图片闪卡"
+                  Description="只传 ImageSrc 时不渲染说明区与背面，得到一张带闪光、随指针倾斜的纯图片卡；AspectRatio 决定卡面比例，Sheen 选择光泽配方。"
+                  Code="@ImageCode">
+            <Preview>
+                <div class="preview-flash-card-grid">
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               AspectRatio="1"
+                               Sheen="FlashCardSheen.Holo"
+                               SheenIntensity="0.6" />
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               AspectRatio="0.78"
+                               Sheen="FlashCardSheen.Shine"
+                               SheenIntensity="0.6" />
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               AspectRatio="1.4"
+                               Sheen="FlashCardSheen.None" />
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <FlashCard ImageSrc="@CoverImage"
-                       ImageAlt="@CoverAlt"
-                       AspectRatio="0.78"
-                       Sheen="@_sheen"
-                       SheenIntensity="@_sheenIntensity"
-                       MaxTiltAngle="@_maxTiltAngle"
-                       TiltScale="@_tiltScale"
-                       Tilt="@_tilt" />
-        </div>
-        <span class="preview-feedback" role="status">当前显示：@(_flipped ? "背面" : "正面")；最近事件：@_lastEvent</span>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Sheen</span>
-            <ShowcaseSelect TValue="FlashCardSheen" Id="flash-card-sheen" AriaLabel="Sheen" Options="@(Enum.GetValues<FlashCardSheen>())" @bind-Value="_sheen" />
-        </div>
-        <div class="control-field">
-            <span>SheenIntensity</span>
-            <ShowcaseSelect TValue="double" Id="flash-card-sheen-intensity" AriaLabel="SheenIntensity" Options="@Intensities" @bind-Value="_sheenIntensity" />
-        </div>
-        <div class="control-field">
-            <span>MaxTiltAngle</span>
-            <ShowcaseSelect TValue="double" Id="flash-card-angle" AriaLabel="MaxTiltAngle" Options="@Angles" TextSelector="@(value => $"{value}°")" @bind-Value="_maxTiltAngle" />
-        </div>
-        <div class="control-field">
-            <span>TiltScale</span>
-            <ShowcaseSelect TValue="double" Id="flash-card-scale" AriaLabel="TiltScale" Options="@Scales" @bind-Value="_tiltScale" />
-        </div>
-        <div class="control-field">
-            <span>FlipTrigger</span>
-            <ShowcaseSelect TValue="FlashCardFlipTrigger" Id="flash-card-flip" AriaLabel="FlipTrigger" Options="@(Enum.GetValues<FlashCardFlipTrigger>())" @bind-Value="_flipTrigger" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_tilt">Tilt</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="FlipFromHost">从宿主翻面</Button>
-    </Controls>
+        <DemoCard Id="flash-card-flip"
+                  Title="图文说明与背面"
+                  Description="Title 与 Description 组成说明区，Back 让卡片可翻转：翻转是组件状态，点击、Enter 与空格都通过 IsFlippedChanged 提出新值。"
+                  Code="@FlipCode">
+            <Preview>
+                <div class="preview-flash-card-grid">
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               Title="魔法师"
+                               Description="点击或按 Enter 翻到背面。"
+                               AspectRatio="0.78"
+                               IsFlipped="@_flipDemoFlipped"
+                               IsFlippedChanged="OnFlipDemoChanged"
+                               AriaLabel="魔法师闪卡">
+                        <Back>
+                            <span class="preview-flash-card-back">
+                                <span class="preview-flash-card-back__label">背面</span>
+                                <span>未翻出的一面用 <code>aria-hidden</code> 与 <code>inert</code> 移出无障碍树。</span>
+                            </span>
+                        </Back>
+                    </FlashCard>
+                </div>
+                <span class="preview-feedback" role="status">当前显示：@(_flipDemoFlipped ? "背面" : "正面")</span>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="flash-card-tuning"
+                  Title="光泽、倾斜与翻面参数"
+                  Description="左边是完整闪卡，右边只传了图片；右侧控件即时生效，改变光泽配方、倾斜角度与翻面触发方式。"
+                  Code="@TuningCode">
+            <Preview>
+                <div class="preview-flash-card-grid">
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               Title="魔法师"
+                               Description="指针移到卡面上观察闪光与 3D 跟随，点击或按 Enter 翻到背面。"
+                               AspectRatio="1"
+                               Sheen="@_sheen"
+                               SheenIntensity="@_sheenIntensity"
+                               MaxTiltAngle="@_maxTiltAngle"
+                               TiltScale="@_tiltScale"
+                               Tilt="@_tilt"
+                               Disabled="@_disabled"
+                               FlipTrigger="@_flipTrigger"
+                               IsFlipped="@_flipped"
+                               IsFlippedChanged="OnFlipChanged"
+                               AriaLabel="魔法师闪卡">
+                        <Back>
+                            <span class="preview-flash-card-back">
+                                <span class="preview-flash-card-back__label">背面</span>
+                                <span>翻转状态由 <code>IsFlipped</code> 持有；未翻出的一面用 <code>aria-hidden</code> 与 <code>inert</code> 移出无障碍树。</span>
+                            </span>
+                        </Back>
+                    </FlashCard>
+
+                    <FlashCard ImageSrc="@CoverImage"
+                               ImageAlt="@CoverAlt"
+                               AspectRatio="0.78"
+                               Sheen="@_sheen"
+                               SheenIntensity="@_sheenIntensity"
+                               MaxTiltAngle="@_maxTiltAngle"
+                               TiltScale="@_tiltScale"
+                               Tilt="@_tilt" />
+                </div>
+                <span class="preview-feedback" role="status">当前显示：@(_flipped ? "背面" : "正面")；最近事件：@_lastEvent</span>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Sheen</span>
+                    <ShowcaseSelect TValue="FlashCardSheen" Id="flash-card-sheen" AriaLabel="Sheen" Options="@(Enum.GetValues<FlashCardSheen>())" @bind-Value="_sheen" />
+                </div>
+                <div class="control-field">
+                    <span>SheenIntensity</span>
+                    <ShowcaseSelect TValue="double" Id="flash-card-sheen-intensity" AriaLabel="SheenIntensity" Options="@Intensities" @bind-Value="_sheenIntensity" />
+                </div>
+                <div class="control-field">
+                    <span>MaxTiltAngle</span>
+                    <ShowcaseSelect TValue="double" Id="flash-card-angle" AriaLabel="MaxTiltAngle" Options="@Angles" TextSelector="@(value => $"{value}°")" @bind-Value="_maxTiltAngle" />
+                </div>
+                <div class="control-field">
+                    <span>TiltScale</span>
+                    <ShowcaseSelect TValue="double" Id="flash-card-scale" AriaLabel="TiltScale" Options="@Scales" @bind-Value="_tiltScale" />
+                </div>
+                <div class="control-field">
+                    <span>FlipTrigger</span>
+                    <ShowcaseSelect TValue="FlashCardFlipTrigger" Id="flash-card-flip" AriaLabel="FlipTrigger" Options="@(Enum.GetValues<FlashCardFlipTrigger>())" @bind-Value="_flipTrigger" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_tilt">Tilt</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="FlipFromHost">从宿主翻面</Button>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
         <span><code>Sheen</code> 就是闪卡的那层光泽：<code>Holo</code>（默认）是铺满整面的镭射彩虹加金属拉丝，<code>Shine</code> 是整面金属白光的明暗流动，<code>None</code> 关闭。炫光铺满整个卡面，指针移动只改变整片光纹的相位，不会在指针下面单出一块光斑；<code>SheenIntensity</code> 取 0～1 控制强度。</span>
-        <span>光泽是叠加在媒体区之上的装饰层，只覆盖图片，不盖住图文说明区，也不参与容器背景填充；没有 <code>ImageSrc</code> 时不会渲染这一层。镭射彩虹用 <code>mix-blend-mode: color</code> 保留图片自身明度，金属白光用 <code>screen</code> 提亮——所以卡片不会被洗白、文字对比度也不会被压低。静止时按一半强度呈现，指针移入或卡片倾斜时才到全强度。</span>
-        <span>左边是完整闪卡：图片、图文说明与背面内容都由参数组合；右边只传了 <code>ImageSrc</code>，说明区与背面都不渲染，只剩一张带闪光、随指针倾斜的纯图片卡。</span>
-        <span>翻转是组件状态而不是 CSS 悬浮：<code>FlipTrigger="Click"</code>（默认）时点击、Enter 与 Space 都通过 <code>IsFlippedChanged</code> 提出新状态；<code>Hover</code> 只做指针预览，不改变状态也不隐藏任何一面。</span>
-        <span>3D 跟随只在 JS 里写入旋转与光泽位置变量，视觉全部留在隔离样式表中；<code>Tilt="false"</code>、<code>Disabled</code> 与系统的「减少动态效果」都会跳过跟随，卡片保持平整、光泽停在原位。</span>
+        <span>光泽只覆盖图片区，不盖住图文说明区，也不参与容器背景填充；没有 <code>ImageSrc</code> 时不会渲染这一层。镭射彩虹用 <code>mix-blend-mode: color</code> 保留图片自身明度，金属白光用 <code>screen</code> 提亮，所以卡片不会被洗白、文字对比度也不会被压低；静止时按一半强度呈现，指针移入或卡片倾斜时才到全强度。</span>
+        <span>翻转是组件状态而不是 CSS 悬浮：<code>FlipTrigger="Click"</code>（默认）时点击、Enter 与 Space 都通过 <code>IsFlippedChanged</code> 提出新状态；<code>Hover</code> 只做指针预览，不改变状态也不隐藏任何一面。3D 跟随只在 JS 里写入旋转与光泽位置变量，视觉全部留在隔离样式表中；<code>Tilt="false"</code>、<code>Disabled</code> 与系统的「减少动态效果」都会跳过跟随，卡片保持平整、光泽停在原位。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] FlashCardRelated =
+    [
+        new("FlashCardGroup", "/components/flash-card-group"),
+        new("Card", "/components/card"),
+        new("Surface", "/components/surface")
+    ];
+
+    private const string ImageCode = """
+        <FlashCard ImageSrc="images/flash-card/magician.jpg"
+                   ImageAlt="蓝衣魔法师与金色法阵的卡面插画"
+                   AspectRatio="0.78"
+                   Sheen="FlashCardSheen.Shine" />
+        """;
+
+    private const string FlipCode = """
+        <FlashCard ImageSrc="images/flash-card/magician.jpg"
+                   ImageAlt="卡面插画"
+                   Title="魔法师"
+                   Description="点击或按 Enter 翻到背面"
+                   IsFlipped="IsFlipped"
+                   IsFlippedChanged="HandleFlipChanged">
+            <Back>
+                <p>背面内容由宿主决定。</p>
+            </Back>
+        </FlashCard>
+        """;
+
+    private const string TuningCode = """
+        <FlashCard ImageSrc="images/flash-card/magician.jpg"
+                   ImageAlt="卡面插画"
+                   Sheen="FlashCardSheen.Holo"
+                   SheenIntensity="0.6"
+                   Tilt="true"
+                   MaxTiltAngle="16"
+                   TiltScale="1.02"
+                   FlipTrigger="FlashCardFlipTrigger.Click" />
+        """;
+
+    /// <summary>
+    /// Sample cover shipped with the sample site (800×800 JPEG under
+    /// wwwroot/images/flash-card). The path stays relative so the GitHub Pages
+    /// base href keeps resolving it from a sub-path deployment.
+    /// </summary>
+    private const string CoverImage = "images/flash-card/magician.jpg";
+
+    private const string CoverAlt = "蓝衣魔法师与金色法阵的卡面插画";
+
     private bool _flipped;
+    private bool _flipDemoFlipped;
     private bool _tilt = true;
     private bool _disabled;
     private FlashCardSheen _sheen = FlashCardSheen.Holo;
@@ -94,14 +203,11 @@
     private static readonly double[] Angles = [10, 16, 24];
     private static readonly double[] Scales = [1, 1.02, 1.05];
 
-    /// <summary>
-    /// Sample cover shipped with the sample site (800×800 JPEG under
-    /// wwwroot/images/flash-card). The path stays relative so the GitHub Pages
-    /// base href keeps resolving it from a sub-path deployment.
-    /// </summary>
-    private const string CoverImage = "images/flash-card/magician.jpg";
-
-    private const string CoverAlt = "蓝衣魔法师与金色法阵的卡面插画";
+    private Task OnFlipDemoChanged(bool value)
+    {
+        _flipDemoFlipped = value;
+        return Task.CompletedTask;
+    }
 
     private Task OnFlipChanged(bool value)
     {
@@ -115,5 +221,4 @@
         _flipped = !_flipped;
         _lastEvent = "宿主直接设置 IsFlipped";
     }
-
 }

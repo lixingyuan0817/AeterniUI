@@ -1,70 +1,156 @@
-﻿@page "/components/card"
+@page "/components/card"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Card</PageTitle>
 
-<ComponentPreview AnchorId="card"
-                  Category="基础组件"
-                  Title="Card"
-                  ComponentName="Card"
-                  Description="带有 Header、主体和 Footer 内容区域的结构化容器，也可以切换为整卡交互。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。">
-    <Preview>
-        <div class="preview-glass-scene">
-            <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
-            <Card Variant="@_cardVariant"
-                  Elevation="@_cardElevation"
-                  Padding="@_cardPadding"
-                  Bordered="@_cardBordered"
-                  Interactive="@_cardInteractive"
-                  AriaLabel="预览卡片"
-                  OnClick="MarkCardInteraction">
-                <Header><span class="preview-label">Card / Header</span></Header>
-                <ChildContent>
-                    <h3 class="preview-card-title">一张可组合的卡片</h3>
-                    <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
-                </ChildContent>
-                <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
-            </Card>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Variant</span>
-                <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_cardVariant" />
-            </div>
-            <div class="control-field">
-                <span>Elevation</span>
-                <ShowcaseSelect TValue="SurfaceElevation" Id="card-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_cardElevation" />
-            </div>
-            <div class="control-field">
-                <span>Padding</span>
-                <ShowcaseSelect TValue="SurfacePadding" Id="card-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_cardPadding" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_cardBordered">Bordered</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_cardInteractive">Interactive</Checkbox>
-        <span class="control-status" role="status">@_cardNote</span>
-    </Controls>
-</ComponentPreview>
+<ComponentPage AnchorId="card"
+               Category="基础组件"
+               Title="Card"
+               ComponentName="Card"
+               Description="带头部、主体与底部的结构化容器，也可以整卡变成一个可交互控件。"
+               Related="@CardRelated">
+    <WhenToUse>
+        <p>一块内容需要自己的边界和分段时使用：摘要卡、设置区块、列表项详情。只有一块表面、不需要分区时用 <code>Surface</code>。</p>
+        <p>整卡可点（<code>Interactive</code> 或传入 <code>OnClick</code>）只适用于"整张卡就是一个动作"，卡里再放按钮或链接会让键盘路径变得含糊。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="card-basic"
+                  Title="基础用法"
+                  Description="Header、主体与 Footer 三段都是可选的，只传其中一段也不会留下空区域。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Card Variant="SurfaceVariant.Elevated"
+                          Elevation="SurfaceElevation.Small"
+                          Padding="SurfacePadding.Medium"
+                          Bordered="true"
+                          FullWidth="true">
+                        <Header><span class="preview-label">Card / Header</span></Header>
+                        <ChildContent>
+                            <h3 class="preview-card-title">一张可组合的卡片</h3>
+                            <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+                        </ChildContent>
+                        <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+                    </Card>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="card-interactive"
+                  Title="整卡交互与键盘"
+                  Description="Interactive 或提供 OnClick 时根元素变成 role=button 并可聚焦；Enter 与空格都能触发，禁用时退出 Tab 序列。"
+                  Code="@InteractiveCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Card Interactive="true"
+                          AriaLabel="打开项目周报"
+                          Padding="SurfacePadding.Medium"
+                          Bordered="true"
+                          FullWidth="true"
+                          OnClick="MarkCardInteraction">
+                        <Header><span class="preview-label">周报</span></Header>
+                        <ChildContent>
+                            <h3 class="preview-card-title">项目周报</h3>
+                            <p class="preview-card-copy">点击整张卡片或聚焦后按 Enter / 空格。</p>
+                        </ChildContent>
+                    </Card>
+                    <span class="preview-feedback" role="status">@_cardNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="card-variants"
+                  Title="变体与可调属性"
+                  Description="变体、阴影与内边距各自独立成档；预览框内铺了一层背景，因为 Glass 的模糊必须有内容可采样才看得出来。右侧控件即时生效。"
+                  Code="@VariantCode">
+            <Preview>
+                <div class="preview-glass-scene">
+                    <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
+                    <Card Variant="@_variant"
+                          Elevation="@_elevation"
+                          Padding="@_padding"
+                          Bordered="@_bordered"
+                          Interactive="@_interactive"
+                          AriaLabel="预览卡片"
+                          OnClick="MarkCardInteraction">
+                        <Header><span class="preview-label">Card / Header</span></Header>
+                        <ChildContent>
+                            <h3 class="preview-card-title">一张可组合的卡片</h3>
+                            <p class="preview-card-copy">主体内容可以是任意 RenderFragment。</p>
+                        </ChildContent>
+                        <Footer><span class="preview-card-footer">Card / Footer</span></Footer>
+                    </Card>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="SurfaceVariant" Id="card-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Elevation</span>
+                        <ShowcaseSelect TValue="SurfaceElevation" Id="card-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_elevation" />
+                    </div>
+                    <div class="control-field">
+                        <span>Padding</span>
+                        <ShowcaseSelect TValue="SurfacePadding" Id="card-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_padding" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_bordered">Bordered</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_interactive">Interactive</Checkbox>
+                <span class="control-status" role="status">@_cardNote</span>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>三段区域只在传入时渲染：没有 <code>Header</code> 就不留头部空白，只给主体时卡片就是一块带内边距的表面。</span>
+        <span><code>Interactive</code>（或传入 <code>OnClick</code>）把根元素变成 <code>role="button"</code> + <code>tabindex="0"</code>，Enter 与空格都会触发 <code>OnClick</code>；禁用时改为输出 <code>aria-disabled</code> 并退出 Tab 序列。静态卡片不注册任何监听器。</span>
+        <span>Card 不提供 <code>Radius</code>：它带三段结构、读起来是容器，固定使用容器圆角；需要圆角档位请用 <code>Surface</code>。<code>AriaLabel</code> 只在交互卡片上生效。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private SurfaceVariant _cardVariant = SurfaceVariant.Elevated;
+    private static readonly ShowcaseRelatedLink[] CardRelated =
+    [
+        new("Surface", "/components/surface"),
+        new("Divider", "/components/divider"),
+        new("Descriptions", "/components/descriptions"),
+        new("List", "/components/list")
+    ];
 
-    private SurfaceElevation _cardElevation = SurfaceElevation.Small;
+    private const string BasicCode = """
+        <Card Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small" Bordered="true">
+            <Header><strong>项目周报</strong></Header>
+            <ChildContent><p>主体内容。</p></ChildContent>
+            <Footer><span>更新于今天</span></Footer>
+        </Card>
+        """;
 
-    private SurfacePadding _cardPadding = SurfacePadding.Medium;
+    private const string InteractiveCode = """
+        <Card Interactive="true" AriaLabel="打开项目周报" OnClick="OpenReport">
+            <h3>项目周报</h3>
+            <p>整张卡片就是一个动作。</p>
+        </Card>
+        """;
 
-    private bool _cardBordered = true;
+    private const string VariantCode = """
+        <Card Variant="SurfaceVariant.Subtle" Padding="SurfacePadding.Small">
+            <p>低对比底的卡片。</p>
+        </Card>
+        <Card Variant="SurfaceVariant.Glass" Padding="SurfacePadding.Large" Bordered="false">
+            <p>玻璃卡片需要背后有内容可采样。</p>
+        </Card>
+        """;
 
-    private bool _cardInteractive = true;
-
-    private string _cardNote = "点击卡片查看 OnClick。";
+    private SurfaceVariant _variant = SurfaceVariant.Elevated;
+    private SurfaceElevation _elevation = SurfaceElevation.Small;
+    private SurfacePadding _padding = SurfacePadding.Medium;
+    private bool _bordered = true;
+    private bool _interactive = true;
+    private string _cardNote = "点击卡片或按 Enter 查看 OnClick。";
 
     private void MarkCardInteraction()
     {

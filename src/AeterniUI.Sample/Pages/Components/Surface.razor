@@ -1,73 +1,148 @@
-﻿@page "/components/surface"
+@page "/components/surface"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · Surface</PageTitle>
 
-<ComponentPreview AnchorId="surface"
-                  Category="基础组件"
-                  Title="Surface"
-                  ComponentName="Surface"
-                  Description="不携带内容结构的视觉容器，用于统一处理背景、边框、阴影、圆角和内边距。预览框内铺了一层背景内容，因为模糊必须有东西可采样才看得出来。">
-    <Preview>
-        <div class="preview-glass-scene">
-            <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
-            <Surface Variant="@_surfaceVariant"
-                     Visible="@_surfaceVisible"
-                     Elevation="@_surfaceElevation"
-                     Padding="@_surfacePadding"
-                     Radius="@_surfaceRadius"
-                     Bordered="@_surfaceBordered"
-                     FullWidth="@_surfaceFullWidth">
-                <div class="preview-surface-content">
-                    <span class="preview-label">Surface preview</span>
-                    <strong>统一的表面容器</strong>
-                    <span>调整右侧属性查看视觉变化。</span>
+<ComponentPage AnchorId="surface"
+               Category="基础组件"
+               Title="Surface"
+               ComponentName="Surface"
+               Description="不携带内容结构的视觉容器：统一处理变体、阴影、圆角、内边距与外边框。"
+               Related="@SurfaceRelated">
+    <WhenToUse>
+        <p>只需要一块视觉表面时使用：把表单、工具栏、文档区从页面背景上抬起来，或给一组内容加统一的圆角与内边距。已经需要头部/主体/底部三段结构时用 <code>Card</code>。</p>
+        <p>表面只负责外观，不产生语义：它不会变成 landmark，也不参与表单布局，嵌套时请让内层承担内容结构。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="surface-basic"
+                  Title="基础用法"
+                  Description="默认档是平面 + 内边距；加 Bordered 得到清晰的边界，FullWidth 让它撑满父容器。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Surface Bordered="true" Padding="SurfacePadding.Large" FullWidth="true">
+                        <div class="preview-surface-content">
+                            <span class="preview-label">Surface</span>
+                            <span>一块不携带内容结构的表面：边框、圆角与内边距都由它统一给出。</span>
+                        </div>
+                    </Surface>
                 </div>
-            </Surface>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-grid">
-            <div class="control-field">
-                <span>Variant</span>
-                <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_surfaceVariant" />
-            </div>
-            <div class="control-field">
-                <span>Elevation</span>
-                <ShowcaseSelect TValue="SurfaceElevation" Id="surface-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_surfaceElevation" />
-            </div>
-            <div class="control-field">
-                <span>Padding</span>
-                <ShowcaseSelect TValue="SurfacePadding" Id="surface-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_surfacePadding" />
-            </div>
-            <div class="control-field">
-                <span>Radius</span>
-                <ShowcaseSelect TValue="SurfaceRadius" Id="surface-radius" AriaLabel="Radius" Options="@(Enum.GetValues<SurfaceRadius>())" @bind-Value="_surfaceRadius" />
-            </div>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_surfaceBordered">Bordered</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_surfaceFullWidth">FullWidth</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_surfaceVisible">Visible</Checkbox>
-    </Controls>
-</ComponentPreview>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="surface-variants"
+                  Title="变体、阴影、圆角与内边距"
+                  Description="变体决定表面与背景的关系；阴影、圆角和内边距各自独立成档，可以自由组合。"
+                  Code="@VariantCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Surface Variant="SurfaceVariant.Default" Bordered="true" Padding="SurfacePadding.Medium" FullWidth="true">
+                        <div class="preview-surface-content"><span class="preview-label">Default</span><span>平面表面，靠边框与背景分层。</span></div>
+                    </Surface>
+                    <Surface Variant="SurfaceVariant.Subtle" Padding="SurfacePadding.Medium" FullWidth="true">
+                        <div class="preview-surface-content"><span class="preview-label">Subtle</span><span>低对比底色，适合放在已有表面之内。</span></div>
+                    </Surface>
+                    <Surface Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small" Padding="SurfacePadding.Medium" Radius="SurfaceRadius.Large" FullWidth="true">
+                        <div class="preview-surface-content"><span class="preview-label">Elevated</span><span>带阴影，用于浮在内容之上的一层。</span></div>
+                    </Surface>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="surface-glass"
+                  Title="玻璃变体与可调属性"
+                  Description="Glass 用 backdrop-filter 采样背后的内容，所以预览框内铺了一层背景；不透明变体在这个场景里也能看出层叠关系。右侧控件即时生效。"
+                  Code="@GlassCode">
+            <Preview>
+                <div class="preview-glass-scene">
+                    <div class="preview-glass-scene__backdrop" aria-hidden="true"></div>
+                    <Surface Variant="@_variant"
+                             Visible="@_visible"
+                             Elevation="@_elevation"
+                             Padding="@_padding"
+                             Radius="@_radius"
+                             Bordered="@_bordered"
+                             FullWidth="@_fullWidth">
+                        <div class="preview-surface-content">
+                            <span class="preview-label">Surface preview</span>
+                            <strong>统一的表面容器</strong>
+                            <span>调整右侧属性查看视觉变化。</span>
+                        </div>
+                    </Surface>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="SurfaceVariant" Id="surface-variant" AriaLabel="Variant" Options="@(Enum.GetValues<SurfaceVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Elevation</span>
+                        <ShowcaseSelect TValue="SurfaceElevation" Id="surface-elevation" AriaLabel="Elevation" Options="@(Enum.GetValues<SurfaceElevation>())" @bind-Value="_elevation" />
+                    </div>
+                    <div class="control-field">
+                        <span>Padding</span>
+                        <ShowcaseSelect TValue="SurfacePadding" Id="surface-padding" AriaLabel="Padding" Options="@(Enum.GetValues<SurfacePadding>())" @bind-Value="_padding" />
+                    </div>
+                    <div class="control-field">
+                        <span>Radius</span>
+                        <ShowcaseSelect TValue="SurfaceRadius" Id="surface-radius" AriaLabel="Radius" Options="@(Enum.GetValues<SurfaceRadius>())" @bind-Value="_radius" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_bordered">Bordered</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_visible">Visible</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>Surface 只有一层根元素，不渲染任何内部结构：它的全部工作是把变体、阴影、圆角、内边距与外边框拼进根 class。</span>
+        <span>四档变体各有分工：<code>Default</code> 平面、<code>Subtle</code> 低对比底、<code>Elevated</code> 带阴影、<code>Glass</code> 半透明并模糊背后内容。玻璃必须铺在可被采样的内容之上，放在平坦背景里与不透明表面看起来一样。</span>
+        <span><code>Padding</code> 与 <code>Radius</code> 是枚举而不是自由字符串，避免宿主各拼一套；<code>Visible="false"</code> 输出 <code>hidden</code> 并附 <code>display: none</code>，而不是留一块空白。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
-    private bool _surfaceVisible = true;
-    private SurfaceVariant _surfaceVariant = SurfaceVariant.Glass;
+    private static readonly ShowcaseRelatedLink[] SurfaceRelated =
+    [
+        new("Card", "/components/card"),
+        new("Divider", "/components/divider"),
+        new("ButtonGroup", "/components/button-group")
+    ];
 
-    private SurfaceElevation _surfaceElevation = SurfaceElevation.Medium;
+    private const string BasicCode = """
+        <Surface Bordered="true" Padding="SurfacePadding.Large" FullWidth="true">
+            <p>一块统一的表面。</p>
+        </Surface>
+        """;
 
-    private SurfacePadding _surfacePadding = SurfacePadding.Large;
+    private const string VariantCode = """
+        <Surface Variant="SurfaceVariant.Subtle" Padding="SurfacePadding.Medium">低对比底</Surface>
+        <Surface Variant="SurfaceVariant.Elevated" Elevation="SurfaceElevation.Small" Radius="SurfaceRadius.Large">
+            浮在内容之上
+        </Surface>
+        <Surface Variant="SurfaceVariant.Glass" Padding="SurfacePadding.ExtraLarge">半透明表面</Surface>
+        """;
 
-    private SurfaceRadius _surfaceRadius = SurfaceRadius.Large;
+    private const string GlassCode = """
+        <Surface Variant="SurfaceVariant.Glass"
+                 Elevation="SurfaceElevation.Medium"
+                 Padding="SurfacePadding.Large"
+                 Radius="SurfaceRadius.Large"
+                 Bordered="true"
+                 FullWidth="true">
+            <p>玻璃表面需要背后有内容可采样。</p>
+        </Surface>
+        """;
 
-    private bool _surfaceBordered;
-
-    private bool _surfaceFullWidth;
-
+    private SurfaceVariant _variant = SurfaceVariant.Glass;
+    private SurfaceElevation _elevation = SurfaceElevation.Medium;
+    private SurfacePadding _padding = SurfacePadding.Large;
+    private SurfaceRadius _radius = SurfaceRadius.Large;
+    private bool _bordered;
+    private bool _fullWidth;
+    private bool _visible = true;
 }

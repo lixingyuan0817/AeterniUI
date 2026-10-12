@@ -1,27 +1,153 @@
 ﻿@page "/components/accordion"
 @layout ComponentsLayout
+@inherits ShowcasePageBase
 @using AeterniUI.Enums
 
-<ComponentPreview AnchorId="accordion" Category="基础组件" Title="Accordion" ComponentName="Accordion" Description="支持单开或多开的可访问折叠面板。">
-    <Preview><Accordion Items="@Items" Multiple="@_multiple" AriaLabel="常见问题" /></Preview>
-    <Controls>
-        <Checkbox Size="Size.Small" @bind-Value="_multiple">允许同时展开多项</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disableThird">禁用第三项</Checkbox>
-    </Controls>
+<PageTitle>Aeterni UI · Accordion</PageTitle>
+
+<ComponentPage AnchorId="accordion"
+               Category="基础组件"
+               Title="Accordion"
+               ComponentName="Accordion"
+               Description="支持单开或多开的可访问折叠面板。"
+               Related="@AccordionRelated">
+    <WhenToUse>
+        <p>把次要内容折叠起来、先让标题被扫读时使用：常见问题、设置分组、长表单的分段。内容必须始终可见时用 <code>Card</code> 或 <code>Divider</code> 分区。</p>
+        <p>同一组里只展开一段用默认的单项模式；需要对照阅读多段内容时打开 <code>Multiple</code>。平级切换而不是逐段展开，请改用 <code>Tabs</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="accordion-basic"
+                  Title="基础用法"
+                  Description="默认单项展开：打开一段会收起上一段。面板内容可以是任意标记，其中的链接随面板一起进入或退出 Tab 顺序。"
+                  Code="@BasicCode">
+            <Preview>
+                <Accordion Items="@Items" AriaLabel="常见问题" />
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="accordion-keys"
+                  Title="受控展开"
+                  Description="OpenKeys 与 OpenKeysChanged 把展开状态交给宿主：这里直接由按钮设置，配合 Multiple 可以让多段同时展开。"
+                  Code="@KeyedCode">
+            <Preview>
+                <div class="preview-stack preview-stack--fill">
+                    <div class="preview-action-row">
+                        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="OpenAll">全部展开</Button>
+                        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="CloseAll">全部收起</Button>
+                    </div>
+                    <Accordion Items="@ControlledItems"
+                               Multiple
+                               OpenKeys="@_openKeys"
+                               OpenKeysChanged="HandleOpenKeysChanged"
+                               AriaLabel="账号设置" />
+                    <span class="preview-feedback" role="status">展开中：@OpenKeysText</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="accordion-tuning"
+                  Title="多开与禁用项"
+                  Description="Multiple 允许同时展开多项；Disabled 的面板保留标题但不能展开，也不会进入展开键。"
+                  Code="@TuningCode">
+            <Preview>
+                <Accordion Items="@TuningItems" Multiple="@_multiple" AriaLabel="常见问题" />
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_multiple">允许同时展开多项</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disableThird">禁用第三项</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>关闭面板会同时退出视觉、Tab 顺序和辅助技术可达范围；可展开第一项后 Tab 到其中的链接，再折叠确认焦点不会重新进入内容。</span>
+        <span>关闭的面板会同时退出视觉、Tab 顺序和辅助技术可达范围；可展开第一项后 Tab 到其中的链接，再折叠确认焦点不会重新进入内容。</span>
         <span><code>prefers-reduced-motion: reduce</code> 下关闭高度与箭头过渡。</span>
+        <span>组件不持久化展开状态：需要跨路由或跨会话记住展开项时，用 <code>OpenKeys</code> 把它交给宿主。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
+
 @code {
+    private static readonly ShowcaseRelatedLink[] AccordionRelated =
+    [
+        new("Tabs", "/components/tabs"),
+        new("Card", "/components/card"),
+        new("Divider", "/components/divider")
+    ];
+
+    private const string BasicCode = """
+        <Accordion Items="FaqItems" AriaLabel="常见问题" />
+
+        private IReadOnlyList<AccordionItem> FaqItems =>
+        [
+            new("first", "什么是 AeterniUI？", @<p>AeterniUI 是面向 Blazor 的主题化组件库。</p>),
+            new("second", "是否支持深色主题？", @<p>支持 System、Light 和 Dark 三种模式。</p>)
+        ];
+        """;
+
+    private const string KeyedCode = """
+        <Accordion Items="Settings"
+                   Multiple
+                   OpenKeys="OpenKeys"
+                   OpenKeysChanged="HandleOpenKeysChanged" />
+
+        private Task HandleOpenKeysChanged(IReadOnlyList<string> keys)
+        {
+            OpenKeys = keys;
+            return Task.CompletedTask;
+        }
+        """;
+
+    private const string TuningCode = """
+        <Accordion Items="FaqItems" Multiple />
+
+        private IReadOnlyList<AccordionItem> FaqItems =>
+        [
+            new("first", "什么是 AeterniUI？", @<p>AeterniUI 是面向 Blazor 的主题化组件库。</p>),
+            new("third", "可以组合使用吗？", @<p>面板内容可以是任意标记。</p>, Disabled: IsLocked)
+        ];
+        """;
+
+    private IReadOnlyList<string> _openKeys = ["account"];
     private bool _multiple;
     private bool _disableThird = true;
 
-    private IReadOnlyList<AccordionItem> Items =>
+    private string OpenKeysText => _openKeys.Count == 0 ? "无" : string.Join(" / ", _openKeys);
+
+    private static IReadOnlyList<AccordionItem> Items =>
+    [
+        new("first", "什么是 AeterniUI？", @<div><p>AeterniUI 是面向 Blazor 的主题化组件库。</p><a href="#accordion">面板内可聚焦链接</a></div>),
+        new("second", "是否支持深色主题？", @<p>支持 System、Light 和 Dark 三种主题模式。</p>),
+        new("third", "可以组合使用吗？", @<p>组件可以通过 RenderFragment 和现有布局组件组合。</p>)
+    ];
+
+    private static IReadOnlyList<AccordionItem> ControlledItems =>
+    [
+        new("account", "账号信息", @<p>修改名称、邮箱与头像。</p>),
+        new("notify", "通知设置", @<p>选择需要接收的邮件与站内通知。</p>),
+        new("security", "安全选项", @<p>二步验证、登录设备与登录历史。</p>)
+    ];
+
+    private IReadOnlyList<AccordionItem> TuningItems =>
     [
         new("first", "什么是 AeterniUI？", @<div><p>AeterniUI 是面向 Blazor 的主题化组件库。</p><a href="#accordion">面板内可聚焦链接</a></div>),
         new("second", "是否支持深色主题？", @<p>支持 System、Light 和 Dark 三种主题模式。</p>),
         new("third", "可以组合使用吗？", @<p>组件可以通过 RenderFragment 和现有布局组件组合。</p>, _disableThird)
     ];
 
+    private Task OpenAll()
+    {
+        _openKeys = ControlledItems.Select(item => item.Id).ToArray();
+        return Task.CompletedTask;
+    }
+
+    private Task CloseAll()
+    {
+        _openKeys = [];
+        return Task.CompletedTask;
+    }
+
+    private Task HandleOpenKeysChanged(IReadOnlyList<string> keys)
+    {
+        _openKeys = keys;
+        return Task.CompletedTask;
+    }
 }

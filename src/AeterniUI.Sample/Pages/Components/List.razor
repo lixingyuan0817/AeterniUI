@@ -2,156 +2,222 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · List + ListItem</PageTitle>
 
-<ComponentPreview AnchorId="list"
-                  Category="导航组件"
-                  Title="List + ListItem"
-                  ComponentName="List / ListItem"
-                  Description="可组合的静态选项列表，支持无选择、单选、多选、键盘导航和长列表滚动。">
-    <Preview>
-        <div class="preview-list-wrap">
-            @if (_listSelectionMode == SelectionMode.Multiple)
-            {
-                <List TItem="string" SelectionMode="@_listSelectionMode" CardMode="@_cardMode"
-                      SelectedValues="@_listSelectedValues"
-                      SelectedValuesChanged="HandleListMultipleChanged"
-                      AriaLabel="列表多选预览">
-                    <ListItem Value="@DesignValue">设计</ListItem>
-                    <ListItem Value="@DevelopmentValue">开发</ListItem>
-                    <ListItem Value="@ProductValue">产品</ListItem>
-                    <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
-                </List>
-            }
-            else
-            {
-                <List TItem="string" SelectionMode="@_listSelectionMode" CardMode="@_cardMode"
-                      AllowClear="@_listAllowClear"
-                      SelectedValue="@_listSelectedValue"
-                      SelectedValueChanged="HandleListSingleChanged"
-                      AriaLabel="列表单选预览">
-                    <ListItem Value="@DesignValue">设计</ListItem>
-                    <ListItem Value="@DevelopmentValue">开发</ListItem>
-                    <ListItem Value="@ProductValue">产品</ListItem>
-                    <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
-                </List>
-            }
-            <span class="preview-feedback" role="status">@_listNote</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox Size="Size.Small" @bind-Value="_cardMode">CardMode（对比选中样式）</Checkbox>
-        <div class="control-field">
-            <span>SelectionMode</span>
-            <ShowcaseSelect TValue="SelectionMode" Id="list-mode" AriaLabel="SelectionMode" Options="@(Enum.GetValues<SelectionMode>())" @bind-Value="_listSelectionMode" />
-        </div>
-        @if (_listSelectionMode != SelectionMode.Multiple)
-        {
-            <Checkbox Size="Size.Small" @bind-Value="_listAllowClear">AllowClear</Checkbox>
-        }
-    </Controls>
+<ComponentPage AnchorId="list"
+               Category="导航组件"
+               Title="List + ListItem"
+               ComponentName="List / ListItem"
+               Description="可组合的选项列表：无选择、单选、多选、卡片外壳与长列表滚动。"
+               Related="@ListRelated">
+    <WhenToUse>
+        <p>一组同质条目需要被查看或选中时使用：设置项、候选标签、提交记录。条目数量大且行高固定时换用 <code>VirtualList</code>；需要可折叠分组的层级导航用 <code>Menu</code>。</p>
+        <p><code>SelectionMode</code> 决定语义：<code>None</code> 只展示内容，<code>Single</code> 与 <code>Multiple</code> 才渲染 <code>listbox</code> 与选项角色，并接管方向键。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="list-basic"
+                  Title="基础用法"
+                  Description="ChildContent 声明选项，ListItem 给出值；单选配合 @@bind-SelectedValue，AllowClear 允许再次点击清除。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-list-wrap">
+                    <List TItem="string"
+                          SelectionMode="SelectionMode.Single"
+                          AllowClear
+                          @bind-SelectedValue="_basicSelected"
+                          AriaLabel="列表单选预览">
+                        <ListItem Value="@DesignValue">设计</ListItem>
+                        <ListItem Value="@DevelopmentValue">开发</ListItem>
+                        <ListItem Value="@ProductValue">产品</ListItem>
+                        <ListItem Value="@OperationsValue" Disabled>运营（禁用）</ListItem>
+                    </List>
+                    <span class="preview-feedback" role="status">当前值：@(_basicSelected ?? "未选择")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="list-items"
+                  Title="泛型 Items 与卡片"
+                  Description="Items 自动推断类型，模板只提供内容、外壳由组件负责；字符串无需模板，卡片模式没有 CardTemplate 时回退为文本。"
+                  Code="@ItemsCode">
+            <Preview>
+                <div class="preview-list-wrap">
+                    <List Items="@_names"
+                          CardMode="@_cardMode"
+                          Disabled="@_itemsDisabled"
+                          SelectionMode="SelectionMode.Single"
+                          @bind-SelectedValue="_itemSelected"
+                          AriaLabel="字符串列表" />
+                    <List Items="@_models" CardMode="@_cardMode">
+                        <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
+                        <CardTemplate Context="item">
+                            <strong>@item.Name</strong>
+                            <span class="preview-value">@item.Description</span>
+                        </CardTemplate>
+                    </List>
+                    <span class="preview-feedback" role="status">当前值：@(_itemSelected ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_cardMode">CardMode</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_itemsDisabled">Disabled</Checkbox>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="ReplaceItems">替换 / 恢复 Items</Button>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="list-selection"
+                  Title="选择模式与长列表"
+                  Description="SelectionMode 在无选择、单选与多选之间切换；MaxHeight 让列表自己拥有滚动条，方向键按画面顺序移动。"
+                  Code="@SelectionCode">
+            <Preview>
+                <div class="preview-list-wrap">
+                    @if (_selectionMode == SelectionMode.Multiple)
+                    {
+                        <List TItem="string"
+                              SelectionMode="@_selectionMode"
+                              CardMode="@_cardMode"
+                              SelectedValues="@_selectedRows"
+                              SelectedValuesChanged="HandleMultipleChanged"
+                              MaxHeight="220px"
+                              AriaLabel="列表多选预览">
+                            @foreach (var row in Rows)
+                            {
+                                <ListItem @key="row" Value="@row" Visible="@(!_hideDevelopment || row != "开发")">@row</ListItem>
+                            }
+                        </List>
+                    }
+                    else
+                    {
+                        <List TItem="string"
+                              SelectionMode="@_selectionMode"
+                              CardMode="@_cardMode"
+                              AllowClear="@_allowClear"
+                              SelectedValue="@_selectedRow"
+                              SelectedValueChanged="HandleSingleChanged"
+                              MaxHeight="220px"
+                              AriaLabel="列表单选预览">
+                            @foreach (var row in Rows)
+                            {
+                                <ListItem @key="row" Value="@row" Visible="@(!_hideDevelopment || row != "开发")">@row</ListItem>
+                            }
+                        </List>
+                    }
+                    <span class="preview-feedback" role="status">@_selectionNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>SelectionMode</span>
+                    <ShowcaseSelect TValue="SelectionMode" Id="list-mode" AriaLabel="SelectionMode" Options="@(Enum.GetValues<SelectionMode>())" @bind-Value="_selectionMode" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_cardMode">CardMode</Checkbox>
+                @if (_selectionMode != SelectionMode.Multiple)
+                {
+                    <Checkbox Size="Size.Small" @bind-Value="_allowClear">AllowClear</Checkbox>
+                }
+                <Checkbox Size="Size.Small" @bind-Value="_hideDevelopment">隐藏「开发」</Checkbox>
+                <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="ReverseRows">反转顺序</Button>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>切换 CardMode 保留当前选择；普通行与卡片使用相同的选中底色，悬停不覆盖选中态。可用方向键比较活动项反馈，多选通过再次选择移除。</span>
+        <span><code>SelectionMode.None</code> 只渲染静态列表；改成 <code>Single</code> 或 <code>Multiple</code> 后才输出 <code>listbox</code> 与选项角色并接管方向键，<code>AllowClear</code> 只在单选下允许再次点击清除。</span>
+        <span><code>CardMode</code> 只换外壳：普通行与卡片共用同一套选中底色、字重与悬停反馈；选择列表里不要再嵌可聚焦操作控件，否则行与内部控件的键盘语义会互相打架。</span>
+        <span><code>Home</code>/<code>End</code> 按画面顺序移动，<code>Visible</code> 为 false 的选项不可选也不进入移动范围；允许清空时方向键只移动活动项，<code>Enter</code> 与空格才真正切换。<code>MaxHeight</code> 为空时列表按内容自适应，设置后由 List 自己拥有滚动条。</span>
     </Notes>
-</ComponentPreview>
-
-<ComponentPreview AnchorId="list-scroll" Category="数据展示" Title="长列表滚动" ComponentName="List&lt;TItem&gt;"
-                  Description="通过 MaxHeight 固定列表视口，行项目保持自身高度，超出内容在列表内部滚动。">
-    <Preview>
-        <List Items="@_longNames" MaxHeight="220px" AriaLabel="长列表滚动预览" />
-    </Preview>
-    <Notes><span>MaxHeight 为空时列表保持内容自适应；设置后由 List 自己拥有垂直滚动条，ListItem 不会因父级尺寸协商而被压缩。</span></Notes>
-</ComponentPreview>
-
-<ComponentPreview AnchorId="list-items" Category="数据展示" Title="泛型 Items 与卡片" ComponentName="List&lt;TItem&gt;"
-                  Description="Items 自动推断类型；模板只提供内容，Card 外壳由组件负责。">
-    <Preview>
-        <div class="preview-list-wrap">
-            <List Items="@_names" CardMode="@_cardMode" Disabled="@_itemsDisabled"
-                  SelectionMode="SelectionMode.Single" @bind-SelectedValue="_itemSelected" AriaLabel="字符串列表" />
-            <List Items="@_models" CardMode="@_cardMode">
-                <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
-                <CardTemplate Context="item"><h3>@item.Name</h3><p>@item.Description</p></CardTemplate>
-            </List>
-            <span role="status">当前值：@(_itemSelected ?? "未选择")</span>
-        </div>
-    </Preview>
-    <Controls>
-        <Checkbox @bind-Value="_cardMode">CardMode</Checkbox>
-        <Checkbox @bind-Value="_itemsDisabled">Disabled</Checkbox>
-        <Button OnClick="ReplaceItems">替换 / 恢复 Items</Button>
-    </Controls>
-    <Notes><span>字符串无需模板；卡片模式无 CardTemplate 时显示文本，不使用 ItemTemplate。声明式旧用法添加 TItem="string"，ListItem 自动级联推断。选择列表模板不应嵌套可聚焦操作控件。</span></Notes>
-</ComponentPreview>
-
-<ComponentPreview AnchorId="list-keyboard" Category="交互验收" Title="动态列表与键盘" ComponentName="List / ListItem"
-                  Description="Home/End 按画面顺序导航；隐藏项不可选；允许清空时，导航仍保留选择，Enter/空格才切换。">
-    <Preview>
-        <List TItem="string" SelectionMode="SelectionMode.Single" AllowClear="true" CardMode="@_cardMode"
-              @bind-SelectedValue="_keyboardSelected" AriaLabel="动态列表键盘验收">
-            @foreach (var row in _keyboardRows)
-            {
-                <ListItem @key="row" Value="@row" Visible="@(!_hideKeyboardRow || row != "开发")">@row</ListItem>
-            }
-        </List>
-        <span role="status">当前值：@(_keyboardSelected ?? "未选择")</span>
-    </Preview>
-    <Controls>
-        <Button OnClick="@(() => Array.Reverse(_keyboardRows))">反转顺序</Button>
-        <Checkbox @bind-Value="_hideKeyboardRow">隐藏“开发”</Checkbox>
-    </Controls>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private readonly string[] _keyboardRows = ["设计", "开发", "产品"];
-    private object? _keyboardSelected;
-    private bool _hideKeyboardRow;
-    private bool _cardMode;
-    private bool _itemsDisabled;
-    private object? _itemSelected = "开发";
-    private string[] _names = ["设计", "开发", "产品"];
-    private readonly string[] _longNames = [
-        "提交记录 01", "提交记录 02", "提交记录 03", "提交记录 04",
-        "提交记录 05", "提交记录 06", "提交记录 07", "提交记录 08",
-        "提交记录 09", "提交记录 10", "提交记录 11", "提交记录 12"
+    private static readonly ShowcaseRelatedLink[] ListRelated =
+    [
+        new("VirtualList", "/components/virtual-list"),
+        new("Menu", "/components/menu"),
+        new("ComboBox", "/components/combobox"),
+        new("Segmented", "/components/segmented")
     ];
-    private readonly DemoItem[] _models = [new("设计", "类型化模板与默认 context"), new("开发", "卡片 Context 别名")];
-    private sealed record DemoItem(string Name, string Description);
-    private void ReplaceItems() => _names = _names.Length == 3 ? ["新项目", "开发"] : ["设计", "开发", "产品"];
 
-    private SelectionMode _listSelectionMode = SelectionMode.Single;
+    private const string BasicCode = """
+        <List TItem="string" SelectionMode="SelectionMode.Single" AllowClear @bind-SelectedValue="Selected">
+            <ListItem Value="设计">设计</ListItem>
+            <ListItem Value="开发">开发</ListItem>
+            <ListItem Value="运营" Disabled>运营（禁用）</ListItem>
+        </List>
+        """;
 
-    private bool _listAllowClear = true;
+    private const string ItemsCode = """
+        <List Items="Names" SelectionMode="SelectionMode.Single" @bind-SelectedValue="Selected" />
 
-    private object? _listSelectedValue = "开发";
+        <List Items="Rows" CardMode>
+            <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
+            <CardTemplate Context="item">
+                <strong>@item.Name</strong>
+                <span>@item.Description</span>
+            </CardTemplate>
+        </List>
+        """;
 
-    private IReadOnlyList<object?> _listSelectedValues = ["设计"];
-
-    private string _listNote = "选择一个列表项查看绑定结果。";
+    private const string SelectionCode = """
+        <List TItem="string"
+              SelectionMode="SelectionMode.Single"
+              CardMode
+              AllowClear
+              @bind-SelectedValue="Selected"
+              MaxHeight="220px">
+            <ListItem Value="设计">设计</ListItem>
+            <ListItem Value="开发">开发</ListItem>
+        </List>
+        """;
 
     private const string DesignValue = "设计";
-
     private const string DevelopmentValue = "开发";
-
     private const string ProductValue = "产品";
-
     private const string OperationsValue = "运营";
 
-    private Task HandleListSingleChanged(object? value)
+    private object? _basicSelected = "开发";
+    private object? _itemSelected = "开发";
+    private string[] _names = ["设计", "开发", "产品"];
+    private bool _cardMode;
+    private bool _itemsDisabled;
+
+    private readonly string[] _rows = ["设计", "开发", "产品", "运营", "测试", "发布", "回滚", "监控", "审计", "归档"];
+    private SelectionMode _selectionMode = SelectionMode.Single;
+    private bool _allowClear = true;
+    private bool _hideDevelopment;
+    private bool _reversed;
+    private object? _selectedRow;
+    private IReadOnlyList<object?> _selectedRows = ["设计"];
+    private string _selectionNote = "在列表里选择或清除，反馈会显示在这里。";
+
+    private readonly DemoItem[] _models =
+    [
+        new("设计", "类型化模板与默认 context"),
+        new("开发", "卡片模板使用 Context 别名")
+    ];
+
+    private sealed record DemoItem(string Name, string Description);
+
+    private string[] Rows => _reversed ? [.. _rows.Reverse()] : _rows;
+
+    private void ReplaceItems() => _names = _names.Length == 3 ? ["新项目", "开发"] : ["设计", "开发", "产品"];
+
+    private void ReverseRows()
     {
-        _listSelectedValue = value;
-        _listNote = value is null ? "单选已清除。" : $"单选值：{value}。";
+        _reversed = !_reversed;
+        _selectionNote = _reversed ? "列表按反转后的画面顺序渲染。" : "列表恢复原始顺序。";
+    }
+
+    private Task HandleSingleChanged(object? value)
+    {
+        _selectedRow = value;
+        _selectionNote = value is null ? "单选已清除。" : $"单选值：{value}。";
         return Task.CompletedTask;
     }
 
-    private Task HandleListMultipleChanged(IReadOnlyList<object?> values)
+    private Task HandleMultipleChanged(IReadOnlyList<object?> values)
     {
-        _listSelectedValues = values;
-        _listNote = values.Count == 0 ? "多选为空。" : $"多选值：{string.Join("、", values)}。";
+        _selectedRows = values;
+        _selectionNote = values.Count == 0 ? "多选为空。" : $"多选值：{string.Join("、", values)}。";
         return Task.CompletedTask;
     }
 }

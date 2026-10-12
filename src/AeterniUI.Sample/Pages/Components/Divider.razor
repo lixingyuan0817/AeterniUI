@@ -1,4 +1,4 @@
-﻿@page "/components/divider"
+@page "/components/divider"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -6,51 +6,108 @@
 
 <PageTitle>Aeterni UI · Divider</PageTitle>
 
-<ComponentPreview AnchorId="divider"
-                  Category="基础组件"
-                  Title="Divider"
-                  ComponentName="Divider"
-                  Description="水平或垂直分隔线，可以在线段中缝放置文字或图标；两种形态共用同一个分隔语义。">
-    <Preview>
-        <div class="preview-divider-demo">
-            <p>无中缝内容</p>
-            <Divider />
+<ComponentPage AnchorId="divider"
+               Category="基础组件"
+               Title="Divider"
+               ComponentName="Divider"
+               Description="水平或垂直的分隔线，可以在中缝放文字或图标。"
+               Related="@DividerRelated">
+    <WhenToUse>
+        <p>同一个容器里的两块内容需要一条视觉分界时使用：表单分组、列表分区、工具栏里的动作族。需要的是"另一块表面"时用 <code>Card</code> 或 <code>Surface</code>，不要拿分隔线堆出结构。</p>
+        <p>中缝内容只是标签，分隔语义始终由 <code>role="separator"</code> 承担，读屏不会把它当成标题。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="divider-basic"
+                  Title="基础用法"
+                  Description="不传内容时是一条连续线段；传入内容后线段断成两截，标签居中留出间距。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-divider-demo">
+                    <p>无中缝内容</p>
+                    <Divider />
+                    <p>中缝文字</p>
+                    <Divider>或</Divider>
+                    <p>中缝图标</p>
+                    <Divider><Icon Definition="@AeterniIcons.Star" Size="Size.Small" /></Divider>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <p>中缝文字</p>
-            <Divider Orientation="@_dividerOrientation">@_dividerLabel</Divider>
+        <DemoCard Id="divider-vertical"
+                  Title="垂直形态"
+                  Description="垂直分隔线拉伸到所在 flex 行的高度，用它把一行内容切成几段。"
+                  Code="@VerticalCode">
+            <Preview>
+                <div class="preview-divider-row">
+                    <span>左侧</span>
+                    <Divider Orientation="Orientation.Vertical" />
+                    <span>中间</span>
+                    <Divider Orientation="Orientation.Vertical">或</Divider>
+                    <span>右侧</span>
+                </div>
+            </Preview>
+        </DemoCard>
 
-            <p>中缝图标</p>
-            <Divider><Icon Definition="@AeterniIcons.Star" Size="Size.Small" /></Divider>
-
-            <p>垂直形态</p>
-            <div class="preview-divider-row">
-                <span>左侧</span>
-                <Divider Orientation="Orientation.Vertical" />
-                <span>中间</span>
-                <Divider Orientation="Orientation.Vertical">或</Divider>
-                <span>右侧</span>
-            </div>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="divider-label">中缝文字</label>
-            <input id="divider-label" @bind="_dividerLabel" />
-        </div>
-        <div class="control-field">
-            <span>Orientation</span>
-            <ShowcaseSelect TValue="Orientation" Id="divider-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_dividerOrientation" />
-        </div>
-    </Controls>
+        <DemoCard Id="divider-label"
+                  Title="方向与中缝内容"
+                  Description="中缝文字与方向都可调；右侧控件即时生效。"
+                  Code="@LabelCode">
+            <Preview>
+                <div class="preview-divider-demo">
+                    <p>调整中缝文字与方向，观察标签与线段的关系。</p>
+                    <div class="preview-divider-row">
+                        <span>上一段</span>
+                        <Divider Orientation="@_orientation">@_label</Divider>
+                        <span>下一段</span>
+                    </div>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="divider-label">中缝文字</label>
+                    <input id="divider-label" @bind="_label" />
+                </div>
+                <div class="control-field">
+                    <span>Orientation</span>
+                    <ShowcaseSelect TValue="Orientation" Id="divider-orientation" AriaLabel="Orientation" Options="@(Enum.GetValues<Orientation>())" @bind-Value="_orientation" />
+                </div>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>根元素输出 <code>role="separator"</code> 与显式的 <code>aria-orientation</code>，两个形态共用同一份标记。</span>
-        <span>线段使用 <code>--aeterni-separator</code> 的 1px 实线；垂直形态依赖父级 flex 盒子的拉伸高度，示例里的三栏行由示例样式提供。</span>
+        <span>根元素输出 <code>role="separator"</code> 与显式的 <code>aria-orientation</code>；两种形态共用同一份标记，有中缝内容时才多出 <code>is-labeled</code> 与两截线段。</span>
+        <span>无中缝时线段画在根元素自己的上边框上，因此水平形态占零高度；垂直形态靠 <code>align-self: stretch</code> 取父级 flex 行的高度，容器不是 flex 时退回到 <code>1em</code> 的最小长度。</span>
+        <span>中缝内容只做标签：文字或 <code>Icon</code> 都可以。标签不参与长度分配，两截线段各保留一段最小残段，所以放在收缩到内容宽度的父级里也不会只剩标签。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private string _dividerLabel = "或";
+    private static readonly ShowcaseRelatedLink[] DividerRelated =
+    [
+        new("Surface", "/components/surface"),
+        new("Card", "/components/card"),
+        new("Toolbar", "/components/toolbar")
+    ];
 
-    private Orientation _dividerOrientation = Orientation.Horizontal;
+    private const string BasicCode = """
+        <Divider />
+        <Divider>或</Divider>
+        <Divider><Icon Definition="AeterniIcons.Star" Size="Size.Small" /></Divider>
+        """;
 
+    private const string VerticalCode = """
+        <div class="action-row">
+            <span>左侧</span>
+            <Divider Orientation="Orientation.Vertical" />
+            <span>右侧</span>
+        </div>
+        """;
+
+    private const string LabelCode = """
+        <Divider Orientation="Orientation.Horizontal">或</Divider>
+        <Divider Orientation="Orientation.Vertical">或</Divider>
+        """;
+
+    private string _label = "或";
+    private Orientation _orientation = Orientation.Horizontal;
 }
