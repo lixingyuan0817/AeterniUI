@@ -5,61 +5,149 @@
 
 <PageTitle>Aeterni UI · TimePicker</PageTitle>
 
-<ComponentPreview AnchorId="time-picker" Category="表单组件" Title="TimePicker" ComponentName="TimePicker" Description="使用 TimeOnly 的三列滚轮时间选择控件，默认以 24 小时制显示时、分、秒，并支持边界、禁用规则与 12/24 小时格式。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <TimePicker @bind-Value="_time"
-                        TimeFormat="@_format"
-                        Size="@_size"
-                        FullWidth="@_fullWidth"
-                        Disabled="@_disabled"
-                        Invalid="@_invalid"
-                        AriaLabel="选择预约时间" />
-            <span class="preview-feedback" role="status">当前时间：@(_time?.ToString(TimeDisplayFormat) ?? "未选择")</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>TimeFormat</span>
-            <ShowcaseSelect TValue="TimeFormat" Id="time-format" AriaLabel="时间显示格式" Options="@(Enum.GetValues<TimeFormat>())" @bind-Value="_format" />
-        </div>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="time-picker-size" AriaLabel="TimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-        </div>
-        <div class="control-field">
-            <span>外部设置具体时分秒（可先打开弹层，再等待更新）</span>
-            <input type="time" step="1" aria-label="外部目标时间" value="@_externalTime" @onchange="@(args => _externalTime = args.Value?.ToString() ?? string.Empty)" />
-            <Button Size="Size.Small" OnClick="@(_ => ApplyExternalTimeAsync())">立即设置</Button>
-            <Button Size="Size.Small" OnClick="@(_ => ApplyExternalTimeAsync(true))">2 秒后设置</Button>
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="time-picker"
+               Category="表单组件"
+               Title="TimePicker"
+               ComponentName="TimePicker"
+               Description="使用 TimeOnly 的三列滚轮时间选择控件：默认以 24 小时制显示时、分、秒，并支持步长、边界、禁用规则与 12/24 小时格式。"
+               Related="@TimePickerRelated">
+    <WhenToUse>
+        <p>只需要一天之内的时间点时使用：提醒时间、营业时段、排班起点。日期与时间要一起选时用 <code>DateTimePicker</code>，只要日期用 <code>DatePicker</code>。</p>
+        <p>值类型是 <code>TimeOnly?</code>，不含时区语义；弹层里的滚轮只编辑草稿，使用"确定"才回写绑定值，"取消"保持原值。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="time-picker-basic"
+                  Title="滚轮与键盘操作"
+                  Description="弹层是“时 / 分 / 秒”三列滚轮：滚轮吸附到中心值，只有一个 Tab 停留点，左右键切换列、上下键与 Home/End 切换值、Enter/Space 确认。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <TimePicker @bind-Value="_time"
+                                OptionsAriaLabel="时间选项"
+                                AriaLabel="选择预约时间" />
+                    <span class="preview-feedback" role="status">当前时间：@(_time?.ToString(DisplayFormat) ?? "未选择")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="time-picker-config"
+                  Title="格式、步长与边界"
+                  Description="Step 决定候选间隔（整秒粒度），MinTime / MaxTime 把候选限制在同一天内的区间，TimeFormat 在自动、12 小时与 24 小时之间切换。"
+                  Code="@ConfigCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <TimePicker @bind-Value="_configTime"
+                                TimeFormat="@_timeFormat"
+                                Step="@Step"
+                                MinTime="@MinTime"
+                                MaxTime="@MaxTime"
+                                Size="@_size"
+                                FullWidth="@_fullWidth"
+                                Disabled="@_disabled"
+                                Invalid="@_invalid"
+                                OptionsAriaLabel="时间选项"
+                                AriaLabel="选择会议时间" />
+                    <span class="preview-feedback" role="status">当前时间：@(_configTime?.ToString(DisplayFormat) ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>TimeFormat</span>
+                    <ShowcaseSelect TValue="TimeFormat" Id="time-picker-format" AriaLabel="TimeFormat" Options="@(Enum.GetValues<TimeFormat>())" @bind-Value="_timeFormat" />
+                </div>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="time-picker-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_bounded">限制 09:00–18:00</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_coarseStep">每 15 分钟一档</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="time-picker-form"
+                  Title="在 FormField 中使用"
+                  Description="字段提供标签、描述与状态；Required / Invalid / Disabled 写在 FormField 上，触发器继承后直接作用于时间选择。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="提醒时间"
+                               Description="每天在这个时间发送提醒。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid"
+                               Disabled="@_formDisabled">
+                        <TimePicker @bind-Value="_formTime"
+                                    FullWidth="@_formFullWidth"
+                                    OptionsAriaLabel="时间选项" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">当前时间：@(_formTime?.ToString(DisplayFormat) ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>弹层采用类似系统计时器的“时 / 分 / 秒”三列滚轮：滚动停稳后平滑吸附到中心值，文字层按实际行高连续缩放、rotateX 与渐隐；选项点击区域不变。</span>
-        <span>“时 / 分 / 秒”列名固定在顶部；中间选择带只有上下分隔线，不框住单列当前值。滚动只修改草稿，使用“取消 / 确定”决定是否回写。</span>
-        <span>滚轮组只有一个 Tab 停留点：左右键切换列，上下键与 Home/End 切换值，Enter/Space 确认；操作按钮保持原生 Tab 顺序。</span>
-        <span>默认采用 <code>TwentyFourHour</code> 与 <code>HH:mm:ss</code>；<code>TimeFormat.Auto</code> 仍可显式选择并跟随当前 Culture。</span>
+        <span>弹层采用类似系统计时器的“时 / 分 / 秒”三列滚轮：滚动停稳后平滑吸附到中心值，文字层按实际行高连续缩放、rotateX 与渐隐；列名固定在顶部，中间选择带只有上下分隔线。</span>
+        <span>滚轮组只有一个 Tab 停留点：左右键切换列，上下键与 Home/End 切换值，Enter/Space 确认；"取消 / 确定"保持原生 Tab 顺序，滚动只修改草稿。</span>
+        <span>默认采用 <code>TwentyFourHour</code> 与 <code>HH:mm:ss</code>，<code>TimeFormat.Auto</code> 跟随当前 Culture；<code>Step</code> 支持 1 秒到小于一天的整秒粒度，<code>MinTime</code> / <code>MaxTime</code> / <code>DisabledTime</code> 同时约束候选。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private string _externalTime = "18:42:35";
-    private async Task ApplyExternalTimeAsync(bool delayed = false)
-    {
-        if (!TimeOnly.TryParse(_externalTime, out var target)) return;
-        if (delayed) await Task.Delay(2000);
-        _time = target;
-    }
+    private static readonly ShowcaseRelatedLink[] TimePickerRelated =
+    [
+        new("DateTimePicker", "/components/date-time-picker"),
+        new("DatePicker", "/components/date-picker"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string BasicCode = """
+        <TimePicker @bind-Value="Time" OptionsAriaLabel="时间选项" />
+        """;
+
+    private const string ConfigCode = """
+        <TimePicker @bind-Value="Time"
+                    TimeFormat="TimeFormat.TwelveHour"
+                    Step="TimeSpan.FromMinutes(15)"
+                    MinTime="new TimeOnly(9, 0)"
+                    MaxTime="new TimeOnly(18, 0)" />
+        """;
+
+    private const string FormCode = """
+        <FormField Label="提醒时间" Description="每天在这个时间发送提醒。" Required>
+            <TimePicker @bind-Value="Time" FullWidth />
+        </FormField>
+        """;
+
+    private const string DisplayFormat = "HH:mm:ss";
 
     private TimeOnly? _time = new(9, 30);
-    private TimeFormat _format = TimeFormat.TwentyFourHour;
+
+    private TimeOnly? _configTime = new(9, 30);
+    private TimeFormat _timeFormat = TimeFormat.TwentyFourHour;
     private Size _size = Size.Default;
+    private bool _bounded;
+    private bool _coarseStep;
     private bool _fullWidth;
     private bool _disabled;
     private bool _invalid;
-    private const string TimeDisplayFormat = "HH:mm:ss";
 
+    private TimeOnly? _formTime;
+    private bool _formRequired;
+    private bool _formInvalid;
+    private bool _formDisabled;
+    private bool _formFullWidth = true;
+
+    private TimeSpan Step => _coarseStep ? TimeSpan.FromMinutes(15) : TimeSpan.FromSeconds(1);
+
+    private TimeOnly? MinTime => _bounded ? new TimeOnly(9, 0) : null;
+
+    private TimeOnly? MaxTime => _bounded ? new TimeOnly(18, 0) : null;
 }

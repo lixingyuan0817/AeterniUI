@@ -1,51 +1,179 @@
 ﻿@page "/components/date-time-picker"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
+@using System.ComponentModel.DataAnnotations
 @using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · DateTimePicker</PageTitle>
 
-<ComponentPreview AnchorId="date-time-picker" Category="表单组件" Title="DateTimePicker" ComponentName="DateTimePicker" Description="使用单一 DateTime? 值组合日期网格与时间选项，不执行时区转换。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <DateTimePicker @bind-Value="_value"
-                            MinDateTime="@MinValue"
-                            MaxDateTime="@MaxValue"
-                            TimeStep="@TimeSpan.FromSeconds(1)"
-                            Kind="DateTimeKind.Local"
-                            DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
-                            Size="@_size"
-                            FullWidth="@_fullWidth"
-                            Disabled="@_disabled"
-                            Invalid="@_invalid"
-                            AriaLabel="选择预约日期和时间" />
-            <span class="preview-feedback" role="status">当前值：@(_value?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未选择")；Kind：@(_value?.Kind.ToString() ?? "—")</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="date-time-picker-size" AriaLabel="DateTimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_invalid">Invalid</Checkbox>
-    </Controls>
+<ComponentPage AnchorId="date-time-picker"
+               Category="表单组件"
+               Title="DateTimePicker"
+               ComponentName="DateTimePicker"
+               Description="用一个 DateTime? 值同时选择日期与时间：日期网格与时间列表在同一个受控弹层里完成，不做时区换算。"
+               Related="@DateTimePickerRelated">
+    <WhenToUse>
+        <p>需要“某一天的某一刻”时使用：预约、开窗、定时发布。只要日期用 <code>DatePicker</code>，只要时间用 <code>TimePicker</code>。</p>
+        <p>两个维度合成一个 <code>DateTime?</code>：<code>Kind</code> 只标记结果的种类，候选范围由 <code>MinDateTime</code> / <code>MaxDateTime</code> 与 <code>DisabledDate</code> / <code>DisabledDateTime</code> 共同决定。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="date-time-picker-basic"
+                  Title="日期与时间的联合选择"
+                  Description="日期网格与时间列表共用一份草稿：“确定”后统一回写 Value，“取消”不改动原值；周末不可选，候选时刻同时应用日期时间边界。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <DateTimePicker @bind-Value="_value"
+                                    MinDateTime="@MinValue"
+                                    MaxDateTime="@MaxValue"
+                                    TimeStep="@TimeSpan.FromSeconds(1)"
+                                    Kind="DateTimeKind.Local"
+                                    DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
+                                    AriaLabel="选择预约日期和时间" />
+                    <span class="preview-feedback" role="status">当前值：@(_value?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未选择")；Kind：@(_value?.Kind.ToString() ?? "—")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="date-time-picker-form"
+                  Title="在 FormField 与表单校验中使用"
+                  Description="字段给出输入 id、标签与说明，控件采用字段的 id；进入 EditForm 后校验消息与控件落在同一字段上。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <EditForm Model="_model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <FormField Label="上线时间"
+                                   Description="按本地时间填写，精确到秒。"
+                                   For="@(() => _model.RequiredAt)">
+                            <DateTimePicker @bind-Value="_model.RequiredAt"
+                                            MinDateTime="@MinValue"
+                                            MaxDateTime="@MaxValue"
+                                            FullWidth
+                                            AriaLabel="上线时间" />
+                        </FormField>
+                        <ValidationMessage For="@(() => _model.RequiredAt)" />
+                        <div class="preview-action-row">
+                            <Button Type="ButtonType.Submit" Size="Size.Small">验证时间</Button>
+                            <Button Type="ButtonType.Button" Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => ResetForm())">重置</Button>
+                        </div>
+                    </EditForm>
+                    <span class="preview-feedback" role="status">@_formNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="date-time-picker-states"
+                  Title="尺寸与字段状态"
+                  Description="三档尺寸、整宽与四种字段状态；TimeFormat 只换显示，DisabledDateTime 能禁用单个候选时刻。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <DateTimePicker @bind-Value="_stateValue"
+                                    Size="@_stateSize"
+                                    FullWidth="@_stateFullWidth"
+                                    Required="@_stateRequired"
+                                    Invalid="@_stateInvalid"
+                                    Disabled="@_stateDisabled"
+                                    TimeFormat="@_stateTimeFormat"
+                                    DisabledDateTime="@IsOutsideBusinessHours"
+                                    AriaLabel="状态演示的上线时间" />
+                    <span class="preview-feedback" role="status">当前值：@(_stateValue?.ToString("yyyy-MM-dd HH:mm") ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="date-time-picker-size" AriaLabel="DateTimePicker Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_stateSize" />
+                </div>
+                <div class="control-field">
+                    <span>TimeFormat</span>
+                    <ShowcaseSelect TValue="TimeFormat" Id="date-time-picker-format" AriaLabel="TimeFormat" Options="@(Enum.GetValues<TimeFormat>())" @bind-Value="_stateTimeFormat" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_stateFullWidth">FullWidth</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_stateDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>日期和时间在一个受控弹层中完成，周末日期不可选；候选时间会同时应用日期时间边界。</span>
-        <span>日期与滚轮值先保存在草稿中；“确定”后统一回写，“取消”不会改变原值。</span>
-        <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，不会换算时区。</span>
-        <span>日期网格与时间列表共用单一焦点模型；窄屏下两栏自动改为单列，reduced-motion 不影响键盘行为。</span>
+        <span>日期与时间在一个弹层里完成，两步都只改草稿；<code>Value</code> 只在“确定”时变化，因此取消不会留下半个值。</span>
+        <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，组件不换算时区；需要跨时区展示时由宿主自行换算。</span>
+        <span>日期网格与时间列表共用单一焦点模型：只有触发器一个 Tab 停留点，<code>ValueExpression</code>、<code>Required</code> 与 <code>Invalid</code> 决定无效态外观，是否阻止提交由宿主决定。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] DateTimePickerRelated =
+    [
+        new("DatePicker", "/components/date-picker"),
+        new("TimePicker", "/components/time-picker"),
+        new("FormField", "/components/form-field"),
+        new("PopupHost / Popover", "/components/popup")
+    ];
+
+    private const string BasicCode = """
+        <DateTimePicker @bind-Value="ScheduledAt"
+                        MinDateTime="MinValue"
+                        MaxDateTime="MaxValue"
+                        TimeStep="TimeSpan.FromSeconds(1)"
+                        Kind="DateTimeKind.Local"
+                        DisabledDate="@(date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)"
+                        AriaLabel="选择预约日期和时间" />
+        """;
+
+    private const string FormCode = """
+        <EditForm Model="Model" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <FormField Label="上线时间" Description="按本地时间填写，精确到秒。" For="@(() => Model.RequiredAt)">
+                <DateTimePicker @bind-Value="Model.RequiredAt" FullWidth />
+            </FormField>
+            <ValidationMessage For="@(() => Model.RequiredAt)" />
+            <Button Type="ButtonType.Submit">验证时间</Button>
+        </EditForm>
+        """;
+
+    private const string StateCode = """
+        <DateTimePicker @bind-Value="ScheduledAt"
+                        Size="Size.Large"
+                        FullWidth
+                        Required
+                        Invalid
+                        TimeFormat="TimeFormat.TwelveHour"
+                        DisabledDateTime="IsOutsideBusinessHours" />
+        """;
+
     private DateTime? _value = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
-    private Size _size = Size.Default;
-    private bool _fullWidth;
-    private bool _disabled;
-    private bool _invalid;
+    private readonly ScheduleModel _model = new();
+    private string _formNote = "提交后校验结果会显示在这里。";
+
+    private DateTime? _stateValue = DateTime.SpecifyKind(DateTime.Today.AddDays(2).AddHours(14), DateTimeKind.Local);
+    private Size _stateSize = Size.Default;
+    private TimeFormat _stateTimeFormat = TimeFormat.TwentyFourHour;
+    private bool _stateFullWidth;
+    private bool _stateRequired;
+    private bool _stateInvalid;
+    private bool _stateDisabled;
+
     private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
+
     private DateTime MaxValue => DateTime.SpecifyKind(DateTime.Today.AddDays(30).AddHours(18), DateTimeKind.Local);
 
+    private static bool IsOutsideBusinessHours(DateTime moment) =>
+        moment.TimeOfDay < TimeSpan.FromHours(8) || moment.TimeOfDay > TimeSpan.FromHours(18);
+
+    private void HandleValidSubmit() => _formNote = "校验通过，可以提交了。";
+
+    private void ResetForm()
+    {
+        _model.RequiredAt = null;
+        _formNote = "已清空字段，提交后校验结果会显示在这里。";
+    }
+
+    private sealed class ScheduleModel
+    {
+        [Required(ErrorMessage = "请选择上线时间。")]
+        public DateTime? RequiredAt { get; set; }
+    }
 }

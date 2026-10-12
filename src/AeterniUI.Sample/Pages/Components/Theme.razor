@@ -2,41 +2,116 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · ThemeProvider + ThemeSwitch</PageTitle>
 
-<ComponentPreview AnchorId="theme"
-                  Category="主题组件"
-                  Title="ThemeProvider + ThemeSwitch"
-                  ComponentName="ThemeProvider / ThemeSwitch / ThemeBrandSwitch"
-                  Description="ThemeProvider 负责主题生命周期，ThemeSwitch 提供 System、Light、Dark 三种模式切换，ThemeBrandSwitch 在紫罗兰、绿色和焦橙三套品牌色层之间切换。">
-    <Preview>
-        <div class="preview-stack">
-            <ThemeSwitch Size="@_themeSwitchSize" AriaLabel="预览主题模式" ModeChanged="HandleThemeModeChanged" />
-            <ThemeBrandSwitch Size="@_themeSwitchSize" AriaLabel="预览品牌色" BrandChanged="HandleBrandChanged" />
-            <span class="preview-feedback" role="status">当前模式：@ModeText(ThemeService.Mode) · 实际主题：@(ThemeService.IsDark ? "深色" : "浅色") · 品牌：@BrandText(ThemeService.Brand)</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <span>ThemeSwitch Size</span>
-            <ShowcaseSelect TValue="Size" Id="theme-size" AriaLabel="ThemeSwitch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_themeSwitchSize" />
-        </div>
-        <div class="control-field">
-            <span>品牌色</span>
-            <ShowcaseSelect TValue="ThemeBrand" Id="theme-brand" AriaLabel="品牌色" Options="@(Enum.GetValues<ThemeBrand>())" Value="@ThemeService.Brand" ValueChanged="HandleBrandChanged" />
-        </div>
-    </Controls>
+<ComponentPage AnchorId="theme"
+               Category="主题组件"
+               Title="ThemeProvider + ThemeSwitch"
+               ComponentName="ThemeProvider / ThemeSwitch / ThemeBrandSwitch"
+               Description="主题上下文与两个切换控件：ThemeProvider 负责主题生命周期，ThemeSwitch 切换 System / Light / Dark 模式，ThemeBrandSwitch 在同一组语义 Token 上换品牌色层。"
+               Related="@ThemeRelated">
+    <WhenToUse>
+        <p>应用在根部放一次 <code>&lt;ThemeProvider /&gt;</code>：恢复上次选择、监听系统偏好、把结果写到文档根元素上，页面因此不必各自处理主题。</p>
+        <p>让用户自己选模式用 <code>ThemeSwitch</code>，需要换品牌配色用 <code>ThemeBrandSwitch</code>；页面要读状态或主动切换时注入 <code>ThemeService</code>，而不是去改 <code>data-theme</code> / <code>data-aeterni-brand</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="theme-mode"
+                  Title="主题模式切换"
+                  Description="System 跟随系统偏好，Light 与 Dark 固定模式；切换立即生效，并广播给所有订阅者。"
+                  Code="@ModeCode">
+            <Preview>
+                <div class="preview-stack">
+                    <ThemeSwitch Size="@_switchSize" Disabled="@_switchDisabled" AriaLabel="主题模式" ModeChanged="HandleModeChanged" />
+                    <span class="preview-feedback" role="status">模式：@ModeText(ThemeService.Mode) · 实际主题：@KindText(ThemeService.CurrentTheme) · @_modeNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="theme-size" AriaLabel="ThemeSwitch Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_switchSize" />
+                </div>
+                <div class="control-field">
+                    <span>品牌色</span>
+                    <ShowcaseSelect TValue="ThemeBrand" Id="theme-brand" AriaLabel="品牌色" Options="@(Enum.GetValues<ThemeBrand>())" Value="@ThemeService.Brand" ValueChanged="HandleBrandChanged" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_switchDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="theme-brand"
+                  Title="品牌色层切换"
+                  Description="品牌与明暗是两条独立的轴：品牌决定用哪一层色板，模式决定取这一层的哪一档；两者都写在同一组语义 Token 上。"
+                  Code="@BrandCode">
+            <Preview>
+                <div class="preview-stack">
+                    <ThemeBrandSwitch Size="@_switchSize" AriaLabel="品牌色" BrandChanged="HandleBrandChanged" />
+                    <span class="preview-feedback" role="status">品牌：@BrandText(ThemeService.Brand) · @_brandNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="theme-service"
+                  Title="用 ThemeService 驱动宿主控件"
+                  Description="根部的 ThemeProvider 只负责落地；示例控件直接调用 ThemeService，与切换控件读的是同一份状态。"
+                  Code="@ServiceCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => ThemeService.UseSystem())">跟随系统</Button>
+                        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => ThemeService.SetLight())">浅色</Button>
+                        <Button Size="Size.Small" Variant="ButtonVariant.Outline" OnClick="@(() => ThemeService.SetDark())">深色</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">Mode：@ThemeService.Mode · CurrentTheme：@ThemeService.CurrentTheme · IsDark：@(ThemeService.IsDark ? "true" : "false")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>页面根部已经注册一个 <code>&lt;ThemeProvider /&gt;</code>；示例只调整现有 ThemeService，不直接修改 <code>data-theme</code> 或 <code>data-aeterni-brand</code>。品牌切换与明暗切换互相独立，两者都写在同一组语义 Token 上，所以任何组件都会自动跟随，无需逐个适配。<code>ThemeBrandSwitch</code> 是 <code>Segmented</code> 的专用用法，与 <code>ThemeSwitch</code> 同构；示例宿主顶栏也放了同一个控件，切换后整站（含导航下划线、链接、按钮、焦点环）会一起换色。</span>
+        <span><code>&lt;ThemeProvider /&gt;</code> 只需在根部注册一次，而且不渲染 DOM：<code>Id</code>、<code>Class</code>、<code>Style</code> 与 <code>Visible</code> 对它没有作用。</span>
+        <span>模式与品牌互相独立，却落在同一组语义 Token 上，所以任何组件都会自动跟随，不需要逐个适配；示例只调用 <code>ThemeService</code>，不直接修改 <code>data-theme</code> / <code>data-aeterni-brand</code>。</span>
+        <span>两个切换控件都是 <code>Segmented</code> 的专用用法：单选语义、方向键与尺寸档位来自 <code>Segmented</code>，模式与品牌列表、文案表在本组件；<code>Disabled</code> 整体禁用时不会触发 ThemeService。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
-    private Size _themeSwitchSize = Size.Large;
+    private static readonly ShowcaseRelatedLink[] ThemeRelated =
+    [
+        new("Segmented", "/components/segmented"),
+        new("色彩与语义", "/components/colors"),
+        new("玻璃与模糊", "/components/glass"),
+        new("Switch", "/components/switch")
+    ];
+
+    private const string ModeCode = """
+        <ThemeProvider />
+
+        <ThemeSwitch Size="Size.Large" AriaLabel="主题模式" ModeChanged="HandleModeChanged" />
+        """;
+
+    private const string BrandCode = """
+        <ThemeProvider />
+
+        <ThemeBrandSwitch AriaLabel="品牌色" BrandChanged="HandleBrandChanged" />
+        """;
+
+    private const string ServiceCode = """
+        // 根部注册一次；此后页面只和 ThemeService 打交道
+        <ThemeProvider />
+
+        <Button OnClick="UseDark">深色</Button>
+
+        @code {
+            [Inject] private ThemeService ThemeService { get; set; } = default!;
+
+            private void UseDark() => ThemeService.SetDark();
+        }
+        """;
+
+    private Size _switchSize = Size.Large;
+    private bool _switchDisabled;
+    private string _modeNote = "切换后这里会显示新的模式。";
+    private string _brandNote = "切换控件或右侧属性都能改变品牌色。";
 
     private static string ModeText(ThemeMode mode) => mode switch
     {
@@ -45,6 +120,8 @@
         _ => "深色"
     };
 
+    private static string KindText(ThemeKind kind) => kind == ThemeKind.Dark ? "深色" : "浅色";
+
     private static string BrandText(ThemeBrand brand) => brand switch
     {
         ThemeBrand.Green => "绿色",
@@ -52,16 +129,16 @@
         _ => "紫罗兰"
     };
 
-    private async Task HandleThemeModeChanged(ThemeMode mode)
+    private Task HandleModeChanged(ThemeMode mode)
     {
-        _feedbackNote = $"主题模式已切换为 {ModeText(mode)}。";
-        await InvokeAsync(StateHasChanged);
+        _modeNote = $"已切换为{ModeText(mode)}。";
+        return Task.CompletedTask;
     }
 
-    private async Task HandleBrandChanged(ThemeBrand brand)
+    private Task HandleBrandChanged(ThemeBrand brand)
     {
         ThemeService.SetBrand(brand);
-        _feedbackNote = $"品牌色已切换为{BrandText(brand)}。";
-        await InvokeAsync(StateHasChanged);
+        _brandNote = $"品牌色已切换为{BrandText(brand)}。";
+        return Task.CompletedTask;
     }
 }

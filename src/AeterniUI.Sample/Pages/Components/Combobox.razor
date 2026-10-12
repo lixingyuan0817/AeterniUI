@@ -2,74 +2,167 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
-@using AeterniUI.Icons
-@using AeterniUI.Models.Dialog
-@using AeterniUI.Services.Impl
 
 <PageTitle>Aeterni UI · ComboBox</PageTitle>
 
-<ComponentPreview AnchorId="combobox"
-                  Category="表单组件"
-                  Title="ComboBox"
-                  ComponentName="ComboBox&lt;TItem&gt;"
-                  Description="默认下拉选择控件，支持泛型数据、模板、键盘导航和定位弹层，不包含自由输入搜索。">
-    <Preview>
-        <div class="preview-form-control preview-form-control--fill">
-            <FormField Label="城市" Disabled="@_comboDisabled" Required="@_comboRequired" Invalid="@_comboInvalid">
-            <ComboBox TItem="string" Visible="@_comboVisible"
-                      Size="@_comboSize"
-                      Items="@(_emptyItems ? Array.Empty<string>() : Cities)"
-                      Value="@_cityValue"
-                      ValueChanged="@((string? value) => HandleCityChanged(value))"
-                      Placeholder="@_comboPlaceholder"
-                      AriaLabel="城市选择预览">
-                <EmptyContent>暂无可选城市</EmptyContent>
-            </ComboBox>
-            </FormField>
-            <span class="preview-feedback" role="status">当前选择：@(_cityValue ?? "（空）")</span>
-        </div>
-    </Preview>
-    <Controls>
-        <div class="control-field">
-            <label for="combo-placeholder">Placeholder</label>
-            <input id="combo-placeholder" @bind="_comboPlaceholder" />
-        </div>
-        <Checkbox Size="Size.Small" @bind-Value="_comboRequired">Required</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_comboInvalid">Invalid</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_comboDisabled">Disabled</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_comboVisible">Visible</Checkbox>
-        <Checkbox Size="Size.Small" @bind-Value="_emptyItems">空集合</Checkbox>
-        <div class="control-field">
-            <span>Size</span>
-            <ShowcaseSelect TValue="Size" Id="combo-size" AriaLabel="ComboBox Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_comboSize" />
-        </div>
-    </Controls>
+<ComponentPage AnchorId="combobox"
+               Category="表单组件"
+               Title="ComboBox"
+               ComponentName="ComboBox&lt;TItem&gt;"
+               Description="从宿主给定的集合里择一的默认下拉控件：触发器、定位浮层与键盘导航由组件承担，不包含自由输入。"
+               Related="@ComboboxRelated">
+    <WhenToUse>
+        <p>选项集合有限、结果必须择一时使用：城市、分类、负责人。需要边输入边过滤建议项时用 <code>Autocomplete</code>，可选多个值时用 <code>MultiSelect</code>。</p>
+        <p>数据归宿主：<code>Items</code> 是当前快照，组件不请求远程数据、不缓存结果；<code>TItem</code> 需要是引用类型，值类型请先包成选项对象。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="combobox-basic"
+                  Title="基础用法"
+                  Description="用 @@bind-Value 绑定选中项；触发器是 combobox、浮层是 listbox，方向键移动、Home/End 跳转、Enter 选中、Escape 关闭。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <ComboBox TItem="string"
+                              Items="@Cities"
+                              @bind-Value="_city"
+                              Placeholder="选择城市…"
+                              AriaLabel="城市选择" />
+                    <span class="preview-feedback" role="status">当前选择：@(_city ?? "（空）")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="combobox-template"
+                  Title="选项模板与空集合"
+                  Description="ItemTemplate 自定义选项内容，TextSelector 决定触发器与选项的展示文本；集合为空时浮层仍能打开，由 EmptyContent 接管。"
+                  Code="@TemplateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <ComboBox TItem="CityOption"
+                              Items="@(_emptyItems ? Array.Empty<CityOption>() : CityOptions)"
+                              @bind-Value="_cityOption"
+                              TextSelector="@(option => option.Name)"
+                              Placeholder="@_placeholder"
+                              Size="@_size"
+                              FullWidth
+                              AriaLabel="城市与区域">
+                        <ItemTemplate Context="option">
+                            <strong>@option.Name</strong>
+                            <span class="preview-value">@option.Region</span>
+                        </ItemTemplate>
+                        <EmptyContent>暂无可选城市</EmptyContent>
+                    </ComboBox>
+                    <span class="preview-feedback" role="status">当前选择：@(_cityOption?.Name ?? "（空）")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="combobox-placeholder">Placeholder</label>
+                    <input id="combobox-placeholder" @bind="_placeholder" />
+                </div>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="combobox-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_emptyItems">空集合</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="combobox-form"
+                  Title="在 FormField 中使用"
+                  Description="字段负责标签、描述与状态，触发器继承它们并借用字段的输入 id；Field 内不必再写 AriaLabel。"
+                  Code="@FormCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="所在城市"
+                               Description="用于本地化时区与语言。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid"
+                               Disabled="@_formDisabled">
+                        <ComboBox TItem="string"
+                                  Items="@Cities"
+                                  @bind-Value="_formCity"
+                                  Placeholder="选择城市…"
+                                  FullWidth="@_formFullWidth" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">当前选择：@(_formCity ?? "（空）")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
     <Notes>
-        <span>当前实现是纯下拉选择：点击触发器打开选项，支持方向键、Home/End、Enter、Escape 和外部关闭。</span>
-        <span>Required / Invalid / Disabled 只设置在 FormField 上，验证子控件继承状态；空集合仍可打开查看空状态。</span>
+        <span>纯下拉选择：触发器是 <code>combobox</code>、浮层是 <code>listbox</code>，支持方向键、Home/End、Enter、Escape 与外部点击关闭，活动项通过 <code>aria-activedescendant</code> 表达。</span>
+        <span>组件不做输入过滤、也不请求远程数据：<code>Items</code> 是宿主给的当前快照，异步结果请在 <code>ValueChanged</code> 或 <code>OnItemSelected</code> 里替换它；<code>OnChange</code> 是 <code>OnItemSelected</code> 的旧名字，已在 10.14.3 移除。</span>
+        <span>字段状态与实例参数取并集：<code>Disabled</code> / <code>Required</code> / <code>Invalid</code> 写在 <code>FormField</code> 或组件上都生效；字段的校验消息会额外点亮无效态。</span>
     </Notes>
-</ComponentPreview>
+</ComponentPage>
 
 @code {
+    private static readonly ShowcaseRelatedLink[] ComboboxRelated =
+    [
+        new("Autocomplete", "/components/autocomplete"),
+        new("MultiSelect", "/components/multi-select"),
+        new("List", "/components/list"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string BasicCode = """
+        <ComboBox TItem="string"
+                  Items="Cities"
+                  @bind-Value="City"
+                  Placeholder="选择城市…" />
+        """;
+
+    private const string TemplateCode = """
+        <ComboBox TItem="CityOption"
+                  Items="CityOptions"
+                  @bind-Value="City"
+                  TextSelector="@(option => option.Name)"
+                  FullWidth>
+            <ItemTemplate Context="option">
+                <strong>@option.Name</strong>
+                <span>@option.Region</span>
+            </ItemTemplate>
+            <EmptyContent>暂无可选城市</EmptyContent>
+        </ComboBox>
+        """;
+
+    private const string FormCode = """
+        <FormField Label="所在城市" Description="用于本地化时区与语言。" Required>
+            <ComboBox TItem="string" Items="Cities" @bind-Value="City" FullWidth />
+        </FormField>
+        """;
+
     private static readonly string[] Cities = ["北京", "上海", "广州", "深圳", "杭州", "成都"];
 
-    private string? _cityValue;
+    private static readonly CityOption[] CityOptions =
+    [
+        new("北京", "华北"),
+        new("上海", "华东"),
+        new("广州", "华南"),
+        new("深圳", "华南"),
+        new("杭州", "华东"),
+        new("成都", "西南")
+    ];
 
-    private string _comboPlaceholder = "选择城市…";
+    private string? _city;
 
-    private bool _comboRequired;
-
-    private bool _comboInvalid;
-
-    private bool _comboDisabled;
-    private bool _comboVisible = true;
+    private CityOption? _cityOption;
+    private string _placeholder = "选择城市…";
+    private Size _size = Size.Default;
     private bool _emptyItems;
 
-    private Size _comboSize = Size.Default;
+    private string? _formCity;
+    private bool _formRequired;
+    private bool _formInvalid;
+    private bool _formDisabled;
+    private bool _formFullWidth = true;
 
-    private Task HandleCityChanged(string? value)
-    {
-        _cityValue = value;
-        return Task.CompletedTask;
-    }
+    private sealed record CityOption(string Name, string Region);
 }
