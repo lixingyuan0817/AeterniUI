@@ -54,7 +54,7 @@
 
         <DemoCard Id="input-number-form"
                   Title="在 EditForm 中校验"
-                  Description="FormField.For 指向模型字段，组件的 ValueExpression 把同一字段接进 EditContext；提交时 DataAnnotations 的 Range 决定字段是否无效。"
+                  Description="FormField.For 指向模型字段，@@bind-Value 生成的三件套把同一字段接进 EditContext；提交时 DataAnnotations 的 Range 决定字段是否无效。"
                   Code="@FormCode">
             <Preview>
                 <div class="preview-form-control">
@@ -62,9 +62,7 @@
                         <DataAnnotationsValidator />
                         <FormField Label="采购数量（1~50）" For="@(() => _orderModel.Quantity)">
                             <AeterniUI.Components.InputNumber.InputNumber TValue="int"
-                                         Value="_orderModel.Quantity"
-                                         ValueChanged="@(value => _orderModel.Quantity = value ?? 0)"
-                                         ValueExpression="@(() => _orderModel.Quantity)"
+                                         @bind-Value="_orderModel.Quantity"
                                          Min="@(1)"
                                          Max="@(50)"
                                          ShowControls
@@ -119,6 +117,7 @@
         <span>输入过程中不夹取、不改写文本：只有失焦、步进或外部绑定值变化时才按 Min/Max/Precision 归一化，因此可以先把"1"打出来再补成"15"。</span>
         <span>方向键步进一格，PageUp/PageDown 步进十倍；这些按键的默认滚动行为由组件的 JS 模块拦截。</span>
         <span>组件不做单位换算与格式化展示：需要"¥ 12.50"这类显示请用相邻文本或用 <code>Input</code> 自行格式化。</span>
+        <span>绑定到模型字段时，字段类型要与 <code>TValue</code> 的可空形态一致（<code>TValue="int"</code> 配 <code>int?</code>）。写成非可空 <code>int</code>，<code>@@bind-Value</code> 生成的表达式外会多一层转换，<code>FieldIdentifier</code> 直接抛 <code>UnaryExpression</code> 异常、整页渲染中断——这条对 <code>DatePicker</code>、<code>TimePicker</code> 这类值类型组件同样成立。</span>
     </Notes>
 </ComponentPage>
 
@@ -142,15 +141,21 @@
         <EditForm Model="Order" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
             <FormField Label="采购数量（1~50）" For="@(() => Order.Quantity)">
-                <InputNumber TValue="int"
-                             Value="Order.Quantity"
-                             ValueChanged="@(value => Order.Quantity = value ?? 0)"
-                             ValueExpression="@(() => Order.Quantity)"
+                <InputNumber TValue="int" @bind-Value="Order.Quantity"
                              Min="@(1)" Max="@(50)" ShowControls />
             </FormField>
             <ValidationMessage For="@(() => Order.Quantity)" />
             <Button Type="ButtonType.Submit">校验数量</Button>
         </EditForm>
+
+        // 绑定字段的类型要与 TValue 的可空形态一致：TValue="int" 配 int?。
+        // 写成非可空 int 时 ValueExpression 会多一层 Convert，FieldIdentifier 抛
+        // "contains a UnaryExpression which is not supported"，整页渲染中断。
+        private sealed class OrderModel
+        {
+            [Range(1, 50, ErrorMessage = "数量必须在 1 到 50 之间。")]
+            public int? Quantity { get; set; }
+        }
         """;
 
     private const string StateCode = """
@@ -177,7 +182,9 @@
 
     private sealed class OrderModel
     {
+        // 类型与 TValue 的可空形态对齐：TValue="int" 对应 int?。写成非可空的 int 时，
+        // @bind-Value 生成的 ValueExpression 外会多一层 Convert，FieldIdentifier 直接抛异常。
         [System.ComponentModel.DataAnnotations.Range(1, 50, ErrorMessage = "数量必须在 1 到 50 之间。")]
-        public int Quantity { get; set; } = 12;
+        public int? Quantity { get; set; } = 12;
     }
 }

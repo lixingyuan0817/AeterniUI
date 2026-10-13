@@ -5,8 +5,13 @@
 //   REV-118  focus ring still painted after the alias was removed
 //   REV-123  roving focus still works after ToggleGroup/Toolbar were merged
 import { connect, makeHelpers } from './cdp.mjs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const BASE = process.env.AETERNI_BASE_URL ?? 'http://127.0.0.1:5099';
+
+// 整站体检要读页面源码，因此用 import.meta.url 定位，不依赖调用者的工作目录。
+// 尾斜杠不能省：`new URL(name, dir)` 会把目录的最后一段替换掉。
+const SHOWCASE_PAGES = new URL('../../src/AeterniUI.Sample/Pages/Components/', import.meta.url);
 
 const { send, once, close } = await connect();
 await send('Page.enable');
@@ -2349,6 +2354,66 @@ check('失焦时校验：输入过程中不报错，离开字段后给出结论'
     typingQuiet.invalid === false && afterBlur.invalid
     && (afterBlur.message ?? '').includes('只能用小写字母'),
     JSON.stringify({ typingQuiet, afterBlur }));
+
+// 整站体检：每个页面都要把源码里声明的 demo 段全部渲染出来，且不出现未处理异常。
+// 这一类缺陷编译期完全看不见，症状都是"页面静静地少一段"：属性值里的裸引号会被 Razor 截断
+// （`Avatar` 的「图片与回退」就这么消失了很久），值类型绑定的表达式多一层 `Convert` 会被
+// `FieldIdentifier` 拒绝（`InputNumber` 的 EditForm 那一段整页中断）。段数是目录、右栏 TOC
+// 与搜索索引共同的事实源，少一段就意味着三处一起对不上。
+await send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `
+        window.__renderErrors = [];
+        const record = (level, args) => {
+            try {
+                const text = args.map(value => (value && value.stack) || String(value)).join(' ');
+                if (/crit:|Unhandled|does not have a property|UnaryExpression|InvalidOperationException/i.test(text)) {
+                    window.__renderErrors.push(level + ': ' + text.slice(0, 220));
+                }
+            } catch { }
+        };
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        console.error = (...args) => { record('error', args); originalError.apply(console, args); };
+        console.warn = (...args) => { record('warn', args); originalWarn.apply(console, args); };
+    `
+});
+
+const declaredCards = readdirSync(SHOWCASE_PAGES)
+    .filter(name => name.endsWith('.razor'))
+    .map(name => {
+        const source = readFileSync(new URL(name, SHOWCASE_PAGES), 'utf8');
+        return [
+            /@page "([^"]+)"/.exec(source)?.[1] ?? null,
+            [...source.matchAll(/<DemoCard\s+Id="([^"]+)"/g)].map(match => match[1])
+        ];
+    })
+    .filter(([route]) => route !== null);
+
+const auditProblems = [];
+for (const [route, cards] of declaredCards) {
+    await goto(`${BASE}${route}`).catch(() => { });
+    await waitForApp(20000).catch(() => { });
+    await sleep(200);
+
+    const state = await evaluate(`(() => ({
+        demos: [...document.querySelectorAll('.component-demo')].map(node => node.id),
+        errors: window.__renderErrors ?? []
+    }))()`).catch(() => null);
+
+    if (state === null) {
+        auditProblems.push(`${route}: 读不到页面状态`);
+        continue;
+    }
+
+    const missing = cards.filter(id => !state.demos.includes(id));
+    if (missing.length > 0 || state.errors.length > 0) {
+        auditProblems.push(`${route}: 缺 ${missing.join('/') || '无'}；异常 ${state.errors.length} 条`);
+    }
+}
+
+check('整站体检：每个页面都把源码里声明的 demo 段全部渲染出来，且没有未处理异常',
+    auditProblems.length === 0 && declaredCards.length >= 50,
+    auditProblems.slice(0, 6).join(' | '));
 
 // ---------------------------------------------------------------- REV-159
 // The sample pages are the library's runnable contract: the demos the review asked
