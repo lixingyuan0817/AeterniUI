@@ -11,7 +11,7 @@ const BASE = process.env.AETERNI_BASE_URL ?? 'http://127.0.0.1:5099';
 const { send, once, close } = await connect();
 await send('Page.enable');
 await send('Runtime.enable');
-const { evaluate, goto, waitForApp, key, setReducedMotion } = makeHelpers({ send, once });
+const { evaluate, goto, waitForApp, key, press, setReducedMotion } = makeHelpers({ send, once });
 
 const results = [];
 const check = (name, ok, detail) => {
@@ -179,9 +179,12 @@ async function tabUntil(selector, maxPresses = 40, anchor = null) {
 // ---------------------------------------------------------------- REV-118
 await goto(`${BASE}/components/theme`);
 await waitForApp();
-const reached = await tabUntil('[role="combobox"]');
+// 起点锚定到本页标题、诊断也限定在本页：页头现在常驻一个 combobox（搜索框），它在文档里
+// 排在页面内容之前，而这条断言的"被重新指向的消费者"是主题页的 ComboBox——不限定的话诊断会
+// 量到页头那个输入框（实测 outline-style=none，因为它当时根本没有焦点）。
+const reached = await tabUntil('[role="combobox"]', 40, '#theme h1');
 const ring = await evaluate(`(() => {
-    const trigger = document.querySelector('[role="combobox"]');
+    const trigger = document.querySelector('#theme [role="combobox"]');
     const style = getComputedStyle(trigger);
     return {
         outlineWidth: style.outlineWidth,
@@ -1170,6 +1173,247 @@ check('滚动到某段后高亮它（is-current + aria-current）',
 
 await send('Emulation.clearDeviceMetricsOverride');
 await sleep(150);
+
+// ---------------------------------------------------------------- 头部搜索框
+// 页头常驻搜索框 + 就地下拉：索引是生成物（页面条目 + 页面上真实存在的段），下拉是库内
+// PopupHost + Popover。断言只碰真实渲染出来的对象：输入框按 id 取，结果按 `role="option"`
+// 数，落地按 `location.pathname + location.hash` 与那个 id 的元素本身。
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+
+// 真实指针：Popover 的"点外部关闭"监听的是 pointerdown，`element.click()` 不会触发它。
+async function clickAt(x, y) {
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', buttons: 0, clickCount: 1 });
+}
+
+const SEARCH_INPUT = '#showcase-header-search';
+const SEARCH_LISTBOX = '#showcase-header-search-listbox';
+
+// 下拉的开合状态看 Popover 根元素的 hidden：关着时它仍在文档里（这是 Popover 的契约），
+// 数与可见性必须分开读。
+const searchState = () => evaluate(`(() => {
+    const input = document.querySelector('${SEARCH_INPUT}');
+    const listbox = document.querySelector('${SEARCH_LISTBOX}');
+    const popover = listbox?.closest('.aeterni-popover') ?? null;
+    const options = listbox ? [...listbox.querySelectorAll('[role="option"]')] : [];
+    const rect = input?.getBoundingClientRect() ?? null;
+    return {
+        exists: !!input,
+        visible: !!rect && rect.width > 0 && rect.height > 0,
+        role: input?.getAttribute('role') ?? null,
+        expanded: input?.getAttribute('aria-expanded') ?? null,
+        controls: input?.getAttribute('aria-controls') ?? null,
+        haspopup: input?.getAttribute('aria-haspopup') ?? null,
+        activedescendant: input?.getAttribute('aria-activedescendant') ?? null,
+        value: input?.value ?? null,
+        open: popover ? !popover.hasAttribute('hidden') : null,
+        optionCount: options.filter(option => option.getClientRects().length > 0).length,
+        titles: options.map(option => option.querySelector('.showcase-search-box__option-title')?.textContent.trim() ?? ''),
+        metas: options.map(option => option.querySelector('.showcase-search-box__option-meta')?.textContent.trim() ?? ''),
+        selected: options.filter(option => option.getAttribute('aria-selected') === 'true').map(option => option.id)
+    };
+})()`);
+
+// 输入按"赋值 + input 事件"驱动，与上面侧栏检索那条断言同一做法：这里要断言的是过滤结果，
+// 键盘路径（ArrowDown / Enter / Escape）在后面用真实按键单独覆盖。
+async function typeQuery(query) {
+    await evaluate(`(() => {
+        const input = document.querySelector('${SEARCH_INPUT}');
+        input.focus();
+        input.value = ${JSON.stringify(query)};
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+}
+
+const waitForSearchState = async (predicate, timeoutMs = 5000) => {
+    const deadline = Date.now() + timeoutMs;
+    let state = await searchState();
+    while (Date.now() < deadline) {
+        if (predicate(state)) return state;
+        await sleep(50);
+        state = await searchState();
+    }
+    return state;
+};
+
+const idle = await searchState();
+check('头部搜索框常驻、可见，并声明 combobox 契约',
+    idle.exists && idle.visible && idle.role === 'combobox' && idle.controls === SEARCH_LISTBOX.slice(1)
+    && idle.haspopup === 'listbox',
+    JSON.stringify(idle));
+check('空查询不展开下拉', idle.open === false && idle.expanded === 'false' && idle.optionCount === 0,
+    JSON.stringify(idle));
+
+await typeQuery('组件');
+const broad = await waitForSearchState(state => state.open && state.optionCount > 3);
+await typeQuery('时间');
+const narrowed = await waitForSearchState(state => state.open && state.optionCount === 3);
+// 命中减少到 3 条，且页码来源里同时有 Timeline 与 DateTimePicker 两页——「时间」既命中
+// 段标题（时间轴、日期与时间的联合选择），也命中两页，这正是"搜索页内内容"的价值。
+check('输入关键词后下拉展开，命中数减少且包含预期页面',
+    narrowed.open && narrowed.expanded === 'true' && narrowed.optionCount === 3
+    && narrowed.optionCount < broad.optionCount
+    && narrowed.metas.some(meta => meta.startsWith('Timeline'))
+    && narrowed.metas.some(meta => meta.startsWith('DateTimePicker')),
+    JSON.stringify({ broad: broad.optionCount, narrowed: narrowed.optionCount, metas: narrowed.metas }));
+
+// 有查询但没命中：下拉照常展开，用文案说清楚，而不是留一个空白浮层。
+await typeQuery('zzzz');
+const noMatch = await waitForSearchState(state => state.open && state.optionCount === 0);
+const emptyCopy = await evaluate(`document.querySelector('.showcase-search-box__empty')?.textContent.trim() ?? null`);
+check('没有命中时给出明确文案（下拉仍展开）',
+    noMatch.open && noMatch.expanded === 'true' && noMatch.optionCount === 0 && /没有匹配/.test(emptyCopy ?? ''),
+    JSON.stringify({ ...noMatch, emptyCopy }));
+
+await typeQuery('时间');
+await waitForSearchState(state => state.open && state.optionCount === 3);
+await key('ArrowDown', 'ArrowDown', 40);
+const moved = await waitForSearchState(state => state.activedescendant === 'showcase-header-search-option-1');
+check('ArrowDown 把活动项移到第二条（循环列表里的下一项）',
+    moved.activedescendant === 'showcase-header-search-option-1'
+    && moved.selected.length === 1
+    && moved.selected[0] === moved.activedescendant
+    && moved.titles[1] === '横向时间轴',
+    JSON.stringify({ active: moved.activedescendant, selected: moved.selected, titles: moved.titles }));
+
+await press('Enter', 'Enter', 13, '\r');
+// 落地要等两件事：路由换到目标页，以及跨页 hash 的滚动（框架只在同文档内自己滚）。
+const landed = await (async () => {
+    const deadline = Date.now() + 8000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const hash = location.hash.slice(1);
+            const target = hash ? document.getElementById(hash) : null;
+            const rect = target?.getBoundingClientRect() ?? null;
+            const listbox = document.querySelector('${SEARCH_LISTBOX}');
+            const popover = listbox?.closest('.aeterni-popover') ?? null;
+            return {
+                route: location.pathname + location.hash,
+                targetExists: !!target,
+                targetTop: rect ? Math.round(rect.top) : null,
+                inViewport: !!rect && rect.top > -1 && rect.top < window.innerHeight,
+                value: document.querySelector('${SEARCH_INPUT}')?.value ?? null,
+                open: popover ? !popover.hasAttribute('hidden') : null
+            };
+        })()`);
+        if (state.route.includes('timeline') && state.inViewport) return state;
+        await sleep(100);
+    }
+    return state;
+})();
+check('Enter 跳到该段：路由、锚点元素与滚动都到位',
+    landed.route === '/components/timeline#timeline-horizontal' && landed.targetExists && landed.inViewport,
+    JSON.stringify(landed));
+check('命中后下拉收起、输入清空',
+    landed.open === false && landed.value === '',
+    JSON.stringify(landed));
+
+// Escape 只收起下拉，输入内容留着（换关键词继续搜）；点外部同理。
+await typeQuery('时间');
+const reopened = await waitForSearchState(state => state.open && state.optionCount === 3);
+check('Escape 关闭：重新输入后下拉再次展开', reopened.open, JSON.stringify(reopened));
+
+await key('Escape', 'Escape', 27);
+const escaped = await waitForSearchState(state => state.open === false);
+check('Escape 收起下拉并保留输入内容', escaped.open === false && escaped.value === '时间',
+    JSON.stringify(escaped));
+
+await key('ArrowDown', 'ArrowDown', 40);
+const resummoned = await waitForSearchState(state => state.open && state.optionCount === 3);
+check('输入还在时方向键能把下拉拉回来', resummoned.open && resummoned.value === '时间', JSON.stringify(resummoned));
+
+// 外部点击点从下拉自己的位置推：取它右下角之外、但仍在视口内的一点（页面正文，不是链接也不是
+// 菜单项）。Popover 的关闭条件是"按下点不在浮层内、也不在它的锚点容器里"，所以这个点必须真的
+// 在浮层外——落在视口外的坐标对浏览器来说不是一个真实的点击。
+const outside = await evaluate(`(() => {
+    const listbox = document.querySelector('${SEARCH_LISTBOX}');
+    const popover = listbox?.closest('.aeterni-popover');
+    if (!popover) return null;
+    const rect = popover.getBoundingClientRect();
+    const x = Math.round(Math.min(window.innerWidth - 6, Math.max(6, rect.right + 40)));
+    const y = Math.round(Math.min(window.innerHeight - 6, Math.max(rect.bottom + 40, window.innerHeight - 60)));
+    return {
+        x, y,
+        insidePopover: x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom,
+        popover: { top: Math.round(rect.top), bottom: Math.round(rect.bottom), right: Math.round(rect.right) },
+        viewport: { w: window.innerWidth, h: window.innerHeight }
+    };
+})()`);
+if (outside) {
+    await clickAt(outside.x, outside.y);
+}
+
+const dismissed = await waitForSearchState(state => state.open === false);
+check('点击下拉外部关闭它，输入内容同样保留',
+    !!outside && outside.insidePopover === false && dismissed.open === false && dismissed.value === '时间',
+    JSON.stringify({ ...dismissed, outside }));
+
+// ---------------------------------------------------------------- 头部设置浮层
+// 主题与品牌两个开关从页头并排搬进浮层：触发器带 aria-haspopup / aria-expanded，
+// 关闭后焦点归还触发器（RestoreFocusOnClose）。
+const SETTINGS_TRIGGER = '#showcase-settings-button';
+await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.focus()`);
+await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.click()`);
+const settingsOpen = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const trigger = document.querySelector('${SETTINGS_TRIGGER}');
+            const panel = document.querySelector('#showcase-settings-panel');
+            const popover = panel?.closest('.aeterni-popover') ?? null;
+            const groups = panel ? [...panel.querySelectorAll('[role="radiogroup"]')] : [];
+            return {
+                exists: !!trigger,
+                expanded: trigger?.getAttribute('aria-expanded') ?? null,
+                haspopup: trigger?.getAttribute('aria-haspopup') ?? null,
+                open: popover ? !popover.hasAttribute('hidden') : null,
+                groups: groups.length,
+                labels: groups.map(group => group.getAttribute('aria-label')),
+                groupLabels: panel ? [...panel.querySelectorAll('.showcase-settings__label')].map(n => n.textContent.trim()) : []
+            };
+        })()`);
+        if (state.expanded === 'true' && state.open) return state;
+        await sleep(50);
+    }
+    return state;
+})();
+check('设置入口声明 aria-haspopup / aria-expanded 并打开浮层',
+    settingsOpen.exists && settingsOpen.haspopup === 'true' && settingsOpen.expanded === 'true' && settingsOpen.open,
+    JSON.stringify(settingsOpen));
+check('设置浮层里有品牌色与主题模式两个开关',
+    settingsOpen.groups === 2 && settingsOpen.labels.includes('品牌色') && settingsOpen.labels.includes('主题模式')
+    && settingsOpen.groupLabels.join(',') === '品牌色,主题模式',
+    JSON.stringify(settingsOpen));
+
+// 焦点先落进浮层里的开关，再按 Escape：关闭路径要把焦点还给触发器。
+await evaluate(`document.querySelector('#showcase-settings-panel input[type="radio"]')?.focus()`);
+await key('Escape', 'Escape', 27);
+const settingsClosed = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const trigger = document.querySelector('${SETTINGS_TRIGGER}');
+            const panel = document.querySelector('#showcase-settings-panel');
+            const popover = panel?.closest('.aeterni-popover') ?? null;
+            return {
+                expanded: trigger?.getAttribute('aria-expanded') ?? null,
+                open: popover ? !popover.hasAttribute('hidden') : null,
+                focused: document.activeElement === trigger
+            };
+        })()`);
+        if (state.expanded === 'false' && state.open === false) return state;
+        await sleep(50);
+    }
+    return state;
+})();
+check('Escape 关闭设置浮层并让 aria-expanded 回到 false',
+    settingsClosed.expanded === 'false' && settingsClosed.open === false,
+    JSON.stringify(settingsClosed));
+check('关闭后焦点归还设置触发器', settingsClosed.focused, JSON.stringify(settingsClosed));
 
 // 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。先重新导航一次——折叠态说的是初始
 // 状态，而上面的壳检查已经点开过一个"代码"tab。

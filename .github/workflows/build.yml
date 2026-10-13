@@ -44,6 +44,12 @@ jobs:
       - name: API reference is up to date
         run: node scripts/generate-api-reference.mjs --check
 
+      # 页头搜索框的索引同样是生成物（目录条目 + 页面上真实存在的段）：页面改名、加段或删段
+      # 之后忘记重新生成，会在这里失败，而不是让搜索结果指向一个不存在的锚点。它读 API 生成物
+      # 判断「参数与事件」段是否存在，所以排在 API reference 之后。
+      - name: Search index is up to date
+        run: node scripts/generate-search-index.mjs --check
+
       - name: Documentation consistency check
         run: bash scripts/check-docs.sh
 

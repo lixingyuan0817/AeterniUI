@@ -160,7 +160,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
+    /* 页头现在挂着常驻搜索框，它必须能占住剩余宽度（品牌与主导航各自固定），
+       所以容器跟着可伸缩，并靠 justify-content 把两个入口顶到右侧。 */
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
 }
 
 .app-nav ::deep .app-nav__link {

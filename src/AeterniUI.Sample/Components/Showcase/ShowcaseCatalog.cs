@@ -121,6 +121,12 @@ public static class ShowcaseCatalog
     private const string RepositoryUrl = "https://github.com/lixingyuan0817/AeterniUI";
 
     /// <summary>
+    /// 条目 id → 路由。安装页挂在 <c>/components</c> 上而不是 <c>/components/install</c>，
+    /// 因此这条规则只在这里写一次：侧栏导航与搜索结果都从这里取地址。
+    /// </summary>
+    public static string RouteFor(string id) => id == "install" ? "/components" : $"/components/{id}";
+
+    /// <summary>
     /// GitHub 上该条目页面文件的编辑地址。
     /// </summary>
     /// <remarks>

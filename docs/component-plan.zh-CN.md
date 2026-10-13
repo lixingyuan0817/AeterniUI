@@ -61,12 +61,12 @@
 
 | 区域 / 段 | 内容 | 现状 |
 | --- | --- | --- |
-| 顶栏 | 品牌、文档/资源入口、版本与主题入口、全局搜索 | 部分（主题由 MainLayout 提供；无版本入口与全局搜索） |
+| 顶栏 | 品牌、文档/资源入口、版本入口、全局搜索与外观设置 | 部分（搜索框与设置浮层已交付；版本入口未做） |
 | 左栏 | 分组导航 + 检索与匹配计数，随路由高亮 | 已交付 |
-| 右栏 | 页内 TOC，随滚动高亮，锚点可分享 | **未做** |
+| 右栏 | 页内 TOC，随滚动高亮，锚点可分享 | 已交付 |
 | 页头 | 当前条目、「在 GitHub 编辑」 | 已交付 |
-| 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已有（Controls 覆盖 50/57 页） |
-| 03 示例代码 | 可复制的 Razor 片段 | 骨架已交付；3/57 页有内容 |
+| 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已交付（`<Controls>` 覆盖 49/54 个卡片化页面；`Colors`、`GlassLab`、`Install` 是非 demo 页，不适用） |
+| 03 示例代码 | 可复制的 Razor 片段 | 已交付（54 页共 168 段代码，每段与同卡片里的预览一一对应） |
 | 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（53 页 / 596 行） |
 | 05 说明与边界 | 无障碍、状态与职责边界 | 独立段已交付；43/57 页有内容 |
 | 页脚 | 目录顺序的上一页/下一页 | 已交付 |
@@ -80,14 +80,21 @@
 - 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 53 个页面重复生成。
 - 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致。当前手写表的例外只有 `Feedback` 页（记录的是服务与选项类型），已在门禁里显式列出。
 
+### 搜索索引：生成而不是手写
+
+- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（440 条：57 个页面条目 + 54 个组件页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
+- 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
+- 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，`Feedback` 页没有生成式 API 表也就没有「参数与事件」——后者读的是 API 生成物，所以生成顺序是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
+- 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。
+
 ### 批次
 
 | 批次 | 范围 | 验收 |
 | --- | --- | --- |
 | 1（已交付） | 文档壳（检索、页头、页脚、说明段）、内容门禁、参数表对账 | 门禁全绿；`Input`、`MultiSelect`、`Upload` 走完新结构 |
 | 2（已交付） | **API 表改为源码生成**：生成器、编辑源文件、53 页迁移、CI `--check`、门禁改写 | 53 页 / 596 行由生成物渲染；页面零手写表；`--check` 在 CI 生效 |
-| 3（进行中） | demo 卡片化：一页多段 demo（基础用法、受控、状态、键盘），每段带锚点与自己的代码；页面骨架改为 `ComponentPage`（标题区 → 何时使用 → demo 卡片 → API → 相关组件 → 说明与边界） | 表单组件组 15 页已全部完成；门禁与浏览器断言已覆盖卡片形状（含跨页抽查）；其余 42 页按组继续 |
-| 4 | 页内 TOC（`IntersectionObserver` scroll spy，实例级 dispose）+ `Cmd+K` 全局搜索（索引 = 目录条目 + 页内锚点） | 两种入口都有键盘路径与浏览器断言 |
+| 3（已交付） | demo 卡片化：一页多段 demo（基础用法、受控、状态、键盘），每段带锚点与自己的代码；页面骨架改为 `ComponentPage`（标题区 → 何时使用 → demo 卡片 → API → 相关组件 → 说明与边界） | 54/57 页已卡片化（共 168 段代码、54 页有「何时使用」、49 页有 `<Controls>`）；其余三页 `Colors`、`GlassLab`、`Install` 是非 demo 页，只共用「在 GitHub 编辑」入口。门禁与浏览器断言已覆盖卡片形状（含跨页抽查） |
+| 4（已交付） | 页内 TOC（`IntersectionObserver` scroll spy，实例级 dispose）+ 页头常驻搜索框（就地下拉，索引 = 目录条目 + 页内真实存在的段，由生成脚本产出） | 两种入口都有键盘路径与浏览器断言；搜索索引有 `--check` 门禁 |
 | 5 | 内容补齐：其余页面的 `UsageCode`、缺失的 `Events`/`Notes`、每页「何时使用」与「相关组件」 | 每页 01～05 段齐全；`sample-docs` 门禁要求所有页面都有代码块 |
 | 6 | 组合用法页：表单校验链、筛选工具栏、设置抽屉、通知与长任务、大数据列表 | 每页只用真实公共 API，并有浏览器断言 |
 | 7 | 状态与无障碍矩阵（RTL、reduced-motion、窄屏可在示例级切换）、首页改造（使用者入口，提交时间线移到独立页）、版本入口与反馈闭环 | 每项都有可操作路径与断言 |

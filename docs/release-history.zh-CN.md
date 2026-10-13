@@ -6,6 +6,16 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程页头搜索框与设置浮层（批次 4 收口，版本号未递增）
+
+- [x] 新增 `scripts/generate-search-index.mjs`：解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `ShowcaseSearchIndex.generated.cs`（440 条 = 57 个页面条目 + 54 个组件页上真实存在的段）。段锚点与 `ComponentPage` / `DemoCard` 渲染出来的 id 逐字一致（`-when-title`、demo 卡片 `Id`、`-api-title`、`-related-title`、`-notes-title`），只登记页面上真的存在的段——没有 `<WhenToUse>` 就没有「何时使用」，`Feedback` 页没有生成式 API 表也就没有「参数与事件」（后者读 API 生成物，因此生成顺序是 API → 索引）。生成物提交进仓库，CI 的 build job 新增 `Search index is up to date`（`--check`），`AGENTS.md` §4.8 门禁清单与 §2 必读路由同步。
+- [x] 新增数据形状 `ShowcaseSearchEntry`（PageId / PageTitle / Category / SectionId / SectionTitle + `Href`）与目录侧的路由规则 `ShowcaseCatalog.RouteFor`（安装页挂 `/components`），侧栏导航与搜索结果因此共用同一份地址来源。
+- [x] 页头改为「常驻搜索框 + 设置入口」：`ShowcaseSearchBox`（库内 `Input` + 搜索图标 + `PopupHost`/`Popover` 就地下拉）与 `ShowcaseSettings`（库内 `Button` 触发器 + 浮层里的 `ThemeBrandSwitch` / `ThemeSwitch`，各带可见标签）。原先并排挂在页头的两个分段开关移进设置浮层，`app.css` 里只为它存在的 `.header-theme-switch` 随之删除；`Surface` 默认 `overflow: hidden` 会剪掉整块下拉，因此页头用公开的 `Style` 参数让开这次裁剪（未覆写任何组件规则）。
+- [x] 交互与无障碍照库内 ComboBox / Autocomplete 的模型：输入框 `role="combobox"` + `aria-expanded` + `aria-controls` + `aria-activedescendant`，结果容器 `role="listbox"`、每条 `role="option"` + `aria-selected`；方向键循环、Home/End 到首尾、Enter 打开、Escape 与点击外部关闭且保留输入内容；空查询不展开下拉，无命中时给明确文案。命中后清空输入并跳到 `/components/{页}#{段}`。
+- [x] 跨页跳转的滚动由示例自己补：框架只在同文档（路径与查询串都不变）时滚动 hash，从别的页面跳过来只 `history.pushState`。`wwwroot/js/sample-search.js` 负责"等目标段渲染出来再滚"（并返回成败），同时承担导航键默认动作的抑制与活动项滚动——与 `Autocomplete.razor.js` 同一做法，另有 `.component-demo` 等段的 `scroll-margin-top` 让落点停在固定页头下方。
+- [x] 浏览器检查新增 15 项：搜索框常驻且声明 combobox 契约、空查询不展开下拉、输入关键词后命中减少（`组件` 416 条 → `时间` 3 条）且包含 Timeline / DateTimePicker 两页、无命中时给出明确文案、ArrowDown 移动活动项、Enter 后 `location.pathname + location.hash` 为 `/components/timeline#timeline-horizontal` 且该 id 的元素真实存在并进入视口、命中后收起并清空、Escape 与真实指针点击外部关闭但保留输入、设置浮层的 `aria-expanded` / 两个开关 / 关闭后焦点归还触发器。**既有断言调整一处**：REV-118 的 `tabUntil` 起点与诊断查询锚定到 `#theme` 范围内——页头新增的搜索框是文档里第一个 `combobox`，不限定的诊断会量到那个没有焦点的输入框（实测 `outline-style=none`），断言测的不再是它声称的被重新指向的消费者。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`node scripts/generate-search-index.mjs --check`（440 条 / 57 页）、`node scripts/generate-api-reference.mjs --check`、`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`、`node scripts/check-css-comments.mjs`、`node --test tests/*.test.mjs`（85 项）通过；`tests/browser/verify.mjs` 95/95 通过（含 15 项新增断言）。
+
 ## 示例工程文档模板调整（批次 3 续，版本号未递增）
 
 - [x] 侧栏检索独立成块：与导航分区之间加分隔线，让人一眼看出"上面是筛选、下面是条目"；移除条目计数——它是给开发者的信息，读者只需要筛选结果本身。

@@ -60,19 +60,6 @@ body {
     }
 }
 
-/* Keep the compact theme control balanced with the floating header. */
-.header-theme-switch {
-    width: 232px;
-    flex: 0 1 232px;
-}
-
-@media (max-width: 640px) {
-    .header-theme-switch {
-        width: 200px;
-        flex-basis: 200px;
-    }
-}
-
 /* The theme transition rule for `.aeterni-theme-transitioning` is provided by
    the library (src/AeterniUI/wwwroot/css/aeterni_ui.css). Hosts must not
    restate it: a second copy would silently drift from the library's. */

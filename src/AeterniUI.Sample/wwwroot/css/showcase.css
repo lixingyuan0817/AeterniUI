@@ -119,6 +119,13 @@
     border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
+/* 侧栏检索旁的边界说明：这里只筛条目，页内段落归页头的搜索框。 */
+.showcase-search__hint {
+    margin: 6px 0 0;
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
 .showcase-nav__empty {
     margin: 0;
     padding: 10px 4px;
@@ -1689,6 +1696,17 @@
     padding: var(--showcase-card-block) var(--showcase-card-padding) var(--showcase-card-block);
 }
 
+/* 段锚点的落点：页头是固定定位的浮层，锚点跳到视口顶端会被它压住。给每个可跳转的段落一份
+   顶部留白（= 页头占掉的高度），`scrollIntoView` 与浏览器自己的 hash 跳转都会遵守它，
+   页头搜索框跨页跳转与右栏目录的锚点因此落在同一个位置。 */
+.component-demo,
+.component-page__when,
+.component-page__related,
+.component-page__section,
+.component-preview__api {
+    scroll-margin-top: var(--sample-content-top);
+}
+
 .component-page__section h2 {
     margin: 0 0 12px;
     color: var(--aeterni-text-primary);
@@ -1882,4 +1900,115 @@
     .showcase-nav {
         max-height: 40vh;
     }
+}
+
+/* 头部搜索框 + 就地下拉 -------------------------------------------------------
+   搜索框常驻页头左侧，设置入口在右侧（页头原先并排挂着两个分段开关）。结果列表与设置浮层
+   都由库内 PopupHost + Popover 承载，这里只负责宽度、浮层宽度与结果行的观感——本表不覆写
+   任何 `.aeterni-` 组件规则。
+
+   页头必须是不裁剪的浮层锚点，所以 MainLayout 给 Surface 传了 `overflow: visible`：绝对
+   定位在 PopupHost 里的下拉会被祖先的 `overflow: hidden` 整块剪掉。 */
+.sample-header__search {
+    /* 搜索框是页头里唯一会随输入变宽的控件：让它占住剩余空间，但不许把品牌与主导航挤变形。 */
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 340px;
+}
+
+.sample-header__settings {
+    flex: 0 0 auto;
+}
+
+.showcase-search-box__host {
+    width: 100%;
+}
+
+.showcase-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+}
+
+/* 图标在输入框外侧：字段自身的边框、内边距与焦点环归库内 Input，示例不伸手进去改，
+   因此不把它叠到字段里。 */
+.showcase-search-box__icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* 一行结果要同时放下段标题与页码来源，比 Popover 的最小宽度宽一些。 */
+.showcase-search-box__popover {
+    min-width: 320px;
+}
+
+/* 页头是一张固定定位的玻璃卡片，两个下拉的锚点都在卡片里：默认的 8px 间距会让浮层顶部压进
+   卡片下沿 9px。这里多留一段，浮层从卡片之外开始——用示例自己的类名做偏移，不去写
+   `.aeterni-popover` 的全局规则。 */
+.showcase-search-box__popover,
+.showcase-settings__popover {
+    margin-top: var(--aeterni-spacing-3);
+}
+
+.showcase-search-box__list {
+    max-height: var(--aeterni-overlay-max-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--aeterni-spacing-1);
+}
+
+.showcase-search-box__option {
+    display: grid;
+    gap: 2px;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    border-radius: var(--aeterni-radius-md);
+    cursor: pointer;
+}
+
+/* 活动项是"已选中"，普通 hover 不能把它洗回未选中样：两个档位明确分开。 */
+.showcase-search-box__option:not(.is-active):hover {
+    background: var(--aeterni-state-background-hover);
+}
+
+.showcase-search-box__option.is-active {
+    background: var(--aeterni-state-background-selected);
+}
+
+.showcase-search-box__option-title {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-search-box__option-meta {
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.showcase-search-box__empty {
+    margin: 0;
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+/* 设置浮层：可见标签 + 分段控件，两者说的是同一件事。 */
+.showcase-settings {
+    display: grid;
+    gap: var(--aeterni-spacing-4);
+    min-width: var(--aeterni-overlay-min-width-sm);
+}
+
+.showcase-settings__group {
+    display: grid;
+    gap: var(--aeterni-spacing-1);
+}
+
+.showcase-settings__label {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
 }

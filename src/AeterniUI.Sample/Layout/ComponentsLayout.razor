@@ -10,7 +10,8 @@
 <div class="showcase-layout">
     <aside class="showcase-sidebar">
         @* 检索独立成块：与下面的导航分区之间用分隔线分开，避免"搜索框 + 57 条菜单"糊成一片。
-           不再显示条目计数——它对读者没有用，匹配结果本身就能说明问题。 *@
+           不再显示条目计数——它对读者没有用，匹配结果本身就能说明问题。
+           页头还有一个搜索框：那个搜页内段落，这里只筛条目。 *@
         <div class="showcase-search">
             <Input Id="showcase-search"
                    Value="@_query"
@@ -18,6 +19,9 @@
                    Size="Size.Small"
                    Placeholder="搜索组件…"
                    AriaLabel="搜索组件" />
+            @* 侧栏检索只筛条目；页内内容由页头的搜索框负责（搜段标题与页码来源）。两处提示
+               各说各的边界，读者不用猜哪个能搜到页内段落。 *@
+            <p class="showcase-search__hint">只筛左侧条目；搜索页内段请用页头搜索框</p>
         </div>
         <div class="showcase-nav">
             @if (FilteredGroups.Count > 0)
@@ -157,8 +161,7 @@
         return Task.CompletedTask;
     }
 
-    private static string HrefFor(ShowcaseNavItem item) =>
-        item.Id == "install" ? "/components" : $"/components/{item.Id}";
+    private static string HrefFor(ShowcaseNavItem item) => ShowcaseCatalog.RouteFor(item.Id);
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;
