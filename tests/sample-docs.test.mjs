@@ -58,6 +58,89 @@ const pascal = id => id.split('-').map(part => part[0].toUpperCase() + part.slic
 /// 页面骨架的锚点（也是目录条目 id）。没有 `ComponentPage` 骨架的页面返回 null。
 const pageIdOf = source => /AnchorId="([a-z0-9-]+)"/.exec(source)?.[1] ?? null;
 
+/// 取页面里的开标签（引号与 `@(...)` 感知）：`For="() => Project.Name"` 里的 `>` 不是标签结束，
+/// 表达式里的引号也不参与配对，所以不能用一个 `[^>]*>` 正则了事。
+function openingTags(source, names) {
+    const pattern = new RegExp(`<(${names.join('|')})\\b`, 'g');
+    const tags = [];
+
+    for (const match of source.matchAll(pattern)) {
+        const start = match.index;
+        let cursor = start;
+        let quote = null;
+        let depth = 0;
+
+        while (cursor < source.length) {
+            const character = source[cursor];
+            if (depth > 0) {
+                if (character === '(') depth += 1;
+                else if (character === ')') depth -= 1;
+            } else if (quote) {
+                if (character === quote) quote = null;
+            } else if (character === '"' || character === "'") {
+                quote = character;
+            } else if (character === '@' && source[cursor + 1] === '(') {
+                depth = 1;
+                cursor += 1;
+            } else if (character === '>') {
+                cursor += 1;
+                break;
+            }
+
+            cursor += 1;
+        }
+
+        tags.push(source.slice(start, cursor));
+    }
+
+    return tags;
+}
+
+/// 开标签里是否有落单的双引号。属性值里出现未转义的 `"` 时 Razor 会把它截断，剩下的文本被当成
+/// 属性名——编译期毫无提示，运行时整页渲染失败（实测：只渲染出第一段 demo，报 "does not have a
+/// property matching the name …"）。`@(...)` 表达式里的引号是合法内容，先整体换成占位符，
+/// 再把成对的 `name="value"` 删掉：剩下的任何双引号都是被截断的属性值留下的。
+function unpairedQuotes(tag) {
+    let stripped = '';
+    let quote = null;
+    let depth = 0;
+
+    for (let cursor = 0; cursor < tag.length; cursor += 1) {
+        const character = tag[cursor];
+        if (depth > 0) {
+            if (character === '(') depth += 1;
+            else if (character === ')') {
+                depth -= 1;
+                if (depth === 0) stripped += '@()';
+            }
+
+            continue;
+        }
+
+        if (quote) {
+            stripped += character;
+            if (character === quote) quote = null;
+            continue;
+        }
+
+        if (character === '"' || character === "'") {
+            quote = character;
+            stripped += character;
+            continue;
+        }
+
+        if (character === '@' && tag[cursor + 1] === '(') {
+            depth = 1;
+            cursor += 1;
+            continue;
+        }
+
+        stripped += character;
+    }
+
+    return stripped.replace(/[\w:.@-]+="[^"]*"/g, '').includes('"');
+}
+
 function pageNames(path) {
     const names = new Set();
     for (const match of read(path).matchAll(/new\("([^"]+)"/g)) {
@@ -260,4 +343,19 @@ test('非组件页（安装 / 设计基础 / 实验台）按同一模板组织',
         assert.ok(ids.length >= 2, `${file} 至少要有两个可复制代码块`);
         assert.equal(new Set(ids).size, ids.length, `${file} 的代码块锚点必须唯一`);
     }
+});
+
+test('开标签里的引号都成对（Razor 会把未转义的属性值截断）', () => {
+    const files = readdirSync(PAGES).filter(name => name.endsWith('.razor'));
+    const broken = [];
+
+    for (const file of files) {
+        const source = read(join(PAGES, file));
+        for (const tag of openingTags(source, ['ComponentPage', 'DemoCard', 'ShowcaseCode'])) {
+            if (unpairedQuotes(tag)) broken.push(`${file} 的 <${/^<(\w+)/.exec(tag)?.[1] ?? '?'}>`);
+        }
+    }
+
+    assert.deepEqual(broken, [],
+        `这些开标签里有未转义的引号，属性会被截断、整页渲染失败：${broken.join('; ')}`);
 });

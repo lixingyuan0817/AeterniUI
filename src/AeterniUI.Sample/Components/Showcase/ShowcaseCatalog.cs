@@ -115,6 +115,9 @@ public static class ShowcaseCatalog
         ]),
         new("主题组件", FontAwesomeIcons.Solid.WandMagicSparkles, [
             new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
+        ]),
+        new("组合用法", FontAwesomeIcons.Solid.PuzzlePiece, [
+            new("form-validation", "表单校验链", "字段、规则与提交的时序") { IsComponent = false }
         ])
     ];
 

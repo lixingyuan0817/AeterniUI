@@ -522,5 +522,13 @@ public static class ShowcaseSearchIndex
         new("theme", "ThemeProvider + ThemeSwitch", "主题组件", "theme-api-title", "参数与事件"),
         new("theme", "ThemeProvider + ThemeSwitch", "主题组件", "theme-related-title", "相关组件"),
         new("theme", "ThemeProvider + ThemeSwitch", "主题组件", "theme-notes-title", "说明与边界"),
+
+        new("form-validation", "表单校验链", "组合用法", "form-validation", "表单校验链"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-when-title", "何时使用"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-submit", "提交时校验"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-live", "输入时校验"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-blur", "失焦时校验"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-related-title", "相关组件"),
+        new("form-validation", "表单校验链", "组合用法", "form-validation-notes-title", "说明与边界"),
     ];
 }

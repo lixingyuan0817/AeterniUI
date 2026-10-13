@@ -6,6 +6,17 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程组合用法页（批次 6 起步，版本号未递增）
+
+批次 6 在示例工程里开一条新线：不按单个组件、而按“把几个组件串成一条链”组织页面。目录新增「组合用法」分组（`IsComponent = false`，路由沿用 `/components/<id>`，因此侧栏高亮、前后导航、`EditUrl`、搜索索引与门禁全部照旧）。本轮交付第 1 页，并把它做成后续四页的模板。
+
+- [x] **新增组合用法页「表单校验链」（`/components/form-validation`）**：三段 demo——提交时校验（`EditForm` + `DataAnnotationsValidator` + `FormField For`）、输入时校验（`Invalid` / `Error` 直接驱动字段）、失焦时校验（`Input.OnBlur` 里给结论）。三段只消费既有公共 API，页面本身不新增任何 API。
+- [x] **顺带修掉一个同源缺陷：`Avatar` 页少了整整一段**。`Description="…Alt="" 表示装饰图片…"` 里的 `""` 被 Razor 当成属性值结束，余下文本变成属性名，`avatar-image` 这张卡片在建树时抛 `does not have a property matching the name …` 整段消失（页面上只剩两段 demo）。文案改为「Alt 传空字符串」后三段全部回来。**`Alt=""` 这种组件参数写法是合法的**（解析出来就是空字符串），出问题的只有属性值里的裸引号——这也正是新门禁要拦的东西。
+- [x] **门禁：把这条坑变成断言**（`tests/sample-docs.test.mjs` 新增一项）：扫描每个 `ComponentPage` / `DemoCard` / `ShowcaseCode` 开标签，属性值里不得有落单的双引号。解析器必须同时是引号感知与 `@(...)` 感知：`For="() => Project.Name"` 里的 `>` 不是标签结束，表达式里的引号也不参与配对。**负向验证**：把 `Avatar` 页的文案改回 `Alt=""`，门禁精确点名 `Avatar.razor 的 <DemoCard>`。
+- [x] **`FormField Required` 与 `EditForm` 提交互斥**（写这一页时踩到）：字段把必填传给内部控件、控件输出原生 `required`，浏览器于是先用原生气泡拦下提交，框架的 `OnInvalidSubmit` 与字段消息都不会执行（实测：点提交后 DOM 毫无变化）。示例给 `EditForm` 加 `novalidate`，把拦截交给框架；页面的「说明与边界」与代码片段都写明这条取舍。
+- [x] **断言**：`tests/browser/verify.mjs` 新增一组「组合用法页」断言（三段 demo 各带可复制代码、提交被拦下时消息落在该字段且控件带 `aria-invalid` / `aria-describedby`、补齐必填后提交通过、输入即标红、失焦才给结论）。形态先在本机用独立 CDP 脚本跑通（**9/9**），全量由 CI 复核。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` **94 项**（`sample-docs` 7 项）；`node scripts/generate-search-index.mjs --check`（458 条 / 58 页）；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。真实渲染：`/components/form-validation` 9/9；`/components/avatar` 修复后 3 段 demo 全部渲染（修复前只有 2 段，控制台报同一个截断异常）。
+
 ## 示例工程内容补齐（批次 5，版本号未递增）
 
 批次 5 把“组件页有骨架、三个非组件页没有”补成 **57 页同一套页面模板**：安装、设计基础与对比实验三页改用 `ComponentPage`，组件页补齐 `<Controls>`，门禁因此可以断言“每个页面都有可复制代码块、写了三段固定段”。

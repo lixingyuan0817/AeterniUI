@@ -2259,6 +2259,97 @@ check('侧栏检索按查询过滤条目',
     filtered.after > 0 && filtered.after < filtered.before,
     JSON.stringify(filtered));
 
+// 组合用法页（批次 6）：这些页记录的不是单个组件，而是把若干组件串成一条链，所以断言落在
+// "链条真的连上了"的地方——提交被拦下时消息落到该字段、输入时立刻标红、失焦才给结论。
+// 这里的选择器必须排除分段控件的 radio：每张有代码的卡片都带一个"预览/代码"开关。
+await goto(`${BASE}/components/form-validation`);
+await waitForApp();
+const formChain = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-submit');
+    return {
+        cards: document.querySelectorAll('.component-demo').length,
+        copies: document.querySelectorAll('.component-preview__copy').length,
+        errorsBefore: section ? section.querySelectorAll('.aeterni-form-field__error').length : null
+    };
+})()`);
+check('组合用法页（表单校验链）：三段 demo 各带可复制代码，初始没有任何错误',
+    formChain.cards === 3 && formChain.copies === 3 && formChain.errorsBefore === 0,
+    JSON.stringify(formChain));
+
+await evaluate(`document.querySelector('#form-validation-submit button[type=submit]')?.click()`);
+await sleep(500);
+const blocked = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-submit');
+    const input = section.querySelector('input:not([type=radio])');
+    return {
+        message: section.querySelector('.aeterni-form-field__error')?.textContent?.trim() ?? null,
+        invalid: input?.getAttribute('aria-invalid') ?? null,
+        describedBy: input?.getAttribute('aria-describedby') ?? null,
+        feedback: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+check('提交时校验：错误落在该字段，控件带 aria-invalid 与 aria-describedby',
+    blocked.message === '项目名称必填。' && blocked.invalid === 'true'
+    && (blocked.describedBy ?? '').length > 0
+    && (blocked.feedback ?? '').includes('有字段未通过校验'),
+    JSON.stringify(blocked));
+
+await evaluate(`(() => {
+    const input = document.querySelector('#form-validation-submit input:not([type=radio])');
+    input.value = 'Aeterni Web';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+})()`);
+await sleep(300);
+await evaluate(`document.querySelector('#form-validation-submit button[type=submit]')?.click()`);
+await sleep(500);
+const passed = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-submit');
+    return {
+        errors: section.querySelectorAll('.aeterni-form-field__error').length,
+        feedback: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+check('提交时校验：补齐必填后提交通过，字段错误消失',
+    passed.errors === 0 && (passed.feedback ?? '').includes('已提交'),
+    JSON.stringify(passed));
+
+await evaluate(`(() => {
+    const input = document.querySelector('#form-validation-live input:not([type=radio])');
+    input.value = 'not-an-email';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+})()`);
+await sleep(300);
+const liveInvalid = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-live');
+    return { invalid: !!section.querySelector('.aeterni-form-field.is-invalid') };
+})()`);
+check('输入时校验：非法邮箱在输入过程中就被标红', liveInvalid.invalid, JSON.stringify(liveInvalid));
+
+await evaluate(`(() => {
+    const input = document.querySelector('#form-validation-blur input:not([type=radio])');
+    input.value = 'A';
+    input.focus();
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+})()`);
+await sleep(300);
+const typingQuiet = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-blur');
+    return { invalid: !!section.querySelector('.aeterni-form-field.is-invalid') };
+})()`);
+await evaluate(`document.querySelector('#form-validation-blur input:not([type=radio])')?.blur()`);
+await sleep(400);
+const afterBlur = await evaluate(`(() => {
+    const section = document.querySelector('#form-validation-blur');
+    return {
+        invalid: !!section.querySelector('.aeterni-form-field.is-invalid'),
+        message: section.querySelector('.aeterni-form-field__error')?.textContent?.trim() ?? null
+    };
+})()`);
+check('失焦时校验：输入过程中不报错，离开字段后给出结论',
+    typingQuiet.invalid === false && afterBlur.invalid
+    && (afterBlur.message ?? '').includes('只能用小写字母'),
+    JSON.stringify({ typingQuiet, afterBlur }));
+
 // ---------------------------------------------------------------- REV-159
 // The sample pages are the library's runnable contract: the demos the review asked
 // for are asserted here instead of being trusted to exist.

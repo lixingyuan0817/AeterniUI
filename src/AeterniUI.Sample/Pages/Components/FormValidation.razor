@@ -1,0 +1,223 @@
+@page "/components/form-validation"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using System.ComponentModel.DataAnnotations
+@using AeterniUI.Enums
+@using Microsoft.AspNetCore.Components.Forms
+
+<PageTitle>Aeterni UI · 表单校验链</PageTitle>
+
+@* 组合用法页：把字段容器、输入控件与校验时机串成一条链。它不新增任何公共 API，只演示既有
+   组件怎么一起用——规则留在宿主的 EditContext（或事件处理里），FormField 负责把属于该字段的
+   消息、必填与无效态显示出来，输入控件再从字段继承 id 与 aria 状态。 *@
+<ComponentPage AnchorId="form-validation"
+               Category="组合用法"
+               Title="表单校验链"
+               ComponentName="FormField"
+               Description="从字段容器到提交按钮：规则归宿主、消息归 FormField、显示时机由交互决定。"
+               Related="@FormValidationRelated">
+    <WhenToUse>
+        <p>做真正要提交的表单时看这一页：它回答"错误由谁产生、什么时候显示、提交被拦下之后用户看到什么"这三件事。</p>
+        <p>只关心单个控件的外观，看 <code>FormField</code> 或 <code>Input</code> 本身；这一页关心的是它们串起来之后的时序与归属。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="form-validation-submit"
+                  Title="提交时校验"
+                  Description="EditForm 提供 EditContext，字段用 For 绑定同一份模型；提交被拦下时消息出现在各自的字段下方，而不是另外弹一个汇总框。"
+                  Code="@SubmitCode">
+            <Preview>
+                <EditForm Model="_project" novalidate OnValidSubmit="SubmitProject" OnInvalidSubmit="NoteInvalid">
+                    <DataAnnotationsValidator />
+                    <div class="preview-form-control">
+                        <FormField Label="项目名称" For="() => _project.Name" Required>
+                            <Input @bind-Value="_project.Name" Placeholder="例如 Aeterni Web" />
+                        </FormField>
+                        <FormField Label="预算（元）" For="() => _project.Budget">
+                            <AeterniUI.Components.InputNumber.InputNumber TValue="decimal"
+                                                                        @bind-Value="_project.Budget"
+                                                                        Min="@(1000m)"
+                                                                        Max="@(1000000m)"
+                                                                        Step="@(1000m)"
+                                                                        Precision="0"
+                                                                        AriaLabel="预算" />
+                        </FormField>
+                    </div>
+                    <div class="preview-action-row">
+                        <Button Type="ButtonType.Submit">提交</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="ResetProject">重置</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_submitNote</span>
+                </EditForm>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="form-validation-live"
+                  Title="输入时校验"
+                  Description="每次输入都重算规则，错误在用户还停在这一格时就出现；适合格式类规则（邮箱、编号），不适合「名称可用吗」这类要等输入完成的检查。"
+                  Code="@LiveCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="工作邮箱"
+                               Required
+                               Invalid="@_emailInvalid"
+                               Error="@(_emailInvalid ? "邮箱格式不正确（示例：name@example.com）。" : null)">
+                        <Input Value="_email"
+                               ValueChanged="HandleEmailChanged"
+                               Type="InputType.Email"
+                               Placeholder="name@example.com" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">@(_emailInvalid ? "格式有问题。" : "格式没问题。")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="form-validation-blur"
+                  Title="失焦时校验"
+                  Description="输入过程不打扰，离开字段时给结论；适合「标识是否被占用」这类需要一次完整输入才能判断的规则。"
+                  Code="@BlurCode">
+            <Preview>
+                <div class="preview-form-control">
+                    <FormField Label="工作区标识"
+                               Description="小写字母、数字与连字符，4～16 位，不能以连字符开头或结尾。"
+                               Required
+                               Invalid="@_slugInvalid"
+                               Error="@_slugError">
+                        <Input Value="_slug"
+                               ValueChanged="HandleSlugChanged"
+                               OnBlur="HandleSlugBlur"
+                               Placeholder="例如 aeterni-web" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">@_slugNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>校验归属宿主：<code>FormField</code> 只显示属于自己那个字段的消息，不校验、不提交、不请求。规则可以写在模型的数据注解上（<code>DataAnnotationsValidator</code>），也可以自己往 <code>ValidationMessageStore</code> 里写。</span>
+        <span><code>For</code> 是两处之间的唯一连线：写 <code>For="() =&gt; Project.Name"</code> 时，验证器产生的消息恰好落在同一个 <code>(模型实例, 属性名)</code> 上，字段与消息因此不会错位。</span>
+        <span>显示时机是取舍：提交时最安静、输入时最及时、失焦时最省事。同一张表单里混用没问题，但要让用户能预测"我什么时候会被标红"。</span>
+        <span>提交按钮要能进到框架校验链：<code>FormField Required</code> 会让内部控件输出原生 <code>required</code>，而浏览器会先用原生气泡拦下提交、框架的 <code>OnInvalidSubmit</code> 与字段消息都不会执行。两种拦截只能选一种——这一页给 <code>EditForm</code> 加 <code>novalidate</code> 交给框架，因为消息要落在字段上、样式要和库内一致。</span>
+        <span>错误不能只靠颜色：无效字段同时输出 <code>aria-invalid</code>，消息元素通过 <code>aria-describedby</code> 关联到控件，读屏才会念出来。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] FormValidationRelated =
+    [
+        new("FormField", "/components/form-field"),
+        new("Input", "/components/input"),
+        new("InputNumber", "/components/input-number"),
+        new("Feedback", "/components/feedback")
+    ];
+
+    private const string SubmitCode = """
+        @* Required 会让输入框输出原生 required，浏览器会用原生气泡拦下提交、框架的消息永远不会出现；
+           两种拦截只能选一种，这里把校验交给框架（novalidate）。 *@
+        <EditForm Model="Project" novalidate OnValidSubmit="Submit" OnInvalidSubmit="NoteInvalid">
+            <DataAnnotationsValidator />
+            <FormField Label="项目名称" For="() => Project.Name" Required>
+                <Input @bind-Value="Project.Name" />
+            </FormField>
+            <FormField Label="预算（元）" For="() => Project.Budget">
+                <InputNumber TValue="decimal" @bind-Value="Project.Budget"
+                             Min="@(1000m)" Max="@(1000000m)" />
+            </FormField>
+            <Button Type="ButtonType.Submit">提交</Button>
+        </EditForm>
+
+        // 规则写在模型的数据注解上；ValidationMessageStore 也可以，两条路都归 EditContext
+        private sealed class Draft
+        {
+            [Required(ErrorMessage = "项目名称必填。")]
+            public string? Name { get; set; }
+
+            [Range(typeof(decimal), "1000", "1000000", ErrorMessage = "预算超出范围。")]
+            public decimal? Budget { get; set; }
+        }
+        """;
+
+    private const string LiveCode = """
+        <FormField Label="工作邮箱" Required Invalid="EmailInvalid" Error="EmailError">
+            <Input Value="Email" ValueChanged="HandleEmailChanged" Type="InputType.Email" />
+        </FormField>
+
+        private void HandleEmailChanged(string? value)
+        {
+            Email = value;
+            EmailInvalid = value is { Length: > 0 } && (!value.Contains('@') || !value.Contains('.'));
+        }
+        """;
+
+    private const string BlurCode = """
+        <FormField Label="工作区标识" Required Invalid="SlugInvalid" Error="SlugError">
+            <Input Value="Slug" ValueChanged="HandleSlugChanged" OnBlur="HandleSlugBlur" />
+        </FormField>
+
+        private void HandleSlugBlur(FocusEventArgs _) =>
+            SlugError = IsValidSlug(Slug) ? null : "只能用小写字母、数字与连字符，4～16 位。";
+        """;
+
+    private sealed class ProjectDraft
+    {
+        [Required(ErrorMessage = "项目名称必填。")]
+        public string? Name { get; set; }
+
+        [Range(typeof(decimal), "1000", "1000000", ErrorMessage = "预算需在 1,000 与 1,000,000 之间。")]
+        public decimal? Budget { get; set; } = 120000m;
+    }
+
+    private readonly ProjectDraft _project = new();
+    private string _submitNote = "尚未提交。";
+
+    private string? _email;
+    private bool _emailInvalid;
+
+    private string _slug = string.Empty;
+    private string? _slugError;
+    private string _slugNote = "填写后离开字段即校验。";
+
+    private bool _slugInvalid => _slugError is not null;
+
+    private Task SubmitProject()
+    {
+        _submitNote = $"已提交：{_project.Name}，预算 {_project.Budget:N0} 元。";
+        return Task.CompletedTask;
+    }
+
+    private Task NoteInvalid()
+    {
+        _submitNote = "有字段未通过校验，请检查标出的字段。";
+        return Task.CompletedTask;
+    }
+
+    private void ResetProject()
+    {
+        _project.Name = null;
+        _project.Budget = 120000m;
+        _submitNote = "已重置为初始值，再次提交即可看到校验结果。";
+    }
+
+    private void HandleEmailChanged(string? value)
+    {
+        _email = value;
+        _emailInvalid = value is { Length: > 0 } && (!value.Contains('@') || !value.Contains('.'));
+    }
+
+    private void HandleSlugChanged(string? value)
+    {
+        _slug = value ?? string.Empty;
+        _slugNote = "填写后离开字段即校验。";
+    }
+
+    private void HandleSlugBlur(FocusEventArgs _)
+    {
+        _slugError = IsValidSlug(_slug) ? null : "只能用小写字母、数字与连字符，4～16 位。";
+        _slugNote = _slugError is null ? "标识可用。" : "标识不合法。";
+    }
+
+    private static bool IsValidSlug(string value) =>
+        value.Length is >= 4 and <= 16
+        && value.All(character => char.IsAsciiLetterOrDigit(character) || character == '-')
+        && value[0] != '-'
+        && value[^1] != '-';
+}
