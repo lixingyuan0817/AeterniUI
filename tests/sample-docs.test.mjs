@@ -109,12 +109,14 @@ test('每个有组件的条目都出现在生成的 API 表里，且页面不再
     const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
     const covered = new Set([...generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]/g)].map(match => match[1]));
 
-    // 安装、设计基础与实验室页讲的是用法与 Token，没有单一组件；反馈页记录的是服务与选项
-    // 类型，目前仍手写。两处例外都写在这里，而不是靠“没有断言”默认放过。
-    const noComponent = new Set(['install', 'colors', 'glass', 'feedback']);
+    // 安装、设计基础与实验室页讲的是用法与 Token，没有单一组件，因此没有 API 表。
+    // 反馈页记录的是服务与选项类型，没有对应组件目录，它的行全部来自编辑文件的额外行
+    // （`scripts/api-extra-rows.json` → 生成器在成员为空时也为它产出条目）。这里不再把它
+    // 当例外：例外曾经让它带着三张没人消费的数组通过门禁，页面上其实没有 API 区。
+    const noComponent = new Set(['install', 'colors', 'glass']);
 
     const missing = entries
-        .filter(entry => !noComponent.has(entry.id) && componentDirs.has(entry.page ?? pascal(entry.id)))
+        .filter(entry => !noComponent.has(entry.id) && (componentDirs.has(entry.page ?? pascal(entry.id)) || entry.id === 'feedback'))
         .filter(entry => !covered.has(entry.id))
         .map(entry => entry.id);
     assert.deepEqual(missing, [], `这些条目没有生成 API 表：${missing.join(', ')}`);

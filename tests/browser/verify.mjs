@@ -1492,6 +1492,24 @@ for (const path of ['/components/input', '/components/checkbox', '/components/ra
         JSON.stringify(shape));
 }
 
+// 没有对应组件类型的页（反馈页记录的是 IDialogService 与各个选项类型）同样要有 API 区：
+// 它的行全部来自生成器的额外行。以前门禁把这页当例外，于是它带着三张没人消费的数组通过了
+// 检查，而页面上根本没有 API 区——这是"例外"最典型的后果，所以在这里补一条真实渲染断言。
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+const feedbackApi = await evaluate(`(() => {
+    const rows = [...document.querySelectorAll('.component-preview__api-row')];
+    return {
+        rows: rows.length,
+        heading: !!document.querySelector('#feedback-api-title'),
+        service: rows.filter(row => row.textContent.includes('IDialogService')).length,
+        provider: rows.filter(row => row.textContent.includes('DialogProvider')).length
+    };
+})()`);
+check('无组件类型的页（反馈）仍渲染生成式 API 表',
+    feedbackApi.rows >= 18 && feedbackApi.heading && feedbackApi.service >= 1 && feedbackApi.provider >= 1,
+    JSON.stringify(feedbackApi));
+
 // 生成式 API 表：断言必须回到 upload 页再跑——上面那组跨页卡片抽查把浏览器留在了别的
 // 路由上，而这里要核对的是 Upload 自己的那一行。
 await goto(`${BASE}/components/upload`);

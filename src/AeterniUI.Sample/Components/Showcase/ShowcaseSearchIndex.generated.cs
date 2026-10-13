@@ -491,6 +491,7 @@ public static class ShowcaseSearchIndex
         new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-dialog", "Dialog 与 Confirm 流程"),
         new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-alert-toast", "Alert 与 Toast 通知"),
         new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-options", "选项与文案表"),
+        new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-api-title", "参数与事件"),
         new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-related-title", "相关组件"),
         new("feedback", "Dialog、Alert、Confirm、Toast", "通知组件", "feedback-notes-title", "说明与边界"),
 

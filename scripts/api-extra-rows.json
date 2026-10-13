@@ -379,6 +379,155 @@
         "default": "",
         "kind": "接口"
       }
+    ],
+    "feedback": [
+      {
+        "name": "DialogOptions.Title",
+        "type": "string?",
+        "description": "标题。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.Severity",
+        "type": "Severity",
+        "description": "语义色。",
+        "default": "Default",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.Icon",
+        "type": "RenderFragment?",
+        "description": "自定义图标。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.ShowCloseButton",
+        "type": "bool",
+        "description": "是否显示关闭按钮。",
+        "default": "true",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.CloseOnEscape",
+        "type": "bool",
+        "description": "是否响应 Escape。",
+        "default": "true",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.CloseOnOverlayClick",
+        "type": "bool",
+        "description": "是否允许点击遮罩关闭。",
+        "default": "false",
+        "kind": "属性"
+      },
+      {
+        "name": "DialogOptions.Footer",
+        "type": "RenderFragment?",
+        "description": "对话框底部操作区。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "ConfirmOptions.ConfirmText / CancelText",
+        "type": "string?",
+        "description": "确认与取消按钮文案；留空回退文案表 ConfirmAcceptLabel / ConfirmCancelLabel。",
+        "default": "null",
+        "kind": "属性"
+      },
+      {
+        "name": "AlertOptions.Position",
+        "type": "ToastPosition?",
+        "description": "Alert 位置。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "AlertOptions.Duration",
+        "type": "TimeSpan?",
+        "description": "自动关闭时长。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "AlertOptions.Blur",
+        "type": "bool",
+        "description": "是否启用自身背景模糊。",
+        "default": "true",
+        "kind": "属性"
+      },
+      {
+        "name": "AlertOptions.CloseText",
+        "type": "string?",
+        "description": "通知关闭按钮的无障碍名称；留空回退文案表 AlertCloseLabel。",
+        "default": "null",
+        "kind": "属性"
+      },
+      {
+        "name": "ToastOptions.Position",
+        "type": "ToastPosition?",
+        "description": "Toast 位置。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "ToastOptions.Duration",
+        "type": "TimeSpan?",
+        "description": "自动关闭时长。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "ToastOptions.ShowCloseButton",
+        "type": "bool",
+        "description": "是否显示关闭按钮。",
+        "default": "true",
+        "kind": "属性"
+      },
+      {
+        "name": "ToastOptions.Blur",
+        "type": "bool",
+        "description": "是否启用自身背景模糊。",
+        "default": "true",
+        "kind": "属性"
+      },
+      {
+        "name": "ToastOptions.Title / Severity / Icon",
+        "type": "string? / Severity / RenderFragment?",
+        "description": "Toast 标题、语义色和自定义图标。",
+        "default": "",
+        "kind": "属性"
+      },
+      {
+        "name": "AlertOptions.OnClosedAsync",
+        "type": "Func<Task>?",
+        "description": "Alert 关闭后回调。",
+        "default": "",
+        "kind": "事件回调"
+      },
+      {
+        "name": "ToastOptions.OnClosedAsync",
+        "type": "Func<Task>?",
+        "description": "Toast 关闭后回调。",
+        "default": "",
+        "kind": "事件回调"
+      },
+      {
+        "name": "DialogProvider",
+        "type": "组件",
+        "description": "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "IDialogService",
+        "type": "服务接口",
+        "description": "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。",
+        "default": "",
+        "kind": "接口"
+      }
     ]
   }
 }

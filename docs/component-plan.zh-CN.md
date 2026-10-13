@@ -77,14 +77,15 @@
 
 - `scripts/generate-api-reference.mjs` 解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `src/AeterniUI.Sample/Components/Showcase/ShowcaseApiReference.generated.cs`；生成物提交进仓库，CI 用 `--check` 拒绝过期产物（与 `generate-fontawesome-icons.mjs` 同一约定）。
 - 编辑内容与生成物分离：说明文字在 `scripts/api-descriptions.json`，生成器推不出来的行（模型、服务与 `Value / StartDate / EndDate` 这类汇总写法）在 `scripts/api-extra-rows.json`；「自哪个版本」在 `scripts/api-since.json`，只登记 `release-history` 明确记录过的新增成员，不猜测。
-- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 53 个页面重复生成。
-- 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致。当前手写表的例外只有 `Feedback` 页（记录的是服务与选项类型），已在门禁里显式列出。
+- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 54 个页面重复生成。
+- 没有对应组件目录的页也能有生成式 API 表：`Feedback` 记录的是 `IDialogService` 与各个选项类型，行全部来自 `api-extra-rows.json`，生成器在成员为空时照样为它产出条目。**页面上没有手写表，也没有被门禁放过的例外。**
+- 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致；浏览器断言另有一条真实渲染检查（反馈页的 API 区确实渲染出服务与选项行）。
 
 ### 搜索索引：生成而不是手写
 
-- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（440 条：57 个页面条目 + 54 个组件页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
+- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（441 条：57 个页面条目 + 54 个组件页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
 - 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
-- 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，`Feedback` 页没有生成式 API 表也就没有「参数与事件」——后者读的是 API 生成物，所以生成顺序是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
+- 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，「参数与事件」读的是 API 生成物（所以 `Feedback` 页在这一项修好之后也有了该段）。生成顺序因此是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
 - 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。
 
 ### 批次

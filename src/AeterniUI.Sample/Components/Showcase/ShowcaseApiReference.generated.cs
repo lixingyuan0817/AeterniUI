@@ -770,6 +770,28 @@ public static class ShowcaseApiReference
                 new("Text", "string?", "", "提示内容；只有它会被渲染为 tooltip，为空白时不显示。", "属性", ""),
                 new("Disabled", "bool", "false", "禁用后不显示提示。", "属性", ""),
             },
+            ["feedback"] = new ShowcaseApiMember[]
+            {
+                new("DialogOptions.Title", "string?", "", "标题。", "属性", ""),
+                new("DialogOptions.Severity", "Severity", "Default", "语义色。", "属性", ""),
+                new("DialogOptions.Icon", "RenderFragment?", "", "自定义图标。", "属性", ""),
+                new("DialogOptions.ShowCloseButton", "bool", "true", "是否显示关闭按钮。", "属性", ""),
+                new("DialogOptions.CloseOnEscape", "bool", "true", "是否响应 Escape。", "属性", ""),
+                new("DialogOptions.CloseOnOverlayClick", "bool", "false", "是否允许点击遮罩关闭。", "属性", ""),
+                new("DialogOptions.Footer", "RenderFragment?", "", "对话框底部操作区。", "属性", ""),
+                new("ConfirmOptions.ConfirmText / CancelText", "string?", "null", "确认与取消按钮文案；留空回退文案表 ConfirmAcceptLabel / ConfirmCancelLabel。", "属性", ""),
+                new("AlertOptions.Position", "ToastPosition?", "", "Alert 位置。", "属性", ""),
+                new("AlertOptions.Duration", "TimeSpan?", "", "自动关闭时长。", "属性", ""),
+                new("AlertOptions.Blur", "bool", "true", "是否启用自身背景模糊。", "属性", ""),
+                new("AlertOptions.CloseText", "string?", "null", "通知关闭按钮的无障碍名称；留空回退文案表 AlertCloseLabel。", "属性", ""),
+                new("ToastOptions.Position", "ToastPosition?", "", "Toast 位置。", "属性", ""),
+                new("ToastOptions.Duration", "TimeSpan?", "", "自动关闭时长。", "属性", ""),
+                new("ToastOptions.ShowCloseButton", "bool", "true", "是否显示关闭按钮。", "属性", ""),
+                new("ToastOptions.Blur", "bool", "true", "是否启用自身背景模糊。", "属性", ""),
+                new("ToastOptions.Title / Severity / Icon", "string? / Severity / RenderFragment?", "", "Toast 标题、语义色和自定义图标。", "属性", ""),
+                new("AlertOptions.OnClosedAsync", "Func<Task>?", "", "Alert 关闭后回调。", "事件回调", ""),
+                new("ToastOptions.OnClosedAsync", "Func<Task>?", "", "Toast 关闭后回调。", "事件回调", ""),
+            },
             ["drawer"] = new ShowcaseApiMember[]
             {
                 new("AriaLabel", "string?", "", "无 Title 时面板的无障碍名称；缺省取文案表 DrawerLabel。", "属性", ""),
@@ -844,6 +866,11 @@ public static class ShowcaseApiReference
             {
                 new("MenuGroup", "record", "", "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。", "接口", ""),
                 new("MenuItem", "record", "", "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。", "接口", ""),
+            },
+            ["feedback"] = new ShowcaseApiMember[]
+            {
+                new("DialogProvider", "组件", "", "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。", "接口", ""),
+                new("IDialogService", "服务接口", "", "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。", "接口", ""),
             },
             ["theme"] = new ShowcaseApiMember[]
             {

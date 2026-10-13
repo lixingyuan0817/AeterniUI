@@ -163,42 +163,6 @@
         _ => ButtonIntent.Default
     };
 
-    // 本页记录的是服务与选项类型（IDialogService、DialogOptions、AlertOptions、
-    // ConfirmOptions、ToastOptions），生成的 API 表只覆盖组件页，所以这几张表仍在本页
-    // 手写登记；页面结构改动时不要删掉它们。
-    private static readonly ShowcaseParameter[] FeedbackParameters =
-    [
-        new("DialogOptions.Title", "string?", "标题。"),
-        new("DialogOptions.Severity", "Severity", "语义色。", "Default"),
-        new("DialogOptions.Icon", "RenderFragment?", "自定义图标。"),
-        new("DialogOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
-        new("DialogOptions.CloseOnEscape", "bool", "是否响应 Escape。", "true"),
-        new("DialogOptions.CloseOnOverlayClick", "bool", "是否允许点击遮罩关闭。", "false"),
-        new("DialogOptions.Footer", "RenderFragment?", "对话框底部操作区。"),
-        new("ConfirmOptions.ConfirmText / CancelText", "string?", "确认与取消按钮文案；留空回退文案表 ConfirmAcceptLabel / ConfirmCancelLabel。", "null"),
-        new("AlertOptions.Position", "ToastPosition?", "Alert 位置。"),
-        new("AlertOptions.Duration", "TimeSpan?", "自动关闭时长。"),
-        new("AlertOptions.Blur", "bool", "是否启用自身背景模糊。", "true"),
-        new("AlertOptions.CloseText", "string?", "通知关闭按钮的无障碍名称；留空回退文案表 AlertCloseLabel。", "null"),
-        new("ToastOptions.Position", "ToastPosition?", "Toast 位置。"),
-        new("ToastOptions.Duration", "TimeSpan?", "自动关闭时长。"),
-        new("ToastOptions.ShowCloseButton", "bool", "是否显示关闭按钮。", "true"),
-        new("ToastOptions.Blur", "bool", "是否启用自身背景模糊。", "true"),
-        new("ToastOptions.Title / Severity / Icon", "string? / Severity / RenderFragment?", "Toast 标题、语义色和自定义图标。")
-    ];
-
-    private static readonly ShowcaseEvent[] FeedbackEvents =
-    [
-        new("AlertOptions.OnClosedAsync", "Func<Task>?", "Alert 关闭后回调。"),
-        new("ToastOptions.OnClosedAsync", "Func<Task>?", "Toast 关闭后回调。")
-    ];
-
-    private static readonly ShowcaseContract[] FeedbackContracts =
-    [
-        new("DialogProvider", "组件", "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。"),
-        new("IDialogService", "服务接口", "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。")
-    ];
-
     private static readonly Severity[] FeedbackSeverityOptions =
         FeedbackSeverities.Select(option => option.Severity).ToArray();
 

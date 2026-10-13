@@ -184,7 +184,17 @@ function pageEntries() {
         if (PAGES_WITHOUT_API.has(id)) continue;
 
         const directory = componentDirectory(id);
-        if (!directory) continue;
+        // 没有对应组件类型的页（反馈页记录的是 IDialogService 与各个选项类型）仍然可以
+        // 有 API 表：它的行全部来自编辑文件的额外行。以前这里直接跳过，于是"页面不再手写
+        // 表"的规则和"这类页只有手写表"的事实撞在一起——卡片化重构把页面的手写数组换成
+        // 没人消费的死代码，页面上没有 API 区，门禁却把它当例外放过了。
+        if (!directory) {
+            const extras = extraRows[id] ?? [];
+            if (extras.length === 0) continue;
+
+            entries.push({ id, directory: null, members: [], extras });
+            continue;
+        }
 
         const dir = join(LIBRARY, 'Components', directory);
         // 文件名排序：解析结果随后按名字排序，但同名成员谁先出现也会影响合并，所以顺序
@@ -213,7 +223,8 @@ function pageEntries() {
             since: since.members[`${directory}.${member.name}`] ?? ''
         }));
 
-        if (members.length === 0) continue;
+        const extras = extraRows[id] ?? [];
+        if (members.length === 0 && extras.length === 0) continue;
 
         entries.push({
             id,
@@ -223,7 +234,7 @@ function pageEntries() {
             // 被 CI 抓到过一次）。生成物的内容只能取决于源码。
             members: members.sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0)),
             // 额外行排在组件成员之后：它们记录的是同页的模型、服务与汇总写法，读者先看组件本身。
-            extras: extraRows[id] ?? []
+            extras
         });
     }
 
