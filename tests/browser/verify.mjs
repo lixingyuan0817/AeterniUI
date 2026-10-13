@@ -1135,15 +1135,15 @@ const roundedShape = await segmentedShape();
 const rounded = roundedShape.controlled ?? {};
 const fullRadius = Number.parseFloat(rounded.fullRadius ?? 'NaN');
 
-check('Segmented 默认档是控件圆角，滑块与选项共用轨道内沿半径',
+check('Segmented 默认档取控件圆角，滑块与选项用轨道自己的圆角',
     rounded.classes?.includes('aeterni-segmented')
     && !rounded.classes.includes('aeterni-segmented--pill')
     && rounded.controlRadius === '6px'
     && rounded.radius === 6
     && rounded.radius < fullRadius
-    && rounded.sliderRadiusUsed === Math.max(0, rounded.radius - rounded.border - rounded.padding)
+    && rounded.sliderRadiusUsed === rounded.radius
     && rounded.sliderRadiusUsed === rounded.optionRadiusUsed
-    && rounded.sliderRadiusUsed === 2,
+    && rounded.sliderRadiusUsed === 6,
     JSON.stringify(roundedShape));
 
 check('Segmented 默认档下选中滑块仍与选中列对齐',
@@ -1152,30 +1152,36 @@ check('Segmented 默认档下选中滑块仍与选中列对齐',
     && Math.abs(rounded.sliderWidth - rounded.optionWidth) <= 0.5,
     `selected=${rounded.selected} offset=${rounded.offset} slider=${rounded.sliderWidth} option=${rounded.optionWidth}`);
 
-// 三档的滑块与选项圆角必须是同一个值：默认档原先在这里塌成 0（6 - 1 - 5），于是圆角轨道里
-// 嵌了一个直角滑块。内缩不再手写，而是由「档位轨道圆角 - 描边 - 滑块圆角」推导，所以它是
-// 1 / 3 / 5px，并且与滑块圆角一起保证角上与四边的留白相等。
+// 内缩三档统一：边框到滑块的间距不随 Size 变（都是 3px）。滑块与选项跟着该档的轨道圆角走，
+// 所以圆角是 4 / 6 / 8px —— 与同档 Input / Button 用同一套控件圆角 Token。
 const sizeTiers = [roundedShape.small ?? {}, roundedShape.standard ?? {}, roundedShape.large ?? {}];
-check('Segmented 三档的滑块与选项圆角统一为 2px，内缩按档位轨道圆角推导',
-    sizeTiers.every(tier => tier.sliderRadiusUsed === 2 && tier.optionRadiusUsed === 2)
-    && sizeTiers.map(tier => tier.padding).join('/') === '1/3/5',
+check('Segmented 三档内缩统一为 3px，滑块与选项圆角跟该档轨道圆角一致',
+    sizeTiers.map(tier => tier.padding).join('/') === '3/3/3'
+    && sizeTiers.map(tier => tier.sliderRadiusUsed).join('/') === '4/6/8'
+    && sizeTiers.every(tier => tier.sliderRadiusUsed === tier.trackRadiusUsed
+        && tier.sliderRadiusUsed === tier.optionRadiusUsed
+        && tier.pillInlineGap === tier.pillBlockGap),
     `tiers=${JSON.stringify(sizeTiers.map(tier => ({
-        radius: tier.sliderRadiusUsed, option: tier.optionRadiusUsed, padding: tier.padding
+        radius: tier.sliderRadiusUsed, track: tier.trackRadiusUsed, option: tier.optionRadiusUsed,
+        padding: tier.padding, gap: tier.pillInlineGap
     })))}`);
 
-// 轨道 padding 同时决定轨道内边距、滑块内缩与滑块行程：它由上面那条同心公式推导，所以选项
-// 高度是 36 - 2(border) - 2*padding。这里钉住高度档位、热区下限、四边与圆角处留白相等：
-// 滑块半径必须比轨道半径小一个「描边 + 内缩」，否则角上留白比四边宽（改前默认档四边 5px、
-// 角上 7.5px），而四边相等本身量不出这个偏差。
-check('Segmented 默认档保持控件高度档位，且滑块四边与圆角处留白一致',
-    rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
+// 轨道高度 = 2*描边 + 2*内缩 + 选项高度，而选项有 24px 热区下限。统一 3px 内缩之后，默认档
+// （36 - 8 = 28）与大号（44 - 8 = 36）仍在热区之上，小号只剩 28 - 8 = 20px，于是被热区顶到
+// 32px —— 它不再等于 --aeterni-control-height-sm，所以这条把三档高度一起钉住。
+// 滑块与轨道共用同一个圆角，因此角上留白会比四边宽（三档同为 +1.66px）：这是"形状一致"的
+// 代价，四边相等本身量不出它，只有沿角平分线单独量一次才看得见。
+check('Segmented 三档轨道高度为 32 / 36 / 44，留白四边等宽且不缩破 24px 热区',
+    sizeTiers.map(tier => tier.trackHeight).join('/') === '32/36/44'
+    && rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
     && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
     && Math.abs(rounded.pillInlineGap - rounded.pillBlockGap) <= 0.5
     && rounded.pillInlineGap > 1
-    && Math.abs(rounded.cornerGap - rounded.padding) <= 0.5,
-    `track=${rounded.trackHeight}/${rounded.controlHeight} option=${rounded.optionHeight}/${rounded.touchTargetMin} `
-    + `inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap} `
-    + `corner=${rounded.cornerGap} padding=${rounded.padding}`);
+    && sizeTiers.every(tier => tier.cornerGap > tier.padding)
+    && new Set(sizeTiers.map(tier => tier.cornerGap)).size === 1,
+    `track=${sizeTiers.map(tier => tier.trackHeight).join('/')} (default=${rounded.trackHeight}/${rounded.controlHeight}) `
+    + `option=${rounded.optionHeight}/${rounded.touchTargetMin} inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap} `
+    + `corner=${sizeTiers.map(tier => tier.cornerGap).join('/')} padding=${rounded.padding}`);
 
 // 通过页面上的 Shape 控件切到 Pill（真实 ComboBox 交互，不是给类名赋值）。触发器按
 // 「最近的 .aeterni-combobox 的 id」定位：ShowcaseSelect 把 id 交给 ComboBox，id 落在

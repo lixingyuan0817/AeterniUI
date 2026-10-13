@@ -3409,23 +3409,21 @@ async Task CheckSegmentedShapeAsync()
         && largeBlock.Contains("--aeterni-segmented-radius-rounded: var(--aeterni-radius-control-lg)", StringComparison.Ordinal),
         "The rounded shape must follow the size tier instead of one frozen radius.");
 
-    // The tile radius is one shared value across the tiers, and the inset is derived
-    // from it instead of hand-picked. A fixed inset is what collapsed the default tier
-    // to a square tile (6 - 1 - 5 = 0), and solving the concentricity condition for the
-    // inset is what keeps the outline, the tile and the pill evenly spaced on all three.
-    Require(css.Contains("--aeterni-segmented-inner-radius: var(--aeterni-radius-xs)", StringComparison.Ordinal),
-        "The pill and the option tile must share one radius on every size tier.");
+    // The tile takes the track's own corner, so the selected block matches the shape of
+    // the control it sits in and follows the size tier's control radius; the inset is one
+    // tier-invariant value instead of something derived per tier.
+    Require(css.Contains("--aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-rounded)", StringComparison.Ordinal),
+        "The pill and the option tile must take the track's own corner, not a radius of their own.");
     var paddingDeclaration = Regex.Match(css, @"--aeterni-segmented-padding:\s*([^;]*);").Groups[1].Value;
-    Require(paddingDeclaration.Contains("--aeterni-segmented-radius-rounded", StringComparison.Ordinal)
-        && paddingDeclaration.Contains("--aeterni-radius-xs", StringComparison.Ordinal)
-        && !paddingDeclaration.Contains("--aeterni-segmented-inner-radius", StringComparison.Ordinal)
-        && !paddingDeclaration.Contains("--aeterni-segmented-radius)", StringComparison.Ordinal),
-        "The inset must be derived from the tier radius, the hairline and the shared tile radius - never from a variable the capsule repoints, or the subtraction goes negative.");
-    Require(!Regex.IsMatch(css, @"\.aeterni-segmented--sm\s*\{[^}]*--aeterni-segmented-padding"),
-        "The size tiers must not re-declare the inset: it follows from the derivation.");
+    Require(paddingDeclaration.Contains("--aeterni-spacing-1", StringComparison.Ordinal)
+        && paddingDeclaration.Contains("--aeterni-border-width", StringComparison.Ordinal)
+        && !paddingDeclaration.Contains("--aeterni-segmented-radius", StringComparison.Ordinal),
+        "The inset must be one tier-invariant value from the spacing scale, and must not read a segmented radius (the capsule repoints those, and a -9994px inset computes to zero while stretching the pill by 20000px).");
+    Require(!Regex.IsMatch(css, @"\.aeterni-segmented--(sm|lg)\s*\{[^}]*--aeterni-segmented-padding"),
+        "The size tiers must not re-declare the inset: it is the same on every tier.");
     Require(blocks.TryGetValue("--pill", out var pillRadiusBlock)
         && pillRadiusBlock.Contains("--aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-pill)", StringComparison.Ordinal),
-        "The capsule must hand the tile back to the half-height clamp; the shared 2px radius only serves the rounded tiers.");
+        "The capsule must push the tile past the half-height clamp so the tile and the pill come out as capsules.");
 }
 
 // Segmented keyboard: the arrow keys, the roving tab stop and the RTL direction stay

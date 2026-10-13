@@ -9,22 +9,18 @@
     --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-md);
     --aeterni-segmented-radius-pill: var(--aeterni-radius-full);
     --aeterni-segmented-radius: var(--aeterni-segmented-radius-rounded);
-    /* The pill and the option tile carry one radius on all three size tiers, so the
-       tiers read as the same control. The capsule repoints this one below. */
-    --aeterni-segmented-inner-radius: var(--aeterni-radius-xs);
-    /* One padding value feeds the track, the pill and the pill's travel, so the pill
-       always lands exactly on an option - and it is derived instead of picked. The
-       track outline and the tile are two corner arcs, and they keep an even gap all
-       the way around (sides and corners alike) only while they share one centre;
-       that requires the tile radius to be `track radius - hairline - padding`, so this
-       line solves the same condition for the padding. Both the tier and the tile radius
-       in the formula are the rounded ones: the capsule repoints --aeterni-segmented-radius
-       and --aeterni-segmented-inner-radius, and reading either here would turn the
-       subtraction into a large negative inset (a -9994px padding computes to zero and
-       an inset of the same value stretches the pill by 20000px). It is also why the
-       default tier now insets by 3px (6 - 1 - 2) instead of the 5px it used to carry:
-       5px cancelled the 6px corner exactly and left a square pill inside a round track. */
-    --aeterni-segmented-padding: calc(var(--aeterni-segmented-radius-rounded) - var(--aeterni-border-width) - var(--aeterni-radius-xs));
+    /* The tile and the pill take the track's own corner, so the selected block reads as
+       the same rounded shape as the control it sits in, and every size tier keeps the
+       control radius the rest of the library uses. The capsule repoints this below. */
+    --aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-rounded);
+    /* One padding value feeds the track, the pill and the pill's travel, and it is the
+       same on every size tier: the gap between the outline and the tile must not change
+       with Size. It is one spacing step minus a hairline, i.e. 3px.
+       Together with the 24px touch target on the options that invariant inset is also
+       what lifts the small tier - 2(hairline) + 2(3px) + 24 = 32px - so Small no longer
+       lands on --aeterni-control-height-sm (28px). Default and Large are unaffected:
+       their available height (36 - 8 = 28, 44 - 8 = 36) stays above the target. */
+    --aeterni-segmented-padding: calc(var(--aeterni-spacing-1) - var(--aeterni-border-width));
     --aeterni-segmented-height: var(--aeterni-control-height-md);
 
     position: relative;
@@ -188,9 +184,8 @@
     border-color: var(--aeterni-state-border-invalid);
 }
 
-/* The size tiers only repoint their own radius and height. The inset and the tile
-   radius are not repeated here: they follow from the derivation above, which lands
-   on 1px for Small (4 - 1 - 2) and 5px for Large (8 - 1 - 2). */
+/* The size tiers only repoint their own radius and height. The inset is deliberately
+   not repeated here: it is the same 3px on every tier. */
 .aeterni-segmented--sm {
     --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-sm);
     --aeterni-segmented-height: var(--aeterni-control-height-sm);
@@ -211,10 +206,10 @@
     font-size: var(--aeterni-font-size-base);
 }
 
-/* The non-default shape. The rounded tiers only repoint the shared radius; the
-   capsule also hands the tile and the pill back to the half-height clamp, because the
-   2px tile radius above is what keeps the rounded tiers concentric. The inset reads
-   neither of the two repointed variables, so it stays the tier's own value here. */
+/* The non-default shape. The rounded form gives the tile the track's own corner; the
+   capsule instead pushes the tile radius past the half-height clamp so the tile and the
+   pill come out as capsules. The inset above reads neither of those variables, so it
+   stays the same 3px here. */
 .aeterni-segmented--pill {
     --aeterni-segmented-radius: var(--aeterni-segmented-radius-pill);
     --aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-pill);
