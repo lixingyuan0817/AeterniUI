@@ -1,0 +1,259 @@
+@page "/components/settings-drawer"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Models.Dialog
+
+<PageTitle>Aeterni UI · 设置抽屉</PageTitle>
+
+@* 组合用法页：把一组设置收进边缘面板。它不新增公共 API，难点也不在"怎么打开一个抽屉"，而在
+   状态的所有权——抽屉里的控件改的是草稿、还是一条已经生效的值；关闭时算取消还是算保存。 *@
+<ComponentPage AnchorId="settings-drawer"
+               Category="组合用法"
+               Title="设置抽屉"
+               ComponentName="Drawer"
+               Description="把一组设置收进边缘面板：打开时机、草稿与保存、关闭路径与焦点回归。"
+               Related="@SettingsDrawerRelated">
+    <WhenToUse>
+        <p>设置项一屏放不下、又不想让它们常驻页面时看这一页：抽屉负责收纳，真正的取舍是「改到一半关掉算什么」。</p>
+        <p>只要边缘面板本身看 <code>Drawer</code>；需要整屏阻断与自定义内容时看 <code>Dialog</code>（反馈页）。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="settings-drawer-basic"
+                  Title="基础用法"
+                  Description="一个按钮打开抽屉，里面是设置项，底部是取消与保存；Escape、点外部与关闭按钮都能退出，退出后焦点回到触发它的按钮。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="OpenBasic">打开界面设置</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_basicNote</span>
+                    <Drawer Open="_basicOpen"
+                            OpenChanged="SetBasicOpen"
+                            Title="界面设置"
+                            AriaLabel="界面设置">
+                        <ChildContent>
+                            <div class="preview-form-control">
+                                <Switch @bind-Value="_dailyDigest">每天发送一封摘要邮件</Switch>
+                                <Switch @bind-Value="_basicEmailAlert">重要变更邮件提醒</Switch>
+                            </div>
+                        </ChildContent>
+                        <Footer>
+                            <Button Variant="ButtonVariant.Outline" OnClick="CloseBasic">取消</Button>
+                            <Button OnClick="SaveBasic">保存</Button>
+                        </Footer>
+                    </Drawer>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="settings-drawer-draft"
+                  Title="草稿与保存"
+                  Description="打开时把已生效的设置复制成草稿，抽屉里改的一直是草稿：放弃只丢草稿，保存才写回并给出通知。这一页的对比行始终显示真正生效的值。"
+                  Code="@DraftCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="OpenDraft">打开通知设置</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">当前生效：摘要邮件 @(_saved.Digest ? "开" : "关") · 密度 @DensityText(_saved.Density) · 变更提醒 @(_saved.EmailAlert ? "开" : "关")</span>
+                    <Drawer Open="_draftOpen"
+                            OpenChanged="SetDraftOpen"
+                            Title="通知设置"
+                            Placement="DrawerPlacement.End"
+                            AriaLabel="通知设置">
+                        <ChildContent>
+                            <div class="preview-form-control">
+                                <Switch @bind-Value="_draftDigest">每天发送一封摘要邮件</Switch>
+                                <Switch @bind-Value="_draftEmailAlert">重要变更邮件提醒</Switch>
+                                <FormField Label="列表密度" Description="只影响表格与列表的行距。">
+                                    <Segmented TValue="Density"
+                                               Items="@Densities"
+                                               Value="_draftDensity"
+                                               ValueChanged="SetDraftDensity"
+                                               TextSelector="DensityText"
+                                               Size="Size.Small"
+                                               AriaLabel="列表密度" />
+                                </FormField>
+                            </div>
+                        </ChildContent>
+                        <Footer>
+                            <Button Variant="ButtonVariant.Outline" OnClick="CancelDraft">放弃改动</Button>
+                            <Button OnClick="SaveDraft">保存</Button>
+                        </Footer>
+                    </Drawer>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="settings-drawer-placement"
+                  Title="位置与非模态"
+                  Description="Placement 决定从哪条边滑入；Modal 关掉之后不再有遮罩与滚动锁，用户可以边看页面边调设置。右侧控件即时生效。"
+                  Code="@PlacementCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="OpenPositioned">打开面板</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_positionedNote</span>
+                    <Drawer Open="_positionedOpen"
+                            OpenChanged="SetPositionedOpen"
+                            Title="位置与非模态"
+                            Placement="@_positionedPlacement"
+                            Modal="@_positionedModal"
+                            AriaLabel="位置演示面板">
+                        <ChildContent>
+                            <p class="component-demo__description">End 适合属性面板，Bottom 适合移动端的动作面板；非模态时点外部不会关闭，页面其余部分仍可操作。</p>
+                        </ChildContent>
+                    </Drawer>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Placement</span>
+                        <ShowcaseSelect TValue="DrawerPlacement" Id="settings-drawer-placement" AriaLabel="Placement" Options="@(Enum.GetValues<DrawerPlacement>())" @bind-Value="_positionedPlacement" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_positionedModal">Modal</Checkbox>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>抽屉里的控件改的是宿主状态，<code>Drawer</code> 本身不保存任何设置：示例里第 2 段把"已生效的值"与"草稿"分成两份，放弃改动因此不可能污染生效值。</span>
+        <span>关闭路径统一走 <code>OpenChanged</code>：Escape、点外部、关闭按钮与底部按钮都会经过它，所以"关掉之后干什么"只需要写一处。</span>
+        <span>Modal 抽屉打开时会锁页面滚动并做焦点陷阱，关闭后把焦点还给触发元素；这是浮层的共享行为（<code>aeterni_floating.js</code>），不需要示例自己维护。</span>
+        <span>保存是一次有副作用的动作：给它一个 <code>ShowToast</code> 回执，比"抽屉自己悄悄关掉"更能让用户确认结果。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] SettingsDrawerRelated =
+    [
+        new("Drawer", "/components/drawer"),
+        new("Switch", "/components/switch"),
+        new("Segmented", "/components/segmented"),
+        new("Feedback", "/components/feedback")
+    ];
+
+    private const string BasicCode = """
+        <Button OnClick="@(() => Open = true)">打开界面设置</Button>
+
+        <Drawer @bind-Open="Open" Title="界面设置" AriaLabel="界面设置">
+            <ChildContent>
+                <Switch @bind-Value="DailyDigest">每天发送一封摘要邮件</Switch>
+            </ChildContent>
+            <Footer>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => Open = false)">取消</Button>
+                <Button OnClick="Save">保存</Button>
+            </Footer>
+        </Drawer>
+        """;
+
+    private const string DraftCode = """
+        // 打开时把已生效的设置复制成草稿；抽屉里改的始终是草稿
+        private void Open()
+        {
+            _draftDigest = _saved.Digest;
+            _draftDensity = _saved.Density;
+            _draftEmailAlert = _saved.EmailAlert;
+            _open = true;
+        }
+
+        private void Cancel()
+        {
+            _open = false;      // 放弃：_saved 一个字都没被碰过
+        }
+
+        private void Save()
+        {
+            _saved = new(_draftDigest, _draftDensity, _draftEmailAlert);
+            _open = false;
+            Dialogs.ShowToast("设置已保存。", ToastPosition.TopEnd,
+                new ToastOptions { Title = "已保存", Severity = Severity.Success });
+        }
+        """;
+
+    private const string PlacementCode = """
+        <Drawer @bind-Open="Open"
+                Placement="DrawerPlacement.Bottom"
+                Modal="false"
+                AriaLabel="位置演示面板">
+            End 适合属性面板，Bottom 适合移动端的动作面板；非模态时点外部不会关闭。
+        </Drawer>
+        """;
+
+    private enum Density
+    {
+        Comfortable,
+        Compact
+    }
+
+    private sealed record Settings(bool Digest, Density Density, bool EmailAlert);
+
+    private static readonly Density[] Densities = [Density.Comfortable, Density.Compact];
+
+    private bool _basicOpen;
+    private bool _dailyDigest = true;
+    private bool _basicEmailAlert = true;
+    private string _basicNote = "抽屉关闭时页面其余部分仍可操作。";
+
+    private bool _draftOpen;
+    private bool _draftDigest;
+    private Density _draftDensity = Density.Comfortable;
+    private bool _draftEmailAlert = true;
+    private Settings _saved = new(false, Density.Comfortable, true);
+
+    private bool _positionedOpen;
+    private DrawerPlacement _positionedPlacement = DrawerPlacement.Bottom;
+    private bool _positionedModal = true;
+    private string _positionedNote = "打开面板后可以切换 Placement 与 Modal。";
+
+    private static string DensityText(Density density) => density == Density.Compact ? "紧凑" : "舒适";
+
+    private void SetBasicOpen(bool open) => _basicOpen = open;
+
+    private void OpenBasic() => _basicOpen = true;
+
+    private void CloseBasic()
+    {
+        _basicOpen = false;
+        _basicNote = "已取消，未保存任何改动。";
+    }
+
+    private void SaveBasic()
+    {
+        _basicOpen = false;
+        _basicNote = $"已保存：摘要邮件 {(_dailyDigest ? "开" : "关")}、变更提醒 {(_basicEmailAlert ? "开" : "关")}。";
+    }
+
+    private void SetDraftOpen(bool open) => _draftOpen = open;
+
+    private void OpenDraft()
+    {
+        _draftDigest = _saved.Digest;
+        _draftDensity = _saved.Density;
+        _draftEmailAlert = _saved.EmailAlert;
+        _draftOpen = true;
+    }
+
+    private void SetDraftDensity(Density density) => _draftDensity = density;
+
+    private void CancelDraft() => _draftOpen = false;
+
+    private void SaveDraft()
+    {
+        _saved = new Settings(_draftDigest, _draftDensity, _draftEmailAlert);
+        _draftOpen = false;
+        DialogService.ShowToast("设置已保存。", ToastPosition.TopEnd, new ToastOptions
+        {
+            Title = "已保存",
+            Severity = Severity.Success
+        });
+    }
+
+    private void SetPositionedOpen(bool open) => _positionedOpen = open;
+
+    private void OpenPositioned() => _positionedOpen = true;
+}

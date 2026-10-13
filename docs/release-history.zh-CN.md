@@ -6,7 +6,7 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
-## 示例工程组合用法页（批次 6 起步，版本号未递增）
+## 示例工程组合用法页（批次 6，版本号未递增）
 
 批次 6 在示例工程里开一条新线：不按单个组件、而按“把几个组件串成一条链”组织页面。目录新增「组合用法」分组（`IsComponent = false`，路由沿用 `/components/<id>`，因此侧栏高亮、前后导航、`EditUrl`、搜索索引与门禁全部照旧）。本轮交付第 1 页，并把它做成后续四页的模板。
 
@@ -16,8 +16,14 @@
 - [x] **`FormField Required` 与 `EditForm` 提交互斥**（写这一页时踩到）：字段把必填传给内部控件、控件输出原生 `required`，浏览器于是先用原生气泡拦下提交，框架的 `OnInvalidSubmit` 与字段消息都不会执行（实测：点提交后 DOM 毫无变化）。示例给 `EditForm` 加 `novalidate`，把拦截交给框架；页面的「说明与边界」与代码片段都写明这条取舍。
 - [x] **断言**：`tests/browser/verify.mjs` 新增一组「组合用法页」断言（三段 demo 各带可复制代码、提交被拦下时消息落在该字段且控件带 `aria-invalid` / `aria-describedby`、补齐必填后提交通过、输入即标红、失焦才给结论）。形态先在本机用独立 CDP 脚本跑通（**9/9**），全量由 CI 复核。
 - [x] **修掉 `InputNumber` 页的整页中断**（用户报障）：第 3 段用 `TValue="int"` 绑了一个**非可空**的 `int` 字段，`@bind-Value` 生成的 `ValueExpression` 因此被编译器包了一层 `Convert`，`FieldIdentifier.Create` 抛 `contains a UnaryExpression which is not supported`，页面渲染停在那一段之前。字段改成 `int?`、预览改用 `@bind-Value`（三件套自动齐全），并在「说明与边界」与代码片段里写明**值类型组件的绑定字段要与 `TValue` 的可空形态一致**——这条对 `DatePicker`、`TimePicker` 同样成立。
-- [x] **新增整站渲染体检**（`tests/browser/verify.mjs` 最后一条断言）：把页面源码里声明的 `DemoCard` 与真实渲染出的 `.component-demo` 逐页比对，并收集控制台里的框架级异常（`crit:` / `Unhandled` / `FieldIdentifier` 之类）。这一类缺陷编译期完全看不见，症状都是“页面静静地少一段”：`Avatar` 的「图片与回退」消失了很久、`InputNumber` 的这一段整页中断，而段数是目录、右栏 TOC 与搜索索引共同的事实源。体检先在本机用独立脚本跑通（**58/58** 页面段数一致、无未处理异常），全量由 CI 复核。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` **94 项**（`sample-docs` 7 项）；`node scripts/generate-search-index.mjs --check`（458 条 / 58 页）；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。真实渲染：`/components/form-validation` 9/9；`/components/avatar` 修复后 3 段 demo 全部渲染（修复前只有 2 段）；整站体检 58/58（含 `InputNumber` 修复后的 4 段）。
+- [x] **其余四页落地**（每页 3 段 demo、可复制代码、相关组件与说明与边界，只消费既有公共 API）：
+  - **筛选工具栏**（`/components/filter-toolbar`）：`Toolbar` 把检索、状态下拉与清空排成一行；已选条件下沉成可关闭的 `Tag`（关掉一个只去掉那一个条件）；筛空时由 `Empty` 给出出路。机测 **8/8**，含状态下拉的真实选择路径与「关掉标签后列表重算」。
+  - **设置抽屉**（`/components/settings-drawer`）：`Drawer` 的模态语义、关闭路径与焦点回归；核心是**草稿语义**——抽屉里改的始终是草稿，放弃只丢草稿、保存才写回并给 Toast；`Placement` / `Modal` 由控件驱动。机测 **8/8**，含「放弃改动后生效值一行未变」这条负向对照。
+  - **通知与长任务**（`/components/long-tasks`）：进度 + 取消 + 结束通知的三段式；破坏性动作先 `ConfirmAsync` 拿到同意才动手；三个分片并行、汇总进度取平均、只发一次汇总通知。机测 **6/6**，含「取消停在当前百分比」。为此把 `ShowcasePageBase.Dispose` 改成 `virtual`，页面在销毁时取消还在跑的任务。
+  - **大数据列表**（`/components/data-list`）：800 条日志上的检索、多选与批量动作条；选择由宿主保存、靠 `ItemKeySelector` 跨筛选保持，动作条按"有没有选中"出现。机测 **7/7**，含「800 条只渲染 26 行」这条虚拟化证据。
+- [x] **示例宿主补齐中文文案**：库的默认文案是英文、由宿主本地化，而示例站此前只覆盖了 `TimePicker` 的 5 项，于是同一页里会同时出现「取消」和 `Cancel`。`Program.cs` 把确认与浮层的可见文案（`ConfirmAcceptLabel` / `ConfirmCancelLabel` / `DialogCloseLabel` / `AlertCloseLabel` / `ToastCloseLabel` / `DrawerLabel` / `DrawerCloseLabel`）一并对到中文。
+- [x] **新增整站渲染体检**（`tests/browser/verify.mjs` 最后一条断言）：把页面源码里声明的 `DemoCard` 与真实渲染出的 `.component-demo` 逐页比对，并收集控制台里的框架级异常（`crit:` / `Unhandled` / `FieldIdentifier` 之类）。这一类缺陷编译期完全看不见，症状都是“页面静静地少一段”：`Avatar` 的「图片与回退」消失了很久、`InputNumber` 的这一段整页中断，而段数是目录、右栏 TOC 与搜索索引共同的事实源。体检先在本机用独立脚本跑通（**62/62** 页面段数一致、无未处理异常），全量由 CI 复核。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` **94 项**（`sample-docs` 7 项）；`node scripts/generate-search-index.mjs --check`（486 条 / 62 页）；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。真实渲染：五个组合用法页分别 **9 / 8 / 8 / 6 / 7** 全通过（独立 CDP 脚本跑真实交互）；`/components/avatar` 修复后 3 段、`/components/input-number` 4 段；整站体检 **62/62**。`verify.mjs` 全量仍受本机 `Emulation.setDeviceMetricsOverride` 限制（既有环境项），由 CI 复核。
 
 ## 示例工程内容补齐（批次 5，版本号未递增）
 

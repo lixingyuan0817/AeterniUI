@@ -1,0 +1,227 @@
+@page "/components/data-list"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Models.Dialog
+
+<PageTitle>Aeterni UI · 大数据列表</PageTitle>
+
+@* 组合用法页：几百上千条记录上的检索、多选与批量动作。它不新增公共 API，重点是三件容易做错的
+   事——行在筛选后重建时选择怎么保持、选中数在哪里显示、批量动作凭什么出现。 *@
+<ComponentPage AnchorId="data-list"
+               Category="组合用法"
+               Title="大数据列表"
+               ComponentName="VirtualList&lt;TItem&gt;"
+               Description="800 条日志上的检索、多选与批量动作：选择跨筛选保持，动作只在有选中时出现。"
+               Related="@DataListRelated">
+    <WhenToUse>
+        <p>列表可能有几百上千条、还要在上面检索和批量操作时看这一页：它给出"虚拟滚动 + 宿主筛选 + 受控选择"的最小分工。</p>
+        <p>条目很少时不需要虚拟化，看 <code>List</code>；行高不固定时虚拟化的前提不成立，也要回到 <code>List</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="data-list-search"
+                  Title="检索 800 条日志"
+                  Description="关键词只在宿主里过一遍，命中的子集交给 VirtualList；组件只渲染视口附近的十几行，检索前后滚动的代价相同。"
+                  Code="@SearchCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Search @bind-Value="_keyword"
+                            Placeholder="按内容或级别检索"
+                            Size="Size.Small"
+                            AriaLabel="按内容或级别检索" />
+                    <div class="preview-list-wrap">
+                        <VirtualList Items="@FilteredRows"
+                                     Height="260px"
+                                     ItemSize="30"
+                                     OverscanCount="6"
+                                     ItemKeySelector="row => row.Id"
+                                     AriaLabel="日志列表">
+                            <ItemTemplate Context="row">
+                                <span>@row.Id</span>
+                                <span class="preview-value">@row.Level</span>
+                                <span class="preview-value">@row.Message</span>
+                            </ItemTemplate>
+                        </VirtualList>
+                    </div>
+                    <span class="preview-feedback" role="status">命中 @FilteredRows.Count / @Rows.Length 条；视口里只渲染了十几行。</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="data-list-selection"
+                  Title="多选与计数"
+                  Description="SelectedValues 由宿主保存，行在筛选后重建时按 ItemKeySelector 的 key 恢复选中态；下面两段共用同一份选择。"
+                  Code="@SelectionCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-list-wrap">
+                        <VirtualList Items="@FilteredRows"
+                                     Height="220px"
+                                     ItemSize="30"
+                                     OverscanCount="6"
+                                     SelectionMode="SelectionMode.Multiple"
+                                     SelectedValues="@_selected"
+                                     SelectedValuesChanged="HandleSelectedChanged"
+                                     ItemKeySelector="row => row.Id"
+                                     AriaLabel="可多选的日志列表">
+                            <ItemTemplate Context="row">
+                                <span>@row.Id</span>
+                                <span class="preview-value">@row.Message</span>
+                            </ItemTemplate>
+                        </VirtualList>
+                    </div>
+                    <span class="preview-feedback" role="status">已选 @_selected.Count 项。改上面的关键词试试：选择不会因为某几行被筛掉而丢失。</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="data-list-batch"
+                  Title="批量动作条"
+                  Description="没有选中时不给动作，只有选了才出现工具栏——空着一排灰按钮等于让用户猜为什么点不动。"
+                  Code="@BatchCode">
+            <Preview>
+                <div class="preview-stack">
+                    @if (_selected.Count > 0)
+                    {
+                        <Toolbar AriaLabel="批量动作">
+                            <span class="preview-value">已选 @_selected.Count 项</span>
+                            <Button Size="Size.Small" OnClick="ArchiveSelectedAsync" Disabled="@_archiving">归档选中</Button>
+                            <Button Variant="ButtonVariant.Ghost" Size="Size.Small" OnClick="ClearSelection">清除选择</Button>
+                        </Toolbar>
+                    }
+                    else
+                    {
+                        <span class="preview-value">勾选上面列表里的任意行，这里会出现批量动作。</span>
+                    }
+                    <span class="preview-feedback" role="status">@_batchNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>选择归宿主：<code>SelectedValues</code> 是一份由页面保存的列表，组件每次渲染只负责把它翻成选中态；筛选把某些行移出列表后，选择仍然完整保留，重新筛回来还是选中的。</span>
+        <span>行身份靠 <code>ItemKeySelector</code>：筛选会重建 <c>Items</c>，没有稳定 key 时组件只能按位置对号入座，选择会跟着错位。示例用的是 <c>row.Id</c>。</span>
+        <span>批量动作条按"有没有选中"决定出现与否，而不是禁用一整排按钮：不可用的控件不进 Tab 序列，也就不会让键盘用户白跑一趟。</span>
+        <span>600 条以上才值得虚拟化：行数很少时虚拟滚动带来的"总高度由行高换算"反而会让滚动条位置变得不直观。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] DataListRelated =
+    [
+        new("VirtualList", "/components/virtual-list"),
+        new("List", "/components/list"),
+        new("Search", "/components/search"),
+        new("Toolbar", "/components/toolbar"),
+        new("Tag", "/components/tag")
+    ];
+
+    private const string SearchCode = """
+        <Search @bind-Value="Keyword" Placeholder="按内容或级别检索" />
+
+        <VirtualList Items="Filtered"
+                     Height="260px"
+                     ItemSize="30"
+                     ItemKeySelector="row => row.Id">
+            <ItemTemplate Context="row">
+                <span>@row.Id</span>
+                <span>@row.Message</span>
+            </ItemTemplate>
+        </VirtualList>
+
+        // 检索只在宿主里过一遍：命中的子集交给组件，组件照旧只渲染视口附近的行
+        private IReadOnlyList<LogRow> Filtered => Rows
+            .Where(row => string.IsNullOrWhiteSpace(Keyword)
+                || row.Message.Contains(Keyword.Trim(), StringComparison.OrdinalIgnoreCase)
+                || row.Level.Contains(Keyword.Trim(), StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        """;
+
+    private const string SelectionCode = """
+        <VirtualList Items="Filtered"
+                     SelectionMode="SelectionMode.Multiple"
+                     @bind-SelectedValues="Selected"
+                     ItemKeySelector="row => row.Id" />
+
+        // Selected 是宿主持有的一份列表：筛选把它下面的行换掉，它自己不受影响
+        // 行身份靠 ItemKeySelector 的 key —— 没有稳定 key 时选择会按位置错位
+        """;
+
+    private const string BatchCode = """
+        @if (Selected.Count > 0)
+        {
+            <Toolbar AriaLabel="批量动作">
+                <span>已选 @Selected.Count 项</span>
+                <Button OnClick="ArchiveSelected">归档选中</Button>
+                <Button Variant="ButtonVariant.Ghost" OnClick="Clear">清除选择</Button>
+            </Toolbar>
+        }
+        else
+        {
+            <span>勾选列表里的任意行，这里会出现批量动作。</span>
+        }
+        """;
+
+    private static readonly LogRow[] Rows = BuildRows();
+
+    private string? _keyword;
+    private IReadOnlyList<object?> _selected = [];
+    private bool _archiving;
+    private string _batchNote = "尚未执行批量动作。";
+
+    private sealed record LogRow(int Id, string Level, string Message);
+
+    private IReadOnlyList<LogRow> FilteredRows => Rows
+        .Where(row => string.IsNullOrWhiteSpace(_keyword)
+            || row.Message.Contains(_keyword.Trim(), StringComparison.OrdinalIgnoreCase)
+            || row.Level.Contains(_keyword.Trim(), StringComparison.OrdinalIgnoreCase))
+        .ToArray();
+
+    private static LogRow[] BuildRows()
+    {
+        string[] levels = ["信息", "警告", "错误"];
+        string[] subjects = ["订单", "库存", "支付", "结算", "风控", "推送", "归档", "对账"];
+
+        return Enumerable.Range(1, 800)
+            .Select(index => new LogRow(
+                index,
+                levels[index % levels.Length],
+                $"{subjects[index % subjects.Length]}任务 #{index:000} 完成"))
+            .ToArray();
+    }
+
+    private Task HandleSelectedChanged(IReadOnlyList<object?> values)
+    {
+        _selected = values;
+        return Task.CompletedTask;
+    }
+
+    private void ClearSelection()
+    {
+        _selected = [];
+        _batchNote = "已清除选择。";
+    }
+
+    private async Task ArchiveSelectedAsync()
+    {
+        if (_selected.Count == 0)
+        {
+            return;
+        }
+
+        var count = _selected.Count;
+        _archiving = true;
+        _batchNote = $"正在归档 {count} 项…";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(500);
+
+        _archiving = false;
+        _selected = [];
+        _batchNote = $"已归档 {count} 项。";
+        DialogService.ShowToast($"已归档 {count} 项。", ToastPosition.TopEnd, new ToastOptions
+        {
+            Title = "批量动作完成",
+            Severity = Severity.Success
+        });
+    }
+}

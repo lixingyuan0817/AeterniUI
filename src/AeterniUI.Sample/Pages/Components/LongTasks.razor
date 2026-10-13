@@ -1,0 +1,304 @@
+@page "/components/long-tasks"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Models.Dialog
+
+<PageTitle>Aeterni UI · 通知与长任务</PageTitle>
+
+@* 组合用法页：一个会跑上几秒的操作该怎么告诉用户。它不新增公共 API，重点是三件事的分工——
+   进行中用 Progress 说清楚"还在动"，取消要能被用户按下，结束时用一次 Toast 收尾；破坏性动作
+   则先用 Confirm 拿到明确同意。 *@
+<ComponentPage AnchorId="long-tasks"
+               Category="组合用法"
+               Title="通知与长任务"
+               ComponentName="Progress"
+               Description="进行中、取消与结束通知：长任务的三段式，以及破坏性动作前的确认。"
+               Related="@LongTasksRelated">
+    <WhenToUse>
+        <p>操作要跑几秒以上、用户可能中途想放弃时看这一页：它给出"进度 + 取消 + 结束通知"的最小分工，并说明什么时候该先确认。</p>
+        <p>瞬时操作不要进度条（闪一下比不动更烦）；只要一个结果回执看通知组件那一页（<code>IDialogService</code>）。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="long-tasks-progress"
+                  Title="进行中与取消"
+                  Description="进度只用来说明「还在动」，取消按钮才是用户的出口；两种结局各给一次 Toast，而不是让按钮一直转圈。"
+                  Code="@ProgressCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button OnClick="StartTaskAsync" Disabled="@_running">开始同步</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="CancelTask" Disabled="@(!_running)">取消</Button>
+                    </div>
+                    <Progress Value="@_progress" Max="100" ShowValue AriaLabel="同步进度" />
+                    <span class="preview-feedback" role="status">@_taskNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="long-tasks-confirm"
+                  Title="破坏性动作先确认"
+                  Description="ConfirmAsync 返回 true 才继续；用户拒绝时什么都没发生，接口也不会被调用。确认之后同样要用一次通知收尾。"
+                  Code="@ConfirmCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button Intent="ButtonIntent.Danger" OnClick="RequestDeleteAsync">删除 240 条记录</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_deleteNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="long-tasks-batch"
+                  Title="并行分片与汇总"
+                  Description="三个分片并行推进，整体进度取它们的平均；全部结束时只发一次通知——每个分片各弹一条会把通知区冲垮。"
+                  Code="@BatchCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <Button OnClick="StartBatchAsync" Disabled="@_batchRunning">开始批量同步</Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="CancelBatch" Disabled="@(!_batchRunning)">取消</Button>
+                    </div>
+                    <Progress Value="@BatchOverall" Max="100" ShowValue AriaLabel="批量任务总进度" />
+                    <div class="preview-state-row" aria-label="分片进度">
+                        @for (var index = 0; index < _batchProgress.Length; index++)
+                        {
+                            <span class="preview-value">分片 @(index + 1)：@_batchProgress[index].ToString("0")%</span>
+                        }
+                    </div>
+                    <span class="preview-feedback" role="status">@_batchNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>进行中的反馈与结果反馈是两件事：<code>Progress</code> 负责前者（可以随时消失），<code>ShowToast</code> 负责后者（一条就够）。把两者混成"按钮转圈到结束"会让用户既不知道还剩多少，也不知道到底成没成。</span>
+        <span>取消要给真的出口：示例把 <code>CancellationToken</code> 传进每一步等待，取消后停在当前百分比并给出"已取消"的回执；任务不是在后台继续跑。</span>
+        <span>破坏性动作先 <code>ConfirmAsync</code>，拿到 <c>true</c> 才发请求——示例里拒绝时连"正在删除"都不会出现，因为状态根本没被改过。</span>
+        <span>页面被销毁时要取消在跑的任务（示例在 <code>Dispose</code> 里做）：留一个还在 <code>Task.Delay</code> 的循环去调 <code>StateHasChanged</code>，只会得到对已销毁组件的无效更新。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] LongTasksRelated =
+    [
+        new("Progress", "/components/progress"),
+        new("Feedback", "/components/feedback"),
+        new("Spinner", "/components/spinner"),
+        new("Button", "/components/button")
+    ];
+
+    private const string ProgressCode = """
+        <Button OnClick="StartAsync" Disabled="Running">开始同步</Button>
+        <Button Variant="ButtonVariant.Outline" OnClick="Cancel" Disabled="!Running">取消</Button>
+        <Progress Value="Percent" Max="100" ShowValue AriaLabel="同步进度" />
+
+        private async Task StartAsync()
+        {
+            Running = true;
+            Cancellation = new CancellationTokenSource();
+
+            try
+            {
+                for (var step = 1; step <= 20; step++)
+                {
+                    await Task.Delay(150, Cancellation.Token);   // 取消从这一步抛出
+                    Percent = step * 5;
+                    await InvokeAsync(StateHasChanged);
+                }
+
+                Dialogs.ShowToast("同步完成。", ToastPosition.TopEnd,
+                    new ToastOptions { Title = "任务结束", Severity = Severity.Success });
+            }
+            catch (TaskCanceledException)
+            {
+                Dialogs.ShowToast("任务已取消。", ToastPosition.TopEnd,
+                    new ToastOptions { Title = "已取消", Severity = Severity.Warning });
+            }
+            finally
+            {
+                Running = false;
+            }
+        }
+        """;
+
+    private const string ConfirmCode = """
+        private async Task RequestDeleteAsync()
+        {
+            var confirmed = await Dialogs.ConfirmAsync("删除后无法恢复，确定继续吗？");
+            if (!confirmed)
+            {
+                Note = "已取消删除，没有发出请求。";   // 状态没被改过，界面照旧
+                return;
+            }
+
+            Note = "正在删除…";
+            await DeleteAsync();                        // 真正有副作用的调用只在这里
+            Note = "已删除 240 条记录。";
+            Dialogs.ShowToast("已删除 240 条记录。", ToastPosition.TopEnd,
+                new ToastOptions { Title = "删除完成", Severity = Severity.Success });
+        }
+        """;
+
+    private const string BatchCode = """
+        // 三个分片并行推进：页面只读各自那一档进度，整体进度取平均
+        var tasks = Enumerable.Range(0, 3).Select(index => RunShardAsync(index, token));
+        await Task.WhenAll(tasks);
+
+        // 汇总通知只发一次——每个分片各弹一条会把通知区冲垮
+        Dialogs.ShowToast("三个分片全部完成。", ToastPosition.TopEnd,
+            new ToastOptions { Title = "批量任务结束", Severity = Severity.Success });
+        """;
+
+    private double _progress;
+    private bool _running;
+    private CancellationTokenSource? _cancellation;
+    private string _taskNote = "尚未开始。";
+
+    private string _deleteNote = "尚未删除任何记录。";
+
+    private readonly double[] _batchProgress = new double[3];
+    private bool _batchRunning;
+    private CancellationTokenSource? _batchCancellation;
+    private int _batchDone;
+    private string _batchNote = "尚未开始。";
+
+    private double BatchOverall => _batchProgress.Average();
+
+    private async Task StartTaskAsync()
+    {
+        if (_running)
+        {
+            return;
+        }
+
+        _running = true;
+        _progress = 0;
+        _cancellation = new CancellationTokenSource();
+        _taskNote = "正在同步 240 条记录…";
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            for (var step = 1; step <= 20; step++)
+            {
+                await Task.Delay(150, _cancellation.Token);
+                _progress = step * 5;
+                await InvokeAsync(StateHasChanged);
+            }
+
+            _taskNote = "同步完成，共 240 条。";
+            DialogService.ShowToast("同步完成。", ToastPosition.TopEnd, new ToastOptions
+            {
+                Title = "任务结束",
+                Severity = Severity.Success
+            });
+        }
+        catch (TaskCanceledException)
+        {
+            _taskNote = $"已取消，停在 {_progress:0}%。";
+            DialogService.ShowToast("任务已取消。", ToastPosition.TopEnd, new ToastOptions
+            {
+                Title = "已取消",
+                Severity = Severity.Warning
+            });
+        }
+        finally
+        {
+            _running = false;
+            _cancellation?.Dispose();
+            _cancellation = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void CancelTask() => _cancellation?.Cancel();
+
+    private async Task RequestDeleteAsync()
+    {
+        var confirmed = await DialogService.ConfirmAsync("删除后无法恢复，确定继续吗？");
+        if (!confirmed)
+        {
+            _deleteNote = "已取消删除，没有发出请求。";
+            return;
+        }
+
+        _deleteNote = "正在删除…";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(600);
+
+        _deleteNote = "已删除 240 条记录。";
+        DialogService.ShowToast("已删除 240 条记录。", ToastPosition.TopEnd, new ToastOptions
+        {
+            Title = "删除完成",
+            Severity = Severity.Success
+        });
+    }
+
+    private async Task StartBatchAsync()
+    {
+        if (_batchRunning)
+        {
+            return;
+        }
+
+        _batchRunning = true;
+        _batchDone = 0;
+        Array.Clear(_batchProgress);
+        _batchCancellation = new CancellationTokenSource();
+        _batchNote = "三个分片并行同步中…";
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var token = _batchCancellation.Token;
+            var shards = Enumerable.Range(0, _batchProgress.Length)
+                .Select(index => RunShardAsync(index, token))
+                .ToArray();
+
+            await Task.WhenAll(shards);
+
+            _batchNote = "三个分片全部完成。";
+            DialogService.ShowToast("三个分片全部完成。", ToastPosition.TopEnd, new ToastOptions
+            {
+                Title = "批量任务结束",
+                Severity = Severity.Success
+            });
+        }
+        catch (TaskCanceledException)
+        {
+            _batchNote = $"已取消，完成 {_batchDone} / {_batchProgress.Length} 个分片。";
+        }
+        finally
+        {
+            _batchRunning = false;
+            _batchCancellation?.Dispose();
+            _batchCancellation = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task RunShardAsync(int index, CancellationToken token)
+    {
+        for (var step = 1; step <= 12; step++)
+        {
+            await Task.Delay(90 + (index * 40), token);
+            _batchProgress[index] = step * 100d / 12;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        _batchDone++;
+    }
+
+    private void CancelBatch() => _batchCancellation?.Cancel();
+
+    public override void Dispose()
+    {
+        _cancellation?.Cancel();
+        _cancellation?.Dispose();
+        _batchCancellation?.Cancel();
+        _batchCancellation?.Dispose();
+        base.Dispose();
+    }
+}

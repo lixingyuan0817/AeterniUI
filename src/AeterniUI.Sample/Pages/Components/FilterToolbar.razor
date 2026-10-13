@@ -1,0 +1,229 @@
+@page "/components/filter-toolbar"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · 筛选工具栏</PageTitle>
+
+@* 组合用法页：列表上方的查询工具条。它不新增公共 API，只演示"筛选条件归谁所有"——控件只上报
+   变化，条件与派生结果都留在宿主；Toolbar 负责把控件排成一行并给出一个 Tab 停留点，Tag 负责
+   把已选的条件下沉成可逐个移除的痕迹，Empty 负责无结果时的出路。 *@
+<ComponentPage AnchorId="filter-toolbar"
+               Category="组合用法"
+               Title="筛选工具栏"
+               ComponentName="Toolbar"
+               Description="检索、条件筛选、已选条件与空结果排成一条链：谁负责输入、谁保存状态、谁给出出路。"
+               Related="@FilterToolbarRelated">
+    <WhenToUse>
+        <p>列表上方需要一条"查询工具条"时看这一页：它回答筛选条件保存在哪、怎么让用户看到自己选了什么、筛空之后给什么出路。</p>
+        <p>只要单个控件看 <code>Search</code> 或 <code>ComboBox</code>；条件多到一行放不下、需要分组收进侧边面板时看「设置抽屉」那一页。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="filter-toolbar-basic"
+                  Title="一行工具栏"
+                  Description="Toolbar 把检索、状态下拉与清空排成一行并给出一个 Tab 停留点；控件只上报变化，筛选与结果都从宿主的同一份状态派生。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Toolbar AriaLabel="筛选工具栏">
+                        <Search @bind-Value="_keyword"
+                                Placeholder="按名称检索"
+                                Size="Size.Small"
+                                AriaLabel="按名称检索" />
+                        <ComboBox TItem="string"
+                                  @bind-Value="_status"
+                                  Items="@StatusOptions"
+                                  Placeholder="全部状态"
+                                  Size="Size.Small"
+                                  AriaLabel="状态" />
+                        <Button Variant="ButtonVariant.Ghost" Size="Size.Small" OnClick="ClearFilters">清空</Button>
+                    </Toolbar>
+                    <span class="preview-feedback" role="status">@ToolbarNote</span>
+                    <div class="preview-state-row" aria-label="筛选结果">
+                        @if (FilteredRows.Count == 0)
+                        {
+                            <span class="preview-value">没有匹配的记录。</span>
+                        }
+                        else
+                        {
+                            @foreach (var row in FilteredRows)
+                            {
+                                <Tag Size="Size.Small" Color="@StatusColor(row.Status)">@row.Name · @row.Status</Tag>
+                            }
+                        }
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="filter-toolbar-chips"
+                  Title="已选条件"
+                  Description="把当前条件下沉成可关闭的标签：用户一眼看到「为什么只剩这几条」，也能只去掉其中一个条件；关掉的只是那一个条件。"
+                  Code="@ChipsCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-state-row" aria-label="已选条件">
+                        @if (!HasFilters)
+                        {
+                            <span class="preview-value">还没有筛选条件，上面的工具栏与这里共用同一份状态。</span>
+                        }
+                        else
+                        {
+                            @if (!string.IsNullOrWhiteSpace(_keyword))
+                            {
+                                <Tag Dismissible DismissLabel="移除关键词筛选" OnDismiss="ClearKeyword">关键词：@_keyword</Tag>
+                            }
+                            @if (_status is not null)
+                            {
+                                <Tag Dismissible DismissLabel="移除状态筛选" OnDismiss="ClearStatus">状态：@_status</Tag>
+                            }
+                            <Button Variant="ButtonVariant.Ghost" Size="Size.Small" OnClick="ClearFilters">全部清空</Button>
+                        }
+                    </div>
+                    <span class="preview-feedback" role="status">@ChipsNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="filter-toolbar-empty"
+                  Title="筛空的出路"
+                  Description="结果为空时由 Empty 接管这块区域，并把「清空筛选」这个动作放在读者眼前；不要只留一片空白让用户自己猜。"
+                  Code="@EmptyCode">
+            <Preview>
+                <div class="preview-stack">
+                    <Toolbar AriaLabel="空结果演示的工具栏">
+                        <Search @bind-Value="_emptyKeyword"
+                                Placeholder="输入一个不存在的名称"
+                                Size="Size.Small"
+                                AriaLabel="空结果演示检索" />
+                    </Toolbar>
+                    @if (EmptyRows.Count == 0)
+                    {
+                        <Empty Title="没有匹配的记录"
+                               Description="换个关键词，或者清空筛选条件。"
+                               Size="Size.Small">
+                            <Button Variant="ButtonVariant.Outline" Size="Size.Small" OnClick="ClearEmptyKeyword">清空筛选</Button>
+                        </Empty>
+                    }
+                    else
+                    {
+                        <span class="preview-feedback" role="status">试试输入 "zzz"：@EmptyRows.Count 条记录命中当前关键词。</span>
+                    }
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>筛选条件是宿主的一份状态，控件不保存它：<code>Search</code> 与 <code>ComboBox</code> 只把新值回调出来，派生列表由宿主重算。示例里 <code>FilteredRows</code> 是计算属性——没有第二份"筛选结果"状态需要同步。</span>
+        <span><code>Toolbar</code> 只提供"一行 + 一个 Tab 停留点"的语义，不接管控件行为；里面的输入框仍然自己接收键盘输入。</span>
+        <span>已选条件用 <code>Tag Dismissible</code> 表达时，每个标签的 <code>DismissLabel</code> 要写清去掉的是哪一个条件——读屏用户看不到标签之间的位置关系，只能靠这个名字分辨。</span>
+        <span>筛空不是错误，也不是空数据：用 <code>Empty</code> 明确说清"没有匹配"并把重置动作放在旁边，比留白更省用户一轮猜测。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] FilterToolbarRelated =
+    [
+        new("Toolbar", "/components/toolbar"),
+        new("Search", "/components/search"),
+        new("ComboBox", "/components/combobox"),
+        new("Tag", "/components/tag"),
+        new("Empty", "/components/empty")
+    ];
+
+    private const string BasicCode = """
+        <Toolbar AriaLabel="筛选工具栏">
+            <Search @bind-Value="Keyword" Placeholder="按名称检索" />
+            <ComboBox TItem="string" @bind-Value="Status" Items="StatusOptions" Placeholder="全部状态" />
+            <Button Variant="ButtonVariant.Ghost" OnClick="Clear">清空</Button>
+        </Toolbar>
+
+        // 筛选条件只有一份：列表由它派生，不额外保存"筛选结果"
+        private IReadOnlyList<Row> Filtered => Rows
+            .Where(row => string.IsNullOrWhiteSpace(Keyword)
+                || row.Name.Contains(Keyword.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Where(row => Status is null || row.Status == Status)
+            .ToArray();
+        """;
+
+    private const string ChipsCode = """
+        @if (!string.IsNullOrWhiteSpace(Keyword))
+        {
+            <Tag Dismissible DismissLabel="移除关键词筛选" OnDismiss="ClearKeyword">关键词：@Keyword</Tag>
+        }
+        @if (Status is not null)
+        {
+            <Tag Dismissible DismissLabel="移除状态筛选" OnDismiss="ClearStatus">状态：@Status</Tag>
+        }
+        """;
+
+    private const string EmptyCode = """
+        @if (Filtered.Count == 0)
+        {
+            <Empty Title="没有匹配的记录" Description="换个关键词，或者清空筛选条件。">
+                <Button Variant="ButtonVariant.Outline" OnClick="Clear">清空筛选</Button>
+            </Empty>
+        }
+        """;
+
+    private static readonly string[] StatusOptions = ["运行中", "已暂停", "已结束"];
+
+    private static readonly FilterRow[] Rows =
+    [
+        new("网关服务", "运行中", "林小远"),
+        new("订单同步", "运行中", "周予安"),
+        new("报表导出", "已暂停", "林小远"),
+        new("账单对账", "运行中", "郑一凡"),
+        new("消息推送", "已结束", "周予安"),
+        new("库存快照", "已暂停", "郑一凡"),
+        new("日志归档", "已结束", "林小远"),
+        new("风控扫描", "运行中", "郑一凡"),
+        new("发票核验", "已暂停", "周予安"),
+        new("用户画像", "运行中", "林小远"),
+        new("渠道结算", "已结束", "郑一凡"),
+        new("额度审批", "运行中", "周予安")
+    ];
+
+    private string? _keyword;
+    private string? _status;
+    private string? _emptyKeyword;
+
+    private sealed record FilterRow(string Name, string Status, string Owner);
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_keyword) || _status is not null;
+
+    private IReadOnlyList<FilterRow> FilteredRows => Filter(Rows, _keyword, _status);
+
+    private IReadOnlyList<FilterRow> EmptyRows => Filter(Rows, _emptyKeyword, null);
+
+    private string ToolbarNote =>
+        $"{FilteredRows.Count} / {Rows.Length} 条记录{(HasFilters ? "（已筛选）" : "（未筛选）")}";
+
+    private string ChipsNote =>
+        HasFilters ? $"当前条件命中 {FilteredRows.Count} 条；关掉一个标签只去掉那一个条件。" : "条件变化会立即重算列表。";
+
+    private static IReadOnlyList<FilterRow> Filter(IReadOnlyList<FilterRow> rows, string? keyword, string? status) => rows
+        .Where(row => string.IsNullOrWhiteSpace(keyword)
+            || row.Name.Contains(keyword.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Where(row => status is null || row.Status == status)
+        .ToArray();
+
+    private static Color StatusColor(string status) => status switch
+    {
+        "运行中" => Color.Success,
+        "已暂停" => Color.Warning,
+        _ => Color.Neutral
+    };
+
+    private void ClearFilters()
+    {
+        _keyword = null;
+        _status = null;
+    }
+
+    private void ClearKeyword() => _keyword = null;
+
+    private void ClearStatus() => _status = null;
+
+    private void ClearEmptyKeyword() => _emptyKeyword = null;
+}

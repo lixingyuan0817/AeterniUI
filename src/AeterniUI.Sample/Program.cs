@@ -14,6 +14,16 @@ builder.Services.AddAeterniUI(options =>
     options.Text.TimePickerSecondLabel = "秒";
     options.Text.TimePickerCancelText = "取消";
     options.Text.TimePickerConfirmText = "确定";
+
+    // 库的默认文案是英文、由宿主本地化；示例站整体是中文，所以这里把浮层与确认的可见文案补齐，
+    // 否则同一页里会同时出现「取消」和「Cancel」，读者只会把它当成缺陷而不是"默认值"。
+    options.Text.ConfirmAcceptLabel = "确定";
+    options.Text.ConfirmCancelLabel = "取消";
+    options.Text.DialogCloseLabel = "关闭对话框";
+    options.Text.AlertCloseLabel = "关闭提示";
+    options.Text.ToastCloseLabel = "关闭通知";
+    options.Text.DrawerLabel = "面板";
+    options.Text.DrawerCloseLabel = "关闭面板";
 });
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });

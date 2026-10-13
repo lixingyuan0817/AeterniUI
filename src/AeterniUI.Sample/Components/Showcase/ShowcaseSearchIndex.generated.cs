@@ -530,5 +530,37 @@ public static class ShowcaseSearchIndex
         new("form-validation", "表单校验链", "组合用法", "form-validation-blur", "失焦时校验"),
         new("form-validation", "表单校验链", "组合用法", "form-validation-related-title", "相关组件"),
         new("form-validation", "表单校验链", "组合用法", "form-validation-notes-title", "说明与边界"),
+
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar", "筛选工具栏"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-when-title", "何时使用"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-basic", "一行工具栏"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-chips", "已选条件"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-empty", "筛空的出路"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-related-title", "相关组件"),
+        new("filter-toolbar", "筛选工具栏", "组合用法", "filter-toolbar-notes-title", "说明与边界"),
+
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer", "设置抽屉"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-when-title", "何时使用"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-basic", "基础用法"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-draft", "草稿与保存"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-placement", "位置与非模态"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-related-title", "相关组件"),
+        new("settings-drawer", "设置抽屉", "组合用法", "settings-drawer-notes-title", "说明与边界"),
+
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks", "通知与长任务"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-when-title", "何时使用"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-progress", "进行中与取消"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-confirm", "破坏性动作先确认"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-batch", "并行分片与汇总"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-related-title", "相关组件"),
+        new("long-tasks", "通知与长任务", "组合用法", "long-tasks-notes-title", "说明与边界"),
+
+        new("data-list", "大数据列表", "组合用法", "data-list", "大数据列表"),
+        new("data-list", "大数据列表", "组合用法", "data-list-when-title", "何时使用"),
+        new("data-list", "大数据列表", "组合用法", "data-list-search", "检索 800 条日志"),
+        new("data-list", "大数据列表", "组合用法", "data-list-selection", "多选与计数"),
+        new("data-list", "大数据列表", "组合用法", "data-list-batch", "批量动作条"),
+        new("data-list", "大数据列表", "组合用法", "data-list-related-title", "相关组件"),
+        new("data-list", "大数据列表", "组合用法", "data-list-notes-title", "说明与边界"),
     ];
 }

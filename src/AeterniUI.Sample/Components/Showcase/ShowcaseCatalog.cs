@@ -117,7 +117,11 @@ public static class ShowcaseCatalog
             new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
         ]),
         new("组合用法", FontAwesomeIcons.Solid.PuzzlePiece, [
-            new("form-validation", "表单校验链", "字段、规则与提交的时序") { IsComponent = false }
+            new("form-validation", "表单校验链", "字段、规则与提交的时序") { IsComponent = false },
+            new("filter-toolbar", "筛选工具栏", "检索、筛选与空结果的出路") { IsComponent = false },
+            new("settings-drawer", "设置抽屉", "抽屉里的设置、草稿与保存") { IsComponent = false },
+            new("long-tasks", "通知与长任务", "进度、取消与结束通知") { IsComponent = false },
+            new("data-list", "大数据列表", "800 条日志上的检索与批量动作") { IsComponent = false }
         ])
     ];
 

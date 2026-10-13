@@ -2355,6 +2355,143 @@ check('失焦时校验：输入过程中不报错，离开字段后给出结论'
     && (afterBlur.message ?? '').includes('只能用小写字母'),
     JSON.stringify({ typingQuiet, afterBlur }));
 
+// 筛选工具栏：条件归宿主，派生结果只有一份；已选条件是同一份状态的下沉呈现
+await goto(`${BASE}/components/filter-toolbar`);
+await waitForApp();
+const toolbarShape = await evaluate(`(() => {
+    const basic = document.querySelector('#filter-toolbar-basic');
+    return {
+        cards: document.querySelectorAll('.component-demo').length,
+        tags: basic.querySelectorAll('.preview-state-row .aeterni-tag').length,
+        note: basic.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+check('组合用法页（筛选工具栏）：初始列出全部记录，工具栏给出计数',
+    toolbarShape.cards === 3 && toolbarShape.tags === 12 && (toolbarShape.note ?? '').includes('12 / 12'),
+    JSON.stringify(toolbarShape));
+
+await evaluate(`(() => {
+    const input = document.querySelector('#filter-toolbar-basic input:not([type=radio]):not([role=combobox])');
+    input.value = '网关';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+})()`);
+await sleep(400);
+const toolbarFiltered = await evaluate(`(() => {
+    const basic = document.querySelector('#filter-toolbar-basic');
+    return {
+        tags: [...basic.querySelectorAll('.preview-state-row .aeterni-tag')].map(node => node.textContent.trim()),
+        note: basic.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+        chips: [...document.querySelectorAll('#filter-toolbar-chips .aeterni-tag')].map(node => node.textContent.trim())
+    };
+})()`);
+check('筛选工具栏：关键词筛掉其余记录，同一份条件在「已选条件」里变成可关闭标签',
+    toolbarFiltered.tags.length === 1 && (toolbarFiltered.note ?? '').includes('1 / 12')
+    && toolbarFiltered.chips.some(text => text.includes('关键词：网关')),
+    JSON.stringify(toolbarFiltered));
+
+// 设置抽屉：草稿语义——放弃改动不碰生效值，页面上的对比行因此必须一字不变
+await goto(`${BASE}/components/settings-drawer`);
+await waitForApp();
+await evaluate(`(() => {
+    const open = [...document.querySelectorAll('#settings-drawer-draft button')]
+        .find(node => node.textContent.trim() === '打开通知设置');
+    open?.click();
+})()`);
+await sleep(500);
+const drawerModal = await evaluate(`(() => {
+    const root = document.querySelector('#settings-drawer-draft .aeterni-drawer');
+    const panel = root?.querySelector('.aeterni-drawer__panel');
+    return {
+        open: !!root?.classList.contains('is-open'),
+        role: panel?.getAttribute('role') ?? null,
+        ariaModal: panel?.getAttribute('aria-modal') ?? null,
+        backdrop: !!root?.querySelector('.aeterni-drawer__backdrop')
+    };
+})()`);
+check('组合用法页（设置抽屉）：打开后进入模态语义（dialog + aria-modal + 遮罩）',
+    drawerModal.open && drawerModal.role === 'dialog'
+    && drawerModal.ariaModal === 'true' && drawerModal.backdrop,
+    JSON.stringify(drawerModal));
+
+const savedBefore = await evaluate(`document.querySelector('#settings-drawer-draft .preview-feedback')?.textContent?.trim() ?? null`);
+await evaluate(`document.querySelector('#settings-drawer-draft .aeterni-drawer__panel input[role=switch]')?.click()`);
+await sleep(300);
+await evaluate(`(() => {
+    const button = [...document.querySelectorAll('#settings-drawer-draft .aeterni-drawer__footer button')]
+        .find(node => node.textContent.trim() === '放弃改动');
+    button?.click();
+})()`);
+await sleep(500);
+const discarded = await evaluate(`(() => {
+    const section = document.querySelector('#settings-drawer-draft');
+    return {
+        open: !!section.querySelector('.aeterni-drawer.is-open'),
+        note: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+check('设置抽屉：放弃改动只丢草稿，「当前生效」一行一个字都没变',
+    discarded.open === false && discarded.note === savedBefore,
+    JSON.stringify({ savedBefore, discarded }));
+
+// 通知与长任务：取消要停在当前百分比并给出回执，而不是继续在后台跑
+await goto(`${BASE}/components/long-tasks`);
+await waitForApp();
+await evaluate(`(() => {
+    const button = [...document.querySelectorAll('#long-tasks-progress button')]
+        .find(node => node.textContent.trim() === '开始同步');
+    button?.click();
+})()`);
+await sleep(900);
+await evaluate(`(() => {
+    const button = [...document.querySelectorAll('#long-tasks-progress button')]
+        .find(node => node.textContent.trim() === '取消');
+    button?.click();
+})()`);
+await sleep(700);
+const cancelled = await evaluate(`(() => {
+    const section = document.querySelector('#long-tasks-progress');
+    return {
+        note: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+        value: Number(section.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow') ?? -1)
+    };
+})()`);
+check('组合用法页（通知与长任务）：取消后停在当前百分比并给出「已取消」回执',
+    (cancelled.note ?? '').includes('已取消') && cancelled.value > 0 && cancelled.value < 100,
+    JSON.stringify(cancelled));
+
+// 大数据列表：800 条只渲染视口附近的行；多选由宿主保存，批量动作条按选中与否出现
+await goto(`${BASE}/components/data-list`);
+await waitForApp();
+const dataList = await evaluate(`(() => {
+    const search = document.querySelector('#data-list-search');
+    return {
+        rendered: search.querySelectorAll('.aeterni-virtual-list__viewport > *').length,
+        note: search.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+        toolbar: !!document.querySelector('#data-list-batch [role="toolbar"], #data-list-batch .aeterni-toolbar')
+    };
+})()`);
+check('组合用法页（大数据列表）：800 条只渲染视口附近的几十行，未选中时不出现批量动作条',
+    dataList.rendered > 0 && dataList.rendered <= 32
+    && (dataList.note ?? '').includes('命中 800 / 800') && dataList.toolbar === false,
+    JSON.stringify(dataList));
+
+await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[0]?.click()`);
+await sleep(400);
+await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[1]?.click()`);
+await sleep(400);
+const selection = await evaluate(`(() => {
+    const section = document.querySelector('#data-list-selection');
+    const batch = document.querySelector('#data-list-batch');
+    return {
+        note: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+        selectedRows: section.querySelectorAll('[role="option"][aria-selected="true"]').length,
+        toolbar: !!batch.querySelector('[role="toolbar"], .aeterni-toolbar')
+    };
+})()`);
+check('大数据列表：多选计数与行选中态一致，选中后批量动作条才出现',
+    (selection.note ?? '').includes('已选 2 项') && selection.selectedRows === 2 && selection.toolbar,
+    JSON.stringify(selection));
+
 // 整站体检：每个页面都要把源码里声明的 demo 段全部渲染出来，且不出现未处理异常。
 // 这一类缺陷编译期完全看不见，症状都是"页面静静地少一段"：属性值里的裸引号会被 Razor 截断
 // （`Avatar` 的「图片与回退」就这么消失了很久），值类型绑定的表达式多一层 `Convert` 会被

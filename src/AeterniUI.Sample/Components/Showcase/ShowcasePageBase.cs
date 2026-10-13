@@ -56,7 +56,7 @@ public abstract class ShowcasePageBase : ComponentBase, IDisposable
         _interactionNote = $"已触发 OnClick：{DateTime.Now:HH:mm:ss}。";
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         ThemeService.ThemeChanged -= HandleThemeChanged;
     }
