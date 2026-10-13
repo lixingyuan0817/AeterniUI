@@ -83,7 +83,7 @@
                 @foreach (var entry in TocEntries)
                 {
                     <li>
-                        <a class="component-page__toc-link" href="#@entry.Id">@entry.Title</a>
+                        <a class="component-page__toc-link" href="@SectionHref(entry.Id)">@entry.Title</a>
                     </li>
                 }
             </ul>
@@ -92,6 +92,21 @@
 </div>
 
 @code {
+    // 目录链接必须是"当前页 + 片段"的完整地址：只写 `#upload-basic` 时浏览器按文档基准
+    // （index.html 里的 `<base href="/" />`）解析成 `/#upload-basic`，Blazor 的路由于是认为
+    // 目标不是本页，单击目录就跳到首页路由了。
+    // NavigationManager 没有现成的"带片段地址"API（.NET 10 只有 GetUriWithQueryParameter(s)），
+    // 所以按当前地址拼：去掉已有片段再接新片段，站点挂在子路径下（Pages 部署）时同样成立。
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    private string SectionHref(string sectionId)
+    {
+        var current = NavigationManager.Uri;
+        var hash = current.IndexOf('#');
+        return hash >= 0 ? $"{current[..hash]}#{sectionId}" : $"{current}#{sectionId}";
+    }
+
     /// <summary>Page id: sidebar key, API table key and the page anchor.</summary>
     [Parameter, EditorRequired]
     public string AnchorId { get; set; } = string.Empty;

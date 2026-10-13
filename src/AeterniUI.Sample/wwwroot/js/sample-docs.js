@@ -63,6 +63,39 @@ async function writeClipboard(text) {
 let boundToc = null;
 let sectionObserver = null;
 let bindScheduled = false;
+let bottomScrollScheduled = false;
+
+// 链接现在是"当前页 + 片段"的完整地址（`#id` 会被 `<base href="/">` 解析成首页路由），
+// 所以取段 id 要按最后一个 `#` 切，而不是直接去掉首字符。
+function sectionIdOf(link) {
+    const href = link.getAttribute('href') ?? '';
+    const index = href.indexOf('#');
+    return index < 0 ? '' : href.slice(index + 1);
+}
+
+// 页尾的段（相关组件、说明与边界）永远上不到视口顶部——页面已经到底了，高亮带就再也
+// 覆盖不到它们。于是"滚到底部"这个状态要单独处理：到底时把最后一段判为当前段。
+function syncBottomSection(toc) {
+    bottomScrollScheduled = false;
+    // 内容一屏放得下时没有"到底"这个状态，别把最后一段判成当前段。
+    if (document.documentElement.scrollHeight <= window.innerHeight + 2) return;
+    if (window.scrollY + window.innerHeight < document.documentElement.scrollHeight - 2) return;
+
+    const links = toc.querySelectorAll('.component-page__toc-link');
+    const last = links[links.length - 1];
+    const id = last ? sectionIdOf(last) : '';
+    if (id) setCurrent(toc, id);
+}
+
+function scheduleBottomSync(toc) {
+    if (bottomScrollScheduled) return;
+    bottomScrollScheduled = true;
+    window.requestAnimationFrame(() => syncBottomSection(toc));
+}
+
+function onTocScroll() {
+    if (boundToc) scheduleBottomSync(boundToc);
+}
 
 function bindToc() {
     bindScheduled = false;
@@ -71,6 +104,7 @@ function bindToc() {
 
     sectionObserver?.disconnect();
     sectionObserver = null;
+    window.removeEventListener('scroll', onTocScroll);
     boundToc = toc;
     if (!toc) return;
 
@@ -81,18 +115,24 @@ function bindToc() {
             if (!entry.isIntersecting) continue;
             setCurrent(toc, entry.target.id);
         }
+
+        // 观察者回调不区分"滚到底"：到底时最后一段可能从未与高亮带相交，这里补一次。
+        scheduleBottomSync(toc);
     }, { rootMargin: '0px 0px -70% 0px' });
 
     for (const link of toc.querySelectorAll('.component-page__toc-link')) {
-        const id = (link.getAttribute('href') ?? '').slice(1);
+        const id = sectionIdOf(link);
         const section = id ? document.getElementById(id) : null;
         if (section) sectionObserver.observe(section);
     }
+
+    window.addEventListener('scroll', onTocScroll, { passive: true });
+    syncBottomSection(toc);
 }
 
 function setCurrent(toc, id) {
     for (const link of toc.querySelectorAll('.component-page__toc-link')) {
-        const current = (link.getAttribute('href') ?? '') === `#${id}`;
+        const current = sectionIdOf(link) === id;
         link.classList.toggle('is-current', current);
         if (current) link.setAttribute('aria-current', 'location');
         else link.removeAttribute('aria-current');

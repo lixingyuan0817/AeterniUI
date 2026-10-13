@@ -1119,45 +1119,81 @@ const toc = await evaluate(`(() => {
     const aside = document.querySelector('.component-page__toc');
     if (!aside) return { error: 'no toc' };
     const links = [...aside.querySelectorAll('.component-page__toc-link')];
+    const idOf = node => {
+        const href = node.getAttribute('href') ?? '';
+        return href.slice(href.indexOf('#') + 1);
+    };
     return {
         count: links.length,
         titles: links.map(node => node.textContent.trim()),
-        deadLinks: links
-            .map(node => (node.getAttribute('href') ?? '').slice(1))
-            .filter(id => !document.getElementById(id))
+        // 链接是"当前页 + 片段"的完整地址（写 \`#id\` 会被 <base href="/"> 解析成首页路由），
+        // 因此 id 按最后一个 # 切——这条断言本身也要跟着地址形态走。
+        deadLinks: links.map(idOf).filter(id => !document.getElementById(id)),
+        // 页内锚点必须指向本页：出现过"点目录跳回首页"，根因就是 href 只写了片段。
+        offPage: links
+            .map(node => node.getAttribute('href') ?? '')
+            .filter(href => href.split('#')[0] !== location.href.split('#')[0])
     };
 })()`);
 check('右栏目录列出本页各段，且没有死链',
     !toc.error && toc.count >= 6 && toc.deadLinks.length === 0 && toc.titles[0] === '何时使用',
     JSON.stringify(toc));
+check('目录链接指向本页片段（不是首页或别的路由）',
+    !toc.error && toc.offPage.length === 0,
+    JSON.stringify(toc.offPage));
 
-// 滚动到最后一段（说明与边界）：要验证的是"我的高亮逻辑"，不是浏览器的锚点跳转——点 hash
-// 链接会让 Blazor 走一次路由，目录随之离场，把断言绑在它上面只会测到路由行为。
-// 目录里的链接是普通锚点，跳转本身由浏览器负责，不需要在这里重复验证。
-// 目标取页中的一段：页尾那一段（说明与边界）滚不到视口顶部——页面已经到底了，它永远进不了
-// 高亮带，拿它断言等于在测"浏览器能不能把页尾滚到顶部"（不能），而不是测高亮逻辑。
+// 真点一次目录链接：这正是用户报过的"点右侧目录跳到首页"。断言必须落在真实点击之后，
+// 而不是靠读 href 推断——Blazor 会拦截内部链接并走自己的路由。
+const tocClickTarget = await evaluate(`(() => {
+    const link = [...document.querySelectorAll('.component-page__toc-link')]
+        .find(node => (node.getAttribute('href') ?? '').endsWith('#upload-host-progress'));
+    if (!link) return { error: 'no target link' };
+    link.click();
+    return { clicked: true };
+})()`);
+await sleep(400);
+const afterTocClick = await evaluate(`(() => {
+    const section = document.getElementById('upload-host-progress');
+    return {
+        path: location.pathname,
+        hash: location.hash,
+        // 段落到视口顶部附近即认为跳转真的发生了（页面有固定页头，留一段余量）。
+        top: section ? Math.round(section.getBoundingClientRect().top) : null
+    };
+})()`);
+check('点击目录链接留在本页并滚到该段',
+    !tocClickTarget.error && afterTocClick.path === '/components/upload' && afterTocClick.hash === '#upload-host-progress'
+        && afterTocClick.top !== null && afterTocClick.top < 240,
+    JSON.stringify({ tocClickTarget, afterTocClick }));
+
+// 滚动到某一段：要验证的是"我的高亮逻辑"，不是浏览器的锚点跳转。
+// 目标取页中的一段（下面另有断言专门覆盖页尾的段）。
 await evaluate(`document.getElementById('upload-host-progress').scrollIntoView({ block: 'start' })`);
 
 // 高亮由一个 IntersectionObserver 标记，滚动后需要等它回调（最多 4 秒）。
-async function waitForCurrentSection(deadlineMs = 4000) {
+async function waitForCurrentSection(expected = 'upload-host-progress', deadlineMs = 4000) {
     const deadline = Date.now() + deadlineMs;
     let state = null;
     while (Date.now() < deadline) {
         state = await evaluate(`(() => {
             const links = [...document.querySelectorAll('.component-page__toc-link')];
             if (links.length === 0) return { error: 'toc went away' };
+            const idOf = node => {
+                const href = node.getAttribute('href') ?? '';
+                return href.slice(href.indexOf('#') + 1);
+            };
             const current = document.querySelector('.component-page__toc-link.is-current');
             const section = document.getElementById('upload-host-progress');
             return {
                 count: links.length,
                 scrolled: window.scrollY > 0,
                 sectionVisible: !!section && section.getBoundingClientRect().top < window.innerHeight,
-                current: current ? current.getAttribute('href') : null,
+                current: current ? idOf(current) : null,
                 ariaCurrent: current ? current.getAttribute('aria-current') : null
             };
         })()`);
         // 必须等到"目标段"成为当前段：一进循环就返回的话，采样点会落在滚动完成之前。
-        if (state && state.current === '#upload-host-progress') return state;
+        if (state && state.current === expected) return state;
         await sleep(150);
     }
     return state;
@@ -1168,8 +1204,17 @@ check('目录在页面滚动后仍完整（跳转/滚动不会把它弄丢）',
     tocAfterScroll && tocAfterScroll.count >= 6 && tocAfterScroll.scrolled && tocAfterScroll.sectionVisible,
     JSON.stringify(tocAfterScroll));
 check('滚动到某段后高亮它（is-current + aria-current）',
-    tocAfterScroll && tocAfterScroll.current === '#upload-host-progress' && tocAfterScroll.ariaCurrent === 'location',
+    tocAfterScroll && tocAfterScroll.current === 'upload-host-progress' && tocAfterScroll.ariaCurrent === 'location',
     JSON.stringify(tocAfterScroll));
+
+// 页尾的段永远上不到视口顶部，高亮带覆盖不到它们——原来的断言是绕开这一点的（"拿它断言等于
+// 在测浏览器能不能把页尾滚到顶部"），但绕开它并不意味着读者不该在页尾看到正确的高亮。
+// 这里断言修好后的行为：滚到页面底部时，最后一段（说明与边界）成为当前段。
+await evaluate(`window.scrollTo(0, document.documentElement.scrollHeight)`);
+const bottomState = await waitForCurrentSection('upload-notes-title');
+check('滚到页面底部时高亮最后一段（相关组件 / 说明与边界不再漏选）',
+    bottomState && bottomState.current === 'upload-notes-title' && bottomState.ariaCurrent === 'location',
+    JSON.stringify(bottomState));
 
 await send('Emulation.clearDeviceMetricsOverride');
 await sleep(150);

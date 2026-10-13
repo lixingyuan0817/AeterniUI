@@ -6,7 +6,13 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
-## 示例工程页头搜索框与设置浮层（批次 4 收口，版本号未递增）
+## 示例工程页内目录的两个报障修复（版本号未递增）
+
+- [x] **点右侧目录会跳到首页**：目录链接原本写成 `href="#{段 id}"`，而 `index.html` 的 `<base href="/" />` 会让浏览器把它解析成 `/#{段 id}`——Blazor 的路由于是判定目标不是本页，单击目录就导航到首页路由。改为"当前页 + 片段"的完整地址（`ComponentPage.SectionHref`，按 `NavigationManager.Uri` 拼接并剥掉已有片段；站点挂在子路径下同样成立）。附注：`NavigationManager.GetUriWithHash` 在 .NET 10 **不存在**（引用程序集里只有 `GetUriWithQueryParameter(s)`），所以是手拼地址，不是调用框架 API。
+- [x] **滚到页面底部时「相关组件」「说明与边界」不被选中**：滚动高亮的观察带是视口顶部三成（`rootMargin: '0px 0px -70% 0px'`），页尾的段永远进不了这条带；原断言当时是**绕开**了这一点（改用页中段，并在注释里写明"拿它断言等于在测浏览器能不能把页尾滚到顶部"），但绕开不等于读者不该在页尾看到正确高亮。`sample-docs.js` 现在在"滚动到底"这个状态上单独判定：到底时把最后一段判为当前段（页面一屏放得下时不适用）。
+- [x] 浏览器检查：目录断言的 `deadLinks` 跟随新地址形态取值；`waitForCurrentSection` 按段 id 比较；新增三条断言——目录链接必须落在本页片段、**真实点击**目录链接后仍留在 `/components/upload` 且目标段滚进视口、滚到页面底部时最后一段（`upload-notes-title`）成为当前段并带 `aria-current`。
+
+
 
 - [x] 新增 `scripts/generate-search-index.mjs`：解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `ShowcaseSearchIndex.generated.cs`（441 条 = 57 个页面条目 + 54 个组件页上真实存在的段）。段锚点与 `ComponentPage` / `DemoCard` 渲染出来的 id 逐字一致（`-when-title`、demo 卡片 `Id`、`-api-title`、`-related-title`、`-notes-title`），只登记页面上真的存在的段——没有 `<WhenToUse>` 就没有「何时使用」，「参数与事件」读的是 API 生成物（因此生成顺序是 API → 索引）。生成物提交进仓库，CI 的 build job 新增 `Search index is up to date`（`--check`），`AGENTS.md` §4.8 门禁清单与 §2 必读路由同步。
 - [x] 新增数据形状 `ShowcaseSearchEntry`（PageId / PageTitle / Category / SectionId / SectionTitle + `Href`）与目录侧的路由规则 `ShowcaseCatalog.RouteFor`（安装页挂 `/components`），侧栏导航与搜索结果因此共用同一份地址来源。
