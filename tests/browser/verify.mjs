@@ -1076,6 +1076,7 @@ const segmentedShape = () => evaluate(`(() => {
         const slider = root.querySelector('.aeterni-segmented__slider');
         const optionBox = option.getBoundingClientRect();
         const sliderBox = slider.getBoundingClientRect();
+        const trackBox = root.getBoundingClientRect();
         const token = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
         return {
             classes: root.className,
@@ -1086,10 +1087,18 @@ const segmentedShape = () => evaluate(`(() => {
             offset: sliderBox.left - optionBox.left,
             sliderWidth: sliderBox.width,
             optionWidth: optionBox.width,
-            trackWidth: root.getBoundingClientRect().width,
+            trackWidth: trackBox.width,
+            // 轨道高度 / 选项高度 / 滑块四边留白：padding 同时喂给轨道、滑块与滑块的行程，
+            // 一旦调过头，选项就会跌破 24px 热区并把默认档顶到 38px。
+            trackHeight: trackBox.height,
+            optionHeight: optionBox.height,
+            pillInlineGap: sliderBox.left - trackBox.left,
+            pillBlockGap: sliderBox.top - trackBox.top,
             selected: root.querySelector('.aeterni-segmented__option.is-selected .aeterni-segmented__label')
                 ?.textContent?.trim() ?? null,
             controlRadius: token('--aeterni-radius-control-md'),
+            controlHeight: token('--aeterni-control-height-md'),
+            touchTargetMin: token('--aeterni-touch-target-min'),
             fullRadius: token('--aeterni-radius-full')
         };
     };
@@ -1116,6 +1125,18 @@ check('Segmented 默认档下选中滑块仍与选中列对齐',
     && Math.abs(rounded.offset) <= 0.5
     && Math.abs(rounded.sliderWidth - rounded.optionWidth) <= 0.5,
     `selected=${rounded.selected} offset=${rounded.offset} slider=${rounded.sliderWidth} option=${rounded.optionWidth}`);
+
+// 轨道 padding 同时决定轨道内边距、滑块内缩与滑块行程：调大它能让滑块离描边更远，但选项
+// 也会跟着变矮。默认档的可用高度只有 36 - 2(border) - 2*padding，一旦跌破 24px 热区，选项
+// 的 min-height 会把整条轨道顶到 38px，与同一档的 Input / Button 错开 2px（6px padding 时
+// 实测就是 38px）。所以这里同时钉住高度档位、热区下限与滑块四边留白相等。
+check('Segmented 默认档保持控件高度档位，且滑块四边留白相等',
+    rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
+    && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
+    && Math.abs(rounded.pillInlineGap - rounded.pillBlockGap) <= 0.5
+    && rounded.pillInlineGap > 1,
+    `track=${rounded.trackHeight}/${rounded.controlHeight} option=${rounded.optionHeight}/${rounded.touchTargetMin} `
+    + `inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap}`);
 
 // 通过页面上的 Shape 控件切到 Pill（真实 ComboBox 交互，不是给类名赋值）。触发器按
 // 「最近的 .aeterni-combobox 的 id」定位：ShowcaseSelect 把 id 交给 ComboBox，id 落在
@@ -1177,9 +1198,10 @@ const shell = await evaluate(`(() => {
     const edit = document.querySelector('.component-page__edit');
     const prev = document.querySelector('.showcase-doc-nav__link[rel="prev"]');
     const next = document.querySelector('.showcase-doc-nav__link[rel="next"]');
-    // 代码默认折叠：先点开第一张卡片的"代码" tab，再检查代码块与复制按钮。
-    const codeTab = document.querySelector('.component-demo__tab[id$="-code-tab"]');
-    codeTab?.click();
+    // 代码默认折叠：先在卡片的分段控件里选"代码"，再检查代码块与复制按钮。
+    const codeOption = document.querySelector('.component-demo__toolbar .aeterni-segmented')
+        ?.querySelectorAll('.aeterni-segmented__option')[1];
+    codeOption?.click();
     const block = document.querySelector('.component-preview__code-block code');
     const copy = document.querySelector('[data-sample-copy]');
     return {
@@ -1430,6 +1452,23 @@ check('输入关键词后下拉展开，命中数减少且包含预期页面',
     && narrowed.metas.some(meta => meta.startsWith('Timeline'))
     && narrowed.metas.some(meta => meta.startsWith('DateTimePicker')),
     JSON.stringify({ broad: broad.optionCount, narrowed: narrowed.optionCount, metas: narrowed.metas }));
+
+// 结果行之间必须有间隙：每行自带圆角背景，贴在一起时活动项的底色与邻行会连成一片，读者分不出
+// 那是两行还是一个色块。档位取库内 List 的同一档（--aeterni-spacing-1），列表外观因此一致。
+const rowGap = await evaluate(`(() => {
+    const options = [...document.querySelectorAll('${SEARCH_LISTBOX} [role="option"]')]
+        .filter(option => option.getClientRects().length > 0);
+    if (options.length < 2) return { gap: null, token: null };
+    const first = options[0].getBoundingClientRect();
+    const second = options[1].getBoundingClientRect();
+    return {
+        gap: Math.round((second.top - first.bottom) * 100) / 100,
+        token: getComputedStyle(document.documentElement).getPropertyValue('--aeterni-spacing-1').trim()
+    };
+})()`);
+check('搜索结果行之间留出 List 同档的间隙',
+    rowGap.gap !== null && rowGap.gap >= 4 && rowGap.token === '4px',
+    JSON.stringify(rowGap));
 
 // 有查询但没命中：下拉照常展开，用文案说清楚，而不是留一个空白浮层。
 await typeQuery('zzzz');
@@ -1881,7 +1920,7 @@ check('不设 Anchor 的 Popover 打开后仍贴着自己的宿主盒（横向�
 await key('Escape', 'Escape', 27);
 
 // 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。先重新导航一次——折叠态说的是初始
-// 状态，而上面的壳检查已经点开过一个"代码"tab。
+// 状态，而上面的壳检查已经切到过"代码"。
 await goto(`${BASE}/components/upload`);
 await waitForApp();
 
@@ -1892,10 +1931,11 @@ const cards = await evaluate(`(() => {
     return {
         count: sections.length,
         anchors: sections.map(node => node.id),
-        codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
+        // 预览 / 代码由库内 Segmented 承担：每张有代码的卡片一个分段控件。
+        codeSwitches: sections.filter(node => node.querySelector('.component-demo__toolbar .aeterni-segmented')).length,
         // 代码默认折叠：代码面板仍带 hidden。注意不能数 DOM 里的代码块——querySelectorAll
         // 照样会数到隐藏面板内部，那样断言永远是"折叠失败"。
-        openCodePanels: [...document.querySelectorAll('[role="tabpanel"][id$="-code"]')]
+        openCodePanels: [...document.querySelectorAll('.component-demo__panel--code')]
             .filter(panel => !panel.hasAttribute('hidden')).length,
         when: !!document.querySelector('.component-page__when'),
         related: document.querySelectorAll('.component-page__related a').length,
@@ -1903,10 +1943,31 @@ const cards = await evaluate(`(() => {
         edit: document.querySelector('.component-page__edit')?.getAttribute('href') ?? null
     };
 })()`);
-check('组件页按 demo 卡片组织，每段带锚点与"代码"tab',
-    cards.count >= 3 && cards.codeTabs === cards.count && cards.anchors.every(anchor => anchor.length > 0),
+check('组件页按 demo 卡片组织，每段带锚点与"代码"切换',
+    cards.count >= 3 && cards.codeSwitches === cards.count && cards.anchors.every(anchor => anchor.length > 0),
     JSON.stringify(cards));
-check('代码默认折叠在 tab 后面', cards.openCodePanels === 0, JSON.stringify(cards));
+check('代码默认折叠在分段控件后面', cards.openCodePanels === 0, JSON.stringify(cards));
+
+// 分段控件的开关必须真的切换面板：原生 radio 的 change 事件 → Blazor 重渲染这条路径，
+// 静态检查看不见。点"代码"后代码面板要摘掉 hidden、预览面板要带上，控件自己也停在新档。
+await evaluate(`(() => {
+    const root = document.querySelector('.component-demo__toolbar .aeterni-segmented');
+    root?.querySelectorAll('.aeterni-segmented__option')[1]?.click();
+})()`);
+await sleep(300);
+const toggled = await evaluate(`(() => {
+    const code = document.querySelector('.component-demo__panel--code');
+    const preview = document.querySelector('.component-demo__panel--preview');
+    return {
+        codeHidden: code?.hasAttribute('hidden') ?? null,
+        previewHidden: preview?.hasAttribute('hidden') ?? null,
+        checked: document.querySelector('.component-demo__toolbar .aeterni-segmented__input:checked')
+            ?.closest('.aeterni-segmented__option')?.textContent?.trim() ?? null
+    };
+})()`);
+check('分段控件切到「代码」后面板真的换过来',
+    toggled.codeHidden === false && toggled.previewHidden === true && toggled.checked === '代码',
+    JSON.stringify(toggled));
 const insets = await evaluate(`(() => {
     const card = document.querySelector('.component-preview');
     const left = node => node ? Math.round(node.getBoundingClientRect().left - card.getBoundingClientRect().left) : null;
@@ -1947,13 +2008,13 @@ for (const path of ['/components/input', '/components/checkbox', '/components/ra
         const sections = [...document.querySelectorAll('.component-demo')];
         return {
             cards: sections.length,
-            codeTabs: sections.filter(node => node.querySelector('.component-demo__tab[id$="-code-tab"]')).length,
+            codeSwitches: sections.filter(node => node.querySelector('.component-demo__toolbar .aeterni-segmented')).length,
             uniqueAnchors: new Set(sections.map(node => node.id)).size,
             when: !!document.querySelector('.component-page__when')
         };
     })()`);
-    check(`卡片化 ${path}：多段 demo、锚点唯一、每段带代码 tab、有何时使用`,
-        shape.cards >= 3 && shape.codeTabs === shape.cards && shape.uniqueAnchors === shape.cards && shape.when,
+    check(`卡片化 ${path}：多段 demo、锚点唯一、每段带代码切换、有何时使用`,
+        shape.cards >= 3 && shape.codeSwitches === shape.cards && shape.uniqueAnchors === shape.cards && shape.when,
         JSON.stringify(shape));
 }
 

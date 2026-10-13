@@ -1,6 +1,6 @@
 ﻿@namespace AeterniUI.Sample.Components.Showcase
 @implements IDisposable
-@using Microsoft.AspNetCore.Components.Web
+@using AeterniUI.Enums
 
 @* 一段演示：标题、说明、实时预览、可选属性控件、可复制代码。市面组件文档的 demo 卡片
    就是这个形状。id 是这段演示的锚点——右栏 TOC 与分享链接都指向它。 *@
@@ -13,35 +13,26 @@
         }
     </header>
 
-    @* 预览与代码用 tab 切换，代码默认折叠：读者先看效果，需要时再看写法。折叠态是真正的
-       不渲染（panel 带 hidden），不是用样式藏起来——否则读屏与搜索仍会读到隐藏内容。 *@
-    <div class="component-demo__toolbar" role="tablist" aria-label="@($"{Title}视图")">
-        <button type="button"
-                role="tab"
-                id="@($"{Id}-preview-tab")"
-                aria-controls="@($"{Id}-preview")"
-                aria-selected="@(_showCode ? "false" : "true")"
-                tabindex="@(_showCode ? "-1" : "0")"
-                class="@TabClass(!_showCode)"
-                @onclick="() => Select(false)"
-                @onkeydown="HandleTabKeyDown">预览</button>
-        @if (!string.IsNullOrWhiteSpace(Code))
-        {
-            <button type="button"
-                    role="tab"
-                    id="@($"{Id}-code-tab")"
-                    aria-controls="@($"{Id}-code")"
-                    aria-selected="@(_showCode ? "true" : "false")"
-                    tabindex="@(_showCode ? "0" : "-1")"
-                    class="@TabClass(_showCode)"
-                    @onclick="() => Select(true)"
-                    @onkeydown="HandleTabKeyDown">代码</button>
-        }
-    </div>
+    @* 预览与代码用库内 Segmented 切换，代码默认折叠：读者先看效果，需要时再看写法。
+       折叠态是真正的不渲染（面板带 hidden），不是用样式藏起来——否则读屏与搜索仍会
+       读到隐藏内容。分段控件是原生 radio，单选语义、方向键与"整组一个 Tab 停留点"
+       都由浏览器提供，示例因此不再自己维护一套 tab 键盘模型。 *@
+    @if (HasCode)
+    {
+        <div class="component-demo__toolbar">
+            <Segmented TValue="bool"
+                       Id="@($"{Id}-view")"
+                       Items="@ViewItems"
+                       Value="@_showCode"
+                       ValueChanged="ShowCodeChanged"
+                       TextSelector="@ViewText"
+                       Size="Size.Small"
+                       AriaLabel="@($"{Title}视图")" />
+        </div>
+    }
 
-    <div role="tabpanel"
+    <div class="component-demo__panel component-demo__panel--preview"
          id="@($"{Id}-preview")"
-         aria-labelledby="@($"{Id}-preview-tab")"
          hidden="@(_showCode ? true : null)">
         <div class="component-preview__canvas">@Preview</div>
         @if (Controls is not null)
@@ -50,11 +41,10 @@
         }
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Code))
+    @if (HasCode)
     {
-        <div role="tabpanel"
+        <div class="component-demo__panel component-demo__panel--code"
              id="@($"{Id}-code")"
-             aria-labelledby="@($"{Id}-code-tab")"
              hidden="@(_showCode ? null : true)">
             <ShowcaseCode Id="@($"{Id}-code-block")" Code="@Code" Label="@Title" />
         </div>
@@ -88,34 +78,21 @@
 
     private bool _showCode;
 
+    /// <summary>Options of the preview/code switch. <c>false</c> is the preview.</summary>
+    private static readonly bool[] ViewItems = [false, true];
+
+    /// <summary>
+    /// Whether this card has a snippet at all. A card without one gets the preview alone:
+    /// a one-option segmented control would be a switch that cannot switch.
+    /// </summary>
+    private bool HasCode => !string.IsNullOrWhiteSpace(Code);
+
     // 段在首次渲染前登记，目录因此与卡片同时出现；卡片被移除时注销，目录不会留下死链。
     protected override void OnInitialized() => Sections?.Register(new ShowcaseSection(Id, Title));
 
     public void Dispose() => Sections?.Unregister(Id);
 
-    private string TabClass(bool active) => active ? "component-demo__tab is-active" : "component-demo__tab";
+    private string ViewText(bool showCode) => showCode ? "代码" : "预览";
 
-    private void Select(bool showCode) => _showCode = showCode;
-
-    /// <summary>
-    /// 两个 tab 之间用方向键切换（Home/End 也走同一套），焦点跟着选中项走——这是 tab 模式
-    /// 的键盘约定：一组 tab 只有一个 Tab 停留点。
-    /// </summary>
-    private void HandleTabKeyDown(KeyboardEventArgs args)
-    {
-        if (string.IsNullOrWhiteSpace(Code))
-        {
-            return;
-        }
-
-        switch (args.Key)
-        {
-            case "ArrowRight":
-            case "ArrowLeft":
-            case "Home":
-            case "End":
-                _showCode = !_showCode;
-                break;
-        }
-    }
+    private void ShowCodeChanged(bool showCode) => _showCode = showCode;
 }

@@ -4,8 +4,11 @@
    (set inline by the component), so nothing here assumes a fixed option count. */
 .aeterni-segmented {
     /* One padding value feeds the track, the pill and the pill's travel, so the pill
-       always lands exactly on an option. */
-    --aeterni-segmented-padding: var(--aeterni-spacing-1);
+       always lands exactly on an option. One spacing step plus one hairline is the
+       widest inset this track can carry: the option box has to stay at
+       --aeterni-touch-target-min, and a full second spacing step would eat 2px of it
+       and stretch the default tier to 38px instead of --aeterni-control-height-md. */
+    --aeterni-segmented-padding: calc(var(--aeterni-spacing-1) + var(--aeterni-border-width));
     /* Shape tier. Both named forms are declared here and the shared
        --aeterni-segmented-radius picks one, so switching the shape repoints a single
        variable for the track, the pill and the options at once. */
@@ -24,7 +27,9 @@
     max-width: 100%;
     min-height: var(--aeterni-segmented-height);
     padding: var(--aeterni-segmented-padding);
-    border: var(--aeterni-border-width) solid var(--aeterni-border);
+    /* A segmented track reads as a control, not as a surface: the strong hairline
+       separates it from whatever shell it sits on without cueing a fill. */
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
     border-radius: var(--aeterni-segmented-radius);
     background: var(--aeterni-bg-secondary);
 }

@@ -463,6 +463,8 @@ Large  -> 强调控件
 
 尺寸阶梯只使用 `--aeterni-spacing-*`：`--aeterni-gap-*`、`--aeterni-padding-*` 和 `--aeterni-margin-*` 是留给宿主的同名别名，组件内部不得使用，否则同一个 4px 在库里会有三种写法。
 
+"一个值喂多处几何"的控件，内边距预算是一次真实的上限计算，不是随手取的值：调大它同时改变外形、子元素尺寸与热区。以 `Segmented` 为例，轨道内边距同时喂给轨道内边距、滑块内缩与滑块行程，而选项的 `min-height` 是 `--aeterni-touch-target-min`（24px）、轨道 `min-height` 是控件高度档位（默认 36px），可用高度只有 `36 - 2(border) - 2(padding)`：`--aeterni-spacing-1`（4px）留出 26px，再加一个 `--aeterni-border-width` 得到 5px 与 24px 恰好相等；再上一档（6px）就把选项压到 22px，选项的 `min-height` 随即把整条轨道顶到 38px，与同一档的 Input / Button 相差 2px。改这类几何前先用真实渲染量出档位高度与热区，不要凭"看起来还能再收一点"直接改值。
+
 浮层半径按层级递增，不是随手取值：Tooltip `--aeterni-radius-tooltip`（4px）< Popover / 下拉列表 `--aeterni-radius-dropdown`（8px）< Dialog `--aeterni-radius-modal`（16px）；通知卡片沿 iOS 通知中心的观感使用 `--aeterni-radius-2xl`（16px），与 Dialog 同档但卡片是独立一层。同一层级新组件应沿用对应 Token。
 
 过渡声明优先复用复合 Token（`--aeterni-transition-button`、`--aeterni-transition-control`、`--aeterni-transition-color` 等）；不要在多个组件里重复写同一串属性 + 时长 + 缓动的组合。确实属于该组件特有的属性（`width`、`grid-template-rows`、`translate`）才就地声明。
