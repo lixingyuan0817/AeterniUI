@@ -62,6 +62,10 @@ jobs:
       - name: CSS comment check
         run: node scripts/check-css-comments.mjs
 
+      # 滚动条在视觉上只有一个、实现上分散在十几份隔离样式里；漏一处就是一条常驻的默认滑轨。
+      - name: Scrollbar coverage check
+        run: node scripts/check-scrollbars.mjs
+
       - name: Brand palette contrast check
         run: node scripts/check-contrast.mjs
 

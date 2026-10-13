@@ -164,6 +164,21 @@
     overflow-wrap: anywhere;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-drawer__body::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-drawer__body::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-drawer__body::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 .aeterni-drawer__footer {

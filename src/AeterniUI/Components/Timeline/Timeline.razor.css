@@ -140,6 +140,19 @@
     scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
 }
 
+.aeterni-timeline--horizontal::-webkit-scrollbar {
+    height: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-timeline--horizontal::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-timeline--horizontal::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
 .aeterni-timeline--horizontal .aeterni-timeline__item {
     flex: 1 0 min(12rem, 70vw);
     grid-template-columns: minmax(0, 1fr);

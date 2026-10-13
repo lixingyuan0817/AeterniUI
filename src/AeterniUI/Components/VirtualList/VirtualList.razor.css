@@ -19,8 +19,22 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
     scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
     scrollbar-gutter: stable;
+}
+
+.aeterni-virtual-list__viewport::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-virtual-list__viewport::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-virtual-list__viewport::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 .aeterni-virtual-list.is-selectable:focus-visible {

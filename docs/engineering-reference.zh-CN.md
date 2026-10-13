@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.34.1`
+文档版本：`10.34.2`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -499,6 +499,16 @@ Large  -> 强调控件
 - **有可见根元素的组件必须绑 `@ref="RootElement"`**，否则 `Element` / `ElementChanged` 永远不会回调。
 - **禁用态用 Token，不要整块降透明度。** 使用 `--aeterni-state-color-disabled` / `--aeterni-state-background-disabled` / `--aeterni-state-border-disabled`；`opacity` 只用于组件局部的光学微调（加载中的标签、弱化的字形）并在注释里说明。
 - **同一角色的魔数只写一次。** 已经存在的 Token（如 `--aeterni-opacity-muted`、`--aeterni-radius-badge`）不要在旁边再写一份字面量；先看 Token 层是否已有对应角色。
+
+### 5.8 滚动条
+
+滚动条在视觉上“只有一个”，实现上却分散在十几份隔离样式里，因此它同时是一条 Token 约定和一条门禁约定。
+
+- **三个 Token 对应一个角色。** `--aeterni-scrollbar-size`（6px）、`--aeterni-scrollbar-thumb`（`--aeterni-border-strong`）、`--aeterni-scrollbar-track`（**transparent**）。滑轨必须透明：容器一旦用 `scrollbar-gutter: stable` 预留槽位，实色滑轨就成了一条常驻的灰／白色竖条，与它所在的玻璃、卡片或弹层格格不入——这正是“滚动条太显眼”这类报障的来源。
+- **两类声明必须成对。** 标准属性（`scrollbar-color` / `scrollbar-width`）被 Firefox 与 Chromium 121+ 读取；`::-webkit-scrollbar`（含 `-thumb` / `-track`，按滚动主轴只写 `width` 或 `height`）被 Safari 与更早的 Chromium 读取。只写一边，另一半浏览器就回落到默认外观。
+- **`scrollbar-color` 继承，`scrollbar-width` 不继承。** 这条差异决定宿主与组件的分工：宿主把颜色写在根元素上一次，页内所有容器都跟随；宽度必须对滚动元素本身声明（`*` 选择器或逐容器），只在 `:root` 上写宽度只会改到根滚动条。组件侧不能假设宿主做了什么，所以每个可滚动容器都自己把两类声明写全。
+- **隐藏滚动条也走同一套约定。** 确实需要隐藏的容器（`TimeOptionList` 的时／分／秒列）写 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`，两处成对——只写后者会让 Firefox 上仍画出滚动条。
+- **门禁**：`node scripts/check-scrollbars.mjs` 扫描库内所有 `.razor.css`，逐个检查带 `overflow: auto|scroll` 的规则块是否满足上述约定，并断言 Token 文件的滑轨仍透明、示例站仍保留宿主级声明。漏掉一处从此不再只是“某个组件看起来有点怪”。
 
 ## 6. 状态和交互规范
 

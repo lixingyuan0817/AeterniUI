@@ -8,6 +8,21 @@
     gap: var(--aeterni-spacing-3);
     align-items: stretch;
     overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-date-range-picker__panel::-webkit-scrollbar {
+    height: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-date-range-picker__panel::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-date-range-picker__panel::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 .aeterni-date-range-picker__presets {

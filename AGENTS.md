@@ -1,6 +1,6 @@
 # AeterniUI Agent 指南
 
-文档版本：`10.34.1`
+文档版本：`10.34.2`
 
 ## 1. 前言
 
@@ -75,7 +75,7 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 图标 | 核心 `Icon` / `AeterniIcons` + Font Awesome 适配包 |
 | 前端工具 | 不使用 bundler；Node 只运行静态检查、行为回归和生成脚本 |
 
-版本由根目录 `Directory.Build.props` 单一维护，当前为 `10.34.1`。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
+版本由根目录 `Directory.Build.props` 单一维护，当前为 `10.34.2`。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
 
 ### 3.2 解决方案项目
 
@@ -267,6 +267,7 @@ dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csp
                                                    # 根属性、ARIA、焦点或公开变体
 bash scripts/check-docs.sh                     # 文档、结构、入口或命令、计划状态一致性
 node scripts/check-css-comments.mjs            # 任意 CSS
+node scripts/check-scrollbars.mjs              # 可滚动容器的滚动条声明（新增/改动 overflow 容器时）
 grep -E '^\.aeterni-' src/AeterniUI/wwwroot/css/aeterni_ui.css | grep -v '^\.aeterni-dark'
                                                # token 文件不得含组件选择器（无输出即通过）
 node scripts/check-contrast.mjs                # 色阶、品牌或对比度相关 Token

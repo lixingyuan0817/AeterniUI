@@ -1,10 +1,20 @@
 # AeterniUI 发布历史
 
-文档版本：`10.34.1`
+文档版本：`10.34.2`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.34.2 滚动条统一：滑轨透明、十二个可滚动容器一套写法
+
+示例站的搜索面板报“滚动条的白色背景太显眼”：那个容器自己用 `scrollbar-gutter: stable` 预留了滑轨槽，却没有消费 `--aeterni-scrollbar-*`，于是走浏览器默认外观——约 15px 宽的实色滑轨常驻在玻璃面板上。顺带查出库内的滚动条**本来就不统一**：十二个可滚动容器里，三个写了完整的两套声明，五个只有标准属性（Safari 与旧 Chromium 会回落默认外观），四个什么都没写。
+
+- [x] **十二个容器收敛到一套写法**：`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、通知堆栈统一为「块内 `scrollbar-width: thin` + `scrollbar-color`；块外 `::-webkit-scrollbar`（按滚动主轴只写 `width` 或 `height`）、`-thumb`、`-track` 三条」。`TimeOptionList` 是刻意的例外：它要隐藏滚动条，写法统一为 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`——原本只有 webkit 那一半，Firefox 上仍会画出滚动条。
+- [x] **`scrollbar-width` 不继承**（实测才发现，第一版按“两者都可继承”写，结果只改到根滚动条）：只有 `scrollbar-color` 是继承属性。所以“宿主写一处、全站跟随”只对颜色成立，宽度必须对滚动元素本身声明——示例站 `showcase.css` 因此写成 `:root { scrollbar-color: … }` + `* { scrollbar-width: thin }` 两条，并把这条差异写进了 Token 注释与 `engineering-reference` §5.8。
+- [x] **门禁**：新增 `scripts/check-scrollbars.mjs`（CI 的 build job 内，紧跟 CSS 注释检查）。它扫描库内所有 `.razor.css`，逐个检查带 `overflow: auto|scroll` 的规则块是否声明了 `scrollbar-width`、可见型是否同时具备 `scrollbar-color` 与 `::-webkit-scrollbar`（隐藏型则要求 `display: none`），并断言 Token 文件的滑轨仍是透明、示例站仍保留宿主级声明。**负向验证**：临时改坏 `List` 的 `::-webkit-scrollbar` 选择器 → 门禁精确报出“缺少 ::-webkit-scrollbar 规则，Safari 与旧 Chromium 会回落到默认滚动条”。
+- [x] 文档：`delivered-features` 的滚动条 Token 条目改写为“十二个容器 + 两类声明成对 + 宿主怎么写”；`engineering-reference` 新增 §5.8（三个 Token、两类声明、继承差异、隐藏型写法、门禁）；`AGENTS.md` §4.8 门禁清单加一行。按“修复与优化递增第三位”（§4.9）从 `10.34.1` 升到 `10.34.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node scripts/check-scrollbars.mjs` 通过（12 个容器 / 12 份组件表）；`check-css-comments.mjs`、`check-contrast.mjs`、`check-docs.sh`、`check-doc-drift.mjs` 通过。真实渲染（无头 Chromium 读计算样式）：示例站根元素、搜索面板结果区、`VirtualList` 视口、`Drawer` 主体、`Timeline` 横向轨道五处都拿到 `scrollbar-color: rgba(0, 0, 0, 0.18) rgba(0, 0, 0, 0)`（滑轨 alpha 为 0）与 `scrollbar-width: thin`，`::-webkit-scrollbar-track` 背景同为 `rgba(0, 0, 0, 0)`。
 
 ## 示例工程组合用法页（批次 6，版本号未递增）
 

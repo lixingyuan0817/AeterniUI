@@ -11,6 +11,18 @@
    `.showcase-layout` silently lost its grid and every token it declared.
 */
 
+/* 示例站自己也是一个宿主：库把滚动条收敛成三个 Token，宿主这边要写两处——
+   `scrollbar-color` 是**继承**属性，写一次在根元素上，页内所有滚动容器都会跟随；
+   `scrollbar-width` **不继承**，必须对元素本身声明，否则只改到根滚动条，其余容器仍是默认宽度
+   （约 15px 的实色滑轨，在一片玻璃上格外显眼）。 */
+:root {
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+* {
+    scrollbar-width: thin;
+}
+
 /*
    AeterniUI.Sample — component page shell (/components/{id}).
    MainLayout owns the floating header, the brand and the top-level navigation;

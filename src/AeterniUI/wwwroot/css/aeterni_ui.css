@@ -344,7 +344,14 @@
        scale, so the value stays hue-agnostic here as well. */
     --aeterni-focus-color: var(--aeterni-color-brand-default);
     --aeterni-leading-none: 1;
-    /* Discoverable but quiet scrollbars for scrollable overlay content. */
+    /* Discoverable but quiet scrollbars for scrollable overlay content.
+       Only `scrollbar-color` is inherited: a host can set it once on :root and every
+       container follows. `scrollbar-width` is *not* inherited, so it has to be declared
+       on the scrolling element itself — and `::-webkit-scrollbar` does not inherit
+       either, which is why component sheets repeat all of it on their own containers
+       (Safari and older Chromium read the pseudo-element; Chromium 121+ and Firefox
+       take the standard properties). Keep the track transparent: a visible track reads
+       as a permanent grey/white bar wherever a container reserves gutter space. */
     --aeterni-scrollbar-size: 6px;
     --aeterni-scrollbar-thumb: var(--aeterni-border-strong);
     --aeterni-scrollbar-track: transparent;

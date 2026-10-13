@@ -194,6 +194,19 @@
     scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
 }
 
+.aeterni-multi-select__options::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-multi-select__options::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-multi-select__options::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
 .aeterni-multi-select__actions {
     display: flex;
     flex-wrap: wrap;

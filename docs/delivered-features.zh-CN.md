@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.34.1`
+文档版本：`10.34.2`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -88,7 +88,7 @@
 - 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*` 和 `--aeterni-badge-size-md`。
 - 提供玻璃表面的角色别名（填充是独立档位，模糊跟随既有刻度）：`--aeterni-bg-glass`（浅色 68% / 深色 72%，不再跟随 `--aeterni-bg-elevated`）、`--aeterni-blur-glass`（跟随 `--aeterni-blur-md`）和 `--aeterni-blur-scrim`（跟随 `--aeterni-blur-sm`）。库内十处磨砂消费者（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板与遮罩、Drawer 面板与遮罩、Popover 表面与遮罩、Tooltip、Alert/Toast 卡片）统一引用这三个别名，宿主覆盖一处就能整体调整全库玻璃配方，不必逐个组件改。填充停在 68% / 72% 是实测下限，不是偏好值：这两支墨——`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`）与 `--aeterni-text-on-glass-tertiary`（同样写法的 67%）——都按「最坏背景」（纯黑／纯白）定档，再淡一档就会吃掉这两支墨的 1.1× 余量——它们是全库最紧的一对，浅色由三级墨绑定（1.15×）、深色由次要墨绑定（1.14×）。两支墨都只声明一次、按主体墨的比例给出，所以浅深两主题余量相同、也不会各自漂移，代码里把角色名接过去就行。全部磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都用它们接管 `--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 与 `--aeterni-text-tertiary`（`--aeterni-state-color-muted` 全库零读取，已随 REV-122 退出接管名单），补掉标准墨在玻璃填充上的缺口（深色最坏背景：标准次要墨 3.41:1、标准三级墨 2.51:1 → 接管后 5.11:1 / 3.51:1）；不透明表面（含 `is-no-blur` 的通知卡片）与三类遮罩仍用标准墨，遮罩本来就不承字。
 - 玻璃表面在 `prefers-reduced-transparency: reduce` 与「不支持 `backdrop-filter`」两种情况下退到不透明：填充改 `--aeterni-bg-solid`、模糊归 `none`。只摘模糊会留下半透明色斑——既没有模糊解释它，也没有不透明底承字，两种读法都不如实心表面。同一处把两支玻璃专用墨退回标准墨：它们的用途就是扛住透出来的背景，填充已经是实心表面之后就没有背景要扛了。遮罩只摘模糊、保留压暗，因此它仍然把背后的页面压下去。
-- 提供可发现滚动条 Token：`--aeterni-scrollbar-size`、`--aeterni-scrollbar-thumb`、`--aeterni-scrollbar-track`；长选项列表和长通知堆栈使用细滚动条而不是隐藏滚动条。
+- 提供可发现滚动条 Token：`--aeterni-scrollbar-size`（6px）、`--aeterni-scrollbar-thumb`（`--aeterni-border-strong`）、`--aeterni-scrollbar-track`（**透明**）。库内十二个可滚动容器——`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、`TimeOptionList` 与通知堆栈——统一消费这三个 Token：可见滚动条写 `scrollbar-width: thin` + `scrollbar-color` 与 `::-webkit-scrollbar` 两套声明（后者按滚动主轴只写 `width` 或 `height`），需要隐藏的（`TimeOptionList` 的时／分／秒列）写 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`。滑轨保持透明，用 `scrollbar-gutter` 预留的槽位因此不会变成常驻的灰／白色竖条。宿主侧只需在根元素写一次 `scrollbar-color`（该属性继承），宽度因不继承而要对元素本身声明；示例站的做法见 `showcase.css`。
 - 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
 - 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
 - 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
