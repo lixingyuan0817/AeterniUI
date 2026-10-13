@@ -1,68 +1,52 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace AeterniUI.Sample.Components.Showcase;
 
 /// <summary>
-/// 头部常驻搜索框的触发器：持有输入框与它的包裹元素（浮层锚点）。
+/// 页头搜索入口的触发器：把面板打开，并挂上全局快捷键。
 /// </summary>
 /// <remarks>
-/// 状态、过滤与键盘语义都在 <see cref="ShowcaseSearchModel" /> 里——结果浮层渲染在页头玻璃
-/// 卡片之外，两半必须看同一份状态。这里只做三件事：把模型状态铺到 Input 上、把包裹元素与
-/// 输入框元素交出去、在模型变化时重渲染。
+/// 状态、过滤与键盘语义都在 <see cref="ShowcaseSearchModel" /> 里——面板渲染在页头玻璃卡片
+/// 之外，两半必须看同一份状态。这里只做三件事：把触发器元素交出去（面板关闭后焦点回到它）、
+/// 在首次渲染后挂上全局快捷键、在模型变化时重渲染。
 /// </remarks>
 public partial class ShowcaseSearchBox : ComponentBase, IDisposable
 {
     [Inject]
     private ShowcaseSearchModel Model { get; set; } = default!;
 
-    private ElementReference _anchor;
-    private ElementReference _inputElement;
+    private ElementReference _trigger;
+    private ElementReference _kbd;
+    private DotNetObjectReference<ShowcaseSearchBox>? _reference;
 
-    /// <summary>
-    /// 输入框上的 combobox 契约。`Input` 自己会写 aria-label 与字段状态，这几个键由调用方补，
-    /// 与库内 Autocomplete 传给自己的 `Input` 的那一组一致。
-    /// </summary>
-    private IReadOnlyDictionary<string, object> InputAttributes
-    {
-        get
-        {
-            var attributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["role"] = "combobox",
-                ["aria-expanded"] = Model.Open ? "true" : "false",
-                ["aria-controls"] = ShowcaseSearchModel.ListboxId,
-                ["aria-haspopup"] = "listbox",
-                ["aria-autocomplete"] = "list"
-            };
+    /// <summary>Ctrl/Cmd+K 打开面板（JS 按当前状态决定调本方法还是下面的关闭入口）。</summary>
+    [JSInvokable]
+    public void OpenFromShortcut() => Model.OpenPanel();
 
-            if (Model.ActiveOptionId is { } active)
-            {
-                attributes["aria-activedescendant"] = active;
-            }
-
-            return attributes;
-        }
-    }
+    /// <summary>Ctrl/Cmd+K 在面板已经打开时收起它。</summary>
+    [JSInvokable]
+    public void CloseFromShortcut() => Model.ClosePanel();
 
     protected override void OnInitialized() => Model.Changed += HandleModelChanged;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Model.SetAnchor(_anchor);
-        if (Model.Open)
+        Model.SetTrigger(_trigger);
+
+        if (firstRender)
         {
-            await Model.SyncActiveOptionAsync(_inputElement);
+            _reference = DotNetObjectReference.Create(this);
+            await Model.AttachShortcutAsync(_reference, _kbd);
         }
     }
 
-    private void HandleQueryChanged(string? value) => Model.SetQuery(value);
-
-    private void HandleKeyDown(KeyboardEventArgs args) => Model.HandleKey(args);
-
-    private void HandleInputElementChanged(ElementReference element) => _inputElement = element;
-
     private void HandleModelChanged() => InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Model.Changed -= HandleModelChanged;
+    public void Dispose()
+    {
+        Model.Changed -= HandleModelChanged;
+        _reference?.Dispose();
+        _ = Model.DetachShortcutAsync();
+    }
 }

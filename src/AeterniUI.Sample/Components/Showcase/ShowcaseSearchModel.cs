@@ -6,15 +6,15 @@ using Microsoft.JSInterop;
 namespace AeterniUI.Sample.Components.Showcase;
 
 /// <summary>
-/// 页头搜索的共享状态：查询、命中、活动项与开合状态。
+/// 页头搜索的共享状态：面板开合、查询、命中与活动项。
 /// </summary>
 /// <remarks>
-/// 输入框留在页头的玻璃卡片里，结果浮层必须渲染到卡片之外——玻璃卡片的
-/// <c>backdrop-filter</c> 会成为最近的 backdrop root，浮层自己的模糊就只能采样那张卡片内部的
-/// 透明区域，看起来完全没有模糊。所以这两半是两个组件，需要一个共享的状态源把它们绑在一起：
-/// 各持一份就会漂移成"输入框说开着、浮层什么都没渲染"。
-/// 状态在模型里、DOM 侧只剩两件 Blazor 做不到的事（见 <c>wwwroot/js/sample-search.js</c>）：导航
-/// 键的默认动作与活动项滚动，以及跨页跳转后滚到目标锚点。
+/// 入口（页头里的触发器）与内容（居中面板）是两个组件：面板必须渲染在页头那张玻璃卡片之外，
+/// 否则它自己的 <c>backdrop-filter</c> 只能采样卡片内部那张透明背景。两半需要一个共享状态把
+/// 它们绑在一起——各持一份就会漂移成"触发器说开着、面板什么都没渲染"。
+/// 状态在这里、DOM 侧只剩三件 Blazor 做不到的事（见 <c>wwwroot/js/sample-search.js</c>）：全局
+/// 快捷键，打开时的滚动锁与焦点陷阱（复用库内 <c>aeterni_floating.js</c>，示例不另造一套），
+/// 以及输入框上的导航键默认动作与活动项滚动；跨页跳转落到段锚点的滚动也在那里。
 /// </remarks>
 public sealed class ShowcaseSearchModel : IAsyncDisposable
 {
@@ -27,6 +27,7 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
 
     private IJSObjectReference? _module;
     private string? _pendingAnchor;
+    private bool _restoreFocusOnClose = true;
 
     public ShowcaseSearchModel(NavigationManager navigation, IJSRuntime jsRuntime)
     {
@@ -36,15 +37,16 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         _navigation.LocationChanged += HandleLocationChanged;
     }
 
-    /// <summary>状态变化后触发：页头触发器与页面级浮层两个视图据此重渲染。</summary>
+    /// <summary>状态变化后触发：页头触发器与面板两个视图据此重渲染。</summary>
     public event Action? Changed;
 
-    /// <summary>触发器包裹元素：浮层以它为锚点定位，也把它算作"层内"。</summary>
-    public ElementReference? Anchor { get; set; }
+    /// <summary>触发器元素：面板关闭后焦点回到它。</summary>
+    public ElementReference? Trigger { get; set; }
+
+    /// <summary>面板是否打开。关着时面板整体不存在于 DOM 里。</summary>
+    public bool Open { get; private set; }
 
     public string Query { get; private set; } = string.Empty;
-
-    public bool Open { get; private set; }
 
     public IReadOnlyList<ShowcaseSearchEntry> Matches => _matches.Count == 0 ? NoMatches : _matches;
 
@@ -54,24 +56,66 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         ? OptionId(ActiveIndex)
         : null;
 
-    /// <summary>输入框 id：触发器的 <c>aria-controls</c> 与浮层里的容器都指向它。</summary>
+    /// <summary>输入框 id：面板里的输入框与结果容器的 <c>aria-controls</c> 都指向它。</summary>
     public static string InputId => "showcase-header-search";
 
     public static string ListboxId => "showcase-header-search-listbox";
 
     public static string OptionId(int index) => $"showcase-header-search-option-{index}";
 
-    /// <summary>把锚点元素交给浮层；元素没变时不打扰两个视图。</summary>
-    public void SetAnchor(ElementReference anchor)
+    /// <summary>把触发器元素交给模型；元素没变时不打扰两个视图。</summary>
+    public void SetTrigger(ElementReference trigger)
     {
         // `ElementReference` 没有相等运算符，按它的元素 id 比较：同一个元素重渲染后 id 不变。
-        if (Anchor is { } current && string.Equals(current.Id, anchor.Id, StringComparison.Ordinal))
+        if (Trigger is { } current && string.Equals(current.Id, trigger.Id, StringComparison.Ordinal))
         {
             return;
         }
 
-        Anchor = anchor;
+        Trigger = trigger;
         Notify();
+    }
+
+    /// <summary>打开面板：查询与命中从零开始，上一次的输入属于上一次的搜索。</summary>
+    public void OpenPanel()
+    {
+        if (Open)
+        {
+            return;
+        }
+
+        Open = true;
+        ResetQuery();
+        Notify();
+    }
+
+    /// <summary>
+    /// 关闭面板。<paramref name="restoreFocus" /> 为假时把焦点留给落地页——从结果跳走的场景里，
+    /// 焦点回到页头触发器会和刚滚到的目标段脱节。
+    /// </summary>
+    public void ClosePanel(bool restoreFocus = true)
+    {
+        if (!Open)
+        {
+            return;
+        }
+
+        Open = false;
+        _restoreFocusOnClose = restoreFocus;
+        ResetQuery();
+        Notify();
+    }
+
+    public void TogglePanel()
+    {
+        if (Open)
+        {
+            ClosePanel();
+        }
+        else
+        {
+            OpenPanel();
+        }
     }
 
     /// <summary>查询一变，第一条命中就是新的活动项：不从上一个查询的结果上接着走。</summary>
@@ -80,24 +124,10 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         Query = value ?? string.Empty;
         ActiveIndex = 0;
         RefreshMatches();
-        // 空查询不展开：一进站就弹一个面板是打扰，而且列表里那一屏结果对读者没有指向性。
-        Open = _matches.Count > 0 || !string.IsNullOrWhiteSpace(Query);
         Notify();
     }
 
-    /// <summary>Popover 只在 Escape、点击外部与滚动时请求关闭；输入内容与查询结果都保留。</summary>
-    public void SetOpen(bool open)
-    {
-        Open = open;
-        if (!open)
-        {
-            ActiveIndex = 0;
-        }
-
-        Notify();
-    }
-
-    /// <summary>打开命中项：清空控件（它已经完成使命）再导航到该段的锚点。</summary>
+    /// <summary>打开命中项：面板收起（它已经完成使命）再导航到该段的锚点。</summary>
     public void Pick(ShowcaseSearchEntry? entry)
     {
         if (entry is null)
@@ -105,12 +135,8 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
             return;
         }
 
-        Open = false;
-        Query = string.Empty;
-        ActiveIndex = 0;
-        _matches.Clear();
         _pendingAnchor = entry.SectionId;
-        Notify();
+        ClosePanel(restoreFocus: false);
         _navigation.NavigateTo(entry.Href);
     }
 
@@ -122,15 +148,6 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         if (_matches.Count == 0)
         {
             ActiveIndex = -1;
-            return;
-        }
-
-        // 下拉已经被 Escape 收起、但输入内容还在时，方向键把它重新拉出来。
-        if (!Open)
-        {
-            Open = true;
-            ActiveIndex = 0;
-            Notify();
             return;
         }
 
@@ -179,6 +196,13 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
             ? entry.Category
             : $"{entry.PageTitle} · {entry.Category}";
 
+    private void ResetQuery()
+    {
+        Query = string.Empty;
+        ActiveIndex = -1;
+        _matches.Clear();
+    }
+
     /// <summary>
     /// 命中项：段标题、页标题、页面 id 与分类都参与匹配，大小写不敏感；排序按"命中在哪"分层
     /// （段标题 → 页标题 → 页 id → 分类），同层保持索引顺序，因此同一查询的结果顺序稳定。
@@ -215,8 +239,8 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
     private static bool Contains(string value, string query) =>
         value.Contains(query, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>活动项滚动：条目用 <c>aria-activedescendant</c> 表达活动项，浏览器不会替它滚动。</summary>
-    public async Task SyncActiveOptionAsync(ElementReference input)
+    /// <summary>挂上全局快捷键，并按平台把触发器上的键位提示写成 ⌘K / Ctrl K。</summary>
+    public async Task AttachShortcutAsync(DotNetObjectReference<ShowcaseSearchBox> reference, ElementReference kbd)
     {
         var module = await GetModuleAsync();
         if (module is null)
@@ -224,9 +248,65 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
             return;
         }
 
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("attachShortcut", reference, kbd));
+    }
+
+    public async Task DetachShortcutAsync()
+    {
+        var module = await GetModuleAsync();
+        if (module is null)
+        {
+            return;
+        }
+
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("detachShortcut"));
+    }
+
+    /// <summary>
+    /// 面板进入 DOM 后的那一次互操作：滚动锁、焦点陷阱与输入框焦点。
+    /// 输入框交给 JS 按 id 找（见 <see cref="InputId" />），因为父组件的渲染回调先于子组件执行，
+    /// 面板第一次挂载时拿不到 <c>Input</c> 回填的元素引用。
+    /// </summary>
+    public async Task MountPanelAsync(ElementReference panel)
+    {
+        var module = await GetModuleAsync();
+        if (module is null)
+        {
+            return;
+        }
+
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("mountPanel", panel, InputId, Trigger));
+    }
+
+    /// <summary>面板离开 DOM 后释放滚动锁与焦点陷阱，并按需把焦点还给触发器。</summary>
+    public async Task UnmountPanelAsync()
+    {
+        var module = await GetModuleAsync();
+        if (module is null)
+        {
+            return;
+        }
+
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("unmountPanel", _restoreFocusOnClose));
+    }
+
+    /// <summary>活动项滚动：条目用 <c>aria-activedescendant</c> 表达活动项，浏览器不会替它滚动。</summary>
+    public async Task SyncActiveOptionAsync()
+    {
+        var module = await GetModuleAsync();
+        if (module is null)
+        {
+            return;
+        }
+
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("sync"));
+    }
+
+    private static async Task InvokeVoidAsync(Func<ValueTask> call)
+    {
         try
         {
-            await module.InvokeVoidAsync("sync", input);
+            await call();
         }
         catch (JSDisconnectedException)
         {
@@ -296,6 +376,7 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
 
         try
         {
+            await _module.InvokeVoidAsync("detachShortcut");
             await _module.DisposeAsync();
         }
         catch (JSDisconnectedException)

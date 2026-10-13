@@ -1,28 +1,28 @@
 @namespace AeterniUI.Sample.Components.Showcase
-@using AeterniUI.Enums
 
-@* 头部常驻搜索框的触发器。结果浮层由 `ShowcaseSearchLayer` 渲染在页头玻璃卡片之外：玻璃卡片
-   的 `backdrop-filter` 会成为最近的 backdrop root，浮层自己的模糊就只采样卡片内部那张透明的
-   背景——看起来完全没有模糊。两半共享 `ShowcaseSearchModel`。
+@* 页头搜索入口的触发器。它不是输入框：真正的输入框在居中面板里（`ShowcaseSearchLayer`），
+   这样面板就能渲染在页头玻璃卡片之外——卡片的 `backdrop-filter` 会成为最近的 backdrop root，
+   卡内浮层自己的模糊就只能采样卡片内部那张透明的背景，看起来完全没有模糊。两半共享
+   `ShowcaseSearchModel`。
 
-   这一层包裹元素是浮层的锚点：`Popover.Anchor` 让浮层渲染在别处却按这里定位，"点击外部"也把
-   这里算作层内，所以点输入框不会被判成外部先关一次再开一次。 *@
-<div class="sample-header__search" @ref="_anchor">
-    <div class="showcase-search-box">
-        <span class="showcase-search-box__icon" aria-hidden="true">
+   触发器保持原生 `button`：它只做一件事（打开面板），键盘用 Enter/Space，读屏名字来自可见
+   文本本身，因此不需要 `aria-label` 去覆盖它。`aria-expanded` 表达面板的开合，
+   `aria-keyshortcuts` 声明在这里也生效的全局快捷键。 *@
+<div class="sample-header__search">
+    <button type="button"
+            id="showcase-search-trigger"
+            class="showcase-search-trigger"
+            @ref="_trigger"
+            aria-haspopup="dialog"
+            aria-expanded="@(Model.Open ? "true" : "false")"
+            aria-keyshortcuts="Control+K Meta+K"
+            @onclick="Model.OpenPanel">
+        <span class="showcase-search-trigger__icon" aria-hidden="true">
             <Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />
         </span>
-        @* 输入框是库内 Input：字段外观、禁用/无效状态与焦点环都归它，这里只补 combobox
-           的 ARIA 契约（与库内 Autocomplete 传给自己的 Input 的那一组一致）。 *@
-        <Input Id="@ShowcaseSearchModel.InputId"
-               Size="Size.Small"
-               FullWidth="true"
-               Value="@Model.Query"
-               ValueChanged="HandleQueryChanged"
-               Placeholder="搜索组件或段落…"
-               AriaLabel="搜索组件文档"
-               OnKeyDown="HandleKeyDown"
-               ElementChanged="HandleInputElementChanged"
-               AdditionalAttributes="@InputAttributes" />
-    </div>
+        <span class="showcase-search-trigger__label">搜索组件或段落…</span>
+        @* 键位提示按平台改写（⌘K / Ctrl K），由 JS 在挂上全局快捷键时写入；
+           它只是给鼠标用户的提示，读屏名字不靠它。 *@
+        <kbd class="showcase-search-trigger__kbd" @ref="_kbd" aria-hidden="true">Ctrl K</kbd>
+    </button>
 </div>

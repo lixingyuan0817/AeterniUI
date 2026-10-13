@@ -6,6 +6,17 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程页头搜索改为居中弹出的模态面板（版本号未递增）
+
+- [x] **入口换成"像输入框的按钮"**：`ShowcaseSearchBox` 不再是库内 `Input` 的宿主，改成一个原生 `button`（`aria-haspopup="dialog"` + `aria-expanded` + `aria-keyshortcuts`），字段外观直接取库内控件 token（`--aeterni-control-*`、`--aeterni-focus-*`、`--aeterni-radius-input`），右侧键位提示按平台写成 ⌘K / Ctrl K。读屏名字来自可见文案，因此不用 `aria-label` 覆盖它（避开"可见标签不在可访问名字里"）。
+- [x] **面板是居中的模态对话框**：真正的输入框进 `ShowcaseSearchLayer`，面板只在打开时进入 DOM、固定定位在视口中央，`role="dialog"` + `aria-modal="true"`；点遮罩、Escape（焦点在输入框或关闭按钮上都算）与关闭按钮都收起它。关闭后焦点回到触发器；**从命中项跳走时不还焦点**，留给刚滚到的目标段。
+- [x] **滚动锁与焦点陷阱复用库内共享模块**：`wwwroot/js/aeterni_floating.js` 的 `lockScroll()` / `createFocusTrap()`（Popover、Drawer、DialogProvider 用的同一份），示例不另造一套模态机制。全局 Ctrl/Cmd+K 开关由 `wwwroot/js/sample-search.js` 挂在 document 上——键盘事件只有挂在文档上，才能在任何焦点位置都拦得住，而 Blazor 的处理器绑在元素上。
+- [x] **输入框按 id 交给 JS，不传元素引用**：父组件的 `OnAfterRenderAsync` 先于子组件执行，面板第一次挂载时 `Input` 的 `ElementChanged` 还没回填，元素引用那一趟必然是空的——第一版正是因此在打开后没把焦点放进输入框，Escape 与 Tab 的断言随后连锁失败。只传面板元素，输入框由 JS 用 `document.getElementById`（公开的 `InputId`）解析。
+- [x] **面板渲染在页头玻璃卡片之外**：卡片的 `backdrop-filter` 会成为最近的 backdrop root，卡内浮层的模糊只能采样卡片内部那张透明背景——与 10.33.0 里 `Popover.Anchor` 要解决的是同一件事，只是这次连"锚定"都不需要。
+- [x] 断言改写：原来的"就地下拉"一组换成居中面板的开合与几何——触发器的 dialog 契约、关着时面板不在 DOM 且无遮罩无滚动锁、点触发器后 dialog 语义 + 遮罩 + 滚动锁 + 输入框自动聚焦、面板中心与视口中心重合、面板与页面根之间没有别的 backdrop root、遮罩铺满视口、面板层级高于页头、Escape / Ctrl+K / 点遮罩三条关闭路径都把焦点还给触发器、Tab 五次仍留在面板内、Enter 落地后面板与输入框离场且滚动锁释放、关闭后页面重新可滚。REV-118 的注释同步（页头不再有 combobox，改成入口按钮）。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --check`（`sample-search.js` 与 `verify.mjs`）、`check-css-comments.mjs`（73 文件）、`check-doc-drift.mjs`（78 文案键）通过；`tests/browser/verify.mjs` 在本机无头 Chrome 上实跑，搜索相关断言全部通过（129 行输出里唯一的 FAIL 是既有的 `P7 PageDown steps ten increments without scrolling the page`，见下）。实测：触发器提示 `Ctrl K`、输入"时间"得到 3 条命中、面板 `640×271` 在 `1440×900` 里居中、Escape 后 `open:false / focused:true`。
+- 本机环境项（非本次改动）：`generate-api-reference --check` 报"仓库 CRLF / 生成器 LF"（逐行内容一致，与 10.34.0 记录的是同一件事）；`generate-search-index.mjs --check` 因目录条目指向尚不存在的页面文件（`PatternDrawer.razor`）抛 `ENOENT`；`node --test tests/*.test.mjs` 有 1 项「目录里的每个条目都有页面文件」失败；`bash scripts/check-docs.sh` 在本机 WSL 下因工作区文件是 CRLF 而提前退出（`grep -E '^## [0-9]+\. Checkbox$'` 匹配不到带 `\r` 的行尾）。`P7` 那一条：Slider 的同类断言通过，InputNumber 的 JS 抑制在探针里 `defaultPrevented:true`，失败只出现在 CDP 真实按键路径上，与本轮改动无关（本次未触碰 InputNumber）。以上均由 CI 复核。
+
 ## 10.34.1 Segmented 的圆角与内缩改成「形状一致 + 三档统一」
 
 `10.34.0` 把滑块圆角从塌成 0 的直角里救回来，但走的是**同心**路线（滑块半径 = 轨道圆角 − 描边 − 内缩，内缩由此推出 1 / 3 / 5px），结果是滑块圆角被压成统一的 2px、看起来比它所在的轨道"小一圈"，而且边框到滑块的间距随 `Size` 漂移。本轮按组件库既定的风格改成：**滑块与选项直接取该档轨道的控件圆角**（4 / 6 / 8px，与同档 `Input` / `Button` 同源），**内缩三档统一 3px**。

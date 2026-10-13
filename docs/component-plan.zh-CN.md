@@ -61,7 +61,7 @@
 
 | 区域 / 段 | 内容 | 现状 |
 | --- | --- | --- |
-| 顶栏 | 品牌、文档/资源入口、版本入口、全局搜索与外观设置 | 部分（搜索框与设置浮层已交付；版本入口未做） |
+| 顶栏 | 品牌、文档/资源入口、版本入口、全局搜索与外观设置 | 部分（全局搜索改为居中弹出的模态面板，外观设置浮层已交付；版本入口未做） |
 | 左栏 | 分组导航 + 检索与匹配计数，随路由高亮 | 已交付 |
 | 右栏 | 页内 TOC，随滚动高亮，锚点可分享 | 已交付 |
 | 页头 | 当前条目、「在 GitHub 编辑」 | 已交付 |
@@ -83,10 +83,18 @@
 
 ### 搜索索引：生成而不是手写
 
-- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（441 条：57 个页面条目 + 54 个组件页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
+- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（441 条：57 个页面条目 + 54 个组件页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
 - 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
 - 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，「参数与事件」读的是 API 生成物（所以 `Feedback` 页在这一项修好之后也有了该段）。生成顺序因此是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
 - 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。
+
+### 搜索入口：居中弹出的模态面板
+
+- 页头放的是"像输入框的按钮"（`ShowcaseSearchBox`）：字段外观直接取库内控件 token，右侧键位提示按平台写成 ⌘K / Ctrl K；真正的输入框在面板里。
+- 面板（`ShowcaseSearchLayer`）只在打开时进入 DOM，固定定位在视口中央，`role="dialog"` + `aria-modal="true"`。点遮罩、Escape 与关闭按钮都收起它，关闭后焦点回到触发器；**从命中项跳走时不还焦点**，留给刚滚到的目标段。
+- 滚动锁与 Tab 焦点陷阱复用库内 `wwwroot/js/aeterni_floating.js`（组件浮层用的同一份），示例不另造一套；全局 Ctrl/Cmd+K 开关由 `wwwroot/js/sample-search.js` 注册在 document 上——键盘事件只有挂在文档上，才能在任何焦点位置都拦得住。
+- 面板必须渲染在页头那张玻璃卡片之外：卡片的 `backdrop-filter` 会成为最近的 backdrop root，卡内浮层的模糊只能采样卡片内部那张透明背景。
+- 门禁：`tests/browser/verify.mjs` 覆盖开合三条路径（触发器、Escape、Ctrl+K 与遮罩）、居中几何、滚动锁的加与释放、Tab 焦点陷阱与焦点回归，以及"面板与页面根之间没有别的 backdrop root"。
 
 ### 批次
 
@@ -99,6 +107,7 @@
 | 5 | 内容补齐：其余页面的 `UsageCode`、缺失的 `Events`/`Notes`、每页「何时使用」与「相关组件」 | 每页 01～05 段齐全；`sample-docs` 门禁要求所有页面都有代码块 |
 | 6 | 组合用法页：表单校验链、筛选工具栏、设置抽屉、通知与长任务、大数据列表 | 每页只用真实公共 API，并有浏览器断言 |
 | 7 | 状态与无障碍矩阵（RTL、reduced-motion、窄屏可在示例级切换）、首页改造（使用者入口，提交时间线移到独立页）、版本入口与反馈闭环 | 每项都有可操作路径与断言 |
+| 8（已交付，先于 5–7 落地；批次 4 的搜索入口改版） | 页头搜索换成触发器 + Ctrl/Cmd+K，结果进居中弹出的模态面板（滚动锁与焦点陷阱复用共享浮层模块，示例不再自维护下拉） | 面板居中、三条关闭路径与焦点回归、滚动锁的加与释放都有浏览器断言；搜索索引生成物不变 |
 
 不做的事：内置在线沙箱（Blazor 生态没有 Ant/Element 那类 Playground 对应物，用「复制到示例工程」替代）；从 CDN 引第三方语法高亮（示例工程可以不引，库本身不能引）。
 

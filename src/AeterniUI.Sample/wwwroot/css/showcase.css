@@ -1871,35 +1871,162 @@
     }
 }
 
-/* 头部搜索框 + 就地下拉 -------------------------------------------------------
-   搜索框常驻页头左侧，设置入口在右侧（页头原先并排挂着两个分段开关）。结果列表与设置浮层
-   都由库内 PopupHost + Popover 承载，这里只负责宽度、浮层宽度与结果行的观感——本表不覆写
-   任何 `.aeterni-` 组件规则。
-
-   这一层包裹元素是浮层的锚点（`Popover.Anchor`）：浮层渲染在页头玻璃卡片之外——卡片的
-   `backdrop-filter` 会让卡内浮层的模糊只采样卡片内部那张透明背景——但仍按它们定位，所以
-   这里的宽度与内边距同时决定输入框和浮层的对齐边。 */
+/* 头部搜索入口 + 居中搜索面板 -------------------------------------------------
+   页头放的是"像输入框的按钮"：真正的输入框在居中面板里。面板必须渲染在页头玻璃卡片之外，
+   否则它自己的 `backdrop-filter` 只能采样卡片内部那张透明背景。触发器直接取库内控件的字段
+   token，与真实 Input 站在一起时看不出这是两套东西；本表不覆写任何 `.aeterni-` 组件规则。 */
 .sample-header__search {
-    /* 搜索框是页头里唯一会随输入变宽的控件：让它占住剩余空间，但不许把品牌与主导航挤变形。 */
-    flex: 1 1 200px;
+    /* 触发器是页头里第一个被挤的入口：给一段固定宽度，但不许把品牌与主导航挤变形。 */
+    flex: 0 1 240px;
     min-width: 0;
-    max-width: 340px;
 }
 
 .sample-header__settings {
     flex: 0 0 auto;
 }
 
-.showcase-search-box {
+.showcase-search-trigger {
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-2);
-    min-width: 0;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 32px;
+    padding: 0 var(--aeterni-spacing-3);
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-radius-input);
+    background: var(--aeterni-control-background);
+    color: var(--aeterni-control-foreground-placeholder);
+    font-family: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-border), var(--aeterni-transition-color);
 }
 
-/* 图标在输入框外侧：字段自身的边框、内边距与焦点环归库内 Input，示例不伸手进去改，
-   因此不把它叠到字段里。 */
-.showcase-search-box__icon {
+.showcase-search-trigger:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+/* 焦点环与库内字段同一条：`:focus-visible` 只在实际用键盘操作时出现。 */
+.showcase-search-trigger:focus-visible {
+    border-color: var(--aeterni-control-border-focus);
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.showcase-search-trigger__icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.showcase-search-trigger__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 键位提示只写给鼠标用户看：触发器的读屏名字来自可见文案，所以这个 kbd 标了 aria-hidden。 */
+.showcase-search-trigger__kbd {
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-sm);
+    color: var(--aeterni-text-tertiary);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: 1.5;
+}
+
+/* 居中搜索面板：遮罩铺满视口、面板居中。两者都是 fixed 定位，所以页面滚动不会把面板带走，
+   滚动锁（库内共享模块提供）只是不让背后跟着滚。面板与 Popover、Dialog 同一套玻璃配方：同一
+   组填充、模糊与墨阶 token，站在一起不像两种材质。 */
+.showcase-search-modal {
+    position: fixed;
+    z-index: var(--aeterni-z-modal);
+    inset: 0;
+    display: grid;
+    box-sizing: border-box;
+    padding: var(--aeterni-spacing-5);
+    place-items: center;
+    /* 容器只负责居中：点击留给遮罩与面板，容器自己不吃事件。 */
+    pointer-events: none;
+}
+
+.showcase-search-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--aeterni-overlay);
+    -webkit-backdrop-filter: var(--aeterni-blur-scrim);
+    backdrop-filter: var(--aeterni-blur-scrim);
+    pointer-events: auto;
+    animation: showcase-search-backdrop-in var(--aeterni-duration-normal) var(--aeterni-ease-out);
+}
+
+.showcase-search-modal__panel {
+    /* 玻璃填充承载不了标准墨阶：72% 的浅色背投下，深色主题的 secondary 落到 3.41:1、tertiary
+       落到 2.51:1，低于 4.5:1 正文与 3:1 图标下限。凡是承载该墨阶的角色都重新指一遍（其它名字
+       在主题块里别名指向它），与 Popover、Card、Dialog 同一处理。 */
+    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
+    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
+    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
+
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(640px, 100%);
+    max-height: min(70vh, var(--aeterni-overlay-height-md));
+    overflow: hidden;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
+    border-radius: var(--aeterni-radius-modal);
+    background: var(--aeterni-bg-glass);
+    color: var(--aeterni-text-primary);
+    box-shadow: var(--aeterni-shadow-modal);
+    -webkit-backdrop-filter: var(--aeterni-blur-glass);
+    backdrop-filter: var(--aeterni-blur-glass);
+    pointer-events: auto;
+    animation: showcase-search-panel-in var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+@keyframes showcase-search-backdrop-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes showcase-search-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .showcase-search-modal__backdrop,
+    .showcase-search-modal__panel {
+        animation: none;
+    }
+}
+
+/* 输入框那一行：图标在字段外侧（字段自身的边框、内边距与焦点环归库内 Input，示例不伸手进去
+   改），右侧是关闭按钮。 */
+.showcase-search-modal__field {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    padding: var(--aeterni-spacing-3);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.showcase-search-modal__icon {
     display: grid;
     flex: 0 0 auto;
     place-items: center;
@@ -1907,34 +2034,22 @@
     font-size: var(--aeterni-font-size-sm);
 }
 
-/* 一行结果要同时放下段标题与页码来源，比 Popover 的最小宽度宽一些。 */
-.showcase-search-box__popover {
-    min-width: 320px;
-}
-
-/* 页头是一张固定定位的玻璃卡片，两个下拉的锚点（触发器包裹元素）都在卡片里：库内默认的 8px
-   间距会让浮层顶部压进卡片下沿约 12px，卡片的下边框于是横在磨砂面板背后。这里给浮层自己的
-   margin 多留一段（锚定模式下由浮层模块写在 `top` 之外，margin 照常把盒子推开），浮层从卡片
-   之外开始——用示例自己的类名做偏移，不去写 `.aeterni-popover` 的全局规则。 */
-.showcase-search-box__popover,
-.showcase-settings__popover {
-    margin-top: var(--aeterni-spacing-3);
-}
-
 /* 结果行之间必须有间隙：每行自带圆角背景，贴在一起时活动项与邻行的底色会连成一片，
    读者分不出那是两行还是一个大色块。间隙取库内 List 的同一档（--aeterni-spacing-1），
    列表外观因此与 `List` 组件一致。 */
-.showcase-search-box__list {
+.showcase-search-modal__list {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: var(--aeterni-spacing-1);
-    max-height: var(--aeterni-overlay-max-height);
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: var(--aeterni-spacing-1);
+    padding: var(--aeterni-spacing-2);
+    scrollbar-gutter: stable;
 }
 
-.showcase-search-box__option {
+.showcase-search-modal__option {
     display: grid;
     gap: 2px;
     padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
@@ -1943,29 +2058,47 @@
 }
 
 /* 活动项是"已选中"，普通 hover 不能把它洗回未选中样：两个档位明确分开。 */
-.showcase-search-box__option:not(.is-active):hover {
+.showcase-search-modal__option:not(.is-active):hover {
     background: var(--aeterni-state-background-hover);
 }
 
-.showcase-search-box__option.is-active {
+.showcase-search-modal__option.is-active {
     background: var(--aeterni-state-background-selected);
 }
 
-.showcase-search-box__option-title {
+.showcase-search-modal__option-title {
     color: var(--aeterni-text-primary);
     font-size: var(--aeterni-font-size-sm);
 }
 
-.showcase-search-box__option-meta {
+.showcase-search-modal__option-meta {
     color: var(--aeterni-text-tertiary);
     font-size: var(--aeterni-font-size-xs);
 }
 
-.showcase-search-box__empty {
+.showcase-search-modal__empty {
     margin: 0;
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-3) var(--aeterni-spacing-4);
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
+}
+
+/* 面板底部的键位提示：面板里的键盘路径不止一条，写出来读者才敢用（不用鼠标也能走完）。 */
+.showcase-search-modal__hint {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    border-top: 1px solid var(--aeterni-border-subtle);
+    color: var(--aeterni-text-tertiary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+/* 设置浮层：页头是一张固定定位的玻璃卡片，锚点（触发器包裹元素）就在卡片里，库内默认的 8px
+   间距会让浮层顶部压进卡片下沿约 12px，卡片的下边框于是横在磨砂面板背后。这里给浮层自己的
+   margin 多留一段（锚定模式下由浮层模块写在 `top` 之外，margin 照常把盒子推开），浮层从卡片
+   之外开始——用示例自己的类名做偏移，不去写 `.aeterni-popover` 的全局规则。 */
+.showcase-settings__popover {
+    margin-top: var(--aeterni-spacing-3);
 }
 
 /* 设置浮层：可见标签 + 分段控件，两者说的是同一件事。 */

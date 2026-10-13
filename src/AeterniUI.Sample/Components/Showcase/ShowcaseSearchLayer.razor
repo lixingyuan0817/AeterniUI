@@ -1,23 +1,53 @@
 @namespace AeterniUI.Sample.Components.Showcase
 @using AeterniUI.Enums
 
-@* 搜索结果浮层：渲染在页头玻璃卡片之外，按页头的触发器定位。
-   `PopupHost` 只是浮层的挂载容器——浮层既然按 `Anchor` 定位，宿主放在哪儿都不影响对齐，
-   放在这里是为了让它脱离玻璃卡片的 backdrop root。 *@
-<PopupHost>
-    <ChildContent>
-        <Popover Open="@Model.Open"
-                 OpenChanged="Model.SetOpen"
-                 Anchor="@Model.Anchor"
-                 Placement="PopupPlacement.BottomEnd"
-                 AriaLabel="组件文档搜索结果"
-                 Class="showcase-search-box__popover">
-            @* 结果容器始终存在：`aria-controls` 指向的 id 不能随结果出现或消失；没有
-               命中时用容器内的文案说明，而不是把列表整个拿掉。 *@
-            <div id="@ShowcaseSearchModel.ListboxId" class="showcase-search-box__list" role="listbox" aria-label="搜索结果">
+@* 居中搜索面板：渲染在页头玻璃卡片之外——面板自己的 `backdrop-filter` 才能采样整页而不是
+   卡片内部那张透明背景。遮罩与面板是兄弟，点遮罩即关闭，面板自己不需要再挡事件。
+
+   面板在打开时才进入 DOM：`role="dialog"` + `aria-modal` 表达模态语义，`tabindex="-1"` 给焦点
+   陷阱一个兜底落点；滚动锁与 Tab 循环由库内 `aeterni_floating.js` 提供（见 `ShowcaseSearchModel`
+   的互操作入口），这里只声明结构。 *@
+@if (Model.Open)
+{
+    <div class="showcase-search-modal">
+        <div class="showcase-search-modal__backdrop" @onclick="() => Model.ClosePanel()"></div>
+
+        <section class="showcase-search-modal__panel"
+                 @ref="_panel"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-label="搜索组件文档"
+                 tabindex="-1"
+                 @onkeydown="HandlePanelKeyDown">
+            <div class="showcase-search-modal__field">
+                <span class="showcase-search-modal__icon" aria-hidden="true">
+                    <Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />
+                </span>
+                @* 输入框是库内 Input：字段外观、禁用/无效状态与焦点环都归它，这里只补 combobox
+                   的 ARIA 契约（与库内 Autocomplete 传给自己的 Input 的那一组一致）。 *@
+                <Input Id="@ShowcaseSearchModel.InputId"
+                       Size="Size.Small"
+                       FullWidth="true"
+                       Value="@Model.Query"
+                       ValueChanged="HandleQueryChanged"
+                       Placeholder="搜索组件或段落…"
+                       AriaLabel="搜索组件或段落"
+                       OnKeyDown="HandleInputKeyDown"
+                       AdditionalAttributes="@InputAttributes" />
+                <Button Variant="ButtonVariant.Ghost"
+                        Intent="ButtonIntent.Neutral"
+                        Size="Size.Small"
+                        AriaLabel="关闭搜索"
+                        OnClick="@(_ => Model.ClosePanel())"
+                        StartIcon="@CloseIcon" />
+            </div>
+
+            @* 结果容器始终存在（面板打开期间）：`aria-controls` 指向的 id 不能随结果出现或消失；
+               没有命中时用容器内的文案说明，而不是把列表整个拿掉。 *@
+            <div id="@ShowcaseSearchModel.ListboxId" class="showcase-search-modal__list" role="listbox" aria-label="搜索结果">
                 @if (Model.Matches.Count == 0)
                 {
-                    <p class="showcase-search-box__empty">没有匹配的组件或段落。试试“选择”“日期”或“表单”。</p>
+                    <p class="showcase-search-modal__empty">没有匹配的组件或段落。试试“选择”“日期”或“表单”。</p>
                 }
                 else
                 {
@@ -29,12 +59,18 @@
                              aria-selected="@(index == Model.ActiveIndex ? "true" : "false")"
                              class="@OptionClass(index)"
                              @onclick="() => Model.Pick(match)">
-                            <span class="showcase-search-box__option-title">@match.SectionTitle</span>
-                            <span class="showcase-search-box__option-meta">@ShowcaseSearchModel.MetaOf(match)</span>
+                            <span class="showcase-search-modal__option-title">@match.SectionTitle</span>
+                            <span class="showcase-search-modal__option-meta">@ShowcaseSearchModel.MetaOf(match)</span>
                         </div>
                     }
                 }
             </div>
-        </Popover>
-    </ChildContent>
-</PopupHost>
+
+            <p class="showcase-search-modal__hint">↑↓ 选择 · Enter 跳转 · Esc 关闭</p>
+        </section>
+    </div>
+}
+
+@code {
+    private static readonly RenderFragment CloseIcon = @<Icon Definition="@FontAwesomeIcons.Solid.Xmark" />;
+}

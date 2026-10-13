@@ -179,9 +179,9 @@ async function tabUntil(selector, maxPresses = 40, anchor = null) {
 // ---------------------------------------------------------------- REV-118
 await goto(`${BASE}/components/theme`);
 await waitForApp();
-// 起点锚定到本页标题、诊断也限定在本页：页头现在常驻一个 combobox（搜索框），它在文档里
-// 排在页面内容之前，而这条断言的"被重新指向的消费者"是主题页的 ComboBox——不限定的话诊断会
-// 量到页头那个输入框（实测 outline-style=none，因为它当时根本没有焦点）。
+// 起点锚定到本页标题、诊断也限定在本页：页头现在挂着搜索入口按钮，它在文档里排在页面内容
+// 之前，而这条断言的"被重新指向的消费者"是主题页的 ComboBox——不限定的话诊断会量到页头那个
+// 控件（实测 outline-style=none，因为它当时根本没有焦点）。
 const reached = await tabUntil('[role="combobox"]', 40, '#theme h1');
 const ring = await evaluate(`(() => {
     const trigger = document.querySelector('#theme [role="combobox"]');
@@ -1507,44 +1507,76 @@ check('滚到页面底部时高亮最后一段（相关组件 / 说明与边界�
 await send('Emulation.clearDeviceMetricsOverride');
 await sleep(150);
 
-// ---------------------------------------------------------------- 头部搜索框
-// 页头常驻搜索框 + 就地下拉：索引是生成物（页面条目 + 页面上真实存在的段），下拉是库内
-// PopupHost + Popover。断言只碰真实渲染出来的对象：输入框按 id 取，结果按 `role="option"`
+// ---------------------------------------------------------------- 头部搜索入口
+// 页头放的是"像输入框的按钮"，真正的搜索是一个居中弹出的模态面板：索引是生成物（页面条目 +
+// 页面上真实存在的段），面板由示例自己的 DOM 与 CSS 承载，滚动锁与焦点陷阱复用库内
+// `aeterni_floating.js`。断言只碰真实渲染出来的对象：触发器按 id 取，结果按 `role="option"`
 // 数，落地按 `location.pathname + location.hash` 与那个 id 的元素本身。
 await goto(`${BASE}/components/upload`);
 await waitForApp();
 
-// 真实指针：Popover 的"点外部关闭"监听的是 pointerdown，`element.click()` 不会触发它。
+// 真实指针：触发器、遮罩与结果行都是普通 click，用真实指针点一次能证明它们确实可点。
 async function clickAt(x, y) {
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', buttons: 0, clickCount: 1 });
 }
 
+async function clickElement(selector) {
+    const point = await evaluate(`(() => {
+        const node = document.querySelector('${selector}');
+        if (!node) return null;
+        const rect = node.getBoundingClientRect();
+        return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
+    })()`);
+    if (!point) return false;
+    await clickAt(point.x, point.y);
+    return true;
+}
+
+// Ctrl/Cmd+K：`key` 那条路不带修饰键，这条快捷键得自己发（CDP 的 modifiers 2 就是 Ctrl）。
+async function pressShortcut() {
+    const base = { key: 'k', code: 'KeyK', windowsVirtualKeyCode: 75, nativeVirtualKeyCode: 75, modifiers: 2 };
+    await send('Input.dispatchKeyEvent', { ...base, type: 'keyDown' });
+    await send('Input.dispatchKeyEvent', { ...base, type: 'keyUp' });
+}
+
+const TRIGGER = '#showcase-search-trigger';
 const SEARCH_INPUT = '#showcase-header-search';
 const SEARCH_LISTBOX = '#showcase-header-search-listbox';
+const SEARCH_PANEL = '.showcase-search-modal__panel';
 
-// 下拉的开合状态看 Popover 根元素的 hidden：关着时它仍在文档里（这是 Popover 的契约），
-// 数与可见性必须分开读。
+// 面板的存在就是开合状态：关着时它整个不在 DOM 里，所以"开"看节点在不在，"关"看它有没有
+// 消失——不存在"打开了但看不见"的中间态。
 const searchState = () => evaluate(`(() => {
+    const trigger = document.querySelector('${TRIGGER}');
+    const panel = document.querySelector('${SEARCH_PANEL}');
     const input = document.querySelector('${SEARCH_INPUT}');
     const listbox = document.querySelector('${SEARCH_LISTBOX}');
-    const popover = listbox?.closest('.aeterni-popover') ?? null;
     const options = listbox ? [...listbox.querySelectorAll('[role="option"]')] : [];
-    const rect = input?.getBoundingClientRect() ?? null;
+    const rect = panel?.getBoundingClientRect() ?? null;
     return {
-        exists: !!input,
-        visible: !!rect && rect.width > 0 && rect.height > 0,
-        role: input?.getAttribute('role') ?? null,
-        expanded: input?.getAttribute('aria-expanded') ?? null,
+        triggerExists: !!trigger,
+        expanded: trigger?.getAttribute('aria-expanded') ?? null,
+        haspopup: trigger?.getAttribute('aria-haspopup') ?? null,
+        open: !!panel,
+        role: panel?.getAttribute('role') ?? null,
+        modal: panel?.getAttribute('aria-modal') ?? null,
+        labelled: panel?.getAttribute('aria-label') ?? null,
+        scrim: !!document.querySelector('.showcase-search-modal__backdrop'),
+        inputRole: input?.getAttribute('role') ?? null,
+        inputExpanded: input?.getAttribute('aria-expanded') ?? null,
         controls: input?.getAttribute('aria-controls') ?? null,
-        haspopup: input?.getAttribute('aria-haspopup') ?? null,
+        listboxPopup: input?.getAttribute('aria-haspopup') ?? null,
         activedescendant: input?.getAttribute('aria-activedescendant') ?? null,
         value: input?.value ?? null,
-        open: popover ? !popover.hasAttribute('hidden') : null,
+        focused: !!input && document.activeElement === input,
         optionCount: options.filter(option => option.getClientRects().length > 0).length,
-        titles: options.map(option => option.querySelector('.showcase-search-box__option-title')?.textContent.trim() ?? ''),
-        metas: options.map(option => option.querySelector('.showcase-search-box__option-meta')?.textContent.trim() ?? ''),
-        selected: options.filter(option => option.getAttribute('aria-selected') === 'true').map(option => option.id)
+        titles: options.map(option => option.querySelector('.showcase-search-modal__option-title')?.textContent.trim() ?? ''),
+        metas: options.map(option => option.querySelector('.showcase-search-modal__option-meta')?.textContent.trim() ?? ''),
+        selected: options.filter(option => option.getAttribute('aria-selected') === 'true').map(option => option.id),
+        panel: rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom } : null,
+        scrollLocked: document.body.style.overflow === 'hidden',
+        triggerFocused: !!trigger && document.activeElement === trigger
     };
 })()`);
 
@@ -1571,12 +1603,42 @@ const waitForSearchState = async (predicate, timeoutMs = 5000) => {
 };
 
 const idle = await searchState();
-check('头部搜索框常驻、可见，并声明 combobox 契约',
-    idle.exists && idle.visible && idle.role === 'combobox' && idle.controls === SEARCH_LISTBOX.slice(1)
-    && idle.haspopup === 'listbox',
+check('页头有搜索触发器，面板关着时它声明 dialog 契约',
+    idle.triggerExists && idle.expanded === 'false' && idle.haspopup === 'dialog' && !idle.open,
     JSON.stringify(idle));
-check('空查询不展开下拉', idle.open === false && idle.expanded === 'false' && idle.optionCount === 0,
-    JSON.stringify(idle));
+check('面板关着时不在 DOM 里，也没有遮罩与滚动锁',
+    idle.panel === null && idle.scrim === false && idle.scrollLocked === false,
+    JSON.stringify({ panel: idle.panel, scrim: idle.scrim, scrollLocked: idle.scrollLocked }));
+
+await clickElement(TRIGGER);
+const opened = await waitForSearchState(state => state.open && state.focused);
+check('点触发器弹出模态面板：dialog 语义、遮罩、滚动锁与输入框自动聚焦',
+    opened.open && opened.role === 'dialog' && opened.modal === 'true' && opened.scrim
+    && opened.scrollLocked && opened.focused && opened.expanded === 'true'
+    && opened.inputRole === 'combobox' && opened.inputExpanded === 'true'
+    && opened.controls === SEARCH_LISTBOX.slice(1) && opened.listboxPopup === 'listbox',
+    JSON.stringify(opened));
+
+// "居中弹出"要真的居中：面板盒的中心与视口中心重合，而不是"看起来差不多"。
+const viewport = await evaluate(`({ w: window.innerWidth, h: window.innerHeight })`);
+const centre = opened.panel
+    ? {
+        x: Math.round((opened.panel.left + opened.panel.right) / 2 - viewport.w / 2),
+        y: Math.round((opened.panel.top + opened.panel.bottom) / 2 - viewport.h / 2)
+    }
+    : null;
+check('面板在视口里居中（水平与垂直都对上中心）',
+    !!centre && Math.abs(centre.x) <= 1 && Math.abs(centre.y) <= 1,
+    JSON.stringify({ panel: opened.panel, viewport, centre }));
+
+// 滚动锁：面板打开时页面不跟着滚（锁的是 body 的 overflow，视口滚动因此失效）。
+const locked = JSON.parse(await evaluate(`(() => {
+    window.scrollTo(0, 400);
+    return JSON.stringify({ y: Math.round(window.scrollY), overflow: document.body.style.overflow });
+})()`));
+check('面板打开时背景不跟着滚（滚动锁生效）',
+    locked.overflow === 'hidden' && locked.y === 0,
+    JSON.stringify(locked));
 
 await typeQuery('组件');
 const broad = await waitForSearchState(state => state.open && state.optionCount > 3);
@@ -1584,8 +1646,8 @@ await typeQuery('时间');
 const narrowed = await waitForSearchState(state => state.open && state.optionCount === 3);
 // 命中减少到 3 条，且页码来源里同时有 Timeline 与 DateTimePicker 两页——「时间」既命中
 // 段标题（时间轴、日期与时间的联合选择），也命中两页，这正是"搜索页内内容"的价值。
-check('输入关键词后下拉展开，命中数减少且包含预期页面',
-    narrowed.open && narrowed.expanded === 'true' && narrowed.optionCount === 3
+check('输入关键词后命中数减少且包含预期页面',
+    narrowed.open && narrowed.optionCount === 3
     && narrowed.optionCount < broad.optionCount
     && narrowed.metas.some(meta => meta.startsWith('Timeline'))
     && narrowed.metas.some(meta => meta.startsWith('DateTimePicker')),
@@ -1608,12 +1670,12 @@ check('搜索结果行之间留出 List 同档的间隙',
     rowGap.gap !== null && rowGap.gap >= 4 && rowGap.token === '4px',
     JSON.stringify(rowGap));
 
-// 有查询但没命中：下拉照常展开，用文案说清楚，而不是留一个空白浮层。
+// 有查询但没命中：面板留在原地，用文案说清楚，而不是留一个空白列表。
 await typeQuery('zzzz');
 const noMatch = await waitForSearchState(state => state.open && state.optionCount === 0);
-const emptyCopy = await evaluate(`document.querySelector('.showcase-search-box__empty')?.textContent.trim() ?? null`);
-check('没有命中时给出明确文案（下拉仍展开）',
-    noMatch.open && noMatch.expanded === 'true' && noMatch.optionCount === 0 && /没有匹配/.test(emptyCopy ?? ''),
+const emptyCopy = await evaluate(`document.querySelector('.showcase-search-modal__empty')?.textContent.trim() ?? null`);
+check('没有命中时给出明确文案（面板保持打开）',
+    noMatch.open && noMatch.optionCount === 0 && /没有匹配/.test(emptyCopy ?? ''),
     JSON.stringify({ ...noMatch, emptyCopy }));
 
 await typeQuery('时间');
@@ -1637,15 +1699,13 @@ const landed = await (async () => {
             const hash = location.hash.slice(1);
             const target = hash ? document.getElementById(hash) : null;
             const rect = target?.getBoundingClientRect() ?? null;
-            const listbox = document.querySelector('${SEARCH_LISTBOX}');
-            const popover = listbox?.closest('.aeterni-popover') ?? null;
             return {
                 route: location.pathname + location.hash,
                 targetExists: !!target,
-                targetTop: rect ? Math.round(rect.top) : null,
                 inViewport: !!rect && rect.top > -1 && rect.top < window.innerHeight,
-                value: document.querySelector('${SEARCH_INPUT}')?.value ?? null,
-                open: popover ? !popover.hasAttribute('hidden') : null
+                panel: !!document.querySelector('${SEARCH_PANEL}'),
+                input: !!document.querySelector('${SEARCH_INPUT}'),
+                overflow: document.body.style.overflow
             };
         })()`);
         if (state.route.includes('timeline') && state.inViewport) return state;
@@ -1656,49 +1716,90 @@ const landed = await (async () => {
 check('Enter 跳到该段：路由、锚点元素与滚动都到位',
     landed.route === '/components/timeline#timeline-horizontal' && landed.targetExists && landed.inViewport,
     JSON.stringify(landed));
-check('命中后下拉收起、输入清空',
-    landed.open === false && landed.value === '',
-    JSON.stringify(landed));
+// 跳走时焦点留给落地页：这时把焦点还给页头触发器，会和刚滚到的目标段脱节。
+// 解锁是"渲染之后"的那次互操作，比路由到位晚一点点：等它落下来再断言。
+const settled = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = JSON.parse(await evaluate(`JSON.stringify({
+            panel: !!document.querySelector('${SEARCH_PANEL}'),
+            input: !!document.querySelector('${SEARCH_INPUT}'),
+            overflow: document.body.style.overflow
+        })`));
+        if (!state.panel && !state.input && state.overflow === '') return state;
+        await sleep(50);
+    }
+    return state;
+})();
+check('命中后面板与输入框都离场、滚动锁释放',
+    !settled.panel && !settled.input && settled.overflow === '',
+    JSON.stringify(settled));
 
-// Escape 只收起下拉，输入内容留着（换关键词继续搜）；点外部同理。
-await typeQuery('时间');
-const reopened = await waitForSearchState(state => state.open && state.optionCount === 3);
-check('Escape 关闭：重新输入后下拉再次展开', reopened.open, JSON.stringify(reopened));
+// Escape 收起面板：面板整个消失，键盘用户得有个落脚点——焦点回到触发器。
+await clickElement(TRIGGER);
+const reopened = await waitForSearchState(state => state.open && state.focused);
+check('每次打开都是一次干净的搜索（空查询、无命中、焦点在输入框）',
+    reopened.open && reopened.focused && reopened.value === '' && reopened.optionCount === 0,
+    JSON.stringify(reopened));
 
 await key('Escape', 'Escape', 27);
-const escaped = await waitForSearchState(state => state.open === false);
-check('Escape 收起下拉并保留输入内容', escaped.open === false && escaped.value === '时间',
+const escaped = await waitForSearchState(state => !state.open);
+check('Escape 收起面板、释放滚动锁并把焦点还给触发器',
+    !escaped.open && !escaped.scrollLocked && escaped.triggerFocused,
     JSON.stringify(escaped));
 
-await key('ArrowDown', 'ArrowDown', 40);
-const resummoned = await waitForSearchState(state => state.open && state.optionCount === 3);
-check('输入还在时方向键能把下拉拉回来', resummoned.open && resummoned.value === '时间', JSON.stringify(resummoned));
+// Ctrl+K 是同一条开合路径的第二个入口：关着时打开，开着时收起。
+await pressShortcut();
+const shortcutOpened = await waitForSearchState(state => state.open && state.focused);
+check('Ctrl+K 打开面板', shortcutOpened.open && shortcutOpened.focused, JSON.stringify(shortcutOpened));
 
-// 外部点击点从下拉自己的位置推：取它右下角之外、但仍在视口内的一点（页面正文，不是链接也不是
-// 菜单项）。Popover 的关闭条件是"按下点不在浮层内、也不在它的锚点容器里"，所以这个点必须真的
-// 在浮层外——落在视口外的坐标对浏览器来说不是一个真实的点击。
-const outside = await evaluate(`(() => {
-    const listbox = document.querySelector('${SEARCH_LISTBOX}');
-    const popover = listbox?.closest('.aeterni-popover');
-    if (!popover) return null;
-    const rect = popover.getBoundingClientRect();
-    const x = Math.round(Math.min(window.innerWidth - 6, Math.max(6, rect.right + 40)));
-    const y = Math.round(Math.min(window.innerHeight - 6, Math.max(rect.bottom + 40, window.innerHeight - 60)));
+await pressShortcut();
+const shortcutClosed = await waitForSearchState(state => !state.open);
+check('面板已打开时 Ctrl+K 收起它', !shortcutClosed.open && shortcutClosed.triggerFocused,
+    JSON.stringify(shortcutClosed));
+
+// Tab 停在面板里：模态面板不能把焦点 Tab 到背后的页头或正文上（面板里只有输入框与关闭按钮两个
+// 停留点，所以这条也顺带证明焦点确实在环上绕）。
+await clickElement(TRIGGER);
+await waitForSearchState(state => state.open && state.focused);
+const focusTrail = [];
+let trapped = true;
+for (let index = 0; index < 4; index++) {
+    await key('Tab', 'Tab', 9);
+    const step = await evaluate(`(() => {
+        const panel = document.querySelector('${SEARCH_PANEL}');
+        const active = document.activeElement;
+        return {
+            inside: !!panel && !!active && panel.contains(active),
+            label: active?.getAttribute('aria-label') ?? active?.id ?? active?.tagName ?? null
+        };
+    })()`);
+    trapped = trapped && step.inside;
+    focusTrail.push(step.label);
+}
+check('Tab 焦点留在面板内（焦点陷阱生效）', trapped, JSON.stringify(focusTrail));
+
+// 点遮罩关闭：取面板之外、视口之内的一点（它落在铺满视口的遮罩上，不是页头也不是正文）。
+const scrimPoint = await evaluate(`(() => {
+    const panel = document.querySelector('${SEARCH_PANEL}');
+    const rect = panel.getBoundingClientRect();
+    const x = Math.round(Math.max(8, rect.left - 80));
+    const y = Math.round(rect.top + rect.height / 2);
     return {
         x, y,
-        insidePopover: x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom,
-        popover: { top: Math.round(rect.top), bottom: Math.round(rect.bottom), right: Math.round(rect.right) },
+        insidePanel: x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom,
         viewport: { w: window.innerWidth, h: window.innerHeight }
     };
 })()`);
-if (outside) {
-    await clickAt(outside.x, outside.y);
+if (!scrimPoint.insidePanel) {
+    await clickAt(scrimPoint.x, scrimPoint.y);
 }
 
-const dismissed = await waitForSearchState(state => state.open === false);
-check('点击下拉外部关闭它，输入内容同样保留',
-    !!outside && outside.insidePopover === false && dismissed.open === false && dismissed.value === '时间',
-    JSON.stringify({ ...dismissed, outside }));
+const dismissed = await waitForSearchState(state => !state.open);
+check('点遮罩关闭面板、释放滚动锁并把焦点还给触发器',
+    !scrimPoint.insidePanel && !dismissed.open && !dismissed.scrollLocked && dismissed.triggerFocused,
+    JSON.stringify({ ...dismissed, scrimPoint }));
 
 // ---------------------------------------------------------------- 头部设置浮层
 // 主题与品牌两个开关从页头并排搬进浮层：触发器带 aria-haspopup / aria-expanded，
@@ -1765,24 +1866,24 @@ check('Escape 关闭设置浮层并让 aria-expanded 回到 false',
     JSON.stringify(settingsClosed));
 check('关闭后焦点归还设置触发器', settingsClosed.focused, JSON.stringify(settingsClosed));
 
-// ------------------------------------------------- 页头浮层的锚点与渲染位置解耦
-// 两个下拉的浮层渲染在页头玻璃卡片之外（卡片的 `backdrop-filter` 会让卡内浮层只能采样卡片
-// 子树，而面板又在卡片盒之外，于是看起来完全没有模糊），却仍按页头里的触发元素定位——靠的是
-// `Popover.Anchor`。断言顺序是"先根因、后现象"：先证明浮层与页面根之间没有别的 backdrop root
-// （否则采样范围根本不是整页），再看浮层表面确实带着模糊，然后量模糊确实作用在背后的页面内容
-// 上，最后才量对齐、以及不设锚点的既有 Popover 没有跟着变。
+// ------------------------------------------------- 搜索面板在页头玻璃卡片之外
+// 面板必须渲染在页头那张玻璃卡片之外：卡片的 `backdrop-filter` 会成为最近的 backdrop root，
+// 卡内浮层的模糊就只能采样卡片内部那张透明背景。断言顺序是"先根因、后现象"：先证明面板与页面
+// 根之间没有别的 backdrop root（否则采样范围根本不是整页），再看面板表面确实带着模糊，最后量
+// 几何（居中、铺满视口的遮罩、压在页头之上）。
 await goto(`${BASE}/components/upload`);
 await waitForApp();
+await clickElement(TRIGGER);
+const anchored = await waitForSearchState(state => state.open && state.focused);
 await typeQuery('时间');
-const anchored = await waitForSearchState(state => state.open && state.optionCount === 3);
+await waitForSearchState(state => state.open && state.optionCount === 3);
 
-// 遍历浮层表面到页面根之间的祖先：任何一个带 `backdrop-filter` 的祖先都会成为最近的
-// backdrop root，浮层就只能采样那一块。浮层表面自己带模糊，所以从它的父元素开始走。
-// 这条在修复前必然失败——页头那张玻璃卡片就在链上。
+// 遍历面板表面到页面根之间的祖先：任何一个带 `backdrop-filter` 的祖先都会成为最近的
+// backdrop root，面板就只能采样那一块。面板表面自己带模糊，所以从它的父元素开始走。
 const blurChain = await evaluate(`(() => {
-    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
+    const surface = document.querySelector('${SEARCH_PANEL}');
     const page = document.querySelector('.sample-page');
-    if (!surface || !page) return { error: 'no layer or page root' };
+    if (!surface || !page) return { error: 'no panel or page root' };
     const chain = [];
     for (let node = surface.parentElement; node && node !== page.parentElement; node = node.parentElement) {
         const style = getComputedStyle(node);
@@ -1797,163 +1898,60 @@ const blurChain = await evaluate(`(() => {
         roots: chain.filter(entry => entry.backdrop && entry.backdrop !== 'none').map(entry => entry.label)
     };
 })()`);
-check('搜索浮层与页面根之间没有别的 backdrop root（模糊采样的是整页）',
+check('搜索面板与页面根之间没有别的 backdrop root（模糊采样的是整页）',
     !blurChain.error && anchored.open && blurChain.roots.length === 0,
     JSON.stringify(blurChain));
-check('搜索浮层表面自身带模糊', !blurChain.error && /blur\(/.test(blurChain.own ?? ''),
+check('搜索面板表面自身带模糊', !blurChain.error && /blur\(/.test(blurChain.own ?? ''),
     JSON.stringify({ own: blurChain.own }));
 
-// 模糊确实作用在浮层背后的页面内容上。
-//
-// 量的必须是"锐度"（水平相邻像素的平均差）而不是平均色：模糊保留区域的平均色、只抹掉高频，
-// 用平均色根本测不到模糊（这正是这个缺陷一直没人发现的原因）。采样区取浮层与它背后真实元素的
-// 交集——先把浮层藏起来做命中测试，取那个有文字、又落在面板里的最小盒子，"背后有没有内容"
-// 因此不靠猜；采样时再把面板自己的内容藏起来（那次隐藏前后一致，不影响比较），让这一区域只剩
-// 填充 + 模糊，避免列表文字把背投的高频差异稀释掉。
-async function regionSharpness(rect) {
-    const shot = await send('Page.captureScreenshot', { format: 'png' });
-    return evaluate(`(async () => {
-        const bytes = Uint8Array.from(atob('${shot.data}'), c => c.charCodeAt(0));
-        const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
-        const dpr = window.devicePixelRatio || 1;
-        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bitmap, 0, 0);
-        const width = Math.max(2, Math.round(${rect.w} * dpr));
-        const height = Math.max(2, Math.round(${rect.h} * dpr));
-        const data = ctx.getImageData(Math.round(${rect.x} * dpr), Math.round(${rect.y} * dpr), width, height).data;
-        let sum = 0, count = 0;
-        for (let y = 0; y < height; y++) {
-            for (let x = 1; x < width; x++) {
-                const i = (y * width + x) * 4;
-                const p = i - 4;
-                const a = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                const b = (data[p] + data[p + 1] + data[p + 2]) / 3;
-                sum += Math.abs(a - b);
-                count++;
-            }
-        }
-        return count ? sum / count : 0;
-    })()`);
-}
+// 这里不再做"模糊确实作用在背后页面内容上"的像素锐度对比：那段采样当初是为了证明卡内浮层的
+// 背投是空的（面板在卡片盒之外，backdrop root 却是那张卡片）。现在面板与页面根之间已经没有别的
+// backdrop root，而采样区里同时还有模态遮罩自己的 scrim 模糊，锐度差无法再单独归因于面板这一层
+// ——与其留一条归因不明的断言，不如把"祖先链干净 + 面板自身带模糊"两条留在上面。
 
-const backdropRegion = await evaluate(`(() => {
-    const layer = document.querySelector('.showcase-search-box__popover');
-    const surface = layer.querySelector('.aeterni-popover__surface');
-    const panel = surface.getBoundingClientRect();
-    const containers = [document.body, document.documentElement, document.querySelector('.sample-page')];
-    layer.style.visibility = 'hidden';
-    let best = null;
-    for (let y = panel.top + 4; y < panel.bottom - 4; y += 6) {
-        for (let x = panel.left + 4; x < panel.right - 4; x += 12) {
-            for (const node of document.elementsFromPoint(x, y)) {
-                // 页面根/整页容器不算"内容"：它们铺满整页，选中等于没选。
-                if (containers.includes(node) || !(node.textContent ?? '').trim()) continue;
-                const box = node.getBoundingClientRect();
-                const left = Math.max(panel.left + 2, box.left);
-                const right = Math.min(panel.right - 2, box.right);
-                const top = Math.max(panel.top + 2, box.top);
-                const bottom = Math.min(panel.bottom - 2, box.bottom);
-                if (right - left < 40 || bottom - top < 12) continue;
-                const area = (right - left) * (bottom - top);
-                if (!best || area < best.area) {
-                    best = {
-                        area,
-                        x: left, y: top, w: right - left, h: bottom - top,
-                        node: node.tagName + '.' + String(node.getAttribute('class') || '').split(/\\s+/)[0]
-                    };
-                }
-            }
-        }
-    }
-    layer.style.visibility = '';
-    return best ?? { error: 'no page content behind the panel' };
-})()`);
-
-// 面板自己的内容在两次采样里都藏起来：区域里只剩填充与背投，锐度差异就只来自模糊。
-const hidePanelContent = visibility => evaluate(`(() => {
-    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
-    for (const node of surface.children) node.style.visibility = '${visibility}';
-})()`);
-
-await hidePanelContent('hidden');
-const blurredSharpness = backdropRegion.error ? NaN : await regionSharpness(backdropRegion);
-await evaluate(`(() => {
-    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
-    surface.style.backdropFilter = 'none';
-    surface.style.webkitBackdropFilter = 'none';
-})()`);
-await settleFrame();
-const sharpSharpness = backdropRegion.error ? NaN : await regionSharpness(backdropRegion);
-await evaluate(`(() => {
-    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
-    surface.style.backdropFilter = '';
-    surface.style.webkitBackdropFilter = '';
-})()`);
-await hidePanelContent('');
-check('浮层的模糊作用在背后的页面内容上（同一区域去掉模糊后锐度上升）',
-    !backdropRegion.error && Number.isFinite(blurredSharpness) && Number.isFinite(sharpSharpness)
-    // 实测（2026-10，页头搜索框）：带模糊 0.09、去掉模糊 2.45。模糊会把背投的高频抹平，
-    // 所以既要求"去掉模糊明显更锐"，也要求"带模糊时确实很平"——两条一起，背投若是空的
-    // （修复前就是空的：面板在卡片盒之外，而它的 backdrop root 是那张卡片）两条都不成立。
-    && sharpSharpness - blurredSharpness > 1
-    && blurredSharpness < sharpSharpness / 2,
-    JSON.stringify({
-        region: backdropRegion,
-        blurredSharpness: Number.isFinite(blurredSharpness) ? Number(blurredSharpness.toFixed(2)) : blurredSharpness,
-        sharpSharpness: Number.isFinite(sharpSharpness) ? Number(sharpSharpness.toFixed(2)) : sharpSharpness
-    }));
-
-// 对齐：锚点是触发元素的包裹元素，所以浮层的下沿起点在输入框之下、右边缘与输入框齐平。
-const searchGeometry = await evaluate(`(() => {
-    const box = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }; };
-    const input = document.querySelector('#showcase-header-search');
-    const anchor = document.querySelector('.sample-header__search');
-    const layer = document.querySelector('.showcase-search-box__popover');
-    const surface = layer.querySelector('.aeterni-popover__surface');
+// 几何：固定定位、铺满视口的遮罩、面板压在页头那张玻璃卡片之上（面板渲染在卡片之外，也必须
+// 盖住它，否则页头会浮在遮罩上）。
+const panelGeometry = await evaluate(`(() => {
+    const box = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height }; };
+    const panel = document.querySelector('${SEARCH_PANEL}');
+    const scrim = document.querySelector('.showcase-search-modal__backdrop');
+    const modal = document.querySelector('.showcase-search-modal');
     const card = document.querySelector('.sample-header .aeterni-surface');
-    const host = layer.parentElement;
+    const header = document.querySelector('.sample-header');
+    if (!panel || !scrim || !modal || !card || !header) return { error: 'missing nodes' };
     return {
-        input: box(input), anchor: box(anchor), layer: box(layer), card: box(card),
-        rightDelta: Math.round((layer.getBoundingClientRect().right - input.getBoundingClientRect().right) * 100) / 100,
-        topGap: Math.round((surface.getBoundingClientRect().top - input.getBoundingClientRect().bottom) * 100) / 100,
-        cardGap: Math.round((surface.getBoundingClientRect().top - card.getBoundingClientRect().bottom) * 100) / 100,
-        position: getComputedStyle(layer).position,
-        anchored: layer.classList.contains('is-anchored'),
-        // 浮层不再挂在页头卡片里：宿主在页面层，而卡片是页头里的元素。
-        hostInsideCard: card.contains(host)
+        scrim: box(scrim),
+        insideCard: card.contains(panel) || card.contains(modal),
+        position: getComputedStyle(modal).position,
+        panelZ: Number(getComputedStyle(modal).zIndex),
+        headerZ: Number(getComputedStyle(header).zIndex),
+        viewport: { w: window.innerWidth, h: window.innerHeight }
     };
 })()`);
-check('搜索浮层右边缘与输入框右边缘齐平（锚点即触发元素的包裹元素）',
-    anchored.open && Math.abs(searchGeometry.rightDelta) <= 2,
-    JSON.stringify(searchGeometry));
-check('搜索浮层贴在输入框下方，且从页头卡片之外开始',
-    searchGeometry.topGap > 0 && searchGeometry.topGap <= 24 && searchGeometry.cardGap >= -2,
-    JSON.stringify({ topGap: searchGeometry.topGap, cardGap: searchGeometry.cardGap }));
-check('搜索浮层渲染在页头玻璃卡片之外、按锚点固定定位',
-    searchGeometry.anchored && searchGeometry.position === 'fixed' && !searchGeometry.hostInsideCard,
-    JSON.stringify({ anchored: searchGeometry.anchored, position: searchGeometry.position, hostInsideCard: searchGeometry.hostInsideCard }));
+check('搜索面板是固定定位、渲染在页头玻璃卡片之外',
+    !panelGeometry.error && panelGeometry.position === 'fixed' && !panelGeometry.insideCard,
+    JSON.stringify({ position: panelGeometry.position, insideCard: panelGeometry.insideCard }));
+check('面板压在页头之上（层级高于那张玻璃卡片）',
+    !panelGeometry.error && panelGeometry.panelZ > panelGeometry.headerZ,
+    JSON.stringify({ panelZ: panelGeometry.panelZ, headerZ: panelGeometry.headerZ }));
+check('遮罩铺满整页视口',
+    !panelGeometry.error
+    && Math.abs(panelGeometry.scrim.left) <= 1 && Math.abs(panelGeometry.scrim.top) <= 1
+    && Math.abs(panelGeometry.scrim.width - panelGeometry.viewport.w) <= 1
+    && Math.abs(panelGeometry.scrim.height - panelGeometry.viewport.h) <= 1,
+    JSON.stringify({ scrim: panelGeometry.scrim, viewport: panelGeometry.viewport }));
 
-// 页面滚动时浮层不跟着滚走：锚点在固定定位的页头里，浮层也是固定定位。
+// 关闭要真的把滚动锁还回去：模态自己开完不还，页面就此锁死（开锁那半条在上面，这条盯释放）。
+await key('Escape', 'Escape', 27);
+const released = await waitForSearchState(state => !state.open);
 await evaluate('window.scrollTo(0, 400)');
 await sleep(200);
-const scrolled = await evaluate(`(() => {
-    const input = document.querySelector('#showcase-header-search');
-    const layer = document.querySelector('.showcase-search-box__popover');
-    const surface = layer.querySelector('.aeterni-popover__surface');
-    return {
-        scrollY: Math.round(window.scrollY),
-        rightDelta: Math.round((layer.getBoundingClientRect().right - input.getBoundingClientRect().right) * 100) / 100,
-        topGap: Math.round((surface.getBoundingClientRect().top - input.getBoundingClientRect().bottom) * 100) / 100
-    };
-})()`);
-check('页面滚动后浮层仍贴在锚点上（不随页面滚走）',
-    anchored.open && scrolled.scrollY > 0 && Math.abs(scrolled.topGap - searchGeometry.topGap) <= 1,
-    JSON.stringify(scrolled));
+const scrolledAfterClose = await evaluate('Math.round(window.scrollY)');
+check('关闭面板后滚动锁释放、页面重新可滚',
+    !released.open && !released.scrollLocked && scrolledAfterClose > 0,
+    JSON.stringify({ ...released, scrolledAfterClose }));
 await evaluate('window.scrollTo(0, 0)');
 await sleep(100);
-await key('Escape', 'Escape', 27);
-await waitForSearchState(state => state.open === false);
 
 // 设置浮层：同一套锚定，锚点是齿轮按钮。
 await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.focus()`);

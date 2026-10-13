@@ -42,7 +42,7 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 修改色板、玻璃配方、复杂焦点模型或特殊组件机制 | 先读本文件；再读 [`docs/engineering-reference.zh-CN.md`](docs/engineering-reference.zh-CN.md) 的对应章节 |
 | 修改版本、整理发布或追溯历史决定 | 先读本文件；再读 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
 | 修改图标清单、生成脚本或 Font Awesome 适配包 | 先读本文件；再读 [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) 的图标章节；生成物只由脚本改写，改后运行 `node scripts/generate-fontawesome-icons.mjs --check` |
-| 修改示例工程内容、API 表、搜索索引或生成脚本 | 先读本文件；再读 [`docs/component-plan.zh-CN.md`](docs/component-plan.zh-CN.md) 的示例工程章节；示例 API 表由 `scripts/generate-api-reference.mjs` 生成（说明与额外行在 `scripts/api-*.json`），页头搜索框的索引由 `scripts/generate-search-index.mjs` 生成（依赖前者的生成物），改后分别运行 `node scripts/generate-api-reference.mjs --check` 与 `node scripts/generate-search-index.mjs --check` |
+| 修改示例工程内容、API 表、搜索索引或生成脚本 | 先读本文件；再读 [`docs/component-plan.zh-CN.md`](docs/component-plan.zh-CN.md) 的示例工程章节；示例 API 表由 `scripts/generate-api-reference.mjs` 生成（说明与额外行在 `scripts/api-*.json`），页头搜索入口的索引由 `scripts/generate-search-index.mjs` 生成（依赖前者的生成物），改后分别运行 `node scripts/generate-api-reference.mjs --check` 与 `node scripts/generate-search-index.mjs --check` |
 | 修改 CI、工作流或发布流程 | 先读本文件；再读 `.github/workflows/` 中的三个工作流与 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
 
 代理阅读原则：
@@ -277,7 +277,7 @@ tests/browser/run.sh                           # 层叠、时序、焦点环、�
 node scripts/generate-fontawesome-icons.mjs --check
                                                    # 图标清单或组件字形（CI 已接入；冷缓存需 npm 联网）
 node scripts/generate-api-reference.mjs --check    # 组件公共参数或 XML 文档注释（示例 API 表生成物）
-node scripts/generate-search-index.mjs --check     # 页面改名、增删段（示例页头搜索框的索引生成物）
+node scripts/generate-search-index.mjs --check     # 页面改名、增删段（示例页头搜索入口的索引生成物）
 ```
 
 ### 4.9 版本与提交纪律
