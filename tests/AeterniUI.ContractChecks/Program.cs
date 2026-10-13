@@ -82,6 +82,7 @@ await CheckTextTableFallbackAsync();
 await CheckTokenSurfaceAsync();
 await CheckUploadAsync();
 await CheckSegmentedShapeAsync();
+await CheckSegmentedKeyboardAsync();
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -94,7 +95,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (35 groups).");
+Console.WriteLine("Component contract checks passed (36 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -3407,6 +3408,66 @@ async Task CheckSegmentedShapeAsync()
         && blocks.TryGetValue("--lg", out var largeBlock)
         && largeBlock.Contains("--aeterni-segmented-radius-rounded: var(--aeterni-radius-control-lg)", StringComparison.Ordinal),
         "The rounded shape must follow the size tier instead of one frozen radius.");
+
+    // The tile radius is one shared value across the tiers, and the inset is derived
+    // from it instead of hand-picked. A fixed inset is what collapsed the default tier
+    // to a square tile (6 - 1 - 5 = 0), and solving the concentricity condition for the
+    // inset is what keeps the outline, the tile and the pill evenly spaced on all three.
+    Require(css.Contains("--aeterni-segmented-inner-radius: var(--aeterni-radius-xs)", StringComparison.Ordinal),
+        "The pill and the option tile must share one radius on every size tier.");
+    var paddingDeclaration = Regex.Match(css, @"--aeterni-segmented-padding:\s*([^;]*);").Groups[1].Value;
+    Require(paddingDeclaration.Contains("--aeterni-segmented-radius-rounded", StringComparison.Ordinal)
+        && paddingDeclaration.Contains("--aeterni-radius-xs", StringComparison.Ordinal)
+        && !paddingDeclaration.Contains("--aeterni-segmented-inner-radius", StringComparison.Ordinal)
+        && !paddingDeclaration.Contains("--aeterni-segmented-radius)", StringComparison.Ordinal),
+        "The inset must be derived from the tier radius, the hairline and the shared tile radius - never from a variable the capsule repoints, or the subtraction goes negative.");
+    Require(!Regex.IsMatch(css, @"\.aeterni-segmented--sm\s*\{[^}]*--aeterni-segmented-padding"),
+        "The size tiers must not re-declare the inset: it follows from the derivation.");
+    Require(blocks.TryGetValue("--pill", out var pillRadiusBlock)
+        && pillRadiusBlock.Contains("--aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-pill)", StringComparison.Ordinal),
+        "The capsule must hand the tile back to the half-height clamp; the shared 2px radius only serves the rounded tiers.");
+}
+
+// Segmented keyboard: the arrow keys, the roving tab stop and the RTL direction stay
+// with the native radio group, so the component owns exactly one key pair it has to
+// add itself — Home and End. The pair is handled in C# (selection + focus) and the
+// module exists only to keep the browser's default action (a page scroll) from firing
+// underneath it; a module that also swallowed the arrow keys would break native
+// navigation.
+async Task CheckSegmentedKeyboardAsync()
+{
+    var root = FindRepositoryRoot();
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(Segmented<string>), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Name == "segmented" && !module.Interactive,
+        "Segmented must declare the non-interactive 'segmented' module: it owns no DotNet callbacks.");
+
+    var modulePath = Path.Combine(root, "src", "AeterniUI", module.Path.Replace('/', Path.DirectorySeparatorChar));
+    Require(File.Exists(modulePath), $"The Segmented module is missing: {module.Path}");
+
+    var js = await File.ReadAllTextAsync(modulePath);
+    Require(js.Contains("export function sync", StringComparison.Ordinal)
+        && js.Contains("export function dispose", StringComparison.Ordinal),
+        "The Segmented module must expose the sync/dispose pair the JS lifecycle calls.");
+    Require(js.Contains("preventDefault", StringComparison.Ordinal)
+        && js.Contains("'Home'", StringComparison.Ordinal)
+        && js.Contains("'End'", StringComparison.Ordinal)
+        && !js.Contains("'Arrow", StringComparison.Ordinal),
+        "The Segmented module may only own Home/End: preventing the arrow keys would break native radio navigation.");
+
+    var source = await File.ReadAllTextAsync(Path.Combine(root, "src", "AeterniUI", "Components", "Segmented", "Segmented.razor.cs"));
+    Require(source.Contains("\"Home\" => FirstEnabledIndex()", StringComparison.Ordinal)
+        && source.Contains("\"End\" => LastEnabledIndex()", StringComparison.Ordinal),
+        "Home/End must resolve to the first/last *enabled* option, so the disabled ones stay out of the keyboard path.");
+    // Selection has to go through the shared path, and the focus has to follow:
+    // focusing a radio programmatically does not select it, and the arrow keys then
+    // move from the focused radio rather than the selected one.
+    Require(Regex.IsMatch(source, @"await SelectAsync\(Items\[index\]\);[\s\S]*?FocusAsync\(preventScroll: true\)"),
+        "Home/End must select through SelectAsync and move the real focus with preventScroll.");
+
+    var css = await File.ReadAllTextAsync(Path.Combine(root, "src", "AeterniUI", "Components", "Segmented", "Segmented.razor.css"));
+    Require(Regex.IsMatch(css, @"\.aeterni-segmented__option\.is-disabled\s*\{[^}]*cursor:\s*not-allowed"),
+        "A disabled Segmented option must show the disabled cursor on the label, not only on the inner text.");
 }
 
 // Renders a component and hands back the instance, so a check can drive its

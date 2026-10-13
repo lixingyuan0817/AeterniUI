@@ -1,7 +1,9 @@
 using System.Globalization;
+using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace AeterniUI.Components.Segmented;
 
@@ -9,10 +11,14 @@ namespace AeterniUI.Components.Segmented;
 /// Single-select segmented control. One option is active and the pill slides to it.
 /// The single-select semantics come from native radio inputs, so arrow keys, the
 /// one-tab-stop roving focus and the RTL arrow direction stay the browser's job;
-/// the component adds the track, the sliding indicator and the FormField wiring.
+/// the component adds the track, the sliding indicator, the FormField wiring and
+/// the Home/End pair a radio group does not implement.
 /// </summary>
+[JsModule("Components/Segmented/Segmented.razor.js", Name = "segmented")]
 public partial class Segmented<TValue> : AeterniComponent
 {
+    private readonly Dictionary<int, ElementReference> _optionElements = [];
+
     [CascadingParameter]
     private FormFieldContext? FormField { get; set; }
 
@@ -102,6 +108,12 @@ public partial class Segmented<TValue> : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(Shape), Shape, "Unknown segmented shape.");
         }
     }
+
+    // The module only guards the Home/End default action, so it needs no DotNet
+    // callbacks; re-syncing after every render keeps the single listener attached to
+    // the current root element.
+    protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
+        JsModuleManager.InvokeModuleVoidAsync("segmented", "sync", InstanceId, RootElement);
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-segmented")
@@ -199,5 +211,70 @@ public partial class Segmented<TValue> : AeterniComponent
         {
             await ValueChanged.InvokeAsync(item);
         }
+    }
+
+    /// <summary>
+    /// Home/End. A native radio group implements the arrow keys, the roving tab stop
+    /// and the RTL direction, but it has no notion of the ends of the group: without
+    /// this the keys fall through to the browser and scroll the document instead.
+    /// </summary>
+    private async Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (IsEffectivelyDisabled || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
+        {
+            return;
+        }
+
+        var index = args.Key switch
+        {
+            "Home" => FirstEnabledIndex(),
+            "End" => LastEnabledIndex(),
+            _ => -1
+        };
+
+        if (index < 0)
+        {
+            return;
+        }
+
+        // Selection stays on the normal path. The keyboard additionally has to take
+        // the DOM focus along, because focusing a radio programmatically does not
+        // select it, and arrow keys move from the focused radio rather than the
+        // selected one. `preventScroll` leaves the scroll position to the module's
+        // default-action guard.
+        await SelectAsync(Items[index]);
+
+        if (_optionElements.TryGetValue(index, out var element))
+        {
+            await element.FocusAsync(preventScroll: true);
+        }
+    }
+
+    /// <summary>First option that can be selected, or -1 when the whole group is parked.</summary>
+    private int FirstEnabledIndex()
+    {
+        for (var index = 0; index < Items.Count; index++)
+        {
+            if (!IsItemDisabled(Items[index]))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>Last option that can be selected, or -1 when the whole group is parked.</summary>
+    private int LastEnabledIndex()
+    {
+        for (var index = Items.Count - 1; index >= 0; index--)
+        {
+            if (!IsItemDisabled(Items[index]))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 }

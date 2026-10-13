@@ -1056,7 +1056,7 @@ check('Upload appends a second drop instead of replacing the list',
     twoRows >= 2 && names.includes('dragged.txt') && names.includes('second.txt'),
     `rows=${twoRows} names=${names}`);
 
-// ---------------------------------------------------------------- Segmented 形状档位
+// ---------------------------------------------------------------- Segmented 圆角与胶囊
 // `Shape` 是 Segmented 的第二个枚举档位：默认 Rounded 换成控件圆角、不输出修饰类，Pill
 // 换成整圆；两档都不得改变滑块的宽度与行程。
 //
@@ -1122,12 +1122,17 @@ const segmentedShape = () => evaluate(`(() => {
             fullRadius: token('--aeterni-radius-full')
         };
     };
-    return { controlled: read('形状档位预览'), reference: read('默认形状（圆角）') };
+    return {
+        controlled: read('形状档位预览'),
+        reference: read('形状档位对照'),
+        small: read('小号'),
+        standard: read('默认档'),
+        large: read('大号')
+    };
 })()`);
 
 const roundedShape = await segmentedShape();
 const rounded = roundedShape.controlled ?? {};
-const reference = roundedShape.reference ?? {};
 const fullRadius = Number.parseFloat(rounded.fullRadius ?? 'NaN');
 
 check('Segmented 默认档是控件圆角，滑块与选项共用轨道内沿半径',
@@ -1138,7 +1143,7 @@ check('Segmented 默认档是控件圆角，滑块与选项共用轨道内沿半
     && rounded.radius < fullRadius
     && rounded.sliderRadiusUsed === Math.max(0, rounded.radius - rounded.border - rounded.padding)
     && rounded.sliderRadiusUsed === rounded.optionRadiusUsed
-    && rounded.sliderRadiusUsed === 0,
+    && rounded.sliderRadiusUsed === 2,
     JSON.stringify(roundedShape));
 
 check('Segmented 默认档下选中滑块仍与选中列对齐',
@@ -1147,12 +1152,21 @@ check('Segmented 默认档下选中滑块仍与选中列对齐',
     && Math.abs(rounded.sliderWidth - rounded.optionWidth) <= 0.5,
     `selected=${rounded.selected} offset=${rounded.offset} slider=${rounded.sliderWidth} option=${rounded.optionWidth}`);
 
-// 轨道 padding 同时决定轨道内边距、滑块内缩与滑块行程：调大它能让滑块离描边更远，但选项
-// 也会跟着变矮。默认档的可用高度只有 36 - 2(border) - 2*padding，一旦跌破 24px 热区，选项
-// 的 min-height 会把整条轨道顶到 38px，与同一档的 Input / Button 错开 2px（6px padding 时
-// 实测就是 38px）。所以这里同时钉住高度档位、热区下限与滑块四边留白相等，外加一条圆角处
-// 的留白：滑块半径必须比轨道半径小一个「描边 + 内缩」，否则角上留白比四边宽（改前默认档
-// 四边 5px、角上 7.5px），而四边相等本身量不出这个偏差。
+// 三档的滑块与选项圆角必须是同一个值：默认档原先在这里塌成 0（6 - 1 - 5），于是圆角轨道里
+// 嵌了一个直角滑块。内缩不再手写，而是由「档位轨道圆角 - 描边 - 滑块圆角」推导，所以它是
+// 1 / 3 / 5px，并且与滑块圆角一起保证角上与四边的留白相等。
+const sizeTiers = [roundedShape.small ?? {}, roundedShape.standard ?? {}, roundedShape.large ?? {}];
+check('Segmented 三档的滑块与选项圆角统一为 2px，内缩按档位轨道圆角推导',
+    sizeTiers.every(tier => tier.sliderRadiusUsed === 2 && tier.optionRadiusUsed === 2)
+    && sizeTiers.map(tier => tier.padding).join('/') === '1/3/5',
+    `tiers=${JSON.stringify(sizeTiers.map(tier => ({
+        radius: tier.sliderRadiusUsed, option: tier.optionRadiusUsed, padding: tier.padding
+    })))}`);
+
+// 轨道 padding 同时决定轨道内边距、滑块内缩与滑块行程：它由上面那条同心公式推导，所以选项
+// 高度是 36 - 2(border) - 2*padding。这里钉住高度档位、热区下限、四边与圆角处留白相等：
+// 滑块半径必须比轨道半径小一个「描边 + 内缩」，否则角上留白比四边宽（改前默认档四边 5px、
+// 角上 7.5px），而四边相等本身量不出这个偏差。
 check('Segmented 默认档保持控件高度档位，且滑块四边与圆角处留白一致',
     rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
     && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
@@ -1194,6 +1208,9 @@ check('Segmented 切到 Pill 后轨道与滑块按用值半径收成半高胶囊
     && pill.trackRadiusUsed === pill.trackHeight / 2
     && pill.sliderRadiusUsed === pill.sliderHeight / 2
     && pill.sliderRadiusUsed === pill.optionRadiusUsed
+    // 胶囊档不得让内缩跟着 --aeterni-segmented-inner-radius 一起变大：那会算出负值，
+    // 于是 padding 落到 0、滑块被 inset 撑到两万像素高。
+    && pill.padding === 3
     && Math.abs(pill.cornerGap - pill.padding) <= 0.5,
     JSON.stringify(pill));
 
@@ -1207,12 +1224,100 @@ check('Segmented 形状切换不改变滑块几何与选中项',
     `rounded={offset:${rounded.offset}, slider:${rounded.sliderWidth}, option:${rounded.optionWidth}, track:${rounded.trackWidth}} `
     + `pill={offset:${pill.offset}, slider:${pill.sliderWidth}, option:${pill.optionWidth}, track:${pill.trackWidth}}`);
 
-// 形状是实例级参数：同页那组没设置 Shape 的实例必须保持默认圆角与默认类名。
-check('Segmented 形状只作用于设置了 Shape 的那一组',
-    reference.radius === 6
-    && !(reference.classes ?? '').includes('aeterni-segmented--pill')
-    && reference.selected === rounded.selected,
-    JSON.stringify(pillShape.reference));
+// 形状是实例级参数，示例把两档并排摆出来：默认档下上排是圆角、下排是胶囊，通过页面上的
+// Shape 控件切到胶囊后两排反过来。所以这里同时钉住"切换只改自己那一组"（两组永远一圆角
+// 一胶囊，不会互相带跑）与"没被切的那一组仍是圆角档"。
+check('Segmented 形状只作用于自己那一组，切换后两组仍是相反档位',
+    roundedShape.controlled?.classes.includes('aeterni-segmented--pill') === false
+    && roundedShape.reference?.classes.includes('aeterni-segmented--pill') === true
+    && pillShape.controlled?.classes.includes('aeterni-segmented--pill') === true
+    && pillShape.reference?.classes.includes('aeterni-segmented--pill') === false
+    && pillShape.reference?.radius === 6
+    && pillShape.reference?.selected === pill.selected,
+    `before=controlled:${roundedShape.controlled?.classes} reference:${roundedShape.reference?.classes} `
+    + `after=controlled:${pillShape.controlled?.classes} reference:${pillShape.reference?.classes}`);
+
+// ---------------------------------------------------------------- Segmented Home/End
+// 原生 radio 组自带方向键与 roving tabindex，但没有 Home/End：组件在 C# 里补这一对，并用
+// 一个最小模块拦掉按键的默认动作（整页滚动）。所以要连同"页面真的滚了没有"一起量——而
+// 默认动作只在 raw key 事件上触发（`key()` 刻意不带它），这里另发一条 raw keydown。
+//
+// 用含禁用项的这组：Home/End 必须落在首/尾**可用**项上，"3 分"不参与。
+await goto(`${BASE}/components/segmented`);
+await waitForApp();
+await waitForInteractiveTheme();
+await sleep(300);
+
+// 焦点放到当前选中项（"2 分"），并把该组滚到视口中央：只有组在视口里，"Home 有没有把
+// 页面打到顶部"才是一个有分辨力的断言。
+await evaluate(`(() => {
+    const group = [...document.querySelectorAll('.aeterni-segmented')]
+        .find(node => node.getAttribute('aria-label') === '评分区间（3 分档不可选）');
+    group.scrollIntoView({ block: 'center' });
+    const inputs = [...group.querySelectorAll('input')];
+    (inputs.find(input => input.checked) ?? inputs[0]).focus();
+})()`);
+
+// 示例的滚动是平滑的：scrollIntoView 与 focus 都会播放动画（实测约 700ms 才停），所以
+// 必须在滚动停下之后再取基准，否则读到的是动画中间值，"Home/End 有没有滚动页面"就量不准
+// ——这也是这条断言第一次跑出假失败的原因（基准读到 950，实际落点 1927）。
+const settleScroll = async () => {
+    let last = -1;
+    for (let attempt = 0; attempt < 40; attempt++) {
+        const y = await evaluate('Math.round(window.scrollY)');
+        if (y === last) return y;
+        last = y;
+        await sleep(100);
+    }
+    return last;
+};
+
+await settleScroll();
+
+const segmentedKeyboard = () => evaluate(`(() => {
+    const group = [...document.querySelectorAll('.aeterni-segmented')]
+        .find(node => node.getAttribute('aria-label') === '评分区间（3 分档不可选）');
+    if (!group) return null;
+    const option = document.activeElement?.closest('.aeterni-segmented__option');
+    return {
+        selected: group.querySelector('.aeterni-segmented__option.is-selected')?.textContent.trim() ?? null,
+        focused: option?.textContent.trim() ?? null,
+        // 焦点环：option 在 :has(input:focus-visible) 下画 outline（程序化 focus 也要
+        // 命中，因为触发它的是键盘）。
+        ring: option ? getComputedStyle(option).outlineStyle !== 'none' : false,
+        scrollY: Math.round(window.scrollY)
+    };
+})()`);
+
+const rawKey = async (keyName, code, keyCode) => {
+    const base = { key: keyName, code, windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode };
+    await send('Input.dispatchKeyEvent', { ...base, type: 'rawKeyDown' });
+    await send('Input.dispatchKeyEvent', { ...base, type: 'keyUp' });
+};
+
+const keyboardBefore = await segmentedKeyboard();
+await rawKey('Home', 'Home', 36);
+await sleep(200);
+await settleScroll();
+const keyboardHome = await segmentedKeyboard();
+await rawKey('End', 'End', 35);
+await sleep(200);
+await settleScroll();
+const keyboardEnd = await segmentedKeyboard();
+
+check('Segmented 的 Home 跳到首个可用选项，焦点与焦点环一并过去，且不滚动页面',
+    keyboardBefore?.selected === '2 分'
+    && keyboardHome?.selected === '1 分'
+    && keyboardHome.focused === '1 分'
+    && keyboardHome.ring
+    && Math.abs(keyboardHome.scrollY - keyboardBefore.scrollY) <= 2,
+    `before=${JSON.stringify(keyboardBefore)} home=${JSON.stringify(keyboardHome)}`);
+
+check('Segmented 的 End 跳到末个可用选项，且不滚动页面',
+    keyboardEnd?.selected === '5 分'
+    && keyboardEnd.focused === '5 分'
+    && Math.abs(keyboardEnd.scrollY - keyboardBefore.scrollY) <= 2,
+    `end=${JSON.stringify(keyboardEnd)}`);
 
 // ---------------------------------------------------------------- 文档壳
 // 标准组件文档页的骨架：侧栏检索、每页的源码入口、目录顺序里的前后邻居，以及可复制

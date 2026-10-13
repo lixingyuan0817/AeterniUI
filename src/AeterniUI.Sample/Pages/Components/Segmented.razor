@@ -48,8 +48,8 @@
         </DemoCard>
 
         <DemoCard Id="segmented-shape"
-                  Title="形状档位"
-                  Description="Shape 提供两档：Rounded 是默认档、圆角跟随尺寸档位（4 / 6 / 8px），Pill 是整圆胶囊。形状只改圆角，滑块宽度与位移仍按选项数量计算，选中位置不受影响。"
+                  Title="圆角与胶囊"
+                  Description="Shape 两档并排：Rounded 是圆角（默认档，圆角跟随尺寸档位 4 / 6 / 8px），Pill 是整圆胶囊。切换只改圆角——滑块宽度、位移、选中位置与交互状态都不变，所以两档始终落在同一列上。"
                   Code="@ShapeCode">
             <Preview>
                 <div class="preview-stack">
@@ -63,8 +63,9 @@
                                Items="@_views"
                                Value="@_view"
                                ValueChanged="SelectView"
-                               AriaLabel="默认形状（圆角）" />
-                    <span class="preview-value">控件作用于第一组，第二组保持默认档作对照。</span>
+                               Shape="@OtherShape"
+                               AriaLabel="形状档位对照" />
+                    <span class="preview-value">上排跟随 Shape 切换，下排固定为另一档，两档并排可见。</span>
                 </div>
             </Preview>
             <Controls>
@@ -122,7 +123,7 @@
     <Notes>
         <span>选项数量变化时滑块几何按当前项重新计算，2 项与 5 项使用同一套 Token，不需要宿主额外配置。</span>
         <span>形状档位只改圆角：<code>Rounded</code> 是默认档、圆角跟随尺寸档位，<code>Pill</code> 是整圆胶囊；两档都不影响滑块的宽度与位移、交互状态或原生 radio 的键盘模型。</span>
-        <span>禁用选项不进入键盘移动范围，也不会被点击选中；键盘用方向键在可选项之间移动，Home/End 跳到两端。</span>
+        <span>禁用选项不进入键盘移动范围，也不会被点击选中；方向键由原生 radio 处理，Home/End 跳到两端可选项并把焦点一起带过去，键盘导航不会滚动页面。</span>
         <span>组件不承载导航语义：它没有 <code>tablist</code> 角色，切换后要替换内容请用 <code>Tabs</code>。</span>
     </Notes>
 </ComponentPage>
@@ -161,7 +162,8 @@
         """;
 
     private const string ShapeCode = """
-        <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView" />
+        <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView"
+                   Shape="SegmentedShape.Rounded" />
 
         <Segmented TValue="string" Items="Views" Value="View" ValueChanged="SelectView"
                    Shape="SegmentedShape.Pill" />
@@ -176,6 +178,9 @@
     private SegmentedShape _shape = SegmentedShape.Rounded;
     private bool _formRequired = true;
     private bool _formInvalid = true;
+
+    // 形状示例把两档并排摆出来：上排跟随切换，下排固定是"另一档"，所以任何时刻都能同屏对比。
+    private SegmentedShape OtherShape => _shape == SegmentedShape.Rounded ? SegmentedShape.Pill : SegmentedShape.Rounded;
 
     private static bool IsRangeDisabled(int range) => range == 3;
 

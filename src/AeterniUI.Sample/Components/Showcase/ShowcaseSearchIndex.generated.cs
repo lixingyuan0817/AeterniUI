@@ -290,7 +290,7 @@ public static class ShowcaseSearchIndex
         new("segmented", "Segmented", "表单组件", "segmented-when-title", "何时使用"),
         new("segmented", "Segmented", "表单组件", "segmented-basic", "基础用法"),
         new("segmented", "Segmented", "表单组件", "segmented-sizes", "尺寸与整宽"),
-        new("segmented", "Segmented", "表单组件", "segmented-shape", "形状档位"),
+        new("segmented", "Segmented", "表单组件", "segmented-shape", "圆角与胶囊"),
         new("segmented", "Segmented", "表单组件", "segmented-options", "禁选项与非字符串值"),
         new("segmented", "Segmented", "表单组件", "segmented-states", "在 FormField 中使用"),
         new("segmented", "Segmented", "表单组件", "segmented-api-title", "参数与事件"),

@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.33.0`
+文档版本：`10.34.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1077,10 +1077,10 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`、可选 `AriaLabel`。
 - `Size` 三档走统一控件高度：`Small` 28px、`Default` 36px、`Large` 44px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
 - 轨道外观是一根 1px 的 `--aeterni-border-strong` 描边加 `--aeterni-bg-secondary` 填充：分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，又不引出一层填充。禁用档与无效档照样换描边色。
-- `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。默认档与 Large 档取 `--aeterni-spacing-1` + `--aeterni-border-width`（5px），Small 档取 `--aeterni-border-width`（1px）；这个上限由选项热区决定，推导见 [`engineering-reference`](engineering-reference.zh-CN.md)。
-- 滑块与选项共用 `--aeterni-segmented-inner-radius`：轨道圆角减去描边与内缩（下限 0），所以描边与滑块之间的留白在四边和圆角处相等——默认档四边 5px、角上同样 5px（改前角上 7.5px）。默认档算得 0px、Small 与 Large 档 2px；选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。
-- `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。两档只切换轨道圆角这一条变量，滑块与选项的内沿半径由它推导，滑块宽度与位移仍由选项数量推导。
-- 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供，组件没有键盘 JS。
+- `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。它不再手写，而是由「档位轨道圆角 − 描边 − 滑块圆角」推导，三档因此是 Small 1px、Default 3px、Large 5px；推导与热区约束见 [`engineering-reference`](engineering-reference.zh-CN.md)。
+- 滑块与选项共用 `--aeterni-segmented-inner-radius`（`--aeterni-radius-xs`，2px，三档同一个值），内缩反过来由它推导，因此描边、滑块与选项三条弧同心——两者之间的留白在四边和圆角处相等，各档等于该档内缩。默认档改前算得 0px（6 − 1 − 5），圆角轨道里嵌着一个直角滑块；现在三档统一为 2px。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。
+- `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。形状只重指轨道圆角，`Pill` 额外把滑块与选项的内沿半径交回半高裁切；内缩取圆角档推导来的值、滑块宽度与位移由选项数量推导，所以两档的滑块几何完全一致。
+- 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供；原生 radio 组没有 `Home`/`End`，组件补上这一对（跳到首/尾可用项并把真实焦点一起带过去），并且只交出一个最小 JS 模块去阻止这两个键的默认页面滚动——方向键仍完全归浏览器，组件不接管。
 - 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。
 - RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。
 - `DisabledSelector` 停用单个选项（原生 `disabled`，跳过方向键循环）；`Disabled` 停用整组并输出 `aria-disabled`。`Value` 不匹配任何项时控件不显示选中态与滑块（`is-empty`）。
@@ -1089,7 +1089,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 行为与无障碍
 
-根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击与方向键都走同一条路径）。禁用项不可点、不进方向键循环，禁用且被选中的项仍保留指示块与反色文字，表示“值已选中但不可更改”。
+根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击、方向键与 `Home`/`End` 都走同一条路径）。`Home`/`End` 跳到首/尾可用项、把真实 DOM 焦点一并移到该 radio，并保持页面滚动位置不变（焦点用 `preventScroll`，按键的默认动作由模块拦截）。禁用项不可点、不进方向键循环、热区光标是 `not-allowed`（作用在整个标签而不是里面的文字），禁用且被选中的项仍保留指示块与反色文字，表示“值已选中但不可更改”。
 
 ### 实现边界
 

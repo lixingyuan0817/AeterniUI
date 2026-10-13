@@ -1,10 +1,23 @@
 # AeterniUI 发布历史
 
-文档版本：`10.33.0`
+文档版本：`10.34.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.34.0 Segmented 的 Home/End、圆角几何与禁用项热区光标
+
+`Segmented` 的定位一直是"方向键与 roving tabindex 交给原生 radio，组件没有键盘 JS"，示例页却写着"Home/End 跳到两端"——实测原生 radio 组不实现这两个键，它们落到浏览器默认动作上把整页滚到顶或底（焦点在组内按 `Home`：`scrollY` 1856 → 0，按 `End` → 4690）。同一个控件里还查出两处几何/状态缺陷：默认档的滑块是直角，禁用选项的热区光标是手型。本轮把这三处一起收口，形状示例也改成圆角/胶囊并排切换。
+
+- [x] **`Home`/`End` 在 C# 里补齐**：`HandleKeyDownAsync` 用 `FirstEnabledIndex()` / `LastEnabledIndex()` 跳到首/尾**可用**项（禁用项不参与，与方向键一致），选中仍走既有的 `SelectAsync` 路径，再用 `ElementReference.FocusAsync(preventScroll: true)` 把真实 DOM 焦点一起带过去——程序化 focus 一个 radio 不会选中它，而方向键是从**聚焦**项而不是选中项出发的，两者必须同步。
+- [x] **新增 `Segmented.razor.js`（`Interactive = false`）**：只做一件 C# 做不到的事——`Home`/`End` 的默认动作发生在 DOM 事件里，而 Blazor 的合成处理器跑在它之后，纯 C# 版本会一边改选中、一边让页面跳到底。模块在 root 上挂一个 `keydown` 监听，只对 target 是可用 radio 且无修饰键的 `Home`/`End` 调用 `preventDefault()`；**不碰方向键**，否则原生 radio 的焦点 + 选中导航就没了。不需要 DotNet 回调，所以不参与 interactive init，`sync` 自建实例（`Checkbox` 是同一模式的先例）。
+- [x] **默认档滑块的圆角（几何缺陷）**：`--aeterni-segmented-inner-radius` 原本是 `max(0px, 轨道圆角 − 描边 − 内缩)`，而默认档固定内缩 5px，`6 − 1 − 5 = 0` 被下限截成直角——圆角轨道里嵌着一个方角滑块（实测 `sliderRadiusUsed: 0`，而 Small / Large 两档恰好是 2px，三档并不一致）。修法是把同心等式**反过来解**：滑块与选项的半径先定为共享的一档（`--aeterni-radius-xs`，2px，三档相同），内缩再由 `档位轨道圆角 − 描边 − 滑块半径` 推导，三档因此得 1 / 3 / 5px，描边、滑块与选项三条弧重新同心（角上留白 == 四边留白）。**默认档内缩 5px → 3px 是这条推导的必然结果**，副作用是它的滑块与选项从 24px 变高到 28px（仍在 24px 热区之上，轨道高度保持 36px 不变）。`Pill` 档额外把滑块半径交回 `--aeterni-radius-full`、由半高裁切收成同心胶囊；**内缩公式只读圆角档的那两个变量**（`--aeterni-segmented-radius-rounded` 与 `--aeterni-radius-xs`），不读胶囊档会重指的 `--aeterni-segmented-radius` / `--aeterni-segmented-inner-radius`——第一版实现正是读了后者，`6 − 1 − 9999 = -9994px` 让 `padding` 计算为 0，同一串值又把滑块的 `inset` 撑成两万像素高（实测 `sliderH: 20022`、`gapInline: -9993`），所以两档的滑块宽度、位移与选中位置仍然完全一致这条现在是钉住的。
+- [x] **禁用选项的热区光标**：`cursor: not-allowed` 原本只写给 `.aeterni-segmented__input:disabled + .aeterni-segmented__label`（内层文字），真正被鼠标命中的 `.aeterni-segmented__option` 仍从基础规则带 `cursor: pointer`——实测禁用项 `optionCursor:"pointer"` / `innerLabelCursor:"not-allowed"`，即"文字上是禁用、热区上是手型"。补 `.aeterni-segmented__option.is-disabled { cursor: not-allowed; }`，与 `Radio` 的 `.aeterni-radio:has(... :disabled)`、`ToggleGroup` 的 `__item:disabled` 同一约定；整组禁用时每个选项也带 `is-disabled`，所以这一条同时覆盖两种情况。
+- [x] **形状示例改成并排对比**：示例的「形状档位」卡片改为「圆角与胶囊」，上下两排同屏——上排跟随 `Shape` 切换、下排固定是"另一档"，所以任何时刻都能对比两档；`Shape` 的代码片段也改成两档并排。`generate-search-index` 随之重生成（只有一个段标题变更）。
+- [x] 文档与示例跟进：`delivered-features` §32 把"组件没有键盘 JS"改为"方向键仍完全归浏览器、组件只补 `Home`/`End` 并交出一个最小模块拦默认动作"，并重写内缩/圆角两条（改为"半径先定、内缩推导"）；`engineering-reference` §5.5 的两段（内边距预算、同心圆角）同步新公式，并记下"内缩不能手写"的教训与"四边留白量不出这类缺陷"的量化方法。按"功能新增递增第二位"（§4.9）从 `10.33.0` 升到 `10.34.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、六份版本头文档、README tag 示例。
+- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **36 组**（新增 `CheckSegmentedKeyboardAsync`：模块声明与 `sync`/`dispose` 导出、模块只接管 Home/End、Home/End 经 `SelectAsync` + `preventScroll` 焦点、禁用项光标规则；形状组另加：滑块与选项共用半径、内缩由同心公式推导、尺寸档位不得重复声明内缩、胶囊档交回半高裁切）；`check-css-comments.mjs`（73 文件）、`check-doc-drift.mjs`（78 文案键）、`check-docs.sh` 的全部断言、`node --check`（新模块与 `verify.mjs`）、`generate-search-index --check`（442 条 / 57 页）通过。**负向验证**：临时把 `is-disabled` 的 `cursor` 改回 `pointer`、并往模块的键集合里加 `'ArrowRight'` → 契约检查精确报出 `The Segmented module may only own Home/End…` 与 `A disabled Segmented option must show the disabled cursor on the label…` 两条；再把内缩公式改回引用 `--aeterni-segmented-inner-radius`（胶囊档会重指它）→ 报出 `The inset must be derived from the tier radius, the hairline and the shared tile radius - never from a variable the capsule repoints…`。浏览器侧（Segmented 共 9 条，全部通过）：形状组断言改为 `sliderRadiusUsed === 2` 并新增**「三档的滑块与选项圆角统一为 2px，内缩按档位轨道圆角推导」**（实测三档 padding `1/3/5`、滑块与选项圆角都是 `2px`、角上留白 == 内缩即 `1/3/5`）；Pill 断言加了一条内缩检查（实测 `padding 3 / sliderH 28 / 滑块半径 14`，即半高，不再是负值事故里的 `0 / 20022 / 9999`）；原来那条「形状只作用于设置了 `Shape` 的那一组」按并排示例重写为**「形状只作用于自己那一组，切换后两组仍是相反档位」**——旧断言拿"切换前"读到的对照读数去比，而并排布局下切换前那组正是胶囊档（`OtherShape`），这条会必然失败，属于示例语义变化必须同步测试的实例；另新增两条 Home/End 断言，实测通过（`before`/`home`/`end` 的 `scrollY` 都是 2182，选中分别是"2 分 / 1 分 / 5 分"，焦点与焦点环一并跟随）——这条只有真实引擎里按 Home/End 才有意义，**第一次跑出的是假失败**：示例的滚动是平滑动画（实测约 700ms 才停），基准值取在动画中途（读到 950、实际落点 1927），断言已改为等滚动稳定后再取值。
+- [x] 两个已知环境项，非本次改动：`generate-api-reference --check` 在本机报"仓库 CRLF / 生成器 LF"，但两个生成物**逐行内容一致**（`git diff` 为空，`git ls-files --eol` 为 `i/lf w/crlf`），是 Windows checkout 的行尾；本机整套 `verify.mjs` 也跑不完——第 1356 行的 `Emulation.setDeviceMetricsOverride` 报 `Target does not support metrics override`，失败点落在本次未触及的段落，`Homepage uses Timeline`（`pageOverflow:392`）与 `REV-146 Search hover`（`:hover` 未命中）两条既有的环境失败同样复现。均由 CI 复核。
 
 ## 10.33.0 Popover 锚点解耦与 Segmented 形状档位
 

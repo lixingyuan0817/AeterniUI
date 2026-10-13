@@ -3,27 +3,28 @@
    one column wide, positioned from --aeterni-segmented-index / --aeterni-segmented-count
    (set inline by the component), so nothing here assumes a fixed option count. */
 .aeterni-segmented {
-    /* One padding value feeds the track, the pill and the pill's travel, so the pill
-       always lands exactly on an option. One spacing step plus one hairline is the
-       widest inset this track can carry: the option box has to stay at
-       --aeterni-touch-target-min, and a full second spacing step would eat 2px of it
-       and stretch the default tier to 38px instead of --aeterni-control-height-md. */
-    --aeterni-segmented-padding: calc(var(--aeterni-spacing-1) + var(--aeterni-border-width));
     /* Shape tier. Both named forms are declared here and the shared
        --aeterni-segmented-radius picks one, so switching the shape repoints a single
        variable for the track, the pill and the options at once. */
     --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-md);
     --aeterni-segmented-radius-pill: var(--aeterni-radius-full);
     --aeterni-segmented-radius: var(--aeterni-segmented-radius-rounded);
-    /* The pill and the option tile sit one border plus one padding inside the track's
-       outline, so both carry that inset as a radius reduction: the whitespace between
-       the outline and the tile then measures the same all the way around, corners
-       included. Reusing the track's own radius here left every corner wider than the
-       four sides - the default tier measured 5px on the sides against 7.5px in the
-       corners, because a 6px radius cannot fit inside a 5px inset. The Pill shape is
-       unaffected: --aeterni-radius-full stays far above the half-height clamp of both
-       the track and the tile, so the two arcs keep sharing one center. */
-    --aeterni-segmented-inner-radius: max(0px, calc(var(--aeterni-segmented-radius) - var(--aeterni-segmented-padding) - var(--aeterni-border-width)));
+    /* The pill and the option tile carry one radius on all three size tiers, so the
+       tiers read as the same control. The capsule repoints this one below. */
+    --aeterni-segmented-inner-radius: var(--aeterni-radius-xs);
+    /* One padding value feeds the track, the pill and the pill's travel, so the pill
+       always lands exactly on an option - and it is derived instead of picked. The
+       track outline and the tile are two corner arcs, and they keep an even gap all
+       the way around (sides and corners alike) only while they share one centre;
+       that requires the tile radius to be `track radius - hairline - padding`, so this
+       line solves the same condition for the padding. Both the tier and the tile radius
+       in the formula are the rounded ones: the capsule repoints --aeterni-segmented-radius
+       and --aeterni-segmented-inner-radius, and reading either here would turn the
+       subtraction into a large negative inset (a -9994px padding computes to zero and
+       an inset of the same value stretches the pill by 20000px). It is also why the
+       default tier now insets by 3px (6 - 1 - 2) instead of the 5px it used to carry:
+       5px cancelled the 6px corner exactly and left a square pill inside a round track. */
+    --aeterni-segmented-padding: calc(var(--aeterni-segmented-radius-rounded) - var(--aeterni-border-width) - var(--aeterni-radius-xs));
     --aeterni-segmented-height: var(--aeterni-control-height-md);
 
     position: relative;
@@ -157,7 +158,14 @@
     outline-offset: calc(var(--aeterni-focus-offset) * -1);
 }
 
-/* A disabled option is parked, not interactive. */
+/* A disabled option is parked, not interactive. The cursor has to sit on the whole
+   hit target: the label is where the pointer lands and it carries `cursor: pointer`
+   from the base rule, so the inner-span rule alone left a hand cursor over a parked
+   option. Radio covers the same case with `.aeterni-radio:has(... :disabled)`. */
+.aeterni-segmented__option.is-disabled {
+    cursor: not-allowed;
+}
+
 .aeterni-segmented__input:disabled + .aeterni-segmented__label {
     color: var(--aeterni-state-color-disabled);
     cursor: not-allowed;
@@ -180,10 +188,12 @@
     border-color: var(--aeterni-state-border-invalid);
 }
 
+/* The size tiers only repoint their own radius and height. The inset and the tile
+   radius are not repeated here: they follow from the derivation above, which lands
+   on 1px for Small (4 - 1 - 2) and 5px for Large (8 - 1 - 2). */
 .aeterni-segmented--sm {
     --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-sm);
     --aeterni-segmented-height: var(--aeterni-control-height-sm);
-    --aeterni-segmented-padding: var(--aeterni-border-width);
 }
 
 .aeterni-segmented--sm .aeterni-segmented__option {
@@ -201,10 +211,13 @@
     font-size: var(--aeterni-font-size-base);
 }
 
-/* The non-default shape. Only --aeterni-segmented-radius is repointed, so the pill's
-   width, travel and alignment stay exactly what the count/index properties describe. */
+/* The non-default shape. The rounded tiers only repoint the shared radius; the
+   capsule also hands the tile and the pill back to the half-height clamp, because the
+   2px tile radius above is what keeps the rounded tiers concentric. The inset reads
+   neither of the two repointed variables, so it stays the tier's own value here. */
 .aeterni-segmented--pill {
     --aeterni-segmented-radius: var(--aeterni-segmented-radius-pill);
+    --aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-pill);
 }
 
 @media (prefers-reduced-motion: reduce) {
