@@ -1078,7 +1078,8 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - `Size` 三档走统一控件高度：`Small` 28px、`Default` 36px、`Large` 44px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
 - 轨道外观是一根 1px 的 `--aeterni-border-strong` 描边加 `--aeterni-bg-secondary` 填充：分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，又不引出一层填充。禁用档与无效档照样换描边色。
 - `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。默认档与 Large 档取 `--aeterni-spacing-1` + `--aeterni-border-width`（5px），Small 档取 `--aeterni-border-width`（1px）；这个上限由选项热区决定，推导见 [`engineering-reference`](engineering-reference.zh-CN.md)。
-- `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。两档只切换轨道、滑块与选项共用的那一个圆角变量，滑块宽度与位移仍由选项数量推导。
+- 滑块与选项共用 `--aeterni-segmented-inner-radius`：轨道圆角减去描边与内缩（下限 0），所以描边与滑块之间的留白在四边和圆角处相等——默认档四边 5px、角上同样 5px（改前角上 7.5px）。默认档算得 0px、Small 与 Large 档 2px；选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。
+- `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。两档只切换轨道圆角这一条变量，滑块与选项的内沿半径由它推导，滑块宽度与位移仍由选项数量推导。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供，组件没有键盘 JS。
 - 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。
 - RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。

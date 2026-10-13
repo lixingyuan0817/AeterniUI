@@ -15,6 +15,15 @@
     --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-md);
     --aeterni-segmented-radius-pill: var(--aeterni-radius-full);
     --aeterni-segmented-radius: var(--aeterni-segmented-radius-rounded);
+    /* The pill and the option tile sit one border plus one padding inside the track's
+       outline, so both carry that inset as a radius reduction: the whitespace between
+       the outline and the tile then measures the same all the way around, corners
+       included. Reusing the track's own radius here left every corner wider than the
+       four sides - the default tier measured 5px on the sides against 7.5px in the
+       corners, because a 6px radius cannot fit inside a 5px inset. The Pill shape is
+       unaffected: --aeterni-radius-full stays far above the half-height clamp of both
+       the track and the tile, so the two arcs keep sharing one center. */
+    --aeterni-segmented-inner-radius: max(0px, calc(var(--aeterni-segmented-radius) - var(--aeterni-segmented-padding) - var(--aeterni-border-width)));
     --aeterni-segmented-height: var(--aeterni-control-height-md);
 
     position: relative;
@@ -51,7 +60,7 @@
     width: calc((100% - var(--aeterni-segmented-padding) * 2) / var(--aeterni-segmented-count, 1));
     pointer-events: none;
     border: var(--aeterni-border-width) solid var(--aeterni-state-background-checked);
-    border-radius: var(--aeterni-segmented-radius);
+    border-radius: var(--aeterni-segmented-inner-radius);
     background: var(--aeterni-state-background-checked);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateX(calc(var(--aeterni-segmented-index, 0) * 100%));
@@ -84,7 +93,7 @@
     min-width: var(--aeterni-touch-target-min);
     min-height: var(--aeterni-touch-target-min);
     padding: 0 var(--aeterni-control-padding-x-md);
-    border-radius: var(--aeterni-segmented-radius);
+    border-radius: var(--aeterni-segmented-inner-radius);
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);

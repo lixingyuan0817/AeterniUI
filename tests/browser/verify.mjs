@@ -1078,11 +1078,31 @@ const segmentedShape = () => evaluate(`(() => {
         const sliderBox = slider.getBoundingClientRect();
         const trackBox = root.getBoundingClientRect();
         const token = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        // 计算值给的是声明半径：9999px 这类值要到用值阶段才被裁到半高，判断圆角是否同心
+        // 必须拿裁过的半径，否则 Pill 档会被读成"半径变了"。
+        const used = (value, size) => Math.min(Number.parseFloat(value), size / 2);
+        const trackStyle = getComputedStyle(root);
+        const optionStyle = getComputedStyle(option);
+        const trackRadiusUsed = used(trackStyle.borderTopLeftRadius, trackBox.height);
+        const sliderRadiusUsed = used(getComputedStyle(slider).borderTopLeftRadius, sliderBox.height);
+        const padding = Number.parseFloat(trackStyle.paddingLeft);
+        const border = Number.parseFloat(trackStyle.borderTopWidth);
+        // 圆角处的留白：沿角平分线量轨道描边内沿到滑块圆角的距离。两个圆角同心时它等于
+        // 四边留白；滑块复用轨道半径时角上会更宽（改前默认档：四边 5px、角上 7.5px）。
+        const cornerGap = (Math.SQRT2 * (border + padding + sliderRadiusUsed) - sliderRadiusUsed)
+            - (Math.SQRT2 * trackRadiusUsed - (trackRadiusUsed - border));
         return {
             classes: root.className,
-            radius: Number.parseFloat(getComputedStyle(root).borderTopLeftRadius),
-            optionRadius: Number.parseFloat(getComputedStyle(option).borderTopLeftRadius),
+            radius: Number.parseFloat(trackStyle.borderTopLeftRadius),
+            optionRadius: Number.parseFloat(optionStyle.borderTopLeftRadius),
             sliderRadius: Number.parseFloat(getComputedStyle(slider).borderTopLeftRadius),
+            trackRadiusUsed,
+            sliderRadiusUsed,
+            optionRadiusUsed: used(optionStyle.borderTopLeftRadius, optionBox.height),
+            sliderHeight: sliderBox.height,
+            padding,
+            border,
+            cornerGap: Number(cornerGap.toFixed(2)),
             // 滑块几何：相对同一列（当前选中项在 index 0）的偏移、自身宽度与轨道宽度。
             offset: sliderBox.left - optionBox.left,
             sliderWidth: sliderBox.width,
@@ -1110,14 +1130,15 @@ const rounded = roundedShape.controlled ?? {};
 const reference = roundedShape.reference ?? {};
 const fullRadius = Number.parseFloat(rounded.fullRadius ?? 'NaN');
 
-check('Segmented 默认档是控件圆角，且轨道 / 滑块 / 选项共用同一半径',
+check('Segmented 默认档是控件圆角，滑块与选项共用轨道内沿半径',
     rounded.classes?.includes('aeterni-segmented')
     && !rounded.classes.includes('aeterni-segmented--pill')
     && rounded.controlRadius === '6px'
     && rounded.radius === 6
     && rounded.radius < fullRadius
-    && rounded.radius === rounded.sliderRadius
-    && rounded.radius === rounded.optionRadius,
+    && rounded.sliderRadiusUsed === Math.max(0, rounded.radius - rounded.border - rounded.padding)
+    && rounded.sliderRadiusUsed === rounded.optionRadiusUsed
+    && rounded.sliderRadiusUsed === 0,
     JSON.stringify(roundedShape));
 
 check('Segmented 默认档下选中滑块仍与选中列对齐',
@@ -1129,14 +1150,18 @@ check('Segmented 默认档下选中滑块仍与选中列对齐',
 // 轨道 padding 同时决定轨道内边距、滑块内缩与滑块行程：调大它能让滑块离描边更远，但选项
 // 也会跟着变矮。默认档的可用高度只有 36 - 2(border) - 2*padding，一旦跌破 24px 热区，选项
 // 的 min-height 会把整条轨道顶到 38px，与同一档的 Input / Button 错开 2px（6px padding 时
-// 实测就是 38px）。所以这里同时钉住高度档位、热区下限与滑块四边留白相等。
-check('Segmented 默认档保持控件高度档位，且滑块四边留白相等',
+// 实测就是 38px）。所以这里同时钉住高度档位、热区下限与滑块四边留白相等，外加一条圆角处
+// 的留白：滑块半径必须比轨道半径小一个「描边 + 内缩」，否则角上留白比四边宽（改前默认档
+// 四边 5px、角上 7.5px），而四边相等本身量不出这个偏差。
+check('Segmented 默认档保持控件高度档位，且滑块四边与圆角处留白一致',
     rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
     && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
     && Math.abs(rounded.pillInlineGap - rounded.pillBlockGap) <= 0.5
-    && rounded.pillInlineGap > 1,
+    && rounded.pillInlineGap > 1
+    && Math.abs(rounded.cornerGap - rounded.padding) <= 0.5,
     `track=${rounded.trackHeight}/${rounded.controlHeight} option=${rounded.optionHeight}/${rounded.touchTargetMin} `
-    + `inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap}`);
+    + `inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap} `
+    + `corner=${rounded.cornerGap} padding=${rounded.padding}`);
 
 // 通过页面上的 Shape 控件切到 Pill（真实 ComboBox 交互，不是给类名赋值）。触发器按
 // 「最近的 .aeterni-combobox 的 id」定位：ShowcaseSelect 把 id 交给 ComboBox，id 落在
@@ -1161,13 +1186,15 @@ while (Date.now() < shapeDeadline && !(pillShape.controlled?.classes ?? '').incl
 }
 const pill = pillShape.controlled ?? {};
 
-check('Segmented 切到 Pill 后容器计算圆角变成整圆胶囊',
+check('Segmented 切到 Pill 后轨道与滑块按用值半径收成半高胶囊',
     pill.classes?.includes('aeterni-segmented--pill')
     && pill.fullRadius === '9999px'
     && pill.radius === fullRadius
     && pill.radius === 9999
-    && pill.radius === pill.sliderRadius
-    && pill.radius === pill.optionRadius,
+    && pill.trackRadiusUsed === pill.trackHeight / 2
+    && pill.sliderRadiusUsed === pill.sliderHeight / 2
+    && pill.sliderRadiusUsed === pill.optionRadiusUsed
+    && Math.abs(pill.cornerGap - pill.padding) <= 0.5,
     JSON.stringify(pill));
 
 check('Segmented 形状切换不改变滑块几何与选中项',
