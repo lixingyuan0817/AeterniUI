@@ -18,6 +18,8 @@
     "Upload.DropText": "10.32.0",
     "Upload.RemoveLabel": "10.32.0",
     "Upload.AriaLabel": "10.32.0",
-    "Upload.AriaDescribedBy": "10.32.0"
+    "Upload.AriaDescribedBy": "10.32.0",
+    "Popup.Anchor": "10.33.0",
+    "Segmented.Shape": "10.33.0"
   }
 }

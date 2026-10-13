@@ -23,6 +23,19 @@
     display: none;
 }
 
+/* Anchor mode: the consumer named the element the layer belongs to, so the host's box
+   stops deciding where the layer lands. The module writes `left`/`top` for this
+   state; the placement classes keep their flip and align semantics, so only their
+   offsets relative to the host box are dropped — the edges are reset here rather than
+   fought with inside the module. */
+.aeterni-popover.is-anchored {
+    position: fixed;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+}
+
 .aeterni-popover.is-closing .aeterni-popover__surface {
     animation: aeterni-popover-exit var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
 }

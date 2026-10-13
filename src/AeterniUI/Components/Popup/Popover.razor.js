@@ -1,10 +1,14 @@
 /*
    Popover module.
 
-   Position: the layer is absolutely positioned inside its PopupHost by the
-   placement classes, so this module only has to flip the side when the viewport
+   Position: by default the layer is absolutely positioned inside its PopupHost by
+   the placement classes, so this module only has to flip the side when the viewport
    has no room and shift the layer on the cross axis. The shared floating-layer
-   helpers own that maths (see wwwroot/js/aeterni_floating.js).
+   helpers own that maths (see wwwroot/js/aeterni_floating.js). When the consumer
+   names an anchor element the layer is placed against instead (`setAnchor`), the
+   layer is lifted out of that flow — `position: fixed` and viewport coordinates —
+   so the host may live anywhere, including outside the container that holds the
+   trigger.
 
    Modal chrome: Escape, outside pointer, background scroll lock and a focus trap.
    A non-modal layer keeps focus where the consumer put it, which is what a
@@ -28,6 +32,7 @@ export function init(reference, key) {
     instances.set(key, {
         reference,
         layer: null,
+        anchor: null,
         modal: false,
         preferred: 'bottom-start',
         closeOnEscape: true,
@@ -45,6 +50,30 @@ export function init(reference, key) {
         cancelExit: null,
         closingRevision: null
     });
+}
+
+/**
+ * Points the instance at the element the layer is positioned against. Called after
+ * every render, so the reference cannot stay stale across a caller re-render; a
+ * missing or detached element falls back to the host the layer is rendered in.
+ */
+export function setAnchor(key, element) {
+    const instance = instances.get(key);
+    if (!instance) {
+        return;
+    }
+
+    // `Node` rather than `Element`: it matches the other type checks in this file and
+    // lets the Node-side DOM stand-in provide only `Node`.
+    const next = element instanceof Node ? element : null;
+    if (next === instance.anchor) {
+        return;
+    }
+
+    instance.anchor = next;
+    if (instance.active) {
+        place(instance);
+    }
 }
 
 /**
@@ -185,11 +214,11 @@ function deactivate(instance) {
 
 // A non-modal layer closes when the pointer goes down outside it.
 //
-// The anchor is the layer's own parent (the PopupHost), and a press inside it does
-// not close: that is what keeps a toggle button placed in the host from both
-// closing and reopening the layer on the same press. Put the trigger inside the
-// PopupHost — the host *is* the anchor box, so this is also the only layout where
-// the layer has something to align against.
+// The anchor box counts as inside: with no anchor named it is the layer's own parent
+// (the PopupHost) — that is what keeps a toggle button placed in the host from both
+// closing and reopening the layer on the same press — and with an anchor it is the
+// element the caller anchored to, which is where such a trigger lives when the layer
+// renders elsewhere.
 function installOutsidePointer(instance) {
     if (instance.modal) {
         return;
@@ -205,7 +234,7 @@ function installOutsidePointer(instance) {
             return;
         }
 
-        const anchor = instance.layer.parentElement ?? instance.layer;
+        const anchor = anchorOf(instance) ?? instance.layer.parentElement ?? instance.layer;
         if (!instance.layer.contains(target) && !anchor.contains(target)) {
             requestClose(instance);
         }
@@ -256,6 +285,18 @@ function place(instance) {
 
     applyPlacement(instance, side, align);
 
+    // add/remove rather than toggle: it matches applyPlacement and needs only the two
+    // basic classList operations from the Node-side DOM stand-in.
+    const anchor = anchorOf(instance);
+    if (anchor) {
+        layer.classList.add('is-anchored');
+        placeAgainstAnchor(instance, layer, anchor, side, align);
+        return;
+    }
+
+    layer.classList.remove('is-anchored');
+    clearAnchorPosition(layer);
+
     if (!fitsSide(layer.getBoundingClientRect(), side)) {
         side = oppositeSide(side);
         applyPlacement(instance, side, align);
@@ -267,6 +308,89 @@ function place(instance) {
     if (shift !== 0) {
         layer.style.setProperty('--aeterni-popover-shift-x', `${shift}px`);
     }
+}
+
+// Anchored placement: the layer is `position: fixed`, so it is measured in viewport
+// space and no ancestor box decides where it lands — which is also what keeps it
+// pinned beside a trigger inside a `position: fixed` header while the page scrolls.
+// The side is picked from the room *beside the anchor* (the layer plus the gap), so
+// the fit test runs on that projection rather than on the layer's current box.
+function placeAgainstAnchor(instance, layer, anchor, side, align) {
+    const anchorRect = anchor.getBoundingClientRect();
+    const size = layer.getBoundingClientRect();
+    const gap = gapOf(layer);
+
+    const projected = side === 'bottom'
+        ? { top: anchorRect.bottom + gap, bottom: anchorRect.bottom + gap + size.height }
+        : { top: anchorRect.top - gap - size.height, bottom: anchorRect.top - gap };
+
+    if (!fitsSide(projected, side)) {
+        side = oppositeSide(side);
+        applyPlacement(instance, side, align);
+    }
+
+    // The layer's own margins must stay out of the calibration read below: they
+    // displace the box, and the write after it puts them back, so a margin measured
+    // in would come out subtracted from the final offset.
+    layer.style.marginLeft = '0px';
+    layer.style.marginTop = '0px';
+    layer.style.left = '0px';
+    layer.style.top = '0px';
+
+    // A transformed or filtered ancestor becomes the containing block of a fixed
+    // box, so the origin is measured (offset 0/0) instead of assumed to be the
+    // viewport corner. No paint happens in between: both steps run in one task.
+    const origin = layer.getBoundingClientRect();
+
+    const left = align === 'end' ? anchorRect.right - size.width : anchorRect.left;
+    const top = side === 'bottom' ? anchorRect.bottom + gap : anchorRect.top - gap - size.height;
+
+    layer.style.left = `${Math.round(left - origin.left)}px`;
+    layer.style.top = `${Math.round(top - origin.top)}px`;
+
+    // Clearing the inline margins hands the offset back to CSS: the consumer's own
+    // margin still nudges the layer, and --aeterni-popover-shift-x takes over the
+    // cross-axis clamp exactly as it does for a host-anchored layer.
+    layer.style.marginLeft = '';
+    layer.style.marginTop = '';
+    layer.style.setProperty('--aeterni-popover-shift-x', '0px');
+
+    const shift = clampAlignedShift(layer.getBoundingClientRect(), 'x');
+    if (shift !== 0) {
+        layer.style.setProperty('--aeterni-popover-shift-x', `${shift}px`);
+    }
+}
+
+/** The anchor element, when the consumer named one that is still in the document. */
+function anchorOf(instance) {
+    return instance.anchor instanceof Node && instance.anchor.isConnected ? instance.anchor : null;
+}
+
+/** Drops the coordinates of a previous anchored placement. */
+function clearAnchorPosition(layer) {
+    layer.style.left = '';
+    layer.style.top = '';
+}
+
+/** The gap the placement classes keep between anchor and layer, in pixels. */
+function gapOf(layer) {
+    const raw = getComputedStyle(layer).getPropertyValue('--aeterni-popover-gap').trim();
+    const value = parseFloat(raw);
+    if (!Number.isFinite(value)) {
+        return 0;
+    }
+
+    // Custom properties come back as the substituted token stream, so a rem/em
+    // spacing token has to be resolved against the actual font size.
+    if (raw.endsWith('rem')) {
+        return value * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    }
+
+    if (raw.endsWith('em')) {
+        return value * parseFloat(getComputedStyle(layer).fontSize);
+    }
+
+    return value;
 }
 
 function applyPlacement(instance, side, align) {

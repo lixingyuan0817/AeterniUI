@@ -7,10 +7,11 @@ namespace AeterniUI.Components.Popup;
 
 /// <summary>
 /// An anchored floating layer placed inside a <see cref="PopupHost"/>. The layer is
-/// positioned against the host, flips to the opposite side when it does not fit in
-/// the viewport and is shifted along the cross axis to stay inside it. When
-/// <see cref="Modal" /> is set it also blocks the page: backdrop, focus trap,
-/// background scroll lock, Escape and overlay-click close.
+/// positioned against the host — or against <see cref="Anchor" /> when the layer has
+/// to render somewhere else than its trigger — flips to the opposite side when it
+/// does not fit in the viewport and is shifted along the cross axis to stay inside
+/// it. When <see cref="Modal" /> is set it also blocks the page: backdrop, focus
+/// trap, background scroll lock, Escape and overlay-click close.
 /// </summary>
 [JsModule("Components/Popup/Popover.razor.js", Name = "popover", Interactive = true)]
 public partial class Popover : AeterniComponent
@@ -82,6 +83,24 @@ public partial class Popover : AeterniComponent
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// Element the layer is positioned against, and which counts as part of the layer
+    /// when deciding whether a pointer press is "outside". Leave it unset to keep
+    /// anchoring to the <see cref="PopupHost" /> that renders the layer, which is what
+    /// a trigger placed inside that host expects.
+    /// </summary>
+    /// <remarks>
+    /// Set it when the layer has to render somewhere else than the trigger: the layer
+    /// is then placed in viewport space against this element, so it can leave the
+    /// container that would clip it — or that becomes the backdrop root its own
+    /// backdrop-filter would sample, which is what makes a layer inside a glass
+    /// surface look unblurred. Anchor an element the caller owns (the trigger's own
+    /// wrapper) rather than a component's internal DOM. Placement classes keep
+    /// flipping and clamping the layer; only the anchor box changes.
+    /// </remarks>
+    [Parameter]
+    public ElementReference? Anchor { get; set; }
+
     [Parameter]
     public string? AriaLabel { get; set; }
 
@@ -141,6 +160,15 @@ public partial class Popover : AeterniComponent
     {
         try
         {
+            // The anchor reference is re-sent after every render: the caller may
+            // re-render its trigger into a different element, and a stale reference
+            // would silently place the layer against a detached node.
+            await JsModuleManager.InvokeModuleVoidAsync(
+                ModuleName,
+                "setAnchor",
+                InstanceId,
+                Anchor);
+
             await JsModuleManager.InvokeModuleVoidAsync(
                 ModuleName,
                 "setOpen",

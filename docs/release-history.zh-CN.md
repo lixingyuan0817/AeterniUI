@@ -1,10 +1,20 @@
 # AeterniUI 发布历史
 
-文档版本：`10.32.0`
+文档版本：`10.33.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.33.0 Popover 锚点解耦与 Segmented 形状档位
+
+两个公共 API 新增合成一次递增（`10.32.0` → `10.33.0`）：`Popover.Anchor` 与 `Segmented.Shape`，两者都在 `scripts/api-since.json` 里登记为 10.33.0，`Directory.Build.props` 四处齐动，`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
+
+- [x] **`Popover.Anchor`（`ElementReference?`）**：把"锚点元素"与"渲染位置"解耦——设了锚点就按它定位、翻转与贴边，浮层可以渲染到别处；"点击外部"判定也把锚点算作层内（否则点触发器会被判成外部先关一次、click 又打开，双触发）。不设锚点时行为与之前逐字节相同（契约检查里有一条断言比较设与不设锚点的渲染标记）。实现走新的模块方法 `setAnchor(instanceId, element)` 而不是加长 `setOpen(...)` 的参数表：锚点变化时可以只重排、不动开合状态机，模块内按元素去重所以重渲染不会反复重排；元素脱离文档时回退宿主；锚定模式用 `position: fixed` 并在落位前实测固定定位包含块的原点，因此祖先带 `transform`/`filter`/`backdrop-filter` 时也不会偏。监听器与 Observer 照旧在实例级 `dispose(instanceId)` 释放。
+- [x] **`Segmented.Shape`（`SegmentedShape { Pill, Rounded }`）**：默认 `Rounded`，按"默认档不输出修饰类"的约定不带类名；`Pill` 输出 `aeterni-segmented--pill`。两种形态只重指三处共用的 `--aeterni-segmented-radius`（圆角档跟尺寸走：`--sm` 4px / 默认 6px / `--lg` 8px；胶囊档为 `--aeterni-radius-full`），**不动** `--aeterni-segmented-count/index`，所以选中指示块的宽度与位移不受形状影响。`OnParametersSet` 里做 `Enum.IsDefined` 校验，并在契约检查的非法枚举表里登记。
+- [x] 连带效果（用户知情后选择"默认圆角"）：库内 `ThemeSwitch` 是 `Segmented` 的专用用法，默认外观随之从胶囊变为圆角，`delivered-features` 里相应表述已改为与渲染一致（"选中指示块"），并注明形状只改圆角。
+- [x] **页头两个下拉的背景模糊**：根因是它们渲染在页头玻璃 `Surface` 内部，而该 Surface 自带 `backdrop-filter`、成为最近的 backdrop root，浮层自身的 `backdrop-filter` 只能采样那张透明卡片 → 面板看起来完全没有模糊。量化指纹是"去掉面板自身模糊前后像素完全一致"（`blurDelta: 0`），而旧套件只用平均色、**模糊保留平均色**，所以这个缺陷对既有断言不可见。修法即上面新增的 `Anchor`：两个浮层改由 `PopupHost` 渲染在页头之外、按触发器元素固定定位，示例顺带去掉为让开裁剪而加的 `Surface Style="overflow: visible"`。
+- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **35 组**（新增 `Segmented` 形状组，锚点契约并入既有浮层组）；`node scripts/generate-api-reference.mjs --check`（54 页 / 667 行）、`node scripts/generate-search-index.mjs --check`（442 条 / 57 页）、`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`（78 文案键）、`node scripts/check-css-comments.mjs`（73 文件）、`node scripts/check-contrast.mjs`（315 门）、`node --test tests/*.test.mjs`（**91 项**，含新增 `tests/popover-anchor.test.mjs` 6 项）通过；`tests/browser/verify.mjs` 在 Windows 侧 Chrome 上实跑 **114/114**（新增 16 项：锚点/模糊/对齐/滚动跟随/零破坏、形状两档与几何不变、页内目录三条），由 CI 复核。形状档位与锚点能力都做了**负向验证**：临时删掉 `--pill` 类与 CSS 规则 → 契约检查精确报 `The non-default pill shape must name itself in the class list.`；临时恢复旧的宿主嵌套 → 浏览器断言报 `anchored:false, position:"absolute"` 与 `blurDelta:0`。
 
 ## 示例工程页内目录的两个报障修复（版本号未递增）
 

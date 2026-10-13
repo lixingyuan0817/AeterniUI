@@ -6,7 +6,12 @@
     /* One padding value feeds the track, the pill and the pill's travel, so the pill
        always lands exactly on an option. */
     --aeterni-segmented-padding: var(--aeterni-spacing-1);
-    --aeterni-segmented-radius: var(--aeterni-radius-full);
+    /* Shape tier. Both named forms are declared here and the shared
+       --aeterni-segmented-radius picks one, so switching the shape repoints a single
+       variable for the track, the pill and the options at once. */
+    --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-md);
+    --aeterni-segmented-radius-pill: var(--aeterni-radius-full);
+    --aeterni-segmented-radius: var(--aeterni-segmented-radius-rounded);
     --aeterni-segmented-height: var(--aeterni-control-height-md);
 
     position: relative;
@@ -162,6 +167,7 @@
 }
 
 .aeterni-segmented--sm {
+    --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-sm);
     --aeterni-segmented-height: var(--aeterni-control-height-sm);
     --aeterni-segmented-padding: var(--aeterni-border-width);
 }
@@ -172,12 +178,19 @@
 }
 
 .aeterni-segmented--lg {
+    --aeterni-segmented-radius-rounded: var(--aeterni-radius-control-lg);
     --aeterni-segmented-height: var(--aeterni-control-height-lg);
 }
 
 .aeterni-segmented--lg .aeterni-segmented__option {
     padding: 0 var(--aeterni-control-padding-x-lg);
     font-size: var(--aeterni-font-size-base);
+}
+
+/* The non-default shape. Only --aeterni-segmented-radius is repointed, so the pill's
+   width, travel and alignment stay exactly what the count/index properties describe. */
+.aeterni-segmented--pill {
+    --aeterni-segmented-radius: var(--aeterni-segmented-radius-pill);
 }
 
 @media (prefers-reduced-motion: reduce) {

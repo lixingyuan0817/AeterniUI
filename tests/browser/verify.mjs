@@ -1056,6 +1056,116 @@ check('Upload appends a second drop instead of replacing the list',
     twoRows >= 2 && names.includes('dragged.txt') && names.includes('second.txt'),
     `rows=${twoRows} names=${names}`);
 
+// ---------------------------------------------------------------- Segmented 形状档位
+// `Shape` 是 Segmented 的第二个枚举档位：默认 Rounded 换成控件圆角、不输出修饰类，Pill
+// 换成整圆；两档都不得改变滑块的宽度与行程。
+//
+// 断言全部限定到具体实例：这一页有多组分段控件（主题页的两组也在这个应用里），
+// `querySelector('.aeterni-segmented')` 会量到别的那一组——本项目已经因为 first-match
+// 量错实例失败过多次。受控件控制的那组靠 aria-label 定位，另一组是同页的默认档对照。
+await goto(`${BASE}/components/segmented`);
+await waitForApp();
+
+const segmentedShape = () => evaluate(`(() => {
+    const byLabel = label => [...document.querySelectorAll('.aeterni-segmented')]
+        .find(node => node.getAttribute('aria-label') === label) ?? null;
+    const read = label => {
+        const root = byLabel(label);
+        if (!root) return null;
+        const option = root.querySelector('.aeterni-segmented__option');
+        const slider = root.querySelector('.aeterni-segmented__slider');
+        const optionBox = option.getBoundingClientRect();
+        const sliderBox = slider.getBoundingClientRect();
+        const token = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return {
+            classes: root.className,
+            radius: Number.parseFloat(getComputedStyle(root).borderTopLeftRadius),
+            optionRadius: Number.parseFloat(getComputedStyle(option).borderTopLeftRadius),
+            sliderRadius: Number.parseFloat(getComputedStyle(slider).borderTopLeftRadius),
+            // 滑块几何：相对同一列（当前选中项在 index 0）的偏移、自身宽度与轨道宽度。
+            offset: sliderBox.left - optionBox.left,
+            sliderWidth: sliderBox.width,
+            optionWidth: optionBox.width,
+            trackWidth: root.getBoundingClientRect().width,
+            selected: root.querySelector('.aeterni-segmented__option.is-selected .aeterni-segmented__label')
+                ?.textContent?.trim() ?? null,
+            controlRadius: token('--aeterni-radius-control-md'),
+            fullRadius: token('--aeterni-radius-full')
+        };
+    };
+    return { controlled: read('形状档位预览'), reference: read('默认形状（圆角）') };
+})()`);
+
+const roundedShape = await segmentedShape();
+const rounded = roundedShape.controlled ?? {};
+const reference = roundedShape.reference ?? {};
+const fullRadius = Number.parseFloat(rounded.fullRadius ?? 'NaN');
+
+check('Segmented 默认档是控件圆角，且轨道 / 滑块 / 选项共用同一半径',
+    rounded.classes?.includes('aeterni-segmented')
+    && !rounded.classes.includes('aeterni-segmented--pill')
+    && rounded.controlRadius === '6px'
+    && rounded.radius === 6
+    && rounded.radius < fullRadius
+    && rounded.radius === rounded.sliderRadius
+    && rounded.radius === rounded.optionRadius,
+    JSON.stringify(roundedShape));
+
+check('Segmented 默认档下选中滑块仍与选中列对齐',
+    rounded.selected !== null
+    && Math.abs(rounded.offset) <= 0.5
+    && Math.abs(rounded.sliderWidth - rounded.optionWidth) <= 0.5,
+    `selected=${rounded.selected} offset=${rounded.offset} slider=${rounded.sliderWidth} option=${rounded.optionWidth}`);
+
+// 通过页面上的 Shape 控件切到 Pill（真实 ComboBox 交互，不是给类名赋值）。触发器按
+// 「最近的 .aeterni-combobox 的 id」定位：ShowcaseSelect 把 id 交给 ComboBox，id 落在
+// 根元素上而不是触发器按钮上，写 `[role="combobox"][id=...]` 会匹配到空集。
+await evaluate(`(() => {
+    const trigger = [...document.querySelectorAll('[role="combobox"]')]
+        .find(node => (node.closest('.aeterni-combobox')?.id ?? '') === 'segmented-shape');
+    trigger?.click();
+})()`);
+await sleep(100);
+await evaluate(`(() => {
+    const option = [...document.querySelectorAll('[role="option"]')]
+        .find(element => element.textContent.trim() === 'Pill');
+    option?.click();
+})()`);
+
+const shapeDeadline = Date.now() + 5000;
+let pillShape = await segmentedShape();
+while (Date.now() < shapeDeadline && !(pillShape.controlled?.classes ?? '').includes('aeterni-segmented--pill')) {
+    await sleep(100);
+    pillShape = await segmentedShape();
+}
+const pill = pillShape.controlled ?? {};
+
+check('Segmented 切到 Pill 后容器计算圆角变成整圆胶囊',
+    pill.classes?.includes('aeterni-segmented--pill')
+    && pill.fullRadius === '9999px'
+    && pill.radius === fullRadius
+    && pill.radius === 9999
+    && pill.radius === pill.sliderRadius
+    && pill.radius === pill.optionRadius,
+    JSON.stringify(pill));
+
+check('Segmented 形状切换不改变滑块几何与选中项',
+    pill.selected === rounded.selected
+    && pill.selected !== null
+    && Math.abs(pill.offset) <= 0.5
+    && Math.abs(pill.sliderWidth - rounded.sliderWidth) <= 0.5
+    && Math.abs(pill.optionWidth - rounded.optionWidth) <= 0.5
+    && Math.abs(pill.trackWidth - rounded.trackWidth) <= 0.5,
+    `rounded={offset:${rounded.offset}, slider:${rounded.sliderWidth}, option:${rounded.optionWidth}, track:${rounded.trackWidth}} `
+    + `pill={offset:${pill.offset}, slider:${pill.sliderWidth}, option:${pill.optionWidth}, track:${pill.trackWidth}}`);
+
+// 形状是实例级参数：同页那组没设置 Shape 的实例必须保持默认圆角与默认类名。
+check('Segmented 形状只作用于设置了 Shape 的那一组',
+    reference.radius === 6
+    && !(reference.classes ?? '').includes('aeterni-segmented--pill')
+    && reference.selected === rounded.selected,
+    JSON.stringify(pillShape.reference));
+
 // ---------------------------------------------------------------- 文档壳
 // 标准组件文档页的骨架：侧栏检索、每页的源码入口、目录顺序里的前后邻居，以及可复制
 // 的示例代码。这些结论都要真实 DOM 才成立——MenuItem 的 href 是运行时拼的，复制按钮
@@ -1151,16 +1261,34 @@ const tocClickTarget = await evaluate(`(() => {
     link.click();
     return { clicked: true };
 })()`);
-await sleep(400);
-const afterTocClick = await evaluate(`(() => {
-    const section = document.getElementById('upload-host-progress');
-    return {
-        path: location.pathname,
-        hash: location.hash,
-        // 段落到视口顶部附近即认为跳转真的发生了（页面有固定页头，留一段余量）。
-        top: section ? Math.round(section.getBoundingClientRect().top) : null
-    };
-})()`);
+
+// 采样点必须等到滚动停稳：平滑滚动还没走完就量位置，会把"跳到该段"误判成失败——本机实测
+// 同一份代码出现过 top=245（阈值 240，FAIL）与 190（PASS）两种读数。所以轮询到位置连续两次
+// 不再变化为止，而不是等一个固定时长。
+async function waitForStableSection(expectedHash, deadlineMs = 5000) {
+    const deadline = Date.now() + deadlineMs;
+    let previousTop = null;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const section = document.getElementById('upload-host-progress');
+            return {
+                path: location.pathname,
+                hash: location.hash,
+                // 段落到视口顶部附近即认为跳转真的发生了（页面有固定页头，留一段余量）。
+                top: section ? Math.round(section.getBoundingClientRect().top) : null
+            };
+        })()`);
+        if (state.hash === expectedHash && state.top !== null) {
+            if (previousTop !== null && Math.abs(previousTop - state.top) <= 4) return state;
+            previousTop = state.top;
+        }
+        await sleep(120);
+    }
+    return state;
+}
+
+const afterTocClick = await waitForStableSection('#upload-host-progress');
 check('点击目录链接留在本页并滚到该段',
     !tocClickTarget.error && afterTocClick.path === '/components/upload' && afterTocClick.hash === '#upload-host-progress'
         && afterTocClick.top !== null && afterTocClick.top < 240,
@@ -1459,6 +1587,298 @@ check('Escape 关闭设置浮层并让 aria-expanded 回到 false',
     settingsClosed.expanded === 'false' && settingsClosed.open === false,
     JSON.stringify(settingsClosed));
 check('关闭后焦点归还设置触发器', settingsClosed.focused, JSON.stringify(settingsClosed));
+
+// ------------------------------------------------- 页头浮层的锚点与渲染位置解耦
+// 两个下拉的浮层渲染在页头玻璃卡片之外（卡片的 `backdrop-filter` 会让卡内浮层只能采样卡片
+// 子树，而面板又在卡片盒之外，于是看起来完全没有模糊），却仍按页头里的触发元素定位——靠的是
+// `Popover.Anchor`。断言顺序是"先根因、后现象"：先证明浮层与页面根之间没有别的 backdrop root
+// （否则采样范围根本不是整页），再看浮层表面确实带着模糊，然后量模糊确实作用在背后的页面内容
+// 上，最后才量对齐、以及不设锚点的既有 Popover 没有跟着变。
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+await typeQuery('时间');
+const anchored = await waitForSearchState(state => state.open && state.optionCount === 3);
+
+// 遍历浮层表面到页面根之间的祖先：任何一个带 `backdrop-filter` 的祖先都会成为最近的
+// backdrop root，浮层就只能采样那一块。浮层表面自己带模糊，所以从它的父元素开始走。
+// 这条在修复前必然失败——页头那张玻璃卡片就在链上。
+const blurChain = await evaluate(`(() => {
+    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
+    const page = document.querySelector('.sample-page');
+    if (!surface || !page) return { error: 'no layer or page root' };
+    const chain = [];
+    for (let node = surface.parentElement; node && node !== page.parentElement; node = node.parentElement) {
+        const style = getComputedStyle(node);
+        // 类名会随排序变化，取最能定位的一段：组件根类或元素名。
+        const label = (node.getAttribute('class') || node.tagName).split(/\\s+/).slice(0, 2).join('.');
+        chain.push({ label, backdrop: style.backdropFilter, transform: style.transform });
+        if (node === page) break;
+    }
+    return {
+        chain,
+        own: getComputedStyle(surface).backdropFilter,
+        roots: chain.filter(entry => entry.backdrop && entry.backdrop !== 'none').map(entry => entry.label)
+    };
+})()`);
+check('搜索浮层与页面根之间没有别的 backdrop root（模糊采样的是整页）',
+    !blurChain.error && anchored.open && blurChain.roots.length === 0,
+    JSON.stringify(blurChain));
+check('搜索浮层表面自身带模糊', !blurChain.error && /blur\(/.test(blurChain.own ?? ''),
+    JSON.stringify({ own: blurChain.own }));
+
+// 模糊确实作用在浮层背后的页面内容上。
+//
+// 量的必须是"锐度"（水平相邻像素的平均差）而不是平均色：模糊保留区域的平均色、只抹掉高频，
+// 用平均色根本测不到模糊（这正是这个缺陷一直没人发现的原因）。采样区取浮层与它背后真实元素的
+// 交集——先把浮层藏起来做命中测试，取那个有文字、又落在面板里的最小盒子，"背后有没有内容"
+// 因此不靠猜；采样时再把面板自己的内容藏起来（那次隐藏前后一致，不影响比较），让这一区域只剩
+// 填充 + 模糊，避免列表文字把背投的高频差异稀释掉。
+async function regionSharpness(rect) {
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    return evaluate(`(async () => {
+        const bytes = Uint8Array.from(atob('${shot.data}'), c => c.charCodeAt(0));
+        const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+        const dpr = window.devicePixelRatio || 1;
+        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+        const width = Math.max(2, Math.round(${rect.w} * dpr));
+        const height = Math.max(2, Math.round(${rect.h} * dpr));
+        const data = ctx.getImageData(Math.round(${rect.x} * dpr), Math.round(${rect.y} * dpr), width, height).data;
+        let sum = 0, count = 0;
+        for (let y = 0; y < height; y++) {
+            for (let x = 1; x < width; x++) {
+                const i = (y * width + x) * 4;
+                const p = i - 4;
+                const a = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                const b = (data[p] + data[p + 1] + data[p + 2]) / 3;
+                sum += Math.abs(a - b);
+                count++;
+            }
+        }
+        return count ? sum / count : 0;
+    })()`);
+}
+
+const backdropRegion = await evaluate(`(() => {
+    const layer = document.querySelector('.showcase-search-box__popover');
+    const surface = layer.querySelector('.aeterni-popover__surface');
+    const panel = surface.getBoundingClientRect();
+    const containers = [document.body, document.documentElement, document.querySelector('.sample-page')];
+    layer.style.visibility = 'hidden';
+    let best = null;
+    for (let y = panel.top + 4; y < panel.bottom - 4; y += 6) {
+        for (let x = panel.left + 4; x < panel.right - 4; x += 12) {
+            for (const node of document.elementsFromPoint(x, y)) {
+                // 页面根/整页容器不算"内容"：它们铺满整页，选中等于没选。
+                if (containers.includes(node) || !(node.textContent ?? '').trim()) continue;
+                const box = node.getBoundingClientRect();
+                const left = Math.max(panel.left + 2, box.left);
+                const right = Math.min(panel.right - 2, box.right);
+                const top = Math.max(panel.top + 2, box.top);
+                const bottom = Math.min(panel.bottom - 2, box.bottom);
+                if (right - left < 40 || bottom - top < 12) continue;
+                const area = (right - left) * (bottom - top);
+                if (!best || area < best.area) {
+                    best = {
+                        area,
+                        x: left, y: top, w: right - left, h: bottom - top,
+                        node: node.tagName + '.' + String(node.getAttribute('class') || '').split(/\\s+/)[0]
+                    };
+                }
+            }
+        }
+    }
+    layer.style.visibility = '';
+    return best ?? { error: 'no page content behind the panel' };
+})()`);
+
+// 面板自己的内容在两次采样里都藏起来：区域里只剩填充与背投，锐度差异就只来自模糊。
+const hidePanelContent = visibility => evaluate(`(() => {
+    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
+    for (const node of surface.children) node.style.visibility = '${visibility}';
+})()`);
+
+await hidePanelContent('hidden');
+const blurredSharpness = backdropRegion.error ? NaN : await regionSharpness(backdropRegion);
+await evaluate(`(() => {
+    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
+    surface.style.backdropFilter = 'none';
+    surface.style.webkitBackdropFilter = 'none';
+})()`);
+await settleFrame();
+const sharpSharpness = backdropRegion.error ? NaN : await regionSharpness(backdropRegion);
+await evaluate(`(() => {
+    const surface = document.querySelector('.showcase-search-box__popover .aeterni-popover__surface');
+    surface.style.backdropFilter = '';
+    surface.style.webkitBackdropFilter = '';
+})()`);
+await hidePanelContent('');
+check('浮层的模糊作用在背后的页面内容上（同一区域去掉模糊后锐度上升）',
+    !backdropRegion.error && Number.isFinite(blurredSharpness) && Number.isFinite(sharpSharpness)
+    // 实测（2026-10，页头搜索框）：带模糊 0.09、去掉模糊 2.45。模糊会把背投的高频抹平，
+    // 所以既要求"去掉模糊明显更锐"，也要求"带模糊时确实很平"——两条一起，背投若是空的
+    // （修复前就是空的：面板在卡片盒之外，而它的 backdrop root 是那张卡片）两条都不成立。
+    && sharpSharpness - blurredSharpness > 1
+    && blurredSharpness < sharpSharpness / 2,
+    JSON.stringify({
+        region: backdropRegion,
+        blurredSharpness: Number.isFinite(blurredSharpness) ? Number(blurredSharpness.toFixed(2)) : blurredSharpness,
+        sharpSharpness: Number.isFinite(sharpSharpness) ? Number(sharpSharpness.toFixed(2)) : sharpSharpness
+    }));
+
+// 对齐：锚点是触发元素的包裹元素，所以浮层的下沿起点在输入框之下、右边缘与输入框齐平。
+const searchGeometry = await evaluate(`(() => {
+    const box = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }; };
+    const input = document.querySelector('#showcase-header-search');
+    const anchor = document.querySelector('.sample-header__search');
+    const layer = document.querySelector('.showcase-search-box__popover');
+    const surface = layer.querySelector('.aeterni-popover__surface');
+    const card = document.querySelector('.sample-header .aeterni-surface');
+    const host = layer.parentElement;
+    return {
+        input: box(input), anchor: box(anchor), layer: box(layer), card: box(card),
+        rightDelta: Math.round((layer.getBoundingClientRect().right - input.getBoundingClientRect().right) * 100) / 100,
+        topGap: Math.round((surface.getBoundingClientRect().top - input.getBoundingClientRect().bottom) * 100) / 100,
+        cardGap: Math.round((surface.getBoundingClientRect().top - card.getBoundingClientRect().bottom) * 100) / 100,
+        position: getComputedStyle(layer).position,
+        anchored: layer.classList.contains('is-anchored'),
+        // 浮层不再挂在页头卡片里：宿主在页面层，而卡片是页头里的元素。
+        hostInsideCard: card.contains(host)
+    };
+})()`);
+check('搜索浮层右边缘与输入框右边缘齐平（锚点即触发元素的包裹元素）',
+    anchored.open && Math.abs(searchGeometry.rightDelta) <= 2,
+    JSON.stringify(searchGeometry));
+check('搜索浮层贴在输入框下方，且从页头卡片之外开始',
+    searchGeometry.topGap > 0 && searchGeometry.topGap <= 24 && searchGeometry.cardGap >= -2,
+    JSON.stringify({ topGap: searchGeometry.topGap, cardGap: searchGeometry.cardGap }));
+check('搜索浮层渲染在页头玻璃卡片之外、按锚点固定定位',
+    searchGeometry.anchored && searchGeometry.position === 'fixed' && !searchGeometry.hostInsideCard,
+    JSON.stringify({ anchored: searchGeometry.anchored, position: searchGeometry.position, hostInsideCard: searchGeometry.hostInsideCard }));
+
+// 页面滚动时浮层不跟着滚走：锚点在固定定位的页头里，浮层也是固定定位。
+await evaluate('window.scrollTo(0, 400)');
+await sleep(200);
+const scrolled = await evaluate(`(() => {
+    const input = document.querySelector('#showcase-header-search');
+    const layer = document.querySelector('.showcase-search-box__popover');
+    const surface = layer.querySelector('.aeterni-popover__surface');
+    return {
+        scrollY: Math.round(window.scrollY),
+        rightDelta: Math.round((layer.getBoundingClientRect().right - input.getBoundingClientRect().right) * 100) / 100,
+        topGap: Math.round((surface.getBoundingClientRect().top - input.getBoundingClientRect().bottom) * 100) / 100
+    };
+})()`);
+check('页面滚动后浮层仍贴在锚点上（不随页面滚走）',
+    anchored.open && scrolled.scrollY > 0 && Math.abs(scrolled.topGap - searchGeometry.topGap) <= 1,
+    JSON.stringify(scrolled));
+await evaluate('window.scrollTo(0, 0)');
+await sleep(100);
+await key('Escape', 'Escape', 27);
+await waitForSearchState(state => state.open === false);
+
+// 设置浮层：同一套锚定，锚点是齿轮按钮。
+await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.focus()`);
+await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.click()`);
+const settingsAnchored = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    let previous = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const trigger = document.querySelector('${SETTINGS_TRIGGER}');
+            const layer = document.querySelector('.showcase-settings__popover');
+            const surface = layer?.querySelector('.aeterni-popover__surface');
+            const card = document.querySelector('.sample-header .aeterni-surface');
+            const box = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+            if (!trigger || !layer || !surface) return { error: 'missing nodes' };
+            return {
+                open: !layer.hasAttribute('hidden'),
+                position: getComputedStyle(layer).position,
+                anchored: layer.classList.contains('is-anchored'),
+                rightDelta: Math.round((box(layer).right - box(trigger).right) * 100) / 100,
+                topGap: Math.round((box(surface).top - box(trigger).bottom) * 100) / 100,
+                cardGap: Math.round((box(surface).top - box(card).bottom) * 100) / 100,
+                hostInsideCard: card.contains(layer.parentElement)
+            };
+        })()`);
+        // 入场动画会把面板从 -4px 处推进来：连续两次量到同一组数值才算真的落位，否则会量到
+        // 动画中途的位置（-1.26 这种值正好落在"看起来还行"的区间里，把断言变成碰运气）。
+        if (!state.error && state.open && state.anchored
+            && previous && previous.topGap === state.topGap && previous.cardGap === state.cardGap) {
+            return state;
+        }
+        previous = state;
+        await sleep(60);
+    }
+    return state;
+})();
+check('设置浮层同样锚定在齿轮上：右边缘齐平、贴在按钮下方、卡片之外',
+    !settingsAnchored.error && Math.abs(settingsAnchored.rightDelta) <= 2
+    && settingsAnchored.topGap > 0 && settingsAnchored.topGap <= 24
+    && settingsAnchored.cardGap >= -0.5
+    && settingsAnchored.position === 'fixed'
+    && !settingsAnchored.hostInsideCard,
+    JSON.stringify(settingsAnchored));
+await key('Escape', 'Escape', 27);
+await evaluate(`document.querySelector('${SETTINGS_TRIGGER}')?.blur()`);
+
+// 回归：不设 Anchor 的既有 Popover 仍定位在它自己的 PopupHost 里（绝对定位、贴着宿主盒），
+// 示例其它页面继续用这一形态。
+await goto(`${BASE}/components/popup`);
+await waitForApp();
+const plainBefore = await evaluate(`(() => {
+    const layer = document.querySelector('#popup-basic .aeterni-popover') ?? document.querySelector('.aeterni-popover');
+    if (!layer) return { error: 'no popover' };
+    return {
+        position: getComputedStyle(layer).position,
+        anchored: layer.classList.contains('is-anchored'),
+        hostIsParent: layer.parentElement.classList.contains('aeterni-popup-host'),
+        open: !layer.hasAttribute('hidden')
+    };
+})()`);
+check('不设 Anchor 的 Popover 保持宿主内绝对定位（无锚点状态）',
+    !plainBefore.error && plainBefore.position === 'absolute' && !plainBefore.anchored
+    && plainBefore.hostIsParent && plainBefore.open === false,
+    JSON.stringify(plainBefore));
+
+await evaluate(`document.querySelector('#popup-basic button[aria-label="打开 Popover 浮层"]')?.click()`);
+const plainOpen = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const layer = document.querySelector('#popup-basic .aeterni-popover');
+            const host = layer?.parentElement;
+            if (!layer || !host) return { error: 'no popover' };
+            const gap = parseFloat(getComputedStyle(layer).getPropertyValue('--aeterni-popover-gap')) || 0;
+            const box = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+            return {
+                open: !layer.hasAttribute('hidden'),
+                position: getComputedStyle(layer).position,
+                anchored: layer.classList.contains('is-anchored'),
+                // 方位可能是 BottomStart，也可能因为视口没地方而翻到 TopStart：两种都合法，
+                // 但必须是"贴宿主盒"的那一种。
+                bottomAligned: Math.round((box(layer).top - (box(host).bottom + gap)) * 100) / 100,
+                topAligned: Math.round((box(host).top - gap - box(layer).bottom) * 100) / 100,
+                leftDelta: Math.round((box(layer).left - box(host).left) * 100) / 100,
+                inlineLeft: layer.style.left,
+                inlineTop: layer.style.top
+            };
+        })()`);
+        if (!state.error && state.open) return state;
+        await sleep(50);
+    }
+    return state;
+})();
+check('不设 Anchor 的 Popover 打开后仍贴着自己的宿主盒（横向对齐、纵向留 8px 间距）',
+    !plainOpen.error && plainOpen.position === 'absolute' && !plainOpen.anchored
+    && plainOpen.inlineLeft === '' && plainOpen.inlineTop === ''
+    && Math.abs(plainOpen.leftDelta) <= 1
+    && Math.min(Math.abs(plainOpen.bottomAligned), Math.abs(plainOpen.topAligned)) <= 1,
+    JSON.stringify(plainOpen));
+await key('Escape', 'Escape', 27);
 
 // 卡片化页面：一页多段 demo，每段自带锚点、说明与代码。先重新导航一次——折叠态说的是初始
 // 状态，而上面的壳检查已经点开过一个"代码"tab。

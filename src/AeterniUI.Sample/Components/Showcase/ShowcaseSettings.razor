@@ -1,53 +1,37 @@
 @namespace AeterniUI.Sample.Components.Showcase
 @using AeterniUI.Enums
+@implements IDisposable
 
-@* 头部设置入口：品牌色与主题模式收进浮层，页头不再并排挂两个分段控件。
-   触发器是库内 Button（带 aria-haspopup / aria-expanded），浮层是库内 Popover（受控：
-   Open 由这里持有，Escape、点击外部与滚动经 OpenChanged 上报），关闭后焦点归还触发器。
-   可见标签与控件的 aria-label 说同一件事：分段控件本身不渲染文字标签，页头里没有它俩的
-   上下文，读者得看得出来哪个是品牌色、哪个是主题。 *@
-<div class="sample-header__settings">
-    <PopupHost>
-        <ChildContent>
-            <Button Id="showcase-settings-button"
-                    Variant="ButtonVariant.Ghost"
-                    Size="Size.Small"
-                    AriaLabel="外观设置"
-                    aria-haspopup="true"
-                    aria-expanded="@(_open ? "true" : "false")"
-                    OnClick="Toggle"
-                    StartIcon="@GearIcon" />
-            <Popover Open="@_open"
-                     OpenChanged="HandleOpenChangedAsync"
-                     Placement="PopupPlacement.BottomEnd"
-                     AriaLabel="外观设置"
-                     RestoreFocusOnClose="true"
-                     Class="showcase-settings__popover">
-                <div id="showcase-settings-panel" class="showcase-settings">
-                    <div class="showcase-settings__group">
-                        <p class="showcase-settings__label">品牌色</p>
-                        <ThemeBrandSwitch Size="Size.Small" AriaLabel="品牌色" />
-                    </div>
-                    <div class="showcase-settings__group">
-                        <p class="showcase-settings__label">主题模式</p>
-                        <ThemeSwitch Size="Size.Small" AriaLabel="主题模式" />
-                    </div>
-                </div>
-            </Popover>
-        </ChildContent>
-    </PopupHost>
+@* 头部设置入口的触发器：品牌色与主题模式收进浮层，页头不再并排挂两个分段控件。
+   触发器是库内 Button（带 aria-haspopup / aria-expanded），浮层由 `ShowcaseSettingsLayer`
+   渲染在页头玻璃卡片之外——玻璃卡片的 `backdrop-filter` 会成为最近的 backdrop root，
+   浮层自己的模糊就只采样卡片内部那张透明的背景。两半共享 `ShowcaseSettingsModel`。
+
+   这一层包裹元素是浮层的锚点：浮层渲染在别处却按这里定位，"点击外部"也把这里算作层内。 *@
+<div class="sample-header__settings" @ref="_anchor">
+    <Button Id="showcase-settings-button"
+            Variant="ButtonVariant.Ghost"
+            Size="Size.Small"
+            AriaLabel="外观设置"
+            aria-haspopup="true"
+            aria-expanded="@(Model.Open ? "true" : "false")"
+            OnClick="Model.Toggle"
+            StartIcon="@GearIcon" />
 </div>
 
 @code {
+    [Inject]
+    private ShowcaseSettingsModel Model { get; set; } = default!;
+
     private static readonly RenderFragment GearIcon = @<Icon Definition="@FontAwesomeIcons.Solid.Gear" />;
 
-    private bool _open;
+    private ElementReference _anchor;
 
-    private void Toggle() => _open = !_open;
+    protected override void OnInitialized() => Model.Changed += HandleModelChanged;
 
-    private Task HandleOpenChangedAsync(bool open)
-    {
-        _open = open;
-        return Task.CompletedTask;
-    }
+    protected override void OnAfterRender(bool firstRender) => Model.SetAnchor(_anchor);
+
+    private void HandleModelChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Model.Changed -= HandleModelChanged;
 }

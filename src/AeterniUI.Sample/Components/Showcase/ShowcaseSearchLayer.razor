@@ -1,0 +1,40 @@
+@namespace AeterniUI.Sample.Components.Showcase
+@using AeterniUI.Enums
+
+@* 搜索结果浮层：渲染在页头玻璃卡片之外，按页头的触发器定位。
+   `PopupHost` 只是浮层的挂载容器——浮层既然按 `Anchor` 定位，宿主放在哪儿都不影响对齐，
+   放在这里是为了让它脱离玻璃卡片的 backdrop root。 *@
+<PopupHost>
+    <ChildContent>
+        <Popover Open="@Model.Open"
+                 OpenChanged="Model.SetOpen"
+                 Anchor="@Model.Anchor"
+                 Placement="PopupPlacement.BottomEnd"
+                 AriaLabel="组件文档搜索结果"
+                 Class="showcase-search-box__popover">
+            @* 结果容器始终存在：`aria-controls` 指向的 id 不能随结果出现或消失；没有
+               命中时用容器内的文案说明，而不是把列表整个拿掉。 *@
+            <div id="@ShowcaseSearchModel.ListboxId" class="showcase-search-box__list" role="listbox" aria-label="搜索结果">
+                @if (Model.Matches.Count == 0)
+                {
+                    <p class="showcase-search-box__empty">没有匹配的组件或段落。试试“选择”“日期”或“表单”。</p>
+                }
+                else
+                {
+                    @for (var index = 0; index < Model.Matches.Count; index++)
+                    {
+                        var match = Model.Matches[index];
+                        <div id="@ShowcaseSearchModel.OptionId(index)"
+                             role="option"
+                             aria-selected="@(index == Model.ActiveIndex ? "true" : "false")"
+                             class="@OptionClass(index)"
+                             @onclick="() => Model.Pick(match)">
+                            <span class="showcase-search-box__option-title">@match.SectionTitle</span>
+                            <span class="showcase-search-box__option-meta">@ShowcaseSearchModel.MetaOf(match)</span>
+                        </div>
+                    }
+                }
+            </div>
+        </Popover>
+    </ChildContent>
+</PopupHost>

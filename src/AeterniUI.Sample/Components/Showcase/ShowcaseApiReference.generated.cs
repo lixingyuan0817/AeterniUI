@@ -407,6 +407,7 @@ public static class ShowcaseApiReference
                 new("ItemTemplate", "RenderFragment<TValue>?", "", "自定义选项内容（图标 + 文字等）。", "属性", ""),
                 new("Items", "IReadOnlyList<TValue>", "", "选项集合，按显示顺序排列；每项等宽。", "属性", ""),
                 new("Required", "bool", "", "在 FormField 中输出 aria-required。", "属性", ""),
+                new("Shape", "SegmentedShape", "", "形状档位：Rounded（默认，圆角跟随尺寸档位）或 Pill（整圆胶囊）。", "属性", "10.33.0"),
                 new("Size", "Size", "", "尺寸档位（28 / 36 / 44px）。", "属性", ""),
                 new("TextSelector", "Func<TValue, string>?", "", "选项文字；缺省用值的 ToString。", "属性", ""),
                 new("Value", "TValue?", "", "当前选项；不匹配任何项时不显示选中态与滑块。", "属性", ""),
@@ -749,6 +750,7 @@ public static class ShowcaseApiReference
             },
             ["popup"] = new ShowcaseApiMember[]
             {
+                new("Anchor", "ElementReference?", "", "定位锚点元素：设了就按它摆放、翻转与贴边，浮层可以渲染到别处（例如脱离会裁切、或会成为 backdrop root 的容器），“点击外部”也把它算作层内；不设时锚点就是承载浮层的 PopupHost。", "属性", "10.33.0"),
                 new("AriaLabel", "string?", "", "浮层无障碍名称。", "属性", ""),
                 new("CloseOnEscape", "bool", "", "Escape 是否请求关闭。", "属性", ""),
                 new("CloseOnOutsideClick", "bool", "", "点击浮层外部（Modal 时为遮罩）是否请求关闭。", "属性", ""),
@@ -757,7 +759,7 @@ public static class ShowcaseApiReference
                 new("Modal", "bool", "", "模态层：遮罩、aria-modal、焦点陷阱、背景滚动锁。", "属性", ""),
                 new("Open", "bool", "", "是否显示浮层（受控）。", "属性", ""),
                 new("OpenChanged", "EventCallback<bool>", "", "Escape / 点击外部 / 遮罩请求关闭时触发，支持 @bind-Open。", "事件回调", ""),
-                new("Placement", "PopupPlacement", "", "相对 PopupHost 的起始方位。", "属性", ""),
+                new("Placement", "PopupPlacement", "", "起始方位：默认相对 PopupHost，设了 Anchor 时相对锚点元素。", "属性", ""),
                 new("Popover.ChildContent", "RenderFragment?", "", "浮层主体内容。", "属性", ""),
                 new("PopupHost.ChildContent", "RenderFragment?", "", "浮层主体内容。", "属性", ""),
                 new("RestoreFocusOnClose", "bool", "", "关闭后将焦点恢复到打开前的触发元素。", "属性", ""),

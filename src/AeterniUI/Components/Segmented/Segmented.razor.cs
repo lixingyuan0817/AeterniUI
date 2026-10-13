@@ -34,6 +34,15 @@ public partial class Segmented<TValue> : AeterniComponent
     [Parameter]
     public Size Size { get; set; } = Size.Default;
 
+    /// <summary>
+    /// Corner shape of the track, the indicator and the options. Defaults to
+    /// <see cref="SegmentedShape.Rounded"/>, which follows the control radius of the
+    /// size tier; <see cref="SegmentedShape.Pill"/> is the fully round form. The shape
+    /// only changes radii: the indicator keeps the same width and travel.
+    /// </summary>
+    [Parameter]
+    public SegmentedShape Shape { get; set; } = SegmentedShape.Rounded;
+
     /// <summary>Fill the parent width instead of hugging the option content.</summary>
     [Parameter]
     public bool FullWidth { get; set; }
@@ -87,11 +96,18 @@ public partial class Segmented<TValue> : AeterniComponent
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown segmented size.");
         }
+
+        if (!Enum.IsDefined(Shape))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Shape), Shape, "Unknown segmented shape.");
+        }
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-segmented")
         .Add(ComponentClass.ForSize("aeterni-segmented", Size))
+        // The default shape stays silent; only the optional pill form names itself.
+        .Add("aeterni-segmented--pill", Shape == SegmentedShape.Pill)
         .Add("is-full-width", FullWidth)
         .Add("is-disabled", IsEffectivelyDisabled)
         .Add("is-invalid", IsEffectivelyInvalid)

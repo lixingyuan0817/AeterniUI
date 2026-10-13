@@ -1,0 +1,28 @@
+@namespace AeterniUI.Sample.Components.Showcase
+@using AeterniUI.Enums
+
+@* 外观设置浮层：渲染在页头玻璃卡片之外，按页头的齿轮按钮定位（见 `ShowcaseSettings`）。
+   可见标签与控件的 aria-label 说同一件事：分段控件本身不渲染文字标签，页头里没有它俩的
+   上下文，读者得看得出来哪个是品牌色、哪个是主题。关闭后焦点归还触发器。 *@
+<PopupHost>
+    <ChildContent>
+        <Popover Open="@Model.Open"
+                 OpenChanged="Model.SetOpen"
+                 Anchor="@Model.Anchor"
+                 Placement="PopupPlacement.BottomEnd"
+                 AriaLabel="外观设置"
+                 RestoreFocusOnClose="true"
+                 Class="showcase-settings__popover">
+            <div id="showcase-settings-panel" class="showcase-settings">
+                <div class="showcase-settings__group">
+                    <p class="showcase-settings__label">品牌色</p>
+                    <ThemeBrandSwitch Size="Size.Small" AriaLabel="品牌色" />
+                </div>
+                <div class="showcase-settings__group">
+                    <p class="showcase-settings__label">主题模式</p>
+                    <ThemeSwitch Size="Size.Small" AriaLabel="主题模式" />
+                </div>
+            </div>
+        </Popover>
+    </ChildContent>
+</PopupHost>

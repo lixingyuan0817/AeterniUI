@@ -1907,8 +1907,9 @@
    都由库内 PopupHost + Popover 承载，这里只负责宽度、浮层宽度与结果行的观感——本表不覆写
    任何 `.aeterni-` 组件规则。
 
-   页头必须是不裁剪的浮层锚点，所以 MainLayout 给 Surface 传了 `overflow: visible`：绝对
-   定位在 PopupHost 里的下拉会被祖先的 `overflow: hidden` 整块剪掉。 */
+   这一层包裹元素是浮层的锚点（`Popover.Anchor`）：浮层渲染在页头玻璃卡片之外——卡片的
+   `backdrop-filter` 会让卡内浮层的模糊只采样卡片内部那张透明背景——但仍按它们定位，所以
+   这里的宽度与内边距同时决定输入框和浮层的对齐边。 */
 .sample-header__search {
     /* 搜索框是页头里唯一会随输入变宽的控件：让它占住剩余空间，但不许把品牌与主导航挤变形。 */
     flex: 1 1 200px;
@@ -1918,10 +1919,6 @@
 
 .sample-header__settings {
     flex: 0 0 auto;
-}
-
-.showcase-search-box__host {
-    width: 100%;
 }
 
 .showcase-search-box {
@@ -1946,9 +1943,10 @@
     min-width: 320px;
 }
 
-/* 页头是一张固定定位的玻璃卡片，两个下拉的锚点都在卡片里：默认的 8px 间距会让浮层顶部压进
-   卡片下沿 9px。这里多留一段，浮层从卡片之外开始——用示例自己的类名做偏移，不去写
-   `.aeterni-popover` 的全局规则。 */
+/* 页头是一张固定定位的玻璃卡片，两个下拉的锚点（触发器包裹元素）都在卡片里：库内默认的 8px
+   间距会让浮层顶部压进卡片下沿约 12px，卡片的下边框于是横在磨砂面板背后。这里给浮层自己的
+   margin 多留一段（锚定模式下由浮层模块写在 `top` 之外，margin 照常把盒子推开），浮层从卡片
+   之外开始——用示例自己的类名做偏移，不去写 `.aeterni-popover` 的全局规则。 */
 .showcase-search-box__popover,
 .showcase-settings__popover {
     margin-top: var(--aeterni-spacing-3);

@@ -81,6 +81,7 @@ await CheckEnumValidationAsync();
 await CheckTextTableFallbackAsync();
 await CheckTokenSurfaceAsync();
 await CheckUploadAsync();
+await CheckSegmentedShapeAsync();
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -93,7 +94,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (34 groups).");
+Console.WriteLine("Component contract checks passed (35 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -1020,6 +1021,45 @@ async Task CheckOverlayTransitionsAsync()
         await (Task)typeof(T).GetMethod("FinalizeCloseAsync")!.Invoke(host.Inner, [revision])!;
         Require(root.ToHtmlString().Contains("hidden") && !root.ToHtmlString().Contains("is-closing"), "Completed exit hides overlay.");
     });
+
+    // Anchor：把"渲染位置"和"锚点"解耦的公开开关（触发器留在原来的容器里，浮层渲染到别处却按
+    // 触发器定位）。渲染契约能守三件事——参数是可空 ElementReference、设与不设锚点的标记完全
+    // 一致（元素引用只走互操作，不落到 DOM 上）、模块里确实按锚点定位并把锚点算作层内；"没有
+    // 锚点时宿主就是锚点盒"这条既有行为也在源码里锁住，它是零破坏的前提。
+    var anchorProperty = typeof(AeterniUI.Components.Popup.Popover).GetProperty(nameof(AeterniUI.Components.Popup.Popover.Anchor));
+    Require(anchorProperty?.PropertyType == typeof(ElementReference?)
+        && Attribute.GetCustomAttribute(anchorProperty, typeof(ParameterAttribute)) is not null,
+        "Popover.Anchor must be a [Parameter] of type ElementReference?.");
+
+    // An explicit Id keeps the two renders comparable: the base generates one when the
+    // consumer does not supply it, which would differ per component instance.
+    var popoverParameters = new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-anchor-popover",
+        ["Open"] = true,
+        ["AriaLabel"] = "Anchored layer"
+    };
+    var withoutAnchor = await RenderAsync<AeterniUI.Components.Popup.Popover>(popoverParameters);
+    var withAnchor = await RenderAsync<AeterniUI.Components.Popup.Popover>(new Dictionary<string, object?>(popoverParameters)
+    {
+        ["Anchor"] = (ElementReference?)new ElementReference("contract-anchor")
+    });
+    Require(string.Equals(withoutAnchor, withAnchor, StringComparison.Ordinal),
+        "Setting Anchor must not change the rendered markup: the element reference is interop-only state.");
+
+    var popoverRoot = FindRepositoryRoot();
+    var popoverCode = await File.ReadAllTextAsync(Path.Combine(popoverRoot, "src/AeterniUI/Components/Popup/Popover.razor.cs"));
+    var popoverModule = await File.ReadAllTextAsync(Path.Combine(popoverRoot, "src/AeterniUI/Components/Popup/Popover.razor.js"));
+    var popoverCss = await File.ReadAllTextAsync(Path.Combine(popoverRoot, "src/AeterniUI/Components/Popup/Popover.razor.css"));
+    Require(popoverCode.Contains("\"setAnchor\"", StringComparison.Ordinal)
+        && popoverModule.Contains("export function setAnchor(", StringComparison.Ordinal),
+        "Popover must hand the anchor element to its module through setAnchor.");
+    Require(popoverModule.Contains("instance.anchor", StringComparison.Ordinal)
+        && popoverModule.Contains("layer.parentElement ?? instance.layer", StringComparison.Ordinal),
+        "Outside-press detection must treat the anchor as inside while the host stays the fallback anchor box.");
+    Require(popoverModule.Contains("is-anchored", StringComparison.Ordinal)
+        && Regex.IsMatch(popoverCss, @"\.aeterni-popover\.is-anchored\s*\{[^}]*position:\s*fixed"),
+        "An anchored layer must be fixed-positioned in viewport space, or an anchor inside a fixed header would scroll the layer away.");
 }
 
 void CheckTimeMapReuse()
@@ -3003,6 +3043,8 @@ async Task CheckEnumValidationAsync()
         ("Slider.Orientation", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Orientation"] = (Orientation)99 })),
         ("Timeline.Orientation", () => RenderAsync<Timeline>(new Dictionary<string, object?> { ["Items"] = Array.Empty<TimelineItem>(), ["Orientation"] = (Orientation)99 })),
         ("ThemeSwitch.Size", () => RenderAsync<AeterniUI.Components.Theme.ThemeSwitch>(new Dictionary<string, object?> { ["Size"] = (Size)99 })),
+        ("Segmented.Shape", () => RenderAsync<Segmented<string>>(new Dictionary<string, object?> {
+            ["Items"] = new[] { "a", "b" }, ["Shape"] = (SegmentedShape)99 })),
         ("ToggleGroup.SelectionMode", () => RenderAsync<AeterniUI.Components.ToggleGroup.ToggleGroup>(new Dictionary<string, object?> {
             ["AriaLabel"] = "Actions", ["SelectionMode"] = SelectionMode.None }))
     };
@@ -3303,6 +3345,68 @@ async Task CheckUploadAsync()
     Require(overlayRules.Length >= 3
         && overlayRules.All(rule => rule.Contains("::deep", StringComparison.Ordinal)),
         "Every Upload rule that styles the framework picker must go through ::deep.");
+}
+
+// Segmented shape tiers: Rounded is the default and therefore silent (the repo rule
+// that a default tier emits no modifier class), while the optional Pill form names
+// itself. The shape may only repoint the shared radius — the indicator's geometry
+// keeps coming from the count/index custom properties, which is the whole reason the
+// control does not care how many options it has.
+async Task CheckSegmentedShapeAsync()
+{
+    Require(new Segmented<string>().Shape == SegmentedShape.Rounded,
+        "Segmented.Shape must default to the rounded form.");
+
+    var items = new[] { "a", "b", "c" };
+    var rounded = await RenderAsync<Segmented<string>>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-segmented-rounded",
+        ["Items"] = items,
+        ["Value"] = "b"
+    });
+    var pill = await RenderAsync<Segmented<string>>(new Dictionary<string, object?>
+    {
+        ["Id"] = "contract-segmented-pill",
+        ["Items"] = items,
+        ["Value"] = "b",
+        ["Shape"] = SegmentedShape.Pill
+    });
+
+    Require(!rounded.Contains("aeterni-segmented--pill", StringComparison.Ordinal)
+        && !rounded.Contains("aeterni-segmented--rounded", StringComparison.Ordinal),
+        "The default rounded shape must not emit a modifier class.");
+    Require(pill.Contains("aeterni-segmented--pill", StringComparison.Ordinal),
+        "The non-default pill shape must name itself in the class list.");
+
+    // The pill width and its travel are derived from these two numbers; a shape that
+    // dropped them would leave the indicator laid out by nothing.
+    foreach (var html in new[] { rounded, pill })
+    {
+        Require(html.Contains("--aeterni-segmented-count: 3", StringComparison.Ordinal)
+            && html.Contains("--aeterni-segmented-index: 1", StringComparison.Ordinal),
+            "The shape must not replace the count/index geometry of the indicator.");
+    }
+
+    var css = await File.ReadAllTextAsync(Path.Combine(FindRepositoryRoot(), "src", "AeterniUI", "Components", "Segmented", "Segmented.razor.css"));
+    var matches = Regex.Matches(css, "\\.aeterni-segmented(--sm|--lg|--pill)\\s*\\{([^}]*)\\}");
+    var blocks = matches.ToDictionary(
+        match => match.Groups[1].Value,
+        match => match.Groups[2].Value,
+        StringComparer.Ordinal);
+
+    Require(blocks.TryGetValue("--pill", out var pillBlock)
+        && pillBlock.Contains("--aeterni-segmented-radius: var(--aeterni-segmented-radius-pill)", StringComparison.Ordinal),
+        "The pill shape must repoint the shared radius, so the track, the indicator and the options all turn round.");
+    Require(css.Contains("--aeterni-segmented-radius-rounded: var(--aeterni-radius-control-md)", StringComparison.Ordinal)
+        && css.Contains("--aeterni-segmented-radius-pill: var(--aeterni-radius-full)", StringComparison.Ordinal)
+        && css.Contains("--aeterni-segmented-radius: var(--aeterni-segmented-radius-rounded)", StringComparison.Ordinal),
+        "The rounded default must resolve to the control radius from the shared variable layer.");
+    // The rounded tier follows the other control families: one corner per size tier.
+    Require(blocks.TryGetValue("--sm", out var smallBlock)
+        && smallBlock.Contains("--aeterni-segmented-radius-rounded: var(--aeterni-radius-control-sm)", StringComparison.Ordinal)
+        && blocks.TryGetValue("--lg", out var largeBlock)
+        && largeBlock.Contains("--aeterni-segmented-radius-rounded: var(--aeterni-radius-control-lg)", StringComparison.Ordinal),
+        "The rounded shape must follow the size tier instead of one frozen radius.");
 }
 
 // Renders a component and hands back the instance, so a check can drive its

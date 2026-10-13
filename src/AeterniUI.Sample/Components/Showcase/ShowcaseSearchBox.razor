@@ -1,60 +1,28 @@
 @namespace AeterniUI.Sample.Components.Showcase
 @using AeterniUI.Enums
 
-@* 头部常驻搜索框 + 就地下拉：搜页面与页内段，命中后跳到该段的锚点。
-   下拉用库内 PopupHost + Popover 承载，不自己写浮层；Popover 是受控组件，Open 由这里持有，
-   关闭请求（Escape、点击外部、滚动）经 OpenChanged 上报。空查询不展开列表——一进站就弹一个
-   面板是打扰，读者输入第一个字才算开始搜索。 *@
-<div class="sample-header__search">
-    <PopupHost Class="showcase-search-box__host">
-        <ChildContent>
-            <div class="showcase-search-box">
-                <span class="showcase-search-box__icon" aria-hidden="true">
-                    <Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />
-                </span>
-                @* 输入框是库内 Input：字段外观、禁用/无效状态与焦点环都归它，这里只补 combobox
-                   的 ARIA 契约（与库内 Autocomplete 传给自己的 Input 的那一组一致）。 *@
-                <Input Id="@InputId"
-                       Size="Size.Small"
-                       FullWidth="true"
-                       Value="@_query"
-                       ValueChanged="HandleQueryChangedAsync"
-                       Placeholder="搜索组件或段落…"
-                       AriaLabel="搜索组件文档"
-                       OnKeyDown="HandleKeyDownAsync"
-                       ElementChanged="HandleInputElementChanged"
-                       AdditionalAttributes="@InputAttributes" />
+@* 头部常驻搜索框的触发器。结果浮层由 `ShowcaseSearchLayer` 渲染在页头玻璃卡片之外：玻璃卡片
+   的 `backdrop-filter` 会成为最近的 backdrop root，浮层自己的模糊就只采样卡片内部那张透明的
+   背景——看起来完全没有模糊。两半共享 `ShowcaseSearchModel`。
 
-                <Popover Open="@_open"
-                         OpenChanged="HandlePopoverOpenChangedAsync"
-                         Placement="PopupPlacement.BottomEnd"
-                         AriaLabel="组件文档搜索结果"
-                         Class="showcase-search-box__popover">
-                    @* 结果容器始终存在：`aria-controls` 指向的 id 不能随结果出现或消失；没有
-                       命中时用容器内的文案说明，而不是把列表整个拿掉。 *@
-                    <div id="@ListboxId" class="showcase-search-box__list" role="listbox" aria-label="搜索结果">
-                        @if (_matches.Count == 0)
-                        {
-                            <p class="showcase-search-box__empty">没有匹配的组件或段落。试试“选择”“日期”或“表单”。</p>
-                        }
-                        else
-                        {
-                            @for (var index = 0; index < _matches.Count; index++)
-                            {
-                                var match = _matches[index];
-                                <div id="@OptionId(index)"
-                                     role="option"
-                                     aria-selected="@(index == _activeIndex ? "true" : "false")"
-                                     class="@OptionClass(index)"
-                                     @onclick="() => Navigate(match)">
-                                    <span class="showcase-search-box__option-title">@match.SectionTitle</span>
-                                    <span class="showcase-search-box__option-meta">@MetaOf(match)</span>
-                                </div>
-                            }
-                        }
-                    </div>
-                </Popover>
-            </div>
-        </ChildContent>
-    </PopupHost>
+   这一层包裹元素是浮层的锚点：`Popover.Anchor` 让浮层渲染在别处却按这里定位，"点击外部"也把
+   这里算作层内，所以点输入框不会被判成外部先关一次再开一次。 *@
+<div class="sample-header__search" @ref="_anchor">
+    <div class="showcase-search-box">
+        <span class="showcase-search-box__icon" aria-hidden="true">
+            <Icon Definition="@FontAwesomeIcons.Solid.MagnifyingGlass" />
+        </span>
+        @* 输入框是库内 Input：字段外观、禁用/无效状态与焦点环都归它，这里只补 combobox
+           的 ARIA 契约（与库内 Autocomplete 传给自己的 Input 的那一组一致）。 *@
+        <Input Id="@ShowcaseSearchModel.InputId"
+               Size="Size.Small"
+               FullWidth="true"
+               Value="@Model.Query"
+               ValueChanged="HandleQueryChanged"
+               Placeholder="搜索组件或段落…"
+               AriaLabel="搜索组件文档"
+               OnKeyDown="HandleKeyDown"
+               ElementChanged="HandleInputElementChanged"
+               AdditionalAttributes="@InputAttributes" />
+    </div>
 </div>

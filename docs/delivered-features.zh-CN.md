@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.32.0`
+文档版本：`10.33.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -714,10 +714,11 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 ### 支持能力
 
-`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`CloseOnScroll`、`RestoreFocusOnClose`、`Header`、`ChildContent` 和 `AriaLabel`。
+`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Anchor`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`CloseOnScroll`、`RestoreFocusOnClose`、`Header`、`ChildContent` 和 `AriaLabel`。
 
-- `Placement`（`PopupPlacement`：`BottomStart` / `BottomEnd` / `TopStart` / `TopEnd`，默认 `BottomStart`）指定相对 `PopupHost` 的起始方位。
-- **定位与翻转**：浮层在 `PopupHost` 内绝对定位，由 `Popover.razor.js` 在打开、`resize` 与页面滚动时重算：优先使用指定方位，空间不足时翻到对侧（每次重算都从首选方位开始，所以视口变宽后能翻回），再沿交叉轴贴回视口边缘（偏移写入 `--aeterni-popover-shift-x`）。
+- `Placement`（`PopupPlacement`：`BottomStart` / `BottomEnd` / `TopStart` / `TopEnd`，默认 `BottomStart`）指定起始方位：默认相对 `PopupHost`，设了 `Anchor` 时相对锚点元素。
+- **定位与翻转**：默认浮层在 `PopupHost` 内绝对定位，由 `Popover.razor.js` 在打开、`resize` 与页面滚动时重算：优先使用指定方位，空间不足时翻到对侧（每次重算都从首选方位开始，所以视口变宽后能翻回），再沿交叉轴贴回视口边缘（偏移写入 `--aeterni-popover-shift-x`）。
+- **锚点解耦（`Anchor`，`ElementReference?`，默认 `null`）**：给浮层指定一个锚点元素后，**渲染位置与定位锚点就此分开**——浮层照旧渲染在调用方的 `PopupHost` 里（宿主放哪儿都行），但摆放、翻转与贴边都按这个锚点算，浮层自身改为 `position: fixed` 并在视口坐标里落位（含跨轴 clamp 后写 `--aeterni-popover-shift-x`），因此锚点位于 `position: fixed` 的页头里时，页面滚动不会把浮层带走。锚点元素失效（被移除）时自动回退到宿主；不设 `Anchor` 的行为与不提供该参数时完全一致。用"点击外部"判定时锚点也算作层内，所以点触发器不会被判成外部先关一次、再被后续 click 打开。锚点应由调用方自己拥有（触发器的包裹元素），而不是组件内部 DOM。典型用途：触发元素必须留在会被裁切或会成为 backdrop root 的容器里（例如玻璃卡片：卡内浮层自己的 `backdrop-filter` 只能采样那张卡片，看起来完全没有模糊），而浮层要渲染到容器之外。
 - **关闭**：Escape、非模态下的外部指针、模态下的遮罩点击都会通过 `OpenChanged` 请求关闭（`Open` 始终由使用方持有，与 `@bind-Open` 配套）；`CloseOnEscape`、`CloseOnOutsideClick` 与 `CloseOnScroll` 可分别关掉，滚动关闭会忽略浮层内部滚动。
 - **模态**：`Modal` 除切换到 `dialog` 语义外，还渲染遮罩、输出 `aria-modal`、把 Tab 困在层内（`tabindex="-1"` 作为无交互内容时的回退焦点）、锁定背景滚动（带滚动条宽度补偿）并在关闭后把焦点还给打开前的元素。
 
@@ -727,7 +728,7 @@ Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hi
 
 ### 实现边界
 
-浮层是在 `PopupHost` 内部定位的：**宿主就是锚点盒**，因此触发元素与浮层都应放进 `PopupHost`——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。祖先容器若带 `overflow: hidden` 仍可能裁切浮层；需要脱离祖先裁剪时应由宿主提供合适的布局上下文。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。`CloseOnScroll` 可让非模态浮层在页面/祖先滚动时请求关闭，同时忽略浮层内部滚动。多浮层堆叠与嵌套模态留给后续组件。
+不设 `Anchor` 时浮层在 `PopupHost` 内部定位：**宿主就是锚点盒**，因此触发元素与浮层都放进 `PopupHost` 最省事——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。设了 `Anchor` 时宿主只剩“挂载点”这一个职责，锚点盒由调用方指定；锚点与浮层可以分处两棵子树，代价是调用方要维护二者共享的状态。未设锚点的浮层仍受祖先 `overflow: hidden` 裁切，需要脱离祖先裁剪时应由宿主提供合适的布局上下文；锚定模式是 `position: fixed`，不再受祖先裁切，但祖先若带 `transform` / `filter` / `backdrop-filter` 会成为它的包含块，落位仍按实测的包含块原点修正。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。`CloseOnScroll` 可让非模态浮层在页面/祖先滚动时请求关闭，同时忽略浮层内部滚动。多浮层堆叠与嵌套模态留给后续组件。
 
 ## 21. Menu
 
@@ -1075,8 +1076,9 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 - `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`、可选 `AriaLabel`。
 - `Size` 三档走统一控件高度：`Small` 28px、`Default` 36px、`Large` 44px（`--aeterni-control-height-*`）；`FullWidth` 占满父容器，否则宽度跟随内容。
+- `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。两档只切换轨道、滑块与选项共用的那一个圆角变量，滑块宽度与位移仍由选项数量推导。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供，组件没有键盘 JS。
-- 滑块（选中胶囊）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。
+- 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。
 - RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。
 - `DisabledSelector` 停用单个选项（原生 `disabled`，跳过方向键循环）；`Disabled` 停用整组并输出 `aria-disabled`。`Value` 不匹配任何项时控件不显示选中态与滑块（`is-empty`）。
 - 位于 `FormField` 中时采用字段的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联标签与描述；`Required` / `Invalid` 输出 `aria-required` / `aria-invalid`。
@@ -1084,11 +1086,11 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 行为与无障碍
 
-根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击与方向键都走同一条路径）。禁用项不可点、不进方向键循环，禁用且被选中的项仍保留胶囊与反色文字，表示“值已选中但不可更改”。
+根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击与方向键都走同一条路径）。禁用项不可点、不进方向键循环，禁用且被选中的项仍保留指示块与反色文字，表示“值已选中但不可更改”。
 
 ### 实现边界
 
-暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是无限撑开控件。非全宽模式按每项最小内容宽度建列，库内置 Orange / System 等标签在常规桌面与窄屏布局中保持完整；选中胶囊在 hover/active 时使用 checked 状态色阶整块换档，普通 hover 不覆盖选中态。
+暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是无限撑开控件。非全宽模式按每项最小内容宽度建列，库内置 Orange / System 等标签在常规桌面与窄屏布局中保持完整；选中指示块在 hover/active 时使用 checked 状态色阶整块换档，普通 hover 不覆盖选中态；`Shape` 只影响圆角，不改变滑块几何、交互状态与键盘模型。
 
 ## 33. Accordion
 
