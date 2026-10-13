@@ -19,18 +19,43 @@
     <Demos>
         <DemoCard Id="icon-button-basic"
                   Title="基础用法"
-                  Description="默认是 Ghost + Neutral，适合工具栏与低强调动作；每个按钮都要给出自己的无障碍名称。"
+                  Description="默认是 Ghost + Neutral，适合工具栏与低强调动作；每个按钮都要给出自己的无障碍名称。右侧控件即时作用在第一个按钮上。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-stack">
                     <div class="preview-action-row">
-                        <IconButton Icon="@SearchIcon" AriaLabel="搜索" OnClick="MarkInteraction" />
+                        <IconButton Variant="@_variant"
+                                    Intent="@_intent"
+                                    Size="@_size"
+                                    Icon="@SearchIcon"
+                                    AriaLabel="@_ariaLabel"
+                                    OnClick="MarkInteraction" />
                         <IconButton Variant="ButtonVariant.Outline" Icon="@SettingsIcon" AriaLabel="设置" OnClick="MarkInteraction" />
                         <IconButton Variant="ButtonVariant.Soft" Intent="ButtonIntent.Warning" Icon="@InfoIcon" AriaLabel="查看警告" OnClick="MarkInteraction" />
                     </div>
                     <span class="preview-feedback" role="status">@_interactionNote</span>
                 </div>
             </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="icon-button-label">AriaLabel</label>
+                    <input id="icon-button-label" @bind="_ariaLabel" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="icon-button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Intent</span>
+                        <ShowcaseSelect TValue="ButtonIntent" Id="icon-button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="icon-button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                    </div>
+                </div>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="icon-button-states"
@@ -100,6 +125,11 @@
     private RenderFragment InfoIcon => @<Icon Definition="@AeterniIcons.Info" />;
     private RenderFragment CheckIcon => @<Icon Definition="@AeterniIcons.Check" />;
     private RenderFragment XmarkIcon => @<Icon Definition="@AeterniIcons.Xmark" />;
+
+    private ButtonVariant _variant = ButtonVariant.Ghost;
+    private ButtonIntent _intent = ButtonIntent.Neutral;
+    private Size _size = Size.Default;
+    private string _ariaLabel = "搜索";
 
     private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
 }

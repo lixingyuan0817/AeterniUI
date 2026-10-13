@@ -5,15 +5,25 @@
 
 @* 设计基础验收页（/components/colors）：按设计规格表的版式排布——每一组基础各自成
    卡片，卡片之间走网格，卡片内部只放标尺本身（色块、形状、条形）与 Token 名。
-   整页不实例化任何组件；颜色只引用 --aeterni-* Token，容器表面保持无彩色。 *@
-<section class="showcase-colors" aria-labelledby="colors-title">
-    <p class="showcase-page-eyebrow">设计基础</p>
-    <h1 id="colors-title">色彩与语义</h1>
-    <ShowcaseEditLink AnchorId="colors" />
-    <p class="showcase-install__lead">这一页把设计基础摊成规格表：色族色卡、文字墨阶、字号字重、中性表面、圆角、阴影与间距。全部由页面级标记手绘，不使用任何组件实例；每一处颜色、圆角与阴影都只引用 <code>--aeterni-*</code> Token，所以切换主题或更换品牌色层时整页会一起变化。</p>
-
-    <h2 class="showcase-colors__subtitle">色族色卡</h2>
-    <p class="showcase-install__note showcase-colors__note">六个色族各一张色卡，卡内固定三档：<strong>填充档</strong>只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片底色与徽标底），<strong>文字形态</strong>用于描边、图标、文字，以及需要与浅色页面区分开的实心图形，<strong>柔和底</strong>是浅底深字。Success 与 Info 只出现在状态表面与指示元素上，不构成操作语义，因此没有对应的按钮 Intent，但填充档仍是它们通知卡片的底色。</p>
+   整页不实例化任何组件；颜色只引用 --aeterni-* Token，容器表面保持无彩色。
+   骨架与组件页相同（`ComponentPage`）：何时使用、右栏目录、相关组件与说明边界都由骨架提供，
+   规格表本身是 Demos 段里的内容——这一页因此也有可复制的消费片段，不再只能看不能抄。 *@
+<ComponentPage AnchorId="colors"
+               Category="设计基础"
+               Title="色彩与语义"
+               ComponentName="ThemeBrand"
+               Description="把设计基础摊成规格表：色族色卡、文字墨阶、字号字重、中性表面、圆角、阴影、间距与对比度验收组合。"
+               Related="@ColorsRelated">
+    <WhenToUse>
+        <p>需要确认"这个颜色、圆角或间距该用哪个 <code>--aeterni-*</code> Token"时看这一页：它是 Token 的规格表，不是组件演示页。</p>
+        <p>要换色相层用 <code>ThemeProvider</code> 与 <code>ThemeService</code>（见「在应用里消费」的两段代码），不要在页面或组件里覆盖 Token 值；语意色只用于状态表面与指示元素，不构成操作语义。</p>
+    </WhenToUse>
+    <Demos>
+        @* 规格表的分区语义：`ComponentPage` 的页头已经提供 h1 与描述，这里不再重复标题区；
+           原来的整页卡片边框也去掉了——外层卡片就是页面骨架自己，避免卡片套卡片。 *@
+        <section aria-label="设计规格表">
+            <h2 class="showcase-colors__subtitle">色族色卡</h2>
+    <p class="showcase-page-note showcase-colors__note">六个色族各一张色卡，卡内固定三档：<strong>填充档</strong>只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片底色与徽标底），<strong>文字形态</strong>用于描边、图标、文字，以及需要与浅色页面区分开的实心图形，<strong>柔和底</strong>是浅底深字。Success 与 Info 只出现在状态表面与指示元素上，不构成操作语义，因此没有对应的按钮 Intent，但填充档仍是它们通知卡片的底色。</p>
     <div class="showcase-colors__families">
         <article class="showcase-colors__card" data-family="brand">
             <header class="showcase-colors__card-head">
@@ -197,7 +207,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">文字墨阶</h2>
-    <p class="showcase-install__note showcase-colors__note">文字是一个墨色加不透明度（Apple 的 label 模型）：同一色相、随所在表面自动调和，着色 chip 与磨砂面板上都不会偏色。正文到图标级依次变浅，各司其职；<code>tertiary</code> 只用于图标与装饰，<code>disabled</code> 只用于禁用文字。</p>
+    <p class="showcase-page-note showcase-colors__note">文字是一个墨色加不透明度（Apple 的 label 模型）：同一色相、随所在表面自动调和，着色 chip 与磨砂面板上都不会偏色。正文到图标级依次变浅，各司其职；<code>tertiary</code> 只用于图标与装饰，<code>disabled</code> 只用于禁用文字。</p>
     <div class="showcase-colors__types">
         <div class="showcase-colors__type">
             <span class="showcase-colors__type-sample showcase-colors__ink--primary">Aa 正文</span>
@@ -227,7 +237,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">字体与字号</h2>
-    <p class="showcase-install__note showcase-colors__note">字号阶梯 12px 到 60px，正文默认 16px。字阶与字重同样只在 Token 里维护，标题走 <code>--aeterni-typography-h*</code> 组合，正文走 <code>--aeterni-typography-body</code>。</p>
+    <p class="showcase-page-note showcase-colors__note">字号阶梯 12px 到 60px，正文默认 16px。字阶与字重同样只在 Token 里维护，标题走 <code>--aeterni-typography-h*</code> 组合，正文走 <code>--aeterni-typography-body</code>。</p>
     <div class="showcase-colors__typography">
         <div class="showcase-colors__display">
             <span class="showcase-colors__display-eyebrow">Display / Heading</span>
@@ -304,7 +314,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">中性容器表面</h2>
-    <p class="showcase-install__note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。</p>
+    <p class="showcase-page-note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。</p>
     <div class="showcase-colors__surfaces">
         <div class="showcase-colors__surface">
             <span class="showcase-colors__surface-chip showcase-colors__surface-chip--page"></span>
@@ -339,7 +349,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">圆角阶梯</h2>
-    <p class="showcase-install__note showcase-colors__note">控件圆角走 <code>--aeterni-radius-control-*</code>，同一尺寸档位的按钮、输入与文本域保持一致的圆角；容器、浮层和模态另有 <code>card</code> / <code>dropdown</code> / <code>modal</code> 别名，都指向下面这条阶梯。形状本身是标尺，容器保持无色，避免和语义色互相干扰。</p>
+    <p class="showcase-page-note showcase-colors__note">控件圆角走 <code>--aeterni-radius-control-*</code>，同一尺寸档位的按钮、输入与文本域保持一致的圆角；容器、浮层和模态另有 <code>card</code> / <code>dropdown</code> / <code>modal</code> 别名，都指向下面这条阶梯。形状本身是标尺，容器保持无色，避免和语义色互相干扰。</p>
     <div class="showcase-colors__radius">
         <div class="showcase-colors__radius-item">
             <span class="showcase-colors__radius-shape showcase-colors__radius-shape--xs"></span>
@@ -384,7 +394,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">阴影层级</h2>
-    <p class="showcase-install__note showcase-colors__note">阴影只有一个方向：越高越远。卡片用 <code>--aeterni-shadow-card</code>，下拉与浮层用 <code>--aeterni-shadow-dropdown</code>，模态用 <code>--aeterni-shadow-modal</code>；深色主题下阴影整体加重，靠边界和亮度差承担层级。阴影画在次级底上，白色页面底会让浅档几乎不可见。</p>
+    <p class="showcase-page-note showcase-colors__note">阴影只有一个方向：越高越远。卡片用 <code>--aeterni-shadow-card</code>，下拉与浮层用 <code>--aeterni-shadow-dropdown</code>，模态用 <code>--aeterni-shadow-modal</code>；深色主题下阴影整体加重，靠边界和亮度差承担层级。阴影画在次级底上，白色页面底会让浅档几乎不可见。</p>
     <div class="showcase-colors__shadows">
         <div class="showcase-colors__shadow-item">
             <span class="showcase-colors__shadow-tile showcase-colors__shadow-tile--xs"></span>
@@ -414,7 +424,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">间距节奏</h2>
-    <p class="showcase-install__note showcase-colors__note">间距是一条 4px 基数的阶梯，组件内部只消费 <code>--aeterni-spacing-*</code>；示例页与业务页也复用同一条，避免出现第二套间距。</p>
+    <p class="showcase-page-note showcase-colors__note">间距是一条 4px 基数的阶梯，组件内部只消费 <code>--aeterni-spacing-*</code>；示例页与业务页也复用同一条，避免出现第二套间距。</p>
     <div class="showcase-colors__spacing">
         <div class="showcase-colors__spacing-row">
             <code>--aeterni-spacing-1</code>
@@ -454,7 +464,7 @@
     </div>
 
     <h2 class="showcase-colors__subtitle">对比度验收组合</h2>
-    <p class="showcase-install__note showcase-colors__note">下表是品牌色层真正会被验收的 Token 组合与门槛：正文与填充控件里的标签走 4.5:1，图标、描边与聚焦环走 3:1（非文本对比度）。品牌色是可替换的色相层，因此换一层色板就可能跌破门槛——这也正是下表每一组都由 CI 门禁实测而不是靠肉眼确认的原因。</p>
+    <p class="showcase-page-note showcase-colors__note">下表是品牌色层真正会被验收的 Token 组合与门槛：正文与填充控件里的标签走 4.5:1，图标、描边与聚焦环走 3:1（非文本对比度）。品牌色是可替换的色相层，因此换一层色板就可能跌破门槛——这也正是下表每一组都由 CI 门禁实测而不是靠肉眼确认的原因。</p>
     <div class="showcase-colors__table">
         <div class="showcase-colors__table-row showcase-colors__table-row--head">
             <span>用法</span><span>前景 Token</span><span>背景 Token</span><span>门槛</span>
@@ -469,10 +479,23 @@
             </div>
         }
     </div>
-    <p class="showcase-install__note showcase-colors__note">
+    <p class="showcase-page-note showcase-colors__note">
         <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。语意色族（success / warning / danger / info）沿用同一套形态与门槛约定，需要时按同样方式补测。
     </p>
-</section>
+
+    <h2 class="showcase-colors__subtitle">在应用里消费</h2>
+    <p class="showcase-page-note showcase-colors__note">Token 由库的样式表定义，应用只消费：自己写的表面用 <code>var(--aeterni-*)</code> 取色、圆角与间距，深色与换品牌时会跟着一起变。</p>
+    <ShowcaseCode Id="colors-code-consume" Code="@ConsumeCode" Label="消费 Token" />
+    <p class="showcase-page-note showcase-colors__note">色相层由 <code>ThemeProvider</code> 与 <code>ThemeService</code> 驱动：应用不写 <code>data-theme</code> 或品牌标记，换一层之后整页 Token 一起换档。</p>
+    <ShowcaseCode Id="colors-code-brand" Code="@BrandCode" Label="切换品牌色层" />
+        </section>
+    </Demos>
+    <Notes>
+        <span>这一页不实例化任何组件，规格表全部由页面级标记手绘：它回答的是"该用哪个 Token"，不是"组件长什么样"。</span>
+        <span>容器与页面背景只能是无彩色或统一的玻璃配方，彩色只用在品牌、状态与通知内容表面；色卡是这些规则的取样，不是可选配色。</span>
+        <span>品牌色层可替换，门槛（正文 4.5:1、图标与描边 3:1）由 <code>node scripts/check-contrast.mjs</code> 在每个色相层上实测，换色板前先跑它。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
     /// <summary>对比度验收组合，与 <c>scripts/check-contrast.mjs</c> 的 PAIRS 和门槛一一对应。</summary>
@@ -487,4 +510,34 @@
 
     /// <summary>对比度验收组合的一行。</summary>
     private sealed record ContrastBaseline(string Usage, string Foreground, string Background, string Floor);
+
+    /// <summary>下一站：主题与品牌、玻璃配方，以及承载这些 Token 的容器组件。</summary>
+    private static readonly ShowcaseRelatedLink[] ColorsRelated =
+    [
+        new("Theme", "/components/theme"),
+        new("玻璃与模糊", "/components/glass"),
+        new("Surface", "/components/surface")
+    ];
+
+    private const string ConsumeCode = """
+        /* 自定义表面：颜色、圆角与间距都取自 Token，深色与换品牌时自动跟随 */
+        .my-panel {
+            padding: var(--aeterni-spacing-4);
+            border: 1px solid var(--aeterni-border-subtle);
+            border-radius: var(--aeterni-radius-lg);
+            background: var(--aeterni-bg-surface);
+            color: var(--aeterni-text-primary);
+        }
+        """;
+
+    private const string BrandCode = """
+        <ThemeProvider />
+
+        @code {
+            [Inject] private ThemeService ThemeService { get; set; } = default!;
+
+            // 换色相层：整页 Token 一起换档，不需要改任何颜色字面量
+            private void UseGreenBrand() => ThemeService.SetBrand(ThemeBrand.Green);
+        }
+        """;
 }

@@ -170,23 +170,16 @@
     min-width: 0;
 }
 
-.showcase-install { padding: clamp(28px, 5vw, 72px); border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-xl); background: var(--aeterni-bg-elevated); box-shadow: var(--aeterni-shadow-sm); }
-.showcase-install h1 { margin: 8px 0 14px; color: var(--aeterni-text-primary); font-size: clamp(28px, 4vw, 46px); }
-.showcase-install__lead { max-width: 680px; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-lg); line-height: var(--aeterni-line-height-relaxed); }
-/* Installation steps run as one vertical column: each step keeps a full-width code
-   block instead of a third of the row. */
-.showcase-install__steps { display: grid; grid-template-columns: 1fr; gap: var(--aeterni-spacing-4); margin-top: 36px; }
+/* 安装步骤：内容住在组件页卡片里（`ComponentPage` 的 Demos 段），所以这里只剩步骤网格本身，
+   没有第二层外框。代码块用共享的 `ShowcaseCode`，不另写一套代码样式。 */
+.showcase-install__steps { display: grid; grid-template-columns: 1fr; gap: var(--aeterni-spacing-4); }
 .showcase-install__steps section { min-width: 0; padding: 20px; border: 1px solid var(--aeterni-border-subtle); border-radius: var(--aeterni-radius-lg); background: var(--aeterni-bg-surface); }
 .showcase-install__steps header { display: flex; align-items: center; gap: var(--aeterni-spacing-3); }
 .showcase-install__steps span { color: var(--aeterni-color-brand-default); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-bold); }
 .showcase-install__steps h2 { display: flex; align-items: center; gap: var(--aeterni-spacing-2); margin: 0; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
+.showcase-install__steps p { margin: var(--aeterni-spacing-2) 0 0; max-width: 68ch; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-sm); line-height: var(--aeterni-line-height-normal); }
 .showcase-install__steps pre { margin-top: var(--aeterni-spacing-3); }
-.showcase-install pre { margin: 0; overflow-x: auto; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-xs); line-height: 1.6; white-space: pre-wrap; }
-.showcase-install__note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
-/* Page-level eyebrow. `.component-preview__eyebrow` lives in an isolated sheet and
-   only matches ComponentPreview's own markup, so pages that are rendered straight
-   into the layout shell need their own copy from this global sheet. */
-.showcase-page-eyebrow { margin: 0 0 var(--aeterni-spacing-2); color: var(--aeterni-color-brand-text); font-size: var(--aeterni-font-size-xs); font-weight: var(--aeterni-font-weight-semibold); letter-spacing: .12em; text-transform: uppercase; }
+.showcase-page-note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
 
 /* Sample content shown inside the generic preview stages. */
 
@@ -546,27 +539,20 @@
    版式按设计规格表组织：每一组基础各自成卡片，卡片之间走网格，卡片内部只放
    标尺本身（色块、形状、条形）与 Token 名。容器表面保持无彩色：彩色只出现在
    展示色值本身的小尺寸内容表面上，不会铺满卡片或整页。 */
-.showcase-colors {
-    padding: clamp(28px, 5vw, 72px);
-    border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-xl);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-sm);
-}
-
-.showcase-colors h1 {
-    margin: 8px 0 14px;
-    color: var(--aeterni-text-primary);
-    font-size: clamp(28px, 4vw, 46px);
-}
-
+/* 规格表只负责内部排版：外层卡片由页面骨架（`.component-preview`）承担，所以这里不再自带
+   边框、背景与整页内边距——否则会卡片套卡片。原来给 h1 的字号也删了，标题由骨架渲染。 */
 .showcase-colors__subtitle {
-    margin: 44px 0 10px;
+    margin: 36px 0 10px;
     color: var(--aeterni-text-primary);
     font-size: var(--aeterni-font-size-lg);
 }
 
-/* 页面说明段：保留 .showcase-install__note 的基础样式，只收紧它紧跟在标题后
+/* 规格表里的第一个小节标题紧贴段首：顶部的块间距已经由 Demos 段给出。 */
+.showcase-colors__subtitle:first-child {
+    margin-top: 0;
+}
+
+/* 页面说明段：保留 .showcase-page-note 的基础样式，只收紧它紧跟在标题后
    的间距并限制行长。同权重、后定义，因此这里覆盖的是示例页自己的类。 */
 .showcase-colors__note {
     max-width: 760px;

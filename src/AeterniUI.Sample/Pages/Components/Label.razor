@@ -1,6 +1,7 @@
 ﻿@page "/components/label"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
+@using AeterniUI.Enums
 
 <PageTitle>Aeterni UI · Label</PageTitle>
 
@@ -17,14 +18,21 @@
     <Demos>
         <DemoCard Id="label-basic"
                   Title="基础用法"
-                  Description="For 指向控件的 id；点击标签即可聚焦或切换该控件，这是原生 label 的行为。"
+                  Description="For 指向控件的 id；点击标签即可聚焦或切换该控件，这是原生 label 的行为。右侧控件改的是标签文字与目标控件的禁用态。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-form-control">
-                    <Label For="label-preview-input">项目名称</Label>
-                    <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="项目名称" />
+                    <Label For="label-preview-input">@_labelText</Label>
+                    <Input Id="label-preview-input" Placeholder="点击上方标签聚焦" AriaLabel="@_labelText" Disabled="@_targetDisabled" />
                 </div>
             </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="label-text">标签文字</label>
+                    <input id="label-text" @bind="_labelText" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_targetDisabled">目标控件禁用</Checkbox>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="label-multiple"
@@ -69,4 +77,6 @@
 
     private bool _notify;
     private bool _telemetry;
+    private string _labelText = "项目名称";
+    private bool _targetDisabled;
 }

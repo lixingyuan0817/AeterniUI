@@ -15,11 +15,20 @@ public static class ShowcaseSearchIndex
     /// <summary>页面与页内段的扁平索引，顺序即目录顺序（每页先页面本身，再页内各段）。</summary>
     public static IReadOnlyList<ShowcaseSearchEntry> Entries { get; } =
     [
-        new("install", "安装", "开始", "install-title", "安装"),
+        new("install", "安装", "开始", "install", "安装"),
+        new("install", "安装", "开始", "install-when-title", "何时使用"),
+        new("install", "安装", "开始", "install-related-title", "相关组件"),
+        new("install", "安装", "开始", "install-notes-title", "说明与边界"),
 
-        new("colors", "色彩与语义", "设计基础", "colors-title", "色彩与语义"),
+        new("colors", "色彩与语义", "设计基础", "colors", "色彩与语义"),
+        new("colors", "色彩与语义", "设计基础", "colors-when-title", "何时使用"),
+        new("colors", "色彩与语义", "设计基础", "colors-related-title", "相关组件"),
+        new("colors", "色彩与语义", "设计基础", "colors-notes-title", "说明与边界"),
 
-        new("glass", "玻璃与模糊", "设计基础", "glass-lab-title", "玻璃与模糊"),
+        new("glass", "玻璃与模糊", "设计基础", "glass", "玻璃与模糊"),
+        new("glass", "玻璃与模糊", "设计基础", "glass-when-title", "何时使用"),
+        new("glass", "玻璃与模糊", "设计基础", "glass-related-title", "相关组件"),
+        new("glass", "玻璃与模糊", "设计基础", "glass-notes-title", "说明与边界"),
 
         new("button", "Button", "基础组件", "button", "Button"),
         new("button", "Button", "基础组件", "button-when-title", "何时使用"),

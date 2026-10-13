@@ -26,16 +26,20 @@
    自己那套墨（--aeterni-text-on-glass-secondary 与 --aeterni-text-on-glass-tertiary），
    标准墨不再参与给填充定档 —— 这两件事必须一起做，只降填充会先把面板里的说明文字打穿。
    候选 02／03 作为被否决的方案留在表里做对照。 *@
-<section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
-    <p class="showcase-page-eyebrow">设计基础 · 对比实验</p>
-    <h1 id="glass-lab-title">玻璃与模糊对比</h1>
-    <ShowcaseEditLink AnchorId="glass" />
-    <p class="showcase-install__lead">
-        把「玻璃填充不透明度 × 模糊半径 × 饱和度 × 遮罩」摊成一张矩阵，让同一块面板在七组变量下同屏出现。
-        背景内容层可以切换成壁纸、细网格、App 图标墙和 12px 正文 —— 玻璃真正的短板不是模糊不够，
-        而是背景里没有东西可以糊，以及填充太实把糊过的背景又盖了回去。
-    </p>
-
+<ComponentPage AnchorId="glass"
+               Category="设计基础"
+               Title="玻璃与模糊"
+               ComponentName="Surface"
+               Description="把「玻璃填充不透明度 × 模糊半径 × 饱和度 × 遮罩」摊成一张矩阵，让同一块面板在七组变量下同屏出现：玻璃真正的短板不是模糊不够，而是背景里没有东西可以糊，以及填充太实把糊过的背景又盖了回去。"
+               Related="@GlassRelated">
+    <WhenToUse>
+        <p>要定位"玻璃面板为什么糊不起来、太实、边界太软、文字被打穿"时看这一页：六个问题各占一块舞台，可以分别调、分别读数。</p>
+        <p>落地用法是 <code>Surface</code> 的 <code>Glass</code> 变体（见「把结论搬回页面」的两段代码）；这一页本身只读，候选值住在本页隔离样式的 <code>--glass-lab-*</code> 里，不写进库。</p>
+    </WhenToUse>
+    <Demos>
+        @* 实验住在骨架的 Demos 段里：页头、何时使用、右栏目录与说明边界都由 `ComponentPage`
+           提供，这一页不再自带整页标题区与整页卡片。 *@
+        <section class="glass-lab" data-backdrop="@BackdropToken(_backdrop)" data-ink="@InkToken(_ink)">
     <div class="glass-lab__controls">
         <div class="glass-lab__control">
             <span class="glass-lab__control-label">背景内容层</span>
@@ -579,7 +583,20 @@
             —— 这也正是 04／05 两行必须在截图时遮住文字的原因。
         </li>
     </ul>
-</section>
+
+    <h2 class="glass-lab__subtitle">把结论搬回页面</h2>
+    <p class="showcase-page-note">库里的玻璃表面就是 <code>Surface</code> 的 <code>Glass</code> 变体：填充与模糊都已经在 Token 层定档，宿主只要把背景层铺好。</p>
+    <ShowcaseCode Id="glass-code-surface" Code="@SurfaceCode" Label="玻璃面板" />
+    <p class="showcase-page-note">背景层是宿主契约：玻璃只有背后有内容时才读得出来。它要铺满页面、固定定位，并且不能塞进面板内部——<code>backdrop-filter</code> 采样的是元素背后，采样不到自己的子节点。</p>
+    <ShowcaseCode Id="glass-code-backdrop" Code="@BackdropCode" Label="宿主背景层" />
+        </section>
+    </Demos>
+    <Notes>
+        <span>这一页的候选值只是实验值，住在页面隔离样式的 <code>--glass-lab-*</code> 里；真正落地的是 <code>Surface</code> 的 <code>Glass</code> 变体与库 Token，本页不写任何 Token。</span>
+        <span>同屏玻璃面建议不超过 3 个：面板越多，页面里同时生效的 <code>backdrop-filter</code> 越多，合成与滚动的代价也越大。</span>
+        <span>系统开启「降低透明度」时必须降级。库把这条降级收在 Token 层（填充退不透明表面、模糊退 <code>none</code>），自己只摘掉 <code>backdrop-filter</code> 会留下一块半透明色斑。</span>
+    </Notes>
+</ComponentPage>
 
 @code {
     private GlassBackdrop _backdrop = GlassBackdrop.Wallpaper;
@@ -884,4 +901,40 @@
         string Name,
         string Token,
         string Note);
+
+    /// <summary>下一站：玻璃表面所属的容器组件、主题与品牌，以及 Token 规格表。</summary>
+    private static readonly ShowcaseRelatedLink[] GlassRelated =
+    [
+        new("Surface", "/components/surface"),
+        new("Theme", "/components/theme"),
+        new("色彩与语义", "/components/colors")
+    ];
+
+    private const string SurfaceCode = """
+        <Surface Variant="SurfaceVariant.Glass"
+                 Elevation="SurfaceElevation.Small"
+                 Padding="SurfacePadding.Large">
+            <p>玻璃面板上的正文：次要墨用 --aeterni-text-on-glass-secondary。</p>
+        </Surface>
+        """;
+
+    private const string BackdropCode = """
+        /* 宿主提供的背景层：铺满页面、固定定位；玻璃采样的是它 */
+        .app-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url(images/wallpaper.jpg) center / cover no-repeat;
+        }
+
+        /* 自己画的玻璃表面：填充与模糊都取 Token，换主题与降级自动跟随 */
+        .my-glass {
+            background: var(--aeterni-bg-glass);
+            -webkit-backdrop-filter: var(--aeterni-blur-glass);
+            backdrop-filter: var(--aeterni-blur-glass);
+            color: var(--aeterni-text-on-glass-secondary);
+            border-radius: var(--aeterni-radius-surface);
+            border: 1px solid var(--aeterni-border-subtle);
+        }
+        """;
 }

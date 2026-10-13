@@ -6,6 +6,16 @@
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
+## 示例工程内容补齐（批次 5，版本号未递增）
+
+批次 5 把“组件页有骨架、三个非组件页没有”补成 **57 页同一套页面模板**：安装、设计基础与对比实验三页改用 `ComponentPage`，组件页补齐 `<Controls>`，门禁因此可以断言“每个页面都有可复制代码块、写了三段固定段”。
+
+- [x] **三个非组件页并入页面模板**：`Install`、`Colors`、`GlassLab` 从“直接渲染进布局壳 + 自带 eyebrow / h1 / 编辑链接 / 整页卡片”改为 `ComponentPage` 骨架，三页因此同时得到「何时使用」「相关组件」「说明与边界」、右栏目录与搜索索引里的段条目（段锚点由骨架生成，不会漂移）。它们自己的整页卡片边框（`.showcase-install`、`.showcase-colors`）随之删掉，外层卡片改由骨架的 `.component-preview` 承担——留着会卡片套卡片；`GlassLab` 的 `.glass-lab` 保留为变量宿主，`--glass-lab-*` 与 `data-backdrop` / `data-ink` 仍挂在同一个元素上（隔离样式的 `b-*` scope 实测仍在，22 个实验格照旧渲染）。
+- [x] **可复制代码块**：`Install` 的四步从手写 `<pre><code>` 换成共享的 `ShowcaseCode`（复制按钮因此可用），`Colors` 补「在应用里消费」两段（消费 Token 的 CSS、换品牌色层的 C#），`GlassLab` 补「把结论搬回页面」两段（`Surface` 的 `Glass` 变体、宿主背景层）。三页都写明各自只读、候选值住在本页隔离样式里的边界。顺手把 `showcase-install__note` 改名 `showcase-page-note`（它早就是跨页的页级说明类，名字里带 `install` 只会误导），并删掉失去消费者的 `.showcase-install__lead` 与 `.showcase-page-eyebrow`。
+- [x] **5 页补齐 `<Controls>`**：`IconButton`（AriaLabel / Variant / Intent / Size）、`Label`（标签文字与目标控件禁用）、`MenuButton`（Label / Variant / Size / Placement）、`SplitButton`（Label / Variant / Intent / Size）、`VirtualList`（Height / ItemSize / SelectionMode）。控件都作用在预览里的真实实例上，卡片说明同步写明“右侧控件即时作用在……”，54 个卡片化页面至此每页都有 02 段。
+- [x] **门禁加固**（`tests/sample-docs.test.mjs`）：新增「每个页面都有可复制代码块，且写了三段固定段」（逐页断言 `<WhenToUse>` / `Related="` / `<Notes>`）与「非组件页与组件页共用同一骨架」（骨架锚点等于目录 id、`ShowcaseCode` 锚点唯一且至少两段）；原「每段 demo 都有自己的标题与代码」收窄到组件页，「片段用到了本页记录的组件」从“每段都要点名”放宽为“整页至少一处”——一页可能同时给形态片段与小节片段，逐段要求会逼出注水注释。浏览器检查新增三条真实渲染断言（安装页的骨架与四个代码块、设计基础与实验台两页的骨架与两段片段）。
+- [x] 文档同步：`component-plan` §4 的目标结构表按实际取值改写（`<Controls>` 54/54、代码块 57/57、三段固定段 57/57、搜索索引 451 条 / 57 页），批次 5 标为已交付。`Feedback` 页“无组件类型的页也要有 API 区”那条既有断言不受影响：三页在 API 生成物里没有条目，`ComponentPage.HasApi` 为假，因此不渲染 API 段。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --test tests/*.test.mjs` **93 项**通过；`node scripts/generate-search-index.mjs --check`（451 条 / 57 页）；`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`（78 文案键）、`node scripts/check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。浏览器侧：新增三条断言的形态已用独立 CDP 脚本逐页实测（**11/11**：骨架三段、代码块数、无横向溢出、`.glass-lab` 变量宿主与 22 个实验格、`upload` 页作对照），而 `verify.mjs` 全量在这台机器上仍跑不到该段落——第 1356 行的 `Emulation.setDeviceMetricsOverride` 报 `Target does not support metrics override`，与 `10.34.0` / `10.34.1` 记录的是同一条既有环境项，由 CI 复核。
 ## 示例工程页头搜索改为居中弹出的模态面板（版本号未递增）
 
 - [x] **入口换成"像输入框的按钮"**：`ShowcaseSearchBox` 不再是库内 `Input` 的宿主，改成一个原生 `button`（`aria-haspopup="dialog"` + `aria-expanded` + `aria-keyshortcuts`），字段外观直接取库内控件 token（`--aeterni-control-*`、`--aeterni-focus-*`、`--aeterni-radius-input`），右侧键位提示按平台写成 ⌘K / Ctrl K。读屏名字来自可见文案，因此不用 `aria-label` 覆盖它（避开"可见标签不在可访问名字里"）。

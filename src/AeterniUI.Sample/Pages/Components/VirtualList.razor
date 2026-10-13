@@ -18,15 +18,15 @@
     <Demos>
         <DemoCard Id="virtual-list-basic"
                   Title="大数据量与单选"
-                  Description="250 条记录只渲染视口附近的行；SelectionMode 打开后与 List 一样输出 listbox 语义，SelectedValue 拿到的是项目本身。"
+                  Description="250 条记录只渲染视口附近的行；SelectionMode 打开后与 List 一样输出 listbox 语义，SelectedValue 拿到的是项目本身。右侧控件改的是视口高度、固定行高与选择模式。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-list-wrap">
                     <VirtualList Items="@_rows"
-                                 Height="280px"
-                                 ItemSize="32"
+                                 Height="@_listHeight"
+                                 ItemSize="@_itemSize"
                                  OverscanCount="6"
-                                 SelectionMode="SelectionMode.Single"
+                                 SelectionMode="@_selectionMode"
                                  @bind-SelectedValue="_selected"
                                  ItemKeySelector="row => row.Id"
                                  AriaLabel="虚拟项目列表">
@@ -35,9 +35,25 @@
                             <span class="preview-value">@row.Label</span>
                         </ItemTemplate>
                     </VirtualList>
-                    <span class="preview-feedback" role="status">当前值：@(_selected?.ToString() ?? "未选择")，共 @_rows.Count 条</span>
+                    <span class="preview-feedback" role="status">模式 @_selectionMode：当前值 @(_selected?.ToString() ?? "未选择")，共 @_rows.Count 条</span>
                 </div>
             </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Height</span>
+                        <ShowcaseSelect TValue="string" Id="virtual-list-height" AriaLabel="Height" Options="@ListHeights" @bind-Value="_listHeight" />
+                    </div>
+                    <div class="control-field">
+                        <span>SelectionMode</span>
+                        <ShowcaseSelect TValue="SelectionMode" Id="virtual-list-mode" AriaLabel="SelectionMode" Options="@SelectionModes" @bind-Value="_selectionMode" />
+                    </div>
+                    <div class="control-field">
+                        <label for="virtual-list-item-size">ItemSize</label>
+                        <input id="virtual-list-item-size" type="number" min="24" max="48" step="4" @bind="_itemSize" />
+                    </div>
+                </div>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="virtual-list-loadmore"
@@ -166,6 +182,12 @@
     private bool _hasMoreItems = true;
     private bool _loadingMore;
     private string _loadMoreNote = "滚到列表底部会追加 250 条。";
+    private double _itemSize = 32;
+    private string _listHeight = "280px";
+    private SelectionMode _selectionMode = SelectionMode.Single;
+
+    private static readonly string[] ListHeights = ["200px", "280px", "360px"];
+    private static readonly SelectionMode[] SelectionModes = [SelectionMode.None, SelectionMode.Single];
 
     private sealed record VirtualRow(int Id, string Label);
 

@@ -33,6 +33,12 @@ const BASE_PARAMETERS = new Set([
 // 已标记为非稳定公共 API，因此不在页面必须登记的公共面里。
 const INTERNAL_PARTS = new Set(['DateCalendar', 'TimeOptionList']);
 
+// 非组件页：安装指南、设计基础与对比实验。它们讲步骤、规格与配方，没有单一组件，因此
+// 没有 demo 卡片，也没有生成式 API 表；但它们与组件页共用 `ComponentPage` 骨架（页头 →
+// 何时使用 → 内容 → API → 相关组件 → 说明与边界），段齐全与"有可复制代码块"同样要求，
+// 只有"每段 demo 都有自己的标题与代码"这条换成"至少一个 ShowcaseCode 代码块"。
+const NON_COMPONENT_PAGES = new Set(['install', 'colors', 'glass']);
+
 const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
 
 function catalogEntries() {
@@ -48,6 +54,9 @@ function catalogEntries() {
 }
 
 const pascal = id => id.split('-').map(part => part[0].toUpperCase() + part.slice(1)).join('');
+
+/// 页面骨架的锚点（也是目录条目 id）。没有 `ComponentPage` 骨架的页面返回 null。
+const pageIdOf = source => /AnchorId="([a-z0-9-]+)"/.exec(source)?.[1] ?? null;
 
 function pageNames(path) {
     const names = new Set();
@@ -113,7 +122,7 @@ test('每个有组件的条目都出现在生成的 API 表里，且页面不再
     // 反馈页记录的是服务与选项类型，没有对应组件目录，它的行全部来自编辑文件的额外行
     // （`scripts/api-extra-rows.json` → 生成器在成员为空时也为它产出条目）。这里不再把它
     // 当例外：例外曾经让它带着三张没人消费的数组通过门禁，页面上其实没有 API 区。
-    const noComponent = new Set(['install', 'colors', 'glass']);
+    const noComponent = NON_COMPONENT_PAGES;
 
     const missing = entries
         .filter(entry => !noComponent.has(entry.id) && (componentDirs.has(entry.page ?? pascal(entry.id)) || entry.id === 'feedback'))
@@ -164,6 +173,10 @@ test('卡片化页面：每段代码都声明了，且片段用到了本页记�
             }
         }
 
+        // 片段与页面的相关性按"整页至少有一处"判定：一页可能同时给片段的形态与小节片段
+        // （安装页的四步、色彩页的 CSS 与 C#），要求每一段都点名本页类型会逼出注水注释。
+        // 每个片段本身仍必须真的声明过——那一条在上面单独断言。
+        let mentionsOwner = false;
         for (const match of source.matchAll(/Code="@(\w+)"/g)) {
             const constant = match[1];
             // 用 indexOf 取原始字符串字面量，不走正则：跨语言的转义（\r?\n、[\s\S]）
@@ -173,22 +186,25 @@ test('卡片化页面：每段代码都声明了，且片段用到了本页记�
             const end = start < 0 ? -1 : source.indexOf('"""', start + marker.length);
             const snippet = start < 0 || end < 0 ? undefined : source.slice(start + marker.length, end);
             assert.ok(snippet !== undefined, `${file} 引用了未声明的代码常量 ${constant}`);
-            assert.ok([...documented].some(type => snippet.includes(type)),
-                `${file} 的 ${constant} 片段没有出现本页记录的组件（${[...documented].join(' / ')}）`);
+            if ([...documented].some(type => snippet.includes(type))) mentionsOwner = true;
             cards += 1;
         }
+
+        assert.ok(mentionsOwner,
+            `${file} 的所有代码片段都没有出现本页记录的组件（${[...documented].join(' / ')}）`);
     }
 
     assert.ok(cards > 0, '示例工程里没有任何代码片段，说明本门禁已失效');
 });
 
-test('卡片化的页面：demo 锚点唯一，每段都有自己的标题与代码', () => {
+test('组件页的 demo 锚点唯一，每段都有自己的标题与代码', () => {
     const files = readdirSync(PAGES).filter(name => name.endsWith('.razor'));
     const migrated = [];
 
     for (const file of files) {
         const source = read(join(PAGES, file));
         if (!source.includes('<ComponentPage')) continue;
+        if (NON_COMPONENT_PAGES.has(pageIdOf(source))) continue;
         migrated.push(file);
 
         const ids = [...source.matchAll(/<DemoCard\s+Id="([^"]+)"/g)].map(match => match[1]);
@@ -204,4 +220,44 @@ test('卡片化的页面：demo 锚点唯一，每段都有自己的标题与代
     }
 
     assert.ok(migrated.length > 0, '没有任何卡片化页面，说明本门禁已失效');
+});
+
+test('每个页面都有可复制代码块，且写了三段固定段', () => {
+    const files = readdirSync(PAGES).filter(name => name.endsWith('.razor'));
+    const withoutCode = [];
+    const withoutSections = [];
+
+    for (const file of files) {
+        const source = read(join(PAGES, file));
+        if (![...source.matchAll(/Code="@(\w+)"/g)].length) withoutCode.push(file);
+
+        if (!source.includes('<ComponentPage')) continue;
+
+        // 三段固定段：何时使用 / 相关组件 / 说明与边界。`ComponentPage` 只在参数非空时渲染它们，
+        // 所以"页面写了段标记"就是"页面渲染了该段"——这条让"每页 01～05 段齐全"不再靠人工核对。
+        const missing = ['<WhenToUse', 'Related="', '<Notes'].filter(marker => !source.includes(marker));
+        if (missing.length > 0) withoutSections.push(`${file} 缺 ${missing.join(' / ')}`);
+    }
+
+    assert.deepEqual(withoutCode, [], `这些页面没有可复制代码块：${withoutCode.join(', ')}`);
+    assert.deepEqual(withoutSections, [], `这些页面缺少固定段：${withoutSections.join('; ')}`);
+});
+
+test('非组件页（安装 / 设计基础 / 实验台）按同一模板组织', () => {
+    const byId = new Map(entries.map(entry => [entry.id, entry]));
+
+    for (const id of NON_COMPONENT_PAGES) {
+        const entry = byId.get(id);
+        assert.ok(entry, `目录里没有 ${id} 这个条目`);
+        const file = `${PAGES}/${entry.page ?? pascal(entry.id)}.razor`;
+        const source = read(file);
+
+        assert.ok(source.includes('<ComponentPage'), `${file} 应与组件页共用页面骨架`);
+        assert.equal(pageIdOf(source), id, `${file} 的骨架锚点应与目录 id 一致`);
+
+        // 代码块用共享的 `ShowcaseCode`（带复制按钮），锚点唯一：复制按钮就是按它取文本的。
+        const ids = [...source.matchAll(/<ShowcaseCode\s+Id="([^"]+)"/g)].map(match => match[1]);
+        assert.ok(ids.length >= 2, `${file} 至少要有两个可复制代码块`);
+        assert.equal(new Set(ids).size, ids.length, `${file} 的代码块锚点必须唯一`);
+    }
 });

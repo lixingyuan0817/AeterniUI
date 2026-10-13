@@ -20,11 +20,14 @@
     <Demos>
         <DemoCard Id="split-button-basic"
                   Title="基础用法"
-                  Description="左半执行主动作并回调 OnClick，右半打开菜单并回调 OnItemSelected；两半共用变体与尺寸。"
+                  Description="左半执行主动作并回调 OnClick，右半打开菜单并回调 OnItemSelected；两半共用变体与尺寸。右侧控件即时作用在这个实例上。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-stack">
-                    <SplitButton Label="保存"
+                    <SplitButton Label="@_label"
+                                 Variant="@_variant"
+                                 Intent="@_intent"
+                                 Size="@_size"
                                  MenuAriaLabel="保存到其它位置"
                                  Items="@MenuItems"
                                  OnClick="HandlePrimaryAsync"
@@ -32,6 +35,26 @@
                     <span class="preview-feedback" role="status">@_status</span>
                 </div>
             </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="split-button-label">Label</label>
+                    <input id="split-button-label" @bind="_label" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="split-button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Intent</span>
+                        <ShowcaseSelect TValue="ButtonIntent" Id="split-button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="split-button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                    </div>
+                </div>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="split-button-states"
@@ -101,6 +124,10 @@
 
     private bool _menuOpen;
     private string _status = "尚未触发动作";
+    private string _label = "保存";
+    private ButtonVariant _variant = ButtonVariant.Ghost;
+    private ButtonIntent _intent = ButtonIntent.Neutral;
+    private Size _size = Size.Small;
 
     private static readonly IReadOnlyList<MenuGroup> MenuItems =
     [

@@ -6,60 +6,105 @@
 
 <PageTitle>Aeterni UI · 安装</PageTitle>
 
-@* Installation guide: the four steps are one vertical column, so each step keeps a
-   full-width code block instead of being squeezed into a third of the row. *@
-<section class="showcase-install" aria-labelledby="install-title">
-    <p class="showcase-page-eyebrow">开始使用</p>
-    <h1 id="install-title">安装 AeterniUI</h1>
-    <ShowcaseEditLink AnchorId="install" />
-    <p class="showcase-install__lead">一套基于语义 Token 的 Blazor 组件库，覆盖 Server 与 WebAssembly。</p>
+@* 安装指南。它和组件页共用 ComponentPage 骨架：页头、何时使用、右栏目录、相关组件与说明
+   边界都由骨架提供，四步安装是 Demos 里的内容，代码块用 ShowcaseCode（带复制按钮），
+   所以这一页的段锚点与搜索结果与组件页走同一套机制，不需要第二套页面模板。 *@
+<ComponentPage AnchorId="install"
+               Category="开始"
+               Title="安装"
+               ComponentName="AeterniUIOptions"
+               Description="四步把 AeterniUI 接进已有的 Blazor 应用：注册服务与样式、挂上 Provider、在首屏之前定好主题。"
+               Related="@InstallRelated">
+    <WhenToUse>
+        <p>新项目按这四步走全；已有应用最少只要前两步（注册服务、引入样式），后两步在用到弹层通知与主题切换时再补。</p>
+        <p>Server 与 WebAssembly 注册与样式完全相同，差别只在宿主启动方式（<code>WebApplicationBuilder</code> 与 <code>WebAssemblyHostBuilder</code>）；组件本身不区分宿主，也不需要额外的 JS 引包。</p>
+    </WhenToUse>
+    <Demos>
+        <div class="showcase-install__steps">
+            <section>
+                <header>
+                    <span>01</span>
+                    <h2><Icon Definition="@FontAwesomeIcons.Solid.Plug" Color="Color.Primary" /> 添加服务</h2>
+                </header>
+                <p><code>AddAeterniUI()</code> 注册主题、弹层与文案三种服务；示例里的配置全部可选，不传时使用内置默认值。</p>
+                <ShowcaseCode Id="install-code-services" Code="@ServiceCode" Label="添加服务" />
+            </section>
 
-    <div class="showcase-install__steps">
-        <section>
-            <header>
-                <span>01</span>
-                <h2><Icon Definition="@FontAwesomeIcons.Solid.Plug" Color="Color.Primary" /> 添加服务</h2>
-            </header>
-            <pre><code>builder.Services.AddAeterniUI();</code></pre>
-        </section>
+            <section>
+                <header>
+                    <span>02</span>
+                    <h2><Icon Definition="@FontAwesomeIcons.Solid.Link" Color="Color.Primary" /> 引入样式</h2>
+                </header>
+                <p>样式表从库的静态资源路径引入，Token、主题变量与组件样式都在这一个文件里。</p>
+                <ShowcaseCode Id="install-code-styles" Code="@StyleCode" Label="引入样式" />
+            </section>
 
-        <section>
-            <header>
-                <span>02</span>
-                <h2><Icon Definition="@FontAwesomeIcons.Solid.Link" Color="Color.Primary" /> 引入样式</h2>
-            </header>
-            <pre><code>&lt;link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" /&gt;</code></pre>
-        </section>
+            <section>
+                <header>
+                    <span>03</span>
+                    <h2><Icon Definition="@FontAwesomeIcons.Solid.Gear" Color="Color.Primary" /> 注册 Provider</h2>
+                </header>
+                <p>两个 Provider 放在布局根部：<code>ThemeProvider</code> 驱动主题与品牌，<code>DialogProvider</code> 承载 Dialog、Alert 与 Toast。</p>
+                <ShowcaseCode Id="install-code-providers" Code="@ProviderCode" Label="注册 Provider" />
+            </section>
 
-        <section>
-            <header>
-                <span>03</span>
-                <h2><Icon Definition="@FontAwesomeIcons.Solid.Gear" Color="Color.Primary" /> 注册 Provider</h2>
-            </header>
-            <pre><code>&lt;ThemeProvider /&gt;
-&lt;DialogProvider /&gt;</code></pre>
-        </section>
+            <section>
+                <header>
+                    <span>04</span>
+                    <h2><Icon Definition="@FontAwesomeIcons.Solid.Paintbrush" Color="Color.Primary" /> 预渲染主题</h2>
+                </header>
+                <p>在 Blazor 启动之前把主题写进 <code>&lt;html&gt;</code>，深色用户才不会先看到一帧浅色。片段里的品牌回落值要与 <code>DefaultBrand</code> 保持一致。</p>
+                <ShowcaseCode Id="install-code-theme" Code="@ThemeCode" Label="预渲染主题" />
+            </section>
+        </div>
+    </Demos>
+    <Notes>
+        <span>样式只能从 <code>_content/AeterniUI/css/aeterni_ui.css</code> 引用：把 CSS 复制进应用会让 Token 与组件样式在升级后脱节，库的样式文件是唯一事实源。</span>
+        <span><code>AddAeterniUI()</code> 的实参会校验一遍：非法枚举、非正的 Toast 上限与负时长会直接抛出，而不是留到运行时才发现；文案表里留空的项回退到内置文案。</span>
+        <span>组件不读写 <code>data-theme</code> 与品牌标记，主题只能由 <code>ThemeProvider</code> / <code>ThemeService</code> 驱动；首屏脚本是唯一允许直接写标记的位置。</span>
+    </Notes>
+</ComponentPage>
 
-        <section>
-            <header>
-                <span>04</span>
-                <h2><Icon Definition="@FontAwesomeIcons.Solid.Paintbrush" Color="Color.Primary" /> 预渲染主题</h2>
-            </header>
-            <pre><code>&lt;script&gt;
-  const m = localStorage.getItem('aeterni.theme.mode');
-  const t = m === 'dark' || m === 'light'
-    ? m
-    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.dataset.theme = t;
-  document.documentElement.style.colorScheme = t;
+@code {
+    private static readonly ShowcaseRelatedLink[] InstallRelated =
+    [
+        new("Theme", "/components/theme"),
+        new("Feedback", "/components/feedback"),
+        new("Icon", "/components/icon")
+    ];
 
-  // 品牌色：缺省回落到标记里钉住的色板，再回落到库默认的紫罗兰
-  const b = localStorage.getItem('aeterni.theme.brand');
-  document.documentElement.dataset.aeterniBrand =
-    b || document.documentElement.dataset.aeterniBrand || 'purple';
-&lt;/script&gt;</code></pre>
-        </section>
-    </div>
+    private const string ServiceCode = """
+        builder.Services.AddAeterniUI(options =>
+        {
+            // options 是 AeterniUIOptions 实例：默认品牌、通知默认位置与时长、界面文案
+            options.DefaultBrand = ThemeBrand.Purple;
+            options.Text.TimePickerHourLabel = "时";
+        });
+        """;
 
-    <p class="showcase-install__note">从左侧选择组件查看实时预览、参数、事件与接口说明；每个组件都是独立页面，可以直接分享链接。</p>
-</section>
+    private const string StyleCode = """
+        <link rel="stylesheet" href="_content/AeterniUI/css/aeterni_ui.css" />
+        """;
+
+    private const string ProviderCode = """
+        <ThemeProvider />
+        <DialogProvider />
+        """;
+
+    private const string ThemeCode = """
+        <script>
+          // 在 Blazor 启动前定好主题，避免深色用户看到一帧浅色
+          const m = localStorage.getItem('aeterni.theme.mode');
+          const t = m === 'dark' || m === 'light'
+            ? m
+            : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.dataset.theme = t;
+          document.documentElement.style.colorScheme = t;
+
+          // 品牌色：缺省回落到标记里钉住的色板，再回落到库默认的紫罗兰
+          const b = localStorage.getItem('aeterni.theme.brand');
+          document.documentElement.dataset.aeterniBrand =
+            b || document.documentElement.dataset.aeterniBrand || 'purple';
+        </script>
+        """;
+}

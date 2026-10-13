@@ -2135,6 +2135,51 @@ check('页面带「何时使用」「相关组件」与生成式 API 表',
     cards.when && cards.related >= 3 && cards.api > 15,
     JSON.stringify(cards));
 
+// 批次 5：非组件页（安装、设计基础、对比实验）与组件页共用同一套页面模板。以前它们直接渲染
+// 进布局壳、只有「在 GitHub 编辑」一个入口，段锚点与搜索结果因此与其余页面不同源；这里断言
+// 三段固定段、可复制代码块与右栏目录都由骨架给出，页面上没有第二套模板。
+await goto(`${BASE}/components`);
+await waitForApp();
+const installTemplate = await evaluate(`(() => {
+    const q = s => document.querySelector(s);
+    return {
+        heading: q('.component-preview__header h1')?.textContent?.trim() ?? null,
+        when: !!q('.component-page__when'),
+        related: document.querySelectorAll('.component-page__related a').length,
+        notes: !!q('.component-preview__notes'),
+        copies: document.querySelectorAll('.component-preview__copy').length,
+        toc: document.querySelectorAll('.component-page__toc-link').length,
+        api: document.querySelectorAll('.component-preview__api-row').length
+    };
+})()`);
+check('非组件页（安装）也按同一模板渲染：何时使用、相关组件、说明与边界与四个可复制代码块',
+    installTemplate.heading === '安装' && installTemplate.when && installTemplate.related >= 3
+    && installTemplate.notes && installTemplate.copies === 4 && installTemplate.toc === 3
+    && installTemplate.api === 0,
+    JSON.stringify(installTemplate));
+
+// 设计基础与实验台两页同理：规格表 / 实验舞台住在 Demos 段里，骨架负责标题区与三段，
+// 两页各带两段可复制代码块，且都没有 API 表（它们记录的不是单个组件）。
+for (const path of ['/components/colors', '/components/glass']) {
+    await goto(`${BASE}${path}`);
+    await waitForApp();
+    const template = await evaluate(`(() => {
+        const q = s => document.querySelector(s);
+        return {
+            when: !!q('.component-page__when'),
+            related: document.querySelectorAll('.component-page__related a').length,
+            notes: !!q('.component-preview__notes'),
+            copies: document.querySelectorAll('.component-preview__copy').length,
+            api: document.querySelectorAll('.component-preview__api-row').length,
+            body: !!q('.component-page__demos section')
+        };
+    })()`);
+    check(`非组件页 ${path}：骨架 + 两段可复制代码块，内容仍在自己的一节里`,
+        template.when && template.related >= 3 && template.notes && template.copies >= 2
+        && template.api === 0 && template.body,
+        JSON.stringify(template));
+}
+
 // 卡片化的覆盖面：单独抽一两页断言不够——批次 3 的目标是整组页面都变成"多段 demo +
 // 每段代码"，所以按组分批抽查，任何一页退回单段形态都会在这里失败。
 for (const path of ['/components/input', '/components/checkbox', '/components/radio', '/components/multi-select']) {

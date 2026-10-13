@@ -20,17 +20,42 @@
     <Demos>
         <DemoCard Id="menu-button-basic"
                   Title="基础用法"
-                  Description="点击触发、Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。"
+                  Description="点击触发、Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。右侧控件即时作用在第一个按钮上。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-stack">
                     <div class="preview-action-row">
-                        <MenuButton Label="更多操作" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
+                        <MenuButton Label="@_label"
+                                    Variant="@_variant"
+                                    Size="@_size"
+                                    Placement="@_placement"
+                                    Items="@MenuItems"
+                                    OnItemSelected="HandleSelectedAsync" />
                         <MenuButton Label="设置" Variant="ButtonVariant.Soft" Intent="ButtonIntent.Neutral" Items="@MenuItems" OnItemSelected="HandleSelectedAsync" />
                     </div>
                     <span class="preview-feedback" role="status">@_status</span>
                 </div>
             </Preview>
+            <Controls>
+                <div class="control-field">
+                    <label for="menu-button-label">Label</label>
+                    <input id="menu-button-label" @bind="_label" />
+                </div>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Variant</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="menu-button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                    </div>
+                    <div class="control-field">
+                        <span>Size</span>
+                        <ShowcaseSelect TValue="Size" Id="menu-button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                    </div>
+                    <div class="control-field">
+                        <span>Placement</span>
+                        <ShowcaseSelect TValue="PopupPlacement" Id="menu-button-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                    </div>
+                </div>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="menu-button-controlled"
@@ -93,6 +118,10 @@
 
     private bool _menuOpen;
     private string _status = "尚未选择菜单项";
+    private string _label = "更多操作";
+    private ButtonVariant _variant = ButtonVariant.Outline;
+    private Size _size = Size.Default;
+    private PopupPlacement _placement = PopupPlacement.BottomStart;
 
     private static readonly IReadOnlyList<MenuGroup> MenuItems =
     [
