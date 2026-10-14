@@ -1,0 +1,10 @@
+@inherits LayoutComponentBase
+
+@* 大屏专用外壳：只保留两个全局 Provider，不渲染示例站的页头与浮动导航。
+   大屏页自己铺满视口（100dvh），页头一进来就会带出站点导航与页面滚动条，
+   投屏时既占地方又跑题；返回示例站的入口由页面右上角那个链接负责。
+   主题仍由 ThemeProvider 驱动——页面只是通过 ThemeService 请求深色，不直接写 data-theme。 *@
+<ThemeProvider />
+<DialogProvider />
+
+@Body

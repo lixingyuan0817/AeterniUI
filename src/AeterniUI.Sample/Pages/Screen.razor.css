@@ -1,20 +1,36 @@
 /*
-   大屏示例页（/screen）。
-   页面只负责"大屏"这一层的网格、间距与几处尺寸约定；颜色、圆角、动效与状态全部来自
-   --aeterni-* 语义 Token，没有第二套色板或尺寸刻度。装饰性的强调统一取品牌色板
-   （--aeterni-brand-*），和库组件自己的选中态、焦点环是同一支颜色。
-   左栏宽度、舞台高度、播放键与方块键的控件尺寸通过组件的 Style 参数下发：组件根元素
-   不参与本页面的 CSS isolation，宿主能改的只有公共参数。
+   大屏页（/screen）。全屏、不滚动、随视口伸缩。
+
+   与库的分工：面板、按钮、开关、分段、时间线这些交给库组件；页面只画库还没有的
+   「大屏装饰」——网格底、光晕、水波、扫描线、波形、环形占比、跑马灯。
+   颜色全部取自 --aeterni-* 语义 Token，页面不自建色板：页面背景保持无彩色，
+   彩色只出现在舞台内部（品牌色光晕 / 波形 / 环段）与几个状态点上。
+
+   动效有两级开关：页面上的 Switch（data-motion="off"）与系统级 prefers-reduced-motion。
+   两者都只暂停动画播放，不改任何数值，所以关掉动画后读数与布局完全一致。
+
+   尺寸用 clamp() 跟随视口；窗口不够宽或不够高时（<= 1280px 宽 / <= 760px 高）
+   改成单列并允许纵向滚动，避免面板互相压住。
 */
 
-.screen-page {
-    width: var(--sample-shell-width);
-    margin: 0 auto;
-    padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 var(--sample-page-bottom);
+.dash {
+    position: relative;
+    box-sizing: border-box;
+    display: grid;
+    /* 显式给出唯一的列：隐式列是 auto，会被内容的 max-content 撑开，
+       于是整页比视口宽、右侧一栏被 overflow 裁掉（大屏上尤其明显）。 */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(8px, 1vh, 15px);
+    height: 100dvh;
+    overflow: hidden;
+    padding: clamp(10px, 1.3vh, 20px) clamp(16px, 1.8vw, 34px);
+    background: var(--aeterni-bg);
+    color: var(--aeterni-text);
 }
 
 /* 页面标题只服务 FocusOnNavigate 与文档大纲，视觉上不占位。 */
-.screen__heading {
+.dash__heading {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -26,231 +42,797 @@
     border: 0;
 }
 
-.screen {
-    display: grid;
-    gap: var(--aeterni-spacing-5);
-}
+/* 顶栏 ------------------------------------------------------------------- */
 
-.screen__topbar {
+.dash__top {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: var(--aeterni-spacing-4);
+    min-width: 0;
 }
 
-.screen__brand {
+.dash__top > * {
+    min-width: 0;
+}
+
+.dash__brand {
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-3);
     min-width: 0;
 }
 
-/* 品牌标记：品牌色描边 + 极淡的品牌色底。彩色只出现在这一个语意标记上。 */
-.screen__brand-mark {
+.dash__brand-mark {
     display: inline-grid;
     place-items: center;
     flex: 0 0 auto;
-    width: 36px;
-    height: 36px;
-    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-brand-400) 55%, transparent);
+    width: 34px;
+    height: 34px;
+    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-color-brand-default) 55%, transparent);
     border-radius: var(--aeterni-radius-control-sm);
-    background: color-mix(in srgb, var(--aeterni-brand-400) 16%, transparent);
-    color: var(--aeterni-brand-400);
+    background: color-mix(in srgb, var(--aeterni-color-brand-default) 16%, transparent);
+    color: var(--aeterni-color-brand-default);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--aeterni-color-brand-default) 26%, transparent);
 }
 
-.screen__brand-text {
+.dash__brand-text {
     display: grid;
-    gap: 2px;
+    gap: 1px;
     min-width: 0;
 }
 
-.screen__brand-name {
-    font-size: var(--aeterni-font-size-md);
+.dash__brand-name {
+    font-size: clamp(14px, 1.05vw, 18px);
     font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .04em;
     color: var(--aeterni-text);
     white-space: nowrap;
 }
 
-.screen__brand-note {
+.dash__brand-note {
     font-size: var(--aeterni-font-size-xs);
     color: var(--aeterni-text-tertiary);
     white-space: nowrap;
 }
 
-.screen__status {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--aeterni-spacing-2);
-    font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-secondary);
-    white-space: nowrap;
-}
-
-.screen__filters {
-    display: grid;
-    justify-items: center;
-    gap: var(--aeterni-spacing-3);
-}
-
-.screen__body {
-    display: grid;
-    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
-    gap: var(--aeterni-spacing-5);
-    align-items: stretch;
-}
-
-.screen__aside-head {
+.dash__meta {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--aeterni-spacing-3);
 }
 
-.screen__aside-rail {
-    flex: 0 0 auto;
-    align-self: stretch;
-    width: 3px;
-    min-height: 18px;
-    border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-brand-400);
+.dash__live {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-color-success-default);
+    animation: dash-blink 1.8s ease-in-out infinite;
 }
 
-.screen__aside-title {
+.dash__clock {
+    font-size: clamp(14px, 1.05vw, 18px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .06em;
+    color: var(--aeterni-text);
+}
+
+.dash__date {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+.dash__back {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-control-sm);
+    color: var(--aeterni-text-secondary);
+    text-decoration: none;
+    transition: color var(--aeterni-duration-fast) var(--aeterni-ease-standard),
+                border-color var(--aeterni-duration-fast) var(--aeterni-ease-standard),
+                background var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.dash__back:hover {
+    color: var(--aeterni-text);
+    border-color: var(--aeterni-border-strong);
+    background: var(--aeterni-state-background-hover);
+}
+
+.dash__back:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+/* 三栏主区 --------------------------------------------------------------- */
+
+.dash__main {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 300px);
+    gap: clamp(10px, 1vw, 18px);
+    min-width: 0;
+    min-height: 0;
+}
+
+.dash__col {
+    display: grid;
+    gap: clamp(6px, .9vh, 12px);
+    min-width: 0;
+    min-height: 0;
+    align-content: start;
+    /* 三栏布局在矮窗口里放不下全部面板时，让列自己滚，而不是把面板裁掉。
+       滚动条按库的约定隐藏（大屏上不该出现滚动条），滚轮与触控仍然可用。 */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+}
+
+.dash__col::-webkit-scrollbar {
+    display: none;
+}
+
+/* 列里的面板与长文本必须能收缩：读数的 min-content 一旦大于列宽，
+   整页就会横向溢出（大屏上表现为右侧一栏被裁掉）。 */
+.dash__col > * {
+    min-width: 0;
+}
+
+.dash__col--center {
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: stretch;
+}
+
+/* 面板内部 --------------------------------------------------------------- */
+
+.dash__panel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    margin-block-end: var(--aeterni-spacing-2);
+}
+
+.dash__panel-title {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
     margin: 0;
     font-size: var(--aeterni-font-size-md);
     font-weight: var(--aeterni-font-weight-semibold);
     color: var(--aeterni-text);
 }
 
-.screen__aside-count {
-    margin-inline-start: auto;
-    padding: 0 var(--aeterni-spacing-2);
-    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-brand-400) 45%, transparent);
-    border-radius: var(--aeterni-radius-badge);
-    background: color-mix(in srgb, var(--aeterni-brand-400) 16%, transparent);
-    color: var(--aeterni-brand-400);
-    font-size: var(--aeterni-font-size-xs);
-    font-variant-numeric: tabular-nums;
+.dash__panel-title::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 3px;
+    height: 14px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-default);
 }
 
-.screen__tree {
+.dash__panel-note {
+    margin-inline-start: auto;
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+    white-space: nowrap;
+}
+
+.dash__metrics {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--aeterni-spacing-2);
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.screen__tree-item {
-    display: flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-3);
-    font-size: var(--aeterni-font-size-sm);
-    color: var(--aeterni-text-secondary);
-}
-
-.screen__tree-item::before {
-    content: "";
-    flex: 0 0 auto;
-    width: 5px;
-    height: 5px;
-    border-radius: var(--aeterni-radius-round);
-    background: currentColor;
-    opacity: .55;
-}
-
-.screen__stage-media {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* 压暗只为了让叠加文字与图片拉开层次，值取库里的遮罩档。 */
-.screen__stage-scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, var(--aeterni-overlay), transparent 62%);
-}
-
-.screen__stage-caption {
-    position: absolute;
-    inset-block-end: var(--aeterni-spacing-5);
-    inset-inline-start: var(--aeterni-spacing-5);
+.dash__metric {
     display: grid;
-    gap: var(--aeterni-spacing-1);
+    gap: 2px;
+    min-width: 0;
+    padding: clamp(6px, .9vh, 10px);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: color-mix(in srgb, var(--aeterni-bg-elevated) 55%, transparent);
 }
 
-.screen__stage-eyebrow {
-    font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-secondary);
-    letter-spacing: .04em;
-}
-
-.screen__stage-title {
-    font-size: var(--aeterni-font-size-lg);
-    font-weight: var(--aeterni-font-weight-semibold);
+.dash__metric-value {
+    font-size: clamp(17px, 1.4vw, 24px);
+    font-weight: var(--aeterni-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
     color: var(--aeterni-text);
 }
 
-/* 播放键外圈：只画一圈品牌色描边，按钮本体仍是库里的 IconButton。
-   用 translate 而不是 transform 定位，避免与按钮自己的 hover 位移打架。 */
-.screen__play-ring {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    translate: -50% -50%;
-    width: 140px;
-    height: 140px;
-    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-brand-400) 40%, transparent);
-    border-radius: var(--aeterni-radius-round);
+.dash__metric-label {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
 }
 
-.screen__dock {
+.dash__metric-note {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 环形占比：段长按真实分组条目数切，整环缓慢自转。 */
+.dash__ring-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+}
+
+.dash__ring {
+    width: clamp(104px, 19vh, 158px);
+    height: auto;
+    animation: dash-spin 48s linear infinite;
+}
+
+.dash__ring-track {
+    fill: none;
+    stroke: var(--aeterni-border-subtle);
+    stroke-width: 10;
+}
+
+.dash__ring-seg {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: butt;
+}
+
+.dash__ring-seg--primary {
+    stroke: var(--aeterni-color-brand-default);
+}
+
+.dash__ring-seg--info {
+    stroke: var(--aeterni-color-info-default);
+}
+
+.dash__ring-seg--success {
+    stroke: var(--aeterni-color-success-default);
+}
+
+.dash__ring-seg--warning {
+    stroke: var(--aeterni-color-warning-default);
+}
+
+.dash__ring-seg--danger {
+    stroke: var(--aeterni-color-danger-default);
+}
+
+.dash__ring-seg--neutral {
+    stroke: var(--aeterni-color-neutral-default);
+}
+
+.dash__ring-center {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    gap: 1px;
+}
+
+.dash__ring-value {
+    font-size: clamp(20px, 1.6vw, 28px);
+    font-weight: var(--aeterni-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--aeterni-text);
+}
+
+.dash__ring-label {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+}
+
+.dash__legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px var(--aeterni-spacing-3);
+    margin: var(--aeterni-spacing-2) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dash__legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
+}
+
+.dash__legend-dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-color-neutral-default);
+}
+
+.dash__legend-dot--primary {
+    background: var(--aeterni-color-brand-default);
+}
+
+.dash__legend-dot--info {
+    background: var(--aeterni-color-info-default);
+}
+
+.dash__legend-dot--success {
+    background: var(--aeterni-color-success-default);
+}
+
+.dash__legend-dot--warning {
+    background: var(--aeterni-color-warning-default);
+}
+
+.dash__legend-dot--danger {
+    background: var(--aeterni-color-danger-default);
+}
+
+.dash__legend-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dash__legend-value {
+    margin-inline-start: auto;
+    font-variant-numeric: tabular-nums;
+    color: var(--aeterni-text);
+}
+
+.dash__rows {
+    display: grid;
+    gap: clamp(6px, .9vh, 12px);
+    margin-block-end: clamp(6px, .9vh, 12px);
+}
+
+.dash__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--aeterni-spacing-4);
-    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-3);
 }
 
-.screen__dock-item {
-    display: grid;
-    justify-items: center;
-    gap: var(--aeterni-spacing-2);
-}
-
-.screen__dock-label {
+.dash__row-label {
     font-size: var(--aeterni-font-size-xs);
     color: var(--aeterni-text-secondary);
     white-space: nowrap;
 }
 
-.screen__dock-end {
-    display: flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-3);
-    min-width: 0;
+/* 舞台：网格底 + 品牌光晕 + 水波 + 扫描线 + 实时波形 + 柱阵列。 */
+.dash__stage {
+    position: relative;
+    height: 100%;
+    min-height: 240px;
 }
 
-.screen__notice {
+.dash__stage-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(to right, var(--aeterni-border-subtle) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--aeterni-border-subtle) 1px, transparent 1px);
+    background-size: 34px 34px;
+    opacity: .9;
+    animation: dash-grid 22s linear infinite;
+}
+
+.dash__stage-halo {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    width: min(62%, 520px);
+    aspect-ratio: 1;
+    border-radius: var(--aeterni-radius-round);
+    background: radial-gradient(circle, color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent), transparent 68%);
+    animation: dash-halo 6s ease-in-out infinite;
+}
+
+.dash__stage-ripples {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    width: min(46%, 380px);
+    aspect-ratio: 1;
+}
+
+.dash__ripple {
+    position: absolute;
+    inset: 0;
+    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-color-brand-default) 45%, transparent);
+    border-radius: var(--aeterni-radius-round);
+    opacity: 0;
+    animation: dash-ripple 4.5s ease-out infinite;
+}
+
+.dash__ripple:nth-child(2) {
+    animation-delay: 1.5s;
+}
+
+.dash__ripple:nth-child(3) {
+    animation-delay: 3s;
+}
+
+.dash__stage-scan {
+    position: absolute;
+    inset-inline: 0;
+    block-size: 40%;
+    background: linear-gradient(to bottom,
+        transparent,
+        color-mix(in srgb, var(--aeterni-color-info-default) 14%, transparent),
+        transparent);
+    animation: dash-scan 7s ease-in-out infinite;
+}
+
+.dash__chart {
+    position: absolute;
+    inset-block-end: 16%;
+    inset-inline: 0;
+    width: 100%;
+    height: 24%;
+}
+
+.dash__chart-line {
+    fill: none;
+    stroke: var(--aeterni-color-brand-default);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.dash__chart-glow {
+    fill: none;
+    stroke: color-mix(in srgb, var(--aeterni-color-brand-default) 40%, transparent);
+    stroke-width: 5;
+    vector-effect: non-scaling-stroke;
+}
+
+/* 舞台中心读数：与水波、光晕同心，是这块屏的视觉焦点。 */
+.dash__stage-core {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+
+.dash__stage-core-value {
+    font-size: clamp(38px, 4.2vw, 76px);
+    font-weight: var(--aeterni-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--aeterni-text);
+    text-shadow: 0 0 26px color-mix(in srgb, var(--aeterni-color-brand-default) 45%, transparent);
+}
+
+.dash__stage-core-label {
+    font-size: var(--aeterni-font-size-sm);
+    letter-spacing: .18em;
+    color: var(--aeterni-text-tertiary);
+}
+
+.dash__stage-head {
+    position: absolute;
+    inset-block-start: var(--aeterni-spacing-4);
+    inset-inline-start: var(--aeterni-spacing-5);
+    display: grid;
+    gap: 2px;
+}
+
+.dash__stage-eyebrow {
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: .08em;
+    color: var(--aeterni-text-tertiary);
+}
+
+.dash__stage-title {
+    font-size: clamp(16px, 1.3vw, 22px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    color: var(--aeterni-text);
+}
+
+.dash__stage-foot {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 15%;
+    padding: 0 var(--aeterni-spacing-5) var(--aeterni-spacing-3);
+}
+
+.dash__bar {
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: var(--aeterni-radius-xs);
+    background: linear-gradient(to top,
+        color-mix(in srgb, var(--aeterni-color-brand-default) 68%, transparent),
+        color-mix(in srgb, var(--aeterni-color-info-default) 28%, transparent));
+    transition: height .8s var(--aeterni-ease-standard);
+}
+
+.dash__gauges {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(8px, .8vw, 14px);
+}
+
+.dash__gauge-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    margin-block-end: var(--aeterni-spacing-2);
+}
+
+.dash__gauge-label {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
+}
+
+.dash__gauge-value {
+    font-size: clamp(15px, 1.1vw, 20px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--aeterni-text);
+}
+
+/* 组件样本墙：当前格高亮呼吸，格子里的控件都是真实组件。 */
+.dash__samples {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--aeterni-spacing-2);
+}
+
+.dash__sample {
+    display: grid;
+    place-items: center;
+    min-height: clamp(34px, 4.6vh, 44px);
+    padding: var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+    transition: border-color var(--aeterni-duration-normal) var(--aeterni-ease-standard),
+                background var(--aeterni-duration-normal) var(--aeterni-ease-standard);
+}
+
+.dash__sample.is-current {
+    border-color: color-mix(in srgb, var(--aeterni-color-brand-default) 60%, transparent);
+    background: color-mix(in srgb, var(--aeterni-color-brand-default) 12%, transparent);
+    animation: dash-pulse 2.4s ease-in-out infinite;
+}
+
+.dash__empty {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
     font-size: var(--aeterni-font-size-xs);
     color: var(--aeterni-text-tertiary);
 }
 
-/* 窄屏：顶栏改为单列，左右两块面板上下排，尺寸约定不变。 */
-@media (max-width: 1080px) {
-    .screen__topbar {
-        grid-template-columns: minmax(0, 1fr);
-        justify-items: start;
+/* 页脚：跑马灯 + 反馈组件入口 + 状态文案 ---------------------------------- */
+
+.dash__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+}
+
+.dash__ticker {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+.dash__ticker-track {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-5);
+    white-space: nowrap;
+    animation: dash-marquee 36s linear infinite;
+}
+
+.dash__ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+}
+
+.dash__ticker-item::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-color-brand-default);
+}
+
+.dash__ticker-label {
+    color: var(--aeterni-text-secondary);
+}
+
+.dash__ticker-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--aeterni-text);
+}
+
+.dash__dock-item {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+
+.dash__dock-label {
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-tertiary);
+    white-space: nowrap;
+}
+
+.dash__notice {
+    flex: 0 1 340px;
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
+    text-align: end;
+}
+
+/* 动效开关 ---------------------------------------------------------------
+   data-motion="off" 由页面上的 Switch 驱动，prefers-reduced-motion 由系统驱动。
+   两者都只暂停动画播放：读数、布局与过渡后的状态完全一致。 */
+
+.dash[data-motion="off"] *,
+.dash[data-motion="off"] *::before,
+.dash[data-motion="off"] *::after {
+    animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash *,
+    .dash *::before,
+    .dash *::after {
+        animation-play-state: paused !important;
+    }
+}
+
+/* 关键帧 ----------------------------------------------------------------- */
+
+@keyframes dash-grid {
+    from {
+        background-position: 0 0;
     }
 
-    .screen__status {
-        justify-content: flex-start;
+    to {
+        background-position: 34px 34px;
+    }
+}
+
+@keyframes dash-halo {
+    0%,
+    100% {
+        opacity: .55;
+        scale: .94;
     }
 
-    .screen__body {
+    50% {
+        opacity: 1;
+        scale: 1.06;
+    }
+}
+
+@keyframes dash-ripple {
+    0% {
+        opacity: .8;
+        scale: .35;
+    }
+
+    70% {
+        opacity: .14;
+    }
+
+    100% {
+        opacity: 0;
+        scale: 1.15;
+    }
+}
+
+@keyframes dash-scan {
+    0% {
+        translate: 0 -60%;
+    }
+
+    100% {
+        translate: 0 170%;
+    }
+}
+
+@keyframes dash-spin {
+    from {
+        rotate: 0deg;
+    }
+
+    to {
+        rotate: 360deg;
+    }
+}
+
+@keyframes dash-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--aeterni-color-brand-default) 0%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 18px 0 color-mix(in srgb, var(--aeterni-color-brand-default) 26%, transparent);
+    }
+}
+
+@keyframes dash-marquee {
+    from {
+        translate: 0 0;
+    }
+
+    to {
+        translate: -50% 0;
+    }
+}
+
+@keyframes dash-blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .45;
+    }
+}
+
+/* 窄窗口或矮窗口：改单列并允许滚动，面板不再互相压住 ---------------------- */
+
+@media (max-width: 1180px), (max-height: 640px) {
+    .dash {
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
+    }
+
+    .dash__main {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dash__col--center {
+        grid-row: 1;
+        grid-template-rows: none;
+    }
+
+    .dash__stage {
+        min-height: 320px;
+    }
+
+    .dash__foot {
+        flex-wrap: wrap;
+    }
+
+    .dash__notice {
+        flex-basis: 100%;
+        text-align: start;
     }
 }

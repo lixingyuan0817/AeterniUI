@@ -1,172 +1,334 @@
 @page "/screen"
+@layout ScreenLayout
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 
 <PageTitle>Aeterni UI · 组件运营大屏</PageTitle>
 
-@* 大屏示例（/screen）：只做组合，不新增公共 API。
-   结构照"顶栏 → 分类 → 左栏树 + 舞台 → 快捷入口"四段走，全部由库组件承担视觉：
-   顶栏与两块面板是 Surface 的 Glass 变体，分类与视图是 Segmented，左栏是 Accordion，
-   播放与快捷入口是 IconButton / Button / Icon，时间戳是 Icon + 文本。
-   页面自己只写网格与间距，颜色、圆角、动效与状态一律来自 --aeterni-* 语义 Token。
-   左栏宽度由页面的网格列给出；舞台最小高度与播放键、方块键的控件尺寸用 Style 参数
-   传给组件根元素：组件根元素不参与页面的 CSS isolation，宿主能改的就是这些公共参数。 *@
-<h1 class="screen__heading">组件运营大屏</h1>
+@* 大屏页（/screen）：全屏、不滚动、自适应视口。
+   一切视觉都来自库组件与 --aeterni-* 语义 Token，页面自己只画网格、光晕、波形与环形这些
+   库还没有的"大屏装饰"——它们是页面的局部样式，不覆盖任何 .aeterni-* 规则，也不进库。
 
-<div class="screen-page">
-    <Surface Variant="SurfaceVariant.Glass"
-             Bordered="true"
-             Padding="SurfacePadding.Large"
-             Radius="SurfaceRadius.ExtraLarge"
-             FullWidth="true">
-        <div class="screen">
-            <header class="screen__topbar">
-                <div class="screen__brand">
-                    <span class="screen__brand-mark" aria-hidden="true">
-                        <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
-                    </span>
-                    <span class="screen__brand-text">
-                        <span class="screen__brand-name">AeterniUI 组件运营中心</span>
-                        <span class="screen__brand-note">Blazor Server / WebAssembly · .NET 10</span>
-                    </span>
+   数据分两类，页面上必须一眼能分辨：库规模、分组占比、组件样本、技术栈取自
+   ShowcaseCatalog 的真实状态；波形、仪表与事件流是演示数据，各自带标签。
+   刷新由 Screen.razor.cs 里的一个一秒定时器驱动，Dispose 时释放。
+
+   组件槽位的写法有两处讲究：
+   - IconButton / Button 各自有名为 Icon 的参数，图标必须走 Icon="@片段"，不能写成子元素；
+   - 传给组件的 Style 只用来下发组件自己的尺寸变量（比如 --aeterni-icon-button-size），
+     颜色、圆角与动效仍由组件自己决定。 *@
+<h1 class="dash__heading">AeterniUI 组件运营大屏</h1>
+
+<div class="dash" data-motion="@MotionState">
+    <header class="dash__top">
+        <div class="dash__brand">
+            <span class="dash__brand-mark" aria-hidden="true">
+                <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
+            </span>
+            <span class="dash__brand-text">
+                <span class="dash__brand-name">AeterniUI 组件运营大屏</span>
+                <span class="dash__brand-note">Blazor Server / WebAssembly · .NET 10</span>
+            </span>
+        </div>
+
+        <Toolbar AriaLabel="大屏视图切换">
+            @foreach (var entry in NavEntries)
+            {
+                var active = entry.Id == _nav;
+                <Button Variant="@(active ? ButtonVariant.Solid : ButtonVariant.Ghost)"
+                        Size="Size.Small"
+                        OnClick="() => SelectNavAsync(entry.Id)">
+                    @entry.Label
+                </Button>
+            }
+        </Toolbar>
+
+        <div class="dash__meta">
+            <span class="dash__live" aria-hidden="true"></span>
+            <span class="dash__clock">@_now.ToString("HH:mm:ss")</span>
+            <span class="dash__date">@_now.ToString("yyyy-MM-dd")</span>
+            <a class="dash__back" href="/" aria-label="返回示例站">
+                <Icon Definition="@FontAwesomeIcons.Solid.House" Size="Size.Small" />
+            </a>
+        </div>
+    </header>
+
+    <main class="dash__main">
+        <div class="dash__col dash__col--left">
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.Small"
+                     Radius="SurfaceRadius.Large"
+                     FullWidth="true">
+                <div class="dash__panel-head">
+                    <h2 class="dash__panel-title">库规模</h2>
+                    <Tag Color="Color.Success" Variant="TagVariant.Soft" Size="Size.Small">真实数据</Tag>
                 </div>
-
-                <Toolbar AriaLabel="大屏主导航">
-                    @foreach (var entry in NavList)
+                <ul class="dash__metrics">
+                    @foreach (var metric in Metrics)
                     {
-                        var active = entry.Id == _nav;
-                        <Button Variant="@(active ? ButtonVariant.Solid : ButtonVariant.Ghost)"
-                                Size="Size.Small"
-                                OnClick="() => SelectNavAsync(entry.Id)">
-                            @entry.Label
-                        </Button>
+                        <li class="dash__metric">
+                            <span class="dash__metric-value">@metric.Value</span>
+                            <span class="dash__metric-label">@metric.Label</span>
+                            <span class="dash__metric-note">@metric.Note</span>
+                        </li>
                     }
-                </Toolbar>
+                </ul>
+            </Surface>
 
-                <div class="screen__status">
-                    <Icon Definition="@AeterniIcons.Clock" Size="Size.Small" />
-                    <span>@NavLabel · @_stamp</span>
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.Small"
+                     Radius="SurfaceRadius.Large"
+                     FullWidth="true">
+                <div class="dash__panel-head">
+                    <h2 class="dash__panel-title">分组占比</h2>
+                    <span class="dash__panel-note">@Catalog.Count 个分组</span>
                 </div>
-            </header>
-
-            <Divider />
-
-            <div class="screen__filters">
-                <Segmented TValue="string"
-                           Items="@ChannelValues"
-                           Value="@_channel"
-                           ValueChanged="SelectChannelAsync"
-                           TextSelector="ChannelLabelSelector"
-                           Size="Size.Small"
-                           Shape="SegmentedShape.Pill"
-                           AriaLabel="组件分类" />
-                <Segmented TValue="string"
-                           Items="@ViewValues"
-                           Value="@_view"
-                           ValueChanged="SelectViewAsync"
-                           TextSelector="ViewLabelSelector"
-                           Size="Size.Small"
-                           Shape="SegmentedShape.Pill"
-                           AriaLabel="视图" />
-            </div>
-
-            <div class="screen__body">
-                <Surface Variant="SurfaceVariant.Glass"
-                         Bordered="true"
-                         Padding="SurfacePadding.Large"
-                         Radius="SurfaceRadius.Large"
-                         Style="min-width: 0; display: flex; flex-direction: column; gap: var(--aeterni-spacing-4)">
-                    <div class="screen__aside-head">
-                        <span class="screen__aside-rail" aria-hidden="true"></span>
-                        <h2 class="screen__aside-title">@ChannelLabel</h2>
-                        <span class="screen__aside-count">@ItemCount</span>
+                <div class="dash__ring-wrap">
+                    <svg class="dash__ring" viewBox="0 0 200 200" role="img" aria-label="各分组导航条目占比">
+                        <circle class="dash__ring-track" cx="100" cy="100" r="74" />
+                        @foreach (var segment in _ring)
+                        {
+                            <circle class="dash__ring-seg dash__ring-seg--@segment.Tone"
+                                    cx="100"
+                                    cy="100"
+                                    r="74"
+                                    transform="rotate(-90 100 100)"
+                                    style="stroke-dasharray:@segment.DashArray;stroke-dashoffset:@segment.DashOffset" />
+                        }
+                    </svg>
+                    <div class="dash__ring-center">
+                        <span class="dash__ring-value">@ShowcaseCatalog.ComponentCount</span>
+                        <span class="dash__ring-label">组件</span>
                     </div>
-                    <Accordion Items="@TreeItems"
-                               Multiple="true"
-                               OpenKeys="@_openKeys"
-                               OpenKeysChanged="HandleOpenKeysChangedAsync"
-                               AriaLabel="@TreeLabel" />
-                </Surface>
-
-                <Surface Variant="SurfaceVariant.Glass"
-                         Bordered="true"
-                         Padding="SurfacePadding.None"
-                         Radius="SurfaceRadius.Large"
-                         Style="position: relative; overflow: hidden; min-width: 0; min-height: 420px">
-                    <img class="screen__stage-media" src="images/flash-card/magician.jpg" alt="" />
-                    <span class="screen__stage-scrim" aria-hidden="true"></span>
-                    <div class="screen__stage-caption">
-                        <span class="screen__stage-eyebrow">@ChannelLabel · 演示回放</span>
-                        <span class="screen__stage-title">@ViewLabel</span>
-                    </div>
-                    <span class="screen__play-ring" aria-hidden="true"></span>
-                    <IconButton Variant="ButtonVariant.Soft"
-                                Intent="ButtonIntent.Default"
-                                AriaLabel="@PlayLabel"
-                                Icon="@(_playing ? PauseGlyph : PlayGlyph)"
-                                Style="position: absolute; inset-block-start: 50%; inset-inline-start: 50%; translate: -50% -50%; border-radius: var(--aeterni-radius-round); --aeterni-icon-button-size: 88px; --aeterni-icon-button-icon-size: 38px"
-                                OnClick="TogglePlayAsync" />
-                </Surface>
-            </div>
-
-            <footer class="screen__dock">
-                <Toolbar AriaLabel="大屏快捷入口">
-                    @foreach (var entry in DockEntries)
+                </div>
+                <ul class="dash__legend">
+                    @foreach (var segment in _ring)
                     {
-                        <span class="screen__dock-item">
-                            <IconButton Variant="ButtonVariant.Soft"
-                                        Intent="@entry.Intent"
-                                        AriaLabel="@entry.Label"
-                                        Icon="@Glyph(entry.Icon)"
-                                        Style="--aeterni-icon-button-size: 52px; --aeterni-icon-button-icon-size: 22px; border-radius: var(--aeterni-radius-control-md)"
-                                        OnClick="() => SelectDockAsync(entry.Label)" />
-                            <span class="screen__dock-label" aria-hidden="true">@entry.Label</span>
+                        <li class="dash__legend-item">
+                            <span class="dash__legend-dot dash__legend-dot--@segment.Tone" aria-hidden="true"></span>
+                            <span class="dash__legend-label">@segment.Label</span>
+                            <span class="dash__legend-value">@segment.Count</span>
+                        </li>
+                    }
+                </ul>
+            </Surface>
+
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.Small"
+                     Radius="SurfaceRadius.Large"
+                     FullWidth="true">
+                <div class="dash__panel-head">
+                    <h2 class="dash__panel-title">运行参数</h2>
+                    <Tag Variant="TagVariant.Outline" Size="Size.Small">宿主可调</Tag>
+                </div>
+                <div class="dash__rows">
+                    <div class="dash__row">
+                        <span class="dash__row-label">波形时间窗</span>
+                        <Segmented TValue="string"
+                                   Items="@RangeValues"
+                                   Value="@_range"
+                                   ValueChanged="SelectRangeAsync"
+                                   TextSelector="RangeLabelSelector"
+                                   Size="Size.Small"
+                                   Shape="SegmentedShape.Pill"
+                                   AriaLabel="波形时间窗" />
+                    </div>
+                    <div class="dash__row">
+                        <span class="dash__row-label">页面动画</span>
+                        <Switch Size="Size.Small"
+                                AriaLabel="页面动画"
+                                @bind-Value="_motion"
+                                @bind-Value:after="HandleMotionAfterBind" />
+                    </div>
+                </div>
+                <Descriptions Items="@StackItems" Columns="1" AriaLabel="技术栈" />
+            </Surface>
+        </div>
+
+        <div class="dash__col dash__col--center">
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.None"
+                     Radius="SurfaceRadius.Large"
+                     Style="position: relative; overflow: hidden; min-height: 0">
+                <div class="dash__stage">
+                    <div class="dash__stage-grid" aria-hidden="true"></div>
+                    <div class="dash__stage-halo" aria-hidden="true"></div>
+                    <div class="dash__stage-ripples" aria-hidden="true">
+                        <span class="dash__ripple"></span>
+                        <span class="dash__ripple"></span>
+                        <span class="dash__ripple"></span>
+                    </div>
+                    <div class="dash__stage-scan" aria-hidden="true"></div>
+                    @* 舞台中心读数：数据是真的（ShowcaseCatalog.ComponentCount），
+                       水波与光晕只是把它框住。 *@
+                    <div class="dash__stage-core">
+                        <span class="dash__stage-core-value">@ShowcaseCatalog.ComponentCount</span>
+                        <span class="dash__stage-core-label">组件总数</span>
+                    </div>
+                    <svg class="dash__chart" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true">
+                        <polyline class="dash__chart-glow" points="@WavePointsText()" />
+                        <polyline class="dash__chart-line" points="@WavePointsText()" />
+                    </svg>
+                    <div class="dash__stage-head">
+                        <span class="dash__stage-eyebrow">实时波形 · 演示数据</span>
+                        <span class="dash__stage-title">@NavLabel · @CurrentRange.Label</span>
+                    </div>
+                    <div class="dash__stage-foot" aria-hidden="true">
+                        @foreach (var bar in _bars)
+                        {
+                            <span class="dash__bar" style="height:@HeightText(bar)"></span>
+                        }
+                    </div>
+                </div>
+            </Surface>
+
+            <div class="dash__gauges">
+                @for (var index = 0; index < _gauges.Length; index++)
+                {
+                    @* Razor 的 @for 共用一个循环变量：把它原样捕获进组件的 ChildContent 时，
+                       片段要到组件渲染那一刻才求值，那时 index 已经是终值（越界）。
+                       库内 Segmented 用的是同一招——每轮取一份局部副本。 *@
+                    var gaugeIndex = index;
+                    var value = _gauges[gaugeIndex];
+                    <Surface Variant="SurfaceVariant.Glass"
+                             Bordered="true"
+                             Padding="SurfacePadding.Small"
+                             Radius="SurfaceRadius.Large"
+                             FullWidth="true">
+                        <div class="dash__gauge-head">
+                            <span class="dash__gauge-label">@GaugeLabels[gaugeIndex]</span>
+                            <span class="dash__gauge-value">@PercentText(value)%</span>
+                        </div>
+                        <Progress Value="@value"
+                                  Max="100"
+                                  Color="@GaugeColors[gaugeIndex]"
+                                  Size="Size.Small"
+                                  AriaLabel="@GaugeLabels[gaugeIndex]" />
+                    </Surface>
+                }
+            </div>
+        </div>
+
+        <div class="dash__col dash__col--right">
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.Medium"
+                     Radius="SurfaceRadius.Large"
+                     FullWidth="true">
+                <div class="dash__panel-head">
+                    <h2 class="dash__panel-title">组件样本</h2>
+                    <span class="dash__panel-note">真实组件 · 轮换高亮</span>
+                </div>
+                <div class="dash__samples">
+                    @for (var index = 0; index < 6; index++)
+                    {
+                        var sampleIndex = index;
+                        <div class="@SampleClass(sampleIndex)">
+                            @switch (sampleIndex)
+                            {
+                                case 0:
+                                    <Button Size="Size.Small" OnClick="() => SelectDockFromSampleAsync()">Button</Button>
+                                    break;
+                                case 1:
+                                    <Tag Color="Color.Info" Variant="TagVariant.Soft" Size="Size.Small">Tag</Tag>
+                                    break;
+                                case 2:
+                                    <Badge Count="@_events.Count" Max="99" Color="Color.Danger">
+                                        <Icon Definition="@FontAwesomeIcons.Solid.Bell" Size="Size.Small" />
+                                    </Badge>
+                                    break;
+                                case 3:
+                                    <Switch Size="Size.Small" AriaLabel="样本开关" @bind-Value="_motion" />
+                                    break;
+                                case 4:
+                                    <Rating Value="4" ReadOnly="true" Size="Size.Small" AriaLabel="示例评分" />
+                                    break;
+                                default:
+                                    <Progress Value="@_gauges[3]" Max="100" Size="Size.Small" AriaLabel="示例进度" />
+                                    break;
+                            }
+                        </div>
+                    }
+                </div>
+            </Surface>
+
+            <Surface Variant="SurfaceVariant.Glass"
+                     Bordered="true"
+                     Padding="SurfacePadding.Medium"
+                     Radius="SurfaceRadius.Large"
+                     FullWidth="true">
+                <div class="dash__panel-head">
+                    <h2 class="dash__panel-title">事件流</h2>
+                    <Tag Color="Color.Warning" Variant="TagVariant.Soft" Size="Size.Small">演示数据</Tag>
+                </div>
+                @if (_events.Count > 0)
+                {
+                    <Timeline Items="@_events" AriaLabel="事件流" />
+                }
+                else
+                {
+                    <p class="dash__empty">
+                        <Icon Definition="@AeterniIcons.EmptyBox" Size="Size.Small" />
+                        <span>暂无事件，下一拍会自动补上。</span>
+                    </p>
+                }
+            </Surface>
+
+        </div>
+    </main>
+
+    <footer class="dash__foot">
+        <div class="dash__ticker" aria-hidden="true">
+            <div class="dash__ticker-track">
+                @for (var pass = 0; pass < 2; pass++)
+                {
+                    @foreach (var item in TickerItems)
+                    {
+                        <span class="dash__ticker-item">
+                            <span class="dash__ticker-label">@item.Label</span>
+                            <span class="dash__ticker-value">@item.Count</span>
                         </span>
                     }
-                </Toolbar>
-
-                <div class="screen__dock-end">
-                    <span class="screen__notice" role="status">@_notice</span>
-                    <IconButton Variant="ButtonVariant.Ghost"
-                                AriaLabel="下一个组件分类"
-                                Icon="@NextGlyph"
-                                OnClick="SelectNextChannelAsync" />
-                </div>
-            </footer>
+                }
+            </div>
         </div>
-    </Surface>
+
+        <Toolbar AriaLabel="反馈组件演示">
+            @foreach (var entry in DockEntries)
+            {
+                <span class="dash__dock-item">
+                    <IconButton Variant="ButtonVariant.Soft"
+                                Intent="@entry.Intent"
+                                AriaLabel="@entry.Label"
+                                Icon="@Glyph(entry.Icon)"
+                                Style="--aeterni-icon-button-size: 44px; --aeterni-icon-button-icon-size: 20px; border-radius: var(--aeterni-radius-control-md)"
+                                OnClick="() => RunDockAsync(entry)" />
+                    <span class="dash__dock-label" aria-hidden="true">@entry.Label</span>
+                </span>
+            }
+        </Toolbar>
+
+        <span class="dash__notice" role="status">@_notice</span>
+    </footer>
 </div>
 
 @code {
-    /// <summary>左栏树由当前分类的分组数据翻成 <see cref="AccordionItem"/>，每次渲染重建。</summary>
-    private IReadOnlyList<AccordionItem> TreeItems => CurrentChannel.Groups
-        .Select(group => new AccordionItem(group.Id, group.Title, TreeLines(group.Lines)))
-        .ToArray();
-
-    private static RenderFragment TreeLines(IReadOnlyList<string> lines) => @<ul class="screen__tree">
-        @foreach (var line in lines)
-        {
-            <li class="screen__tree-item">@line</li>
-        }
-    </ul>;
-
     /// <summary>
-    /// 图标槽。IconButton / Button 各自有一个名为 <c>Icon</c> 的参数，所以把 <c>&lt;Icon /&gt;</c>
+    /// 图标槽。IconButton / Button 各自有一个名为 <c>Icon</c> 的参数，把 <c>&lt;Icon /&gt;</c>
     /// 写在它们的子内容里会被 Razor 当成"给 Icon 子内容元素赋值"，属性随即对不上（RZ9997）；
-    /// 这两个控件要用 <c>Icon="@…"</c> 传片段。片段构造走与库内一致的手写方式。
-    /// 片段里不给 Icon 传 Size：按钮内的 svg 尺寸由按钮自己的
-    /// <c>--aeterni-icon-button-icon-size</c> 决定，页面只改这一个刻度。
+    /// 这两个控件必须用 <c>Icon="@片段"</c>。片段构造走与库内一致的手写方式。
     /// </summary>
-    private static readonly RenderFragment PlayGlyph = Glyph(FontAwesomeIcons.Solid.Play);
-
-    private static readonly RenderFragment PauseGlyph = Glyph(FontAwesomeIcons.Solid.Pause);
-
-    private static readonly RenderFragment NextGlyph = Glyph(AeterniIcons.ChevronRight);
-
     private static RenderFragment Glyph(IconDefinition definition) => builder =>
     {
         builder.OpenComponent<AeterniUI.Components.Icon.Icon>(0);
         builder.AddAttribute(1, nameof(AeterniUI.Components.Icon.Icon.Definition), definition);
         builder.CloseComponent();
     };
+
+    /// <summary>样本墙里的 Button 顺手演示一次 Toast，避免那个格子只是个摆设。</summary>
+    private Task SelectDockFromSampleAsync() => RunDockAsync(DockEntries[0]);
 }
