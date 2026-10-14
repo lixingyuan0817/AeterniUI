@@ -52,13 +52,27 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Wait for both endpoints rather than sleeping a fixed amount.
-for _ in $(seq 1 40); do
+# Wait for both endpoints rather than sleeping a fixed amount. A cold runner can
+# take much longer than a few seconds to bring Chrome up, and a too-short wait
+# surfaces as a bare "ECONNREFUSED 127.0.0.1:9222" inside verify.mjs — which says
+# nothing about *why*. Wait up to a minute; if it still fails, print both logs.
+ready=0
+for _ in $(seq 1 120); do
     if curl -sf "http://127.0.0.1:$PORT/" >/dev/null && curl -sf "http://127.0.0.1:$CDP_PORT/json/version" >/dev/null; then
+        ready=1
         break
     fi
-    sleep 0.25
+    sleep 0.5
 done
+
+if [[ "$ready" != "1" ]]; then
+    echo "Endpoints did not come up (HTTP :$PORT, CDP :$CDP_PORT):" >&2
+    echo "--- http log ---" >&2
+    tail -n 20 "$HTTP_LOG" >&2 || true
+    echo "--- chrome log ---" >&2
+    tail -n 20 "$CHROME_LOG" >&2 || true
+    exit 1
+fi
 
 AETERNI_BASE_URL="http://127.0.0.1:$PORT" \
 AETERNI_CDP_URL="http://127.0.0.1:$CDP_PORT" \
