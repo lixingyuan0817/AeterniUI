@@ -1,10 +1,21 @@
 # AeterniUI 发布历史
 
-文档版本：`10.34.2`
+文档版本：`10.34.3`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.34.3 连体接缝收敛到一档：SplitButton 的透明档从 20% 提到 45%
+
+`SplitButton` 与 `ButtonGroup` 是同一类构造——两段按钮共享一条 1px 接缝——但透明度各自硬编码：`Button.razor.css` 给 SplitButton 的透明变体写 20%，`ButtonGroup.razor.css` 给同类变体写 45%。百分比是乘在 `--aeterni-button-color` 自带 alpha 上的，Neutral 档该变量为 `rgba(0,0,0,.78)`，实际缝色 alpha 因此只有 0.156，而 ButtonGroup 是 0.351。用无头 Chrome 读计算样式实测：默认档（Ghost + Neutral + Small）的接缝与宿主背景对比**浅色 1.43:1、深色 1.65:1**，低于 `engineering-reference` 给结构分隔线定的 1.7:1（浅色）基线，是库内最弱的一条连体缝——静态下两段读起来像两串独立文本，只有 hover 出现填充块时才看出是一个控件。
+
+- [x] **档位提到 Button 层**：在 `.aeterni-button` 的意图变量旁新增 `--aeterni-button-divider-solid`（自身前景色 32%）与 `--aeterni-button-divider-transparent`（强调色 45%），SplitButton 的接缝直接消费它们，两处不再各写一套数字。
+- [x] **ButtonGroup 收敛到同一档位**：容器上内联的 `--aeterni-button-group-divider: color-mix(foreground 32%)` 删除，四条接缝规则改为 `var(--aeterni-button-group-divider, var(--aeterni-button-divider-…))`——组名保留为宿主覆盖钩子，覆盖后实心与透明两档同时改色（原先只有实心档受控）。变量必须在使用它的按钮元素上解析：容器上的转发会被判为 invalid at computed-value time，这也是它不能改成"容器定义、子项继承"的原因。
+- [x] **实测结果**：透明档接缝 alpha 0.156 → 0.351，与宿主背景对比浅色 **2.44:1**、深色 **3.65:1**；实心档仍是 32%（`0.249725`）不变；SplitButton 在 Outline 下外框与接缝的落差从 5 倍收到 2.2 倍，与 ButtonGroup 的 1.7 倍同量级。
+- [x] 文档：`engineering-reference` 的 ButtonGroup 那条原本写"分隔线由 ButtonGroup 管理，不修改 Button 核心样式"，与实现不符（接缝几何一直住在 Button 的隔离样式里——父组件的隔离样式到不了子组件根元素），改为写明归属与共享档位；`delivered-features` 的 SplitButton 与 ButtonGroup 两处同步档位名与实测对比度。
+- [x] 记录一条未采纳的方案：曾考虑改用不透明的 `--aeterni-separator`（浅色 1.7:1 / 深色 1.5:1），但它会在实心按钮上造出与 32% 前景色缝语义不同的第二条线，且对比度反而低于 45% 档，因此不用。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 gates）、`check-doc-drift.mjs`（78 文案键）、`bash scripts/check-docs.sh` 通过（本机用 Git Bash 运行，`system32\bash.exe` 的旧 bash 不支持 `set -o pipefail`）。真实渲染（无头 Chrome 读计算样式）：SplitButton 透明档 `color(srgb 0 0 0 / 0.351176)`、实心档 `color(srgb 0 0 0 / 0.249725)` 不变；ButtonGroup 无覆盖时为 `color(srgb 1 1 1 / 0.32)` 与 `color(srgb 0.4 0.27451 0.733333 / 0.45)`，在祖先设 `--aeterni-button-group-divider: rgb(255, 0, 0)` 后两档都变红，而 SplitButton 不受该变量影响。`tests/browser/verify.mjs` 新增一条断言（SplitButton 与 ButtonGroup 共用同一档连体缝，透明档接缝 alpha 落在 0.30～0.40），形态先用独立 CDP 脚本实测通过，全量由 CI 复跑。按"修复与优化递增第三位"（§4.9）从 `10.34.2` 升到 `10.34.3`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
 
 ## 10.34.2 滚动条统一：滑轨透明、十二个可滚动容器一套写法
 

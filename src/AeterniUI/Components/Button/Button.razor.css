@@ -1,5 +1,7 @@
 /* Connected geometry belongs to the button that renders the surface. Logical
-   corners keep both focus rings and the seam correct in RTL. */
+   corners keep both focus rings and the seam correct in RTL. The seam itself
+   reads the shared divider scale declared with the intent tokens below, so
+   SplitButton and ButtonGroup cannot drift apart. */
 .aeterni-button.aeterni-button--split-primary {
     border-start-end-radius: 0;
     border-end-end-radius: 0;
@@ -10,14 +12,14 @@
     border-end-start-radius: 0;
     margin-inline-start: calc(var(--aeterni-border-width) * -1);
     padding-inline: var(--aeterni-spacing-1);
-    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-foreground) 32%, transparent);
+    border-inline-start-color: var(--aeterni-button-divider-solid);
 }
 
 .aeterni-button--split-menu.aeterni-button--outline,
 .aeterni-button--split-menu.aeterni-button--soft,
 .aeterni-button--split-menu.aeterni-button--ghost,
 .aeterni-button--split-menu.aeterni-button--link {
-    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 20%, transparent);
+    border-inline-start-color: var(--aeterni-button-divider-transparent);
 }
 
 /* Connected segments highlight in place so their shared seam never splits. */
@@ -57,6 +59,12 @@
        Solid variants veil with their own fill; transparent variants veil with a
        light tint of their accent (a stronger tint would fake a filled button). */
     --aeterni-button-loading-foreground: var(--aeterni-button-foreground);
+    /* Connected seams (ButtonGroup, SplitButton) read one shared scale, so the
+       two constructs cannot drift apart. A solid segment divides itself from its
+       own on-ink; a transparent one has no fill to draw a divider with and takes
+       a stronger tint of its own accent instead. */
+    --aeterni-button-divider-solid: color-mix(in srgb, var(--aeterni-button-foreground) 32%, transparent);
+    --aeterni-button-divider-transparent: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 
     position: relative;
     box-sizing: border-box;

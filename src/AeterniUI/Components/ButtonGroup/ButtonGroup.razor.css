@@ -1,9 +1,12 @@
 .aeterni-button-group {
-    /* The divider colours itself from the connected button's own ink, so it stays
-       visible on every solid variant (brand, neutral and the semantic colours)
-       instead of assuming a dark button surface. Transparent variants tint the
-       pressing accent at 45% instead of drawing a strong border (REV-144). */
-    --aeterni-button-group-divider: color-mix(in srgb, var(--aeterni-button-foreground, currentColor) 32%, transparent);
+    /* The seam scale lives on Button (the element that paints the surface), so
+       both connected constructs read the same two stops. Every rule below reads
+       it there, and the group's own name stays the host's override hook: setting
+       `--aeterni-button-group-divider` on the group or any ancestor repaints the
+       seam for the solid and the transparent variants alike.
+       A solid segment divides itself from its own on-ink instead of assuming a
+       dark button surface; a transparent one has no fill to draw a divider with
+       and takes a tint of its own accent instead (REV-144). */
 
     display: inline-flex;
     align-items: stretch;
@@ -76,12 +79,12 @@
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button {
-    border-inline-start-color: var(--aeterni-button-group-divider);
+    border-inline-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-solid));
     margin-inline-start: calc(var(--aeterni-border-width) * -1);
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button {
-    border-inline-start-color: var(--aeterni-button-group-divider);
+    border-inline-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-solid));
     margin-inline-start: calc(var(--aeterni-border-width) * -1);
 }
 
@@ -92,14 +95,14 @@
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--link {
-    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+    border-inline-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
 
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--outline,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--soft,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--ghost,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--link {
-    border-inline-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+    border-inline-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button {
@@ -131,12 +134,12 @@
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button {
-    border-block-start-color: var(--aeterni-button-group-divider);
+    border-block-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-solid));
     margin-block-start: calc(var(--aeterni-border-width) * -1);
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button {
-    border-block-start-color: var(--aeterni-button-group-divider);
+    border-block-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-solid));
     margin-block-start: calc(var(--aeterni-border-width) * -1);
 }
 
@@ -144,14 +147,14 @@
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--link {
-    border-block-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+    border-block-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--outline,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--soft,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--ghost,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-icon-button + .aeterni-icon-button--link {
-    border-block-start-color: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
+    border-block-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
 
 .aeterni-button-group.is-connected ::deep .aeterni-button:hover,

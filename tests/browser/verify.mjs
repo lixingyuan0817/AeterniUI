@@ -2614,6 +2614,31 @@ check('REV-159 /components/date-picker demonstrates host presets',
     !presets.error && presets.count >= 3,
     JSON.stringify(presets));
 
+// 连体接缝由 ButtonGroup 与 SplitButton 共用一档，因此两者不会再各自漂移：透明档取
+// 按钮自身强调色的 45%，中性墨色（alpha .78）渲染出来约 0.351。10.34.3 之前这一档
+// 被 SplitButton 单独写死成 20%（实际 0.156），在页面背景上几乎读不出是两段连体。
+const alphaOf = value => {
+    const match = String(value).match(/([0-9]*\.?[0-9]+)\s*\)\s*$/);
+    return match ? Number(match[1]) : null;
+};
+
+await goto(`${BASE}/components/split-button`);
+await waitForApp();
+const seam = JSON.parse(await evaluate(`JSON.stringify((() => {
+    const split = document.querySelector('.aeterni-button--split-menu');
+    if (!split) return { error: 'no split menu segment' };
+    const style = getComputedStyle(split);
+    return {
+        className: split.className,
+        seam: style.borderInlineStartColor,
+        transparent: /aeterni-button--(outline|soft|ghost|link)/.test(split.className)
+    };
+})())`));
+const seamAlpha = alphaOf(seam.seam);
+check('SplitButton 与 ButtonGroup 共用同一档连体缝，透明档是 45% 而不是自己的 20%',
+    !seam.error && seam.transparent && seamAlpha !== null && seamAlpha >= 0.30 && seamAlpha <= 0.40,
+    `seam=${seam.seam} alpha=${seamAlpha}`);
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.34.2`
+文档版本：`10.34.3`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -147,7 +147,7 @@
 
 - `SplitButton` 组合 `Button` 与 `MenuButton`，后者继续拥有 `PopupHost` / `Popover` / `Menu`，不新增 JS 或菜单状态模型。示例：`/components/split-button`。
 - `Label` 为必填主动作文本，`AriaLabel` 可单独覆盖主动作可访问名称；箭头菜单按钮的 `MenuAriaLabel` 必填且不能为空，两侧名称独立。`Items` 使用现有 `IReadOnlyList<MenuGroup>`；`OnClick` 与 `OnItemSelected` 分别通知主动作和菜单动作。
-- 两侧共享 `Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Small），默认即紧凑、弱边界外观，不需要额外变体；显式设置仍可使用全部 Button 尺寸、变体与语意色。`FullWidth` 只让主动作填满剩余宽度。箭头段使用现有 spacing-1 横向内边距，弱分隔线与连接圆角由 Button 自身隔离样式处理；两侧 hover 原位高亮、不上浮，使用逻辑方向支持 RTL，并保留独立 focus-visible。菜单复用 Menu 原有紧凑行高；普通 Button / MenuButton 默认值不变。
+- 两侧共享 `Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Small），默认即紧凑、弱边界外观，不需要额外变体；显式设置仍可使用全部 Button 尺寸、变体与语意色。`FullWidth` 只让主动作填满剩余宽度。箭头段使用现有 spacing-1 横向内边距；连接几何与分隔线归 Button 自身隔离样式（它才是渲染这段表面的元素），两段共用 `--aeterni-button-divider-solid`（自身前景色 32%）与 `--aeterni-button-divider-transparent`（强调色 45%）两档，与 ButtonGroup 同源，因此透明档的接缝实测浅色 2.44:1 / 深色 3.65:1，高于 `engineering-reference` 给结构分隔线定的 1.7:1 基线。两侧 hover 原位高亮、不上浮，使用逻辑方向支持 RTL，并保留独立 focus-visible。菜单复用 Menu 原有紧凑行高；普通 Button / MenuButton 默认值不变。
 - `Disabled`（含上层 ButtonGroup 禁用）优先禁用整体；`PrimaryDisabled` 和 `MenuDisabled` 独立禁用。`Loading` 仅使主动作忙碌且不可点击，不阻止菜单；需锁定两侧时使用 `Disabled`。
 - `Open` / `OpenChanged` 采用 MenuButton 的可选受控模式（绑定回调才由外部控制）；未绑定时内部维护。`MenuDisabled` / `Disabled` 强制隐藏菜单并清除内部打开状态；受控值仍归宿主所有，重新启用时按宿主值显示。`Placement` 默认 BottomEnd，相对箭头按钮定位。
 - 根容器透传 `Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` / `ElementChanged`；属性不误投到两个按钮。Tab 保留两个原生动作，Enter / Space 激活；菜单内键盘、Escape、外部点击和视口翻转沿用现有实现。MenuButton 启用 Popover 现有 `RestoreFocusOnClose`：菜单选择/Escape 关闭后回归打开时的元素；非模态关闭时若外部点击、Tab 或业务回调已将焦点移到其他控件，不抢回焦点，已禁用/隐藏的触发器也不恢复。Tab 本身不自动关闭菜单，保留现有 Popover 行为。
@@ -166,7 +166,7 @@
 
 ### 行为与无障碍
 
-`Disabled` 通过级联上下文传递给内部 Button，而不是只在容器上做视觉置灰；保留原生 Tab 顺序，不实现方向键导航；连接模式下相邻按钮之间保留 1px 分隔线：实心变体取相邻按钮自身前景色的 32% 混合，透明变体（outline/ghost/text/link）取按钮强调色的 45% 染色，因此在品牌色、中性色和语意色实心按钮上都清晰可辨。
+`Disabled` 通过级联上下文传递给内部 Button，而不是只在容器上做视觉置灰；保留原生 Tab 顺序，不实现方向键导航；连接模式下相邻按钮之间保留 1px 分隔线：实心变体取相邻按钮自身前景色的 32% 混合，透明变体（outline/ghost/text/link）取按钮强调色的 45% 染色，因此在品牌色、中性色和语意色实心按钮上都清晰可辨。这两个档位与 `SplitButton` 共用 `--aeterni-button-divider-solid` / `--aeterni-button-divider-transparent`；`--aeterni-button-group-divider` 保留为宿主覆盖钩子，设置后实心与透明两档同时改色。
 
 ### 实现边界
 

@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.34.2`
+文档版本：`10.34.3`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -962,7 +962,7 @@ FormField
 `ButtonGroup` 的第一版约定如下：
 
 - 默认使用水平、连接式布局；设置 `Connected="false"` 时恢复按钮之间的 token 间距并保留 Button 自身的默认圆角。
-- 连接式布局在相邻 Button 之间保留 1px token 分隔线，避免相同颜色的实心按钮视觉上合并；分隔线由 ButtonGroup 管理，不修改 Button 核心样式。
+- 连接式布局在相邻 Button 之间保留 1px token 分隔线，避免相同颜色的实心按钮视觉上合并；连接几何与分隔线档位归 Button（它才是渲染这段表面的元素，父组件的隔离样式到不了子组件根元素），`ButtonGroup` 与 `SplitButton` 共用 `--aeterni-button-divider-solid`（自身前景色 32%）与 `--aeterni-button-divider-transparent`（强调色 45%）两档，两处不再各写一套数字；`--aeterni-button-group-divider` 是该组的宿主覆盖钩子，设置后实心与透明两档同时改色。
 - `Orientation="Orientation.Vertical"` 用于垂直组合。
 - `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
 - `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。
