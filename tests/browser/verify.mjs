@@ -1632,18 +1632,40 @@ check('点触发器弹出模态面板：dialog 语义、遮罩、滚动锁与输
     JSON.stringify(opened));
 
 // "居中弹出"要真的居中：面板盒的中心与视口中心重合，而不是"看起来差不多"。
-// 容差留 2px：视口高度是奇数时剩余空间的一半落在 .5 上，浏览器的子像素取整会让
-// 面板中心与视口中心差 1~2px —— 那是取整，不是"没有居中"。
+// 面板带入场动画，所以要等它的 rect 连续两次一致再量——动画中途量到的是插值位置
+// （实测偏差会随动画进度在 -2 ~ -3px 之间浮动），那不是"没居中"。容差仍留 2px：
+// 视口高为奇数时剩余空间的一半落在 .5 上，子像素取整本身就会偏 1px。
+const settlePanel = async () => {
+    let previous = '';
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+        const current = await evaluate(`(() => {
+            const panel = document.querySelector('${SEARCH_PANEL}');
+            if (!panel) return '';
+            const rect = panel.getBoundingClientRect();
+            return [rect.left, rect.top, rect.right, rect.bottom].map(value => value.toFixed(2)).join(',');
+        })()`);
+        if (current !== '' && current === previous) return;
+        previous = current;
+        await sleep(50);
+    }
+};
+await settlePanel();
+const panelRect = await evaluate(`(() => {
+    const panel = document.querySelector('${SEARCH_PANEL}');
+    if (!panel) return null;
+    const rect = panel.getBoundingClientRect();
+    return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+})()`);
 const viewport = await evaluate(`({ w: window.innerWidth, h: window.innerHeight })`);
-const centre = opened.panel
+const centre = panelRect
     ? {
-        x: Math.round((opened.panel.left + opened.panel.right) / 2 - viewport.w / 2),
-        y: Math.round((opened.panel.top + opened.panel.bottom) / 2 - viewport.h / 2)
+        x: Math.round((panelRect.left + panelRect.right) / 2 - viewport.w / 2),
+        y: Math.round((panelRect.top + panelRect.bottom) / 2 - viewport.h / 2)
     }
     : null;
 check('面板在视口里居中（水平与垂直都对上中心）',
     !!centre && Math.abs(centre.x) <= 2 && Math.abs(centre.y) <= 2,
-    JSON.stringify({ panel: opened.panel, viewport, centre }));
+    JSON.stringify({ panel: panelRect, viewport, centre }));
 
 // 滚动锁：面板打开时页面不跟着滚（锁的是 body 的 overflow，视口滚动因此失效）。
 const locked = JSON.parse(await evaluate(`(() => {
@@ -2484,10 +2506,28 @@ check('组合用法页（大数据列表）：800 条只渲染视口附近的几
     && (dataList.note ?? '').includes('命中 800 / 800') && dataList.toolbar === false,
     JSON.stringify(dataList));
 
-await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[0]?.click()`);
-await sleep(400);
-await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[1]?.click()`);
-await sleep(400);
+// 虚拟列表的行是渲染出来之后才可点的：先等行出现再点，点完等选中数到位，
+// 不用固定 sleep 赌渲染速度（CI 慢一拍时固定等待就是"已选 0 项"的来源）。
+const clickRowAndWait = async (index, expectedSelected) => {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+        const clicked = await evaluate(`(() => {
+            const row = document.querySelectorAll('#data-list-selection [role="option"]')[${index}];
+            if (!row) return false;
+            row.click();
+            return true;
+        })()`);
+        if (clicked) break;
+        await sleep(100);
+    }
+
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+        const selected = await evaluate(`document.querySelectorAll('#data-list-selection [role="option"][aria-selected="true"]').length`);
+        if (selected === expectedSelected) return;
+        await sleep(100);
+    }
+};
+await clickRowAndWait(0, 1);
+await clickRowAndWait(1, 2);
 const selection = await evaluate(`(() => {
     const section = document.querySelector('#data-list-selection');
     const batch = document.querySelector('#data-list-batch');
