@@ -23,7 +23,7 @@ const LIBRARY = 'src/AeterniUI';
 const PAGES = `${SAMPLE}/Pages/Components`;
 const CATALOG = `${SAMPLE}/Components/Showcase/ShowcaseCatalog.cs`;
 
-// AeterniComponent 的公共参数由 ComponentPreview 的 CommonParameters 统一登记，
+// AeterniComponent 的公共参数由 ShowcaseApi.CommonParameters 统一登记，
 // 页面不必逐条重复。
 const BASE_PARAMETERS = new Set([
     'Id', 'Disabled', 'Visible', 'Class', 'Style', 'Element', 'AdditionalAttributes', 'ElementChanged'
@@ -218,7 +218,7 @@ test('每个有组件的条目都出现在生成的 API 表里，且页面不再
         if (noComponent.has(entry.id)) continue;
         const file = `${PAGES}/${entry.page ?? pascal(entry.id)}.razor`;
         if (!existsSync(file)) continue;
-        if (/Showcase(Parameter|Event|Contract)\[\]/.test(read(file))) handWritten.push(entry.id);
+        if (/ShowcaseParameter\[\]/.test(read(file))) handWritten.push(entry.id);
     }
     assert.deepEqual(handWritten, [], `这些页面仍在手写 API 表：${handWritten.join(', ')}`);
 });

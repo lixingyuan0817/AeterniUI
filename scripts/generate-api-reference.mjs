@@ -28,7 +28,7 @@ const OUTPUT = `${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`
 // 为非稳定公共 API，因此不进示例页的公共表。
 const INTERNAL_PARTS = new Set(['DateCalendar', 'TimeOptionList']);
 
-// 基类参数由 ComponentPreview 的 CommonParameters 统一登记，页面不逐条重复。
+// 基类参数由 ShowcaseApi.CommonParameters 统一登记，页面不逐条重复。
 const BASE_PARAMETERS = new Set([
     'Id', 'Disabled', 'Visible', 'Class', 'Style', 'Element', 'AdditionalAttributes', 'ElementChanged'
 ]);
