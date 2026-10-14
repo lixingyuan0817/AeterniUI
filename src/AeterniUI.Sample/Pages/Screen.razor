@@ -1,0 +1,172 @@
+@page "/screen"
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
+<PageTitle>Aeterni UI · 组件运营大屏</PageTitle>
+
+@* 大屏示例（/screen）：只做组合，不新增公共 API。
+   结构照"顶栏 → 分类 → 左栏树 + 舞台 → 快捷入口"四段走，全部由库组件承担视觉：
+   顶栏与两块面板是 Surface 的 Glass 变体，分类与视图是 Segmented，左栏是 Accordion，
+   播放与快捷入口是 IconButton / Button / Icon，时间戳是 Icon + 文本。
+   页面自己只写网格与间距，颜色、圆角、动效与状态一律来自 --aeterni-* 语义 Token。
+   左栏宽度由页面的网格列给出；舞台最小高度与播放键、方块键的控件尺寸用 Style 参数
+   传给组件根元素：组件根元素不参与页面的 CSS isolation，宿主能改的就是这些公共参数。 *@
+<h1 class="screen__heading">组件运营大屏</h1>
+
+<div class="screen-page">
+    <Surface Variant="SurfaceVariant.Glass"
+             Bordered="true"
+             Padding="SurfacePadding.Large"
+             Radius="SurfaceRadius.ExtraLarge"
+             FullWidth="true">
+        <div class="screen">
+            <header class="screen__topbar">
+                <div class="screen__brand">
+                    <span class="screen__brand-mark" aria-hidden="true">
+                        <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
+                    </span>
+                    <span class="screen__brand-text">
+                        <span class="screen__brand-name">AeterniUI 组件运营中心</span>
+                        <span class="screen__brand-note">Blazor Server / WebAssembly · .NET 10</span>
+                    </span>
+                </div>
+
+                <Toolbar AriaLabel="大屏主导航">
+                    @foreach (var entry in NavList)
+                    {
+                        var active = entry.Id == _nav;
+                        <Button Variant="@(active ? ButtonVariant.Solid : ButtonVariant.Ghost)"
+                                Size="Size.Small"
+                                OnClick="() => SelectNavAsync(entry.Id)">
+                            @entry.Label
+                        </Button>
+                    }
+                </Toolbar>
+
+                <div class="screen__status">
+                    <Icon Definition="@AeterniIcons.Clock" Size="Size.Small" />
+                    <span>@NavLabel · @_stamp</span>
+                </div>
+            </header>
+
+            <Divider />
+
+            <div class="screen__filters">
+                <Segmented TValue="string"
+                           Items="@ChannelValues"
+                           Value="@_channel"
+                           ValueChanged="SelectChannelAsync"
+                           TextSelector="ChannelLabelSelector"
+                           Size="Size.Small"
+                           Shape="SegmentedShape.Pill"
+                           AriaLabel="组件分类" />
+                <Segmented TValue="string"
+                           Items="@ViewValues"
+                           Value="@_view"
+                           ValueChanged="SelectViewAsync"
+                           TextSelector="ViewLabelSelector"
+                           Size="Size.Small"
+                           Shape="SegmentedShape.Pill"
+                           AriaLabel="视图" />
+            </div>
+
+            <div class="screen__body">
+                <Surface Variant="SurfaceVariant.Glass"
+                         Bordered="true"
+                         Padding="SurfacePadding.Large"
+                         Radius="SurfaceRadius.Large"
+                         Style="min-width: 0; display: flex; flex-direction: column; gap: var(--aeterni-spacing-4)">
+                    <div class="screen__aside-head">
+                        <span class="screen__aside-rail" aria-hidden="true"></span>
+                        <h2 class="screen__aside-title">@ChannelLabel</h2>
+                        <span class="screen__aside-count">@ItemCount</span>
+                    </div>
+                    <Accordion Items="@TreeItems"
+                               Multiple="true"
+                               OpenKeys="@_openKeys"
+                               OpenKeysChanged="HandleOpenKeysChangedAsync"
+                               AriaLabel="@TreeLabel" />
+                </Surface>
+
+                <Surface Variant="SurfaceVariant.Glass"
+                         Bordered="true"
+                         Padding="SurfacePadding.None"
+                         Radius="SurfaceRadius.Large"
+                         Style="position: relative; overflow: hidden; min-width: 0; min-height: 420px">
+                    <img class="screen__stage-media" src="images/flash-card/magician.jpg" alt="" />
+                    <span class="screen__stage-scrim" aria-hidden="true"></span>
+                    <div class="screen__stage-caption">
+                        <span class="screen__stage-eyebrow">@ChannelLabel · 演示回放</span>
+                        <span class="screen__stage-title">@ViewLabel</span>
+                    </div>
+                    <span class="screen__play-ring" aria-hidden="true"></span>
+                    <IconButton Variant="ButtonVariant.Soft"
+                                Intent="ButtonIntent.Default"
+                                AriaLabel="@PlayLabel"
+                                Icon="@(_playing ? PauseGlyph : PlayGlyph)"
+                                Style="position: absolute; inset-block-start: 50%; inset-inline-start: 50%; translate: -50% -50%; border-radius: var(--aeterni-radius-round); --aeterni-icon-button-size: 88px; --aeterni-icon-button-icon-size: 38px"
+                                OnClick="TogglePlayAsync" />
+                </Surface>
+            </div>
+
+            <footer class="screen__dock">
+                <Toolbar AriaLabel="大屏快捷入口">
+                    @foreach (var entry in DockEntries)
+                    {
+                        <span class="screen__dock-item">
+                            <IconButton Variant="ButtonVariant.Soft"
+                                        Intent="@entry.Intent"
+                                        AriaLabel="@entry.Label"
+                                        Icon="@Glyph(entry.Icon)"
+                                        Style="--aeterni-icon-button-size: 52px; --aeterni-icon-button-icon-size: 22px; border-radius: var(--aeterni-radius-control-md)"
+                                        OnClick="() => SelectDockAsync(entry.Label)" />
+                            <span class="screen__dock-label" aria-hidden="true">@entry.Label</span>
+                        </span>
+                    }
+                </Toolbar>
+
+                <div class="screen__dock-end">
+                    <span class="screen__notice" role="status">@_notice</span>
+                    <IconButton Variant="ButtonVariant.Ghost"
+                                AriaLabel="下一个组件分类"
+                                Icon="@NextGlyph"
+                                OnClick="SelectNextChannelAsync" />
+                </div>
+            </footer>
+        </div>
+    </Surface>
+</div>
+
+@code {
+    /// <summary>左栏树由当前分类的分组数据翻成 <see cref="AccordionItem"/>，每次渲染重建。</summary>
+    private IReadOnlyList<AccordionItem> TreeItems => CurrentChannel.Groups
+        .Select(group => new AccordionItem(group.Id, group.Title, TreeLines(group.Lines)))
+        .ToArray();
+
+    private static RenderFragment TreeLines(IReadOnlyList<string> lines) => @<ul class="screen__tree">
+        @foreach (var line in lines)
+        {
+            <li class="screen__tree-item">@line</li>
+        }
+    </ul>;
+
+    /// <summary>
+    /// 图标槽。IconButton / Button 各自有一个名为 <c>Icon</c> 的参数，所以把 <c>&lt;Icon /&gt;</c>
+    /// 写在它们的子内容里会被 Razor 当成"给 Icon 子内容元素赋值"，属性随即对不上（RZ9997）；
+    /// 这两个控件要用 <c>Icon="@…"</c> 传片段。片段构造走与库内一致的手写方式。
+    /// 片段里不给 Icon 传 Size：按钮内的 svg 尺寸由按钮自己的
+    /// <c>--aeterni-icon-button-icon-size</c> 决定，页面只改这一个刻度。
+    /// </summary>
+    private static readonly RenderFragment PlayGlyph = Glyph(FontAwesomeIcons.Solid.Play);
+
+    private static readonly RenderFragment PauseGlyph = Glyph(FontAwesomeIcons.Solid.Pause);
+
+    private static readonly RenderFragment NextGlyph = Glyph(AeterniIcons.ChevronRight);
+
+    private static RenderFragment Glyph(IconDefinition definition) => builder =>
+    {
+        builder.OpenComponent<AeterniUI.Components.Icon.Icon>(0);
+        builder.AddAttribute(1, nameof(AeterniUI.Components.Icon.Icon.Definition), definition);
+        builder.CloseComponent();
+    };
+}

@@ -829,6 +829,7 @@ Sample/
   Pages/
     Home.razor                  # 首页文档页（/）
     Icons.razor                 # 图标浏览页（/icons）
+    Screen.razor                # 大屏组合示例（/screen；不进组件目录与侧栏）
     Components/                 # 每个组件一个独立页面（/components/{id}）
       Install.razor             # 安装页（/components）
       Button.razor
