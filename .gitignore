@@ -9,6 +9,7 @@
 # IDE and OS files
 .DS_Store
 .idea/
+.vs/
 .vscode/
 .reasonix/
 *.user
