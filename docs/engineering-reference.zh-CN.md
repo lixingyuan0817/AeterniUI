@@ -827,7 +827,7 @@ Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要�
 ```text
 Sample/
   Pages/
-    Home.razor                  # 首页文档页（/）
+    Home.razor                  # 首页：Hero 读数 + 常用组件墙 + 基础使用（/）
     Icons.razor                 # 图标浏览页（/icons）
     Screen.razor                # 大屏组合示例（/screen；不进组件目录与侧栏）
     Components/                 # 每个组件一个独立页面（/components/{id}）

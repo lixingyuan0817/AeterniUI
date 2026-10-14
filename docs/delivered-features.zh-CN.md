@@ -37,7 +37,7 @@
 - 支持 Blazor WebAssembly 使用组件库。
 - 示例项目 `AeterniUI.Sample` 为 Blazor WebAssembly 项目。
 - `scripts/sample-publish.sh` 将示例发布到仓库根目录 `dist/`，供静态部署及 GitHub Pages 使用。
-- 示例项目包含文档首页（路由 `/`，提交时间线与基础使用代码窗口）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
+- 示例项目包含文档首页（路由 `/`，Hero 真实读数 + 常用组件墙 + 基础使用代码窗口，入场与悬停动效由示例站本地 vendored 的 GSAP 驱动）和组件页（路由 `/components`，左侧分类导航加真实组件交互画廊，展示按钮、分组、表面、输入、选择、通知与主题切换）。固定头部与「首页 / 组件」菜单由 `MainLayout` 承载。
 - 组件 API 不依赖具体宿主，浏览器能力通过 JS isolation 提供。
 
 ## 2. 设计基础

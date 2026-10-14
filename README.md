@@ -98,6 +98,12 @@ Font Awesome 的版权和许可说明。详情请参阅：
 - [`src/AeterniUI.Icons.FontAwesome/THIRD-PARTY-NOTICES.md`](src/AeterniUI.Icons.FontAwesome/THIRD-PARTY-NOTICES.md)
 - [Font Awesome Free License](https://fontawesome.com/license/free)
 
+示例站（`src/AeterniUI.Sample`）内置一份本地 vendored 的
+[GSAP 3.15.0](https://gsap.com/)（`wwwroot/js/vendor/gsap.min.js`）用于首页动画，
+不通过网络加载，断网与内网环境同样可用。GSAP 采用 Standard "no charge" license
+（多数用途免费），来源、版本与更新方式见
+[`src/AeterniUI.Sample/wwwroot/js/vendor/README.md`](src/AeterniUI.Sample/wwwroot/js/vendor/README.md)。
+
 ## 文档
 
 | 主题 | 文档 |

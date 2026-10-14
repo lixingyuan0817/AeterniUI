@@ -1,44 +1,161 @@
 @page "/"
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+
 <PageTitle>Aeterni UI · Blazor 组件库</PageTitle>
 
-<main class="doc-home">
-    <div class="doc-home__grid">
-        <section class="doc-history" aria-labelledby="doc-history-title">
-            <header class="doc-history__header">
-                <p class="doc-history__eyebrow">Aeterni UI · 开发记录</p>
-                <h1 id="doc-history-title" tabindex="-1">提交时间线</h1>
-            </header>
+@* 首页（/）：库的展示入口。三段——Hero、常用组件墙、基础使用代码窗口。
+   组件墙里的每一个预览都是真组件、真绑定（开关能切、滑块能拖、反馈按钮会真的弹
+   Toast / Alert / Confirm），不是截图也不是静态标记。
+   动画在 wwwroot/js/sample-home.js 里用 GSAP 写：data-home-* 只是给 JS 的挂钩，
+   页面逻辑与可访问性完全不依赖它——脚本没加载时卡片照样在，只是不做入场与浮起。 *@
+<main class="doc-home" @ref="_root">
+    <section class="doc-hero" data-home-hero aria-labelledby="doc-hero-title">
+        <p class="doc-hero__eyebrow">.NET 10 · Blazor Server / WebAssembly</p>
+        <h1 id="doc-hero-title" tabindex="-1">AeterniUI</h1>
+        <p class="doc-hero__lede">
+            一套面向 Blazor 的组件库：语义 Token 打底、玻璃配方统一表面、
+            <code>--aeterni-*</code> 一套变量管住深浅两个主题与三个品牌色层。
+            下面这些卡片里的控件都是真的，点一点就知道。
+        </p>
+        <div class="doc-hero__actions">
+            <Button OnClick="GoToComponents">查看安装与全部组件</Button>
+            <a class="doc-hero__link" href="https://github.com/lixingyuan0817/AeterniUI"
+               target="_blank" rel="noopener noreferrer">
+                GitHub 源码
+                <span aria-hidden="true">↗</span>
+            </a>
+        </div>
+        <ul class="doc-hero__stats">
+            <li class="doc-hero__stat">
+                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ComponentCount">0</span>
+                <span class="doc-hero__stat-label">个组件</span>
+            </li>
+            <li class="doc-hero__stat">
+                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.GroupCount">0</span>
+                <span class="doc-hero__stat-label">个分组</span>
+            </li>
+            <li class="doc-hero__stat">
+                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.HostCount">0</span>
+                <span class="doc-hero__stat-label">种宿主</span>
+            </li>
+            <li class="doc-hero__stat">
+                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ThemeModeCount">0</span>
+                <span class="doc-hero__stat-label">种主题模式</span>
+            </li>
+        </ul>
+        <span class="doc-hero__spot" data-home-spot aria-hidden="true"></span>
+    </section>
 
-            <div class="doc-history__timeline">
-                <Timeline Items="@CommitTimeline" AriaLabel="项目提交记录">
-                    <ItemTemplate Context="item">
-                        @{ var commit = FindCommit(item); }
-                        <article class="doc-commit">
-                            <code class="doc-commit__hash">@commit.Hash</code>
-                            <p class="doc-commit__subject">@commit.Subject</p>
-                            <a class="doc-commit__link"
-                               href="@($"https://github.com/lixingyuan0817/AeterniUI/commit/{commit.Hash}")"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                查看提交
-                                <span aria-hidden="true">↗</span>
-                            </a>
-                        </article>
-                    </ItemTemplate>
-                </Timeline>
-            </div>
-        </section>
+    <section class="doc-showcase" aria-labelledby="doc-showcase-title">
+        <header class="doc-showcase__header">
+            <h2 id="doc-showcase-title">常用组件</h2>
+            <p>挑了三组最常出现在第一屏的控件。每一张卡片都是一个真实组件的实例，右下角可以直接进它的示例页。</p>
+        </header>
 
-        <section class="doc-code" aria-labelledby="doc-code-title">
-            <h2 id="doc-code-title" class="doc-code__kicker">基础使用</h2>
-            <div class="doc-code__window">
-                <div class="doc-code__bar">
-                    <span class="doc-code__dot" aria-hidden="true"></span>
-                    <span class="doc-code__dot" aria-hidden="true"></span>
-                    <span class="doc-code__dot" aria-hidden="true"></span>
-                    <span class="doc-code__file">Program.cs · 布局 · 使用示例</span>
+        @foreach (var group in Groups)
+        {
+            <div class="doc-showcase__group">
+                <div class="doc-showcase__group-head">
+                    <h3>@group.Title</h3>
+                    <p>@group.Note</p>
                 </div>
-                <pre class="doc-code__body"><code><span class="tok-c">// 1. 注册服务（Program.cs）</span>
+                <div class="doc-showcase__grid">
+                    @foreach (var card in group.Cards)
+                    {
+                        <article class="doc-showcase__card" data-home-card>
+                            <div class="doc-showcase__preview">
+                                @switch (card.Preview)
+                                {
+                                    case "button":
+                                        <Button Size="Size.Small">主要动作</Button>
+                                        <Button Size="Size.Small" Variant="ButtonVariant.Ghost">次要动作</Button>
+                                        break;
+                                    case "icon-tooltip":
+                                        <Tooltip Text="悬停或聚焦可以看到说明">
+                                            <IconButton Variant="ButtonVariant.Soft"
+                                                        Intent="ButtonIntent.Default"
+                                                        AriaLabel="通知"
+                                                        Icon="@NoticeGlyph" />
+                                        </Tooltip>
+                                        break;
+                                    case "switch":
+                                        <Switch Size="Size.Small" @bind-Value="_switchOn">自动同步</Switch>
+                                        break;
+                                    case "rating":
+                                        <Rating @bind-Value="_rating" AriaLabel="示例评分" />
+                                        break;
+                                    case "input":
+                                        <Input Value="@_name"
+                                               ValueChanged="HandleNameChanged"
+                                               Placeholder="输入点什么"
+                                               Size="Size.Small"
+                                               AriaLabel="示例输入" />
+                                        break;
+                                    case "checkbox":
+                                        <Checkbox Size="Size.Small" @bind-Value="_checkboxOn">记住了</Checkbox>
+                                        break;
+                                    case "segmented":
+                                        <Segmented TValue="string"
+                                                   Items="@SegmentValues"
+                                                   Value="@_segment"
+                                                   ValueChanged="SelectSegmentAsync"
+                                                   TextSelector="RangeLabelSelector"
+                                                   Size="Size.Small"
+                                                   Shape="SegmentedShape.Pill"
+                                                   AriaLabel="阶段" />
+                                        break;
+                                    case "slider":
+                                        <Slider @bind-Value="_slider" AriaLabel="示例滑块" />
+                                        break;
+                                    case "tag-badge":
+                                        <Tag Color="Color.Success" Variant="TagVariant.Soft" Size="Size.Small">稳定</Tag>
+                                        <Badge Count="12" Max="99" Color="Color.Danger">
+                                            <Icon Definition="@FontAwesomeIcons.Solid.Bell" Size="Size.Small" />
+                                        </Badge>
+                                        break;
+                                    case "progress":
+                                        <Progress Value="@_progress" Max="100" ShowValue="true" AriaLabel="演示进度" />
+                                        break;
+                                    case "avatar":
+                                        <Avatar Name="Aeterni UI" Size="Size.Small" />
+                                        <Spinner Size="Size.Small" />
+                                        break;
+                                    default:
+                                        <div class="doc-showcase__actions">
+                                            <Button Size="Size.Small" Variant="ButtonVariant.Soft" OnClick="ShowToastAsync">Toast</Button>
+                                            <Button Size="Size.Small" Variant="ButtonVariant.Ghost" OnClick="ShowAlertAsync">Alert</Button>
+                                            <Button Size="Size.Small" Variant="ButtonVariant.Ghost" OnClick="ShowConfirmAsync">Confirm</Button>
+                                        </div>
+                                        break;
+                                }
+                            </div>
+                            <div class="doc-showcase__meta">
+                                <span class="doc-showcase__name">@card.Name</span>
+                                <span class="doc-showcase__note">@card.Note</span>
+                                <p class="doc-showcase__description">@card.Description</p>
+                                <a class="doc-showcase__link" href="@card.Href">
+                                    看示例
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+
+    <section class="doc-start" aria-labelledby="doc-start-title">
+        <h2 id="doc-start-title" class="doc-code__kicker">基础使用</h2>
+        <div class="doc-code__window">
+            <div class="doc-code__bar">
+                <span class="doc-code__dot" aria-hidden="true"></span>
+                <span class="doc-code__dot" aria-hidden="true"></span>
+                <span class="doc-code__dot" aria-hidden="true"></span>
+                <span class="doc-code__file">Program.cs · 布局 · 使用示例</span>
+            </div>
+            <pre class="doc-code__body"><code><span class="tok-c">// 1. 注册服务（Program.cs）</span>
 builder.Services.<span class="tok-fn">AddAeterniUI</span>();
 
 <span class="tok-c">// 2. 引入样式（wwwroot/index.html）</span>
@@ -57,7 +174,21 @@ builder.Services.<span class="tok-fn">AddAeterniUI</span>();
        Placeholder=<span class="tok-str">"请输入姓名"</span> /&gt;
 
 &lt;<span class="tok-tag">ThemeSwitch</span> AriaLabel=<span class="tok-str">"主题模式"</span> /&gt;</code></pre>
-            </div>
-        </section>
-    </div>
+        </div>
+    </section>
 </main>
+
+@code {
+    /// <summary>
+    /// 图标槽。IconButton / Button 各自有一个名为 <c>Icon</c> 的参数，把 <c>&lt;Icon /&gt;</c>
+    /// 写在它们的子内容里会被 Razor 当成"给 Icon 子内容元素赋值"（RZ9997），必须走 Icon="@片段"。
+    /// </summary>
+    private static readonly RenderFragment NoticeGlyph = Glyph(FontAwesomeIcons.Solid.Bell);
+
+    private static RenderFragment Glyph(IconDefinition definition) => builder =>
+    {
+        builder.OpenComponent<AeterniUI.Components.Icon.Icon>(0);
+        builder.AddAttribute(1, nameof(AeterniUI.Components.Icon.Icon.Definition), definition);
+        builder.CloseComponent();
+    };
+}

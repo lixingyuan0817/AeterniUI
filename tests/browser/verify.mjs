@@ -501,23 +501,30 @@ check('Timeline horizontal mode turns the marker axis and contains overflow',
 
 await goto(`${BASE}/`);
 await waitForApp();
-const homeTimeline = await evaluate(`(() => {
-    const viewport = document.querySelector('.doc-history__timeline');
-    const root = viewport && viewport.querySelector('.aeterni-timeline');
+// 首页动画在首帧之后由 sample-home.js 接管：等它挂上 homeReady 再断言，
+// 顺带给入场动画留一拍，避免把"正在入场"误判成"卡住了"。
+for (let attempt = 0; attempt < 40; attempt++) {
+    if (await evaluate(`document.querySelector('.doc-home')?.dataset.homeReady === 'true'`)) break;
+    await new Promise(resolve => setTimeout(resolve, 250));
+}
+await new Promise(resolve => setTimeout(resolve, 900));
+const homeShowcase = await evaluate(`(() => {
+    const cards = [...document.querySelectorAll('.doc-showcase__card')];
     return {
-        component: !!root,
-        legacy: !!document.querySelector('.doc-timeline'),
-        removedLead: document.body.textContent.includes('从组件、主题到示例页面'),
-        viewportHeight: viewport?.clientHeight ?? 0,
-        contentHeight: viewport?.scrollHeight ?? 0,
-        pageOverflow: document.documentElement.scrollHeight - window.innerHeight
+        ready: document.querySelector('.doc-home')?.dataset.homeReady === 'true',
+        cards: cards.length,
+        visible: cards.filter(card => Number(getComputedStyle(card).opacity) > .9).length,
+        groups: document.querySelectorAll('.doc-showcase__group').length,
+        timeline: !!document.querySelector('.doc-history__timeline'),
+        gsap: typeof window.gsap !== 'undefined',
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
     };
 })()`);
-check('Homepage uses Timeline and keeps the commit history inside the viewport',
-    homeTimeline.component && !homeTimeline.legacy && !homeTimeline.removedLead
-        && homeTimeline.viewportHeight > 0 && homeTimeline.contentHeight > homeTimeline.viewportHeight
-        && homeTimeline.pageOverflow <= 1,
-    JSON.stringify(homeTimeline));
+check('Homepage lists real components and GSAP brings them in',
+    homeShowcase.ready && !homeShowcase.timeline && homeShowcase.gsap
+        && homeShowcase.cards >= 12 && homeShowcase.visible === homeShowcase.cards
+        && homeShowcase.groups >= 3 && homeShowcase.horizontalOverflow <= 1,
+    JSON.stringify(homeShowcase));
 
 await goto(`${BASE}/components/descriptions`);
 await waitForApp();

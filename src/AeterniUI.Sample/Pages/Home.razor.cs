@@ -1,157 +1,174 @@
-using System.Globalization;
-using AeterniUI.Components.Timeline;
+using AeterniUI.Enums;
+using AeterniUI.Icons;
+using AeterniUI.Icons.FontAwesome;
+using AeterniUI.Sample.Components.Showcase;
+using AeterniUI.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace AeterniUI.Sample.Pages;
 
-public partial class Home
+/// <summary>
+/// 首页（<c>/</c>）：库的展示入口。三段式——Hero（真实读数 + 入口）、常用组件墙
+/// （每张卡里都是真组件，不是截图）、基础使用代码窗口。原先的提交时间线整块下线。
+/// </summary>
+/// <remarks>
+/// 动画交给 GSAP（<c>wwwroot/js/vendor/gsap.min.js</c>，本地文件，不依赖 CDN）：
+/// Hero 入场与数字滚动、卡片滚入视口揭示、悬停浮起与指针微倾、Hero 光斑跟随都在
+/// <c>sample-home.js</c> 里；本页只负责首帧之后把根元素交出去、销毁时让 JS 侧回滚。
+/// 系统开启 <c>prefers-reduced-motion</c> 时 JS 直接落到终态，页面不做特判。
+/// </remarks>
+public partial class Home : ComponentBase, IAsyncDisposable
 {
-    private static readonly IReadOnlyList<HomeCommit> CommitHistory =
+    /// <summary>进度条的演示节拍：慢到不干扰阅读，又足以看出组件在动。</summary>
+    private static readonly TimeSpan ProgressInterval = TimeSpan.FromMilliseconds(1500);
+
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private Timer? _progressPulse;
+    private bool _disposed;
+
+    // 组件墙里的演示状态。全部是真实双向绑定，不存在"画上去的假交互"。
+    private bool _switchOn = true;
+    private bool _checkboxOn;
+    private string _name = string.Empty;
+    private string _segment = "design";
+    private double _slider = 62;
+    private int _rating = 4;
+    private double _progress = 38;
+
+    private static readonly IReadOnlyList<string> SegmentValues = ["design", "build", "review"];
+
+    private static readonly IReadOnlyList<ShowcaseGroup> Groups =
     [
-        new("8d5a96e", "2026-10-08T17:36:35+08:00", "docs: finalize v10.29.2 release"),
-        new("280de4f", "2026-10-08T17:34:22+08:00", "fix: stabilize VirtualList selection surfaces"),
-        new("51005ac", "2026-10-08T17:09:12+08:00", "docs: finalize v10.29.1 release"),
-        new("8b6aa3a", "2026-10-08T17:07:10+08:00", "fix: align Stepper templates and VirtualList spacing"),
-        new("e3d6532", "2026-10-08T16:50:39+08:00", "docs: finalize v10.29.0 release"),
-        new("cb8c7a7", "2026-10-08T16:48:35+08:00", "feat: expand Timeline layouts"),
-        new("1cbc0a4", "2026-10-08T16:29:15+08:00", "feat: add Timeline component"),
-        new("13fd4c4", "2026-10-08T10:55:57+08:00", "feat: support continuous slider input"),
-        new("1274b37", "2026-10-01T12:05:13+08:00", "feat: add InputNumber and Slider numeric form controls"),
-        new("ff4a30c", "2026-10-01T00:01:50+08:00", "docs(roadmap): plan the next component batch and record two deferrals"),
-        new("e480bbd", "2026-09-30T23:54:48+08:00", "docs: check what a measurement is measuring before trusting it"),
-        new("6f27844", "2026-09-30T23:49:29+08:00", "fix(tokens): make the focus rings solid family colours"),
-        new("5850460", "2026-09-30T23:40:25+08:00", "test(contrast): teach the gate to composite, and fix the pairs that hid two gaps"),
-        new("6142e1f", "2026-09-30T23:38:14+08:00", "test(contracts): pin the colour-ramp stops the library commits to"),
-        new("0af5a89", "2026-09-30T23:27:42+08:00", "docs: align the REV-115 section intro with its table"),
-        new("1c6a68a", "2026-09-30T23:23:12+08:00", "fix(tokens): darken the light-theme danger ink and tighten the surface guard (#25)"),
-        new("d565d65", "2026-09-30T23:09:40+08:00", "feat(api): remove the two duplicate callbacks and check the surface recipe (#24)"),
-        new("5600a21", "2026-09-30T22:53:02+08:00", "fix: close the ninth review round's architecture findings (REV-97–REV-128) (#23)"),
-        new("3cc2a5e", "2026-09-30T15:34:14+08:00", "fix: normalize stepper state precedence"),
-        new("2529ec4", "2026-09-30T14:22:35+08:00", "feat: add virtual list load-more callback"),
-        new("d2a8f7f", "2026-09-30T13:34:55+08:00", "release: v10.24.1"),
-        new("7164338", "2026-09-30T10:45:21+08:00", "feat: add virtualized list"),
-        new("c8db3df", "2026-09-30T09:29:57+08:00", "fix: stabilize list sizing and plan virtual list"),
-        new("eda4460", "2026-09-29T15:12:12+08:00", "feat: include MultiSelect implementation and showcase"),
-        new("ef34f5c", "2026-09-29T15:11:03+08:00", "feat: add MultiSelect component"),
-        new("20323d7", "2026-09-29T13:48:23+08:00", "feat: add search and autocomplete controls"),
-        new("29e0d86", "2026-09-28T17:23:52+08:00", "ci: update pages actions for node24"),
-        new("3bd4a03", "2026-09-28T17:21:08+08:00", "test: finalize stepper and breadcrumb contracts"),
-        new("c74092c", "2026-09-28T17:14:40+08:00", "docs: mark v10.20.2 published"),
-        new("2b53ee2", "2026-09-28T17:13:26+08:00", "docs: finalize 10.20.2 release plan"),
-        new("680ff60", "2026-09-28T17:08:16+08:00", "docs: align component API and showcase documentation"),
-        new("de1d56e", "2026-09-28T14:03:31+08:00", "增强 FlashCardGroup 悬浮抽牌效果"),
-        new("99aea4e", "2026-09-28T13:48:38+08:00", "优化 FlashCardGroup 牌堆交互"),
-        new("81f1dc4", "2026-09-28T11:13:44+08:00", "fix: restore flash card group preview cards"),
-        new("b9ca94c", "2026-09-28T10:56:42+08:00", "fix: add standalone flash card group showcase"),
-        new("e09d2f1", "2026-09-28T10:39:24+08:00", "feat: improve flash cards and add card group"),
-        new("79b0262", "2026-09-24T17:05:22+08:00", "feat(flashcard): add FlashCard with holographic sheen and pointer tilt"),
-        new("e6a9d6c", "2026-09-24T16:25:53+08:00", "feat(stepper): add ItemTemplate and per-step marker icons"),
-        new("0cce926", "2026-09-24T14:54:09+08:00", "style(sample): add shared animated page backdrop"),
-        new("eb006b7", "2026-09-24T14:32:43+08:00", "style(sample): enrich homepage background"),
-        new("18f47a1", "2026-09-24T14:18:59+08:00", "feat(sample): polish homepage hero"),
-        new("d0811d4", "2026-09-24T14:02:56+08:00", "fix(sample): unify page backgrounds"),
-        new("02eba1a", "2026-09-24T11:17:50+08:00", "fix(stepper): close review gaps"),
-        new("48a5c11", "2026-09-23T23:26:56+08:00", "docs: record the eighth review round for Breadcrumb, Stepper and List (#22)"),
-        new("01dfa7c", "2026-09-23T23:15:54+08:00", "chore(release): publish v10.17.2 from main (#21)"),
-        new("ba78bd2", "2026-09-23T23:08:35+08:00", "chore(release): align main with the published v10.17.1 (#20)"),
-        new("fd317ae", "2026-09-23T22:59:28+08:00", "fix(list): keep the active option cue off unselected rows (#19)"),
-        new("4fe885b", "2026-09-23T22:46:45+08:00", "fix: resolve Breadcrumb and Stepper review findings in v10.17.0 (#18)"),
-        new("ed153fd", "2026-09-22T23:28:43+08:00", "feat: deliver Breadcrumb and Stepper navigation components (#17)"),
-        new("24dc9dd", "2026-09-22T22:47:58+08:00", "feat(breadcrumb): deliver hierarchical navigation (#16)"),
-        new("1365873", "2026-09-21T15:37:32+08:00", "chore: remove desktop host and native theme integration"),
-        new("d371b22", "2026-09-21T15:02:54+08:00", "fix: resolve component quality review findings in v10.14.3"),
-        new("8c9ea86", "2026-09-20T16:32:36+08:00", "fix(list): unify selected styles and release v10.14.1"),
-        new("d281e0a", "2026-09-18T23:45:56+08:00", "feat(list)!: release generic lists in v10.14.0"),
-        new("e032c25", "2026-09-18T17:17:10+08:00", "chore(release): publish v10.13.0"),
-        new("93c7bfd", "2026-09-18T16:58:39+08:00", "feat: add ToggleGroup and SplitButton with compact control styling (#15)"),
-        new("5f9eedc", "2026-09-18T15:32:54+08:00", "优化 TimePicker 滚筒视觉、平滑吸附与值同步 (#14)"),
-        new("be4b73c", "2026-09-18T15:12:36+08:00", "feat: add accessible Toolbar and unify compact component sizing (#13)"),
-        new("11f0ea3", "2026-09-18T13:48:26+08:00", "fix: improve date and time picker scrolling and popup layouts (#12)"),
-        new("721d8a3", "2026-09-17T23:56:46+08:00", "feat: polish component contracts and time picker (#11)"),
-        new("e059004", "2026-09-17T20:51:00+08:00", "feat: complete v0.5 date and time inputs (#10)"),
-        new("ae9b702", "2026-09-16T23:14:09+08:00", "chore(release): publish v10.9.0"),
-        new("d20ff89", "2026-09-16T23:11:19+08:00", "feat(glass): 磨砂配方解耦为填充/模糊/边框三轴并把填充降档 (#9)"),
-        new("60ffb23", "2026-09-16T13:40:37+08:00", "docs: plan follow-up component phases (#8)"),
-        new("0108c0b", "2026-09-16T11:47:26+08:00", "Polish component icon geometry (#7)"),
-        new("6b88cdd", "2026-09-16T10:58:04+08:00", "feat(sample): 重做色彩与语义示例页并优化启动加载页 (#6)"),
-        new("391929a", "2026-09-15T23:42:38+08:00", "chore(release): publish v10.8.0"),
-        new("9c9730c", "2026-09-15T23:40:26+08:00", "多品牌色层（紫 / 绿 / 焦橙）与全组件状态色审计 (#5)"),
-        new("647bef8", "2026-09-15T16:26:19+08:00", "docs: add MIT and Font Awesome license notices (#4)"),
-        new("602b53a", "2026-09-15T15:37:13+08:00", "ci: add trusted NuGet publishing (#3)"),
-        new("4b48e25", "2026-09-14T23:05:42+08:00", "fix: remove invalid component stylesheet reference"),
-        new("2fca322", "2026-09-14T22:46:50+08:00", "Align component docs and date picker structure (#2)"),
-        new("43adf9e", "2026-09-14T21:44:57+08:00", "feat(ui): complete component roadmap follow-up"),
-        new("4297f13", "2026-09-14T17:12:27+08:00", "优化日期选择器与浮层视觉"),
-        new("b384009", "2026-09-13T22:57:38+08:00", "feat(ui): add date picker foundation and fix modal popover layering"),
-        new("0f913a2", "2026-09-11T23:26:35+08:00", "feat(ui): add animated accordion pagination avatar"),
-        new("a10694b", "2026-09-11T22:06:21+08:00", "fix(ui): stabilize button family interactions"),
-        new("9c04dbb", "2026-09-11T22:00:14+08:00", "feat(ui): refine button family components"),
-        new("37c0c30", "2026-09-11T20:54:46+08:00", "fix(sample): align header edges"),
-        new("6da831d", "2026-09-11T17:43:29+08:00", "feat: add Segmented and Drawer, completing phase 3 (v0.3, 7/7)"),
-        new("8197e28", "2026-09-11T17:12:23+08:00", "fix: stop the component sidebar drifting at the end of a scroll, align /icons"),
-        new("abf0f94", "2026-09-11T16:52:32+08:00", "fix: let the homepage wash fill the viewport and rebalance its decoration"),
-        new("f455d09", "2026-09-11T16:41:26+08:00", "feat: add the phase-3 display components (v0.3, 5/7)"),
-        new("9e21d5c", "2026-09-11T15:55:14+08:00", "fix: keep the component-page sidebar clear of the viewport bottom"),
-        new("0ce5b78", "2026-09-11T15:50:58+08:00", "fix: keep the showcase sidebar beside the content down to tablet width"),
-        new("98f2b84", "2026-09-11T15:43:20+08:00", "fix: restore the component page grid lost to a broken CSS comment"),
-        new("bcd1d7b", "2026-09-11T15:33:31+08:00", "build: fail the sample publish when index.html assets are missing"),
-        new("133df8a", "2026-09-11T15:09:06+08:00", "fix: repair component page layout and shell width token"),
-        new("fd16cf6", "2026-09-11T14:32:29+08:00", "fix: restore showcase content gutters"),
-        new("482e540", "2026-09-11T14:23:54+08:00", "fix: constrain component showcase main content"),
-        new("a111ea9", "2026-09-10T23:46:21+08:00", "refactor: one page per component in the showcase, vertical install guide"),
-        new("63ededa", "2026-09-10T23:38:11+08:00", "docs: define surface ownership and give the Menu/Tabs previews a host container"),
-        new("6386c18", "2026-09-10T23:33:17+08:00", "feat: add Tabs and close out the v0.2 component batch"),
-        new("198b037", "2026-09-10T23:28:26+08:00", "feat: add Size tiers and the shared floating-layer capability"),
-        new("2be3668", "2026-09-10T23:20:36+08:00", "fix: rebuild the colour system and audit every component (REV-30..REV-62)"),
-        new("daade96", "2026-09-10T22:16:36+08:00", "fix: resolve the component review backlog (REV-01..REV-29)"),
-        new("f3ee95e", "2026-09-10T17:08:03+08:00", "docs: plan the v0.3 component batch"),
-        new("80cf7d8", "2026-09-10T16:56:18+08:00", "docs: add the component review backlog"),
-        new("bdf7c64", "2026-09-10T16:42:18+08:00", "docs: align the documentation with the component library"),
-        new("e41ce1a", "2026-09-10T16:25:06+08:00", "fix: keep the showcase sidebar panel at a stable height"),
-        new("fe5f43e", "2026-09-10T16:25:02+08:00", "fix: keep icon styles inside their component scope and stop Menu rows stretching"),
-        new("b875c7a", "2026-09-10T16:08:32+08:00", "fix: restore showcase sidebar selection and sizing"),
-        new("e99600c", "2026-09-10T16:08:29+08:00", "fix: collapse Menu groups without leaving a residual height"),
-        new("d70889c", "2026-09-10T15:54:28+08:00", "feat: add a Menu showcase section and scrollable sidebar"),
-        new("f6e473b", "2026-09-10T15:54:26+08:00", "feat: extend Menu with links, controlled state and visibility"),
-        new("eee1fe8", "2026-09-10T15:33:50+08:00", "feat: add an install entry to the showcase sidebar"),
-        new("3f0b305", "2026-09-10T15:33:48+08:00", "fix: add keyboard and accessibility support to Menu"),
-        new("e4d78f6", "2026-09-10T15:11:28+08:00", "feat: refine home background motion and menu disclosure chevron"),
-        new("c9a0d8a", "2026-09-10T15:03:52+08:00", "feat: complete the icon library and adopt it across components"),
-        new("2874d89", "2026-09-10T14:03:44+08:00", "feat: add component installation and detail pages"),
-        new("96e13d0", "2026-09-10T13:33:35+08:00", "fix: improve menu selection and transitions"),
-        new("fea4375", "2026-09-10T12:28:58+08:00", "feat: add collapsible menu component"),
-        new("2d2a119", "2026-09-10T11:05:02+08:00", "feat: reorganize component showcase navigation"),
-        new("29d3139", "2026-09-09T23:56:31+08:00", "fix: center every component appearance preview on /components"),
-        new("92fe90e", "2026-09-09T23:42:47+08:00", "feat: sample docs site restructure, new components and Tauri startup fixes"),
-        new("50a0e15", "2026-09-09T21:52:02+08:00", "feat: standardize .NET versioning and component docs"),
-        new("9e66a08", "2026-09-09T21:25:13+08:00", "chore: standardize versioning and documentation checks"),
-        new("e313e3e", "2026-09-09T21:15:36+08:00", "docs: align documentation responsibilities"),
-        new("c2a4388", "2026-09-09T20:59:34+08:00", "fix: neutralize theme backgrounds and Tauri paths"),
-        new("5d5ce74", "2026-09-09T16:48:35+08:00", "ci: deploy sample site to GitHub Pages"),
-        new("c68e0cb", "2026-09-09T16:32:05+08:00", "refactor: unify component states and refresh sample showcase"),
-        new("1b01a91", "2026-09-09T10:54:13+08:00", "chore: 禁止示例启动时自动打开浏览器"),
-        new("c9fe8d5", "2026-09-09T10:52:38+08:00", "chore: 将 Tauri 宿主迁移到根目录"),
-        new("1a09a6e", "2026-09-08T23:15:54+08:00", "docs: 增加跨 agent 开发入口文档与 AGENTS 必读/自检约定，新增 CI 门禁"),
-        new("635f9b5", "2026-09-08T23:11:00+08:00", "feat: v0.1 组件全部落地与通知/主题打磨，规划 v0.2 路线"),
-        new("73f3c9f", "2026-09-08T19:27:26+08:00", "feat: add input and form field foundations"),
-        new("4a6e87f", "2026-09-08T11:05:12+08:00", "feat: 搭好 AeterniUI 组件库基础"),
+        new("交互动作", "点击、切换、评分——最常被摆在第一屏的那批控件。",
+        [
+            new("button", "button", "Button", "主要与次要动作", "确认、取消与危险动作共用一套变体与焦点环。"),
+            new("icon-tooltip", "icon-tooltip", "IconButton + Tooltip", "图标动作与悬停说明", "没有文字的位置用图标，含义交给 Tooltip 补。"),
+            new("switch", "switch", "Switch", "二态开关", "即时生效的开关，状态色与禁用态都由库统一。"),
+            new("rating", "rating", "Rating", "整数评分", "星级评分，支持只读展示与键盘方向键。")
+        ]),
+        new("表单输入", "从文本到数值：一条完整的表单链。",
+        [
+            new("input", "input", "Input", "单行文本", "原生输入元素加库的统一边框、焦点环与尺寸档。"),
+            new("checkbox", "checkbox", "Checkbox", "多选与确认", "勾选态的换档与无效态都不靠透明度糊过去。"),
+            new("segmented", "segmented", "Segmented", "分段单选", "同一组选项等宽排布，选中块随值滑动。"),
+            new("slider", "slider", "Slider", "单值滑块", "连续取值，方向键与 Home/End 都能用。")
+        ]),
+        new("展示与反馈", "容器、状态与通知：把结果讲清楚。",
+        [
+            new("tag-badge", "tag", "Tag + Badge", "标签与角标", "语义色标签配数字角标，适合列表与导航。"),
+            new("progress", "progress", "Progress", "进度与进度条", "不写死数值的演示：这条进度自己在走。"),
+            new("avatar", "avatar", "Avatar + Spinner", "身份与等待", "姓名缩写兜底，等待交给统一尺寸的 Spinner。"),
+            new("feedback", "feedback", "Dialog / Alert / Confirm", "通知与确认", "三种反馈各点一次，看真实的服务行为。")
+        ])
     ];
 
-    private static readonly IReadOnlyList<TimelineItem> CommitTimeline = CommitHistory
-        .Select(commit => new TimelineItem(
-            commit.Subject,
-            Timestamp: commit.Instant,
-            TimeText: commit.DisplayTime))
-        .ToArray();
+    private string RangeLabelSelector(string id) => id switch
+    {
+        "design" => "设计",
+        "build" => "构建",
+        _ => "审阅"
+    };
 
-    private static readonly IReadOnlyDictionary<DateTimeOffset, HomeCommit> CommitsByTimestamp =
-        CommitHistory.ToDictionary(commit => commit.Instant);
+    private Task SelectSegmentAsync(string id)
+    {
+        _segment = id;
+        return Task.CompletedTask;
+    }
 
-    private static HomeCommit FindCommit(TimelineItem item) => CommitsByTimestamp[item.Timestamp!.Value];
-}
+    private Task HandleNameChanged(string? value)
+    {
+        _name = value ?? string.Empty;
+        return Task.CompletedTask;
+    }
 
-public sealed record HomeCommit(string Hash, string Timestamp, string Subject)
-{
-    public DateTimeOffset Instant => DateTimeOffset.Parse(Timestamp, CultureInfo.InvariantCulture);
+    protected override void OnInitialized() =>
+        _progressPulse = new Timer(_ => _ = InvokeAsync(AdvanceProgress), null, ProgressInterval, ProgressInterval);
 
-    public string DisplayTime => Instant.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture);
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/sample-home.js");
+            await _module.InvokeVoidAsync("init", _root);
+        }
+        catch (JSException)
+        {
+            // 脚本没就位（离线裁剪过的构建、脚本被拦截）时页面必须还能用：
+            // 动画只是增强，卡片与交互本来就在 DOM 里。
+            _module = null;
+        }
+    }
+
+    private void AdvanceProgress()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _progress = _progress >= 96 ? 12 : _progress + 9;
+        StateHasChanged();
+    }
+
+    private void GoToComponents() => Navigation.NavigateTo(ShowcaseCatalog.RouteFor("install"));
+
+    private Task ShowToastAsync()
+    {
+        DialogService.ShowToast("Toast 不打断当前操作，适合「已保存」这类结果。");
+        return Task.CompletedTask;
+    }
+
+    private Task ShowAlertAsync() => DialogService.AlertAsync("Alert 是模态提示，需要用户显式关掉。");
+
+    private Task ShowConfirmAsync() =>
+        DialogService.ConfirmAsync("Confirm 把结果交回调用方：确认为 true，取消为 false。");
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _progressPulse?.Dispose();
+        _progressPulse = null;
+
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("dispose");
+            await _module.DisposeAsync();
+        }
+        catch (JSException)
+        {
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        _module = null;
+    }
+
+    private sealed record ShowcaseGroup(string Title, string Note, IReadOnlyList<ShowcaseCard> Cards);
+
+    private sealed record ShowcaseCard(string Id, string Preview, string Name, string Note, string Description)
+    {
+        public string Href => ShowcaseCatalog.RouteFor(Id);
+    }
 }
