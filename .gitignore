@@ -6,6 +6,9 @@
 /dist/
 /.sample-publish/
 
+# Local SDK pin (varies per machine; CI pins its own SDK via setup-dotnet)
+/global.json
+
 # IDE and OS files
 .DS_Store
 .idea/

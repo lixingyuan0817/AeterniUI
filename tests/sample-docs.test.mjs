@@ -118,6 +118,12 @@ function unpairedQuotes(tag) {
         }
 
         if (quote) {
+            // `attr="@("...")"` 也是合法的表达式值：引号紧跟 `@(`，内层字符串的引号不参与配对。
+            if (character === '@' && tag[cursor + 1] === '(') {
+                depth = 1;
+                cursor += 1;
+                continue;
+            }
             stripped += character;
             if (character === quote) quote = null;
             continue;
