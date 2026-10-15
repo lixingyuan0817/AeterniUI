@@ -37,7 +37,7 @@ const INTERNAL_PARTS = new Set(['DateCalendar', 'TimeOptionList']);
 // 没有 demo 卡片，也没有生成式 API 表；但它们与组件页共用 `ComponentPage` 骨架（页头 →
 // 何时使用 → 内容 → API → 相关组件 → 说明与边界），段齐全与"有可复制代码块"同样要求，
 // 只有"每段 demo 都有自己的标题与代码"这条换成"至少一个 ShowcaseCode 代码块"。
-const NON_COMPONENT_PAGES = new Set(['install', 'colors', 'glass']);
+const NON_COMPONENT_PAGES = new Set(['install', 'colors']);
 
 const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
 

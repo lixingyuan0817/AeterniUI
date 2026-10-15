@@ -27,6 +27,15 @@
 - [x] 文档：`delivered-features` 的滚动条 Token 条目改写为“十二个容器 + 两类声明成对 + 宿主怎么写”；`engineering-reference` 新增 §5.8（三个 Token、两类声明、继承差异、隐藏型写法、门禁）；`AGENTS.md` §4.8 门禁清单加一行。按“修复与优化递增第三位”（§4.9）从 `10.34.1` 升到 `10.34.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node scripts/check-scrollbars.mjs` 通过（12 个容器 / 12 份组件表）；`check-css-comments.mjs`、`check-contrast.mjs`、`check-docs.sh`、`check-doc-drift.mjs` 通过。真实渲染（无头 Chromium 读计算样式）：示例站根元素、搜索面板结果区、`VirtualList` 视口、`Drawer` 主体、`Timeline` 横向轨道五处都拿到 `scrollbar-color: rgba(0, 0, 0, 0.18) rgba(0, 0, 0, 0)`（滑轨 alpha 为 0）与 `scrollbar-width: thin`，`::-webkit-scrollbar-track` 背景同为 `rgba(0, 0, 0, 0)`。
 
+## 示例工程：玻璃与模糊对比页下线（版本号未递增）
+
+`/components/glass` 是玻璃配方早期的实验台——把填充 × 模糊 × 饱和度 × 遮罩摊成八节对照矩阵。配方结论早已落进 Token 层与 `engineering-reference`（填充 `68%`／`72%`、两支 on-glass 墨、四条角色名接管），页面本身只剩历史读数，而填充或墨每改一次都要跟着重测一遍（`release-history` 里那两行「推翻旧读数重测」就是它的维护代价）。示例站不再保留它。
+
+- [x] 删除 `GlassLab.razor`、`GlassLab.razor.css`，以及只为它服务的 `GlassContrast.cs`（其中的 `GlassPalette` 读数一并消失）。
+- [x] 目录条目 `glass` 从「设计基础」分组移除；`Colors` 与 `Theme` 两页的「相关组件」不再指向它。
+- [x] 门禁同步：`tests/sample-docs.test.mjs` 的 `NON_COMPONENT_PAGES` 与 `tests/browser/verify.mjs` 的非组件页循环都收窄到 `colors`；搜索索引重新生成（482 条 / 61 页）。
+- 未改动：库侧零改动。玻璃配方与那两支墨的事实源仍是 `delivered-features` 与 `engineering-reference`；版本号未递增。
+
 ## 示例工程组合用法页（批次 6，版本号未递增）
 
 批次 6 在示例工程里开一条新线：不按单个组件、而按“把几个组件串成一条链”组织页面。目录新增「组合用法」分组（`IsComponent = false`，路由沿用 `/components/<id>`，因此侧栏高亮、前后导航、`EditUrl`、搜索索引与门禁全部照旧）。本轮交付第 1 页，并把它做成后续四页的模板。

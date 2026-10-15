@@ -25,11 +25,6 @@ public static class ShowcaseSearchIndex
         new("colors", "色彩与语义", "设计基础", "colors-related-title", "相关组件"),
         new("colors", "色彩与语义", "设计基础", "colors-notes-title", "说明与边界"),
 
-        new("glass", "玻璃与模糊", "设计基础", "glass", "玻璃与模糊"),
-        new("glass", "玻璃与模糊", "设计基础", "glass-when-title", "何时使用"),
-        new("glass", "玻璃与模糊", "设计基础", "glass-related-title", "相关组件"),
-        new("glass", "玻璃与模糊", "设计基础", "glass-notes-title", "说明与边界"),
-
         new("button", "Button", "基础组件", "button", "Button"),
         new("button", "Button", "基础组件", "button-when-title", "何时使用"),
         new("button", "Button", "基础组件", "button-basic", "基础用法"),

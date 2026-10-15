@@ -22,11 +22,11 @@ public sealed record ShowcaseNavItem(string Id, string Label, string Summary)
 
     /// <summary>
     /// Page file under <c>Pages/Components</c> that renders this entry, without the
-    /// extension. Derived from <see cref="Id"/> unless a page kept an older file
-    /// name (<c>glass</c> renders <c>GlassLab.razor</c>), in which case it is named
-    /// here. The sidebar builds its "edit on GitHub" link from this value, so a
-    /// wrong name produces a dead link instead of an obvious error — the sample
-    /// gate asserts every entry's file exists.
+    /// extension. Derived from <see cref="Id"/> unless a page keeps a name that no
+    /// longer matches its entry, in which case it is named here. The sidebar builds
+    /// its "edit on GitHub" link from this value, so a wrong name produces a dead
+    /// link instead of an obvious error — the sample gate asserts every entry's file
+    /// exists.
     /// </summary>
     public string Page
     {
@@ -47,8 +47,7 @@ public static class ShowcaseCatalog
             new("install", "安装", "安装与初始化") { IsComponent = false }
         ]),
         new("设计基础", FontAwesomeIcons.Solid.Paintbrush, [
-            new("colors", "色彩与语义", "色族、字体、圆角与阴影") { IsComponent = false },
-            new("glass", "玻璃与模糊", "模糊档位与填充不透明度对比") { IsComponent = false, Page = "GlassLab" }
+            new("colors", "色彩与语义", "色族、字体、圆角与阴影") { IsComponent = false }
         ]),
         new("基础组件", FontAwesomeIcons.Solid.Cubes, [
             new("button", "Button", "动作按钮"),

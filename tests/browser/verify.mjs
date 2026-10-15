@@ -2194,9 +2194,9 @@ check('非组件页（安装）也按同一模板渲染：何时使用、相关�
     && installTemplate.api === 0,
     JSON.stringify(installTemplate));
 
-// 设计基础与实验台两页同理：规格表 / 实验舞台住在 Demos 段里，骨架负责标题区与三段，
-// 两页各带两段可复制代码块，且都没有 API 表（它们记录的不是单个组件）。
-for (const path of ['/components/colors', '/components/glass']) {
+// 设计基础页同理：规格表住在 Demos 段里，骨架负责标题区与三段，
+// 它带两段可复制代码块，且没有 API 表（它记录的不是单个组件）。
+for (const path of ['/components/colors']) {
     await goto(`${BASE}${path}`);
     await waitForApp();
     const template = await evaluate(`(() => {
