@@ -32,5 +32,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 // 一起的，所以生命周期跟随应用（scoped），不能由某个组件各自持有。
 builder.Services.AddScoped<AeterniUI.Sample.Components.Showcase.ShowcaseSearchModel>();
 builder.Services.AddScoped<AeterniUI.Sample.Components.Showcase.ShowcaseSettingsModel>();
+builder.Services.AddScoped<AeterniUI.Sample.Components.Showcase.ShowcasePreviewModel>();
 
 await builder.Build().RunAsync();

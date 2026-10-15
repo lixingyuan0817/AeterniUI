@@ -1,0 +1,62 @@
+@namespace AeterniUI.Sample.Components.Showcase
+@using AeterniUI.Enums
+
+@* 页面反馈闭环：有用/无用是本地交互（静态站点没有后端，点了回一句感谢，不伪造"已记录"），
+   issue 与贡献者是通往仓库的真实出口——反馈的"闭环"最终落在 GitHub。放在每个组件页末尾，
+   与"在 GitHub 编辑"同源：都由 ShowcaseCatalog 给出仓库地址。 *@
+<section class="component-feedback" aria-label="页面反馈">
+    <div class="component-feedback__vote">
+        <span class="component-feedback__question">这个页面有帮助吗？</span>
+        <Button Size="Size.Small"
+                Variant="ButtonVariant.Ghost"
+                AriaLabel="这个页面有用"
+                StartIcon="@ThumbsUpGlyph"
+                OnClick="VoteHelpful">有用</Button>
+        <Button Size="Size.Small"
+                Variant="ButtonVariant.Ghost"
+                AriaLabel="这个页面无用"
+                StartIcon="@ThumbsDownGlyph"
+                OnClick="VoteUnhelpful">无用</Button>
+    </div>
+    <div class="component-feedback__links">
+        <a class="component-feedback__link" href="@IssueUrl" target="_blank" rel="noopener noreferrer">
+            提交 Issue<span aria-hidden="true"> ↗</span>
+        </a>
+        <a class="component-feedback__link" href="@ShowcaseCatalog.ContributorsUrl" target="_blank" rel="noopener noreferrer">
+            贡献者<span aria-hidden="true"> ↗</span>
+        </a>
+    </div>
+</section>
+
+@code {
+    [Inject]
+    private AeterniUI.Services.IDialogService DialogService { get; set; } = default!;
+
+    /// <summary>目录条目 id，用于 issue 预填里的页面路径。</summary>
+    [Parameter, EditorRequired]
+    public string AnchorId { get; set; } = string.Empty;
+
+    /// <summary>页面标题，用于感谢文案与 issue 标题预填。</summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    private static readonly RenderFragment ThumbsUpGlyph = @<Icon Definition="@FontAwesomeIcons.Solid.ThumbsUp" />;
+
+    private static readonly RenderFragment ThumbsDownGlyph = @<Icon Definition="@FontAwesomeIcons.Solid.ThumbsDown" />;
+
+    private string IssueUrl =>
+        $"{ShowcaseCatalog.IssuesUrl}?title={Uri.EscapeDataString($"[示例反馈] {Title}")}" +
+        $"&body={Uri.EscapeDataString($"页面：{ShowcaseCatalog.RouteFor(AnchorId)}\n\n（请描述问题或建议）")}";
+
+    private Task VoteHelpful()
+    {
+        DialogService.ShowToast($"感谢反馈：《{Title}》这一页对你有用。");
+        return Task.CompletedTask;
+    }
+
+    private Task VoteUnhelpful()
+    {
+        DialogService.ShowToast($"已收到反馈：《{Title}》这一页需要改进。");
+        return Task.CompletedTask;
+    }
+}

@@ -22,6 +22,25 @@
                     <p class="showcase-settings__label">主题模式</p>
                     <ThemeSwitch Size="Size.Small" AriaLabel="主题模式" />
                 </div>
+                @* 预览状态：RTL 方向、减少动效、窄屏三个示例级开关，作用在整站外壳上，
+                   由 ShowcasePreviewModel 驱动；开关值由模型给出、变更写回模型，布局据此重渲染。 *@
+                <div class="showcase-settings__group">
+                    <p class="showcase-settings__label">预览状态</p>
+                    <div class="showcase-settings__toggles">
+                        <Switch Size="Size.Small"
+                                Value="Preview.Rtl"
+                                ValueChanged="Preview.SetRtl"
+                                AriaLabel="方向 RTL">方向 RTL</Switch>
+                        <Switch Size="Size.Small"
+                                Value="Preview.ReducedMotion"
+                                ValueChanged="Preview.SetReducedMotion"
+                                AriaLabel="减少动效">减少动效</Switch>
+                        <Switch Size="Size.Small"
+                                Value="Preview.Narrow"
+                                ValueChanged="Preview.SetNarrow"
+                                AriaLabel="窄屏">窄屏</Switch>
+                    </div>
+                </div>
             </div>
         </Popover>
     </ChildContent>

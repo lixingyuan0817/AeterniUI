@@ -17,6 +17,16 @@
 - [x] 记录一条未采纳的方案：曾考虑改用不透明的 `--aeterni-separator`（浅色 1.7:1 / 深色 1.5:1），但它会在实心按钮上造出与 32% 前景色缝语义不同的第二条线，且对比度反而低于 45% 档，因此不用。
 - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 gates）、`check-doc-drift.mjs`（78 文案键）、`bash scripts/check-docs.sh` 通过（本机用 Git Bash 运行，`system32\bash.exe` 的旧 bash 不支持 `set -o pipefail`）。真实渲染（无头 Chrome 读计算样式）：SplitButton 透明档 `color(srgb 0 0 0 / 0.351176)`、实心档 `color(srgb 0 0 0 / 0.249725)` 不变；ButtonGroup 无覆盖时为 `color(srgb 1 1 1 / 0.32)` 与 `color(srgb 0.4 0.27451 0.733333 / 0.45)`，在祖先设 `--aeterni-button-group-divider: rgb(255, 0, 0)` 后两档都变红，而 SplitButton 不受该变量影响。`tests/browser/verify.mjs` 新增一条断言（SplitButton 与 ButtonGroup 共用同一档连体缝，透明档接缝 alpha 落在 0.30～0.40），形态先用独立 CDP 脚本实测通过，全量由 CI 复跑。按"修复与优化递增第三位"（§4.9）从 `10.34.2` 升到 `10.34.3`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
 
+## 示例工程批次 7：预览状态矩阵、版本入口与反馈闭环（版本号未递增）
+
+示例工程信息架构的最后一批（`component-plan` §4 批次 7）收口：三件事都属于示例站自身的「可运行契约」，不新增库侧公共 API，因此版本号不递增。
+
+- [x] **预览状态矩阵**：外观设置浮层新增「预览状态」分组，三个示例级开关由 scoped 的 `ShowcasePreviewModel` 驱动、浮层与外壳共享——方向 RTL（把 `.sample-page` 的 `dir` 翻到 `rtl`）、减少动效（`.sample-page.is-reduced-motion` 把库的四个时长 Token 压到 `0ms`，模拟 `prefers-reduced-motion` 里 Token 那一半；组件各自 CSS 里写死的 reduced-motion 分支仍由系统媒体查询驱动，不越权覆盖）、窄屏（`.sample-page.is-narrow` 把整站外壳共用的 `--sample-shell-width` 收到手机宽度，头/侧栏/正文/首页一改全改）。
+- [x] **版本入口**：页头品牌名右侧新增版本徽标 `v10.34.3`，从示例程序集的 informational version 读取（SourceLink 追加的 `+commit` 在展示时去掉），指向 GitHub 发布列表。
+- [x] **反馈闭环**：`ComponentPage` 正文末尾新增 `ShowcaseFeedback`——「有用/无用」点后回一条 Toast（静态站点没有后端，不伪造「已记录」），「提交 Issue」（按当前页标题与路由预填）与「贡献者」通往仓库。
+- [x] **断言**：`tests/sample-docs.test.mjs` 新增骨架断言（版本入口、三个预览开关、反馈闭环都存在）；`tests/browser/verify.mjs` 新增五条浏览器断言（版本徽标文本与发布链接、点「有用」弹 Toast 且 issue/贡献者出口存在、RTL 翻到 `dir="rtl"`、减少动效压平 `--aeterni-duration-normal` 为 `0ms`、窄屏给外壳加修饰类），并把原「设置浮层两个分组」断言更新为三个分组。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --test tests/*.test.mjs` 94 项通过；`check-css-comments.mjs`、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`、`generate-search-index.mjs --check` 通过。批次 7 的五条浏览器断言先用独立 CDP 脚本实测 5/5，全量由 CI 复跑。
+
 ## 10.34.2 滚动条统一：滑轨透明、十二个可滚动容器一套写法
 
 示例站的搜索面板报“滚动条的白色背景太显眼”：那个容器自己用 `scrollbar-gutter: stable` 预留了滑轨槽，却没有消费 `--aeterni-scrollbar-*`，于是走浏览器默认外观——约 15px 宽的实色滑轨常驻在玻璃面板上。顺带查出库内的滚动条**本来就不统一**：十二个可滚动容器里，三个写了完整的两套声明，五个只有标准属性（Safari 与旧 Chromium 会回落默认外观），四个什么都没写。

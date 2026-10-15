@@ -19,6 +19,22 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
 }
 
+/* 预览状态：减少动效。示例级模拟 `prefers-reduced-motion: reduce` 里 Token 那一半——
+   把库的时长 Token 压到 0ms，所有消费这些 Token 的过渡与动画随之收起；组件各自 CSS 里
+   写死的 reduced-motion 分支仍由系统媒体查询驱动，这里不越权覆盖。 */
+.sample-page.is-reduced-motion {
+    --aeterni-duration-fast: 0ms;
+    --aeterni-duration-normal: 0ms;
+    --aeterni-duration-slow: 0ms;
+    --aeterni-duration-slower: 0ms;
+}
+
+/* 预览状态：窄屏。整站外壳（头、侧栏、正文、首页）都从 --sample-shell-width 取宽，
+   只改这一个变量就能把全站收到手机宽度；保留与 app.css 同款的最小留白，窄视口下不溢出。 */
+.sample-page.is-narrow {
+    --sample-shell-width: min(480px, calc(100% - 32px));
+}
+
 .sample-page__ambient {
     position: absolute;
     z-index: -1;
@@ -141,6 +157,27 @@
 
 .brand-name span {
     color: var(--aeterni-color-brand-default);
+}
+
+/* 版本入口：只读的版本徽标，安静地贴在品牌名右侧；hover 时才给链接色。
+   与品牌、导航同处一行，不抢搜索框与设置入口的宽度。 */
+.app-version {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-sm);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--aeterni-transition-color), var(--aeterni-transition-border);
+}
+
+.app-version:hover,
+.app-version:focus-visible {
+    color: var(--aeterni-color-brand-default);
+    border-color: var(--aeterni-color-brand-default);
 }
 
 /* Top-level navigation between 首页 and 组件 — plain link style, aligned left

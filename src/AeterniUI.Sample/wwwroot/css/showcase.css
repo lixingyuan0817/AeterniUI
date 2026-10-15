@@ -2116,3 +2116,52 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
 }
+
+/* 预览状态三个开关竖排：每个 Switch 自带文本标签，这里只给它们留间距与对齐。 */
+.showcase-settings__toggles {
+    display: grid;
+    justify-items: start;
+    gap: var(--aeterni-spacing-2);
+}
+
+/* 页面反馈闭环：正文最末一行，投票与仓库出口分列两端。 */
+.component-feedback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3);
+    margin-block-start: var(--aeterni-spacing-8);
+    padding-block-start: var(--aeterni-spacing-4);
+    border-block-start: 1px solid var(--aeterni-border-subtle);
+}
+
+.component-feedback__vote {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+}
+
+.component-feedback__question {
+    margin-inline-end: var(--aeterni-spacing-1);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.component-feedback__links {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+}
+
+.component-feedback__link {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    text-decoration: none;
+    transition: var(--aeterni-transition-color);
+}
+
+.component-feedback__link:hover,
+.component-feedback__link:focus-visible {
+    color: var(--aeterni-color-brand-default);
+}

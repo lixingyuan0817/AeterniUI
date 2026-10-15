@@ -11,9 +11,22 @@ public partial class ShowcaseSettingsLayer : ComponentBase, IDisposable
     [Inject]
     private ShowcaseSettingsModel Model { get; set; } = default!;
 
-    protected override void OnInitialized() => Model.Changed += HandleModelChanged;
+    [Inject]
+    private ShowcasePreviewModel Preview { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Model.Changed += HandleModelChanged;
+        Preview.Changed += HandlePreviewChanged;
+    }
 
     private void HandleModelChanged() => InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Model.Changed -= HandleModelChanged;
+    private void HandlePreviewChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Model.Changed -= HandleModelChanged;
+        Preview.Changed -= HandlePreviewChanged;
+    }
 }

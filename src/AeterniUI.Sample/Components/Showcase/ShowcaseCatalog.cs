@@ -1,4 +1,5 @@
-﻿using AeterniUI.Icons;
+using System.Reflection;
+using AeterniUI.Icons;
 using AeterniUI.Icons.FontAwesome;
 
 namespace AeterniUI.Sample.Components.Showcase;
@@ -125,6 +126,33 @@ public static class ShowcaseCatalog
     ];
 
     private const string RepositoryUrl = "https://github.com/lixingyuan0817/AeterniUI";
+
+    /// <summary>
+    /// 库版本号，与 <c>Directory.Build.props</c> 的 <c>InformationalVersion</c> 同一来源：
+    /// 从示例程序集的 informational version 读取，不在页面里再维护一份字符串。
+    /// SourceLink 会在末尾追加 <c>+commit</c>，展示时去掉，只留 <c>10.34.3</c>。
+    /// </summary>
+    public static string Version { get; } = DisplayVersion();
+
+    public static string ReleasesUrl => $"{RepositoryUrl}/releases";
+
+    public static string IssuesUrl => $"{RepositoryUrl}/issues/new";
+
+    public static string ContributorsUrl => $"{RepositoryUrl}/graphs/contributors";
+
+    private static string DisplayVersion()
+    {
+        var informational = typeof(ShowcaseCatalog).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        if (string.IsNullOrEmpty(informational))
+        {
+            return "0.0.0";
+        }
+
+        var plus = informational.IndexOf('+');
+        return plus >= 0 ? informational[..plus] : informational;
+    }
 
     /// <summary>
     /// 条目 id → 路由。安装页挂在 <c>/components</c> 上而不是 <c>/components/install</c>，

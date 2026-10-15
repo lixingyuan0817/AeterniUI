@@ -365,3 +365,16 @@ test('开标签里的引号都成对（Razor 会把未转义的属性值截断�
     assert.deepEqual(broken, [],
         `这些开标签里有未转义的引号，属性会被截断、整页渲染失败：${broken.join('; ')}`);
 });
+
+test('批次 7 骨架：版本入口、预览状态开关与反馈闭环都存在', () => {
+    const layout = read(`${SAMPLE}/Layout/MainLayout.razor`);
+    assert.match(layout, /class="app-version"/, '页头应有版本入口');
+
+    const settings = read(`${SAMPLE}/Components/Showcase/ShowcaseSettingsLayer.razor`);
+    for (const label of ['方向 RTL', '减少动效', '窄屏']) {
+        assert.ok(settings.includes(label), `设置浮层应有「${label}」开关`);
+    }
+
+    const page = read(`${SAMPLE}/Components/Showcase/ComponentPage.razor`);
+    assert.ok(page.includes('<ShowcaseFeedback'), '组件页骨架末尾应带反馈闭环');
+});

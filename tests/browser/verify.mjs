@@ -1870,9 +1870,9 @@ const settingsOpen = await (async () => {
 check('设置入口声明 aria-haspopup / aria-expanded 并打开浮层',
     settingsOpen.exists && settingsOpen.haspopup === 'true' && settingsOpen.expanded === 'true' && settingsOpen.open,
     JSON.stringify(settingsOpen));
-check('设置浮层里有品牌色与主题模式两个开关',
+check('设置浮层里有品牌色、主题模式与预览状态三个分组',
     settingsOpen.groups === 2 && settingsOpen.labels.includes('品牌色') && settingsOpen.labels.includes('主题模式')
-    && settingsOpen.groupLabels.join(',') === '品牌色,主题模式',
+    && settingsOpen.groupLabels.join(',') === '品牌色,主题模式,预览状态',
     JSON.stringify(settingsOpen));
 
 // 焦点先落进浮层里的开关，再按 Escape：关闭路径要把焦点还给触发器。
@@ -2689,6 +2689,84 @@ const seamAlpha = alphaOf(seam.seam);
 check('SplitButton 与 ButtonGroup 共用同一档连体缝，透明档是 45% 而不是自己的 20%',
     !seam.error && seam.transparent && seamAlpha !== null && seamAlpha >= 0.30 && seamAlpha <= 0.40,
     `seam=${seam.seam} alpha=${seamAlpha}`);
+
+// ---------------------------------------------------------------- 批次 7：版本入口 / 预览状态 / 反馈闭环
+
+const buildProps = readFileSync(new URL('../../Directory.Build.props', import.meta.url), 'utf8');
+const expectedVersion = /<InformationalVersion>([^<]+)<\/InformationalVersion>/.exec(buildProps)?.[1];
+
+await goto(`${BASE}/components/button`);
+await waitForApp();
+
+// 版本入口：页头徽标显示当前版本并指向发布列表。
+const versionEntry = await evaluate(`(() => {
+    const link = document.querySelector('.app-version');
+    if (!link) return { error: 'no version entry' };
+    return { text: link.textContent.trim(), href: link.getAttribute('href') };
+})()`);
+check('批次 7 版本入口显示当前版本并指向发布列表',
+    !versionEntry.error && versionEntry.text === `v${expectedVersion}` && /\/releases$/.test(versionEntry.href),
+    JSON.stringify(versionEntry));
+
+// 反馈闭环：有用/无用与 issue/贡献者出口都在，点「有用」弹 Toast。
+const feedback = await evaluate(`(async () => {
+    const root = document.querySelector('.component-feedback');
+    if (!root) return { error: 'no feedback block' };
+    const helpful = [...root.querySelectorAll('button')].find(b => b.textContent.includes('有用'));
+    const links = [...root.querySelectorAll('a')].map(a => a.textContent.replace(/\\s+/g, ' ').trim());
+    if (!helpful) return { error: 'no helpful button', links };
+    helpful.click();
+    const deadline = performance.now() + 4000;
+    while (performance.now() < deadline && !document.querySelector('.aeterni-dialog-provider__toast')) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+    return { links, toast: !!document.querySelector('.aeterni-dialog-provider__toast') };
+})()`);
+check('批次 7 反馈闭环：点「有用」弹 Toast，issue 与贡献者出口存在',
+    !feedback.error && feedback.toast && feedback.links.some(t => t.includes('Issue')) && feedback.links.some(t => t.includes('贡献者')),
+    JSON.stringify(feedback));
+
+// 预览状态：设置浮层里三个开关各自驱动整站外壳。
+const preview = await evaluate(`(async () => {
+    const trigger = document.querySelector('#showcase-settings-button');
+    if (!trigger) return { error: 'no settings trigger' };
+    trigger.click();
+    const openDeadline = performance.now() + 4000;
+    while (performance.now() < openDeadline && !document.querySelector('#showcase-settings-panel')) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+    const page = () => document.querySelector('.sample-page');
+    const poll = async fn => {
+        const end = performance.now() + 4000;
+        while (performance.now() < end) {
+            if (fn()) return true;
+            await new Promise(r => setTimeout(r, 50));
+        }
+        return false;
+    };
+    const clickSwitch = aria => {
+        const input = document.querySelector('input[role="switch"][aria-label="' + aria + '"]');
+        if (!input) return 'no switch: ' + aria;
+        input.click();
+        return null;
+    };
+
+    const rtlErr = clickSwitch('方向 RTL');
+    const rtlOn = await poll(() => page()?.getAttribute('dir') === 'rtl');
+    const reducedErr = clickSwitch('减少动效');
+    const reducedOn = await poll(() => page()?.classList.contains('is-reduced-motion'));
+    const duration = reducedOn ? getComputedStyle(page()).getPropertyValue('--aeterni-duration-normal').trim() : '';
+    const narrowErr = clickSwitch('窄屏');
+    const narrowOn = await poll(() => page()?.classList.contains('is-narrow'));
+
+    return { rtlErr, rtlOn, reducedErr, reducedOn, duration, narrowErr, narrowOn };
+})()`);
+check('批次 7 预览状态：RTL 开关把外壳翻到 rtl',
+    !preview.rtlErr && preview.rtlOn, JSON.stringify(preview));
+check('批次 7 预览状态：减少动效开关压平时长 Token',
+    !preview.reducedErr && preview.reducedOn && (preview.duration === '0ms' || preview.duration === '0s'), JSON.stringify(preview));
+check('批次 7 预览状态：窄屏开关给外壳加窄屏修饰类',
+    !preview.narrowErr && preview.narrowOn, JSON.stringify(preview));
 
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
