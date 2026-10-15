@@ -12,8 +12,8 @@
                Description="带提交与清空动作的关键词输入：把查询的两种动作固定在控件内部。"
                Related="@SearchRelated">
     <WhenToUse>
-        <p>列表或站点的关键词检索入口用它：输入、回车或点按钮提交、一键清空。输入即筛选（无提交动作）的场景用 <code>Input</code> 配合你自己的防抖。</p>
-        <p>需要边输入边提示候选词时用 <code>Autocomplete</code>；<code>Search</code> 只负责"把词交给宿主"。</p>
+        <p>列表或站点的关键词检索入口用它：输入、回车或点按钮提交、一键清空。输入即筛选（无提交动作）的场景用 <code>Input</code> 配合自己的防抖。</p>
+        <p>需要边输入边提示候选词时用 <code>Autocomplete</code>；<code>Search</code> 只负责把词交给宿主。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="search-basic"
@@ -88,8 +88,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>组件只报告"提交"与"清空"两个动作，不发起查询、不缓存结果：请求与状态由宿主维护。</span>
-        <span>提交按钮与清空按钮各自有独立焦点与无障碍名称，名称取文案表的 <code>SearchSubmitLabel</code> / <code>SearchClearLabel</code>，可整体覆写。</span>
+        <span>组件只报告「提交」与「清空」两个动作，不发起查询、不缓存结果。</span>
+        <span>提交按钮与清空按钮各自有独立焦点与无障碍名称，名称取文案表的 <code>SearchSubmitLabel</code> / <code>SearchClearLabel</code>。</span>
         <span><code>Loading</code> 只让提交动作忙碌，输入框仍可编辑——需要整体禁用请用 <code>Disabled</code>。</span>
     </Notes>
 </ComponentPage>

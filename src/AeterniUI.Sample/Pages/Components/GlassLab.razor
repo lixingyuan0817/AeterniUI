@@ -30,11 +30,11 @@
                Category="设计基础"
                Title="玻璃与模糊"
                ComponentName="Surface"
-               Description="把「玻璃填充不透明度 × 模糊半径 × 饱和度 × 遮罩」摊成一张矩阵，让同一块面板在七组变量下同屏出现：玻璃真正的短板不是模糊不够，而是背景里没有东西可以糊，以及填充太实把糊过的背景又盖了回去。"
+               Description="把玻璃填充、模糊半径、饱和度与遮罩摊成一张矩阵：同一块面板在七组变量下同屏出现，用来分别定位「糊不起来、太实、边界太软、文字被打穿」。"
                Related="@GlassRelated">
     <WhenToUse>
-        <p>要定位"玻璃面板为什么糊不起来、太实、边界太软、文字被打穿"时看这一页：六个问题各占一块舞台，可以分别调、分别读数。</p>
-        <p>落地用法是 <code>Surface</code> 的 <code>Glass</code> 变体（见「把结论搬回页面」的两段代码）；这一页本身只读，候选值住在本页隔离样式的 <code>--glass-lab-*</code> 里，不写进库。</p>
+        <p>要定位玻璃面板为什么糊不起来、太实、边界太软或文字被打穿时使用：六个问题各占一块舞台，可以分别调、分别读数。</p>
+        <p>落地用法是 <code>Surface</code> 的 <code>Glass</code> 变体；这一页本身只读，候选值住在本页隔离样式的 <code>--glass-lab-*</code> 里，不写进库。</p>
     </WhenToUse>
     <Demos>
         @* 实验住在骨架的 Demos 段里：页头、何时使用、右栏目录与说明边界都由 `ComponentPage`
@@ -592,9 +592,8 @@
         </section>
     </Demos>
     <Notes>
-        <span>这一页的候选值只是实验值，住在页面隔离样式的 <code>--glass-lab-*</code> 里；真正落地的是 <code>Surface</code> 的 <code>Glass</code> 变体与库 Token，本页不写任何 Token。</span>
-        <span>同屏玻璃面建议不超过 3 个：面板越多，页面里同时生效的 <code>backdrop-filter</code> 越多，合成与滚动的代价也越大。</span>
-        <span>系统开启「降低透明度」时必须降级。库把这条降级收在 Token 层（填充退不透明表面、模糊退 <code>none</code>），自己只摘掉 <code>backdrop-filter</code> 会留下一块半透明色斑。</span>
+        <span>同屏玻璃面建议不超过 3 个：面板越多，同时生效的 <code>backdrop-filter</code> 越多，合成与滚动的代价也越大。</span>
+        <span>系统开启「降低透明度」时必须降级：库把降级收在 Token 层（填充退不透明表面、模糊退 <code>none</code>），自己只摘掉 <code>backdrop-filter</code> 会留下一块半透明色斑。</span>
     </Notes>
 </ComponentPage>
 

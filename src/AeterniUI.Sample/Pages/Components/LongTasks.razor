@@ -16,8 +16,8 @@
                Description="进行中、取消与结束通知：长任务的三段式，以及破坏性动作前的确认。"
                Related="@LongTasksRelated">
     <WhenToUse>
-        <p>操作要跑几秒以上、用户可能中途想放弃时看这一页：它给出"进度 + 取消 + 结束通知"的最小分工，并说明什么时候该先确认。</p>
-        <p>瞬时操作不要进度条（闪一下比不动更烦）；只要一个结果回执看通知组件那一页（<code>IDialogService</code>）。</p>
+        <p>操作要跑几秒以上、用户可能中途想放弃时使用：进度 + 取消 + 结束通知的最小分工，以及什么时候该先确认。</p>
+        <p>瞬时操作不要进度条（闪一下比不动更烦）；只要一个结果回执时用通知组件（<code>IDialogService</code>）。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="long-tasks-progress"
@@ -73,10 +73,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>进行中的反馈与结果反馈是两件事：<code>Progress</code> 负责前者（可以随时消失），<code>ShowToast</code> 负责后者（一条就够）。把两者混成"按钮转圈到结束"会让用户既不知道还剩多少，也不知道到底成没成。</span>
-        <span>取消要给真的出口：示例把 <code>CancellationToken</code> 传进每一步等待，取消后停在当前百分比并给出"已取消"的回执；任务不是在后台继续跑。</span>
-        <span>破坏性动作先 <code>ConfirmAsync</code>，拿到 <c>true</c> 才发请求——示例里拒绝时连"正在删除"都不会出现，因为状态根本没被改过。</span>
-        <span>页面被销毁时要取消在跑的任务（示例在 <code>Dispose</code> 里做）：留一个还在 <code>Task.Delay</code> 的循环去调 <code>StateHasChanged</code>，只会得到对已销毁组件的无效更新。</span>
+        <span>进行中的反馈与结果反馈是两件事：<code>Progress</code> 负责前者（可以随时消失），<code>ShowToast</code> 负责后者（一条就够）。把两者混成「按钮转圈到结束」会让用户既不知道还剩多少，也不知道到底成没成。</span>
+        <span>取消要给真的出口：把 <code>CancellationToken</code> 传进每一步等待，取消后停在当前百分比并给出「已取消」的回执。</span>
+        <span>破坏性动作先 <code>ConfirmAsync</code>，拿到 <code>true</code> 才发请求。</span>
+        <span>页面被销毁时要取消在跑的任务：留一个还在 <code>Task.Delay</code> 的循环去调 <code>StateHasChanged</code>，只会得到对已销毁组件的无效更新。</span>
     </Notes>
 </ComponentPage>
 

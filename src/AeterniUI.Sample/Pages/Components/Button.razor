@@ -13,7 +13,7 @@
                Description="动作按钮：变体、语意色、尺寸、加载与图标。"
                Related="@ButtonRelated">
     <WhenToUse>
-        <p>执行一个动作时使用：提交、保存、删除。跳转到别的地址用链接，切换状态用 <code>Switch</code>，只有图标没有文字时用 <code>IconButton</code>。</p>
+        <p>执行一个动作时使用：提交、保存、删除。跳转用链接，切换状态用 <code>Switch</code>，只有图标没有文字用 <code>IconButton</code>。</p>
         <p>一屏里主次分明：一个主要动作（<code>Solid</code> + 默认语意），其余用 <code>Outline</code>、<code>Soft</code> 或 <code>Ghost</code>；危险动作才用 <code>Danger</code>。</p>
     </WhenToUse>
     <Demos>
@@ -124,9 +124,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>渲染为原生 <code>button</code>：键盘用 Enter/空格激活，禁用态同时输出 <code>disabled</code> 与 <code>aria-disabled</code>。</span>
-        <span><code>Type</code> 的默认值是 <code>Button</code> 而不是浏览器默认的 <code>submit</code>：放进表单也不会误提交，需要提交时显式声明。</span>
-        <span>加载态只把内容换成忙碌指示并输出 <code>aria-busy</code>，不改变按钮墨色；宽度由内容或 <code>FullWidth</code> 决定。</span>
+        <span>渲染为原生 <code>button</code>：Enter/空格激活，禁用态同时输出 <code>disabled</code> 与 <code>aria-disabled</code>。</span>
+        <span><code>Type</code> 默认是 <code>Button</code> 而不是浏览器默认的 <code>submit</code>：放进表单也不会误提交。</span>
+        <span>加载态只把内容换成忙碌指示并输出 <code>aria-busy</code>，不改变按钮墨色。</span>
     </Notes>
 </ComponentPage>
 

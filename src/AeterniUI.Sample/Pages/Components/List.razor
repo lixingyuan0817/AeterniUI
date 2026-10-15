@@ -122,8 +122,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span><code>SelectionMode.None</code> 只渲染静态列表；改成 <code>Single</code> 或 <code>Multiple</code> 后才输出 <code>listbox</code> 与选项角色并接管方向键，<code>AllowClear</code> 只在单选下允许再次点击清除。</span>
-        <span><code>CardMode</code> 只换外壳：普通行与卡片共用同一套选中底色、字重与悬停反馈；选择列表里不要再嵌可聚焦操作控件，否则行与内部控件的键盘语义会互相打架。</span>
+        <span>只有 <code>Single</code> / <code>Multiple</code> 才输出 <code>listbox</code> 与选项角色；<code>AllowClear</code> 只在单选下允许再次点击清除。</span>
+        <span><code>CardMode</code> 只换外壳：普通行与卡片共用同一套选中底色、字重与悬停反馈。选择列表里不要再嵌可聚焦操作控件，否则行与内部控件的键盘语义会互相打架。</span>
         <span><code>Home</code>/<code>End</code> 按画面顺序移动，<code>Visible</code> 为 false 的选项不可选也不进入移动范围；允许清空时方向键只移动活动项，<code>Enter</code> 与空格才真正切换。<code>MaxHeight</code> 为空时列表按内容自适应，设置后由 List 自己拥有滚动条。</span>
     </Notes>
 </ComponentPage>

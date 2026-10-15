@@ -9,11 +9,11 @@
                Category="表单组件"
                Title="Checkbox"
                ComponentName="Checkbox"
-               Description="保留原生复选框语义的布尔控件：稳定绑定、不确定态的初始显示与 EditContext 校验。"
+               Description="带原生语义的布尔控件：稳定绑定、不确定态显示与 EditContext 校验。"
                Related="@CheckboxRelated">
     <WhenToUse>
-        <p>在一组可选项里做独立勾选（可多选、互不影响）时使用；需要开关一个设置项用 <code>Switch</code>，需要在互斥选项里择一用 <code>RadioGroup</code>。</p>
-        <p>选中状态本身就是值，不存在"未选择"与"未决定"的中间态：<code>Indeterminate</code> 只用于表达"子项部分选中"这类显示语义。</p>
+        <p>在一组可选项里做独立勾选（可多选、互不影响）时使用；开关一个设置项用 <code>Switch</code>，互斥选项里择一用 <code>RadioGroup</code>。</p>
+        <p>选中状态本身就是值：<code>Indeterminate</code> 只用于表达"子项部分选中"这类显示语义。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="checkbox-basic"
@@ -99,10 +99,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>内部是原生 <code>input[type="checkbox"]</code>，视觉部分为自绘：焦点环、键盘切换与读屏语义都来自原生控件。</span>
-        <span><code>Indeterminate</code> 是显示态而非第三种值。它只在 <code>Value = false</code> 时有意义，用户交互后由浏览器清除；<code>OnChange</code> 可用来在交互后同步宿主的本地显示标志。</span>
-        <span>禁用态使用禁用墨与禁用填充，不整块降低透明度；无效态在 <code>FormField</code> 内会随字段继承。</span>
-        <span>复选框不提供组语义：多个复选框是彼此独立的布尔值，成组互斥选择请用 <code>RadioGroup</code>。</span>
+        <span>内部是原生 <code>input[type="checkbox"]</code>，视觉部分自绘：焦点环、键盘切换与读屏语义都来自原生控件。</span>
+        <span><code>Indeterminate</code> 是显示态而非第三种值，只在 <code>Value = false</code> 时有意义，用户交互后由浏览器清除。</span>
+        <span>禁用态使用禁用墨与禁用填充，不整块降低透明度；无效态在 <code>FormField</code> 内随字段继承。</span>
     </Notes>
 </ComponentPage>
 

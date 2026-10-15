@@ -13,7 +13,7 @@
                Description="水平或垂直的分隔线，可以在中缝放文字或图标。"
                Related="@DividerRelated">
     <WhenToUse>
-        <p>同一个容器里的两块内容需要一条视觉分界时使用：表单分组、列表分区、工具栏里的动作族。需要的是"另一块表面"时用 <code>Card</code> 或 <code>Surface</code>，不要拿分隔线堆出结构。</p>
+        <p>同一个容器里的两块内容需要一条视觉分界时使用：表单分组、列表分区、工具栏里的动作族。需要的是一块表面时用 <code>Card</code> 或 <code>Surface</code>。</p>
         <p>中缝内容只是标签，分隔语义始终由 <code>role="separator"</code> 承担，读屏不会把它当成标题。</p>
     </WhenToUse>
     <Demos>
@@ -75,9 +75,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>根元素输出 <code>role="separator"</code> 与显式的 <code>aria-orientation</code>；两种形态共用同一份标记，有中缝内容时才多出 <code>is-labeled</code> 与两截线段。</span>
-        <span>无中缝时线段画在根元素自己的上边框上，因此水平形态占零高度；垂直形态靠 <code>align-self: stretch</code> 取父级 flex 行的高度，容器不是 flex 时退回到 <code>1em</code> 的最小长度。</span>
-        <span>中缝内容只做标签：文字或 <code>Icon</code> 都可以。标签不参与长度分配，两截线段各保留一段最小残段，所以放在收缩到内容宽度的父级里也不会只剩标签。</span>
+        <span>根元素输出 <code>role="separator"</code> 与显式的 <code>aria-orientation</code>；有中缝内容时才多出 <code>is-labeled</code> 与两截线段。</span>
+        <span>无中缝时线段画在根元素自己的上边框上，水平形态因此占零高度；垂直形态靠 <code>align-self: stretch</code> 取父级 flex 行的高度，容器不是 flex 时退回 <code>1em</code> 的最小长度。</span>
+        <span>中缝标签不参与长度分配，两截线段各保留一段最小残段，所以在收缩到内容宽度的父级里也不会只剩标签。</span>
     </Notes>
 </ComponentPage>
 

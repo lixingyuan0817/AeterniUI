@@ -12,7 +12,7 @@
                Description="线性进度条：确定进度给 Value，时长未知时用不确定态。"
                Related="@ProgressRelated">
     <WhenToUse>
-        <p>任务有明确进度时使用：上传、导入、逐步安装。只有“还在转”、没有百分比时用 <code>Spinner</code>；整块内容等待占位用 <code>Skeleton</code>。</p>
+        <p>任务有明确进度时使用：上传、导入、逐步安装。只有「还在转」、没有百分比时用 <code>Spinner</code>；整块内容等待占位用 <code>Skeleton</code>。</p>
         <p>进度条只读，不承担交互：需要用户自己拖动取值时用 <code>Slider</code>。</p>
     </WhenToUse>
     <Demos>
@@ -80,8 +80,8 @@
     </Demos>
     <Notes>
         <span>根元素输出 <code>role="progressbar"</code> 与 <code>aria-valuemin</code> / <code>aria-valuemax</code>；<code>Indeterminate</code> 或没有 <code>Value</code> 时不输出 <code>aria-valuenow</code>，读屏只播报忙碌。</span>
-        <span><code>Value</code> 会被夹到 <code>[0, Max]</code>；<code>Max</code> 必须是正的有限数，<code>Value</code> 不能是 <code>NaN</code> 或无穷大，越界在参数设置阶段抛异常而不是静默截断。</span>
-        <span>不确定态由 CSS 动画扫动，<code>prefers-reduced-motion</code> 下停止；百分比文本只在确定态且 <code>Value</code> 有值时渲染，所以勾上 <code>Indeterminate</code> 后它就会消失。</span>
+        <span><code>Value</code> 会被夹到 <code>[0, Max]</code>；<code>Max</code> 必须是正的有限数，<code>Value</code> 不能是 <code>NaN</code> 或无穷大，越界在参数设置阶段抛异常。</span>
+        <span>不确定态由 CSS 动画扫动，<code>prefers-reduced-motion</code> 下停止；百分比文本只在确定态且 <code>Value</code> 有值时渲染。</span>
     </Notes>
 </ComponentPage>
 

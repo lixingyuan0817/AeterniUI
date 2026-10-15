@@ -13,7 +13,7 @@
                Related="@PopupRelated">
     <WhenToUse>
         <p>内容需要贴着触发元素出现、且不必离开当前页面时使用：补充说明、快捷操作、小型表单。整页级的模态任务用 <code>Dialog</code>，纯文字提示用 <code>Tooltip</code>。</p>
-        <p><code>PopupHost</code> 只提供相对定位的锚点容器，浮层本身是 <code>Popover</code>，两者成对使用；<code>Open</code> 始终由使用方持有，关闭请求通过 <code>OpenChanged</code> 上报。</p>
+        <p><code>PopupHost</code> 只提供相对定位的锚点容器，浮层本身是 <code>Popover</code>，两者成对使用；<code>Open</code> 始终由使用方持有。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="popup-basic"
@@ -157,8 +157,8 @@
     </Demos>
     <Notes>
         <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内：空间不足时翻到另一侧并把内容贴回视口，<code>Placement</code> 只决定起始方位。</span>
-        <span><code>Escape</code>、点击外部、<code>Modal</code> 遮罩与页面滚动都只通过 <code>OpenChanged</code> 请求关闭，<code>Open</code> 始终由使用方持有，配合 <code>@@bind-Open</code> 使用。</span>
-        <span><code>Modal</code> 额外提供遮罩、<code>aria-modal</code>、焦点陷阱（Tab 循环、关闭后焦点回到触发点）和背景滚动锁；非模态形态只输出 <code>region</code> 语义，不抢焦点也不锁滚动。</span>
+        <span><code>Escape</code>、点击外部、<code>Modal</code> 遮罩与页面滚动都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用。</span>
+        <span><code>Modal</code> 额外提供遮罩、<code>aria-modal</code>、焦点陷阱与背景滚动锁；非模态形态只输出 <code>region</code> 语义，不抢焦点也不锁滚动。</span>
     </Notes>
 </ComponentPage>
 

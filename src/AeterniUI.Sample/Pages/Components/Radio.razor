@@ -13,7 +13,7 @@
                Related="@RadioRelated">
     <WhenToUse>
         <p>选项少（2～7 个）且互斥时使用：部门、优先级、性别。选项多改用 <code>ComboBox</code>；二态开关用 <code>Switch</code>，少量视图切换用 <code>Segmented</code>。</p>
-        <p>如果需要"一个都不选"作为合法状态，把某个选项当成"不限"显式列出来——单选组本身不表达空值。</p>
+        <p>如果需要「一个都不选」作为合法状态，把某个选项当成「不限」显式列出来——单选组本身不表达空值。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="radio-group-basic"
@@ -95,7 +95,7 @@
     <Notes>
         <span>组是单一 Tab 停留点：Tab 进入组内当前选项，方向键在可选项之间移动并选中，Home/End 跳到首尾。</span>
         <span>禁用选项既不响应方向键也不参与 Tab 序列，视觉上使用禁用墨而不是整体降透明度。</span>
-        <span>独立 <code>Radio</code> 支持值绑定（显示由绑定值驱动），组模式下仍由组的 <code>Value</code> 决定选中项——两者不叠加。</span>
+        <span>独立 <code>Radio</code> 支持值绑定，组模式下仍由组的 <code>Value</code> 决定选中项——两者不叠加。</span>
     </Notes>
 </ComponentPage>
 

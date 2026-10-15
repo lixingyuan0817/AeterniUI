@@ -13,7 +13,7 @@
                Description="表达线性流程的当前位置；业务完成状态由宿主显式提供。"
                Related="@StepperRelated">
     <WhenToUse>
-        <p>流程有明确先后顺序、需要说明"走到哪一步"时使用：结账、开户、发布向导。层级跳转用 <code>Breadcrumb</code>，平级内容切换用 <code>Tabs</code>。</p>
+        <p>流程有明确先后顺序、需要说明「走到哪一步」时使用：结账、开户、发布向导。层级跳转用 <code>Breadcrumb</code>，平级内容切换用 <code>Tabs</code>。</p>
         <p>进度由宿主持有：<code>Value</code> 是当前步骤、<code>Completed</code> 是已完成，组件既不自动推进流程，也不推断完成状态。</p>
     </WhenToUse>
     <Demos>
@@ -74,9 +74,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span><code>Value</code>、<code>Completed</code> 和 <code>Disabled</code> 都由宿主控制；Stepper 不自动推进流程，也不推断完成状态。</span>
         <span>点击可用步骤会触发 <code>ValueChanged</code> 与 <code>OnStepClick</code>；横向和纵向布局都保留原生按钮键盘行为。</span>
-        <span><code>StepperItem.Icon</code> 让单个步骤使用自己的标记图标，<code>ItemTemplate</code> 则是每步唯一的内容区，接管按钮内的全部内容（含图标），可按步骤渲染不同内容。</span>
+        <span><code>StepperItem.Icon</code> 让单个步骤使用自己的标记图标；<code>ItemTemplate</code> 是每步唯一的内容区，接管按钮内的全部内容（含图标）。</span>
     </Notes>
 </ComponentPage>
 

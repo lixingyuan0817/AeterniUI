@@ -13,8 +13,8 @@
                Description="把多个 Button 组合成一条操作带：排列、接缝与整组禁用由组统一负责。"
                Related="@ButtonGroupRelated">
     <WhenToUse>
-        <p>几个平级动作需要读成一个整体时使用：翻页、保存/另存为/取消、同一族动作的批处理。只有一个孤立动作用 <code>Button</code>，动作各自独立且只有图标时用 <code>IconButton</code>。</p>
-        <p>组只负责排列与接缝：每个 <code>Button</code> 仍自己决定变体与语意色。要让整组一起失效，用组上的 <code>Disabled</code>，而不是逐个按钮传。</p>
+        <p>几个平级动作需要读成一个整体时使用：翻页、保存/另存为/取消、同一族动作的批处理。孤立动作用 <code>Button</code>。</p>
+        <p>组只负责排列与接缝，每个 <code>Button</code> 仍自己决定变体与语意色；整组失效用组上的 <code>Disabled</code>，而不是逐个按钮传。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="button-group-basic"
@@ -97,9 +97,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>组是原生 <code>div</code> 加 <code>role="group"</code>：<code>Disabled</code> 经级联上下文传给内部的 <code>Button</code>、<code>IconButton</code> 与 <code>SplitButton</code>，按钮各自仍是原生 <code>button</code>，禁用态使用状态 Token 而不是整块降低透明度。</span>
-        <span><code>Connected</code> 默认开启：相邻按钮共享一条 1px 接缝，只有首尾保留圆角；关掉后退化成彼此独立的按钮，间距交回宿主布局。</span>
-        <span>组本身没有键盘模型：Tab 依次经过每个按钮，方向键不移动焦点。整组撑满父容器用 <code>FullWidth</code>；纵向组的宽度仍由内容决定。</span>
+        <span>组是原生 <code>div</code> 加 <code>role="group"</code>：<code>Disabled</code> 经级联上下文传给内部的 <code>Button</code>、<code>IconButton</code> 与 <code>SplitButton</code>。</span>
+        <span><code>Connected</code> 默认开启：相邻按钮共享一条 1px 接缝，只有首尾保留圆角；关掉后退化成独立按钮，间距交回宿主布局。</span>
+        <span>组本身没有键盘模型：Tab 依次经过每个按钮，方向键不移动焦点。</span>
     </Notes>
 </ComponentPage>
 

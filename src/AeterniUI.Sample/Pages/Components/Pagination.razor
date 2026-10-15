@@ -67,7 +67,7 @@
     </Demos>
     <Notes>
         <span>前后操作使用核心 Chevron 图标；区域名称、页码与前后按钮文案都可通过实例参数或全局文案表本地化，<code>PageLabelFormat</code> 必须保留 <code>{0}</code> 页码占位符。</span>
-        <span><code>CurrentPage</code> 必须落在 1 到 <code>TotalPages</code> 之间，<code>SiblingCount</code> 不能为负数：越界值会在参数设置阶段抛出，避免页面渲染出空的分页条。</span>
+        <span><code>CurrentPage</code> 必须落在 1 到 <code>TotalPages</code> 之间，<code>SiblingCount</code> 不能为负数：越界值会在参数设置阶段抛出。</span>
         <span>页码窗口固定保留第 1 页与最后一页，中间用省略号折叠；<code>prefers-reduced-motion: reduce</code> 下关闭当前页相关的过渡。</span>
     </Notes>
 </ComponentPage>

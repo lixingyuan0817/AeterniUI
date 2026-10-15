@@ -13,8 +13,8 @@
                Description="用图片、姓名缩写或自定义内容表示一个用户或实体的圆形标记。"
                Related="@AvatarRelated">
     <WhenToUse>
-        <p>需要用一眼可辨的图形代表某人或某个实体时使用：成员列表、评论区、会话列表。纯装饰的插图直接用 <code>img</code>，要在头像上提示数量用 <code>Badge</code>。</p>
-        <p>内容来源按 <code>Src</code> → <code>ChildContent</code> → <code>Name</code> 缩写的顺序回退，三者至少要有一个；缩写只取前两个词的首字母。</p>
+        <p>用一眼可辨的图形代表某人或实体时使用：成员列表、评论区、会话列表。纯装饰插图直接用 <code>img</code>，要在头像上提示数量用 <code>Badge</code>。</p>
+        <p>内容按 <code>Src</code> → <code>ChildContent</code> → <code>Name</code> 缩写的顺序回退，三者至少要有一个。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="avatar-basic"
@@ -71,9 +71,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>图片头像由内部 <code>img</code> 的 <code>alt</code> 命名，缩写或自定义内容由外层元素的图像语义命名，两条路径互斥，不会出现重复朗读。</span>
-        <span><code>Alt=""</code> 表示装饰图片：此时图片不参与朗读，名称改取 <code>Name</code> 或 <code>AriaLabel</code>。</span>
-        <span>自定义内容必须提供 <code>AriaLabel</code>、<code>Alt</code> 或 <code>Name</code> 之一，否则参数校验会抛异常；<code>Src</code>、<code>Name</code>、<code>ChildContent</code> 全为空时同样如此。</span>
+        <span>图片头像由内部 <code>img</code> 的 <code>alt</code> 命名，缩写或自定义内容由外层元素的图像语义命名，两条路径互斥。</span>
+        <span><code>Alt=""</code> 表示装饰图片，名称改取 <code>Name</code> 或 <code>AriaLabel</code>。</span>
+        <span>自定义内容必须提供 <code>AriaLabel</code>、<code>Alt</code> 或 <code>Name</code> 之一，否则参数校验抛异常。</span>
     </Notes>
 </ComponentPage>
 

@@ -13,7 +13,7 @@
                Related="@CardRelated">
     <WhenToUse>
         <p>一块内容需要自己的边界和分段时使用：摘要卡、设置区块、列表项详情。只有一块表面、不需要分区时用 <code>Surface</code>。</p>
-        <p>整卡可点（<code>Interactive</code> 或传入 <code>OnClick</code>）只适用于"整张卡就是一个动作"，卡里再放按钮或链接会让键盘路径变得含糊。</p>
+        <p>整卡可点只适用于"整张卡就是一个动作"，卡里再放按钮或链接会让键盘路径变得含糊。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="card-basic"
@@ -106,9 +106,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>三段区域只在传入时渲染：没有 <code>Header</code> 就不留头部空白，只给主体时卡片就是一块带内边距的表面。</span>
-        <span><code>Interactive</code>（或传入 <code>OnClick</code>）把根元素变成 <code>role="button"</code> + <code>tabindex="0"</code>，Enter 与空格都会触发 <code>OnClick</code>；禁用时改为输出 <code>aria-disabled</code> 并退出 Tab 序列。静态卡片不注册任何监听器。</span>
-        <span>Card 不提供 <code>Radius</code>：它带三段结构、读起来是容器，固定使用容器圆角；需要圆角档位请用 <code>Surface</code>。<code>AriaLabel</code> 只在交互卡片上生效。</span>
+        <span>三段区域只在传入时渲染：没有 <code>Header</code> 就不留头部空白。</span>
+        <span><code>Interactive</code>（或传入 <code>OnClick</code>）把根元素变成 <code>role="button"</code> + <code>tabindex="0"</code>，Enter 与空格都会触发；禁用时输出 <code>aria-disabled</code> 并退出 Tab 序列。静态卡片不注册监听器。</span>
+        <span>Card 不提供 <code>Radius</code>：它带三段结构、读起来是容器，固定使用容器圆角；需要圆角档位请用 <code>Surface</code>。</span>
     </Notes>
 </ComponentPage>
 

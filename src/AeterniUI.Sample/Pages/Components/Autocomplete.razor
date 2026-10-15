@@ -12,8 +12,8 @@
                Description="带候选列表的单行输入：输入即过滤宿主提供的建议项。"
                Related="@AutocompleteRelated">
     <WhenToUse>
-        <p>用户知道要输入什么、但需要提示时使用：组件名、城市、标签。选项集合有限且必须择一时用 <code>ComboBox</code>，不需要候选列表的纯检索用 <code>Search</code>。</p>
-        <p>建议项由宿主提供：组件不请求远程数据、不做缓存，输入过滤与异步加载都由宿主决定何时替换 <code>Items</code>。</p>
+        <p>用户知道要输入什么、但需要提示时使用：组件名、城市、标签。选项有限且必须择一时用 <code>ComboBox</code>，不需要候选列表的纯检索用 <code>Search</code>。</p>
+        <p>建议项由宿主提供：组件不请求远程数据、不做缓存。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="autocomplete-basic"
@@ -100,9 +100,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>建议列表的键盘模型与 <code>ComboBox</code> 一致：方向键移动、Enter 选中、Escape 关闭；输入框保持编辑焦点，活动项通过 <code>aria-activedescendant</code> 表达。</span>
-        <span>组件不做输入过滤：<code>Items</code> 是宿主给的当前快照。异步建议请在宿主的 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 用于表示这段时间。</span>
-        <span>选择建议不会改变绑定值语义：<code>OnItemSelected</code> 报告被选中的项，输入框文本仍由 <code>Value</code> 决定，需要"选中即写入文本"时在回调里同时更新绑定值。</span>
+        <span>键盘模型与 <code>ComboBox</code> 一致：方向键移动、Enter 选中、Escape 关闭；输入框保持编辑焦点，活动项通过 <code>aria-activedescendant</code> 表达。</span>
+        <span>组件不做输入过滤：<code>Items</code> 是宿主给的当前快照；异步建议在 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 表示等待。</span>
+        <span>选择建议不改变绑定值语义：<code>OnItemSelected</code> 报告被选中项，输入框文本仍由 <code>Value</code> 决定。</span>
     </Notes>
 </ComponentPage>
 

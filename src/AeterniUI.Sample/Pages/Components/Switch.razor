@@ -12,8 +12,8 @@
                Description="即时生效的二态控件：内部使用原生复选框，对外输出 switch 语义。"
                Related="@SwitchRelated">
     <WhenToUse>
-        <p>改动立即生效的设置项用它：开启通知、切换开发模式。需要用户确认后再提交的选项用 <code>Checkbox</code>——开关的语义是"开关本身就是动作"。</p>
-        <p>开关不表达第三种状态：需要"部分开启"的中间态，用 <code>Checkbox</code> 的 <code>Indeterminate</code> 显示语义。</p>
+        <p>改动立即生效的设置项用它：开启通知、切换开发模式。需要用户确认后再提交的选项用 <code>Checkbox</code>——开关的语义是「开关本身就是动作」。</p>
+        <p>开关不表达第三种状态：需要「部分开启」的中间态，用 <code>Checkbox</code> 的 <code>Indeterminate</code> 显示语义。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="switch-basic"
@@ -76,7 +76,6 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>开关的本质是"切换即提交"：它不等待表单确认，因此适合设置页，不适合需要成组校验后统一提交的表单。</span>
         <span>原生控件是 <code>input[type="checkbox"]</code>，对外通过角色与状态属性表达开关语义，键盘用空格切换，不接管方向键。</span>
         <span>禁用态使用禁用墨与禁用填充；<code>Invalid</code> 或 <code>FormField</code> 的无效态只改变外观，是否阻止提交由宿主决定。</span>
     </Notes>

@@ -12,8 +12,8 @@
                Description="支持单开或多开的可访问折叠面板。"
                Related="@AccordionRelated">
     <WhenToUse>
-        <p>把次要内容折叠起来、先让标题被扫读时使用：常见问题、设置分组、长表单的分段。内容必须始终可见时用 <code>Card</code> 或 <code>Divider</code> 分区。</p>
-        <p>同一组里只展开一段用默认的单项模式；需要对照阅读多段内容时打开 <code>Multiple</code>。平级切换而不是逐段展开，请改用 <code>Tabs</code>。</p>
+        <p>把次要内容折叠起来、先让标题可扫读时使用：常见问题、设置分组、长表单分段。内容必须始终可见时用 <code>Card</code> 或 <code>Divider</code> 分区。</p>
+        <p>同组只展开一段用默认模式，需要对照阅读多段时打开 <code>Multiple</code>；平级切换请改用 <code>Tabs</code>。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="accordion-basic"
@@ -59,9 +59,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>关闭的面板会同时退出视觉、Tab 顺序和辅助技术可达范围；可展开第一项后 Tab 到其中的链接，再折叠确认焦点不会重新进入内容。</span>
+        <span>关闭的面板同时退出视觉、Tab 顺序与辅助技术可达范围。</span>
         <span><code>prefers-reduced-motion: reduce</code> 下关闭高度与箭头过渡。</span>
-        <span>组件不持久化展开状态：需要跨路由或跨会话记住展开项时，用 <code>OpenKeys</code> 把它交给宿主。</span>
+        <span>组件不持久化展开状态：需要跨路由或跨会话记住时，用 <code>OpenKeys</code> 交给宿主。</span>
     </Notes>
 </ComponentPage>
 

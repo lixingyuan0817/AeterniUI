@@ -101,11 +101,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>组件只做选择、元数据校验和列表渲染；传输、协议与存储归宿主，进度由宿主写回 <code>UploadFile</code>。</span>
         <span><code>Accept</code> 只作用于原生选择器：拖放的文件不受浏览器过滤，类型与业务校验仍由宿主或 <code>MaxFileSize</code> 负责。</span>
         <span>被 <code>MaxFileSize</code> 与 <code>MaxFileCount</code> 拒绝的文件仍会进入列表并标记为 <code>Error</code>，方便用户看到被拒原因；这类条目不计入已接受数量。</span>
         <span>拖放依赖浏览器允许把 drop 的 <code>FileList</code> 赋给 <code>input.files</code>；引擎拒绝该项赋值时拖放被忽略，原生选择器仍可用。</span>
-        <span>点击选择器时会清空输入值，因此同一个文件可以重复选择；清空刻意不做在事件处理之后——从 C# 回来的那次清空会与紧随其后的拖放抢同一轮往返。</span>
+        <span>点击选择器时会清空输入值，因此同一个文件可以重复选择。</span>
     </Notes>
 </ComponentPage>
 

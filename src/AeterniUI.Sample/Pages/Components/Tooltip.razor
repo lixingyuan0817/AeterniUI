@@ -13,8 +13,8 @@
                Description="悬停或键盘焦点时出现的辅助说明，越界时自动翻转并在交叉轴偏移。"
                Related="@TooltipRelated">
     <WhenToUse>
-        <p>补充说明一个已经有名字的动作或字段时使用：图标按钮的含义、被截断的文本、只读字段的取值来源。触发元素自己必须可聚焦，提示只在悬停或 <code>focus-visible</code> 时出现。</p>
-        <p>提示里要放按钮、输入或任何需要操作的内容时改用 <code>Popover</code>；字段的错误与校验说明属于 <code>FormField</code> 的说明文字，不要塞进提示里。</p>
+        <p>补充说明一个已经有名字的动作或字段时使用：图标按钮的含义、被截断的文本、只读字段的取值来源。触发元素自己必须可聚焦。</p>
+        <p>提示里要放按钮、输入或任何需要操作的内容时改用 <code>Popover</code>；字段的错误与校验说明属于 <code>FormField</code>。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="tooltip-basic"
@@ -80,9 +80,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>提示内容由组件自己渲染成 <code>role="tooltip"</code> 的节点，<code>ChildContent</code> 里第一个可聚焦元素通过 <code>aria-describedby</code> 指向它；<code>AriaLabel</code> 是提示节点的名称，触发元素的名称仍由它自己的文字提供。</span>
-        <span>方位只在空间不足时改变：优先用 <code>Placement</code>，越界才翻转到对侧并沿交叉轴偏移；显示与隐藏由 CSS 的 <code>:hover</code> / <code>:focus-within</code> 驱动，脚本只复用共享的浮层数学，不做定位以外的事。</span>
-        <span><code>Text</code> 为空白或 <code>Disabled</code> 时不渲染提示节点，也不建立描述关联；提示是纯说明，需要操作请换用 <code>Popover</code>。</span>
+        <span>提示内容由组件渲染成 <code>role="tooltip"</code> 的节点，<code>ChildContent</code> 里第一个可聚焦元素通过 <code>aria-describedby</code> 指向它；<code>AriaLabel</code> 是提示节点的名称，触发元素的名称仍由它自己的文字提供。</span>
+        <span>方位只在空间不足时改变：优先用 <code>Placement</code>，越界才翻转到对侧并沿交叉轴偏移；显示与隐藏由 CSS 的 <code>:hover</code> / <code>:focus-within</code> 驱动。</span>
+        <span><code>Text</code> 为空白或 <code>Disabled</code> 时不渲染提示节点，也不建立描述关联。</span>
     </Notes>
 </ComponentPage>
 

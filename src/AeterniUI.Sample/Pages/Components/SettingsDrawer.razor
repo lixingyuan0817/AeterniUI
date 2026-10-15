@@ -15,8 +15,8 @@
                Description="把一组设置收进边缘面板：打开时机、草稿与保存、关闭路径与焦点回归。"
                Related="@SettingsDrawerRelated">
     <WhenToUse>
-        <p>设置项一屏放不下、又不想让它们常驻页面时看这一页：抽屉负责收纳，真正的取舍是「改到一半关掉算什么」。</p>
-        <p>只要边缘面板本身看 <code>Drawer</code>；需要整屏阻断与自定义内容时看 <code>Dialog</code>（反馈页）。</p>
+        <p>设置项一屏放不下、又不想让它们常驻页面时使用：抽屉负责收纳，真正的取舍是「改到一半关掉算什么」。</p>
+        <p>只要边缘面板本身用 <code>Drawer</code>；需要整屏阻断与自定义内容用 <code>Dialog</code>。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="settings-drawer-basic"
@@ -121,10 +121,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>抽屉里的控件改的是宿主状态，<code>Drawer</code> 本身不保存任何设置：示例里第 2 段把"已生效的值"与"草稿"分成两份，放弃改动因此不可能污染生效值。</span>
-        <span>关闭路径统一走 <code>OpenChanged</code>：Escape、点外部、关闭按钮与底部按钮都会经过它，所以"关掉之后干什么"只需要写一处。</span>
-        <span>Modal 抽屉打开时会锁页面滚动并做焦点陷阱，关闭后把焦点还给触发元素；这是浮层的共享行为（<code>aeterni_floating.js</code>），不需要示例自己维护。</span>
-        <span>保存是一次有副作用的动作：给它一个 <code>ShowToast</code> 回执，比"抽屉自己悄悄关掉"更能让用户确认结果。</span>
+        <span>抽屉里的控件改的是宿主状态，<code>Drawer</code> 本身不保存任何设置：示例把「已生效的值」与「草稿」分成两份，放弃改动因此不会污染生效值。</span>
+        <span>关闭路径统一走 <code>OpenChanged</code>：Escape、点外部、关闭按钮与底部按钮都会经过它，所以「关掉之后干什么」只需要写一处。</span>
+        <span>Modal 抽屉打开时会锁页面滚动并做焦点陷阱，关闭后把焦点还给触发元素——这是浮层的共享行为，不需要页面自己维护。</span>
+        <span>保存是一次有副作用的动作：给它一个 <code>ShowToast</code> 回执，比抽屉自己悄悄关掉更能让用户确认结果。</span>
     </Notes>
 </ComponentPage>
 

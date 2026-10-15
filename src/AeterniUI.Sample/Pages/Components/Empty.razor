@@ -13,8 +13,8 @@
                Description="空状态占位：插图、标题、描述与操作区。组件自身不带表面，放进 Card、Surface 或表格主体使用。"
                Related="@EmptyRelated">
     <WhenToUse>
-        <p>列表、搜索结果或面板没有任何内容可展示时使用，用一句话解释为什么空、下一步能做什么。还在加载中的占位用 <code>Skeleton</code>，需要承载外框用 <code>Card</code> 或 <code>Surface</code>。</p>
-        <p>组件不拥有表面与尺寸边界：把它放进真正提供背景的容器，空状态的留白才不会和外层容器打架。</p>
+        <p>列表、搜索结果或面板没有任何内容可展示时使用：用一句话解释为什么空、下一步能做什么。还在加载中的占位用 <code>Skeleton</code>。</p>
+        <p>组件自身不带表面与尺寸边界：把它放进真正提供背景的容器，留白才不会和外层容器打架。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="empty-basic"
@@ -75,7 +75,7 @@
     </Demos>
     <Notes>
         <span><code>Title</code> 为空时使用 <code>AeterniUITextOptions.EmptyTitle</code>；<code>Description</code> 为空时整段不渲染，因此可以只留标题。</span>
-        <span>操作区只在 <code>ChildContent</code> 为 <code>null</code> 时不渲染；用 <code>@@if</code> 包住全部操作会留下空包装元素，因此示例把片段放在 <code>@@EmptyActions</code> 字段里按需传 null。</span>
+        <span>操作区在 <code>ChildContent</code> 为 <code>null</code> 时不渲染；用 <code>@@if</code> 包住全部操作会留下空包装元素。</span>
         <span>默认插图是内置的 <code>AeterniIcons.EmptyBox</code>；一旦提供 <code>Icon</code>，插画内容整体替换，组件不负责新插画的尺寸。</span>
     </Notes>
 </ComponentPage>

@@ -12,7 +12,7 @@
                Description="从视口边缘滑出的面板：模态形态带遮罩、焦点陷阱与背景滚动锁，非模态形态不抢焦点。"
                Related="@DrawerRelated">
     <WhenToUse>
-        <p>需要从边缘推出一块面板时使用：筛选、详情、设置、窄屏导航。内容要保留页面上下文，所以用面板而不是跳转到新页面。</p>
+        <p>需要从视口边缘推出一块面板时使用：筛选、详情、设置、窄屏导航。</p>
         <p>只有一两句话、需要用户立刻回答时用 <code>Confirm</code> / <code>Alert</code>；就地补充说明用 <code>Tooltip</code> 或 <code>Popover</code>。</p>
     </WhenToUse>
     <Demos>
@@ -77,9 +77,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>模态形态输出 <code>role="dialog"</code> + <code>aria-modal="true"</code>，锁定背景滚动、把 Tab 困在面板内，并在关闭后把焦点还给打开它的元素；非模态形态输出 <code>region</code>，不抢焦点也不锁滚动。</span>
-        <span>关闭始终由使用方决定：Escape、遮罩/外部点击与关闭按钮都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用；<code>Disabled</code> 会拦下所有关闭路径。</span>
-        <span>面板是 <code>position: fixed</code>，所以示例把它放在页面层级而不是预览卡片内部（卡片的模糊层会成为固定定位的包含块）；尺寸由 <code>--aeterni-drawer-size</code>（默认 <code>--aeterni-overlay-width-sm</code>）决定，可用 <code>Style</code> 覆盖，窄屏下自动收到 100%。</span>
+        <span>模态形态输出 <code>role="dialog"</code> + <code>aria-modal="true"</code>，锁定背景滚动、把 Tab 困在面板内，关闭后把焦点还给打开它的元素；非模态形态输出 <code>region</code>，不抢焦点也不锁滚动。</span>
+        <span>关闭始终由使用方决定：Escape、遮罩/外部点击与关闭按钮都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用。</span>
+        <span>面板是 <code>position: fixed</code>，尺寸由 <code>--aeterni-drawer-size</code>（默认 <code>--aeterni-overlay-width-sm</code>）决定，可用 <code>Style</code> 覆盖，窄屏下自动收到 100%。</span>
     </Notes>
 </ComponentPage>
 

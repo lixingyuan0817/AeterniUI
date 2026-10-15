@@ -9,11 +9,11 @@
                Category="基础组件"
                Title="FlashCard"
                ComponentName="FlashCard"
-               Description="图片闪卡：卡面可以只放一张图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。"
+               Description="图片闪卡：卡面可以只放图片，也可以补上图文说明与背面；表面带一层随指针滑动的镭射闪光，整张卡同时做 3D 倾斜。"
                Related="@FlashCardRelated">
     <WhenToUse>
-        <p>展示一张有实物感的图片卡片时使用：卡牌、皮肤、封面、收藏品。普通内容容器用 <code>Card</code>，多张闪卡要收成一堆用 <code>FlashCardGroup</code>。</p>
-        <p>闪光与倾斜是叠加在媒体区之上的装饰层：要承载表单或长文本请换 <code>Card</code>，那里的表面不带 3D 变换。</p>
+        <p>展示有实物感的图片卡片时使用：卡牌、皮肤、封面、收藏品。普通内容容器用 <code>Card</code>，多张闪卡要收成一堆用 <code>FlashCardGroup</code>。</p>
+        <p>闪光与倾斜是叠加在媒体区之上的装饰层：要承载表单或长文本请换 <code>Card</code>。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="flash-card-image"
@@ -134,9 +134,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span><code>Sheen</code> 就是闪卡的那层光泽：<code>Holo</code>（默认）是铺满整面的镭射彩虹加金属拉丝，<code>Shine</code> 是整面金属白光的明暗流动，<code>None</code> 关闭。炫光铺满整个卡面，指针移动只改变整片光纹的相位，不会在指针下面单出一块光斑；<code>SheenIntensity</code> 取 0～1 控制强度。</span>
-        <span>光泽只覆盖图片区，不盖住图文说明区，也不参与容器背景填充；没有 <code>ImageSrc</code> 时不会渲染这一层。镭射彩虹用 <code>mix-blend-mode: color</code> 保留图片自身明度，金属白光用 <code>screen</code> 提亮，所以卡片不会被洗白、文字对比度也不会被压低；静止时按一半强度呈现，指针移入或卡片倾斜时才到全强度。</span>
-        <span>翻转是组件状态而不是 CSS 悬浮：<code>FlipTrigger="Click"</code>（默认）时点击、Enter 与 Space 都通过 <code>IsFlippedChanged</code> 提出新状态；<code>Hover</code> 只做指针预览，不改变状态也不隐藏任何一面。3D 跟随只在 JS 里写入旋转与光泽位置变量，视觉全部留在隔离样式表中；<code>Tilt="false"</code>、<code>Disabled</code> 与系统的「减少动态效果」都会跳过跟随，卡片保持平整、光泽停在原位。</span>
+        <span><code>Sheen</code> 就是那层光泽：<code>Holo</code>（默认）是铺满整面的镭射彩虹加金属拉丝，<code>Shine</code> 是整面金属白光，<code>None</code> 关闭；<code>SheenIntensity</code> 取 0～1 控制强度。</span>
+        <span>光泽只覆盖图片区，不盖住图文说明区，也不参与容器背景填充；没有 <code>ImageSrc</code> 时不渲染这一层。镭射彩虹用 <code>mix-blend-mode: color</code>、金属白光用 <code>screen</code>，所以图片不会被洗白、文字对比度也不会被压低。</span>
+        <span>翻转是组件状态而不是 CSS 悬浮：<code>FlipTrigger="Click"</code>（默认）时点击、Enter 与 Space 都通过 <code>IsFlippedChanged</code> 提出新状态；<code>Hover</code> 只做指针预览，不改变状态。3D 跟随只在 JS 里写入旋转与光泽位置变量；<code>Tilt="false"</code>、<code>Disabled</code> 与系统的「减少动态效果」都会跳过跟随。</span>
     </Notes>
 </ComponentPage>
 

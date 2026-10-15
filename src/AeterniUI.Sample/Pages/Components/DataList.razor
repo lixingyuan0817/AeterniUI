@@ -15,8 +15,8 @@
                Description="800 条日志上的检索、多选与批量动作：选择跨筛选保持，动作只在有选中时出现。"
                Related="@DataListRelated">
     <WhenToUse>
-        <p>列表可能有几百上千条、还要在上面检索和批量操作时看这一页：它给出"虚拟滚动 + 宿主筛选 + 受控选择"的最小分工。</p>
-        <p>条目很少时不需要虚拟化，看 <code>List</code>；行高不固定时虚拟化的前提不成立，也要回到 <code>List</code>。</p>
+        <p>列表有几百上千条、还要在上面检索和批量操作时使用：虚拟滚动 + 宿主筛选 + 受控选择的最小分工。</p>
+        <p>条目很少时不必虚拟化，用 <code>List</code>；行高不固定时虚拟化的前提不成立，同样回到 <code>List</code>。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="data-list-search"
@@ -99,10 +99,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>选择归宿主：<code>SelectedValues</code> 是一份由页面保存的列表，组件每次渲染只负责把它翻成选中态；筛选把某些行移出列表后，选择仍然完整保留，重新筛回来还是选中的。</span>
-        <span>行身份靠 <code>ItemKeySelector</code>：筛选会重建 <c>Items</c>，没有稳定 key 时组件只能按位置对号入座，选择会跟着错位。示例用的是 <c>row.Id</c>。</span>
-        <span>批量动作条按"有没有选中"决定出现与否，而不是禁用一整排按钮：不可用的控件不进 Tab 序列，也就不会让键盘用户白跑一趟。</span>
-        <span>600 条以上才值得虚拟化：行数很少时虚拟滚动带来的"总高度由行高换算"反而会让滚动条位置变得不直观。</span>
+        <span>选择归宿主：<code>SelectedValues</code> 由页面保存，筛选把行移出列表后选择仍然保留。</span>
+        <span>行身份靠 <code>ItemKeySelector</code>：筛选会重建 <code>Items</code>，没有稳定 key 时选择会跟着错位。</span>
+        <span>批量动作条按有没有选中决定出现与否，而不是禁用一整排按钮。</span>
+        <span>600 条以上才值得虚拟化：行数很少时，虚拟滚动换算出的总高度反而让滚动条位置不直观。</span>
     </Notes>
 </ComponentPage>
 

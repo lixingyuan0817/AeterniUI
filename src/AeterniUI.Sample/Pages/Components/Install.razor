@@ -17,7 +17,7 @@
                Related="@InstallRelated">
     <WhenToUse>
         <p>新项目按这四步走全；已有应用最少只要前两步（注册服务、引入样式），后两步在用到弹层通知与主题切换时再补。</p>
-        <p>Server 与 WebAssembly 注册与样式完全相同，差别只在宿主启动方式（<code>WebApplicationBuilder</code> 与 <code>WebAssemblyHostBuilder</code>）；组件本身不区分宿主，也不需要额外的 JS 引包。</p>
+        <p>Server 与 WebAssembly 的注册与样式完全相同，差别只在宿主启动方式；组件本身不区分宿主，也不需要额外的 JS 引包。</p>
     </WhenToUse>
     <Demos>
         <div class="showcase-install__steps">
@@ -59,8 +59,8 @@
         </div>
     </Demos>
     <Notes>
-        <span>样式只能从 <code>_content/AeterniUI/css/aeterni_ui.css</code> 引用：把 CSS 复制进应用会让 Token 与组件样式在升级后脱节，库的样式文件是唯一事实源。</span>
-        <span><code>AddAeterniUI()</code> 的实参会校验一遍：非法枚举、非正的 Toast 上限与负时长会直接抛出，而不是留到运行时才发现；文案表里留空的项回退到内置文案。</span>
+        <span>样式只能从 <code>_content/AeterniUI/css/aeterni_ui.css</code> 引用：把 CSS 复制进应用会让 Token 与组件样式在升级后脱节。</span>
+        <span><code>AddAeterniUI()</code> 的实参会校验一遍：非法枚举、非正的 Toast 上限与负时长会直接抛出；文案表里留空的项回退到内置文案。</span>
         <span>组件不读写 <code>data-theme</code> 与品牌标记，主题只能由 <code>ThemeProvider</code> / <code>ThemeService</code> 驱动；首屏脚本是唯一允许直接写标记的位置。</span>
     </Notes>
 </ComponentPage>

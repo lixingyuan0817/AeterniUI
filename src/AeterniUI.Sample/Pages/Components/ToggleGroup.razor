@@ -13,7 +13,7 @@
                Description="按钮式的动作切换组：按下与抬起一个动作，而不是选择一个表单值。"
                Related="@ToggleGroupRelated">
     <WhenToUse>
-        <p>一组可以独立按下或抬起的动作用它：对齐方式、文字格式、视图开关。要选择"一个值并替换整块内容"时用 <code>Segmented</code> 或 <code>RadioGroup</code>。</p>
+        <p>一组可以独立按下或抬起的动作用它：对齐方式、文字格式、视图开关。要选择「一个值并替换整块内容」时用 <code>Segmented</code> 或 <code>RadioGroup</code>。</p>
         <p>按下态是动作状态而不是表单值：选中列表严格受控，父级不回写就什么都不会变。</p>
     </WhenToUse>
     <Demos>
@@ -97,7 +97,7 @@
     <Notes>
         <span>默认连体分段外观：项之间没有间距，相邻项共享一条单边接缝，只有首尾保留圆角；横向不自动换行，纵向、尺寸与 RTL 都由参数切换，焦点环始终画在悬浮/选中项之上。</span>
         <span>Tab 只停一次，方向键在同一组内循环，Home/End 到首尾，RTL 下左右反转，禁用项被跳过；重新进入时回到最后焦点的项。</span>
-        <span>两种模式都用按钮的 <code>aria-pressed</code>，不使用 <code>aria-checked</code> 或表单 radio 语义。<code>SelectedValues</code> 严格受控：父级不回写时按下态不变，空列表有效，禁用不会清除选中值。</span>
+        <span>两种模式都用按钮的 <code>aria-pressed</code>，不使用 <code>aria-checked</code> 或表单 radio 语义。<code>SelectedValues</code> 严格受控：父级不回写时按下态不变，空列表有效。</span>
     </Notes>
 </ComponentPage>
 

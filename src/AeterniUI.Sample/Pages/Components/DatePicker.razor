@@ -10,11 +10,11 @@
                Category="表单组件"
                Title="DatePicker / DateRangePicker"
                ComponentName="DatePicker / DateRangePicker"
-               Description="使用 DateOnly 的单日与日期范围选择控件：日历在受控弹层里渲染，支持边界、禁用日期与宿主预设。"
+               Description="使用 DateOnly 的单日与范围选择：日历在受控弹层里渲染，支持边界、禁用日期与宿主预设。"
                Related="@DatePickerRelated">
     <WhenToUse>
-        <p>用户需要挑选某一天时使用 <code>DatePicker</code>；需要一段连续区间（报表周期、住宿、结算窗口）时用 <code>DateRangePicker</code>，它在同一次操作里选起点与终点。</p>
-        <p>日期与时间一起选时用 <code>DateTimePicker</code>，只要时间用 <code>TimePicker</code>；校验规则仍写在宿主的 <code>EditContext</code> / <code>DataAnnotations</code> 上。</p>
+        <p>挑选某一天用 <code>DatePicker</code>；一段连续区间（报表周期、住宿、结算窗口）用 <code>DateRangePicker</code>，它在同一次操作里选起点与终点。</p>
+        <p>日期与时间一起选用 <code>DateTimePicker</code>，只要时间用 <code>TimePicker</code>；校验规则写在宿主的 <code>EditContext</code> / <code>DataAnnotations</code> 上。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="date-picker-presets"
@@ -95,9 +95,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>值类型是 <code>DateOnly?</code>：单日用 <code>Value</code> / <code>ValueChanged</code>，范围用 <code>StartDate</code> / <code>EndDate</code> 各自的绑定三件套；日历弹层由 <code>PopupHost</code> 与 <code>Popover</code> 承载。</span>
-        <span><code>Presets</code> 是宿主数据，组件只渲染它：每个范围必须有序、不含被禁用或超出 <code>MinDate</code> / <code>MaxDate</code> 的日期，否则在参数设置阶段直接抛错，而不是静默丢弃。</span>
-        <span>打开日历后可用方向键、Home/End、PageUp/PageDown 连续移动真实焦点；边界日期保持完整网格，窄屏下多月份视图改为单列。</span>
+        <span>值类型是 <code>DateOnly?</code>：单日用 <code>Value</code> / <code>ValueChanged</code>，范围用 <code>StartDate</code> / <code>EndDate</code> 各自的绑定三件套；弹层由 <code>PopupHost</code> 与 <code>Popover</code> 承载。</span>
+        <span><code>Presets</code> 是宿主数据：每个范围必须有序、不含被禁用或越界的日期，否则在参数设置阶段直接抛错。</span>
+        <span>日历打开后可用方向键、Home/End、PageUp/PageDown 连续移动真实焦点；边界日期保持完整网格，窄屏下多月份视图改为单列。</span>
     </Notes>
 </ComponentPage>
 

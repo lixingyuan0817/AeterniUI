@@ -17,8 +17,8 @@
                Description="从字段容器到提交按钮：规则归宿主、消息归 FormField、显示时机由交互决定。"
                Related="@FormValidationRelated">
     <WhenToUse>
-        <p>做真正要提交的表单时看这一页：它回答"错误由谁产生、什么时候显示、提交被拦下之后用户看到什么"这三件事。</p>
-        <p>只关心单个控件的外观，看 <code>FormField</code> 或 <code>Input</code> 本身；这一页关心的是它们串起来之后的时序与归属。</p>
+        <p>做真正要提交的表单时使用：错误由谁产生、什么时候显示、提交被拦下之后用户看到什么。</p>
+        <p>只关心单个控件的外观时看 <code>FormField</code> 或 <code>Input</code> 本身。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="form-validation-submit"
@@ -93,11 +93,11 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>校验归属宿主：<code>FormField</code> 只显示属于自己那个字段的消息，不校验、不提交、不请求。规则可以写在模型的数据注解上（<code>DataAnnotationsValidator</code>），也可以自己往 <code>ValidationMessageStore</code> 里写。</span>
-        <span><code>For</code> 是两处之间的唯一连线：写 <code>For="() =&gt; Project.Name"</code> 时，验证器产生的消息恰好落在同一个 <code>(模型实例, 属性名)</code> 上，字段与消息因此不会错位。</span>
-        <span>显示时机是取舍：提交时最安静、输入时最及时、失焦时最省事。同一张表单里混用没问题，但要让用户能预测"我什么时候会被标红"。</span>
-        <span>提交按钮要能进到框架校验链：<code>FormField Required</code> 会让内部控件输出原生 <code>required</code>，而浏览器会先用原生气泡拦下提交、框架的 <code>OnInvalidSubmit</code> 与字段消息都不会执行。两种拦截只能选一种——这一页给 <code>EditForm</code> 加 <code>novalidate</code> 交给框架，因为消息要落在字段上、样式要和库内一致。</span>
-        <span>错误不能只靠颜色：无效字段同时输出 <code>aria-invalid</code>，消息元素通过 <code>aria-describedby</code> 关联到控件，读屏才会念出来。</span>
+        <span>校验归属宿主：<code>FormField</code> 只显示属于自己那个字段的消息，不校验、不提交、不请求。规则写在模型的数据注解上，或自己往 <code>ValidationMessageStore</code> 里写。</span>
+        <span><code>For</code> 是两处之间的唯一连线：写 <code>For="() =&gt; Project.Name"</code> 时验证器产生的消息恰好落在同一个 <code>(模型实例, 属性名)</code> 上。</span>
+        <span>显示时机是取舍：提交时最安静、输入时最及时、失焦时最省事；混用没问题，但要让用户能预测自己什么时候会被标红。</span>
+        <span>两种拦截只能选一种：<code>FormField Required</code> 会让内部控件输出原生 <code>required</code>，浏览器先用原生气泡拦下提交，框架的 <code>OnInvalidSubmit</code> 与字段消息都不会执行——这一页给 <code>EditForm</code> 加 <code>novalidate</code> 交给框架。</span>
+        <span>错误不能只靠颜色：无效字段同时输出 <code>aria-invalid</code>，消息元素通过 <code>aria-describedby</code> 关联到控件。</span>
     </Notes>
 </ComponentPage>
 

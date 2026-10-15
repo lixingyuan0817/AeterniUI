@@ -13,8 +13,8 @@
                Description="用链接和当前项表达页面层级；路由跳转由宿主应用和浏览器负责。"
                Related="@BreadcrumbRelated">
     <WhenToUse>
-        <p>层级较深、用户需要知道"我在哪一层"并能横向跳回上层时使用：文档、后台目录、商品分类。线性流程用 <code>Stepper</code>，平级页面切换用 <code>Menu</code>。</p>
-        <p>组件不做路由：<code>Href</code> 交给浏览器，宿主用 <code>Visible</code> 决定哪些层级值得出现在窄屏上。</p>
+        <p>层级较深、用户需要知道"我在哪一层"并能横向跳回上层时使用：文档、后台目录、商品分类。线性流程用 <code>Stepper</code>，平级切换用 <code>Menu</code>。</p>
+        <p>组件不做路由：<code>Href</code> 交给浏览器，<code>Visible</code> 决定哪些层级值得出现在窄屏上。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="breadcrumb-basic"
@@ -60,8 +60,7 @@
     </Demos>
     <Notes>
         <span>只有非当前项渲染为原生 <code>a</code> 链接；最后一个可见项自动带 <code>aria-current="page"</code>，被禁用的层级保留链接并标记 <code>aria-disabled</code>。</span>
-        <span>组件不内置路由、折叠或响应式自动省略；窄屏下路径换行，宿主可通过 <code>Visible</code> 控制层级。</span>
-        <span><code>Separator</code> 只提供内容，装饰属性（<code>aria-hidden</code>）由组件补齐，所以自定义分隔符不会被读屏重复播报。</span>
+        <span><code>Separator</code> 只提供内容，装饰属性由组件补齐，所以自定义分隔符不会被读屏重复播报。</span>
     </Notes>
 </ComponentPage>
 

@@ -9,11 +9,11 @@
                Category="基础组件"
                Title="FlashCardGroup"
                ComponentName="FlashCardGroup"
-               Description="把多张闪卡收拢成牌堆，悬浮或键盘聚焦时展开成扇形，适合抽卡式展示。"
+               Description="把多张闪卡收拢成牌堆，悬浮或键盘聚焦时展开成扇形。"
                Related="@FlashCardGroupRelated">
     <WhenToUse>
         <p>多张闪卡需要以牌堆的形式介绍、体验或抽取时使用：卡牌游戏、皮肤墙、礼包预览。单张图片卡用 <code>FlashCard</code>，普通卡片列表用 <code>Card</code>。</p>
-        <p>组件只负责叠放与扇形展开：翻面、抽到哪张、以及抽取结果都由宿主持有。</p>
+        <p>组件只负责叠放与扇形展开：翻面、抽到哪张以及抽取结果都由宿主持有。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="flash-card-group-deck"
@@ -116,7 +116,7 @@
     <Notes>
         <span>键盘用户通过组内 <code>FlashCard</code> 的 Tab 停留点触发展开；<code>prefers-reduced-motion: reduce</code> 下保留牌堆布局、取消展开过渡。</span>
         <span><code>Disabled</code> 的牌堆输出 <code>aria-disabled</code> 并带上 <code>inert</code>，整堆卡片同时退出指针与键盘交互。</span>
-        <span><code>CollapsedOffset</code> 控制收拢时每张卡的垂直错位；牌堆不管理翻面与抽取结果，这两者属于宿主状态。</span>
+        <span><code>CollapsedOffset</code> 控制收拢时每张卡的垂直错位。</span>
     </Notes>
 </ComponentPage>
 

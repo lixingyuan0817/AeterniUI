@@ -13,7 +13,7 @@
                Description="标签页导航：tablist / tab / tabpanel 三件套、roving tabindex、方向键自动激活与窄屏横向滚动。"
                Related="@TabsRelated">
     <WhenToUse>
-        <p>同一区域的内容需要按视图切换时使用：详情页的概览 / 接口 / 历史。切换会替换整块内容；只切换一个值、内容不变时用 <code>Segmented</code>。</p>
+        <p>同一区域的内容需要按视图切换时使用：详情页的概览 / 接口 / 历史。只切换一个值、内容不变时用 <code>Segmented</code>。</p>
         <p>Tabs 是内容控件，自身不提供表面（嵌在卡片里再套一层底会出现双层底），放进 <code>Surface</code> 或 <code>Card</code> 等宿主容器使用。</p>
     </WhenToUse>
     <Demos>
@@ -118,9 +118,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>点击标签或使用方向键切换；示例中的「禁用」标签同时退出点击、选中和方向键循环，键盘用户不会停在不可用的标签上。</span>
+        <span>点击标签或使用方向键切换；禁用的标签同时退出点击、选中和方向键循环，键盘用户不会停在不可用的标签上。</span>
         <span>把 <code>Value</code> 清空或填一个不存在的标识时，组件默认把首个可用标签当作选中项渲染，但不会改写 <code>Value</code>：受控标识始终由使用方持有。</span>
-        <span>窄屏下标签栏横向滚动而不是换行；组件不自带表面，只给标签栏一条 <code>--aeterni-separator</code> 底部分界线，因此推荐整体放进 <code>Surface</code> 或 <code>Card</code>。</span>
+        <span>窄屏下标签栏横向滚动而不是换行；组件不自带表面，只给标签栏一条 <code>--aeterni-separator</code> 底部分界线。</span>
     </Notes>
 </ComponentPage>
 

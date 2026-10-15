@@ -15,8 +15,8 @@
                Description="检索、条件筛选、已选条件与空结果排成一条链：谁负责输入、谁保存状态、谁给出出路。"
                Related="@FilterToolbarRelated">
     <WhenToUse>
-        <p>列表上方需要一条"查询工具条"时看这一页：它回答筛选条件保存在哪、怎么让用户看到自己选了什么、筛空之后给什么出路。</p>
-        <p>只要单个控件看 <code>Search</code> 或 <code>ComboBox</code>；条件多到一行放不下、需要分组收进侧边面板时看「设置抽屉」那一页。</p>
+        <p>列表上方需要一条查询工具条时使用：筛选条件保存在哪、用户怎么看到自己选了什么、筛空之后给什么出路。</p>
+        <p>只要单个控件用 <code>Search</code> 或 <code>ComboBox</code>；条件多到一行放不下、需要分组收进侧边面板时用「设置抽屉」。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="filter-toolbar-basic"
@@ -114,10 +114,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>筛选条件是宿主的一份状态，控件不保存它：<code>Search</code> 与 <code>ComboBox</code> 只把新值回调出来，派生列表由宿主重算。示例里 <code>FilteredRows</code> 是计算属性——没有第二份"筛选结果"状态需要同步。</span>
-        <span><code>Toolbar</code> 只提供"一行 + 一个 Tab 停留点"的语义，不接管控件行为；里面的输入框仍然自己接收键盘输入。</span>
-        <span>已选条件用 <code>Tag Dismissible</code> 表达时，每个标签的 <code>DismissLabel</code> 要写清去掉的是哪一个条件——读屏用户看不到标签之间的位置关系，只能靠这个名字分辨。</span>
-        <span>筛空不是错误，也不是空数据：用 <code>Empty</code> 明确说清"没有匹配"并把重置动作放在旁边，比留白更省用户一轮猜测。</span>
+        <span>筛选条件是宿主的一份状态，控件不保存它：<code>Search</code> 与 <code>ComboBox</code> 只把新值回调出来，派生列表由宿主重算。</span>
+        <span><code>Toolbar</code> 只提供「一行 + 一个 Tab 停留点」的语义，不接管控件行为。</span>
+        <span>已选条件用 <code>Tag Dismissible</code> 表达时，每个标签的 <code>DismissLabel</code> 要写清去掉的是哪一个条件——读屏用户看不到标签之间的位置关系。</span>
+        <span>筛空不是错误，也不是空数据：用 <code>Empty</code> 明确说清「没有匹配」并把重置动作放在旁边。</span>
     </Notes>
 </ComponentPage>
 

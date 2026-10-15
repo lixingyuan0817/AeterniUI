@@ -13,8 +13,8 @@
                Description="同一个 DialogProvider 承载模态 Dialog、非模态 Alert 与非阻塞 Toast；业务代码只调用 IDialogService。"
                Related="@FeedbackRelated">
     <WhenToUse>
-        <p>用户必须先做决定时用 <code>Confirm</code>，只需要告知结果时用 <code>Toast</code> 或 <code>Alert</code>；内容要自定义布局和底部操作时用 <code>Dialog</code>。</p>
-        <p>Toast 不打断操作、按 <code>Duration</code> 自动关闭；Alert 停在原地等用户或计时结束，两者都用 <code>TimeSpan.Zero</code> 保持常驻。类型由服务方法决定，选项类型只描述单次通知。</p>
+        <p>用户必须先做决定时用 <code>Confirm</code>，只需要告知结果时用 <code>Toast</code> 或 <code>Alert</code>，内容要自定义布局与底部操作时用 <code>Dialog</code>。</p>
+        <p>Toast 不打断操作、按 <code>Duration</code> 自动关闭；Alert 停在原地等用户或计时结束，两者都用 <code>TimeSpan.Zero</code> 保持常驻。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="feedback-dialog"
@@ -76,8 +76,8 @@
     </Demos>
     <Notes>
         <span>Alert 与 Toast 共用同一个位置容器，不会互相遮挡；两者默认自动关闭，四边进度边框显示剩余时间，Toast 同时显示的数量上限是 <code>AeterniUIOptions.MaxToastCount</code>。</span>
-        <span><code>ConfirmAsync</code> 返回 <code>Task&lt;bool&gt;</code>，取消返回 <code>false</code>；<code>AlertAsync</code> 返回 <code>DialogResult</code>。Alert 是非模态的、不抢焦点，所以 <code>CloseOnEscape</code> 只在焦点位于通知内部时生效。</span>
-        <span>默认文案全部来自 <code>AeterniUIOptions.Text</code>（<code>ConfirmAcceptLabel</code>、<code>ConfirmCancelLabel</code>、<code>AlertCloseLabel</code> 等），实例上的 <code>ConfirmText</code> / <code>CancelText</code> / <code>CloseText</code> 留空即回退到它；容器 <code>DialogProvider</code> 在应用根部只放一次。</span>
+        <span><code>ConfirmAsync</code> 返回 <code>Task&lt;bool&gt;</code>（取消为 <code>false</code>），<code>AlertAsync</code> 返回 <code>DialogResult</code>；Alert 不抢焦点，<code>CloseOnEscape</code> 只在焦点位于通知内部时生效。</span>
+        <span>默认文案全部来自 <code>AeterniUIOptions.Text</code>，实例上的 <code>ConfirmText</code> / <code>CancelText</code> / <code>CloseText</code> 留空即回退；<code>DialogProvider</code> 在应用根部只放一次。</span>
     </Notes>
 </ComponentPage>
 

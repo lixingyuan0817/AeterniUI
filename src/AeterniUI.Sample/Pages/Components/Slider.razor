@@ -13,7 +13,7 @@
                Related="@SliderRelated">
     <WhenToUse>
         <p>取值范围连续、精度要求不苛刻时使用：音量、缩放、阈值。需要精确输入具体数值用 <code>InputNumber</code>。</p>
-        <p><code>Step</code> 会把指针位置吸附到步长网格；不设 Step 时是连续值，RTL 下方向键与拖动方向自动镜像。</p>
+        <p><code>Step</code> 会把指针位置吸附到步长网格；不设 <code>Step</code> 时是连续值，RTL 下方向键与拖动方向自动镜像。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="slider-basic"
@@ -71,8 +71,7 @@
     </Demos>
     <Notes>
         <span>键盘模型由组件自己接管：方向键、Home/End、PageUp/PageDown 只改数值，不会同时滚动页面。</span>
-        <span><code>Step</code> 为 <code>null</code> 时是连续值；设置后指针位置会吸附到网格，拖动与键盘都按同一网格取值。</span>
-        <span>滑块不渲染刻度与数值标签：需要刻度、区间标注或双端范围请由宿主在轨道旁组合（双端范围不在当前范围内）。</span>
+        <span>滑块不渲染刻度与数值标签：需要刻度、区间标注或双端范围请由宿主在轨道旁组合。</span>
     </Notes>
 </ComponentPage>
 

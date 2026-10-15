@@ -10,11 +10,11 @@
                Category="表单组件"
                Title="DateTimePicker"
                ComponentName="DateTimePicker"
-               Description="用一个 DateTime? 值同时选择日期与时间：日期网格与时间列表在同一个受控弹层里完成，不做时区换算。"
+               Description="用一个 DateTime? 同时选择日期与时间：两步在同一个受控弹层里完成，不做时区换算。"
                Related="@DateTimePickerRelated">
     <WhenToUse>
-        <p>需要“某一天的某一刻”时使用：预约、开窗、定时发布。只要日期用 <code>DatePicker</code>，只要时间用 <code>TimePicker</code>。</p>
-        <p>两个维度合成一个 <code>DateTime?</code>：<code>Kind</code> 只标记结果的种类，候选范围由 <code>MinDateTime</code> / <code>MaxDateTime</code> 与 <code>DisabledDate</code> / <code>DisabledDateTime</code> 共同决定。</p>
+        <p>需要「某一天的某一刻」时使用：预约、开窗、定时发布。只要日期用 <code>DatePicker</code>，只要时间用 <code>TimePicker</code>。</p>
+        <p>两个维度合成一个 <code>DateTime?</code>：候选范围由 <code>MinDateTime</code> / <code>MaxDateTime</code> 与 <code>DisabledDate</code> / <code>DisabledDateTime</code> 共同决定。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="date-time-picker-basic"
@@ -98,9 +98,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>日期与时间在一个弹层里完成，两步都只改草稿；<code>Value</code> 只在“确定”时变化，因此取消不会留下半个值。</span>
-        <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，组件不换算时区；需要跨时区展示时由宿主自行换算。</span>
-        <span>日期网格与时间列表共用单一焦点模型：只有触发器一个 Tab 停留点，<code>ValueExpression</code>、<code>Required</code> 与 <code>Invalid</code> 决定无效态外观，是否阻止提交由宿主决定。</span>
+        <span>日期与时间在同一个弹层里完成，两步都只改草稿；<code>Value</code> 只在「确定」时变化，取消不会留下半个值。</span>
+        <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，组件不换算时区。</span>
+        <span>日期网格与时间列表共用单一焦点模型，触发器是唯一的 Tab 停留点；无效态由 <code>ValueExpression</code>、<code>Required</code> 与 <code>Invalid</code> 决定，是否阻止提交由宿主决定。</span>
     </Notes>
 </ComponentPage>
 

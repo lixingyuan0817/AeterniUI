@@ -16,7 +16,7 @@
                Related="@ColorsRelated">
     <WhenToUse>
         <p>需要确认"这个颜色、圆角或间距该用哪个 <code>--aeterni-*</code> Token"时看这一页：它是 Token 的规格表，不是组件演示页。</p>
-        <p>要换色相层用 <code>ThemeProvider</code> 与 <code>ThemeService</code>（见「在应用里消费」的两段代码），不要在页面或组件里覆盖 Token 值；语意色只用于状态表面与指示元素，不构成操作语义。</p>
+        <p>换色相层用 <code>ThemeProvider</code> 与 <code>ThemeService</code>，不要在页面或组件里覆盖 Token 值。</p>
     </WhenToUse>
     <Demos>
         @* 规格表的分区语义：`ComponentPage` 的页头已经提供 h1 与描述，这里不再重复标题区；
@@ -491,9 +491,8 @@
         </section>
     </Demos>
     <Notes>
-        <span>这一页不实例化任何组件，规格表全部由页面级标记手绘：它回答的是"该用哪个 Token"，不是"组件长什么样"。</span>
-        <span>容器与页面背景只能是无彩色或统一的玻璃配方，彩色只用在品牌、状态与通知内容表面；色卡是这些规则的取样，不是可选配色。</span>
-        <span>品牌色层可替换，门槛（正文 4.5:1、图标与描边 3:1）由 <code>node scripts/check-contrast.mjs</code> 在每个色相层上实测，换色板前先跑它。</span>
+        <span>容器与页面背景只能是无彩色或统一玻璃配方，彩色只用于品牌、状态与通知内容表面；色卡是这些规则的取样，不是可选配色。</span>
+        <span>正文门槛 4.5:1、图标与描边 3:1，由 <code>node scripts/check-contrast.mjs</code> 在每个色相层上实测，换色板前先跑它。</span>
     </Notes>
 </ComponentPage>
 

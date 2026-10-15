@@ -14,8 +14,8 @@
                Description="菜单触发按钮：一个动作按钮带一份分组菜单。"
                Related="@MenuButtonRelated">
     <WhenToUse>
-        <p>一个主动作后面挂着若干次要动作时使用：新建旁边的"新建自模板"、行操作里的"更多"。菜单本身就是页面导航时用 <code>Menu</code>；只有图标时用 <code>IconButton</code>。</p>
-        <p>需要"主按钮 + 菜单"并列时用 <code>SplitButton</code>：主动作与菜单各自独立可点。</p>
+        <p>一个主动作后面挂着若干次要动作时使用：新建旁边的「新建自模板」、行操作里的「更多」。菜单本身就是页面导航时用 <code>Menu</code>，只有图标用 <code>IconButton</code>。</p>
+        <p>需要「主按钮 + 菜单」并列时用 <code>SplitButton</code>：主动作与菜单各自独立可点。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="menu-button-basic"
@@ -90,7 +90,7 @@
     </Demos>
     <Notes>
         <span>菜单由现有的 <code>Popover</code> 与 <code>Menu</code> 承载：Escape、外部点击、方向键导航与视口翻转都沿用它们的行为。</span>
-        <span><code>Loading</code> 只让主动作忙碌（图标按钮位置的忙碌指示），不禁用菜单；要禁整体用 <code>Disabled</code>。</span>
+        <span><code>Loading</code> 只让主动作忙碌，不禁用菜单；要禁整体用 <code>Disabled</code>。</span>
         <span>触发按钮与菜单在同一个宿主层内，点击触发器不会被判成外部点击。</span>
     </Notes>
 </ComponentPage>

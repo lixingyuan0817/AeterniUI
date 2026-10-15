@@ -13,7 +13,6 @@
                Related="@LabelRelated">
     <WhenToUse>
         <p>自建布局、控件不是库内组件，或要把标签放在控件之外时使用。表单内的常规字段不用它——<code>FormField</code> 已经会渲染标签并自动关联输入 id。</p>
-        <p>在 <code>FormField</code> 内部再写一个 <code>Label</code> 会得到两个标签指向同一个控件，读屏会把两段文字拼成同一个名字。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="label-basic"
@@ -53,7 +52,7 @@
     <Notes>
         <span>渲染为原生 <code>&lt;label&gt;</code>，因此点击、焦点转移与读屏关联都由浏览器完成，组件不加角色。</span>
         <span><code>For</code> 必须是目标控件的 id：库内组件的 id 由 <code>Id</code> 参数决定，原生元素自己写。</span>
-        <span>带字段语义的场景（说明、必填、无效、错误消息）交给 <code>FormField</code>；<code>Label</code> 只负责"这段文字属于哪个控件"。</span>
+        <span>带字段语义的场景（说明、必填、无效、错误消息）交给 <code>FormField</code>。</span>
     </Notes>
 </ComponentPage>
 

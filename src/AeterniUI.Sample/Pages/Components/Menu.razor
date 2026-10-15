@@ -10,11 +10,11 @@
                Category="导航组件"
                Title="Menu"
                ComponentName="Menu"
-               Description="分组可折叠的菜单导航：链接项、图标与描述、手风琴、受控展开状态和完整键盘操作。"
+               Description="分组可折叠的菜单导航：链接项、图标与描述、手风琴、受控展开状态与完整键盘操作。"
                Related="@MenuRelated">
     <WhenToUse>
         <p>站内导航或设置项需要按分组收起展开时使用：侧边栏、设置中心。平铺的选项列表用 <code>List</code>，切换同一区域的内容用 <code>Tabs</code>。</p>
-        <p>Menu 是导航内容控件，自身不提供表面：底由宿主容器负责（示例用 <code>Surface</code> 模拟侧边栏），放进已有卡片不会出现双层底。</p>
+        <p>Menu 是导航内容控件，自身不提供表面：底由宿主容器负责，放进已有卡片不会出现双层底。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="menu-basic"
@@ -83,9 +83,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>Menu 只负责导航内容与展开状态，底由宿主容器提供：示例统一套在 <code>Surface</code> 里，与页面左侧导航同观感。</span>
         <span>键盘按导航模式工作：<code>Tab</code> 走原生顺序，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
-        <span>选中态与展开态是两份状态：<code>SelectedId</code> 决定 <code>aria-current</code> 与选中样式；传入 <code>OpenKeys</code> 后由消费者接管展开状态，每次变化都通过 <code>OpenKeysChanged</code> 上报，传 null 则组件自行维护。</span>
+        <span>选中态与展开态是两份状态：<code>SelectedId</code> 决定 <code>aria-current</code> 与选中样式；传入 <code>OpenKeys</code> 后由消费者接管展开状态，传 <code>null</code> 则组件自行维护。</span>
     </Notes>
 </ComponentPage>
 

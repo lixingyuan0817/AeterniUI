@@ -9,11 +9,11 @@
                Category="表单组件"
                Title="ComboBox"
                ComponentName="ComboBox&lt;TItem&gt;"
-               Description="从宿主给定的集合里择一的默认下拉控件：触发器、定位浮层与键盘导航由组件承担，不包含自由输入。"
+               Description="从宿主给定的集合里择一的下拉控件：触发器、浮层与键盘导航由组件承担，不含自由输入。"
                Related="@ComboboxRelated">
     <WhenToUse>
-        <p>选项集合有限、结果必须择一时使用：城市、分类、负责人。需要边输入边过滤建议项时用 <code>Autocomplete</code>，可选多个值时用 <code>MultiSelect</code>。</p>
-        <p>数据归宿主：<code>Items</code> 是当前快照，组件不请求远程数据、不缓存结果；<code>TItem</code> 需要是引用类型，值类型请先包成选项对象。</p>
+        <p>选项有限、结果必须择一时使用：城市、分类、负责人。边输入边过滤建议用 <code>Autocomplete</code>，多值用 <code>MultiSelect</code>。</p>
+        <p>数据归宿主：<code>Items</code> 是当前快照；<code>TItem</code> 需要是引用类型，值类型先包成选项对象。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="combobox-basic"
@@ -97,9 +97,9 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>纯下拉选择：触发器是 <code>combobox</code>、浮层是 <code>listbox</code>，支持方向键、Home/End、Enter、Escape 与外部点击关闭，活动项通过 <code>aria-activedescendant</code> 表达。</span>
-        <span>组件不做输入过滤、也不请求远程数据：<code>Items</code> 是宿主给的当前快照，异步结果请在 <code>ValueChanged</code> 或 <code>OnItemSelected</code> 里替换它；<code>OnChange</code> 是 <code>OnItemSelected</code> 的旧名字，已在 10.14.3 移除。</span>
-        <span>字段状态与实例参数取并集：<code>Disabled</code> / <code>Required</code> / <code>Invalid</code> 写在 <code>FormField</code> 或组件上都生效；字段的校验消息会额外点亮无效态。</span>
+        <span>触发器是 <code>combobox</code>、浮层是 <code>listbox</code>：方向键、Home/End、Enter、Escape 与外部点击关闭，活动项用 <code>aria-activedescendant</code> 表达。</span>
+        <span>组件不请求远程数据、也不做过滤：异步结果在 <code>ValueChanged</code> 或 <code>OnItemSelected</code> 里替换 <code>Items</code>。</span>
+        <span>字段状态与实例参数取并集：<code>Disabled</code> / <code>Required</code> / <code>Invalid</code> 写在 <code>FormField</code> 或组件上都生效。</span>
     </Notes>
 </ComponentPage>
 

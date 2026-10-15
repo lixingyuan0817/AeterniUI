@@ -13,7 +13,7 @@
                Related="@RatingRelated">
     <WhenToUse>
         <p>收集或展示整数评分时使用：满意度、优先级、星级。需要连续数值用 <code>Slider</code>，需要表达比例用 <code>Progress</code>。</p>
-        <p>评分的取值范围由 <code>Max</code> 决定（默认 5）；组件只处理整数，半星等分数展示不在范围内。</p>
+        <p>取值范围由 <code>Max</code> 决定（默认 5）；组件只处理整数，半星等分数展示不在范围内。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="rating-basic"
@@ -84,8 +84,7 @@
     </Demos>
     <Notes>
         <span>对外是单一的可调控件：方向键移动、Home/End 跳到两端、Enter 或空格确认；只读态没有停留点，禁用态不参与 Tab 序列。</span>
-        <span><code>AllowClear</code> 关闭后无法把评分退回 0——需要"未评分"这个状态时保持它开启。</span>
-        <span>取值范围只由 <code>Max</code> 决定，超出范围的值会被夹取；组件不做半星、不做自定义图标。</span>
+        <span><code>AllowClear</code> 关闭后无法把评分退回 0——需要「未评分」这个状态时保持它开启。</span>
     </Notes>
 </ComponentPage>
 

@@ -13,7 +13,7 @@
                Related="@FormFieldRelated">
     <WhenToUse>
         <p>任何带标签的表单控件都该放进字段里：标签、说明、必填与错误提示一次配好，内部控件自动采用字段的输入 id，标签的 <code>for</code> 因此能点得中。</p>
-        <p>库外的原生控件同样可以放进字段：只要把字段给它的 id 用在控件上，关联与状态继承就成立。</p>
+        <p>库外的原生控件同样可以放进字段：把字段给它的 id 用在控件上，关联与状态继承就成立。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="form-field-basic"
@@ -76,8 +76,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>字段只负责"这组说明属于哪个控件"以及状态传递；它不校验、不提交、不请求，规则仍写在宿主的 <code>EditContext</code> 上。</span>
-        <span><code>For</code> 用于把字段与绑定表达式关联起来，配合 <code>EditForm</code> 时校验消息会自动出现在字段的错误区域。</span>
+        <span>字段只负责「这组说明属于哪个控件」与状态传递；它不校验、不提交、不请求。</span>
+        <span><code>For</code> 把字段与绑定表达式关联起来，配合 <code>EditForm</code> 时校验消息会自动出现在字段的错误区域。</span>
         <span>不要在字段内部再写 <code>Label</code>：一个控件被两个标签指向时，读屏会把两段文字拼成同一个名字。</span>
     </Notes>
 </ComponentPage>

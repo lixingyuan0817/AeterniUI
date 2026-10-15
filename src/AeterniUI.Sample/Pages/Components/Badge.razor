@@ -13,8 +13,8 @@
                Description="贴在图标、头像或按钮右上角的数字或圆点角标，位置随书写方向镜像。"
                Related="@BadgeRelated">
     <WhenToUse>
-        <p>需要在不打断布局的前提下提示数量或"有新内容"时使用：未读消息、待办数量、构建结果。要表达一段文字性的状态用 <code>Tag</code>，要展示身份图形用 <code>Avatar</code>。</p>
-        <p>角标只画指示器本身：被附着的按钮、图标或头像仍由各自的组件渲染，锚点用不用表面也留在锚点上。</p>
+        <p>不打断布局地提示数量或"有新内容"时使用：未读消息、待办数量、构建结果。文字性状态用 <code>Tag</code>，身份图形用 <code>Avatar</code>。</p>
+        <p>角标只画指示器本身：被附着的按钮、图标或头像仍由各自的组件渲染。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="badge-basic"
@@ -97,7 +97,7 @@
     </Demos>
     <Notes>
         <span><code>Count</code> 为 <code>null</code> 且未开启 <code>Dot</code> 时不渲染角标；显式的 0 会显示为 0，两者语义不同。</span>
-        <span>超过 <code>Max</code> 的数字显示为 <code>99+</code> 这类形式；圆点没有可见文字，因此可访问名称作为视觉隐藏文本输出，缺省取 <code>AeterniUITextOptions.BadgeLabel</code>。</span>
+        <span>超过 <code>Max</code> 的数字显示为 <code>99+</code> 这类形式；圆点没有可见文字，可访问名称作为视觉隐藏文本输出，缺省取 <code>AeterniUITextOptions.BadgeLabel</code>。</span>
         <span>角标用逻辑定位属性贴在右上角，RTL 下自动镜像；<code>Count</code> 为负或 <code>Max</code> 小于 1 会在参数设置阶段抛出 <code>ArgumentOutOfRangeException</code>。</span>
     </Notes>
 </ComponentPage>

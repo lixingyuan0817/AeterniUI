@@ -15,7 +15,7 @@
                Related="@InputNumberRelated">
     <WhenToUse>
         <p>需要精确数值时使用：数量、金额、比例。范围感更强的场景用 <code>Slider</code>，自由文本用 <code>Input</code>。</p>
-        <p>Min/Max 与 Step 决定可用区间与步长；输入过程中不夹取，失焦或步进时才归一化，避免打断正在输入的中间值。</p>
+        <p><code>Min</code> / <code>Max</code> 与 <code>Step</code> 决定可用区间与步长；输入过程中不夹取，失焦或步进时才归一化，避免打断正在输入的中间值。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="input-number-basic"
@@ -114,10 +114,10 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>输入过程中不夹取、不改写文本：只有失焦、步进或外部绑定值变化时才按 Min/Max/Precision 归一化，因此可以先把"1"打出来再补成"15"。</span>
+        <span>输入过程中不夹取、不改写文本：只有失焦、步进或外部绑定值变化时才按 Min/Max/Precision 归一化。</span>
         <span>方向键步进一格，PageUp/PageDown 步进十倍；这些按键的默认滚动行为由组件的 JS 模块拦截。</span>
-        <span>组件不做单位换算与格式化展示：需要"¥ 12.50"这类显示请用相邻文本或用 <code>Input</code> 自行格式化。</span>
-        <span>绑定到模型字段时，字段类型要与 <code>TValue</code> 的可空形态一致（<code>TValue="int"</code> 配 <code>int?</code>）。写成非可空 <code>int</code>，<code>@@bind-Value</code> 生成的表达式外会多一层转换，<code>FieldIdentifier</code> 直接抛 <code>UnaryExpression</code> 异常、整页渲染中断——这条对 <code>DatePicker</code>、<code>TimePicker</code> 这类值类型组件同样成立。</span>
+        <span>组件不做单位换算与格式化展示：需要「¥ 12.50」这类显示请用相邻文本自行格式化。</span>
+        <span>绑定到模型字段时，字段类型要与 <code>TValue</code> 的可空形态一致（<code>TValue="int"</code> 配 <code>int?</code>）：写成非可空 <code>int</code>，<code>@@bind-Value</code> 生成的表达式外会多一层转换，<code>FieldIdentifier</code> 抛 <code>UnaryExpression</code> 异常、整页渲染中断。这条对 <code>DatePicker</code>、<code>TimePicker</code> 这类值类型组件同样成立。</span>
     </Notes>
 </ComponentPage>
 
