@@ -49,8 +49,7 @@ public partial class ButtonGroup : AeterniComponent
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase)
         {
-            ["role"] = "group",
-            ["data-orientation"] = OrientationClass
+            ["role"] = "group"
         };
 
         if (!string.IsNullOrWhiteSpace(AriaLabel))

@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.34.3`
+文档版本：`10.34.4`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -724,7 +724,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 ### 行为与无障碍
 
-Popover 根据 `Modal` 输出 `dialog` 或 `region` 语义，关闭时通过 `hidden` 移除可见内容；模态浮层额外输出 `aria-modal="true"` 并提升到 `--aeterni-z-modal`。
+Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-modal="true"`、提升到 `--aeterni-z-modal`；非模态仅在提供 `AriaLabel` 时输出 `role="region"` 地标，否则不输出角色、由内部内容（menu / listbox / 自定义）承载语义。关闭时通过 `hidden` 移除可见内容。
 
 ### 实现边界
 

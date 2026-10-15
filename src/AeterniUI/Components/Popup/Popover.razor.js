@@ -156,7 +156,13 @@ function activate(instance, modal) {
 
     if (modal) {
         instance.releaseScroll = lockScroll();
+        // Focus restore is owned by `deactivate`, not by the trap: the trap's default
+        // release would unconditionally focus the opener before `deactivate` runs its
+        // `restoreFocusOnClose`-gated and guarded microtask, which both ignores the
+        // flag (focus returns even when `false`) and defeats the "a consumer callback
+        // deliberately focused another control" guard. One restore path, one owner.
         instance.trap = createFocusTrap(instance.layer, {
+            restoreFocus: false,
             onEscape: () => {
                 if (instance.closeOnEscape) requestClose(instance);
             }

@@ -1,10 +1,21 @@
 # AeterniUI 发布历史
 
-文档版本：`10.34.3`
+文档版本：`10.34.4`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.34.4 第十一轮审阅收口：Segmented 选中态焦点环、Soft 接缝、模态滚动条与焦点归还
+
+第十一轮全库审阅（REV-164～REV-177，14 条）全部收口。范围是 `10.31.1` 之后的新增/变更面（`Upload`、`Segmented`、`Popover` 锚点解耦、滚动条统一、`SplitButton`/`ButtonGroup` 连体接缝）加全库交互状态/ARIA/Token/JS 交叉复查。逐项证据见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)，本节只记修复结论。
+
+- [x] **P0 `Segmented` 选中项焦点环不可见**：选中项 label 透明、底下是品牌色滑块，品牌色焦点环（负偏移画在 label 内侧）叠在品牌胶囊上等于隐形。修复：选中项焦点环改用 `--aeterni-text-inverse`（on-brand 白，对比度 4.52:1），保持负偏移几何不变。
+- [x] **P1 `ButtonGroup` 透明接缝漏掉 `--soft`**：水平/垂直两处 `.aeterni-button` 透明接缝列表补 `--soft`（与 icon-button 列表、split-menu 规则同一 transparent 档），并顺手删掉死选择器 `--text`（`ButtonVariant` 无 text 值）。
+- [x] **P1 `Dialog` 模态容器无滚动条声明**：`.aeterni-dialog-provider__dialog` 的 `overflow: hidden auto` 补 `scrollbar-width`/`scrollbar-color` + `::-webkit-scrollbar` 三件；`check-scrollbars.mjs` 正则补双值简写匹配，容器数 12→13。
+- [x] **P1 模态 `Popover` 焦点归还双重且忽略 `RestoreFocusOnClose`**：`createFocusTrap` 改传 `restoreFocus: false`，由 `deactivate` 里受 `restoreFocusOnClose` 门控且带守卫的 microtask 独占归还；`Modal` 与 `RestoreFocusOnClose` 文档注释同步。
+- [x] **P2/P3 卫生包**：`Upload` 根 div 去掉冗余 `aria-disabled`（`SplitButton` 同类）；`SplitButton.Placement`/`MenuButton.Placement` 补 `Enum.IsDefined`、`Items` 补 `ThrowIfNull`；`Popover` 非模态默认不再输出无名 `region` 地标（仅在提供 `AriaLabel` 时输出）；`ButtonGroup` 删死属性 `data-orientation`；`NoticeCard` 的 `2px` 间距改 `calc(var(--aeterni-border-width) * 2)`。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` 95 项；`check-scrollbars.mjs`（13 容器）、`check-css-comments.mjs`、`check-contrast.mjs`（315 gates，`text-inverse` on brand 4.52:1）、`check-doc-drift.mjs`、`bash scripts/check-docs.sh` 通过。按「修复与优化递增第三位」从 `10.34.3` 升到 `10.34.4`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.34.3 连体接缝收敛到一档：SplitButton 的透明档从 20% 提到 45%
 

@@ -52,6 +52,8 @@
     width: min(100%, var(--aeterni-overlay-width-md));
     max-height: min(var(--aeterni-overlay-height-md), calc(100vh - var(--aeterni-spacing-12)));
     overflow: hidden auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
     background: var(--aeterni-bg-glass);
@@ -60,6 +62,22 @@
     -webkit-backdrop-filter: var(--aeterni-blur-glass);
     backdrop-filter: var(--aeterni-blur-glass);
     animation: none;
+}
+
+.aeterni-dialog-provider__dialog::-webkit-scrollbar,
+.aeterni-dialog-provider__dialog--primary::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-dialog-provider__dialog::-webkit-scrollbar-thumb,
+.aeterni-dialog-provider__dialog--primary::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-dialog-provider__dialog::-webkit-scrollbar-track,
+.aeterni-dialog-provider__dialog--primary::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
 }
 
 /* The frosted fill cannot carry the standard ink ladder: over a light backdrop at

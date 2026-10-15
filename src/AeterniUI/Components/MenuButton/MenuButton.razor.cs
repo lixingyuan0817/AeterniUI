@@ -54,6 +54,8 @@ public partial class MenuButton : AeterniComponent
     {
         base.OnParametersSet();
 
+        ArgumentNullException.ThrowIfNull(Items);
+
         if (!Enum.IsDefined(Variant))
         {
             throw new ArgumentOutOfRangeException(nameof(Variant), Variant, "Unknown menu button variant.");
@@ -67,6 +69,11 @@ public partial class MenuButton : AeterniComponent
         if (!Enum.IsDefined(Size))
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown menu button size.");
+        }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown menu button placement.");
         }
     }
 

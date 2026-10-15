@@ -76,7 +76,9 @@ for (const file of collectCss('.')) {
     let touched = false;
 
     for (const block of ruleBlocks(css)) {
-        if (!/overflow(-y|-x)?:\s*(auto|scroll)/.test(block.body)) continue;
+        // `overflow: hidden auto` 是双值简写（x=hidden, y=auto），第二个值才是纵向滚动；
+        // 单值 auto|scroll 之外还要匹配这种双值写法，否则这类容器被整条跳过。
+        if (!/overflow(-y|-x)?:\s*(auto|scroll)|overflow:\s*\S+\s+(auto|scroll)/.test(block.body)) continue;
 
         containers += 1;
         touched = true;

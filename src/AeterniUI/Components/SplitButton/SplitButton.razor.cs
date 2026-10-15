@@ -45,6 +45,7 @@ public partial class SplitButton : AeterniComponent
             throw new ArgumentException("SplitButton requires a visible primary label.", nameof(Label));
         if (string.IsNullOrWhiteSpace(MenuAriaLabel))
             throw new ArgumentException("SplitButton requires a menu accessible name.", nameof(MenuAriaLabel));
+        ArgumentNullException.ThrowIfNull(Items);
         if (IsMenuDisabled)
             _internalOpen = false;
     
@@ -62,6 +63,11 @@ public partial class SplitButton : AeterniComponent
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown split button size.");
         }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown split button placement.");
+        }
     }
 
     // REV-152: `is-disabled` had no rule; the disabled state is carried by the native
@@ -69,14 +75,6 @@ public partial class SplitButton : AeterniComponent
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-split-button")
         .Add("is-full-width", FullWidth);
-
-    protected override IReadOnlyDictionary<string, object> BuildAttributes()
-    {
-        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase);
-        if (IsDisabled)
-            attributes["aria-disabled"] = "true";
-        return attributes;
-    }
 
     private Task HandleClickAsync(MouseEventArgs args) => IsDisabled || PrimaryDisabled || Loading
         ? Task.CompletedTask : OnClick.InvokeAsync(args);

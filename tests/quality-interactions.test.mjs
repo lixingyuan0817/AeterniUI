@@ -53,7 +53,7 @@ function fixture(module, name) {
     module.init({ invokeMethodAsync(method, ...args) { calls.push([method, ...args]); return Promise.resolve(); } }, name);
     const sync = (open, escape = true, closing = false, revision = 0) => name === 'drawer'
         ? module.setOpen(name, open, panel, true, escape, true, closing, revision)
-        : module.setOpen(name, open, root, true, 'bottom-start', escape, true, false, false, closing, revision);
+        : module.setOpen(name, open, root, true, 'bottom-start', escape, true, true, false, closing, revision);
     opener.focus(); sync(true);
     const pressEscape = () => document.emit('keydown', { key: 'Escape', stopPropagation() {} });
     const animate = () => {

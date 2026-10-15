@@ -3169,9 +3169,9 @@ async Task CheckUploadAsync()
     });
     var disabledInput = Regex.Match(disabled, "<input[^>]*type=\"file\"[^>]*>").Value;
     Require(disabled.Contains("is-disabled", StringComparison.Ordinal)
-        && disabled.Contains("aria-disabled=\"true\"", StringComparison.Ordinal)
-        && disabledInput.Contains("disabled", StringComparison.Ordinal),
-        "A disabled Upload marks the root and disables the picker itself.");
+        && disabledInput.Contains("disabled", StringComparison.Ordinal)
+        && !disabled.Contains("aria-disabled", StringComparison.Ordinal),
+        "A disabled Upload disables the picker and leaves the wrapper free of aria-disabled.");
 
     // The field owns the picker id: the label has to resolve to the control the
     // user operates, not to the component's root div.

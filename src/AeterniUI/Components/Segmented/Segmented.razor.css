@@ -154,6 +154,13 @@
     outline-offset: calc(var(--aeterni-focus-offset) * -1);
 }
 
+/* The selected option's label is transparent so the brand pill shows through; a
+   brand-coloured ring on that pill is invisible, so the ring repaints to the
+   inverse text colour (the same colour as the selected label) and stays clear. */
+.aeterni-segmented__option.is-selected:has(.aeterni-segmented__input:focus-visible) {
+    outline-color: var(--aeterni-text-inverse);
+}
+
 /* A disabled option is parked, not interactive. The cursor has to sit on the whole
    hit target: the label is where the pointer lands and it carries `cursor: pointer`
    from the base rule, so the inner-span rule alone left a hand cursor over a parked

@@ -46,7 +46,8 @@ public partial class Popover : AeterniComponent
 
     /// <summary>
     /// Modal layer: renders a backdrop, sets <c>aria-modal</c>, traps Tab inside the
-    /// layer, locks background scrolling and restores focus on close.
+    /// layer and locks background scrolling. Focus returns on close only when
+    /// <see cref="RestoreFocusOnClose" /> is set.
     /// </summary>
     [Parameter]
     public bool Modal { get; set; }
@@ -74,6 +75,12 @@ public partial class Popover : AeterniComponent
     [Parameter]
     public bool CloseOnScroll { get; set; }
 
+    /// <summary>
+    /// Whether focus returns to the element that opened the layer when it closes.
+    /// Applies to modal and non-modal alike; for a non-modal layer the restore skips
+    /// when it was closed by an outside click or a consumer callback focused another
+    /// control, so it never steals focus from a deliberate move.
+    /// </summary>
     [Parameter]
     public bool RestoreFocusOnClose { get; set; }
 
@@ -125,16 +132,23 @@ public partial class Popover : AeterniComponent
             base.BuildAttributes(),
             StringComparer.OrdinalIgnoreCase)
         {
-            ["role"] = Modal ? "dialog" : "region",
             ["hidden"] = !Visible || (!Open && !_closing)
         };
 
         if (Modal)
         {
+            attributes["role"] = "dialog";
             attributes["aria-modal"] = "true";
             // The layer is only focusable so the trap has a fallback when it holds
             // no interactive content.
             attributes["tabindex"] = "-1";
+        }
+        else if (!string.IsNullOrWhiteSpace(AriaLabel))
+        {
+            // A landmark needs a name; the non-modal default omits the role unless one
+            // is supplied, so an unnamed `region` landmark is never emitted. The inner
+            // content (menu / listbox / custom) carries the semantics instead.
+            attributes["role"] = "region";
         }
 
         if (!string.IsNullOrWhiteSpace(AriaLabel))

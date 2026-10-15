@@ -172,19 +172,6 @@ public partial class Upload : AeterniComponent
         .Add("is-invalid", IsInvalid)
         .Add("is-disabled", IsDisabled);
 
-    protected override IReadOnlyDictionary<string, object> BuildAttributes()
-    {
-        var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase);
-        // The status attribute lives on the picker, which is the control the user
-        // operates; the root only mirrors the disabled state for styling hooks.
-        if (IsDisabled)
-        {
-            attributes["aria-disabled"] = "true";
-        }
-
-        return attributes;
-    }
-
     private async Task HandleFilesSelectedAsync(InputFileChangeEventArgs args)
     {
         // The cap is not passed to the framework call: exceeding it must mark the

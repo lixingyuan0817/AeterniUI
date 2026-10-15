@@ -118,10 +118,11 @@
 .aeterni-dialog-provider__notice-content {
     display: flex;
     flex-direction: column;
-    /* 2px gap and padding are a hairline rhythm inside the text column. */
-    gap: 2px;
+    /* Two hairlines of gap and padding are a fine rhythm inside the text column,
+       expressed as border-width so the value stays token-derived rather than bare. */
+    gap: calc(var(--aeterni-border-width) * 2);
     min-width: 0;
-    padding: 2px 0;
+    padding: calc(var(--aeterni-border-width) * 2) 0;
 }
 
 .aeterni-dialog-provider__notice-content strong {

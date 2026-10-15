@@ -92,8 +92,8 @@
    the button's own accent. A neutral grey line would break the hue of an outline
    group, whose shared edge sits between two accent borders. */
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--outline,
+.aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--soft,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
-.aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--horizontal.is-connected ::deep .aeterni-button + .aeterni-button--link {
     border-inline-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
@@ -144,8 +144,8 @@
 }
 
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--outline,
+.aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--soft,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--ghost,
-.aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--text,
 .aeterni-button-group--vertical.is-connected ::deep .aeterni-button + .aeterni-button--link {
     border-block-start-color: var(--aeterni-button-group-divider, var(--aeterni-button-divider-transparent));
 }
