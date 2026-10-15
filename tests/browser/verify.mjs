@@ -2506,23 +2506,30 @@ check('组合用法页（大数据列表）：800 条只渲染视口附近的几
     && (dataList.note ?? '').includes('命中 800 / 800') && dataList.toolbar === false,
     JSON.stringify(dataList));
 
-// 虚拟列表的行要等渲染出来才可点；而且导航之后 Blazor 可能还有一批渲染没落地，
-// 这时发出去的第一次点击会落空（CI 上表现为"已选 0 项"，本机却总是通过）。
-// 所以"点一下、查一次选中数"，不中就再点——重试的是动作送达，不是被断言的行为。
-const clickRowUntilSelected = async (index, expectedSelected) => {
-    for (let attempt = 0; attempt < 30; attempt += 1) {
-        await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[${index}]?.click()`);
-        await sleep(150);
-        const selected = await evaluate(`document.querySelectorAll('#data-list-selection [role="option"][aria-selected="true"]').length`);
-        if (selected === expectedSelected) return true;
+// 目标是"选中两行"，不是"点两次"：每轮先读当前状态，只有这次点击没改变选中数时才重试。
+// 之前每次循环都点同一行，点击一旦滞后一轮就变成"选中 → 取消 → 选中"的抖动，
+// CI（慢）读到的可能是取消后的状态，本机（快）却总是通过。
+const readSelection = () => evaluate(`(() => {
+    const rows = [...document.querySelectorAll('#data-list-selection [role="option"]')];
+    return {
+        selected: rows.filter(row => row.getAttribute('aria-selected') === 'true').length,
+        nextIndex: rows.findIndex(row => row.getAttribute('aria-selected') === 'false')
+    };
+})()`);
+const selectTwoRows = async () => {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+        const state = await readSelection();
+        if (state.selected >= 2 || state.nextIndex < 0) return state;
+        await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[${state.nextIndex}]?.click()`);
+        for (let settle = 0; settle < 20; settle += 1) {
+            await sleep(150);
+            const after = await readSelection();
+            if (after.selected !== state.selected) break;
+        }
     }
-    return false;
+    return readSelection();
 };
-const firstRowSelected = await clickRowUntilSelected(0, 1);
-if (!firstRowSelected) {
-    console.error('first row never reported as selected');
-}
-await clickRowUntilSelected(1, 2);
+await selectTwoRows();
 const selection = await evaluate(`(() => {
     const section = document.querySelector('#data-list-selection');
     const batch = document.querySelector('#data-list-batch');
