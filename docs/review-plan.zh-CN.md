@@ -2,7 +2,7 @@
 
 文档版本：`10.34.3`
 
-文档状态：第十轮 31 条（REV-133～REV-163）已全部收口，随 `10.31.1` 归档；本文件暂无活动条目，下一轮审阅开始时重新登记。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
+文档状态：第十轮 31 条（REV-133～REV-163）已全部收口，随 `10.31.1` 归档。第十一轮（REV-164 起）进行中，范围是 `10.31.1` 之后的新增/变更面（`Upload`、`Segmented`、`Popover` 锚点解耦、滚动条统一、`SplitButton`/`ButtonGroup` 连体接缝）加全库交互状态/ARIA/Token/JS 交叉复查。已完成轮次归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 阅读顺序：先读「约定」四节（文档边界 / 优先级定义 / 状态图例 / 审阅方法与可信度），再读当前轮次的问题与修复批次；当前无活动轮次时，只需读这两部分。完成项从本文档移除，并归档到 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -41,4 +41,13 @@
 ## 已归档轮次
 
 第十轮全库组件审核（REV-133～REV-163，31 条）已全部收口并随 `10.31.1` 发布归档，逐项证据、批次划分与验证结果见 [`release-history.zh-CN.md`](release-history.zh-CN.md)；本文件不保留已收口条目，也不复述其结论。
+
+## 第十一轮（进行中）
+
+范围：`10.31.1` 之后新增/变更面（`Upload`、`Segmented`、`Popover` 锚点解耦、滚动条统一、`SplitButton`/`ButtonGroup` 连体接缝）+ 全库交互状态优先级、ARIA/键盘、Token 纪律与 JS 释放的交叉复查。
+
+### 问题清单
+
+- [ ] **REV-164（P2）`Upload` 根 `<div>` 输出 `aria-disabled="true"`**：根元素没有角色，`aria-disabled` 是语义状态而非样式钩子，真正的 `disabled` 已经落在 `<input>` 上。证据位置：`Upload.razor.cs` 的 `BuildAttributes()`（`attributes["aria-disabled"] = "true"`）。修复方向：根元素不再输出 `aria-disabled`，禁用态的样式仍由 `is-disabled` 类承担。验收条件：禁用时根元素无 `aria-disabled`，`<input>` 仍有 `disabled`。
+
 
