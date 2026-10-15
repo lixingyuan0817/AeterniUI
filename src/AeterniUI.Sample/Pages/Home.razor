@@ -14,9 +14,8 @@
         <p class="doc-hero__eyebrow">.NET 10 · Blazor Server / WebAssembly</p>
         <h1 id="doc-hero-title" tabindex="-1">AeterniUI</h1>
         <p class="doc-hero__lede">
-            一套面向 Blazor 的组件库：语义 Token 打底、玻璃配方统一表面、
+            面向 Blazor 的组件库：语义 Token 打底、玻璃配方统一表面，
             <code>--aeterni-*</code> 一套变量管住深浅两个主题与三个品牌色层。
-            下面这些卡片里的控件都是真的，点一点就知道。
         </p>
         <div class="doc-hero__actions">
             <Button OnClick="GoToComponents">查看安装与全部组件</Button>
@@ -48,18 +47,12 @@
     </section>
 
     <section class="doc-showcase" aria-labelledby="doc-showcase-title">
-        <header class="doc-showcase__header">
-            <h2 id="doc-showcase-title">常用组件</h2>
-            <p>挑了三组最常出现在第一屏的控件。每一张卡片都是一个真实组件的实例，右下角可以直接进它的示例页。</p>
-        </header>
+        <h2 id="doc-showcase-title">常用组件</h2>
 
         @foreach (var group in Groups)
         {
             <div class="doc-showcase__group">
-                <div class="doc-showcase__group-head">
-                    <h3>@group.Title</h3>
-                    <p>@group.Note</p>
-                </div>
+                <h3>@group.Title</h3>
                 <div class="doc-showcase__grid">
                     @foreach (var card in group.Cards)
                     {
@@ -133,7 +126,6 @@
                             <div class="doc-showcase__meta">
                                 <span class="doc-showcase__name">@card.Name</span>
                                 <span class="doc-showcase__note">@card.Note</span>
-                                <p class="doc-showcase__description">@card.Description</p>
                                 <a class="doc-showcase__link" href="@card.Href">
                                     看示例
                                     <span aria-hidden="true">→</span>

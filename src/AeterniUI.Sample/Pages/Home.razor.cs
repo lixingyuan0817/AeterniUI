@@ -50,26 +50,26 @@ public partial class Home : ComponentBase, IAsyncDisposable
 
     private static readonly IReadOnlyList<ShowcaseGroup> Groups =
     [
-        new("交互动作", "点击、切换、评分——最常被摆在第一屏的那批控件。",
+        new("交互动作",
         [
-            new("button", "button", "Button", "主要与次要动作", "确认、取消与危险动作共用一套变体与焦点环。"),
-            new("icon-tooltip", "icon-tooltip", "IconButton + Tooltip", "图标动作与悬停说明", "没有文字的位置用图标，含义交给 Tooltip 补。"),
-            new("switch", "switch", "Switch", "二态开关", "即时生效的开关，状态色与禁用态都由库统一。"),
-            new("rating", "rating", "Rating", "整数评分", "星级评分，支持只读展示与键盘方向键。")
+            new("button", "button", "Button", "主要与次要动作"),
+            new("icon-tooltip", "icon-tooltip", "IconButton + Tooltip", "图标动作与悬停说明"),
+            new("switch", "switch", "Switch", "二态开关"),
+            new("rating", "rating", "Rating", "整数评分")
         ]),
-        new("表单输入", "从文本到数值：一条完整的表单链。",
+        new("表单输入",
         [
-            new("input", "input", "Input", "单行文本", "原生输入元素加库的统一边框、焦点环与尺寸档。"),
-            new("checkbox", "checkbox", "Checkbox", "多选与确认", "勾选态的换档与无效态都不靠透明度糊过去。"),
-            new("segmented", "segmented", "Segmented", "分段单选", "同一组选项等宽排布，选中块随值滑动。"),
-            new("slider", "slider", "Slider", "单值滑块", "连续取值，方向键与 Home/End 都能用。")
+            new("input", "input", "Input", "单行文本"),
+            new("checkbox", "checkbox", "Checkbox", "多选与确认"),
+            new("segmented", "segmented", "Segmented", "分段单选"),
+            new("slider", "slider", "Slider", "单值滑块")
         ]),
-        new("展示与反馈", "容器、状态与通知：把结果讲清楚。",
+        new("展示与反馈",
         [
-            new("tag-badge", "tag", "Tag + Badge", "标签与角标", "语义色标签配数字角标，适合列表与导航。"),
-            new("progress", "progress", "Progress", "进度与进度条", "不写死数值的演示：这条进度自己在走。"),
-            new("avatar", "avatar", "Avatar + Spinner", "身份与等待", "姓名缩写兜底，等待交给统一尺寸的 Spinner。"),
-            new("feedback", "feedback", "Dialog / Alert / Confirm", "通知与确认", "三种反馈各点一次，看真实的服务行为。")
+            new("tag-badge", "tag", "Tag + Badge", "标签与角标"),
+            new("progress", "progress", "Progress", "进度与进度条"),
+            new("avatar", "avatar", "Avatar + Spinner", "身份与等待"),
+            new("feedback", "feedback", "Dialog / Alert / Confirm", "通知与确认")
         ])
     ];
 
@@ -165,9 +165,9 @@ public partial class Home : ComponentBase, IAsyncDisposable
         _module = null;
     }
 
-    private sealed record ShowcaseGroup(string Title, string Note, IReadOnlyList<ShowcaseCard> Cards);
+    private sealed record ShowcaseGroup(string Title, IReadOnlyList<ShowcaseCard> Cards);
 
-    private sealed record ShowcaseCard(string Id, string Preview, string Name, string Note, string Description)
+    private sealed record ShowcaseCard(string Id, string Preview, string Name, string Note)
     {
         public string Href => ShowcaseCatalog.RouteFor(Id);
     }
