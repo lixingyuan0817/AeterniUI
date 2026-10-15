@@ -2506,28 +2506,23 @@ check('组合用法页（大数据列表）：800 条只渲染视口附近的几
     && (dataList.note ?? '').includes('命中 800 / 800') && dataList.toolbar === false,
     JSON.stringify(dataList));
 
-// 虚拟列表的行是渲染出来之后才可点的：先等行出现再点，点完等选中数到位，
-// 不用固定 sleep 赌渲染速度（CI 慢一拍时固定等待就是"已选 0 项"的来源）。
-const clickRowAndWait = async (index, expectedSelected) => {
-    for (let attempt = 0; attempt < 40; attempt += 1) {
-        const clicked = await evaluate(`(() => {
-            const row = document.querySelectorAll('#data-list-selection [role="option"]')[${index}];
-            if (!row) return false;
-            row.click();
-            return true;
-        })()`);
-        if (clicked) break;
-        await sleep(100);
-    }
-
-    for (let attempt = 0; attempt < 40; attempt += 1) {
+// 虚拟列表的行要等渲染出来才可点；而且导航之后 Blazor 可能还有一批渲染没落地，
+// 这时发出去的第一次点击会落空（CI 上表现为"已选 0 项"，本机却总是通过）。
+// 所以"点一下、查一次选中数"，不中就再点——重试的是动作送达，不是被断言的行为。
+const clickRowUntilSelected = async (index, expectedSelected) => {
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+        await evaluate(`document.querySelectorAll('#data-list-selection [role="option"]')[${index}]?.click()`);
+        await sleep(150);
         const selected = await evaluate(`document.querySelectorAll('#data-list-selection [role="option"][aria-selected="true"]').length`);
-        if (selected === expectedSelected) return;
-        await sleep(100);
+        if (selected === expectedSelected) return true;
     }
+    return false;
 };
-await clickRowAndWait(0, 1);
-await clickRowAndWait(1, 2);
+const firstRowSelected = await clickRowUntilSelected(0, 1);
+if (!firstRowSelected) {
+    console.error('first row never reported as selected');
+}
+await clickRowUntilSelected(1, 2);
 const selection = await evaluate(`(() => {
     const section = document.querySelector('#data-list-selection');
     const batch = document.querySelector('#data-list-batch');
