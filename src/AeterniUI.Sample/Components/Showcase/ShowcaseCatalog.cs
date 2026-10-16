@@ -130,7 +130,7 @@ public static class ShowcaseCatalog
     /// <summary>
     /// 库版本号，与 <c>Directory.Build.props</c> 的 <c>InformationalVersion</c> 同一来源：
     /// 从示例程序集的 informational version 读取，不在页面里再维护一份字符串。
-    /// SourceLink 会在末尾追加 <c>+commit</c>，展示时去掉，只留 <c>10.34.4</c>。
+    /// SourceLink 会在末尾追加 <c>+commit</c>，展示时去掉，只留 <c>10.34.5</c>。
     /// </summary>
     public static string Version { get; } = DisplayVersion();
 

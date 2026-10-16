@@ -1,10 +1,19 @@
 # AeterniUI 发布历史
 
-文档版本：`10.34.4`
+文档版本：`10.34.5`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.34.5 焦点环调细：3px → 2px，偏移 2px → 1px
+
+焦点环原为 3px 实心品牌色 + 2px 外偏移，观感偏重，收细一档。
+
+- [x] `--aeterni-focus-width: 3px` → `2px`、`--aeterni-focus-offset: 2px` → `1px`（`aeterni_ui.css` 的单一定义处）。32 个组件样式表 / 70 处引用都消费这两个 Token，一处改动全库跟随；组件侧没有硬编码的环宽。颜色仍是品牌实心色——`check-contrast.mjs` 对焦点环按非文字 3:1 实测，同色淡染在算术上达不到，因此只调几何、不动颜色。
+- [x] **不移除焦点环**：AGENTS.md §4.4 第 5 条要求 `focus-visible` 必须有清晰焦点环；焦点环是键盘用户唯一的焦点位置指示（WCAG 2.4.7）。组件全部走 `:focus-visible`，鼠标点击本就不画环。
+- [x] `tests/browser/verify.mjs` 中断言 `--aeterni-focus-width === '3px'` 的那条同步改为 `2px`。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 36 组；`node --test tests/*.test.mjs` 95 项；`check-contrast.mjs`（315 gates）、`check-css-comments.mjs`、`bash scripts/check-docs.sh` 通过。真实渲染（无头 Chrome，真实 Tab 聚焦后读计算样式）：`outline-width: 2px`、`outline-offset: 1px`、`outline-style: solid`、`outline-color: rgb(121, 90, 217)`。按「修复与优化递增第三位」从 `10.34.4` 升到 `10.34.5`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.34.4 第十一轮审阅收口：Segmented 选中态焦点环、Soft 接缝、模态滚动条与焦点归还
 

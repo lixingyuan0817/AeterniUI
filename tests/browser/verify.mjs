@@ -213,7 +213,7 @@ check('REV-118 the removed alias resolves to nothing', ring.rootAlias === '', `a
 const focusWidth = await evaluate(
     `getComputedStyle(document.documentElement).getPropertyValue('--aeterni-focus-width').trim()`);
 check('REV-118 the focus width the inset ring is derived from resolves',
-    focusWidth === '3px', `--aeterni-focus-width=${focusWidth}`);
+    focusWidth === '2px', `--aeterni-focus-width=${focusWidth}`);
 console.log('NOTE  the inset ring itself is covered by the contract assertion on the\n' +
             '      declared outline-offset, not by this harness.');
 

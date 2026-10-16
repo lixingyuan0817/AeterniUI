@@ -338,8 +338,8 @@
     --aeterni-touch-target: var(--aeterni-height-lg);
     --aeterni-touch-target-min: var(--aeterni-height-xs);
     --aeterni-opacity-muted: .68;
-    --aeterni-focus-width: 3px;
-    --aeterni-focus-offset: 2px;
+    --aeterni-focus-width: 2px;
+    --aeterni-focus-offset: 1px;
     /* Fallback only: every theme block below re-declares this from the brand
        scale, so the value stays hue-agnostic here as well. */
     --aeterni-focus-color: var(--aeterni-color-brand-default);
