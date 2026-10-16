@@ -1,10 +1,25 @@
 # AeterniUI 发布历史
 
-文档版本：`10.34.5`
+文档版本：`10.35.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.35.0 Cascader：层级单选组件（优先级 9 第 1 项交付）
+
+`component-plan` 优先级 9 的第 1 个候选；决策门结论原先登记在该文件 §3，本批交付后连同计划条目一并撤下。层级数据此前只能用平铺的 `ComboBox`／`MultiSelect` 表达——选「省/市/区」要拆成三个控件并手写级联逻辑。
+
+- [x] 组件 `Components/Cascader/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js`）：`Cascader<TItem>`，参数 `Items`、`ChildrenSelector`、`TextSelector`、`Value`+`ValueChanged`+`ValueExpression`、`Placeholder`、`Separator`、`Invalid`、`Required`、`Size`、`ItemTemplate`、`EmptyContent`、`AriaLabel`、`AriaDescribedBy`、`FullWidth`、`OnItemSelected`（与 `ComboBox` 同名同义）。
+- [x] 值语义：`Value` 绑定**叶子**，祖先链由组件用 `ChildrenSelector` 反查后按 `Separator`（缺省取文案表 `CascaderPathSeparator`）拼接展示。未采纳「`Value` 用整条路径列表」的方案：它更显式但与 `ComboBox` 的绑定形状不一致，宿主设置初始值还要自己拼路径。
+- [x] ARIA：触发器是原生 `<button role="combobox">`（`aria-expanded` / `aria-controls` / `aria-haspopup="listbox"` / `aria-activedescendant` / `aria-required` / `aria-invalid`），面板是**一个** `role="listbox"`，每一列是它的 `role="group"`。决策门原写「每列一个 listbox」，实现时改为分组：`listbox` 里再套 `listbox` 是非法的嵌套角色，列名改由分组的 `aria-label` 承担（第 1 列取文案表，其后各列取父节点文案）。
+- [x] 焦点模型：焦点始终留在触发器，活动项用 `aria-activedescendant` 表达，复合控件仍然只有一个 Tab 停留点。
+- [x] 键盘：`↑↓` 列内移动、`→` 展开下一列（活动项有子节点时）或移入已展开的下一列、`←` 回到上一列并落在刚展开的节点上、`Home/End` 跳列首末、`Enter/Space` 叶子确认或父节点展开、`Escape` 关闭。
+- [x] 浮层复用 `PopupHost` + `Popover`（`aeterni_floating.js` 的定位、翻转、钳制、外部点击与滚动关闭），`Placement=BottomStart`、`CloseOnScroll="true"`，与 `ComboBox` 一致。JS 只做两件浏览器行为：把活动项滚进所在列视口、把活动列滚进面板视口（窄屏横向），并对导航键 `preventDefault`；业务状态全部留在 C#。
+- [x] 文案表新增 `CascaderLabel` / `CascaderPlaceholder` / `CascaderColumnLabel` / `CascaderEmptyText` / `CascaderPathSeparator` 并接入 `FillEmptyFrom`。
+- [x] 示例页 `/components/cascader`（基础用法、受控值与路径文案、尺寸与状态、选项模板与空列）并登记进 `ShowcaseCatalog`；示例 API 表与搜索索引生成物重跑。
+- [x] 第一版明确不做：异步加载子节点、搜索过滤、多选路径、自由输入、虚拟化、逐节点禁用。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 **37 组**（新增 `CheckCascaderAsync`：根属性、组合框/分组/选项角色层级、`aria-selected` 的 `"true"/"false"`、尺寸枚举校验，以及「打开→`→` 两级→`Enter` 确认叶子→关闭→路径文案」的键盘链路）；`node --test tests/*.test.mjs` **99 项**（新增 `cascader.test.mjs` 4 项：监听器绑定/幂等/释放、只接管自己拥有的键、行列两级滚入视口、已可见时不动滚动）；`check-scrollbars.mjs`（新增面板与列两处滚动容器及其成对声明）、`check-css-comments.mjs`、`check-contrast.mjs`、`check-doc-drift.mjs`、`bash scripts/check-docs.sh`、`generate-api-reference --check`（55 页 / 684 行）、`generate-search-index --check`（491 条 / 62 页）、`node --check` 全部通过。真实渲染（无头 Chrome + 独立 CDP 脚本）：关闭态 `aria-expanded="false"` 且无 `aria-activedescendant`；打开后 `aria-controls` 指向的面板 `role="listbox"`、**无嵌套 listbox**、1 个分组 3 个选项；`→` 两次依次到 2 列与 3 列（选项 5 与 7）；`Enter` 确认后关闭、触发器文案为 `浙江省 / 杭州市 / 西湖区`。`tests/browser/verify.mjs` 新增同源三段断言，全量由 CI 复跑。按「功能新增递增第二位」（§4.9）从 `10.34.5` 升到 `10.35.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、五份版本头文档、README tag 示例。
 
 ## 10.34.5 焦点环统一与调轻：2px 细环、品牌浅档、全库一套画法
 

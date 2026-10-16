@@ -15,6 +15,21 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of the <c>ComboBox</c> option list.</summary>
     public string ComboBoxListLabel { get; set; } = "Options";
 
+    /// <summary>Accessible name of a <c>Cascader</c> control.</summary>
+    public string CascaderLabel { get; set; } = "Select from hierarchy";
+
+    /// <summary>Trigger text of a <c>Cascader</c> that has no value yet.</summary>
+    public string CascaderPlaceholder { get; set; } = "Select";
+
+    /// <summary>Accessible name of a <c>Cascader</c> column whose level has no label.</summary>
+    public string CascaderColumnLabel { get; set; } = "Options";
+
+    /// <summary>Message shown when a <c>Cascader</c> column has no options.</summary>
+    public string CascaderEmptyText { get; set; } = "No options";
+
+    /// <summary>Joins the levels of a <c>Cascader</c> path in the trigger.</summary>
+    public string CascaderPathSeparator { get; set; } = "/";
+
     /// <summary>Accessible name of a <c>Search</c> landmark and input.</summary>
     public string SearchLabel { get; set; } = "Search";
 
@@ -262,6 +277,11 @@ public sealed class AeterniUITextOptions
     {
         ComboBoxPlaceholder = Or(ComboBoxPlaceholder, defaults.ComboBoxPlaceholder);
         ComboBoxListLabel = Or(ComboBoxListLabel, defaults.ComboBoxListLabel);
+        CascaderLabel = Or(CascaderLabel, defaults.CascaderLabel);
+        CascaderPlaceholder = Or(CascaderPlaceholder, defaults.CascaderPlaceholder);
+        CascaderColumnLabel = Or(CascaderColumnLabel, defaults.CascaderColumnLabel);
+        CascaderEmptyText = Or(CascaderEmptyText, defaults.CascaderEmptyText);
+        CascaderPathSeparator = Or(CascaderPathSeparator, defaults.CascaderPathSeparator);
         SearchLabel = Or(SearchLabel, defaults.SearchLabel);
         SearchSubmitLabel = Or(SearchSubmitLabel, defaults.SearchSubmitLabel);
         SearchClearLabel = Or(SearchClearLabel, defaults.SearchClearLabel);

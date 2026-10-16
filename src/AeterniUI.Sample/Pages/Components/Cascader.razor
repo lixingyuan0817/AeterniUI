@@ -1,0 +1,239 @@
+@page "/components/cascader"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Cascader</PageTitle>
+
+<ComponentPage AnchorId="cascader"
+               Category="表单组件"
+               Title="Cascader"
+               ComponentName="Cascader&lt;TItem&gt;"
+               Description="从层级数据里逐级择一的下拉控件：一列一级的面板、跨列键盘导航与路径展示都由组件承担。"
+               Related="@CascaderRelated">
+    <WhenToUse>
+        <p>选项天然分层、且要选到某一级时使用：省/市/区、品类/子品类。平铺的单选与多值分别用 <code>ComboBox</code> 与 <code>MultiSelect</code>。</p>
+        <p>数据归宿主：<code>Items</code> 是根节点，<code>ChildrenSelector</code> 取子节点（返回空即叶子）；<code>Value</code> 绑定叶子，祖先链由组件反查后拼成路径文案。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="cascader-basic"
+                  Title="基础用法"
+                  Description="@("用 @bind-Value 绑定叶子节点。触发器是 combobox、面板是 listbox（每列一个 group）；→ 展开下一列、← 回到上一列、↑↓ 列内移动、Home/End 跳列首末、Enter 选中、Escape 关闭。")"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Cascader TItem="Region"
+                              Items="@Regions"
+                              ChildrenSelector="@RegionChildren"
+                              @bind-Value="_region"
+                              Placeholder="选择地区…"
+                              AriaLabel="地区选择" />
+                    <span class="preview-feedback" role="status">当前选择：@(_region?.Label ?? "（空）")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="cascader-path"
+                  Title="受控值与路径文案"
+                  Description="Value 是叶子，触发器展示的是从根到叶子的整条路径；Separator 覆盖默认的连接符，TextSelector 决定每一层的文案。"
+                  Code="@PathCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Cascader TItem="Region"
+                              Items="@Regions"
+                              ChildrenSelector="@RegionChildren"
+                              TextSelector="@RegionCode"
+                              @bind-Value="_controlled"
+                              Separator="›"
+                              Placeholder="选择地区…"
+                              AriaLabel="地区选择（编码）" />
+                    <span class="preview-feedback" role="status">当前选择：@(_controlled?.Label ?? "（空）")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Button Variant="ButtonVariant.Outline"
+                        Size="Size.Small"
+                        Disabled="@(_controlled is null)"
+                        OnClick="@(() => _controlled = null)">清空</Button>
+                <Button Variant="ButtonVariant.Outline"
+                        Size="Size.Small"
+                        OnClick="@(() => _controlled = FindByCode("3301"))">设为 3301</Button>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="cascader-size"
+                  Title="尺寸与状态"
+                  Description="尺寸档位与 Input / ComboBox 共用；字段状态由 FormField 或实例参数给出，禁用后触发器不可聚焦、也不再接受键盘激活。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="所在地区"
+                               Description="用于统计与配送范围。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid"
+                               Disabled="@_formDisabled">
+                        <Cascader TItem="Region"
+                                  Items="@Regions"
+                                  ChildrenSelector="@RegionChildren"
+                                  @bind-Value="_formRegion"
+                                  Size="@_size"
+                                  Placeholder="选择地区…"
+                                  FullWidth="@_formFullWidth" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">当前选择：@(_formRegion?.Label ?? "（空）")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="cascader-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formFullWidth">FullWidth</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="cascader-template"
+                  Title="选项模板与空列"
+                  Description="ItemTemplate 自定义选项内容；某一列没有子节点时该列的 EmptyContent 接管文案。"
+                  Code="@TemplateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Cascader TItem="Region"
+                              Items="@_leafOnlyRegions"
+                              ChildrenSelector="@RegionChildren"
+                              @bind-Value="_templateRegion"
+                              Placeholder="选择地区…"
+                              AriaLabel="地区选择（模板）">
+                        <ItemTemplate Context="node">
+                            <strong>@node.Label</strong>
+                            <span class="preview-value">@node.Code</span>
+                        </ItemTemplate>
+                        <EmptyContent>没有更细一级</EmptyContent>
+                    </Cascader>
+                    <span class="preview-feedback" role="status">当前选择：@(_templateRegion?.Label ?? "（空）")</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>面板是<strong>一个</strong> <code>listbox</code>，每一列是它的 <code>group</code>：每列再套一层 listbox 属于非法嵌套，所以列的区分交给分组标签。</span>
+        <span>焦点始终留在触发器（单一 Tab 停留点），活动项用 <code>aria-activedescendant</code> 表达；浮层不抢走容器焦点。</span>
+        <span>组件不请求远程数据、也不做搜索：异步结果在 <code>ValueChanged</code> 里替换 <code>Items</code>，第一版不支持逐节点禁用与多选路径。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] CascaderRelated =
+    [
+        new("ComboBox", "/components/combobox"),
+        new("MultiSelect", "/components/multi-select"),
+        new("Menu", "/components/menu"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string BasicCode = """
+        <Cascader TItem="Region"
+                  Items="Regions"
+                  ChildrenSelector="@(region => region.Children)"
+                  @bind-Value="Region"
+                  Placeholder="选择地区…" />
+        """;
+
+    private const string PathCode = """
+        <Cascader TItem="Region"
+                  Items="Regions"
+                  ChildrenSelector="@(region => region.Children)"
+                  TextSelector="@(region => region.Code)"
+                  @bind-Value="Region"
+                  Separator="›" />
+        """;
+
+    private const string StateCode = """
+        <FormField Label="所在地区" Required>
+            <Cascader TItem="Region"
+                      Items="Regions"
+                      ChildrenSelector="@(region => region.Children)"
+                      @bind-Value="Region"
+                      Size="Size.Small"
+                      FullWidth />
+        </FormField>
+        """;
+
+    private const string TemplateCode = """
+        <Cascader TItem="Region"
+                  Items="Regions"
+                  ChildrenSelector="@(region => region.Children)"
+                  @bind-Value="Region">
+            <ItemTemplate Context="region">
+                <strong>@region.Label</strong>
+                <span>@region.Code</span>
+            </ItemTemplate>
+            <EmptyContent>没有更细一级</EmptyContent>
+        </Cascader>
+        """;
+
+    private static readonly Region[] Regions =
+    [
+        new("浙江省", "3300", [
+            new("杭州市", "3301", [new("西湖区", "330106", []), new("滨江区", "330108", [])]),
+            new("宁波市", "3302", [new("海曙区", "330203", [])])
+        ]),
+        new("江苏省", "3200", [
+            new("南京市", "3201", [new("玄武区", "320102", [])])
+        ]),
+        new("广东省", "4400", [
+            new("深圳市", "4403", [new("南山区", "440305", [])])
+        ])
+    ];
+
+    /// <summary>全是叶子的一层：用来驱动空列与模板示例。</summary>
+    private static readonly Region[] FlatRegions =
+    [
+        new("浙江省", "3300", []),
+        new("江苏省", "3200", [])
+    ];
+
+    private Region[] _leafOnlyRegions = FlatRegions;
+
+    private Region? _region;
+    private Region? _controlled;
+    private Region? _formRegion;
+    private Region? _templateRegion;
+    private Size _size = Size.Default;
+    private bool _formRequired;
+    private bool _formInvalid;
+    private bool _formDisabled;
+    private bool _formFullWidth = true;
+
+    private static Region? FindByCode(string code)
+    {
+        foreach (var root in Regions)
+        {
+            if (Walk(root) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+
+        Region? Walk(Region node) =>
+            node.Code == code ? node : node.Children.Select(Walk).FirstOrDefault(found => found is not null);
+    }
+
+    private static IEnumerable<Region>? RegionChildren(Region region) => region.Children;
+
+    private static string RegionCode(Region region) => region.Code;
+
+    /// <summary>
+    /// 没传 TextSelector 时组件回落到 <c>ToString()</c>（与 ComboBox / MultiSelect 同一约定），
+    /// 所以示例节点重写它，让「最简用法」直接可读，而不是编译器生成的记录转储。
+    /// </summary>
+    private sealed record Region(string Label, string Code, IReadOnlyList<Region> Children)
+    {
+        public override string ToString() => Label;
+    }
+}

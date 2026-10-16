@@ -1,0 +1,282 @@
+.aeterni-cascader {
+    /* Field metrics live on the root so the trigger and the option columns share
+       one tier; the small/large modifiers only re-point these values. */
+    --aeterni-cascader-height: var(--aeterni-control-height-md);
+    --aeterni-cascader-padding-x: var(--aeterni-control-padding-x-md);
+    --aeterni-cascader-font-size: var(--aeterni-font-size-sm);
+    --aeterni-cascader-radius: var(--aeterni-radius-input);
+    --aeterni-cascader-icon-size: var(--aeterni-icon-size-sm);
+    /* One column wide enough for a level; the panel scrolls horizontally when the
+       viewport cannot hold every expanded level. */
+    --aeterni-cascader-column-width: var(--aeterni-overlay-min-width-sm);
+
+    box-sizing: border-box;
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+}
+
+.aeterni-cascader.is-full-width {
+    width: 100%;
+}
+
+.aeterni-cascader--sm {
+    --aeterni-cascader-height: var(--aeterni-control-height-sm);
+    --aeterni-cascader-padding-x: var(--aeterni-control-padding-x-sm);
+    --aeterni-cascader-font-size: var(--aeterni-font-size-xs);
+    --aeterni-cascader-radius: var(--aeterni-radius-input-sm);
+    --aeterni-cascader-icon-size: var(--aeterni-icon-size-xs);
+}
+
+.aeterni-cascader--lg {
+    --aeterni-cascader-height: var(--aeterni-control-height-lg);
+    --aeterni-cascader-padding-x: var(--aeterni-control-padding-x-lg);
+    --aeterni-cascader-font-size: var(--aeterni-font-size-base);
+    --aeterni-cascader-radius: var(--aeterni-radius-input-lg);
+    --aeterni-cascader-icon-size: var(--aeterni-icon-size-md);
+}
+
+/* Trigger ------------------------------------------------------------------ */
+
+.aeterni-cascader__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--aeterni-cascader-height);
+    padding: 0 var(--aeterni-cascader-padding-x);
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-cascader-radius);
+    background: var(--aeterni-control-background);
+    color: var(--aeterni-control-foreground);
+    font: inherit;
+    font-size: var(--aeterni-cascader-font-size);
+    line-height: var(--aeterni-line-height-normal);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-control);
+}
+
+.aeterni-cascader__trigger:hover:not(:disabled) {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.aeterni-cascader__trigger:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-cascader.is-invalid .aeterni-cascader__trigger {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+/* Hover must not paint over the danger border (§4.4 rule 2). */
+.aeterni-cascader.is-invalid .aeterni-cascader__trigger:hover:not(:disabled) {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-cascader.is-invalid .aeterni-cascader__trigger:focus-visible {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-cascader.is-open .aeterni-cascader__trigger {
+    border-color: var(--aeterni-control-border-focus);
+}
+
+.aeterni-cascader__trigger:disabled {
+    cursor: not-allowed;
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+    color: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-cascader__trigger:disabled .aeterni-cascader__value,
+.aeterni-cascader__trigger:disabled .aeterni-cascader__value.is-placeholder {
+    color: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-cascader__trigger:disabled ::deep .aeterni-cascader__chevron {
+    fill: var(--aeterni-control-foreground-disabled);
+}
+
+.aeterni-cascader__value {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-cascader__value.is-placeholder {
+    color: var(--aeterni-control-foreground-placeholder);
+}
+
+/* Rendered by the shared Icon component: ::deep is required because this
+   component's scope attribute does not reach a child component's root. */
+.aeterni-cascader__trigger ::deep .aeterni-cascader__chevron {
+    --aeterni-icon-render-size: var(--aeterni-cascader-icon-size);
+
+    flex: 0 0 auto;
+    fill: var(--aeterni-text-tertiary);
+    transition: var(--aeterni-transition-transform);
+}
+
+.aeterni-cascader.is-open .aeterni-cascader__trigger ::deep .aeterni-cascader__chevron {
+    transform: rotate(180deg);
+}
+
+/* Panel -------------------------------------------------------------------- */
+
+/* The shared Popover owns the layer and its positioning; the panel itself owns
+   the horizontal scroll (many expanded levels on a narrow viewport). */
+::deep .aeterni-cascader__popover {
+    min-width: 100%;
+    max-width: none;
+}
+
+::deep .aeterni-cascader__popover .aeterni-popover__surface {
+    min-width: 0;
+    max-width: none;
+    padding: var(--aeterni-spacing-2);
+    border-radius: var(--aeterni-radius-lg);
+    animation: aeterni-cascader-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+.aeterni-cascader__panel {
+    display: flex;
+    align-items: stretch;
+    max-width: min(90vw, calc(var(--aeterni-overlay-width-md) + var(--aeterni-spacing-8)));
+    max-height: min(var(--aeterni-overlay-max-height), 45vh);
+    overflow-x: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-cascader__panel::-webkit-scrollbar {
+    height: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-cascader__panel::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-cascader__panel::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
+.aeterni-cascader__column {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+    box-sizing: border-box;
+    width: var(--aeterni-cascader-column-width);
+    max-height: 100%;
+    padding: var(--aeterni-spacing-1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
+}
+
+.aeterni-cascader__column::-webkit-scrollbar {
+    width: var(--aeterni-scrollbar-size);
+}
+
+.aeterni-cascader__column::-webkit-scrollbar-thumb {
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-scrollbar-thumb);
+}
+
+.aeterni-cascader__column::-webkit-scrollbar-track {
+    background: var(--aeterni-scrollbar-track);
+}
+
+.aeterni-cascader__column:not(:last-child) {
+    border-inline-end: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+}
+
+/* Options ------------------------------------------------------------------ */
+
+.aeterni-cascader__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: max(var(--aeterni-touch-target-min), calc(var(--aeterni-cascader-height) - var(--aeterni-spacing-2)));
+    padding: var(--aeterni-spacing-1) var(--aeterni-spacing-3);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-cascader-font-size);
+    text-align: start;
+    cursor: pointer;
+    transition: var(--aeterni-transition-background);
+}
+
+/* Options are non-focusable elements inside a select-only combobox: focus stays
+   on the trigger and the active option is reported with aria-activedescendant,
+   so `.is-active` (not `:focus-visible`) carries the keyboard cue. */
+.aeterni-cascader__option:hover,
+.aeterni-cascader__option.is-active {
+    background: var(--aeterni-state-background-hover);
+}
+
+.aeterni-cascader__option.is-selected {
+    background: var(--aeterni-state-background-selected);
+    font-weight: var(--aeterni-font-weight-medium);
+}
+
+/* Keyboard cursor climbing onto the selected option: the selection fill would
+   otherwise hide it, so the cursor steps the fill one level deeper. */
+.aeterni-cascader__option.is-selected.is-active,
+.aeterni-cascader__option.is-selected:hover {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-cascader__option-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-cascader__option ::deep .aeterni-cascader__option-caret {
+    --aeterni-icon-render-size: var(--aeterni-cascader-icon-size);
+
+    flex: 0 0 auto;
+    fill: var(--aeterni-text-tertiary);
+}
+
+.aeterni-cascader__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--aeterni-cascader-height);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-control-foreground-placeholder);
+    font-size: var(--aeterni-cascader-font-size);
+}
+
+@keyframes aeterni-cascader-pop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::deep .aeterni-cascader__popover .aeterni-popover__surface,
+    .aeterni-cascader__trigger,
+    .aeterni-cascader__trigger ::deep .aeterni-cascader__chevron {
+        transition: none;
+        animation: none;
+    }
+}

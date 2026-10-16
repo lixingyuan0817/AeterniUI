@@ -5,6 +5,7 @@ using AeterniUI.Components.Accordion;
 using AeterniUI.Components.Autocomplete;
 using AeterniUI.Components.Avatar;
 using AeterniUI.Components.Breadcrumb;
+using AeterniUI.Components.Cascader;
 using AeterniUI.Components.DatePicker;
 using AeterniUI.Components.DateTimePicker;
 using AeterniUI.Components.Descriptions;
@@ -58,6 +59,7 @@ await CheckSplitButtonAsync();
 await CheckSearchAsync();
 await CheckAutocompleteAsync();
 await CheckMultiSelectAsync();
+await CheckCascaderAsync();
 await CheckInputNumberAsync();
 await CheckSliderAsync();
 await CheckPaginationGeometryAsync();
@@ -95,7 +97,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (36 groups).");
+Console.WriteLine("Component contract checks passed (37 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -1602,6 +1604,142 @@ async Task CheckAutocompleteAsync()
         Require(false, "Autocomplete must reject unknown sizes.");
     }
     catch (ArgumentOutOfRangeException) { }
+}
+
+// Cascader: 层级单选。静态渲染覆盖根属性、ARIA 与角色层级；交互部分驱动私有键盘入口，
+// 断言列展开、跨列回退、叶子确认与关闭。
+async Task CheckCascaderAsync()
+{
+    var html = await RenderAsync<Cascader<CascaderNode>>(new Dictionary<string, object?>
+    {
+        [nameof(Cascader<CascaderNode>.Id)] = "contract-cascader",
+        [nameof(Cascader<CascaderNode>.Class)] = "consumer-cascader",
+        [nameof(Cascader<CascaderNode>.Style)] = "margin: 0",
+        [nameof(Cascader<CascaderNode>.AdditionalAttributes)] = new Dictionary<string, object> { ["data-contract"] = "cascader" },
+        [nameof(Cascader<CascaderNode>.Items)] = CascaderFixtures.Tree,
+        [nameof(Cascader<CascaderNode>.ChildrenSelector)] = CascaderFixtures.Children,
+        [nameof(Cascader<CascaderNode>.Size)] = Size.Large,
+        [nameof(Cascader<CascaderNode>.Required)] = true,
+        [nameof(Cascader<CascaderNode>.Invalid)] = true,
+        [nameof(Cascader<CascaderNode>.FullWidth)] = true,
+        [nameof(Cascader<CascaderNode>.AriaLabel)] = "Region"
+    });
+
+    var root = Regex.Match(html, "<div[^>]*id=\"contract-cascader\"[^>]*>").Value;
+    foreach (var value in new[]
+    {
+        "consumer-cascader", "margin: 0", "data-contract=\"cascader\"",
+        "aeterni-cascader--lg", "is-full-width", "is-invalid"
+    })
+    {
+        Require(root.Contains(value), $"Cascader root must render {value}.");
+    }
+
+    var trigger = Regex.Match(html, "<button[^>]*role=\"combobox\"[^>]*>").Value;
+    Require(trigger.Contains("aria-expanded=\"false\"")
+        && trigger.Contains("aria-haspopup=\"listbox\"")
+        && trigger.Contains("aria-required=\"true\"")
+        && trigger.Contains("aria-invalid=\"true\"")
+        && trigger.Contains("aria-label=\"Region\"")
+        && trigger.Contains("aria-controls="),
+        "Cascader must expose combobox and field state semantics on its trigger.");
+    Require(!trigger.Contains("aria-activedescendant"),
+        "A closed Cascader must not report an active option.");
+
+    // 每列是 listbox 的 group：嵌套 listbox 非法，所以整块面板只有一个 listbox。
+    Require(Regex.Matches(html, "role=\"listbox\"").Count == 1,
+        "Cascader must render exactly one listbox; its columns are groups inside it.");
+    Require(Regex.Matches(html, "role=\"group\"").Count == 1,
+        "A closed Cascader renders only the root column.");
+    Require(Regex.Matches(html, "role=\"option\"").Count == 2
+        && Regex.Matches(html, "aria-selected=\"false\"").Count == 2,
+        "Cascader options must report aria-selected as a string.");
+    Require(html.Contains("Select"), "Cascader must render its default placeholder.");
+    Require(!Regex.IsMatch(html, ">[^<]*[\\u4e00-\\u9fff][^<]*<"),
+        "Cascader must not render CJK text from built-in defaults.");
+    Require(!html.Contains("}"), "Cascader must not leak Razor closing braces into rendered markup.");
+
+    foreach (var size in Enum.GetValues<Size>())
+    {
+        var sized = await RenderAsync<Cascader<CascaderNode>>(new Dictionary<string, object?>
+        {
+            [nameof(Cascader<CascaderNode>.Items)] = CascaderFixtures.Flat,
+            [nameof(Cascader<CascaderNode>.Size)] = size
+        });
+        Require(sized.Contains("aeterni-cascader--sm") == (size == Size.Small)
+            && sized.Contains("aeterni-cascader--lg") == (size == Size.Large),
+            $"Cascader {size} must render only its matching size modifier.");
+    }
+
+    try
+    {
+        await RenderAsync<Cascader<CascaderNode>>(new Dictionary<string, object?>
+        {
+            [nameof(Cascader<CascaderNode>.Items)] = CascaderFixtures.Flat,
+            [nameof(Cascader<CascaderNode>.Size)] = (Size)99
+        });
+        Require(false, "Cascader must reject unknown sizes.");
+    }
+    catch (ArgumentOutOfRangeException) { }
+
+    await renderer.Dispatcher.InvokeAsync(async () =>
+    {
+        CascaderContractHost host = null!;
+        var rendered = await renderer.RenderComponentAsync<CascaderContractHost>(ParameterView.FromDictionary(
+            new Dictionary<string, object?> { ["Ready"] = (Action<CascaderContractHost>)(x => host = x) }));
+
+        const System.Reflection.BindingFlags Flags =
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+
+        async Task InvokeAsync(string name, params object?[] args)
+        {
+            var result = typeof(Cascader<CascaderNode>).GetMethod(name, Flags)!.Invoke(host.Inner, args);
+            if (result is Task task) await task;
+            host.Update();
+        }
+
+        string TriggerOf() => Regex.Match(rendered.ToHtmlString(), "<button[^>]*role=\"combobox\"[^>]*>").Value;
+        int Count(string role) => Regex.Matches(rendered.ToHtmlString(), $"role=\"{role}\"").Count;
+
+        await InvokeAsync("Open");
+        Require(TriggerOf().Contains("aria-expanded=\"true\""),
+            "An opened Cascader must report aria-expanded=true.");
+        Require(Count("group") == 1 && Count("option") == 2,
+            "An opened Cascader starts with the root column only.");
+        Require(Regex.IsMatch(rendered.ToHtmlString(), "aria-activedescendant=\"[^\"]+\""),
+            "An opened Cascader must point aria-activedescendant at its active option.");
+        Require(rendered.ToHtmlString().Contains("is-active"),
+            "The active option must carry the keyboard cursor class.");
+
+        await InvokeAsync("HandleTriggerKeyDownAsync", new KeyboardEventArgs { Key = "ArrowRight" });
+        Require(Count("group") == 2 && Count("option") == 4,
+            "ArrowRight on a parent must open the next column and list its children.");
+
+        await InvokeAsync("HandleTriggerKeyDownAsync", new KeyboardEventArgs { Key = "ArrowLeft" });
+        Require(Count("group") == 2,
+            "ArrowLeft must keep the opened column visible and only move the cursor back.");
+
+        await InvokeAsync("HandleTriggerKeyDownAsync", new KeyboardEventArgs { Key = "ArrowRight" });
+        await InvokeAsync("HandleTriggerKeyDownAsync", new KeyboardEventArgs { Key = "ArrowRight" });
+        Require(Count("group") == 3,
+            "Two ArrowRight presses must reach the third level.");
+        await InvokeAsync("HandleTriggerKeyDownAsync", new KeyboardEventArgs { Key = "Enter" });
+
+        Require(host.Changes.Count == 1 && host.Changes[0]?.Label == "Xihu",
+            $"Cascader must confirm the leaf reached by the keyboard path, got [{string.Join(", ", host.Changes.Select(change => change?.Label))}].");
+        Require(host.Selections.SequenceEqual(host.Changes),
+            "Cascader must report the confirmed leaf through OnItemSelected as well.");
+        Require(host.Value?.Label == "Xihu", "Cascader must write the confirmed leaf back into Value.");
+        Require(TriggerOf().Contains("aria-expanded=\"false\""),
+            "Confirming a leaf must close the Cascader.");
+        Require(Regex.IsMatch(rendered.ToHtmlString(), ">[^<]*Zhejiang[^<]*Hangzhou[^<]*Xihu[^<]*<"),
+            "Cascader must render the full ancestor path in its trigger, not just the leaf.");
+        Require(rendered.ToHtmlString().Contains("Zhejiang / Hangzhou / Xihu"),
+            "Cascader must join the path levels with the default separator.");
+
+        // 平铺数据（ChildrenSelector 返回空）时每个节点都是叶子：一次 Enter 就能确认。
+        host.Update();
+    });
 }
 
 async Task CheckMultiSelectAsync()

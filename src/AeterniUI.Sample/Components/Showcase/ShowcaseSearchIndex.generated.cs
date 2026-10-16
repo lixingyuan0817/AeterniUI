@@ -356,6 +356,16 @@ public static class ShowcaseSearchIndex
         new("combobox", "ComboBox", "表单组件", "combobox-related-title", "相关组件"),
         new("combobox", "ComboBox", "表单组件", "combobox-notes-title", "说明与边界"),
 
+        new("cascader", "Cascader", "表单组件", "cascader", "Cascader"),
+        new("cascader", "Cascader", "表单组件", "cascader-when-title", "何时使用"),
+        new("cascader", "Cascader", "表单组件", "cascader-basic", "基础用法"),
+        new("cascader", "Cascader", "表单组件", "cascader-path", "受控值与路径文案"),
+        new("cascader", "Cascader", "表单组件", "cascader-size", "尺寸与状态"),
+        new("cascader", "Cascader", "表单组件", "cascader-template", "选项模板与空列"),
+        new("cascader", "Cascader", "表单组件", "cascader-api-title", "参数与事件"),
+        new("cascader", "Cascader", "表单组件", "cascader-related-title", "相关组件"),
+        new("cascader", "Cascader", "表单组件", "cascader-notes-title", "说明与边界"),
+
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker", "DatePicker / DateRangePicker"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-when-title", "何时使用"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-presets", "日期范围与快捷预设"),

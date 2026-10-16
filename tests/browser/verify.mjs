@@ -2726,6 +2726,72 @@ check('批次 7 反馈闭环：点「有用」弹 Toast，issue 与贡献者出�
     !feedback.error && feedback.toast && feedback.links.some(t => t.includes('Issue')) && feedback.links.some(t => t.includes('贡献者')),
     JSON.stringify(feedback));
 
+// ---------------------------------------------------------------- Cascader
+// 层级单选：只有真实引擎能同时证明「触发器点开→跨列键盘路径→叶子确认→路径文案→关闭」
+// 这条链路，以及每列是 listbox 的 group（不是嵌套 listbox）。
+await goto(`${BASE}/components/cascader`);
+await waitForApp();
+
+const cascader = await evaluate(`(async () => {
+    const trigger = document.querySelector('.aeterni-cascader__trigger');
+    if (!trigger) return { error: 'no cascader trigger' };
+
+    const panel = () => document.getElementById(trigger.getAttribute('aria-controls'));
+    const stats = () => {
+        const root = panel();
+        return {
+            expanded: trigger.getAttribute('aria-expanded'),
+            listbox: root ? root.getAttribute('role') : null,
+            nestedListboxes: root ? root.querySelectorAll('[role="listbox"]').length : -1,
+            groups: root ? root.querySelectorAll('[role="group"]').length : 0,
+            options: root ? root.querySelectorAll('[role="option"]').length : 0,
+            active: trigger.getAttribute('aria-activedescendant')
+        };
+    };
+    const press = async value => {
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true }));
+        await new Promise(r => setTimeout(r, 80));
+    };
+
+    const closed = stats();
+    trigger.click();
+    await new Promise(r => setTimeout(r, 200));
+    const opened = stats();
+
+    await press('ArrowRight');
+    const secondLevel = stats();
+    await press('ArrowRight');
+    const thirdLevel = stats();
+    await press('Enter');
+    await new Promise(r => setTimeout(r, 200));
+
+    return {
+        closed,
+        opened,
+        secondLevel,
+        thirdLevel,
+        after: stats(),
+        text: trigger.textContent.replace(/\\s+/g, ' ').trim()
+    };
+})()`);
+
+check('Cascader 关闭态不报告活动项，触发器可打开面板',
+    !cascader.error && cascader.closed.expanded === 'false' && cascader.closed.active === null
+        && cascader.opened.expanded === 'true' && cascader.opened.groups === 1 && cascader.opened.options === 3
+        && typeof cascader.opened.active === 'string',
+    JSON.stringify(cascader.opened ?? cascader.error));
+
+check('Cascader 每列是 listbox 的 group，ArrowRight 逐级展开',
+    !cascader.error && cascader.opened.listbox === 'listbox' && cascader.opened.nestedListboxes === 0
+        && cascader.secondLevel.groups === 2 && cascader.secondLevel.options === 5
+        && cascader.thirdLevel.groups === 3,
+    JSON.stringify({ panel: cascader.opened?.listbox, nested: cascader.opened?.nestedListboxes, second: cascader.secondLevel, third: cascader.thirdLevel }));
+
+check('Cascader 确认叶子后关闭并展示整条路径',
+    !cascader.error && cascader.after.expanded === 'false'
+        && cascader.text === '浙江省 / 杭州市 / 西湖区',
+    JSON.stringify({ text: cascader.text, expanded: cascader.after?.expanded }));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

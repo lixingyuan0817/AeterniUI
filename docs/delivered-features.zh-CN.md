@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.34.5`
+文档版本：`10.35.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -93,7 +93,7 @@
 - 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
 - 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
 - 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
-- 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。两个令牌都是所属色族的**实心色**（品牌 / 危险），不是淡染：焦点环是获得焦点的控件唯一的指示物，对页面与表面都需要达到非正文对比下限，同色淡染在算术上做不到。亮色主题的品牌环取 `brand-500` 与 `brand-400` 的中档（`color-mix`），在保住 3:1 下限的前提下尽量调浅。环宽与偏移统一由 `--aeterni-focus-width` / `--aeterni-focus-offset` 承担（默认 `2px` / `1px`）；`10.34.5` 起全库统一为一套外扩环（`outline` + 偏移）与一套内收环（`outline-offset: calc(-1 * var(--aeterni-focus-width))`，用于菜单、标签栏、分段控件等会被滚动容器裁切的位置）。
+- 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。两个令牌都是所属色族的**实心色**（品牌 / 危险），不是淡染：焦点环是获得焦点的控件唯一的指示物，对页面与表面都需要达到非正文对比下限，同色淡染在算术上做不到。亮色主题的品牌环取 `brand-500` 与 `brand-400` 的中档（`color-mix`），在保住 3:1 下限的前提下尽量调浅。环宽与偏移统一由 `--aeterni-focus-width` / `--aeterni-focus-offset` 承担（默认 `2px` / `1px`）；`10.35.0` 起全库统一为一套外扩环（`outline` + 偏移）与一套内收环（`outline-offset: calc(-1 * var(--aeterni-focus-width))`，用于菜单、标签栏、分段控件等会被滚动容器裁切的位置）。
 - 字体栈中的 Inter 与 JetBrains Mono 是可选的宿主依赖，库不随包提供 webfont；宿主未提供时回落到系统 UI 字体（等宽回落 Consolas / Courier New）。
 - 无显式主题时，`@media (prefers-color-scheme: dark)` 提供系统偏好兜底，避免深色偏好用户在脚本执行前看到浅色闪烁；一旦存在显式 `data-theme` / `data-aeterni-mode`，该兜底不再生效。
 - 支持系统主题跟随。
@@ -690,7 +690,24 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 当前不支持自由输入筛选、远程搜索、虚拟化、无限滚动和多选。
 
-## 19. Progress
+## 19. Cascader
+
+层级单选：触发器 + 「一列一级」的浮层面板。宿主给出根节点、取子节点与取文案的方式，组件负责展开、键盘导航与路径展示。
+
+- `Cascader<TItem>` 的 `TItem` 需要是引用类型。`Items` 是根节点；`ChildrenSelector` 取子节点，返回空序列或 `null` 即叶子（该参数为 `null` 时整棵树按全叶子处理，等价于平铺）；`TextSelector` 取显示文案，缺省回落到 `ToString()`——与 `ComboBox`、`MultiSelect` 同一约定，所以自定义节点类型应重写 `ToString()` 或显式传 `TextSelector`。
+- `Value` 绑定**叶子节点**（与 `ComboBox.Value` 同形），`ValueChanged` / `ValueExpression` / `OnItemSelected` 同名同义。祖先链由组件用 `ChildrenSelector` 反查，触发器展示整条路径、各层按 `Separator` 连接（缺省取文案表 `CascaderPathSeparator`，即 `/`）；反查不到时不显示路径。
+- 触发器是原生 `<button type="button" role="combobox">`，输出 `aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 与活动项的 `aria-activedescendant`（关闭时不输出该属性）；在 `FormField` 内采用字段的输入 ID，让字段标签的 `for` 解析到触发器，`aria-describedby` 合并宿主传入值与该字段的描述 id，与 `ComboBox`、`MultiSelect` 一致。
+- 面板是**一个** `role="listbox"`，每一列是它的 `role="group"`：`listbox` 内再套 `listbox` 属于非法嵌套，列名改由分组的 `aria-label` 承担——第 1 列取文案表 `CascaderColumnLabel`，其后各列取父节点的文案，读屏进入某一列时能听到「这是谁的下一级」。选项是 `role="option"` + `aria-selected="true"/"false"`。
+- 焦点始终留在触发器，活动项用 `aria-activedescendant` 表达：复合控件只有一个 Tab 停留点，浮层不抢走容器焦点。键盘模型——`↑`/`↓` 在活动列内移动（循环），`→` 在活动项有子节点时展开下一列、否则移入已展开的下一列，`←` 回到上一列并落在刚展开的那个节点上，`Home`/`End` 跳到活动列首/末项，`Enter`/`Space` 在叶子上确认并关闭、在父节点上等同 `→`，`Escape` 关闭。处理后的按键会阻止页面滚动。
+- 鼠标点击父节点展开下一列，点击叶子确认并关闭；已选中项走 `--aeterni-state-background-selected`，键盘或指针落到已选中项时按 §4.4 整块换到 `--aeterni-state-background-active`。
+- 浮层复用 `PopupHost` + `Popover`（定位、翻转、钳制、外部点击与滚动关闭来自 `aeterni_floating.js`），`Placement` 为 `BottomStart`、`CloseOnScroll` 为 `true`，与 `ComboBox` 一致。列多到视口放不下时面板横向滚动，每列纵向滚动；两处滚动容器都按本文件的滚动条条目成对声明。
+- 尺寸档位 `Size`（Small / Default / Large）与 `ComboBox`／`Input` 共用同一套高度别名；`Disabled` / `Required` / `Invalid` 与 `FormField` 取并集，禁用后触发器不可聚焦、也不再接受键盘激活。
+- 自有文案使用 `AeterniUITextOptions.CascaderLabel`、`CascaderPlaceholder`、`CascaderColumnLabel`、`CascaderEmptyText` 和 `CascaderPathSeparator` 默认值；实例参数 `Placeholder` / `Separator` 优先于全局文案表。
+- 组件不请求远程数据、不做搜索、不虚拟化：宿主应提供当前 `Items` 快照，异步结果在 `ValueChanged` 里替换它。第一版不支持多选路径、自由输入与逐节点禁用。
+- 示例：`/components/cascader`。
+
+
+## 20. Progress
 
 ### 支持能力
 
@@ -706,7 +723,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 当前提供线性进度，不包含环形渲染、上传任务管理和远程数据源。
 
-## 20. PopupHost / Popover
+## 21. PopupHost / Popover
 
 `PopupHost` 的包裹层带 `aeterni-popup-host` 与调用方传入的 `aeterni-{component}__host` 类（`ComboBox`、`Autocomplete`、`MultiSelect` 各一个）。后者是**宿主样式钩子**：库内没有规则消费它，它的用途是让宿主或示例针对某个组件的浮层包裹层写样式，因此改名会被视为破坏性变更；组件自己的外观仍由组件根元素负责。
 
@@ -730,7 +747,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 不设 `Anchor` 时浮层在 `PopupHost` 内部定位：**宿主就是锚点盒**，因此触发元素与浮层都放进 `PopupHost` 最省事——这也让“点击外部”把宿主算作层内，触发按钮不会在同一次按压里既关又开。设了 `Anchor` 时宿主只剩“挂载点”这一个职责，锚点盒由调用方指定；锚点与浮层可以分处两棵子树，代价是调用方要维护二者共享的状态。未设锚点的浮层仍受祖先 `overflow: hidden` 裁切，需要脱离祖先裁剪时应由宿主提供合适的布局上下文；锚定模式是 `position: fixed`，不再受祖先裁切，但祖先若带 `transform` / `filter` / `backdrop-filter` 会成为它的包含块，落位仍按实测的包含块原点修正。浮层故意不使用 `transform`/`translate` 做偏移（改用 `margin-left`），因为变换会让浮层成为自身 `position: fixed` 遮罩的包含块。`CloseOnScroll` 可让非模态浮层在页面/祖先滚动时请求关闭，同时忽略浮层内部滚动。多浮层堆叠与嵌套模态留给后续组件。
 
-## 21. Menu
+## 22. Menu
 
 `Menu` 提供可复用的分组导航菜单，支持 `Items`、`SelectedId`、`Accordion`、`OpenKeys` 和 `AriaLabel`。
 
@@ -765,7 +782,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 - **表面归属**：`Menu` 是导航内容控件，自身不提供背景/边框/圆角，底由宿主容器提供（示例侧边栏与示例预览都用 `Surface`/侧栏容器给底）。这与 `List` 相反——`List` 一次交付“选项容器”，所以自带 `bg-surface` + 边框。分类规则见 `engineering-reference.zh-CN.md` §5.3「表面归属」。
 - 不提供多于两层的嵌套、组合式子组件（`ChildContent` + 子组件）、搜索过滤和多选；长菜单不内置滚动容器，把它放进带 `max-height` 的容器即可（示例侧边栏即如此）。
-## 22. Tabs
+## 23. Tabs
 
 10.14.3：Visible=false 的 Tab 不渲染标签按钮，面板保持隐藏，不参与键盘导航；选中项隐藏时显示首个可用面板作为视觉回退，不擅自回写 Value。动态显示/注销刷新标签栏；焦点模块按实际可见按钮次序移动焦点。
 
@@ -792,7 +809,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 - **表面归属**：`Tabs` 是内容控件，不自带表面（在卡片里再套一层底会出现“白底套白底 + 双层边框”）；标签栏只自带一条 `--aeterni-separator` 底部分界线，因此建议整体放进 `Card`/`Surface` 等宿主容器，示例预览即如此。
 - 当前只提供水平标签栏：不支持垂直标签、懒加载面板内容、关闭按钮和拖拽排序，也不接管路由（导航用例请配合 `Menu` 的 `Href` 或页面级导航）；面板内容在首次渲染时全部构建，未选中项只是通过 `hidden` 移出无障碍树与布局。
 
-## 23. Tooltip
+## 24. Tooltip
 
 10.14.3：参数重渲染后同步 Placement、Disabled、Text/Id 和触发内容；禁用或移除提示时仅清理组件自己添加的 aria-describedby token，保留宿主描述关联。
 
@@ -810,7 +827,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 不提供 Escape、点击外部关闭、富交互内容和模态行为；无 JS 时视觉提示仍可用，只是缺少 `aria-describedby` 关联与翻转/偏移。
 
-## 24. ThemeProvider、ThemeSwitch 和 ThemeBrandSwitch 使用方式
+## 25. ThemeProvider、ThemeSwitch 和 ThemeBrandSwitch 使用方式
 
 除了 `data-theme` / `data-aeterni-mode` 属性入口，Token 层还保留了宿主手写的 `.aeterni-dark` 类入口（浅色主题块里的深色覆盖声明，见 `aeterni_ui.css`）。它**不**由任何组件应用，是给不使用 `ThemeProvider` 的宿主或静态页面片段手动切换深色的逃生口：CI 的 token 选择器门禁显式允许这一处类选择器，示例项目的对照页也依赖它，因此删除属破坏性变更。组件自身始终只读属性入口，不会读取系统主题或改写这两个入口。
 
@@ -869,7 +886,7 @@ builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green
 ### 实现边界
 
 系统主题跟随依赖浏览器 `matchMedia`；`ThemeProvider` 仅管理页面主题与品牌色层。
-## 25. DialogProvider
+## 26. DialogProvider
 
 ### 支持能力
 
@@ -893,7 +910,7 @@ Provider 自身不提供定位或动画开关；位置、时长与数量等默�
 
 同时显示的 Toast 数量上限为 `AeterniUIOptions.MaxToastCount`（默认 5），超出后最早的一条会被完成并移除；Alert 由调用方 `await` 控制生命周期，不设数量上限。
 
-## 26. Dialog、Confirm、Alert 和 Toast
+## 27. Dialog、Confirm、Alert 和 Toast
 
 应用根部放置一个 Provider：
 
@@ -979,7 +996,7 @@ builder.Services.AddAeterniUI(options =>
 ### 实现边界
 
 Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全输出，需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内再嵌套模态入口。
-## 27. Divider
+## 28. Divider
 
 ### 支持能力
 
@@ -996,7 +1013,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 不提供渐变/图案装饰线、可拖拽 splitter 和中缝对齐位置参数；中缝内容固定居中，长文本由使用方控制换行。
 
-## 28. Empty
+## 29. Empty
 
 ### 支持能力
 
@@ -1016,7 +1033,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 不包含数据加载逻辑、插图资源包与动画插画。组件**不绘制表面**（内容控件），应放进 `Card`、`Surface` 或表格主体使用；操作区包装元素只看 `ChildContent` 是否为 `null`——若在片段内部用 `@if` 关掉全部内容，包装元素仍会存在，需要完全移除时请在外层判断或传 `null` 片段。
 
-## 29. Spinner
+## 30. Spinner
 
 ### 支持能力
 
@@ -1034,7 +1051,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 不显示进度百分比（使用 `Progress`）、不提供遮罩层布局和加载文案；尺寸与颜色之外的视觉由宿主决定。
 
-## 30. Skeleton
+## 31. Skeleton
 
 ### 支持能力
 
@@ -1051,7 +1068,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 不提供与具体组件绑定的骨架模板、延迟加载策略和虚拟列表占位；`Lines` 只是把同一个形状堆叠多次，头像 + 文本这类组合由使用方用多个 `Skeleton` 拼装。
 
-## 31. Badge
+## 32. Badge
 
 ### 支持能力
 
@@ -1068,7 +1085,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 只有数字与圆点两种形态，不支持自定义文本内容、独立堆叠布局和消息计数业务逻辑；指示器不自带描边，与锚点重叠处的分离由使用方决定。
 
-## 32. Segmented
+## 33. Segmented
 
 ### 支持能力
 
@@ -1095,7 +1112,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 暂不包含垂直方向、多选分段、可编辑标签和路由集成；选项等宽，超长标签在选项内截断（`text-overflow: ellipsis`）而不是无限撑开控件。非全宽模式按每项最小内容宽度建列，库内置 Orange / System 等标签在常规桌面与窄屏布局中保持完整；选中指示块在 hover/active 时使用 checked 状态色阶整块换档，普通 hover 不覆盖选中态；`Shape` 只影响圆角，不改变滑块几何、交互状态与键盘模型。
 
-## 33. Accordion
+## 34. Accordion
 
 10.14.3：禁用项即使仍在 OpenKeys 中也渲染为折叠、inert 状态，不保留空白展开区域；不擅自修改宿主 OpenKeys，重新启用可恢复原展开状态。标题与箭头使用禁用文字 Token。
 
@@ -1114,7 +1131,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 组件只负责展开状态，不提供远程数据加载、虚拟化或嵌套面板管理。示例：`/components/accordion`。
 
-## 34. Pagination
+## 35. Pagination
 
 ### 支持能力
 
@@ -1128,7 +1145,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 分页只负责导航状态，不承担数据加载、分页查询或缓存。示例：`/components/pagination`。
 
-## 35. Avatar
+## 36. Avatar
 
 ### 支持能力
 
@@ -1142,7 +1159,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸统一使用全库公共 `Size` 枚举；原 `AvatarSize.Small/Default/Large` 仅保留为已弃用且同类型的常量别名，常见 Razor 调用可以继续编译，迁移时直接替换为 `Size`。示例：`/components/avatar`。
 
-## 36. Drawer
+## 37. Drawer
 
 ### 支持能力
 
@@ -1164,7 +1181,7 @@ Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸�
 
 面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成。Drawer 按方位滑出、Popover 内容淡出上移；退出复用现有动效 Token，等待浏览器实际动画结束后隐藏并释放焦点陷阱与滚动锁。快速重开/释放会取消旧完成回调；reduced-motion 不等待固定毫秒数。Visible=false 立即隐藏并释放，不保留退场。
 
-## 37. 服务注册
+## 38. 服务注册
 
 使用以下扩展完成基础服务注册：
 
@@ -1268,7 +1285,7 @@ builder.Services.AddAeterniUI(options =>
 
 组件参数（如 `AriaLabel`、`Placeholder`、`DismissLabel`）的优先级始终高于文案表；文案表为空白的条目会回落到英文默认值。
 
-## 38. DatePicker / DateRangePicker
+## 39. DatePicker / DateRangePicker
 
 10.14.3：最小/最大日期的月份导航与键盘运算不会越界；日历维持 6×7 网格，超出 DateOnly 范围的位置为空白不可操作格。可见月份只跟随**真正变化的绑定值**：父级重渲染（`OnParametersSet` 每次都会执行）不再把用户在弹层里翻到的月份拉回所选值所在的月份，值真的改变时才重新对齐。最大年份不足指定月份数时只显示存在的月份，范围预设允许结束于 DateOnly.MaxValue。
 
@@ -1296,7 +1313,7 @@ builder.Services.AddAeterniUI(options =>
 
 **已知边界（REV-162）**：日历网格与时间滚轮的方向键按**逻辑方向**映射（Left = 前一天/更小），不会在 RTL 页面里镜像；镜像需要按书写方向反转按键映射（`Slider` / `Menu` 走的是 JS 读取 `direction` 的路线，日期族目前没有自己的 JS 模块），因此这里如实登记为已知限制而不是静默行为。
 
-## 39. TimePicker
+## 40. TimePicker
 
 10.14.3：候选枚举只访问 MinTime/MaxTime 范围内、按午夜对齐 Step 的整秒点；小数秒下界向上取整。TimePicker 与内部滚轮按实例复用无 DisabledTime、且 Step/Min/Max 不变的不可变映射；有委托时每次重新计算，不缓存可变闭包结果。
 
@@ -1322,7 +1339,7 @@ builder.Services.AddAeterniUI(options =>
 
 有效时间仍以午夜为锚点按固定步长计算，但内部使用一天 86,400 个整秒槽位的可用性映射并只渲染当前时/分/秒三列：1 秒步长最多输出 144 个 `option`，不会创建 86,400 个 DOM 节点。当前只支持同一天内 `MinTime <= MaxTime` 的连续范围；步长必须是整秒，不支持亚秒精度、跨午夜范围、自由文本编辑、虚拟化或时区换算。示例：`/components/time-picker`。
 
-## 40. DateTimePicker
+## 41. DateTimePicker
 
 组合弹层按日期与时间两栏的实际内容定宽，最大宽度受视口限制；窄屏保持上下排列，极窄视口允许内容横向滚动。时间区底部操作行按按钮自然高度布局，不随日历高度拉伸；无可用时间时保留六行滚轮等高占位并居中提示，取消仍可用、确定禁用。提交行为不变：TimePicker / DateTimePicker 使用确认与取消，DatePicker / DateRangePicker 保持原有选择提交方式。
 
@@ -1343,7 +1360,7 @@ builder.Services.AddAeterniUI(options =>
 
 `Kind` 只通过 `DateTime.SpecifyKind` 标记组件创建的值，不做 UTC、本地时间或任意时区之间的转换；宿主应让 Value、Min/Max 与禁用规则使用一致的时间语义。当前不包含时区数据库、夏令时歧义处理、自由文本解析、亚秒精度或多时区格式化。示例：`/components/date-time-picker`。
 
-## 41. Toolbar / ToolbarGroup
+## 42. Toolbar / ToolbarGroup
 
 ### 支持能力
 
@@ -1362,7 +1379,7 @@ builder.Services.AddAeterniUI(options =>
 
 - 不支持输入框混合控件、自动折叠、自动溢出或业务选择状态；宿主显式放置 MenuButton。无 JS 的静态输出保留按钮原生 Tab 顺序，交互模块加载后启用 roving focus。示例：`/components/toolbar`。
 
-## 42. ToggleGroup
+## 43. ToggleGroup
 
 ### 支持能力
 
@@ -1382,7 +1399,7 @@ builder.Services.AddAeterniUI(options =>
 
 - 第一版不支持 FormField/EditContext、Required/Invalid、图标/内容模板、嵌套 Toolbar、跨组焦点、自动溢出、异步动作编排或快捷键注册。焦点机制与 Toolbar 共用同一份 `aeterni_roving_focus.js`（REV-123 合并），两者只在选择器、宿主判定与方向属性来源上不同。
 
-## 43. Breadcrumb
+## 44. Breadcrumb
 
 ### 支持能力
 
@@ -1401,7 +1418,7 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供路由集成、自动折叠/省略、拖拽排序和异步导航；响应式换行与层级可见性由组件样式和宿主数据控制。示例：`/components/breadcrumb`。
 
-## 44. Stepper
+## 45. Stepper
 
 ### 支持能力
 
@@ -1425,7 +1442,7 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供异步编排、路由集成、自动推进、步骤内容面板、拖拽排序或复杂流程校验；步骤完成与是否可跳转由宿主提供。示例：`/components/stepper`。
 
-## 45. FlashCard
+## 46. FlashCard
 
 ### 支持能力
 
@@ -1456,7 +1473,7 @@ builder.Services.AddAeterniUI(options =>
 
 第一版不提供视频等任意媒体、覆盖式图文排版、触摸手势、自动轮播或翻转编排；卡面宽度由宿主容器决定，组件不提供尺寸档位。示例：`/components/flash-card`。
 
-## 46. FlashCardGroup
+## 47. FlashCardGroup
 
 `FlashCardGroup` 是用于抽卡式展示的牌堆容器：直接把多张 `FlashCard` 放入 `ChildContent`，默认以轻微横向偏移、上下错位和小角度旋转形成自然牌堆；指针悬浮或组内卡片获得焦点时展开为扇形，离开后重新收拢。展开后，当前悬浮或键盘聚焦的卡片会抬起并升到牌堆最上层，使完整卡面不再被相邻卡片遮挡。
 
@@ -1476,7 +1493,7 @@ builder.Services.AddAeterniUI(options =>
 
 不提供抽卡算法、卡牌排序或数据源管理；牌堆只做几何与展开交互，卡片内容与状态仍由 `FlashCard` 与宿主决定。示例：`/components/flash-card-group`。
 
-## 47. Timeline
+## 48. Timeline
 
 ### 支持能力
 
@@ -1499,7 +1516,7 @@ builder.Services.AddAeterniUI(options =>
 
 组件提供纵向单列与横向滚动两种布局；不包含事件交互、自动排序、分组、虚拟化、分页、懒加载或业务状态推断。动态筛选和顺序更新由宿主生成新的 `Items` 快照。示例：`/components/timeline`。
 
-## 48. Descriptions
+## 49. Descriptions
 
 ### 支持能力
 
@@ -1517,7 +1534,7 @@ builder.Services.AddAeterniUI(options =>
 
 组件只负责结构化展示、列布局和模板插槽；富文本、链接、标签等值内容由 `ItemTemplate` 组合现有组件完成。示例：`/components/descriptions`。
 
-## 49. Upload
+## 50. Upload
 
 ### 支持能力
 
@@ -1565,7 +1582,7 @@ async Task StartUpload(UploadFile file)
 }
 ```
 
-## 50. 当前边界
+## 51. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

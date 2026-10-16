@@ -89,6 +89,7 @@ public static class ShowcaseCatalog
             new("multi-select", "MultiSelect", "多值选择"),
             new("upload", "Upload", "文件选择与拖放"),
             new("combobox", "ComboBox", "下拉选择"),
+            new("cascader", "Cascader", "层级逐级选择"),
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
             new("time-picker", "TimePicker", "时间选择"),
             new("date-time-picker", "DateTimePicker", "日期与时间组合")
@@ -130,7 +131,7 @@ public static class ShowcaseCatalog
     /// <summary>
     /// 库版本号，与 <c>Directory.Build.props</c> 的 <c>InformationalVersion</c> 同一来源：
     /// 从示例程序集的 informational version 读取，不在页面里再维护一份字符串。
-    /// SourceLink 会在末尾追加 <c>+commit</c>，展示时去掉，只留 <c>10.34.5</c>。
+    /// SourceLink 会在末尾追加 <c>+commit</c>，展示时去掉，只留 <c>10.35.0</c>。
     /// </summary>
     public static string Version { get; } = DisplayVersion();
 

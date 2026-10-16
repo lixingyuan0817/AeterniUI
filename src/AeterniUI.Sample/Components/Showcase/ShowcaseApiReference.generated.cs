@@ -540,6 +540,26 @@ public static class ShowcaseApiReference
                 new("ValueChanged", "EventCallback<TItem?>", "", "标准绑定回调。", "事件回调", ""),
                 new("ValueExpression", "Expression<Func<TItem?>>?", "", "EditContext 字段表达式。", "属性", ""),
             },
+            ["cascader"] = new ShowcaseApiMember[]
+            {
+                new("AriaDescribedBy", "string?", "", "", "属性", ""),
+                new("AriaLabel", "string?", "", "", "属性", ""),
+                new("ChildrenSelector", "Func<TItem, IEnumerable<TItem>?>?", "", "取子节点。返回空序列或 null 即叶子；为 null 时整棵树按全叶子处理 （等价于平铺，仍然是合法用法）。", "属性", ""),
+                new("EmptyContent", "RenderFragment?", "", "某一列没有选项时显示的内容。", "属性", ""),
+                new("FullWidth", "bool", "", "", "属性", ""),
+                new("Invalid", "bool", "", "", "属性", ""),
+                new("ItemTemplate", "RenderFragment<TItem>?", "", "", "属性", ""),
+                new("Items", "IReadOnlyList<TItem>?", "", "根节点。为空时触发器只显示占位文案。", "属性", ""),
+                new("OnItemSelected", "EventCallback<TItem?>", "", "确认一个叶子后触发，晚于 ValueChanged。", "事件回调", ""),
+                new("Placeholder", "string?", "", "", "属性", ""),
+                new("Required", "bool", "", "", "属性", ""),
+                new("Separator", "string?", "", "连接路径各层的分隔符；缺省取 UiText.CascaderPathSeparator。", "属性", ""),
+                new("Size", "Size", "", "控件档位，与 ComboBox／Input 共用同一套高度别名。", "属性", ""),
+                new("TextSelector", "Func<TItem, string>?", "", "取显示文案；缺省用 ToString()。", "属性", ""),
+                new("Value", "TItem?", "", "", "属性", ""),
+                new("ValueChanged", "EventCallback<TItem?>", "", "", "事件回调", ""),
+                new("ValueExpression", "Expression<Func<TItem?>>?", "", "", "属性", ""),
+            },
             ["date-picker"] = new ShowcaseApiMember[]
             {
                 new("DatePicker.AriaLabel", "string?", "", "控件无障碍名称；缺省取全局文案表。", "属性", ""),
