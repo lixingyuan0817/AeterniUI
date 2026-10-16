@@ -558,7 +558,11 @@
     /* A brand tint in its own right (used by Avatar and the brand soft button).
        It used to borrow the neutral hover overlay. */
     --aeterni-color-brand-soft: var(--aeterni-surface-hover);
-    --aeterni-focus-color: var(--aeterni-color-brand-default);
+    /* The ring reads as a hint, not a frame: halfway between the brand fill (500)
+       and its lighter neighbour (400). Going all the way to 400 drops the green
+       layer to 2.72:1 on the page, under the 3:1 non-text floor `check-contrast`
+       enforces, so the mix stops where every hue layer still clears it (>=3.37:1). */
+    --aeterni-focus-color: color-mix(in srgb, var(--aeterni-brand-500) 50%, var(--aeterni-brand-400));
     --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
     --aeterni-color-success-default: var(--aeterni-sem-success);
     --aeterni-color-success-soft: var(--aeterni-success-soft);

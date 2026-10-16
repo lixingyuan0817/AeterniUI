@@ -76,7 +76,7 @@
     /* Inset so the ring is not clipped by the strip's own overflow. */
     z-index: 1;
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: calc(var(--aeterni-focus-offset) * -1);
+    outline-offset: calc(-1 * var(--aeterni-focus-width));
 }
 
 .aeterni-tabs__tab[aria-selected="true"] {
