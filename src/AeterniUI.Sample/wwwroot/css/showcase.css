@@ -2117,13 +2117,6 @@
     font-size: var(--aeterni-font-size-xs);
 }
 
-/* 预览状态三个开关竖排：每个 Switch 自带文本标签，这里只给它们留间距与对齐。 */
-.showcase-settings__toggles {
-    display: grid;
-    justify-items: start;
-    gap: var(--aeterni-spacing-2);
-}
-
 /* 页面反馈闭环：正文最末一行，投票与仓库出口分列两端。 */
 .component-feedback {
     display: flex;

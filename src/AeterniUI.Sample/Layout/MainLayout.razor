@@ -1,11 +1,10 @@
 @inherits LayoutComponentBase
-@implements IDisposable
 @using AeterniUI.Enums
 
 <ThemeProvider />
 <DialogProvider />
 
-<div class="@PageClass" dir="@(Preview.Rtl ? "rtl" : null)">
+<div class="sample-page">
     <div class="sample-page__ambient" aria-hidden="true">
         <span class="sample-page__orb sample-page__orb--brand"></span>
         <span class="sample-page__orb sample-page__orb--info"></span>
@@ -68,26 +67,3 @@
 
     @Body
 </div>
-
-@code {
-    [Inject]
-    private ShowcasePreviewModel Preview { get; set; } = default!;
-
-    /// <summary>
-    /// 外壳修饰类：窄屏与减少动效按开关叠加，RTL 单独走 <c>dir</c> 属性而不是类。
-    /// 不输出无意义的默认修饰类。
-    /// </summary>
-    private string PageClass => (Preview.Narrow, Preview.ReducedMotion) switch
-    {
-        (true, true) => "sample-page is-narrow is-reduced-motion",
-        (true, _) => "sample-page is-narrow",
-        (_, true) => "sample-page is-reduced-motion",
-        _ => "sample-page"
-    };
-
-    protected override void OnInitialized() => Preview.Changed += HandlePreviewChanged;
-
-    private void HandlePreviewChanged() => _ = InvokeAsync(StateHasChanged);
-
-    public void Dispose() => Preview.Changed -= HandlePreviewChanged;
-}

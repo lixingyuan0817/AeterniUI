@@ -19,22 +19,6 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
 }
 
-/* 预览状态：减少动效。示例级模拟 `prefers-reduced-motion: reduce` 里 Token 那一半——
-   把库的时长 Token 压到 0ms，所有消费这些 Token 的过渡与动画随之收起；组件各自 CSS 里
-   写死的 reduced-motion 分支仍由系统媒体查询驱动，这里不越权覆盖。 */
-.sample-page.is-reduced-motion {
-    --aeterni-duration-fast: 0ms;
-    --aeterni-duration-normal: 0ms;
-    --aeterni-duration-slow: 0ms;
-    --aeterni-duration-slower: 0ms;
-}
-
-/* 预览状态：窄屏。整站外壳（头、侧栏、正文、首页）都从 --sample-shell-width 取宽，
-   只改这一个变量就能把全站收到手机宽度；保留与 app.css 同款的最小留白，窄视口下不溢出。 */
-.sample-page.is-narrow {
-    --sample-shell-width: min(480px, calc(100% - 32px));
-}
-
 .sample-page__ambient {
     position: absolute;
     z-index: -1;
