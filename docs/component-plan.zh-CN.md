@@ -35,7 +35,7 @@
 
 | 顺序 | 候选 | 与现有能力的边界 | 进入实现前必须明确 |
 | --- | --- | --- | --- |
-| 1 | `Cascader` | 层级数据目前只能用平铺的 `ComboBox`／`MultiSelect` 表达 | 数据层级与路径值语义、异步加载（第一版不做）、浮层与键盘模型 |
+| 1 | `Cascader` | 层级数据目前只能用平铺的 `ComboBox`／`MultiSelect` 表达 | **决策门已完成**，结论见下方「`Cascader` 决策门结论」；未决项：值取叶子还是整条路径、窄屏列滚动、逐节点禁用 |
 | 2 | `Transfer` | 多选与全选职责和 `MultiSelect` 重叠，先要证明双列表可见性具有独立价值 | 数据规模、搜索、禁用项、排序与双列表焦点模型；先做与 `MultiSelect` 的职责对照 |
 | 3 | `ColorPicker` | 表单输入缺口，但依赖色彩模型与浮层 | 色彩模型与输入格式、对比度提示、浮层与键盘操作 |
 
@@ -50,6 +50,46 @@
 | `Anchor` | 滚动容器、活动项判定、历史记录和路由边界 |
 
 排序规则：不以实现成本低作为排序依据；先确认现有组件能否组合完成目标；每项通过 §6 的五道决策门后才进入实现。
+
+### `Cascader` 决策门结论（优先级 9 第 1 项）
+
+层级数据目前只能用平铺的 `ComboBox`／`MultiSelect` 表达——选「省/市/区」要拆成三个控件并手写级联逻辑。`Cascader` 用「一列一级」的浮层面板表达同一件事。以下按 §6 五道门给出结论；结论即实现契约，未变更前不进入实现。
+
+#### 1. API 边界
+
+- **职责**：单值、层级单选。平铺单选归 `ComboBox`，平铺多值归 `MultiSelect`，`Cascader` 不覆盖它们；多路径（多选）第一版不做。
+- **模型**：沿用「自带模型」的既有约定，只加选择器、不引入专用模型类型——`Items`（根节点）、`ChildrenSelector`（子节点，返回空/`null` 即叶子）、`TextSelector`（显示文案，缺省 `ToString()`）。
+- **值语义**：`Value: TItem?` 绑定**叶子节点**，与 `ComboBox<TItem>.Value` 同形；组件用 `ChildrenSelector` 反查祖先链渲染路径。`ValueChanged` / `ValueExpression` / `OnItemSelected` 与 ComboBox 同名同义。展示文案 = 祖先链 + 叶子的 `TextSelector` 结果，以 `Separator`（缺省 `UiText.CascaderPathSeparator` = `/`）连接。
+  - 记录一条未采纳方案：`Value: IReadOnlyList<TItem>`（整条路径）。它更「显式」，但与 `ComboBox` 的绑定形状不一致，且宿主为了设置初始值要自己拼路径；反查祖先链只是每次渲染走一遍树，开销可接受。
+- **默认值**：`Items` 为空只显示占位文案；`Value` 为 null 显示 `Placeholder`。最简用法（`Items` + `ChildrenSelector` + 文案）即可运行。`ChildrenSelector` 为 null 时整棵树按「全叶子」处理（等价平铺，仍合法）。
+- **第一版明确不做**：异步加载子节点、搜索过滤、多选路径、自由输入、虚拟化。
+- **边界校验**：`Size` 等公开枚举按 `Enum.IsDefined` 校验。
+
+#### 2. HTML/ARIA
+
+- **根元素**：`PopupHost` → 根 `<div class="aeterni-cascader">`（`BuildAttributes()` + `@ref="RootElement"`），与 `ComboBox` 同构。
+- **触发器**：原生 `<button type="button" role="combobox">`，属性逐条对齐 `ComboBox`：`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"`、`aria-activedescendant`、`aria-labelledby`（`FormField.LabelId`）、`aria-describedby`、`aria-required`、`aria-invalid`、`disabled`。触发器持有 `FormField.InputId`，让字段 label 的 `for` 仍可解析。
+- **面板**：`Popover` 内一列一级，每列一个 `role="listbox"`（`aria-label` 取该级的列名或 `ColumnLabels`），选项 `role="option"` + `aria-selected="true"/"false"`。**焦点始终留在触发器**，用 `aria-activedescendant` 指向「活动列里的活动项」——与 `ComboBox` 同一模型，仍然只有一个 Tab 停留点。
+- **键盘模型**（打开时由触发器接管，处理过的键阻止页面滚动）：`ArrowDown`/`ArrowUp` 关闭时打开并把活动项落在当前值所在列，打开时在当前列内移动；`ArrowRight` 在活动项有子节点时展开下一列并移入其首项；`ArrowLeft` 回到上一列并落在「刚展开的那个节点」上；`Home`/`End` 跳列首/列末；`Enter`/`Space` 叶子确认并关闭、父节点同 `ArrowRight`；`Escape` 关闭且焦点留在触发器。
+- **禁用/错误语义**：`Disabled`（或 `FormField.Disabled`）→ 原生 `disabled`；`Required`/`Invalid`（或 `FormField` / EditContext 校验消息）→ `aria-required` / `aria-invalid` + 危险色边框与危险色焦点环（`--aeterni-focus-color-invalid`），与 ComboBox/Input 一致。第一版没有 `Loading` 档。
+
+#### 3. Token/主题
+
+只消费现有 Token，不新建体系：`--aeterni-control-*`（触发器与选项表面）、`--aeterni-state-background-hover` / `-selected`（列内活动与选中档，遵守 §4.4 的整块换档与排除规则）、`--aeterni-focus-*`（含 invalid 档）、`--aeterni-spacing-*`、`--aeterni-radius-*`、`--aeterni-border-*`、`--aeterni-scrollbar-*`（列滚动容器按 §4.4 成对声明）、`--aeterni-duration-*`（展开/关闭过渡，reduced-motion 下随库统一塌缩）。
+
+#### 4. 浮层/JS
+
+- **浮层**：复用 `PopupHost` + `Popover`（已复用 `aeterni_floating.js` 的定位、翻转、钳制、外部点击、Escape、滚动关闭与退出等待），`Placement` 默认 `BottomStart`、`CloseOnScroll="true"`，与 `ComboBox` 一致。
+- **JS**：需要一个主 `JsModuleAttribute`（`Components/Cascader/Cascader.razor.js`），职责与 `ComboBox.razor.js` 同形且不重叠：① 把 `aria-activedescendant` 指向的活动项滚进所在列视口（纵向），并把活动列滚进面板视口（横向，供窄屏）；② 在触发器上对导航键（`ArrowDown/Up/Left/Right/Home/End/Escape` 与展开态的 `Enter/Space`）调 `preventDefault`。业务状态全部留在 C#，监听器按实例 `dispose(instanceId)` 释放。
+  - 待定项：`ComboBox.razor.js` 与 `Cascader.razor.js` 的「活动项滚入视口 + 导航键 preventDefault」几乎同形。第一版各自成模块（不为一个候选改动已发布组件的加载路径）；两者稳定且完全收敛后再抽成 `wwwroot/js/` 的共享模块。
+
+#### 5. 示例/验收
+
+- **示例页** `/components/cascader`（`ComponentPage` 骨架）：① 基础用法（省/市/区三级）；② 受控与初始值（`@bind-Value` 绑叶子 + 路径展示）；③ 尺寸与禁用/无效/必填；④ 自定义 `TextSelector` 与 `Separator`；⑤ 键盘操作说明。
+- **验收路径**：Light / Dark / System 三态；窄屏下用面板横向滚动而不是压瘪列；键盘全路径（上面每一行都要有可复现操作）；`prefers-reduced-motion` 下展开/关闭不做过渡；无效控件保留危险色边框与焦点环。
+- **门禁**：契约检查覆盖根属性、`role=combobox/listbox/option` 层级与 `"true"/"false"` 取值、`disabled`；`node --test` 覆盖列间移动/展开/回退/确认/关闭的键盘状态机；`tests/browser/verify.mjs` 覆盖真实开合、跨列键盘路径、确认后的路径文案与焦点回归；`check-contrast` 覆盖焦点环与选中档。
+
+**未决项**：`Value` 取叶子还是整条路径（倾向叶子，备选已记录）；窄屏列滚动是否真的需要横向 `scrollIntoView`（实现时实测再定）；是否支持逐节点禁用（会牵连整条子树，先不做，等真实诉求）。
 
 ## 4. 示例工程内容与信息架构（已交付）
 
