@@ -20,7 +20,7 @@
         <Popover Style="width: max-content; --aeterni-overlay-max-width-sm: calc(100vw - var(--aeterni-spacing-8));" Open="@_open" OpenChanged="HandleOpenChanged" Placement="@Placement" RestoreFocusOnClose="true" AriaLabel="@EffectiveAriaLabel">
             <ChildContent>
                 <div class="aeterni-date-time-picker__panel">
-                    <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" AriaLabel="@UiText.DatePickerCalendarLabel" />
+                    <DateCalendar DisplayMonth="@_displayMonth" SelectedDate="@SelectedDate" DisabledDate="IsDateDisabled" DateSelected="SelectDateAsync" MonthChanged="SetMonthAsync" ShowLunar="@ShowLunar" AriaLabel="@UiText.DatePickerCalendarLabel" />
                     <div class="aeterni-date-time-picker__divider" aria-hidden="true"></div>
                     <TimeOptionList @key="_open" Value="@SelectedTime"
                                     ValueSelected="SelectTimeAsync"

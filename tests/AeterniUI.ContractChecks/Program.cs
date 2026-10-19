@@ -49,6 +49,7 @@ await CheckDatePickerRootAsync();
 await CheckMenuButtonRootAsync();
 await CheckAccordionAriaAsync();
 await CheckCalendarGridAsync();
+await CheckCalendarLunarAsync();
 await CheckTimeListFocusAsync();
 await CheckAvatarVariantsAsync();
 await CheckFlashCardAsync();
@@ -97,7 +98,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (37 groups).");
+Console.WriteLine("Component contract checks passed (38 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -2049,6 +2050,83 @@ async Task CheckCalendarGridAsync()
     Require(Regex.Matches(html, "role=\"row\"", RegexOptions.CultureInvariant).Count == 6, "DateCalendar must render six explicit grid rows.");
     Require(Regex.Matches(html, "tabindex=\"0\"", RegexOptions.CultureInvariant).Count == 1, "DateCalendar must expose exactly one roving Tab stop.");
     Require(Regex.Matches(html, "role=\"gridcell\"", RegexOptions.CultureInvariant).Count == 42, "DateCalendar must render gridcell semantics for every day cell.");
+}
+
+async Task CheckCalendarLunarAsync()
+{
+    // ToHtmlString() runs the default HTML encoder, which turns the Chinese lunar
+    // names into character references; decode once so the assertions read as the
+    // rendered text a person would see.
+    static string Rendered(string html) => System.Net.WebUtility.HtmlDecode(html);
+
+    // 2026-10-10 is 九月初一 and 2026-10-19 is 九月初十; a cell prints the month
+    // name on the first day of a lunar month and the day name afterwards.
+    var october = Rendered(await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+    {
+        [nameof(DateCalendar.DisplayMonth)] = new DateOnly(2026, 10, 1),
+        [nameof(DateCalendar.ShowLunar)] = true
+    }));
+    Require(october.Contains("aeterni-date-calendar is-lunar", StringComparison.Ordinal), "DateCalendar must expose is-lunar when ShowLunar is on.");
+    Require(october.Contains(">九月</span>", StringComparison.Ordinal), "The first lunar day of a month must render the lunar month name.");
+    Require(october.Contains(">初十</span>", StringComparison.Ordinal), "Other lunar days must render the lunar day name.");
+    Require(october.Contains("Lunar 九月初十", StringComparison.Ordinal), "The lunar date must join the cell's accessible name through DatePickerLunarLabel.");
+
+    // 2025-07-25 is 闰六月初一, the first day of the leap sixth month.
+    var leap = Rendered(await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+    {
+        [nameof(DateCalendar.DisplayMonth)] = new DateOnly(2025, 7, 1),
+        [nameof(DateCalendar.ShowLunar)] = true
+    }));
+    Require(leap.Contains(">闰六月</span>", StringComparison.Ordinal), "A leap lunar month must keep the 闰 prefix in the cell.");
+    Require(leap.Contains("Lunar 闰六月初一", StringComparison.Ordinal), "The leap-month full name must reach the accessible label.");
+
+    var gregorianOnly = await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+    {
+        [nameof(DateCalendar.DisplayMonth)] = new DateOnly(2026, 10, 1)
+    });
+    Require(!gregorianOnly.Contains("aeterni-date-calendar__lunar", StringComparison.Ordinal) &&
+        !gregorianOnly.Contains("is-lunar", StringComparison.Ordinal), "The lunar line must stay opt-in.");
+
+    // The BCL calendar covers 1901-02-19 – 2101-01-28; outside that window the grid
+    // keeps rendering Gregorian cells and simply omits the lunar line.
+    foreach (var month in new[] { new DateOnly(1901, 1, 1), new DateOnly(2101, 2, 1) })
+    {
+        var outside = Rendered(await RenderAsync<DateCalendar>(new Dictionary<string, object?>
+        {
+            [nameof(DateCalendar.DisplayMonth)] = month,
+            [nameof(DateCalendar.ShowLunar)] = true
+        }));
+        Require(!outside.Contains("aeterni-date-calendar__lunar", StringComparison.Ordinal) &&
+            !outside.Contains("Lunar ", StringComparison.Ordinal),
+            $"Dates outside the lunar calendar range must not render lunar text ({month:yyyy-MM}).");
+    }
+
+    // Every public picker forwards the opt-in flag to the shared calendar surface.
+    var datePicker = Rendered(await RenderAsync<DatePicker>(new Dictionary<string, object?>
+    {
+        [nameof(DatePicker.Value)] = new DateOnly(2026, 10, 19),
+        [nameof(DatePicker.ShowLunar)] = true
+    }));
+    Require(datePicker.Contains("Lunar 九月初十", StringComparison.Ordinal), "DatePicker must forward ShowLunar.");
+
+    var rangePicker = Rendered(await RenderAsync<DateRangePicker>(new Dictionary<string, object?>
+    {
+        [nameof(DateRangePicker.StartDate)] = new DateOnly(2026, 10, 10),
+        [nameof(DateRangePicker.EndDate)] = new DateOnly(2026, 10, 19),
+        [nameof(DateRangePicker.ShowLunar)] = true
+    }));
+    Require(rangePicker.Contains("Lunar 九月初十", StringComparison.Ordinal), "DateRangePicker must forward ShowLunar.");
+
+    var dateTimePicker = Rendered(await RenderAsync<AeterniUI.Components.DateTimePicker.DateTimePicker>(new Dictionary<string, object?>
+    {
+        [nameof(AeterniUI.Components.DateTimePicker.DateTimePicker.Value)] = new DateTime(2026, 10, 19, 9, 0, 0),
+        [nameof(AeterniUI.Components.DateTimePicker.DateTimePicker.ShowLunar)] = true
+    }));
+    Require(dateTimePicker.Contains("Lunar 九月初十", StringComparison.Ordinal), "DateTimePicker must forward ShowLunar.");
+
+    var css = await File.ReadAllTextAsync(Path.Combine(FindRepositoryRoot(), "src", "AeterniUI", "Components", "DatePicker", "DateCalendar.razor.css"));
+    foreach (var rule in new[] { ".aeterni-date-calendar.is-lunar .aeterni-date-calendar__day", ".aeterni-date-calendar__lunar", ".is-selected .aeterni-date-calendar__lunar", "var(--aeterni-font-size-xs)" })
+        Require(css.Contains(rule, StringComparison.Ordinal), $"The lunar line must keep its two-line geometry and ink rules: {rule}.");
 }
 
 async Task CheckPaginationGeometryAsync()

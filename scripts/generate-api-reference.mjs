@@ -220,7 +220,10 @@ function pageEntries() {
                 ?? descriptions[id]?.[member.name]
                 ?? extraDescriptions.get(member.name)
                 ?? member.description,
-            since: since.members[`${directory}.${member.name}`] ?? ''
+            // 页面内同名成员在 qualify() 里已经展开成「声明类型.成员名」。此时
+            // `${directory}.${name}` 会变成「DatePicker.DatePicker.ShowLunar」这类
+            // 重复前缀，永远查不到；再按 api-since 约定的「类型名.成员名」直查一次。
+            since: since.members[`${directory}.${member.name}`] ?? since.members[member.name] ?? ''
         }));
 
         const extras = extraRows[id] ?? [];

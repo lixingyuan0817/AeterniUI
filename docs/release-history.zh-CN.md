@@ -1,10 +1,23 @@
 # AeterniUI 发布历史
 
-文档版本：`10.35.0`
+文档版本：`10.36.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.36.0 日期组件农历叠加：`ShowLunar`
+
+日期族此前只渲染公历，交付边界明确写着“不包含自定义日历系统或复杂本地化历法”。本批增加可选的中国农历副行，默认关闭，主日期体系、绑定值和触发器格式都不变。
+
+- [x] `DatePicker` / `DateRangePicker` / `DateTimePicker` 新增 `ShowLunar`（默认 `false`）并转发给内部 `DateCalendar`；只影响日历格渲染与日格无障碍名称。
+- [x] 农历换算不新增数据表：使用 BCL `System.Globalization.ChineseLunisolarCalendar`，覆盖公历 **1901-02-19 – 2101-01-28**；初一显示月名（闰月带 `闰` 前缀），其余显示日名；范围外日期照常渲染公历数字、不显示农历副行。
+- [x] 日格无障碍名称追加 `DatePickerLunarLabel`（默认 `Lunar`）+ 完整农历日期（如 `Lunar 九月初十`）；文案表新键接入 `FillEmptyFrom`，示例站覆写为 `农历`。
+- [x] `DateCalendar` 新增 `is-lunar` 根状态与两行日格布局；农历行消费 `--aeterni-font-size-xs`，选中 / 跨月 / 禁用分别改用 inverse / tertiary / disabled 墨色，不整块降低透明度。
+- [x] 明确不做：节气、干支、生肖、黄历宜忌、历法切换、时区换算；节气需要太阳黄经计算，与本批的日期显示目标无关。
+- [x] 示例页 `/components/date-picker` 新增「农历叠加」demo（单日与范围两种选择器），API 表与搜索索引生成物重跑。
+- [x] 修复生成器同名成员 `since` 查找：`scripts/generate-api-reference.mjs` 在页面内出现多个同名参数时按 `api-since.json` 约定的「声明类型.成员名」再查一次，避免拼成 `DatePicker.DatePicker.ShowLunar` 而永远为空。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **38 组**（新增 `CheckCalendarLunarAsync`：2026-10-10 九月初一、2026-10-19 九月初十、2025-07-25 闰六月初一、默认关闭、1901-01 与 2101-02 越界无农历行、三个选择器转发、两行布局 CSS）；`node --test tests/*.test.mjs` **99 项**通过；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（新文案键）、`check-css-comments.mjs`、`check-contrast.mjs`、`generate-api-reference --check`（55 页 / 687 行）、`generate-search-index --check`（492 条 / 62 页）通过。真实渲染（无头 Chrome + 独立 CDP 脚本，定向）：`/components/date-picker` 的「农历叠加」demo 打开后 42 个日格均输出 `.aeterni-date-calendar__lunar`，`flex-direction: column`、日格高 30.66px（默认单行日历仍 28px / row），无障碍名为「2026年10月19日星期一, 农历 九月初十」、闰月首日为「农历 闰六月初一」，未开启 ShowLunar 的日历副行数为 0，点击 12 日后触发器值为 `2026-10-12`；`tests/browser/verify.mjs` 本批未新增断言，全量回归在本机停在 `/components/upload`（既有环境项，与本批无关）。按「功能新增递增第二位」（§4.9）从 `10.35.0` 升到 `10.36.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.35.0 Cascader：层级单选组件（优先级 9 第 1 项交付）
 

@@ -54,7 +54,11 @@
                                         @onkeydown="@(e => HandleKeyDownAsync(e, day))"
                                         @onclick="@(() => SelectDayAsync(day))"
                                         @onmouseenter="@(() => DateHovered.InvokeAsync(day))">
-                                    @day.Day
+                                    <span class="aeterni-date-calendar__day-number">@day.Day</span>
+                                    @if (ShowLunar && LunarText(day) is { } lunarText)
+                                    {
+                                        <span class="aeterni-date-calendar__lunar">@lunarText</span>
+                                    }
                                 </button>
                             }
                         </div>

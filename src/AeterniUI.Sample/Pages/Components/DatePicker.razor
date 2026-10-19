@@ -67,6 +67,28 @@
             </Controls>
         </DemoCard>
 
+        <DemoCard Id="date-picker-lunar"
+                  Title="农历叠加"
+                  Description="ShowLunar 默认 false；开启后只在日历格内叠加一行中国农历副行，绑定值仍是 DateOnly、触发器格式仍由 Format 决定，公历 1901-02-19 至 2101-01-28 之外不显示农历行。"
+                  Code="@LunarCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <DatePicker @bind-Value="_lunarDate"
+                                ShowLunar="@_showLunar"
+                                AriaLabel="选择农历日期" />
+                    <DateRangePicker @bind-StartDate="_lunarStartDate"
+                                     @bind-EndDate="_lunarEndDate"
+                                     ShowLunar="@_showLunar"
+                                     VisibleMonths="2"
+                                     AriaLabel="选择农历日期范围" />
+                    <span class="preview-feedback" role="status">农历副行：@(_showLunar ? "已开启" : "已关闭")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_showLunar">ShowLunar</Checkbox>
+            </Controls>
+        </DemoCard>
+
         <DemoCard Id="date-picker-form"
                   Title="在 FormField 中校验"
                   Description="For 指向绑定字段，字段标签、描述与验证消息因此都关联到日期触发器；Required 与 Invalid 决定字段状态。"
@@ -98,6 +120,7 @@
         <span>值类型是 <code>DateOnly?</code>：单日用 <code>Value</code> / <code>ValueChanged</code>，范围用 <code>StartDate</code> / <code>EndDate</code> 各自的绑定三件套；弹层由 <code>PopupHost</code> 与 <code>Popover</code> 承载。</span>
         <span><code>Presets</code> 是宿主数据：每个范围必须有序、不含被禁用或越界的日期，否则在参数设置阶段直接抛错。</span>
         <span>日历打开后可用方向键、Home/End、PageUp/PageDown 连续移动真实焦点；边界日期保持完整网格，窄屏下多月份视图改为单列。</span>
+        <span><code>ShowLunar</code> 默认关闭，开启后只在日历格内叠加中国农历副行：绑定值、触发器格式与选择行为都不变，公历 1901-02-19 至 2101-01-28 之外不显示农历行；副行的无障碍前缀取文案表的 <code>Text.DatePickerLunarLabel</code>。</span>
     </Notes>
 </ComponentPage>
 
@@ -125,6 +148,15 @@
                     FullWidth />
         """;
 
+    private const string LunarCode = """
+        <DatePicker @bind-Value="Date" ShowLunar />
+
+        <DateRangePicker @bind-StartDate="Start"
+                         @bind-EndDate="End"
+                         ShowLunar
+                         VisibleMonths="2" />
+        """;
+
     private const string FormCode = """
         <FormField Label="预约日期" For="@(() => Model.RequiredDate)" Required>
             <DatePicker @bind-Value="Model.RequiredDate" />
@@ -143,6 +175,10 @@
     private bool _fullWidth;
     private bool _disabled;
     private bool _invalid;
+    private bool _showLunar = true;
+    private DateOnly? _lunarDate = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _lunarStartDate;
+    private DateOnly? _lunarEndDate;
 
     private readonly DateValidationModel _validationModel = new();
     private bool _formRequired = true;

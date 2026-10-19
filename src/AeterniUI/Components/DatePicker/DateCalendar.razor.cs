@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using AeterniUI.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -27,6 +28,13 @@ public partial class DateCalendar : AeterniComponent
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DatePickerCalendarLabel : AriaLabel.Trim();
     [Parameter] public int VisibleMonths { get; set; } = 1;
 
+    /// <summary>
+    /// Adds the Chinese lunisolar day under the Gregorian number. Opt-in, so the
+    /// default calendar keeps its single-line grid; dates outside the BCL
+    /// calendar's range (1901-02-19 – 2101-01-28) simply show no lunar line.
+    /// </summary>
+    [Parameter] public bool ShowLunar { get; set; }
+
     private CultureInfo Culture => CultureInfo.CurrentCulture;
 
     // The root participates in the base class DOM contract so Id/Class/Style/
@@ -35,9 +43,11 @@ public partial class DateCalendar : AeterniComponent
     // the consumer class and the state class are merged in one place.
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-date-calendar")
-        .Add("is-multi-month", VisibleMonths > 1);
+        .Add("is-multi-month", VisibleMonths > 1)
+        .Add("is-lunar", ShowLunar);
 
     private readonly Dictionary<CalendarDayKey, ElementReference> _dayElements = [];
+    private readonly Dictionary<DateOnly, ChineseLunarDate?> _lunarDateCache = [];
     private DateOnly? _pendingFocusDate;
     private DateOnly? FocusedDate { get; set; }
     private DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
@@ -52,7 +62,34 @@ public partial class DateCalendar : AeterniComponent
 
     private string MonthTitle(DateOnly month) => month.ToDateTime(TimeOnly.MinValue).ToString("yyyy MMMM", Culture);
 
-    private string DayLabel(DateOnly day) => day.ToDateTime(TimeOnly.MinValue).ToString("D", Culture);
+    private string DayLabel(DateOnly day)
+    {
+        var label = day.ToDateTime(TimeOnly.MinValue).ToString("D", Culture);
+        return LunarDate(day) is { } lunar
+            ? $"{label}, {UiText.DatePickerLunarLabel} {lunar.FullText}"
+            : label;
+    }
+
+    /// <summary>Secondary line for one cell; null when the feature is off or the date is out of range.</summary>
+    private string? LunarText(DateOnly day) => LunarDate(day)?.ShortText;
+
+    // Each visible cell asks once for its text and once for its accessible name;
+    // cache the conversion so a 6×7 grid does not convert every day twice.
+    private ChineseLunarDate? LunarDate(DateOnly day)
+    {
+        if (!ShowLunar)
+        {
+            return null;
+        }
+
+        if (!_lunarDateCache.TryGetValue(day, out var lunar))
+        {
+            lunar = ChineseLunarCalendar.TryGetLunarDate(day, out var parsed) ? parsed : null;
+            _lunarDateCache[day] = lunar;
+        }
+
+        return lunar;
+    }
 
     private static IEnumerable<DateOnly?> Days(DateOnly month)
     {
@@ -77,6 +114,7 @@ public partial class DateCalendar : AeterniComponent
     {
         base.OnParametersSet();
         _dayElements.Clear();
+        _lunarDateCache.Clear();
         if (VisibleMonths is < 1 or > 3)
             throw new ArgumentOutOfRangeException(nameof(VisibleMonths), VisibleMonths, "Visible months must be between 1 and 3.");
         DisplayMonth = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);

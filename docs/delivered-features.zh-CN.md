@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.35.0`
+文档版本：`10.36.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1244,6 +1244,7 @@ builder.Services.AddAeterniUI(options =>
     options.Text.DatePickerPlaceholder = "请选择日期";
     options.Text.DatePickerLabel = "日期选择器";
     options.Text.DatePickerCalendarLabel = "日历";
+    options.Text.DatePickerLunarLabel = "农历";
     options.Text.DatePickerPreviousMonthLabel = "上个月";
     options.Text.DatePickerNextMonthLabel = "下个月";
     options.Text.DateRangePickerLabel = "日期范围选择器";
@@ -1295,7 +1296,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid`、绑定回调（`ValueChanged` / `StartDateChanged` / `EndDateChanged`）与对应表达式参数（`ValueExpression` / `StartDateExpression` / `EndDateExpression`）。
+`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid`、`ShowLunar`、绑定回调（`ValueChanged` / `StartDateChanged` / `EndDateChanged`）与对应表达式参数（`ValueExpression` / `StartDateExpression` / `EndDateExpression`）。
 
 `DateRangePicker` 额外支持：
 
@@ -1303,13 +1304,15 @@ builder.Services.AddAeterniUI(options =>
 - `VisibleMonths`：同时显示 1～3 个月，默认 1；多月模式使用共享导航栏，隐藏相邻网格重复的跨月日期。
 - `PresetsAriaLabel`：快捷范围区域的可访问名称。
 
+`DatePicker` 与 `DateRangePicker` 共同支持 `ShowLunar`（默认 `false`）：在日历格内公历日期下方叠加中国农历副行，农历初一显示月名（如 `九月`，闰月为 `闰六月`），其余日期显示日名（`初十`、`廿三`、`三十`）；日格的无障碍名称同时在公历日期后追加 `DatePickerLunarLabel` 与完整农历日期（默认英文 `Lunar`，中文宿主可覆写为 `农历`）。该参数只影响日历的渲染与无障碍名称，不改变绑定值、触发器格式或选择逻辑。农历换算使用 BCL `System.Globalization.ChineseLunisolarCalendar`，覆盖公历 1901-02-19 至 2101-01-28；范围外的日期照常显示公历数字、不显示农历副行。不提供节气、干支、生肖、黄历宜忌，也不做历法切换或时区换算。
+
 ### 行为与无障碍
 
 日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
 
 ### 组合关系与实现边界
 
-两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。两者都有本组件拥有的真实根元素，基类属性完整落到 DOM；Small/Default/Large、hover、focus-visible、disabled 与 invalid 状态统一消费字段控件 Token，错误态不会被指针反馈覆盖。多月视图限制为 3 个月，不包含虚拟化、自定义日历系统或复杂本地化历法。示例：`/components/date-picker`。
+两个选择器共享 `PopupHost`、`Popover` 和内部 `DateCalendar`；`DateCalendar` 只负责月份网格及键盘导航，标记为非稳定公共 API，不应直接使用。两者都有本组件拥有的真实根元素，基类属性完整落到 DOM；Small/Default/Large、hover、focus-visible、disabled 与 invalid 状态统一消费字段控件 Token，错误态不会被指针反馈覆盖。多月视图限制为 3 个月，不包含虚拟化、历法切换或其他本地化历法；可选的中国农历副行只是公历主日期上的辅助文字，不改变主日期体系。示例：`/components/date-picker`。
 
 **已知边界（REV-162）**：日历网格与时间滚轮的方向键按**逻辑方向**映射（Left = 前一天/更小），不会在 RTL 页面里镜像；镜像需要按书写方向反转按键映射（`Slider` / `Menu` 走的是 JS 读取 `direction` 的路线，日期族目前没有自己的 JS 模块），因此这里如实登记为已知限制而不是静默行为。
 
@@ -1351,6 +1354,7 @@ builder.Services.AddAeterniUI(options =>
 - `MinDateTime` / `MaxDateTime` 定义边界，`DisabledDate` 禁用整天，`DisabledDateTime` 禁用具体候选值；没有任何可用时间的日期自动不可选。
 - `TimeStep`、`TimeFormat` 控制共享时/分/秒滚轮的精度与显示；`TimeStep` 默认 1 秒、`TimeFormat` 默认 24 小时制，完整触发器默认显示到秒，显式 `Format` 始终优先。
 - `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。
+- `ShowLunar`（默认 `false`）与 `DatePicker` 同义：只在日期网格内叠加中国农历副行并扩充日格的无障碍名称，不改变时间滚轮、触发器格式或提交值。
 
 ### 行为与无障碍
 

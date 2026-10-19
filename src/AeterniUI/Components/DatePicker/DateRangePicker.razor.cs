@@ -38,6 +38,9 @@ public partial class DateRangePicker : AeterniComponent
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool Invalid { get; set; }
 
+    /// <summary>Shows the Chinese lunisolar day under the Gregorian number in the calendar.</summary>
+    [Parameter] public bool ShowLunar { get; set; }
+
     private bool _open;
     private DateOnly? _hoverDate;
     private FieldIdentifier _startFieldIdentifier;

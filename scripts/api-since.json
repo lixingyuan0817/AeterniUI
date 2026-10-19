@@ -20,6 +20,9 @@
     "Upload.AriaLabel": "10.32.0",
     "Upload.AriaDescribedBy": "10.32.0",
     "Popup.Anchor": "10.33.0",
-    "Segmented.Shape": "10.33.0"
+    "Segmented.Shape": "10.33.0",
+    "DatePicker.ShowLunar": "10.36.0",
+    "DateRangePicker.ShowLunar": "10.36.0",
+    "DateTimePicker.ShowLunar": "10.36.0"
   }
 }

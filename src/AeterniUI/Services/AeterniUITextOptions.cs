@@ -142,6 +142,12 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a date calendar.</summary>
     public string DatePickerCalendarLabel { get; set; } = "Calendar";
 
+    /// <summary>
+    /// Prefix for the Chinese lunisolar date appended to a calendar day's
+    /// accessible name when the calendar shows the lunar line.
+    /// </summary>
+    public string DatePickerLunarLabel { get; set; } = "Lunar";
+
     /// <summary>Trigger text of a <c>DatePicker</c> that has no value yet.</summary>
     public string DatePickerPlaceholder { get; set; } = "Select date";
 
@@ -318,6 +324,7 @@ public sealed class AeterniUITextOptions
         DateTimePickerPlaceholder = Or(DateTimePickerPlaceholder, defaults.DateTimePickerPlaceholder);
         DateTimePickerLabel = Or(DateTimePickerLabel, defaults.DateTimePickerLabel);
         DatePickerCalendarLabel = Or(DatePickerCalendarLabel, defaults.DatePickerCalendarLabel);
+        DatePickerLunarLabel = Or(DatePickerLunarLabel, defaults.DatePickerLunarLabel);
         FlashCardGroupLabel = Or(FlashCardGroupLabel, defaults.FlashCardGroupLabel);
         DatePickerPlaceholder = Or(DatePickerPlaceholder, defaults.DatePickerPlaceholder);
         DatePickerLabel = Or(DatePickerLabel, defaults.DatePickerLabel);

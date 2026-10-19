@@ -370,6 +370,7 @@ public static class ShowcaseSearchIndex
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-when-title", "何时使用"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-presets", "日期范围与快捷预设"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-single", "单日选择与边界"),
+        new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-lunar", "农历叠加"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-form", "在 FormField 中校验"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-api-title", "参数与事件"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-related-title", "相关组件"),

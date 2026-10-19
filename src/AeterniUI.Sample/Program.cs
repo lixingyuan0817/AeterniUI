@@ -15,6 +15,10 @@ builder.Services.AddAeterniUI(options =>
     options.Text.TimePickerCancelText = "取消";
     options.Text.TimePickerConfirmText = "确定";
 
+    // 日历格的农历副行是「正月初一」这类短文本，读屏需要前缀才知道它是农历；库默认是英文，
+    // 示例站统一补成中文。注意它只影响无障碍名称，不改变触发器与网格里的可见格式。
+    options.Text.DatePickerLunarLabel = "农历";
+
     // 库的默认文案是英文、由宿主本地化；示例站整体是中文，所以这里把浮层与确认的可见文案补齐，
     // 否则同一页里会同时出现「取消」和「Cancel」，读者只会把它当成缺陷而不是"默认值"。
     options.Text.ConfirmAcceptLabel = "确定";
