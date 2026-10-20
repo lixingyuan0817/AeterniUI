@@ -1,0 +1,60 @@
+/* Anchor 示例的预览布局：左侧目录 + 右侧可滚动正文。目录属于演示结构，不覆盖组件
+   自身样式（组件外观由库内 .razor.css 负责），这里只提供预览框里的栅格与滚动容器。 */
+.preview-anchor-demo {
+    display: grid;
+    grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--aeterni-spacing-6);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 720px;
+    text-align: start;
+}
+
+/* 目录自己不该被预览框的虚线网格拉高；示例只排版栅格，不覆盖组件样式。 */
+.preview-anchor-demo__content {
+    display: grid;
+    gap: var(--aeterni-spacing-6);
+    min-width: 0;
+}
+
+.preview-anchor-demo__section {
+    min-width: 0;
+}
+
+.preview-anchor-demo__section h4 {
+    margin: 0 0 var(--aeterni-spacing-2);
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-md);
+}
+
+.preview-anchor-demo__section p {
+    margin: 0 0 var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-relaxed);
+}
+
+.preview-anchor-demo__section p:last-child {
+    margin-bottom: 0;
+}
+
+/* 内部滚动容器：高度受限是演示 ContainerId 的必要条件。滚动条样式跟随宿主根元素，
+   宽度按 showcase 的约定对元素本身声明。 */
+.preview-anchor-demo__scroller {
+    box-sizing: border-box;
+    max-height: 320px;
+    padding: var(--aeterni-spacing-4);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-primary);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+@media (max-width: 720px) {
+    .preview-anchor-demo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

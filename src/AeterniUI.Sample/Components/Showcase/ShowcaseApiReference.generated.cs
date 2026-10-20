@@ -560,6 +560,26 @@ public static class ShowcaseApiReference
                 new("ValueChanged", "EventCallback<TItem?>", "", "", "事件回调", ""),
                 new("ValueExpression", "Expression<Func<TItem?>>?", "", "", "属性", ""),
             },
+            ["transfer"] = new ShowcaseApiMember[]
+            {
+                new("AriaDescribedBy", "string?", "", "根 group 的补充说明 id，会与表单字段给出的说明合并。", "属性", "10.37.0"),
+                new("AriaLabel", "string?", "", "根 group 的可访问名；缺省取 UiText.TransferLabel。", "属性", "10.37.0"),
+                new("DisabledSelector", "Func<TItem, bool>?", "", "判定条目是否不可迁移；不可迁移的条目仍会渲染，但不能勾选或迁移。", "属性", "10.37.0"),
+                new("EmptyContent", "RenderFragment?", "", "某一列没有可见条目时显示的内容；缺省取 UiText.TransferEmptyText。", "属性", "10.37.0"),
+                new("Invalid", "bool", "", "是否呈现校验失败状态。", "属性", "10.37.0"),
+                new("ItemTemplate", "RenderFragment<TItem>?", "", "条目内容模板；缺省渲染 TextSelector 给出的文案。", "属性", "10.37.0"),
+                new("Items", "IReadOnlyList<TItem>", "", "候选全集，同时决定源列的渲染顺序。", "属性", "10.37.0"),
+                new("Required", "bool", "", "是否呈现必填状态。", "属性", "10.37.0"),
+                new("SearchPlaceholder", "string?", "", "搜索框占位文案；缺省取 UiText.TransferSearchPlaceholder。", "属性", "10.37.0"),
+                new("Searchable", "bool", "", "是否为每列渲染本地搜索框；过滤只影响可见行，不改变已选项。", "属性", "10.37.0"),
+                new("SelectedValues", "IReadOnlyList<TItem>", "", "已选项，受控值，同时决定目标列的渲染顺序。", "属性", "10.37.0"),
+                new("SelectedValuesChanged", "EventCallback<IReadOnlyList<TItem>>", "", "已选项变化回调；迁移、剔除不在候选集里的值都会触发。", "事件回调", "10.37.0"),
+                new("SelectedValuesExpression", "Expression<Func<IReadOnlyList<TItem>>>?", "", "已选项的绑定表达式，供表单校验推导字段标识。", "属性", "10.37.0"),
+                new("Size", "Size", "", "控件档位，行高与字号按档位收敛。", "属性", "10.37.0"),
+                new("SourceTitle", "string?", "", "源列标题，同时作为源 listbox 的可访问名；缺省取 UiText.TransferSourceTitle。", "属性", "10.37.0"),
+                new("TargetTitle", "string?", "", "目标列标题，同时作为目标 listbox 的可访问名；缺省取 UiText.TransferTargetTitle。", "属性", "10.37.0"),
+                new("TextSelector", "Func<TItem, string>?", "", "取条目文案；缺省用 ToString()。", "属性", "10.37.0"),
+            },
             ["date-picker"] = new ShowcaseApiMember[]
             {
                 new("DatePicker.AriaLabel", "string?", "", "控件无障碍名称；缺省取全局文案表。", "属性", ""),
@@ -656,6 +676,17 @@ public static class ShowcaseApiReference
                 new("BreadcrumbItem.Target", "string?", "", "可选浏览上下文；取 _blank 时自动补 rel=\\\"noopener noreferrer\\\"。", "属性", ""),
                 new("BreadcrumbItem.Icon", "RenderFragment?", "", "可选装饰图标。", "属性", ""),
                 new("BreadcrumbItem.Disabled / Visible", "bool", "false / true", "禁用或隐藏层级；禁用项保留链接但移出 Tab 序列，隐藏项不参与当前项判断。", "属性", ""),
+            },
+            ["anchor"] = new ShowcaseApiMember[]
+            {
+                new("AriaLabel", "string?", "", "Accessible name of the navigation region. Defaults to UiText.AnchorLabel.", "属性", "10.38.0"),
+                new("ContainerId", "string?", "", "Id of the scroll container the sections live in. Empty means the document scrolls.", "属性", "10.38.0"),
+                new("Items", "IReadOnlyList<AnchorLink>", "", "Destinations in reading order. Each id must be unique and match a section the host renders.", "属性", "10.38.0"),
+                new("Offset", "int", "", "Space in pixels left above the target section, e.g. for a sticky page header. Negative values are treated as zero.", "属性", "10.38.0"),
+                new("Smooth", "bool", "", "Whether clicks scroll smoothly. The reduced-motion preference always wins and scrolls instantly.", "属性", "10.38.0"),
+                new("UpdateLocation", "bool", "", "Whether a click replaces the URL fragment with history.replaceState instead of adding a history entry.", "属性", "10.38.0"),
+                new("AnchorLink.Id", "string", "必填", "目标段元素的 id，由宿主渲染；空 id 与重复 id 在参数设置阶段拒绝。", "属性", ""),
+                new("AnchorLink.Title", "string", "必填", "链接可见文案，同时作为段导航的可读名称；空标题在参数设置阶段拒绝。", "属性", ""),
             },
             ["stepper"] = new ShowcaseApiMember[]
             {
@@ -886,6 +917,10 @@ public static class ShowcaseApiReference
             ["combobox"] = new ShowcaseApiMember[]
             {
                 new("ComboBox<TItem>", "泛型组件", "", "TItem 必须是引用类型；接入 FormFieldContext 和 EditContext。", "接口", ""),
+            },
+            ["transfer"] = new ShowcaseApiMember[]
+            {
+                new("Transfer<TItem>", "泛型组件", "", "TItem 必须是引用类型；接入 FormFieldContext 与 EditContext，SelectedValues 必须是 Items 的子集。", "接口", ""),
             },
             ["menu"] = new ShowcaseApiMember[]
             {

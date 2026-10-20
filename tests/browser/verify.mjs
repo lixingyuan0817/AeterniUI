@@ -2792,6 +2792,288 @@ check('Cascader 确认叶子后关闭并展示整条路径',
         && cascader.text === '浙江省 / 杭州市 / 西湖区',
     JSON.stringify({ text: cascader.text, expanded: cascader.after?.expanded }));
 
+// ---------------------------------------------------------------- Transfer 10.37.0
+// 双列表迁移：数据归宿主，目标列的内容与预览里的计数都来自 SelectedValues，因此"目标列出现
+// 条目"与"计数增加"是同一事实的两个投影。这里的点击走真实指针（CDP 鼠标事件）、勾选走真实
+// 键盘（CDP 按键），不在页面里合成 click——模块的 keydown 监听与 Blazor 的事件委托都是异步
+// 挂上的，合成事件会绕过"真的能点、真的能按"这一层验证。
+await goto(`${BASE}/components/transfer`);
+await waitForApp();
+
+// 先滚进视口再点：页面很长，预览里的第一行通常不在视口内，直接按矩形算出的坐标会落到别的元素上。
+// 示例站全局是 `scroll-behavior: smooth`，滚动会在 scrollIntoView 返回后继续跑一段，因此这里
+// 等滚动停稳、并且用 elementFromPoint 确认落点真的在目标元素里，再发真实的指针事件。
+async function clickVisible(selector) {
+    for (let attempt = 0; attempt < 6; attempt++) {
+        const found = await evaluate(`(() => {
+            const node = document.querySelector(${JSON.stringify(selector)});
+            if (!node) return false;
+            node.scrollIntoView({ block: 'center', behavior: 'instant' });
+            return true;
+        })()`);
+        if (!found) return false;
+
+        let previous = -1;
+        for (let tick = 0; tick < 25; tick++) {
+            const current = await evaluate('window.scrollY');
+            if (current === previous) break;
+            previous = current;
+            await sleep(80);
+        }
+
+        const target = await evaluate(`(() => {
+            const node = document.querySelector(${JSON.stringify(selector)});
+            if (!node) return null;
+            const rect = node.getBoundingClientRect();
+            const x = Math.round(rect.left + rect.width / 2);
+            const y = Math.round(rect.top + rect.height / 2);
+            const hit = document.elementFromPoint(x, y);
+            return { x, y, inside: !!hit && (hit === node || node.contains(hit)) };
+        })()`);
+
+        if (target?.inside) {
+            await clickAt(target.x, target.y);
+            return true;
+        }
+        await sleep(120);
+    }
+
+    return false;
+}
+
+const TRANSFER_SOURCE = '#transfer-basic .aeterni-transfer__list[data-side="source"]';
+const TRANSFER_FIRST_ROW = `${TRANSFER_SOURCE} [role="option"]`;
+const TRANSFER_MOVE = '#transfer-basic .aeterni-transfer__actions .aeterni-transfer__action';
+
+const transferSnapshot = () => evaluate(`(() => {
+    const basic = document.querySelector('#transfer-basic');
+    if (!basic) return null;
+    const texts = list => [...list.querySelectorAll('[role="option"]')].map(option =>
+        (option.querySelector('.aeterni-transfer__option-text')?.textContent ?? option.textContent)
+            .replace(/\\s+/g, ' ').trim());
+    return {
+        source: texts(basic.querySelector('.aeterni-transfer__list[data-side="source"]')),
+        target: texts(basic.querySelector('.aeterni-transfer__list[data-side="target"]')),
+        feedback: basic.querySelector('.preview-feedback')?.textContent?.replace(/\\s+/g, ' ').trim() ?? null
+    };
+})()`);
+
+// 就绪信号：模块把 listbox 上的 keydown 转发给 C# 之后才会写 aria-activedescendant，
+// 所以"真实 ArrowDown 能移动活动项"同时证明 Blazor 处理器与模块监听都已挂上。
+async function waitForTransferKeyboard(listSelector) {
+    await evaluate(`(() => {
+        const list = document.querySelector(${JSON.stringify(listSelector)});
+        if (list) list.focus();
+    })()`);
+    const deadline = Date.now() + 10000;
+    let active = null;
+    while (Date.now() < deadline) {
+        await key('ArrowDown', 'ArrowDown', 40);
+        await sleep(120);
+        active = await evaluate(`document.querySelector(${JSON.stringify(listSelector)})?.getAttribute('aria-activedescendant') ?? null`);
+        if (typeof active === 'string' && active.length > 0) return { ready: true, active };
+    }
+    return { ready: false, active };
+}
+
+const transferKeyReady = await waitForTransferKeyboard(TRANSFER_SOURCE);
+const transferBefore = await transferSnapshot();
+const transferRowClicked = await clickVisible(TRANSFER_FIRST_ROW);
+
+const transferChecked = await (async () => {
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const row = document.querySelector(${JSON.stringify(TRANSFER_FIRST_ROW)});
+            return row ? { selected: row.getAttribute('aria-selected'), classed: row.classList.contains('is-selected') } : null;
+        })()`);
+        if (state?.selected === 'true' && state.classed) return state;
+        await sleep(100);
+    }
+    return state;
+})();
+
+// 勾选后第一个动作按钮（"把所选迁移到目标列"）才可用；等它可用再发真实指针点击。
+const transferMoveEnabled = await (async () => {
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+        const enabled = await evaluate(`(() => {
+            const button = document.querySelector(${JSON.stringify(TRANSFER_MOVE)});
+            return !!button && !button.disabled;
+        })()`);
+        if (enabled) return true;
+        await sleep(100);
+    }
+    return false;
+})();
+const transferMoveClicked = transferMoveEnabled && await clickVisible(TRANSFER_MOVE);
+
+const transferAfter = await (async () => {
+    const deadline = Date.now() + 5000;
+    let snapshot = await transferSnapshot();
+    while (Date.now() < deadline) {
+        if (snapshot && snapshot.target.length === 3 && snapshot.target.includes('导出报表')) return snapshot;
+        await sleep(100);
+        snapshot = await transferSnapshot();
+    }
+    return snapshot;
+})();
+
+check('Transfer 点击源列首行勾选后再点迁移按钮，条目出现在目标列且 SelectedValues 计数回显',
+    transferKeyReady.ready && transferRowClicked && transferChecked?.selected === 'true' && transferChecked.classed
+        && transferMoveClicked && transferBefore?.target.length === 2
+        && transferAfter?.target.length === 3 && transferAfter.target.includes('导出报表')
+        && !transferAfter.source.includes('导出报表')
+        && /已授权 3 \/ 6 项/.test(transferAfter.feedback ?? ''),
+    JSON.stringify({
+        keyReady: transferKeyReady, rowClicked: transferRowClicked, checked: transferChecked,
+        moveClicked: transferMoveClicked, before: transferBefore, after: transferAfter
+    }));
+
+// 过滤只影响可见行、不改已选项：第二条 demo 初始没有已选项，源列是全部 6 项，输入后只剩包含
+// 关键词的那一项。输入事件与真实键入同一条路径（Blazor 的 @oninput 读的就是事件目标的值）。
+const transferSearch = await (async () => {
+    const count = () => evaluate(
+        `document.querySelectorAll('#transfer-search .aeterni-transfer__list[data-side="source"] [role="option"]').length`);
+    const before = await count();
+    const typed = await evaluate(`(() => {
+        const input = document.querySelector('#transfer-search input.aeterni-transfer__search[aria-label="可用权限"]');
+        if (!input) return false;
+        input.value = '导出';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+    })()`);
+    const deadline = Date.now() + 5000;
+    let after = before;
+    while (Date.now() < deadline) {
+        after = await count();
+        if (after !== before) break;
+        await sleep(100);
+    }
+    const texts = await evaluate(
+        `[...document.querySelectorAll('#transfer-search .aeterni-transfer__list[data-side="source"] [role="option"]')]
+            .map(row => row.textContent.replace(/\\s+/g, ' ').trim())`);
+    return { before, after, typed, texts };
+})();
+check('Transfer 搜索框输入后源列可见项减少，且只剩命中的条目',
+    transferSearch.typed && transferSearch.before === 6 && transferSearch.after === 1
+        && transferSearch.texts.includes('导出报表'),
+    JSON.stringify(transferSearch));
+
+// 真实键盘：先 ArrowDown 建立活动项，再按 Space。两次都走模块的 keydown 转发，状态由 C# 决定，
+// 再渲染回字符串形式的 aria-selected。
+const transferSpace = await (async () => {
+    const ready = await waitForTransferKeyboard(TRANSFER_SOURCE);
+    if (!ready.ready) return { ready: false };
+    await key(' ', 'Space', 32);
+    const deadline = Date.now() + 5000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const node = document.getElementById(${JSON.stringify(ready.active)});
+            return node ? { selected: node.getAttribute('aria-selected'), classed: node.classList.contains('is-selected') } : null;
+        })()`);
+        if (state?.selected === 'true' && state.classed) return { ready: true, activeId: ready.active, state };
+        await sleep(100);
+    }
+    return { ready: true, activeId: ready.active, state };
+})();
+check('Transfer 源列容器上真实 Space 切换勾选，aria-selected 变为字符串 true',
+    transferSpace.ready && transferSpace.state?.selected === 'true' && transferSpace.state.classed,
+    JSON.stringify(transferSpace));
+
+// ---------------------------------------------------------------- Anchor 10.38.0
+// 段导航的浏览器契约：容器内的真实滚动会把 aria-current 带到对应链接；点击链接只替换 URL
+// 片段（history.replaceState），不产生历史条目、不触发 hashchange、不经过 Blazor 路由。
+await goto(`${BASE}/components/anchor`);
+await waitForApp();
+
+const anchorActiveId = () => evaluate(`(() => {
+    const link = document.querySelector('#anchor-container a[aria-current="location"]');
+    return link ? link.getAttribute('href').slice(1) : null;
+})()`);
+
+async function scrollAnchorContainerTo(id) {
+    return evaluate(`(() => {
+        const scroller = document.getElementById('anchor-container-scroller');
+        const section = document.getElementById(${JSON.stringify(id)});
+        if (!scroller || !section) return null;
+        // 真实滚动：写 scrollTop 会触发浏览器自己的 scroll 事件，模块据滚动位置重算当前段。
+        // 落点用与组件一致的公式（段顶 - 容器顶 + 当前偏移 - Offset=16）。
+        scroller.scrollTop = Math.round(
+            section.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 16);
+        return { scrollTop: Math.round(scroller.scrollTop), max: scroller.scrollHeight - scroller.clientHeight };
+    })()`);
+}
+
+// 模块挂上之前不会有任何滚动标记，因此这里用重试而不是固定等待：滚动到第二节，直到
+// aria-current 落到它的链接上。
+const anchorScroll = await (async () => {
+    const deadline = Date.now() + 10000;
+    let scrolled = null;
+    let active = null;
+    while (Date.now() < deadline) {
+        scrolled = await scrollAnchorContainerTo('anchor-container-tracking');
+        await sleep(200);
+        active = await anchorActiveId();
+        if (active === 'anchor-container-tracking') break;
+    }
+    return { scrolled, active };
+})();
+check('Anchor 内部滚动容器滚动后，aria-current="location" 跟随到对应链接',
+    !!anchorScroll.scrolled && anchorScroll.scrolled.scrollTop > 0 && anchorScroll.scrolled.max > 0
+        && anchorScroll.active === 'anchor-container-tracking',
+    JSON.stringify(anchorScroll));
+
+// 点击前：清掉片段、装好标记，并记录历史条目数——原生锚点跳转会产生历史条目并触发
+// hashchange，replaceState 两者都不会，因此这两项就是"没有走路由/原生导航"的判别证据。
+const anchorClickBefore = await evaluate(`(() => {
+    history.replaceState(null, '', location.pathname + location.search);
+    window.__anchorMarker = 'anchor-clicked';
+    window.__anchorPushState = 0;
+    window.__anchorHashChanges = 0;
+    const original = history.pushState.bind(history);
+    history.pushState = (...args) => { window.__anchorPushState += 1; return original(...args); };
+    window.__anchorScroller = document.getElementById('anchor-container-scroller');
+    window.addEventListener('hashchange', () => { window.__anchorHashChanges += 1; });
+    return { historyLength: history.length, path: location.pathname };
+})()`);
+
+const anchorLinkClicked = await clickVisible('#anchor-container a[href="#anchor-container-dispose"]');
+const anchorClick = await (async () => {
+    const deadline = Date.now() + 8000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const scroller = document.getElementById('anchor-container-scroller');
+            const current = document.querySelector('#anchor-container a[aria-current="location"]');
+            return {
+                path: location.pathname,
+                hash: location.hash,
+                historyLength: history.length,
+                pushState: window.__anchorPushState,
+                hashChanges: window.__anchorHashChanges,
+                marker: window.__anchorMarker ?? null,
+                sameScroller: window.__anchorScroller === scroller,
+                scrollTop: scroller ? Math.round(scroller.scrollTop) : null,
+                active: current ? current.getAttribute('href').slice(1) : null
+            };
+        })()`);
+        if (state.hash === '#anchor-container-dispose' && state.active === 'anchor-container-dispose') break;
+        await sleep(100);
+    }
+    return state;
+})();
+check('Anchor 点击链接后 location.hash 更新为对应 id，且没有路由级导航/页面重渲染',
+    anchorLinkClicked && !!anchorClick && anchorClick.path === anchorClickBefore.path
+        && anchorClick.hash === '#anchor-container-dispose'
+        && anchorClick.historyLength === anchorClickBefore.historyLength
+        && anchorClick.pushState === 0 && anchorClick.hashChanges === 0
+        && anchorClick.marker === 'anchor-clicked' && anchorClick.sameScroller
+        && anchorClick.scrollTop > 0 && anchorClick.active === 'anchor-container-dispose',
+    JSON.stringify({ linkClicked: anchorLinkClicked, before: anchorClickBefore, after: anchorClick }));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

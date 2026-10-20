@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.36.0`
+文档版本：`10.38.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1586,7 +1586,76 @@ async Task StartUpload(UploadFile file)
 }
 ```
 
-## 51. 当前边界
+## 51. Transfer
+
+### 支持能力
+
+`Transfer<TItem>` 是双列表迁移控件：源列常驻展示候选，目标列常驻展示已选，四个迁移按钮在两侧之间搬运勾选条目。数据、排序与业务规则归宿主，组件负责两列的渲染、勾选、迁移、搜索过滤与键盘交互。
+
+- `Items`（候选全集，同时决定源列顺序）、`SelectedValues` + `SelectedValuesChanged` + `SelectedValuesExpression`（受控，同时决定目标列顺序），支持标准绑定与 `EditContext` 校验。
+- `TextSelector`、`DisabledSelector`、`ItemTemplate`；`SourceTitle` / `TargetTitle` 同时作为可见列标题与 listbox 可访问名。
+- `Searchable`（默认关闭）为每列启用本地子串过滤（`OrdinalIgnoreCase`），过滤只影响可见行；`SearchPlaceholder` 覆盖占位文案。
+- `Size`（Small / Default / Large）、`Invalid`、`Required`、`EmptyContent`、`AriaLabel`、`AriaDescribedBy` 以及继承的 `Disabled`。
+- 目标列顺序就是 `SelectedValues` 的顺序，迁入追加到末尾；`SelectedValues` 必须是 `Items` 的子集，参数同步时剔除越界值并回调 `SelectedValuesChanged`（与 `List` 同一约定）。
+- 自有文案使用 `AeterniUITextOptions.TransferLabel`、`TransferSourceTitle`、`TransferTargetTitle`、`TransferSearchPlaceholder`、`TransferEmptyText`、`TransferMoveSelectedLabel`、`TransferRemoveSelectedLabel`、`TransferMoveAllLabel` 和 `TransferRemoveAllLabel`。
+
+### 行为与无障碍
+
+根元素是 `role="group"`，其 `aria-label` 缺省取 `TransferLabel`；`aria-describedby` 合并宿主值与 `FormField` 描述 id，`aria-invalid` / `aria-required` 同时反映实例参数与字段状态。两列各是一个 `role="listbox"` + `aria-multiselectable="true"`，列标题是它的 `aria-label`；条目是 `role="option"`，`aria-selected="true|false"` 表达「已勾选、待迁移」的瞬态状态，禁用条目输出 `aria-disabled` 且不参与导航、勾选与迁移。两列都只有**一个** Tab 停留点，焦点留在 listbox 容器上、活动项由 `aria-activedescendant` 指向；`↑`/`↓` 与 `Home`/`End` 跳过禁用项移动，`Space`/`Enter` 切换勾选，四个迁移按钮是原生 `<button>`、不进入选项 Tab 序。勾选是瞬态状态，不写回宿主；过滤变化按列清空勾选，避免看不见的条目被迁移，「全部迁移」只作用于当前可见且未禁用的条目。
+
+### 实现边界
+
+组件不负责远程请求、分页、排序、去重策略和业务校验，也不虚拟化：宿主提供当前 `Items` 快照；大列表可配合 `VirtualList` 或在 `Items` 上分页。第一版不做拖拽排序、逐列全选复选框、异步搜索与服务端查询。与 `MultiSelect` 的分工：`MultiSelect` 用触发器 + 弹层做空间受限的多值录入，`Transfer` 把候选与已选并列常驻、适合「从大集合里挑一部分并持续看清两侧差异」。示例：`/components/transfer`。
+
+### 基础用法
+
+```razor
+<Transfer TItem="Permission"
+          Items="Permissions"
+          @bind-SelectedValues="Granted"
+          TextSelector="@(permission => permission.Name)"
+          SourceTitle="可选权限"
+          TargetTitle="已授予"
+          Searchable />
+```
+
+## 52. Anchor
+
+### 支持能力
+
+`Anchor` 渲染页内段导航：宿主提供目标段 id 与标题，组件输出 `nav` 链接列表，并在滚动时把当前段标记为当前项。它不渲染被指向的内容，也不接管路由。
+
+- `Items`（`IReadOnlyList<AnchorLink>`，按给定顺序渲染）；`AnchorLink` 暴露 `Id` 与 `Title`，`Id` 必须非空且唯一、`Title` 不能为空白。
+- `ContainerId` 指定滚动容器 id（缺省或找不到时按文档滚动）；`Offset` 为粘性页头留白（负数按 0），`Smooth` 控制滚动是否平滑（`prefers-reduced-motion` 始终优先），`UpdateLocation` 控制点击后是否更新 URL 片段（默认开启）。
+- `AriaLabel` 缺省取 `AeterniUITextOptions.AnchorLabel`。
+
+### 行为与无障碍
+
+根元素是原生 `<nav aria-label>`，内部 `<ol>` + 原生 `<a href="#id">` 链接；当前项带 `aria-current="location"` 与 `is-active` 类，且同一时刻只有一个当前项。当前项由浏览器的滚动位置推导（`IntersectionObserver` 观察目标段，并以真实滚动偏移兜底），通过 `JSInvokable` 回传 C# 渲染，不改变 Tab 序、不抢焦点。点击链接时组件在容器内滚动到「段顶 − Offset」，滚动行为按 `Smooth` 与 `prefers-reduced-motion` 收敛；`UpdateLocation` 开启时用 `history.replaceState` 只替换 URL 片段，不产生历史条目、也不触发 Blazor 路由更新。JS 不可用时 `href="#id"` 保持原生锚点行为；未知容器 id 与缺失目标段都退化而不是报错。
+
+### 实现边界
+
+组件只做段导航与当前项标记，不创建或渲染目标段、不生成目录内容、不做嵌套子级与 affix 吸附布局，也不通过 `NavigationManager` 跳转。目标段 id 由宿主渲染并保证与 `Items` 一致。示例：`/components/anchor`。
+
+### 基础用法
+
+```razor
+<Anchor Items="Sections"
+        ContainerId="docs-scroll"
+        Offset="64"
+        UpdateLocation />
+
+@code {
+    private static readonly AnchorLink[] Sections =
+    [
+        new("overview", "概览"),
+        new("api", "接口"),
+        new("notes", "说明")
+    ];
+}
+```
+
+## 53. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

@@ -86,6 +86,8 @@ await CheckTokenSurfaceAsync();
 await CheckUploadAsync();
 await CheckSegmentedShapeAsync();
 await CheckSegmentedKeyboardAsync();
+await TransferChecks.RunAsync(renderer, failures);
+await AnchorChecks.RunAsync(renderer, failures);
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -98,7 +100,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (38 groups).");
+Console.WriteLine("Component contract checks passed (40 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the

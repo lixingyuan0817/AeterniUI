@@ -1,10 +1,37 @@
 # AeterniUI 发布历史
 
-文档版本：`10.36.0`
+文档版本：`10.38.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.38.0 `Anchor` 页内锚点导航（优先级 9 第 2 项交付）
+
+`component-plan` §3.2 决策门结论的实现。长页面此前只能手写 `<a href="#id">` 再自己维护 scroll spy，活动项判定、粘性页头留白与 URL 片段处理没有共享实现；本批交付 `Anchor`，只做段导航与当前项标记，不接管路由。
+
+- [x] 组件 `Components/Anchor/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js`）：参数 `Items`、`ContainerId`、`Offset`、`UpdateLocation`（默认 `true`）、`Smooth`（默认 `true`）、`AriaLabel`；模型 `AnchorLink(Id, Title)` 与组件同文件（与 `BreadcrumbItem` 同一约定），`Items` 的 null、空 id、重复 id、空标题都在参数设置阶段拒绝。
+- [x] 语义：`<nav aria-label>` + `<ol>` + 原生 `<a href="#id">`；当前项唯一带 `aria-current="location"` 与 `is-active`，其余不带；活动项变化不改变 Tab 序、不抢焦点。
+- [x] 当前项判定：JS 用 `IntersectionObserver`（root 为容器或文档）触发、按真实滚动偏移取「最后一个越过 `Offset` 线的段」；滚到滚动区间底部时，最后一段直接成为当前项——哪怕它短到顶部从未越过 `Offset` 线、而更早的段仍然越过（点击最后一条链接后 `aria-current` 会立即落到该链接，而不是停在上一段）。结果经 `[JSInvokable] OnActiveSectionChangedAsync` 回传 C#，只在值变化时重渲染，未知或已被新参数移除的 id 归一为空。
+- [x] 点击：JS `preventDefault` 后在容器或文档内滚动到「段顶 − `Offset`」，平滑与否按 `Smooth` 与 `prefers-reduced-motion` 收敛；`UpdateLocation` 开启时只用 `history.replaceState` 替换片段（保留当前 path/search，避免 `<base href="/">` 把地址改写成站点根），不产生历史条目、也不走 `NavigationManager`，因此不触发路由或组件重渲染。未知容器 id 与缺失目标段都退化为原生锚点行为。
+- [x] `dispose` 释放 observer、click 与 scroll 监听；重复 attach 幂等；无 `IntersectionObserver` 的环境退化为滚动计算。文案 `AnchorLabel` 接入 `AeterniUITextOptions` 与 `FillEmptyFrom`。
+- [x] 示例页 `/components/anchor`（文档滚动、内部滚动容器、`Offset` + `UpdateLocation` + `Smooth` 三组 demo）并登记进 `ShowcaseCatalog`；API 表与搜索索引生成物重跑。
+- [x] 第一版明确不做：嵌套子级、affix（吸附布局）、路由跳转、自动生成目录内容。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **40 组**（新增 `AnchorChecks`：`nav`/`ol`/`a` 形状、`aria-label` 缺省值、`href` 与目标 id 一一对应、初始无当前项、`OnActiveSectionChangedAsync` 回传后 `aria-current` 唯一且落在对应链接、未知 id 清空、Items 四类参数校验、`JsModule` 与 `[JSInvokable]`、无 CJK 与无泄漏花括号）；`node --test tests/*.test.mjs` **112 项**通过（新增 `anchor.test.mjs` 8 项：observer/监听建立与释放、幂等 attach、滚动推导与去重、容器滚动 + 片段替换、reduced-motion、原生点击降级、无 IntersectionObserver 环境）；`node tests/sample-docs.test.mjs` 8/8；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（新增文案键）、`check-css-comments.mjs`、`check-contrast.mjs`、`check-scrollbars.mjs`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过；`tests/browser/run.sh` 本机复跑 **144/150**，两个新组件页的 5 条断言全部 PASS（容器内真实滚动后当前项跟随；真实点击后片段更新且 `history.length`/`pushState`/`hashchange` 均为 0、scroller 与 window 标记未被重建）；其余 6 条失败集中在与本次改动无关的既有几何断言（Segmented 的 Home/End 滚动量、Upload 目录点击落点、设置浮层与 Popover 几何、卡片内边距），它们随本机无头浏览器视口尺寸（500×450 / 750×438 两次运行结果不同）而变，仓库在 10.36.0 记录里已注明浏览器全量回归存在环境项；CI 的 build 工作流会按固定环境复跑。按「功能新增递增第二位」（§4.9）从 `10.37.0` 升到 `10.38.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+
+## 10.37.0 `Transfer` 双列表迁移（优先级 9 第 1 项交付）
+
+`component-plan` 决策门结论（§3.1）的实现。`MultiSelect` 把候选藏在弹层里、只回显已选标签，无法同时看清「还剩什么」与「已选什么」；本批交付 `Transfer`，两列并列常驻，勾选后批量迁移，数据与排序仍归宿主。
+
+- [x] 组件 `Components/Transfer/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js`）：`Transfer<TItem>` 参数 `Items`、`SelectedValues` + `SelectedValuesChanged` + `SelectedValuesExpression`、`TextSelector`、`DisabledSelector`、`ItemTemplate`、`SourceTitle` / `TargetTitle`、`Searchable` + `SearchPlaceholder`、`Size`、`Invalid`、`Required`、`EmptyContent`、`AriaLabel` / `AriaDescribedBy`。
+- [x] 值语义：目标列顺序即 `SelectedValues` 顺序，迁入追加到末尾；`SelectedValues` 必须是 `Items` 子集，参数同步时剔除越界值并回调 `SelectedValuesChanged`（与 `List` 同一约定）；勾选是瞬态集合，不写回宿主，过滤变化按列清空勾选，「全部迁移」只作用于当前可见且未禁用的条目。
+- [x] ARIA 与焦点：根是 `role="group"`；两列各是一个 `role="listbox"` + `aria-multiselectable="true"`，列标题同时作为可见标题与可访问名；条目是 `role="option"` + `aria-selected="true|false"`（字符串），禁用条目输出 `aria-disabled` 且不参与导航、勾选与迁移。两列各只有一个 Tab 停留点，焦点留在容器上、活动项由 `aria-activedescendant` 指向，迁移按钮是原生 `<button>` 且不进入选项 Tab 序；`↑↓`/`Home`/`End` 跳过禁用项移动，`Space`/`Enter` 切换勾选。
+- [x] JS 只做两件浏览器行为：把列容器上的导航/勾选键默认行为取消并转发给 C# 的 `[JSInvokable]` 入口（`List` 同一模式），以及把活动项滚入所在列视口；业务状态全部留在 C#。两列是滚动容器，滚动条按 `check-scrollbars` 成对声明，列高由 `--aeterni-transfer-list-max-height` 控制、宿主可经根 `style` 覆盖。
+- [x] 表单：`FormField` 的 `Disabled` / `Required` / `Invalid` / 描述 id 与实例参数取并集，`SelectedValuesExpression` 接入 `EditContext` 校验；`Size` 非法值抛 `ArgumentOutOfRangeException`。
+- [x] 文案 `TransferLabel` / `TransferSourceTitle` / `TransferTargetTitle` / `TransferSearchPlaceholder` / `TransferEmptyText` / `TransferMoveSelectedLabel` / `TransferRemoveSelectedLabel` / `TransferMoveAllLabel` / `TransferRemoveAllLabel` 接入文案表与 `FillEmptyFrom`。
+- [x] 示例页 `/components/transfer`（基础用法、搜索与批量迁移、禁用项与表单状态、选项模板四组 demo）并登记进 `ShowcaseCatalog`；API 表与搜索索引生成物重跑。
+- [x] 第一版明确不做：虚拟化、拖拽排序、逐列全选复选框、异步搜索、服务端查询。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **40 组**（新增 `TransferChecks`：角色层级与两个 listbox、`aria-multiselectable`、`aria-selected` 字符串、列标题、三档尺寸与非法 `Size`、null 参数、`SelectedValues` 子集剔除回调、键盘勾选→迁移→回调链路、搜索过滤后的可见行、FormField 级联）；`node --test tests/*.test.mjs` 112 项通过（新增 `transfer.test.mjs` 5 项：监听器绑定与释放、键位转发边界、活动项滚入视口、幂等）；`node tests/sample-docs.test.mjs` 8/8；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`check-scrollbars.mjs`（新增两处列容器）、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过；`tests/browser/run.sh` 本机复跑中该页 3 条断言全部 PASS（真实指针勾选源列首行→点迁移按钮→目标列 2→3 项且 `已授权 3 / 6 项` 回显；搜索输入 6→1；真实 `Space` 后 `aria-selected="true"`）；同一轮全量回归的 6 条失败均为与本次改动无关的既有几何/时序断言，原因见 10.38.0 条目。按「功能新增递增第二位」（§4.9）从 `10.36.0` 升到 `10.37.0`（随后由 Anchor 批升到 `10.38.0`）：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.36.0 日期组件农历叠加：`ShowLunar`
 

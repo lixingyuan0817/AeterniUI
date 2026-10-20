@@ -1,6 +1,6 @@
 # AeterniUI 组件计划
 
-文档版本：`10.36.0`
+文档版本：`10.38.0`
 
 文档状态：当前活动计划；只记录尚未交付的组件、能力、依赖、决策门和验收条件。
 
@@ -19,7 +19,7 @@
 
 | 优先级 | 计划 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；`Upload`（10.32.0）与 `Cascader`（10.35.0）已交付，剩余排序与边界见 §3 |
+| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；`Upload`（10.32.0）、`Cascader`（10.35.0）、`Transfer`（10.37.0）与 `Anchor`（10.38.0）已交付，剩余候选见 §3 |
 
 当前唯一活动计划是优先级 9。上一轮质量收口（第十轮审阅）已全部收口并归档，不在本文件保留条目；新一轮审阅发现只登记在 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)，其阶段状态以该文件为准。质量收口包含用户可见功能、无障碍、文档漂移、Token 纪律与示例缺口，启动时必须单独成批，不与新组件开发混合。
 
@@ -31,12 +31,11 @@
 
 - 平铺的单值与多值录入已由 `Input`、`InputNumber`、`Slider`、`Search`、`ComboBox`、`MultiSelect`、`Autocomplete` 覆盖；大列表渲染可复用 `VirtualList`。
 - 浮层、焦点与键盘行为可复用 `aeterni_floating.js` 与既有 roving focus，不为候选新增第二套交互模型。
-- 文件选择与拖放已由 `Upload` 交付（10.32.0），层级数据由 `Cascader` 交付（10.35.0）；双列表迁移仍无实现或等价能力：组件目录中不存在 `Transfer`。
+- 文件选择与拖放已由 `Upload` 交付（10.32.0），层级数据由 `Cascader` 交付（10.35.0），双列表迁移由 `Transfer` 交付（10.37.0），页内锚点导航由 `Anchor` 交付（10.38.0）；四者的决策门结论与验收证据归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 | 顺序 | 候选 | 与现有能力的边界 | 进入实现前必须明确 |
 | --- | --- | --- | --- |
-| 1 | `Transfer` | 多选与全选职责和 `MultiSelect` 重叠，先要证明双列表可见性具有独立价值 | 数据规模、搜索、禁用项、排序与双列表焦点模型；先做与 `MultiSelect` 的职责对照 |
-| 2 | `ColorPicker` | 表单输入缺口，但依赖色彩模型与浮层 | 色彩模型与输入格式、对比度提示、浮层与键盘操作 |
+| 1 | `ColorPicker` | 表单输入缺口，但依赖色彩模型与浮层 | 色彩模型与输入格式、对比度提示、浮层与键盘操作 |
 
 本次定调下顺延的候选（保留登记，尚未排序）：
 
@@ -46,7 +45,6 @@
 | `Image` | 加载、失败回退、预览浮层和媒体资源职责 |
 | `QRCode` | 编码实现、纠错级别、SVG/Canvas 输出和依赖策略 |
 | `Result` | 与 Empty、Alert、Card 的职责边界 |
-| `Anchor` | 滚动容器、活动项判定、历史记录和路由边界 |
 
 排序规则：不以实现成本低作为排序依据；先确认现有组件能否组合完成目标；每项通过 §6 的五道决策门后才进入实现。
 
@@ -64,9 +62,9 @@
 | 左栏 | 分组导航 + 检索与匹配计数，随路由高亮 | 已交付 |
 | 右栏 | 页内 TOC，随滚动高亮，锚点可分享 | 已交付 |
 | 页头 | 当前条目、「在 GitHub 编辑」 | 已交付 |
-| 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已交付（54 个卡片化页面每页至少一段 `<Controls>`；`Colors`、`Install` 讲规格与步骤，没有带可调属性的实例） |
+| 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已交付（62 个卡片化页面，其中 58 页每页至少一段 `<Controls>`；`Colors`、`Install` 讲规格与步骤，没有带可调属性的实例） |
 | 03 示例代码 | 可复制的 Razor 片段 | 已交付（每个页面都有可复制代码块：卡片化页面每段一间，非组件页是步骤与配方片段） |
-| 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（54 个条目 / 885 行） |
+| 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（57 个页面 / 713 行） |
 | 05 说明与边界 | 无障碍、状态与职责边界 | 已交付（每个页面都有内容） |
 | 页脚 | 目录顺序的上一页/下一页 | 已交付 |
 | 「何时使用」与「相关组件」 | 决定读者是否该用它、下一步看谁 | 已交付（非组件页也改用同一骨架，段锚点与搜索结果因此走同一套机制） |
@@ -76,13 +74,13 @@
 
 - `scripts/generate-api-reference.mjs` 解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `src/AeterniUI.Sample/Components/Showcase/ShowcaseApiReference.generated.cs`；生成物提交进仓库，CI 用 `--check` 拒绝过期产物（与 `generate-fontawesome-icons.mjs` 同一约定）。
 - 编辑内容与生成物分离：说明文字在 `scripts/api-descriptions.json`，生成器推不出来的行（模型、服务与 `Value / StartDate / EndDate` 这类汇总写法）在 `scripts/api-extra-rows.json`；「自哪个版本」在 `scripts/api-since.json`，只登记 `release-history` 明确记录过的新增成员，不猜测。
-- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 54 个页面重复生成。
+- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 57 个页面重复生成。
 - 没有对应组件目录的页也能有生成式 API 表：`Feedback` 记录的是 `IDialogService` 与各个选项类型，行全部来自 `api-extra-rows.json`，生成器在成员为空时照样为它产出条目。**页面上没有手写表，也没有被门禁放过的例外。**
 - 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致；浏览器断言另有一条真实渲染检查（反馈页的 API 区确实渲染出服务与选项行）。
 
 ### 搜索索引：生成而不是手写
 
-- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（451 条：57 个页面条目 + 各页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
+- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（当前 509 条，覆盖 64 个页面条目与各页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
 - 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
 - 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，「参数与事件」读的是 API 生成物（所以 `Feedback` 页在这一项修好之后也有了该段）。生成顺序因此是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
 - 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。

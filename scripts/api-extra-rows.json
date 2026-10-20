@@ -9,6 +9,22 @@
         "kind": "接口"
       }
     ],
+    "anchor": [
+      {
+        "name": "AnchorLink.Id",
+        "type": "string",
+        "description": "目标段元素的 id，由宿主渲染；空 id 与重复 id 在参数设置阶段拒绝。",
+        "default": "必填",
+        "kind": "属性"
+      },
+      {
+        "name": "AnchorLink.Title",
+        "type": "string",
+        "description": "链接可见文案，同时作为段导航的可读名称；空标题在参数设置阶段拒绝。",
+        "default": "必填",
+        "kind": "属性"
+      }
+    ],
     "breadcrumb": [
       {
         "name": "BreadcrumbItem.Label",
@@ -362,6 +378,15 @@
         "description": "禁用后不显示提示。",
         "default": "false",
         "kind": "属性"
+      }
+    ],
+    "transfer": [
+      {
+        "name": "Transfer<TItem>",
+        "type": "泛型组件",
+        "description": "TItem 必须是引用类型；接入 FormFieldContext 与 EditContext，SelectedValues 必须是 Items 的子集。",
+        "default": "",
+        "kind": "接口"
       }
     ],
     "upload": [

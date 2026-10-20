@@ -1,0 +1,19 @@
+@inherits AeterniComponent
+
+@* 页内导航只渲染链接列表，目标段由宿主渲染。JS 观察滚动位置，把当前段通过
+   [JSInvokable] 回传给 C#；这些语义只是增强——没有 JS 时 href="#id" 仍是可用的
+   原生锚点。活动态用 aria-current="location" 表达，不进入 Tab 序，也不改变链接的
+   原生键盘行为。 *@
+<nav @ref="RootElement" @attributes="BuildAttributes()" aria-label="@EffectiveAriaLabel">
+    <ol class="aeterni-anchor__list">
+        @foreach (var item in Items)
+        {
+            var active = IsActive(item);
+            <li class="aeterni-anchor__item">
+                <a class="aeterni-anchor__link@(active ? " is-active" : "")"
+                   href="@($"#{item.Id}")"
+                   aria-current="@(active ? "location" : null)">@item.Title</a>
+            </li>
+        }
+    </ol>
+</nav>

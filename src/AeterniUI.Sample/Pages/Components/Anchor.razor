@@ -1,0 +1,209 @@
+@page "/components/anchor"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Anchor</PageTitle>
+
+<ComponentPage AnchorId="anchor"
+               Category="导航组件"
+               Title="Anchor"
+               ComponentName="Anchor"
+               Description="长页面的段导航：当前段由滚动位置推导，点击在目标滚动容器内跳转并按需替换 URL 片段，不接管路由。"
+               Related="@AnchorRelated">
+    <WhenToUse>
+        <p>页面足够长、读者需要在几段之间来回跳时使用：组件文档、设置页、长表单的分节。表达层级位置用 <code>Breadcrumb</code>，切换固定面板用 <code>Tabs</code>；<code>Anchor</code> 只做同一页内的段导航。</p>
+        <p>目标段由宿主渲染：<code>Items</code> 只给 id 与标题，组件不猜内容、不生成目录；当前段是滚动位置的只读投影，没有受控参数，也不调用 <code>NavigationManager</code>。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="anchor-basic"
+                  Title="文档滚动"
+                  Description="留空 ContainerId 时跟随文档滚动：当前段由观察滚动位置推导（本页预览里点击左侧链接会滚动整个页面）。无 JavaScript 时链接仍是可用的原生锚点回退。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-anchor-demo">
+                    <Anchor Items="@BasicLinks" AriaLabel="基础示例目录" />
+                    <div class="preview-anchor-demo__content">
+                        <section class="preview-anchor-demo__section" id="anchor-basic-overview">
+                            <h4>概览</h4>
+                            <p>Anchor 只渲染链接列表，不渲染被指向的内容。宿主在页面里渲染带 id 的段，组件负责把“读者现在在哪一段”变成链接上的 <code>aria-current="location"</code> 与品牌色标记。</p>
+                            <p>目标 id 必须唯一：重复的 id 会让浏览器永远只跳到第一个元素，因此组件在参数设置阶段拒绝空 id 与重复 id，问题在开发期就暴露。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-basic-anatomy">
+                            <h4>结构</h4>
+                            <p>根元素是带 <code>aria-label</code> 的 <code>nav</code> 地标，内部是一个有序列表；每一项是原生 <code>a</code> 链接，<code>href</code> 始终是 <code>#id</code>。因此 Tab 顺序、Enter 激活与右键“在新标签页打开”都保持浏览器原生行为。</p>
+                            <p>当前项只通过 <code>aria-current</code> 与 <code>is-active</code> 表达，不改变链接的可聚焦性，也不移动焦点；点击后焦点仍留在触发滚动的那个链接上。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-basic-behavior">
+                            <h4>行为</h4>
+                            <p>当前段不是受控状态：模块比较各段顶部与容器顶部的距离，取最后一个已到达的段；滚到滚动范围底部时激活最后一段。没有可观察段时清空标记，而不是留一个过期的当前项。</p>
+                            <p>查看方式：滚动或点击本段预览里的目录，左侧链接会跟随；如果只看代码，<code>OnActiveSectionChangedAsync</code> 是浏览器回传当前段的入口。</p>
+                        </section>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="anchor-container"
+                  Title="内部滚动容器"
+                  Description="ContainerId 指向一个高度受限的滚动容器：点击只在容器内滚动，当前段也只在容器里观察，Offset 为容器顶部留出粘性标题的空间。"
+                  Code="@ContainerCode">
+            <Preview>
+                <div class="preview-anchor-demo preview-anchor-demo--container">
+                    <Anchor Items="@ContainerLinks"
+                            ContainerId="anchor-container-scroller"
+                            Offset="16"
+                            AriaLabel="容器示例目录" />
+                    <div class="preview-anchor-demo__scroller" id="anchor-container-scroller">
+                        <section class="preview-anchor-demo__section" id="anchor-container-overview">
+                            <h4>容器滚动</h4>
+                            <p>当页面的一部分自身滚动（抽屉、分栏面板、固定高度的表单区）时，把 <code>ContainerId</code> 指向那个滚动容器。点击会把目标段滚到容器顶部，并减去 <code>Offset</code>。</p>
+                            <p>容器不存在时（例如 id 拼错或宿主还没渲染），模块退化为文档滚动，而不是让整组链接失效。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-container-tracking">
+                            <h4>容器内跟踪</h4>
+                            <p>观察器的根元素与滚动位置都取同一个容器，因此“当前段”按容器自身的滚动偏移判断，不受页面其它滚动影响。</p>
+                            <p>容器宽高变化时，交叉观察会触发重新计算；滚动事件是兜底路径，二者都把结果回传给 C#，由 C# 重新渲染标记。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-container-offset">
+                            <h4>Offset 留白</h4>
+                            <p>容器内若有粘性小标题，把它的高度交给 <code>Offset</code>：目标段会停在小标题下方，而不是被盖住。负值按 0 处理。</p>
+                            <p>这里的 Offset 是 16px，滚动到“Offset 留白”这一节时可以直接看到顶部留白。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-container-dispose">
+                            <h4>释放与重建</h4>
+                            <p>组件销毁时释放观察器与所有监听器；重复 attach 是幂等的，同一个实例不会累积第二份 observer 或第二份 click/scroll 监听。</p>
+                            <p>参数变化（Items、ContainerId、Offset）会更新模块选项，因此不需要宿主手动重建组件。</p>
+                        </section>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="anchor-offset-history"
+                  Title="Offset、历史记录与平滑滚动"
+                  Description="UpdateLocation 控制点击后是否用 history.replaceState 替换 URL 片段（不产生历史条目）；Smooth 关闭或系统启用“减弱动效”时直接跳转。右侧控件即时生效。"
+                  Code="@OptionsCode">
+            <Preview>
+                <div class="preview-anchor-demo preview-anchor-demo--container">
+                    <Anchor Items="@OptionsLinks"
+                            ContainerId="anchor-offset-scroller"
+                            Offset="@_offset"
+                            UpdateLocation="@_updateLocation"
+                            Smooth="@_smooth"
+                            AriaLabel="可选行为目录" />
+                    <div class="preview-anchor-demo__scroller" id="anchor-offset-scroller">
+                        <section class="preview-anchor-demo__section" id="anchor-offset-intro">
+                            <h4>引入</h4>
+                            <p>Offset 决定目标段停在容器顶部往下多少像素处。页面有固定页头时把它设为页头高度，目录与正文的落点就一致。</p>
+                            <p>本示例的 Offset 由右侧选择器控制：<strong>@_offset px</strong>。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-offset-location">
+                            <h4>URL 片段</h4>
+                            <p>UpdateLocation 默认开启：点击后用 <code>history.replaceState</code> 更新地址栏片段（保留当前路径与前缀，不产生历史条目）。它不会触发 Blazor 路由，因此整个页面不会重新渲染。</p>
+                            <p>关闭后地址栏保持原样，滚动仍然发生；这一行为由模块选项控制，C# 不接触 URL。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-offset-smooth">
+                            <h4>平滑滚动</h4>
+                            <p>Smooth 默认开启，滚动行为交给浏览器的平滑滚动实现；当 <code>prefers-reduced-motion: reduce</code> 生效时，模块收敛为即时跳转，不论参数怎么设置。</p>
+                            <p>当前 Smooth = <strong>@_smooth</strong>，UpdateLocation = <strong>@_updateLocation</strong>。</p>
+                        </section>
+                        <section class="preview-anchor-demo__section" id="anchor-offset-boundary">
+                            <h4>边界</h4>
+                            <p>组件不嵌套子级、不做 affix（吸附布局），也不自动生成目录内容：这些都属于宿主页面结构。它也不接管路由，浏览器前进后退不会因为片段替换而变化。</p>
+                            <p>需要真实路由跳转时用 <code>Breadcrumb</code> 或普通链接，不要期待 Anchor 触发页面切换。</p>
+                        </section>
+                    </div>
+                </div>
+                <span class="preview-feedback" role="status">Offset = @_offset px · UpdateLocation = @(_updateLocation ? "开" : "关") · Smooth = @(_smooth ? "开" : "关")</span>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_updateLocation">UpdateLocation</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_smooth">Smooth</Checkbox>
+                <div class="control-field">
+                    <span>Offset</span>
+                    <ShowcaseSelect TValue="int" Id="anchor-offset" AriaLabel="Offset" Options="@OffsetOptions" TextSelector="@(value => $"{value}px")" @bind-Value="_offset" />
+                </div>
+            </Controls>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>滚动容器由宿主提供：留空 <code>ContainerId</code> 时跟随文档滚动；传入不存在的 id 时退化为文档滚动，原生 <code>href="#id"</code> 始终保留。</span>
+        <span>当前段只读且由滚动位置推导，<code>aria-current="location"</code> 同一时刻只落在一个链接上；没有可观察的段时清空标记。</span>
+        <span>点击只用 <code>history.replaceState</code> 替换片段，不产生历史条目、不调用 <code>NavigationManager</code>；<code>Smooth</code> 会被 <code>prefers-reduced-motion</code> 覆盖。</span>
+        <span>第一版不做嵌套子级、affix 吸附布局、路由跳转与自动生成目录内容。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] AnchorRelated =
+    [
+        new("Breadcrumb", "/components/breadcrumb"),
+        new("Tabs", "/components/tabs"),
+        new("List", "/components/list"),
+        new("Stepper", "/components/stepper")
+    ];
+
+    private const string BasicCode = """
+        <Anchor Items="Sections" AriaLabel="本页目录" />
+
+        @code {
+            private static readonly AnchorLink[] Sections =
+            [
+                new("overview", "概览"),
+                new("install", "安装"),
+                new("usage", "用法")
+            ];
+        }
+        """;
+
+    private const string ContainerCode = """
+        <Anchor Items="Sections"
+                ContainerId="release-notes"
+                Offset="16"
+                AriaLabel="发布说明目录" />
+
+        <div id="release-notes" style="max-height: 320px; overflow-y: auto">
+            <section id="release-notes-overview">…</section>
+            <section id="release-notes-changes">…</section>
+        </div>
+        """;
+
+    private const string OptionsCode = """
+        <Anchor Items="Sections"
+                ContainerId="release-notes"
+                Offset="@Offset"
+                UpdateLocation="@UpdateLocation"
+                Smooth="@Smooth"
+                AriaLabel="发布说明目录" />
+        """;
+
+    private static readonly AnchorLink[] BasicLinks =
+    [
+        new("anchor-basic-overview", "概览"),
+        new("anchor-basic-anatomy", "结构"),
+        new("anchor-basic-behavior", "行为")
+    ];
+
+    private static readonly AnchorLink[] ContainerLinks =
+    [
+        new("anchor-container-overview", "容器滚动"),
+        new("anchor-container-tracking", "容器内跟踪"),
+        new("anchor-container-offset", "Offset 留白"),
+        new("anchor-container-dispose", "释放与重建")
+    ];
+
+    private static readonly AnchorLink[] OptionsLinks =
+    [
+        new("anchor-offset-intro", "引入"),
+        new("anchor-offset-location", "URL 片段"),
+        new("anchor-offset-smooth", "平滑滚动"),
+        new("anchor-offset-boundary", "边界")
+    ];
+
+    private static readonly int[] OffsetOptions = [0, 16, 32, 64];
+
+    private int _offset = 16;
+    private bool _updateLocation = true;
+    private bool _smooth = true;
+}

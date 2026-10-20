@@ -1,0 +1,220 @@
+@page "/components/transfer"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Transfer</PageTitle>
+
+<ComponentPage AnchorId="transfer"
+               Category="表单组件"
+               Title="Transfer"
+               ComponentName="Transfer&lt;TItem&gt;"
+               Description="双列表迁移：源列常驻候选、目标列常驻已选，勾选后成批搬运，并能同时看清两侧差异。"
+               Related="@TransferRelated">
+    <WhenToUse>
+        <p>需要「从一个大集合里挑一部分，并持续看清还剩什么、已经选了什么」时使用：权限分配、字段可见性、指标选择。两侧并列常驻正是它和 <code>MultiSelect</code> 的分界。</p>
+        <p><code>MultiSelect</code> 是触发器 + 弹层，已选项以标签回显，候选只在打开时短暂可见，适合空间受限的表单与少量取值；<code>Transfer</code> 适合批量勾选与迁移。两者不共享状态，数据都归宿主。</p>
+        <p>目标列顺序由 <code>SelectedValues</code> 决定，迁入的条目追加到末尾；<code>SelectedValues</code> 必须是 <code>Items</code> 的子集，越界值会在参数同步时被剔除并回调。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="transfer-basic"
+                  Title="基础用法"
+                  Description="左列是尚未授权的候选，右列是已授权的顺序。勾选后按中间按钮迁移；禁用项保留在列表里但不能勾选或迁移，四个按钮的可用状态会跟着勾选与列内容变化。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Transfer TItem="Permission"
+                              Items="Permissions"
+                              @bind-SelectedValues="_basicSelected"
+                              TextSelector="@PermissionLabel"
+                              DisabledSelector="@PermissionLocked"
+                              SourceTitle="可用权限"
+                              TargetTitle="已授权"
+                              AriaLabel="权限分配" />
+                    <span class="preview-feedback" role="status">已授权 @_basicSelected.Count / @Permissions.Length 项</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="transfer-search"
+                  Title="搜索与批量迁移"
+                  Description="Searchable 为每列渲染本地搜索框：过滤只影响可见行，不改变已选项；过滤变化时清空该列勾选集合，全部迁移也只作用于当前可见且未禁用的条目。"
+                  Code="@SearchCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Transfer TItem="Permission"
+                              Items="Permissions"
+                              @bind-SelectedValues="_searchSelected"
+                              TextSelector="@PermissionLabel"
+                              DisabledSelector="@PermissionLocked"
+                              Searchable
+                              SearchPlaceholder="搜索权限…"
+                              SourceTitle="可用权限"
+                              TargetTitle="已授权"
+                              AriaLabel="权限分配（可搜索）" />
+                    <span class="preview-feedback" role="status">已授权 @_searchSelected.Count / @Permissions.Length 项</span>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="transfer-disabled-form"
+                  Title="尺寸与表单状态"
+                  Description="外层 FormField 提供标签、说明与字段状态；尺寸档位与 Input / MultiSelect 共用。整体禁用时两列都退出 Tab 序，迁移按钮也一并禁用。"
+                  Code="@StateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <FormField Label="角色权限"
+                               Description="权限调整会在角色成员下次登录后生效。"
+                               Required="@_formRequired"
+                               Invalid="@_formInvalid"
+                               Disabled="@_formDisabled">
+                        <Transfer TItem="Permission"
+                                  Items="Permissions"
+                                  @bind-SelectedValues="_formSelected"
+                                  TextSelector="@PermissionLabel"
+                                  DisabledSelector="@PermissionLocked"
+                                  Size="@_formSize"
+                                  SourceTitle="可用权限"
+                                  TargetTitle="已授权" />
+                    </FormField>
+                    <span class="preview-feedback" role="status">已授权 @_formSelected.Count / @Permissions.Length 项</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Size</span>
+                    <ShowcaseSelect TValue="Size" Id="transfer-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_formSize" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_formRequired">Required</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formInvalid">Invalid</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
+        <DemoCard Id="transfer-template"
+                  Title="选项模板与空列"
+                  Description="ItemTemplate 自定义条目内容；EmptyContent 接管空列的文案，目标列没有已选项时就能看到。"
+                  Code="@TemplateCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Transfer TItem="Permission"
+                              Items="Permissions"
+                              @bind-SelectedValues="_templateSelected"
+                              TextSelector="@PermissionLabel"
+                              DisabledSelector="@PermissionLocked"
+                              SourceTitle="可用权限"
+                              TargetTitle="已授权"
+                              AriaLabel="权限分配（模板）">
+                        <ItemTemplate Context="permission">
+                            <strong>@permission.Label</strong>
+                            <span class="preview-value">@permission.Group</span>
+                        </ItemTemplate>
+                        <EmptyContent>尚未选择任何权限</EmptyContent>
+                    </Transfer>
+                    <span class="preview-feedback" role="status">已授权 @_templateSelected.Count / @Permissions.Length 项</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>根是 <code>role="group"</code>，两列各是一个 <code>role="listbox"</code> + <code>aria-multiselectable="true"</code>；每个条目是 <code>role="option"</code>，勾选状态用字符串 <code>aria-selected</code> 表达。</span>
+        <span>每列只有一个 Tab 停留点：焦点留在 listbox 容器，活动项由 <code>aria-activedescendant</code> 指向，↑↓/Home/End 移动、Space/Enter 切换勾选；迁移按钮不进入选项 Tab 序。</span>
+        <span>数据边界：<code>Items</code> 是候选全集，<code>SelectedValues</code> 必须是其子集；目标列只按 <code>SelectedValues</code> 顺序渲染，迁入追加到末尾。第一版不做拖拽排序、不做虚拟化（大列表可用 <code>VirtualList</code> 组合或在宿主侧分页）。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] TransferRelated =
+    [
+        new("MultiSelect", "/components/multi-select"),
+        new("List", "/components/list"),
+        new("VirtualList", "/components/virtual-list"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string BasicCode = """
+        <Transfer TItem="Permission"
+                  Items="Permissions"
+                  @bind-SelectedValues="SelectedValues"
+                  TextSelector="@(permission => permission.Label)"
+                  DisabledSelector="@(permission => permission.Locked)"
+                  SourceTitle="可用权限"
+                  TargetTitle="已授权"
+                  AriaLabel="权限分配" />
+        """;
+
+    private const string SearchCode = """
+        <Transfer TItem="Permission"
+                  Items="Permissions"
+                  @bind-SelectedValues="SelectedValues"
+                  TextSelector="@(permission => permission.Label)"
+                  DisabledSelector="@(permission => permission.Locked)"
+                  Searchable
+                  SearchPlaceholder="搜索权限…"
+                  SourceTitle="可用权限"
+                  TargetTitle="已授权"
+                  AriaLabel="权限分配（可搜索）" />
+        """;
+
+    private const string StateCode = """
+        <FormField Label="角色权限"
+                   Description="权限调整会在角色成员下次登录后生效。"
+                   Required
+                   Invalid>
+            <Transfer TItem="Permission"
+                      Items="Permissions"
+                      @bind-SelectedValues="SelectedValues"
+                      TextSelector="@(permission => permission.Label)"
+                      Size="Size.Small"
+                      SourceTitle="可用权限"
+                      TargetTitle="已授权" />
+        </FormField>
+        """;
+
+    private const string TemplateCode = """
+        <Transfer TItem="Permission"
+                  Items="Permissions"
+                  @bind-SelectedValues="SelectedValues"
+                  TextSelector="@(permission => permission.Label)"
+                  SourceTitle="可用权限"
+                  TargetTitle="已授权">
+            <ItemTemplate Context="permission">
+                <strong>@permission.Label</strong>
+                <span>@permission.Group</span>
+            </ItemTemplate>
+            <EmptyContent>尚未选择任何权限</EmptyContent>
+        </Transfer>
+        """;
+
+    private static readonly Permission[] Permissions =
+    [
+        new("查看仪表盘", "报表"),
+        new("导出报表", "报表"),
+        new("管理成员", "组织"),
+        new("修改计费", "组织", Locked: true),
+        new("创建 API 密钥", "开发者"),
+        new("查看审计日志", "安全")
+    ];
+
+    private IReadOnlyList<Permission> _basicSelected = [Permissions[0], Permissions[2]];
+    private IReadOnlyList<Permission> _searchSelected = [];
+    private IReadOnlyList<Permission> _formSelected = [Permissions[0]];
+    private IReadOnlyList<Permission> _templateSelected = [];
+    private Size _formSize = Size.Default;
+    private bool _formRequired = true;
+    private bool _formInvalid;
+    private bool _formDisabled;
+
+    /// <summary>
+    /// 没传 TextSelector 时组件回落到 <c>ToString()</c>（与 MultiSelect / Cascader 同一约定），
+    /// 示例数据仍显式给出取文案方式，让片段可以直接照抄。
+    /// </summary>
+    private static string PermissionLabel(Permission permission) => permission.Label;
+
+    private static bool PermissionLocked(Permission permission) => permission.Locked;
+
+    private sealed record Permission(string Label, string Group, bool Locked = false)
+    {
+        public override string ToString() => Label;
+    }
+}

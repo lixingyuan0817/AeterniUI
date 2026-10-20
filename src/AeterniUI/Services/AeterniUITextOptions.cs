@@ -30,6 +30,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Joins the levels of a <c>Cascader</c> path in the trigger.</summary>
     public string CascaderPathSeparator { get; set; } = "/";
 
+    /// <summary>Accessible name of the <c>Anchor</c> section navigation.</summary>
+    public string AnchorLabel { get; set; } = "Page sections";
+
     /// <summary>Accessible name of a <c>Search</c> landmark and input.</summary>
     public string SearchLabel { get; set; } = "Search";
 
@@ -75,6 +78,33 @@ public sealed class AeterniUITextOptions
 
     /// <summary>Prefix of a selected-item remove action.</summary>
     public string MultiSelectRemoveLabel { get; set; } = "Remove";
+
+    /// <summary>Accessible name of a <c>Transfer</c> group of two lists.</summary>
+    public string TransferLabel { get; set; } = "Transfer";
+
+    /// <summary>Visible heading and accessible name of the <c>Transfer</c> available (source) list.</summary>
+    public string TransferSourceTitle { get; set; } = "Available";
+
+    /// <summary>Visible heading and accessible name of the <c>Transfer</c> selected (target) list.</summary>
+    public string TransferTargetTitle { get; set; } = "Selected";
+
+    /// <summary>Placeholder of the optional per-list search input in a <c>Transfer</c>.</summary>
+    public string TransferSearchPlaceholder { get; set; } = "Search options";
+
+    /// <summary>Message shown when a <c>Transfer</c> list has no items to render.</summary>
+    public string TransferEmptyText { get; set; } = "No items";
+
+    /// <summary>Accessible label of the action that moves checked items to the selected list.</summary>
+    public string TransferMoveSelectedLabel { get; set; } = "Move selected to the selected list";
+
+    /// <summary>Accessible label of the action that returns checked items to the available list.</summary>
+    public string TransferRemoveSelectedLabel { get; set; } = "Return selected to the available list";
+
+    /// <summary>Accessible label of the action that moves every enabled item to the selected list.</summary>
+    public string TransferMoveAllLabel { get; set; } = "Move all to the selected list";
+
+    /// <summary>Accessible label of the action that returns every item to the available list.</summary>
+    public string TransferRemoveAllLabel { get; set; } = "Return all to the available list";
 
     /// <summary>Accessible name of an <c>Upload</c> file input.</summary>
     public string UploadLabel { get; set; } = "Upload";
@@ -288,6 +318,7 @@ public sealed class AeterniUITextOptions
         CascaderColumnLabel = Or(CascaderColumnLabel, defaults.CascaderColumnLabel);
         CascaderEmptyText = Or(CascaderEmptyText, defaults.CascaderEmptyText);
         CascaderPathSeparator = Or(CascaderPathSeparator, defaults.CascaderPathSeparator);
+        AnchorLabel = Or(AnchorLabel, defaults.AnchorLabel);
         SearchLabel = Or(SearchLabel, defaults.SearchLabel);
         SearchSubmitLabel = Or(SearchSubmitLabel, defaults.SearchSubmitLabel);
         SearchClearLabel = Or(SearchClearLabel, defaults.SearchClearLabel);
@@ -302,6 +333,15 @@ public sealed class AeterniUITextOptions
         MultiSelectSelectAllLabel = Or(MultiSelectSelectAllLabel, defaults.MultiSelectSelectAllLabel);
         MultiSelectClearAllLabel = Or(MultiSelectClearAllLabel, defaults.MultiSelectClearAllLabel);
         MultiSelectRemoveLabel = Or(MultiSelectRemoveLabel, defaults.MultiSelectRemoveLabel);
+        TransferLabel = Or(TransferLabel, defaults.TransferLabel);
+        TransferSourceTitle = Or(TransferSourceTitle, defaults.TransferSourceTitle);
+        TransferTargetTitle = Or(TransferTargetTitle, defaults.TransferTargetTitle);
+        TransferSearchPlaceholder = Or(TransferSearchPlaceholder, defaults.TransferSearchPlaceholder);
+        TransferEmptyText = Or(TransferEmptyText, defaults.TransferEmptyText);
+        TransferMoveSelectedLabel = Or(TransferMoveSelectedLabel, defaults.TransferMoveSelectedLabel);
+        TransferRemoveSelectedLabel = Or(TransferRemoveSelectedLabel, defaults.TransferRemoveSelectedLabel);
+        TransferMoveAllLabel = Or(TransferMoveAllLabel, defaults.TransferMoveAllLabel);
+        TransferRemoveAllLabel = Or(TransferRemoveAllLabel, defaults.TransferRemoveAllLabel);
         UploadLabel = Or(UploadLabel, defaults.UploadLabel);
         UploadFileListLabel = Or(UploadFileListLabel, defaults.UploadFileListLabel);
         UploadDropText = Or(UploadDropText, defaults.UploadDropText);

@@ -366,6 +366,16 @@ public static class ShowcaseSearchIndex
         new("cascader", "Cascader", "表单组件", "cascader-related-title", "相关组件"),
         new("cascader", "Cascader", "表单组件", "cascader-notes-title", "说明与边界"),
 
+        new("transfer", "Transfer", "表单组件", "transfer", "Transfer"),
+        new("transfer", "Transfer", "表单组件", "transfer-when-title", "何时使用"),
+        new("transfer", "Transfer", "表单组件", "transfer-basic", "基础用法"),
+        new("transfer", "Transfer", "表单组件", "transfer-search", "搜索与批量迁移"),
+        new("transfer", "Transfer", "表单组件", "transfer-disabled-form", "尺寸与表单状态"),
+        new("transfer", "Transfer", "表单组件", "transfer-template", "选项模板与空列"),
+        new("transfer", "Transfer", "表单组件", "transfer-api-title", "参数与事件"),
+        new("transfer", "Transfer", "表单组件", "transfer-related-title", "相关组件"),
+        new("transfer", "Transfer", "表单组件", "transfer-notes-title", "说明与边界"),
+
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker", "DatePicker / DateRangePicker"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-when-title", "何时使用"),
         new("date-picker", "DatePicker / DateRangePicker", "表单组件", "date-picker-presets", "日期范围与快捷预设"),
@@ -402,6 +412,15 @@ public static class ShowcaseSearchIndex
         new("breadcrumb", "Breadcrumb", "导航组件", "breadcrumb-api-title", "参数与事件"),
         new("breadcrumb", "Breadcrumb", "导航组件", "breadcrumb-related-title", "相关组件"),
         new("breadcrumb", "Breadcrumb", "导航组件", "breadcrumb-notes-title", "说明与边界"),
+
+        new("anchor", "Anchor", "导航组件", "anchor", "Anchor"),
+        new("anchor", "Anchor", "导航组件", "anchor-when-title", "何时使用"),
+        new("anchor", "Anchor", "导航组件", "anchor-basic", "文档滚动"),
+        new("anchor", "Anchor", "导航组件", "anchor-container", "内部滚动容器"),
+        new("anchor", "Anchor", "导航组件", "anchor-offset-history", "Offset、历史记录与平滑滚动"),
+        new("anchor", "Anchor", "导航组件", "anchor-api-title", "参数与事件"),
+        new("anchor", "Anchor", "导航组件", "anchor-related-title", "相关组件"),
+        new("anchor", "Anchor", "导航组件", "anchor-notes-title", "说明与边界"),
 
         new("stepper", "Stepper", "导航组件", "stepper", "Stepper"),
         new("stepper", "Stepper", "导航组件", "stepper-when-title", "何时使用"),

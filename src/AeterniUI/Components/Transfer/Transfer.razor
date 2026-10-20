@@ -1,0 +1,127 @@
+@typeparam TItem
+@inherits AeterniComponent
+
+@* 双列表迁移：源列 → 迁移按钮 → 目标列。每列容器是一个 Tab 停留点（listbox 带 tabindex），
+   条目不可聚焦，活动项由容器的 aria-activedescendant 指向；「待迁移」的勾选用 aria-selected
+   表达。迁移按钮是原生 button，不进入选项 Tab 序；JS 只把容器上的导航/勾选键转发给 C#，
+   并在同步时把活动项滚入列视口。 *@
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    @foreach (var side in Sides)
+    {
+        var title = TitleFor(side);
+        var listId = ListIdFor(side);
+        var items = VisibleFor(side);
+        var activeId = ActiveOptionId(side);
+
+        @* 按钮按 DOM 顺序落在源列与目标列之间，Tab 因此是「源列 → 按钮 → 目标列」。 *@
+        @if (side == TransferSide.Target)
+        {
+            <div class="aeterni-transfer__actions">
+                <button type="button"
+                        class="aeterni-transfer__action"
+                        aria-label="@MoveSelectedToTargetLabel"
+                        disabled="@(!CanMoveCheckedToTarget)"
+                        @onclick="MoveCheckedToTargetAsync">
+                    <span aria-hidden="true">→</span>
+                </button>
+                <button type="button"
+                        class="aeterni-transfer__action"
+                        aria-label="@MoveSelectedToSourceLabel"
+                        disabled="@(!CanMoveCheckedToSource)"
+                        @onclick="MoveCheckedToSourceAsync">
+                    <span aria-hidden="true">←</span>
+                </button>
+                <button type="button"
+                        class="aeterni-transfer__action"
+                        aria-label="@MoveAllToTargetLabel"
+                        disabled="@(!CanMoveAllToTarget)"
+                        @onclick="MoveAllToTargetAsync">
+                    <span aria-hidden="true">»</span>
+                </button>
+                <button type="button"
+                        class="aeterni-transfer__action"
+                        aria-label="@MoveAllToSourceLabel"
+                        disabled="@(!CanMoveAllToSource)"
+                        @onclick="MoveAllToSourceAsync">
+                    <span aria-hidden="true">«</span>
+                </button>
+            </div>
+        }
+
+        <div class="aeterni-transfer__column">
+            <div class="aeterni-transfer__header">
+                <span class="aeterni-transfer__title">@title</span>
+            </div>
+
+            @if (Searchable)
+            {
+                <input class="aeterni-transfer__search"
+                       type="search"
+                       value="@FilterFor(side)"
+                       placeholder="@SearchPlaceholderText"
+                       aria-label="@title"
+                       autocomplete="off"
+                       spellcheck="false"
+                       disabled="@IsDisabled"
+                       @oninput="@(args => HandleFilterAsync(SideName(side), args))" />
+            }
+
+            <div class="aeterni-transfer__list"
+                 id="@listId"
+                 role="listbox"
+                 data-side="@SideName(side)"
+                 aria-label="@title"
+                 aria-multiselectable="true"
+                 aria-required="@(IsRequired ? "true" : null)"
+                 aria-disabled="@(IsDisabled ? "true" : null)"
+                 tabindex="@(IsDisabled ? "-1" : "0")"
+                 aria-activedescendant="@activeId">
+                @if (items.Count == 0)
+                {
+                    <div class="aeterni-transfer__empty">
+                        @if (EmptyContent is not null)
+                        {
+                            @EmptyContent
+                        }
+                        else
+                        {
+                            @UiText.TransferEmptyText
+                        }
+                    </div>
+                }
+                else
+                {
+                    @for (var index = 0; index < items.Count; index++)
+                    {
+                        var item = items[index];
+                        var optionIndex = index;
+                        var checkedItem = IsChecked(side, item);
+                        var itemDisabled = IsItemDisabled(item);
+
+                        <div id="@OptionId(side, optionIndex)"
+                             role="option"
+                             aria-selected="@(checkedItem ? "true" : "false")"
+                             aria-disabled="@(itemDisabled ? "true" : null)"
+                             class="aeterni-transfer__option @(IsActive(side, item) ? "is-active" : null) @(checkedItem ? "is-selected" : null) @(itemDisabled ? "is-disabled" : null)"
+                             @onclick="@(() => HandleOptionClickAsync(SideName(side), optionIndex))">
+                            <span class="aeterni-transfer__option-check" aria-hidden="true">
+                                @if (checkedItem)
+                                {
+                                    <Icon Definition="@AeterniIcons.Check" />
+                                }
+                            </span>
+                            @if (ItemTemplate is not null)
+                            {
+                                @ItemTemplate(item)
+                            }
+                            else
+                            {
+                                <span class="aeterni-transfer__option-text">@DisplayText(item)</span>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>

@@ -90,12 +90,14 @@ public static class ShowcaseCatalog
             new("upload", "Upload", "文件选择与拖放"),
             new("combobox", "ComboBox", "下拉选择"),
             new("cascader", "Cascader", "层级逐级选择"),
+            new("transfer", "Transfer", "双列表迁移"),
             new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
             new("time-picker", "TimePicker", "时间选择"),
             new("date-time-picker", "DateTimePicker", "日期与时间组合")
         ]),
         new("导航组件", FontAwesomeIcons.Solid.CompassDrafting, [
             new("breadcrumb", "Breadcrumb", "层级导航路径"),
+            new("anchor", "Anchor", "页内锚点导航"),
             new("stepper", "Stepper", "线性流程步骤"),
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("virtual-list", "VirtualList", "大数据量虚拟列表"),
