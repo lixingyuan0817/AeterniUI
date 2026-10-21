@@ -5,11 +5,9 @@
 <DialogProvider />
 
 <div class="sample-page">
-    <div class="sample-page__ambient" aria-hidden="true">
-        <span class="sample-page__orb sample-page__orb--brand"></span>
-        <span class="sample-page__orb sample-page__orb--info"></span>
-        <span class="sample-page__orb sample-page__orb--success"></span>
-    </div>
+    @* 页面底只有中性暗角：彩色光斑会把整页底色染成有彩灰，和「容器与页面背景
+       只能是无彩色或统一玻璃配方」的规则冲突，也让规格页里列出的中性表面无法复现。 *@
+    <div class="sample-page__ambient" aria-hidden="true"></div>
 
     <header class="sample-header">
         @* 两个下拉的浮层不再挂在这张玻璃卡片里（见下面的页面级宿主）：卡片自己的
@@ -65,5 +63,23 @@
     <ShowcaseSearchLayer />
     <ShowcaseSettingsLayer />
 
-    @Body
+    @* 内容区包一层：页脚用 margin-top:auto 落在视口底部，短页面（404）不会
+       把页脚吊在半空；长页面上这层只是占满剩余高度，不改变内部布局。 *@
+    <div class="sample-page__content">
+        @Body
+    </div>
+
+    @* 站点页脚：三个页面（首页 / 组件 / 图标）共用同一个收束动作，给出仓库、发布与许可的
+       确定去处；大屏页用自己的布局，不会被这张页脚带出站点导航。 *@
+    <footer class="sample-footer">
+        <p class="sample-footer__brand">AeterniUI <span>v@(ShowcaseCatalog.Version)</span></p>
+        <nav class="sample-footer__links" aria-label="页脚导航">
+            <a href="/components">组件</a>
+            <a href="/icons">图标</a>
+            <a href="@ShowcaseCatalog.ReleasesUrl" target="_blank" rel="noopener noreferrer">发布记录</a>
+            <a href="@ShowcaseCatalog.IssuesUrl" target="_blank" rel="noopener noreferrer">问题反馈</a>
+            <a href="https://github.com/lixingyuan0817/AeterniUI" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+        <p class="sample-footer__note">MIT License · 面向 .NET 10 的 Blazor 组件库</p>
+    </footer>
 </div>

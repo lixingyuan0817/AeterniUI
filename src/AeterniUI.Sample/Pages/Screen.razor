@@ -6,12 +6,19 @@
 <PageTitle>Aeterni UI · 组件运营大屏</PageTitle>
 
 @* 大屏页（/screen）：全屏、不滚动、自适应视口。
-   一切视觉都来自库组件与 --aeterni-* 语义 Token，页面自己只画网格、光晕、波形与环形这些
-   库还没有的"大屏装饰"——它们是页面的局部样式，不覆盖任何 .aeterni-* 规则，也不进库。
+
+   视觉语言与示例站同一份「可抄的规格台」：表面几乎全部中性，页面底与面板都回到
+   无彩色玻璃；品牌紫只做交互与「当前」标记，图表分类改用品牌色相的明度阶梯 +
+   中性灰阶，语义色只表示状态（实时、通过、演示/提醒、未读计数）。页面自己只画
+   库还没有的大屏件——中性点阵舞台、波形、柱阵列、环形占比与底部数据带——它们是
+   页面的局部样式，不覆盖任何 .aeterni-* 规则，也不进库。
 
    数据分两类，页面上必须一眼能分辨：库规模、分组占比、组件样本、技术栈取自
    ShowcaseCatalog 的真实状态；波形、仪表与事件流是演示数据，各自带标签。
    刷新由 Screen.razor.cs 里的一个一秒定时器驱动，Dispose 时释放。
+
+   动效只有一次 200ms ease-out 的「数据到位」；页面上的动画 Switch 与系统级
+   prefers-reduced-motion 都会把它关掉，关闭后读数与布局完全一致。
 
    组件槽位的写法有两处讲究：
    - IconButton / Button 各自有名为 Icon 的参数，图标必须走 Icon="@片段"，不能写成子元素；
@@ -23,7 +30,7 @@
     <header class="dash__top">
         <div class="dash__brand">
             <span class="dash__brand-mark" aria-hidden="true">
-                <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
+                <Icon Definition="@FontAwesomeIcons.Solid.Cubes" Size="Size.Large" />
             </span>
             <span class="dash__brand-text">
                 <span class="dash__brand-name">AeterniUI 组件运营大屏</span>
@@ -58,11 +65,11 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.Small"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      FullWidth="true">
                 <div class="dash__panel-head">
                     <h2 class="dash__panel-title">库规模</h2>
-                    <Tag Color="Color.Success" Variant="TagVariant.Soft" Size="Size.Small">真实数据</Tag>
+                    <Tag Color="Color.Neutral" Variant="TagVariant.Soft" Size="Size.Small">真实数据</Tag>
                 </div>
                 <ul class="dash__metrics">
                     @foreach (var metric in Metrics)
@@ -79,7 +86,7 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.Small"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      FullWidth="true">
                 <div class="dash__panel-head">
                     <h2 class="dash__panel-title">分组占比</h2>
@@ -118,11 +125,11 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.Small"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      FullWidth="true">
                 <div class="dash__panel-head">
                     <h2 class="dash__panel-title">运行参数</h2>
-                    <Tag Variant="TagVariant.Outline" Size="Size.Small">宿主可调</Tag>
+                    <Tag Color="Color.Neutral" Variant="TagVariant.Outline" Size="Size.Small">宿主可调</Tag>
                 </div>
                 <div class="dash__rows">
                     <div class="dash__row">
@@ -152,25 +159,22 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.None"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      Style="position: relative; overflow: hidden; min-height: 0">
                 <div class="dash__stage">
                     <div class="dash__stage-grid" aria-hidden="true"></div>
-                    <div class="dash__stage-halo" aria-hidden="true"></div>
-                    <div class="dash__stage-ripples" aria-hidden="true">
-                        <span class="dash__ripple"></span>
-                        <span class="dash__ripple"></span>
-                        <span class="dash__ripple"></span>
-                    </div>
-                    <div class="dash__stage-scan" aria-hidden="true"></div>
+                    <div class="dash__stage-dial" aria-hidden="true"></div>
                     @* 舞台中心读数：数据是真的（ShowcaseCatalog.ComponentCount），
-                       水波与光晕只是把它框住。 *@
+                       中性刻度环只是把它框住，不加发光。 *@
                     <div class="dash__stage-core">
                         <span class="dash__stage-core-value">@ShowcaseCatalog.ComponentCount</span>
                         <span class="dash__stage-core-label">组件总数</span>
                     </div>
                     <svg class="dash__chart" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true">
-                        <polyline class="dash__chart-glow" points="@WavePointsText()" />
+                        <line class="dash__chart-grid" x1="0" y1="15" x2="300" y2="15" />
+                        <line class="dash__chart-grid" x1="0" y1="30" x2="300" y2="30" />
+                        <line class="dash__chart-grid" x1="0" y1="45" x2="300" y2="45" />
+                        <polygon class="dash__chart-area" points="@WaveAreaPointsText()" />
                         <polyline class="dash__chart-line" points="@WavePointsText()" />
                     </svg>
                     <div class="dash__stage-head">
@@ -197,7 +201,7 @@
                     <Surface Variant="SurfaceVariant.Glass"
                              Bordered="true"
                              Padding="SurfacePadding.Small"
-                             Radius="SurfaceRadius.Large"
+                             Radius="SurfaceRadius.ExtraLarge"
                              FullWidth="true">
                         <div class="dash__gauge-head">
                             <span class="dash__gauge-label">@GaugeLabels[gaugeIndex]</span>
@@ -205,7 +209,7 @@
                         </div>
                         <Progress Value="@value"
                                   Max="100"
-                                  Color="@GaugeColors[gaugeIndex]"
+                                  Color="Color.Primary"
                                   Size="Size.Small"
                                   AriaLabel="@GaugeLabels[gaugeIndex]" />
                     </Surface>
@@ -217,7 +221,7 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.Medium"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      FullWidth="true">
                 <div class="dash__panel-head">
                     <h2 class="dash__panel-title">组件样本</h2>
@@ -234,7 +238,7 @@
                                     <Button Size="Size.Small" OnClick="() => SelectDockFromSampleAsync()">Button</Button>
                                     break;
                                 case 1:
-                                    <Tag Color="Color.Info" Variant="TagVariant.Soft" Size="Size.Small">Tag</Tag>
+                                    <Tag Color="Color.Neutral" Variant="TagVariant.Soft" Size="Size.Small">Tag</Tag>
                                     break;
                                 case 2:
                                     <Badge Count="@_events.Count" Max="99" Color="Color.Danger">
@@ -259,7 +263,7 @@
             <Surface Variant="SurfaceVariant.Glass"
                      Bordered="true"
                      Padding="SurfacePadding.Medium"
-                     Radius="SurfaceRadius.Large"
+                     Radius="SurfaceRadius.ExtraLarge"
                      FullWidth="true">
                 <div class="dash__panel-head">
                     <h2 class="dash__panel-title">事件流</h2>
@@ -282,37 +286,35 @@
     </main>
 
     <footer class="dash__foot">
-        <div class="dash__ticker" aria-hidden="true">
-            <div class="dash__ticker-track">
-                @for (var pass = 0; pass < 2; pass++)
-                {
-                    @foreach (var item in TickerItems)
-                    {
-                        <span class="dash__ticker-item">
-                            <span class="dash__ticker-label">@item.Label</span>
-                            <span class="dash__ticker-value">@item.Count</span>
-                        </span>
-                    }
-                }
-            </div>
-        </div>
-
-        <Toolbar AriaLabel="反馈组件演示">
-            @foreach (var entry in DockEntries)
+        <div class="dash__tape" aria-hidden="true">
+            @foreach (var item in TickerItems)
             {
-                <span class="dash__dock-item">
-                    <IconButton Variant="ButtonVariant.Soft"
-                                Intent="@entry.Intent"
-                                AriaLabel="@entry.Label"
-                                Icon="@Glyph(entry.Icon)"
-                                Style="--aeterni-icon-button-size: 44px; --aeterni-icon-button-icon-size: 20px; border-radius: var(--aeterni-radius-control-md)"
-                                OnClick="() => RunDockAsync(entry)" />
-                    <span class="dash__dock-label" aria-hidden="true">@entry.Label</span>
+                <span class="dash__tape-item">
+                    <span class="dash__tape-label">@item.Label</span>
+                    <span class="dash__tape-value">@item.Count</span>
                 </span>
             }
-        </Toolbar>
+        </div>
 
-        <span class="dash__notice" role="status">@_notice</span>
+        <div class="dash__controls">
+            <span class="dash__control-label" aria-hidden="true">演示控制</span>
+            <Toolbar AriaLabel="反馈组件演示">
+                @foreach (var entry in DockEntries)
+                {
+                    <span class="dash__dock-item">
+                        <IconButton Variant="ButtonVariant.Soft"
+                                    Intent="@entry.Intent"
+                                    AriaLabel="@entry.Label"
+                                    Icon="@Glyph(entry.Icon)"
+                                    Style="--aeterni-icon-button-size: 44px; --aeterni-icon-button-icon-size: 20px; border-radius: var(--aeterni-radius-control-md)"
+                                    OnClick="() => RunDockAsync(entry)" />
+                        <span class="dash__dock-label" aria-hidden="true">@entry.Label</span>
+                    </span>
+                }
+            </Toolbar>
+
+            <span class="dash__notice" role="status">@_notice</span>
+        </div>
     </footer>
 </div>
 

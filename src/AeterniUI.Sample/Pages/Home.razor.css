@@ -1,79 +1,92 @@
 /*
    首页（/）。
-   三段式：Hero（真实读数 + 入口）、常用组件墙（每张卡里是真组件）、基础使用代码窗口。
+   三段式：Hero（真实读数 + 实时样例 + 入口）、常用组件墙（每张卡里是真组件）、开始使用。
    颜色、圆角、阴影、动效全部取自 --aeterni-* 语义 Token；页面只负责网格与尺寸，
-   以及 GSAP 需要的两个挂钩元素（data-home-spot 的光斑、卡片的 will-change）。
+   以及 GSAP 需要的挂钩元素（data-home-hero / data-home-stage / data-home-card）。
    data-home-* 只是给 sample-home.js 的标记：脚本没加载时，页面结构与交互照旧可用。
 */
 
 .doc-home {
     box-sizing: border-box;
     display: grid;
-    gap: clamp(36px, 6vh, 72px);
+    gap: clamp(44px, 7vh, 84px);
     width: var(--sample-shell-width);
     margin: 0 auto;
-    /* MainLayout 的页头是浮动的，正文要自己让开它。 */
-    padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 var(--sample-page-bottom);
+    /* MainLayout 的页头是浮动的，正文要自己让开它；底部留给站点页脚。 */
+    padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 0;
 }
 
 /* Hero ------------------------------------------------------------------- */
 
+/* 首屏不再是一张卡：文字与实时样例并排落在页面底上，只有样例是面。
+   这样第一屏只有一个「实」元素，读者一眼知道先看哪里。 */
 .doc-hero {
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .74fr);
+    align-items: center;
+    gap: clamp(28px, 5vw, 72px);
+    padding-block: clamp(6px, 2.4vh, 28px);
+}
+
+.doc-hero__copy {
     display: grid;
     gap: var(--aeterni-spacing-4);
-    padding: clamp(22px, 3.6vh, 44px);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-default);
-    border-radius: var(--aeterni-radius-2xl);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-lg);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
+    max-width: 660px;
 }
 
 .doc-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
     margin: 0;
-    color: var(--aeterni-color-brand-text);
-    font-size: 11px;
-    font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .14em;
-    text-transform: uppercase;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-medium);
+    letter-spacing: .02em;
+}
+
+.doc-hero__eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--aeterni-radius-round);
+    background: var(--aeterni-color-brand-default);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--aeterni-color-brand-default) 14%, transparent);
 }
 
 .doc-hero h1 {
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(40px, 6vw, 76px);
+    font-size: clamp(52px, 6.4vw, 80px);
     font-weight: var(--aeterni-font-weight-semibold);
-    line-height: 1.02;
-    letter-spacing: -.02em;
+    line-height: .98;
+    letter-spacing: -.035em;
 }
 
 .doc-hero__lede {
-    max-width: 62ch;
+    max-width: 54ch;
     margin: 0;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-lg);
-    line-height: 1.6;
+    line-height: 1.65;
+    text-wrap: pretty;
 }
 
 .doc-hero__lede code {
     padding: 1px 5px;
     border-radius: var(--aeterni-radius-sm);
     background: var(--aeterni-bg-secondary);
+    color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-mono);
-    font-size: .92em;
-    color: var(--aeterni-color-brand-text);
+    font-size: .9em;
+    white-space: nowrap;
 }
 
 .doc-hero__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--aeterni-spacing-4);
+    gap: var(--aeterni-spacing-5);
 }
 
 .doc-hero__link {
@@ -96,52 +109,99 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
+/* 规模读数不再用灰卡片：四个数字落在页面上，用细线分栏；数字是这一排唯一的大字。 */
 .doc-hero__stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--aeterni-spacing-3);
-    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin: var(--aeterni-spacing-2) 0 0;
     padding: 0;
     list-style: none;
 }
 
 .doc-hero__stat {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     min-width: 0;
-    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-lg);
-    background: color-mix(in srgb, var(--aeterni-bg-secondary) 70%, transparent);
+    padding: 0 var(--aeterni-spacing-5);
+    border-inline-start: 1px solid var(--aeterni-border-subtle);
+}
+
+.doc-hero__stat:first-child {
+    padding-inline-start: 0;
+    border-inline-start: 0;
 }
 
 .doc-hero__stat-value {
     color: var(--aeterni-text-primary);
-    font-size: clamp(24px, 2.4vw, 38px);
-    font-weight: var(--aeterni-font-weight-bold);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(26px, 2.4vw, 32px);
+    font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
-    line-height: 1.05;
+    line-height: 1;
+    letter-spacing: -.02em;
 }
 
 .doc-hero__stat-label {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    white-space: nowrap;
+}
+
+/* 实时样例：首屏唯一的内容面。白面 + hairline + 点阵，不抢页头的玻璃语汇
+   （浮起与玻璃只留给页头与真正的浮层）。 */
+.doc-hero__specimen {
+    box-sizing: border-box;
+    padding: 20px 20px 16px;
+    border: 1px solid var(--aeterni-border);
+    border-radius: var(--aeterni-radius-2xl);
+    background-color: var(--aeterni-bg-surface);
+    background-image: radial-gradient(circle, var(--aeterni-border) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    background-position: -1px -1px;
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.doc-hero__specimen-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3);
+    padding-bottom: var(--aeterni-spacing-3);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.doc-hero__specimen-title {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .08em;
+}
+
+.doc-hero__specimen-body {
+    display: grid;
+    gap: 10px;
+    padding-top: var(--aeterni-spacing-4);
+}
+
+.doc-hero__specimen-label {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
 }
 
-/* 指针跟随的光斑：位置由 GSAP 的 quickTo 写入 x/y，这里只给形状与颜色。 */
-.doc-hero__spot {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline-start: 0;
-    width: 320px;
-    height: 320px;
-    border-radius: var(--aeterni-radius-round);
-    background: radial-gradient(circle,
-        color-mix(in srgb, var(--aeterni-color-brand-default) 34%, transparent),
-        transparent 70%);
-    opacity: .6;
-    filter: blur(12px);
-    pointer-events: none;
+.doc-hero__specimen-field {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+}
+
+.doc-hero__specimen-note {
+    margin: var(--aeterni-spacing-4) 0 0;
+    padding-top: var(--aeterni-spacing-3);
+    border-top: 1px solid var(--aeterni-border-subtle);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: 1.6;
 }
 
 /* 组件墙 ----------------------------------------------------------------- */
@@ -151,30 +211,59 @@
     gap: clamp(22px, 3.2vh, 38px);
 }
 
-.doc-showcase > h2 {
+.doc-showcase__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3) var(--aeterni-spacing-6);
+}
+
+.doc-showcase__head h2 {
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(24px, 2.8vw, 36px);
+    font-size: clamp(26px, 2.6vw, 34px);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: -.01em;
+    letter-spacing: -.02em;
+}
+
+.doc-showcase__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    text-decoration: none;
+}
+
+.doc-showcase__all:hover {
+    color: var(--aeterni-color-brand-hover);
+    text-decoration: underline;
+}
+
+.doc-showcase__all:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 .doc-showcase__group {
     display: grid;
-    gap: var(--aeterni-spacing-4);
+    gap: var(--aeterni-spacing-3);
 }
 
 .doc-showcase__group h3 {
     margin: 0;
-    color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-lg);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .02em;
 }
 
 .doc-showcase__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(244px, 1fr));
     gap: var(--aeterni-spacing-4);
 }
 
@@ -183,38 +272,43 @@
     grid-template-rows: auto minmax(0, 1fr);
     min-width: 0;
     overflow: hidden;
-    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    border: 1px solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-xl);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-sm);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-xs);
     /* GSAP 会给这张卡片写 transform，提前提层，跳过布局抖动。 */
     will-change: transform;
     transition: border-color var(--aeterni-duration-normal) var(--aeterni-ease-standard),
-                box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-standard);
+                box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-standard),
+                translate var(--aeterni-duration-normal) var(--aeterni-ease-standard);
 }
 
 .doc-showcase__card:hover {
     border-color: var(--aeterni-border-strong);
-    box-shadow: var(--aeterni-shadow-lg);
+    box-shadow: var(--aeterni-shadow-md);
+    translate: 0 -2px;
 }
 
 .doc-showcase__preview {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: var(--aeterni-spacing-3);
-    min-height: clamp(92px, 11vh, 128px);
+    min-height: clamp(96px, 11vh, 124px);
     padding: var(--aeterni-spacing-4);
-    border-bottom: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
-    background: var(--aeterni-bg-secondary);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+    background-color: var(--aeterni-bg-secondary);
+    background-image: radial-gradient(circle, var(--aeterni-border) 1px, transparent 1.2px);
+    background-size: 16px 16px;
 }
 
 .doc-showcase__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--aeterni-spacing-2);
     justify-content: center;
+    gap: var(--aeterni-spacing-2);
 }
 
 .doc-showcase__meta {
@@ -231,7 +325,7 @@
 }
 
 .doc-showcase__note {
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
 }
 
@@ -256,143 +350,135 @@
     outline-offset: var(--aeterni-focus-offset);
 }
 
-/* 代码窗口 --------------------------------------------------------------- */
+/* 开始使用 --------------------------------------------------------------- */
 
 .doc-start {
     display: grid;
-}
-
-.doc-code__kicker {
-    margin: 0 0 12px;
-    color: var(--aeterni-color-brand-text);
-    font-size: 11px;
-    font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-
-.doc-code__window {
-    box-sizing: border-box;
-    overflow: hidden;
-    border: 1px solid var(--aeterni-border-default);
-    border-radius: var(--aeterni-radius-lg);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-md);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-}
-
-.doc-code__bar {
-    display: flex;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .86fr);
     align-items: center;
-    gap: 6px;
-    box-sizing: border-box;
-    min-height: 38px;
-    padding: 0 14px;
-    border-bottom: 1px solid var(--aeterni-border-subtle);
-    background: var(--aeterni-bg-secondary);
+    gap: clamp(24px, 4vw, 56px);
+    margin-block-end: var(--sample-page-bottom);
+    padding: clamp(24px, 3.4vw, 44px);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-2xl);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-sm);
 }
 
-.doc-code__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-border-strong);
-    opacity: .8;
+.doc-start__copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--aeterni-spacing-3);
+    max-width: 480px;
 }
 
-.doc-code__dot:nth-child(1) {
-    background: var(--aeterni-color-danger-default);
-}
-
-.doc-code__dot:nth-child(2) {
-    background: var(--aeterni-color-warning-default);
-}
-
-.doc-code__dot:nth-child(3) {
-    background: var(--aeterni-color-success-default);
-}
-
-.doc-code__file {
-    overflow: hidden;
-    margin-left: 8px;
-    color: var(--aeterni-text-muted);
-    font-family: var(--aeterni-font-family-mono);
-    font-size: 11px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.doc-code__body {
+.doc-start__kicker {
     margin: 0;
-    padding: 14px 16px 16px;
-    box-sizing: border-box;
-    overflow: auto;
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .08em;
+}
+
+.doc-start h2 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(24px, 2.6vw, 32px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.22;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+}
+
+.doc-start__note {
+    margin: 0;
     color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.7;
+}
+
+.doc-start__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-5);
+    margin-top: var(--aeterni-spacing-2);
+}
+
+.doc-start__code {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: 0;
+    padding: var(--aeterni-spacing-4) var(--aeterni-spacing-5);
+    overflow-x: auto;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-bg-tertiary);
+    color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-mono);
     font-size: 12.5px;
-    line-height: 1.6;
+    line-height: 1.65;
+    tab-size: 4;
 }
 
-.doc-code__body code {
+.doc-start__code code {
     font-family: inherit;
+    color: inherit;
 }
 
-/* Lightweight syntax colouring on top of semantic tokens. The three accent
-   kinds use the families' text form: their fill stops are made for solid
-   surfaces and only reach ~2.2:1 as ink on the light code panel (dark happens to
-   be fine either way, so one role covers both themes). */
-
-.doc-code__body .tok-c {
-    color: var(--aeterni-text-muted);
-    font-style: italic;
-}
-
-.doc-code__body .tok-tag {
-    color: var(--aeterni-color-info-text);
-}
-
-.doc-code__body .tok-fn {
-    color: var(--aeterni-color-success-text);
-}
-
-.doc-code__body .tok-str {
+.doc-start__code .tok-str {
     color: var(--aeterni-color-warning-text);
-}
-
-.doc-code__body::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.doc-code__body::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-border-strong);
-    background-clip: padding-box;
 }
 
 /* 响应式 ----------------------------------------------------------------- */
 
-@media (max-width: 900px) {
-    .doc-hero__stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 1080px) {
+    .doc-hero {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .doc-hero__specimen {
+        max-width: 520px;
+    }
+
+    .doc-start {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
 @media (max-width: 720px) {
     .doc-hero h1 {
-        font-size: clamp(32px, 10vw, 48px);
+        font-size: clamp(40px, 13vw, 56px);
+    }
+
+    .doc-hero__stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--aeterni-spacing-4) 0;
+    }
+
+    .doc-hero__stat:nth-child(3) {
+        padding-inline-start: 0;
+        border-inline-start: 0;
     }
 
     .doc-showcase__grid {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    .doc-start {
+        margin-block-end: var(--aeterni-spacing-8);
+    }
 }
 
-/* 光斑只是氛围，系统要求减少动效时直接不显示。 */
 @media (prefers-reduced-motion: reduce) {
-    .doc-hero__spot {
-        display: none;
+    .doc-showcase__card {
+        transition: none;
+    }
+
+    .doc-showcase__card:hover {
+        translate: none;
     }
 }

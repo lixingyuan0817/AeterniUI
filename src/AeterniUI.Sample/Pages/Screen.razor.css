@@ -1,15 +1,18 @@
 /*
-   大屏页（/screen）。全屏、不滚动、随视口伸缩。
+   大屏页（/screen）。全屏、不滚动，随视口伸缩。
 
-   与库的分工：面板、按钮、开关、分段、时间线这些交给库组件；页面只画库还没有的
-   「大屏装饰」——网格底、光晕、水波、扫描线、波形、环形占比、跑马灯。
-   颜色全部取自 --aeterni-* 语义 Token，页面不自建色板：页面背景保持无彩色，
-   彩色只出现在舞台内部（品牌色光晕 / 波形 / 环段）与几个状态点上。
+   页面只画库还没有的大屏件：中性点阵舞台、波形、柱阵列、环形占比与底部数据带；
+   面板、按钮、开关、分段、标签、时间线全部交给库组件。颜色一律走 --aeterni-*：
+   页面底与面板保持无彩色，品牌紫只出现在交互、当前项与分类色阶上，语义色只表示
+   状态（实时、通过、演示/提醒、未读计数）。
 
-   动效有两级开关：页面上的 Switch（data-motion="off"）与系统级 prefers-reduced-motion。
-   两者都只暂停动画播放，不改任何数值，所以关掉动画后读数与布局完全一致。
+   分类色阶：品牌紫的 5 个明度档 + 4 级中性灰交替，九个分组各占一档；环形分段与
+   图例共用同一份映射。
 
-   尺寸用 clamp() 跟随视口；窗口不够宽或不够高时（<= 1280px 宽 / <= 760px 高）
+   动效只有一次 200ms ease-out 的「数据到位」，没有循环发光、漂浮或扫描；页面上的
+   Switch 与 prefers-reduced-motion 都会关掉出场与数据过渡，读数与布局保持不变。
+
+   尺寸用 clamp() 跟随视口；窗口不够宽或不够高时（<= 1180px 宽 / <= 640px 高）
    改成单列并允许纵向滚动，避免面板互相压住。
 */
 
@@ -27,6 +30,7 @@
     padding: clamp(10px, 1.3vh, 20px) clamp(16px, 1.8vw, 34px);
     background: var(--aeterni-bg);
     color: var(--aeterni-text);
+    font-family: var(--aeterni-font-family-base);
 }
 
 /* 页面标题只服务 FocusOnNavigate 与文档大纲，视觉上不占位。 */
@@ -63,17 +67,17 @@
     min-width: 0;
 }
 
+/* 品牌标记沿用示例站页头的实心方块：品牌色只在它身上作为「身份」出现，
+   不再围一圈发光或描边。 */
 .dash__brand-mark {
     display: inline-grid;
     place-items: center;
     flex: 0 0 auto;
     width: 34px;
     height: 34px;
-    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-color-brand-default) 55%, transparent);
-    border-radius: var(--aeterni-radius-control-sm);
-    background: color-mix(in srgb, var(--aeterni-color-brand-default) 16%, transparent);
-    color: var(--aeterni-color-brand-default);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--aeterni-color-brand-default) 26%, transparent);
+    border-radius: var(--aeterni-radius-lg);
+    background: var(--aeterni-color-brand-default);
+    color: var(--aeterni-text-inverse);
 }
 
 .dash__brand-text {
@@ -83,16 +87,16 @@
 }
 
 .dash__brand-name {
-    font-size: clamp(14px, 1.05vw, 18px);
+    font-size: clamp(15px, 1.05vw, 18px);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .04em;
+    letter-spacing: .01em;
     color: var(--aeterni-text);
     white-space: nowrap;
 }
 
 .dash__brand-note {
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     white-space: nowrap;
 }
 
@@ -103,25 +107,25 @@
     gap: var(--aeterni-spacing-3);
 }
 
+/* 「实时」状态点：静态实心圆，靠 success 语义色与时钟一起表达在线，不闪烁。 */
 .dash__live {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: var(--aeterni-radius-round);
     background: var(--aeterni-color-success-default);
-    animation: dash-blink 1.8s ease-in-out infinite;
 }
 
 .dash__clock {
-    font-size: clamp(14px, 1.05vw, 18px);
+    font-size: clamp(15px, 1.05vw, 18px);
     font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
-    letter-spacing: .06em;
+    letter-spacing: .04em;
     color: var(--aeterni-text);
 }
 
 .dash__date {
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     font-variant-numeric: tabular-nums;
 }
 
@@ -190,43 +194,36 @@
 
 /* 面板内部 --------------------------------------------------------------- */
 
+/* 面板标题只用字号 / 字重与一条中性分隔线分栏，不再加彩色竖条。 */
 .dash__panel-head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--aeterni-spacing-2);
     margin-block-end: var(--aeterni-spacing-2);
+    padding-block-end: 6px;
+    border-block-end: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 .dash__panel-title {
-    display: flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-2);
     margin: 0;
     font-size: var(--aeterni-font-size-md);
     font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .01em;
     color: var(--aeterni-text);
-}
-
-.dash__panel-title::before {
-    content: "";
-    flex: 0 0 auto;
-    width: 3px;
-    height: 14px;
-    border-radius: var(--aeterni-radius-full);
-    background: var(--aeterni-color-brand-default);
 }
 
 .dash__panel-note {
     margin-inline-start: auto;
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     white-space: nowrap;
 }
 
+/* KPI：无卡片底，用中性 hairline 划出 2 × 2 的规格格；
+   读数与说明的层级交给字号与字重，不靠颜色。 */
 .dash__metrics {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--aeterni-spacing-2);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -236,14 +233,23 @@
     display: grid;
     gap: 2px;
     min-width: 0;
-    padding: clamp(6px, .9vh, 10px);
-    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-md);
-    background: color-mix(in srgb, var(--aeterni-bg-elevated) 55%, transparent);
+    padding: var(--aeterni-spacing-1) var(--aeterni-spacing-2);
+}
+
+.dash__metric:nth-child(odd) {
+    padding-inline-start: 0;
+}
+
+.dash__metric:nth-child(even) {
+    border-inline-start: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+}
+
+.dash__metric:nth-child(n + 3) {
+    border-block-start: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
 }
 
 .dash__metric-value {
-    font-size: clamp(17px, 1.4vw, 24px);
+    font-size: clamp(20px, 1.45vw, 26px);
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -251,19 +257,19 @@
 }
 
 .dash__metric-label {
-    font-size: var(--aeterni-font-size-xs);
+    font-size: var(--aeterni-font-size-compact);
     color: var(--aeterni-text-secondary);
 }
 
+/* 短写后的说明（Server / WASM）不再省略号截断；真的放不下时允许两行。 */
 .dash__metric-note {
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: var(--aeterni-line-height-normal);
+    color: var(--aeterni-text-secondary);
+    overflow-wrap: anywhere;
 }
 
-/* 环形占比：段长按真实分组条目数切，整环缓慢自转。 */
+/* 环形占比：段长按真实分组条目数切；颜色来自品牌明度阶梯与中性灰阶。 */
 .dash__ring-wrap {
     position: relative;
     display: grid;
@@ -271,45 +277,21 @@
 }
 
 .dash__ring {
-    width: clamp(104px, 19vh, 158px);
+    width: clamp(100px, 16vh, 132px);
     height: auto;
-    animation: dash-spin 48s linear infinite;
 }
 
 .dash__ring-track {
     fill: none;
-    stroke: var(--aeterni-border-subtle);
-    stroke-width: 10;
+    stroke: var(--aeterni-border-strong);
+    stroke-width: 9;
 }
 
 .dash__ring-seg {
     fill: none;
-    stroke-width: 10;
+    stroke: var(--dash-tone, var(--aeterni-color-brand-default));
+    stroke-width: 9;
     stroke-linecap: butt;
-}
-
-.dash__ring-seg--primary {
-    stroke: var(--aeterni-color-brand-default);
-}
-
-.dash__ring-seg--info {
-    stroke: var(--aeterni-color-info-default);
-}
-
-.dash__ring-seg--success {
-    stroke: var(--aeterni-color-success-default);
-}
-
-.dash__ring-seg--warning {
-    stroke: var(--aeterni-color-warning-default);
-}
-
-.dash__ring-seg--danger {
-    stroke: var(--aeterni-color-danger-default);
-}
-
-.dash__ring-seg--neutral {
-    stroke: var(--aeterni-color-neutral-default);
 }
 
 .dash__ring-center {
@@ -320,7 +302,7 @@
 }
 
 .dash__ring-value {
-    font-size: clamp(20px, 1.6vw, 28px);
+    font-size: clamp(22px, 1.7vw, 28px);
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -329,12 +311,12 @@
 
 .dash__ring-label {
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
 }
 
 .dash__legend {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px var(--aeterni-spacing-3);
     margin: var(--aeterni-spacing-2) 0 0;
     padding: 0;
@@ -344,7 +326,7 @@
 .dash__legend-item {
     display: flex;
     align-items: center;
-    gap: var(--aeterni-spacing-2);
+    gap: var(--aeterni-spacing-1);
     min-width: 0;
     font-size: var(--aeterni-font-size-xs);
     color: var(--aeterni-text-secondary);
@@ -352,30 +334,57 @@
 
 .dash__legend-dot {
     flex: 0 0 auto;
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: var(--aeterni-radius-round);
-    background: var(--aeterni-color-neutral-default);
+    background: var(--dash-tone, var(--aeterni-color-neutral-default));
 }
 
-.dash__legend-dot--primary {
-    background: var(--aeterni-color-brand-default);
+/* 九个分类色阶：5 档品牌紫 + 4 级中性灰，环形与图例共用。
+   两套色阶都走 --aeterni-brand-* / --aeterni-gray-*，不新造色板。 */
+.dash__ring-seg--brand-1,
+.dash__legend-dot--brand-1 {
+    --dash-tone: var(--aeterni-brand-200);
 }
 
-.dash__legend-dot--info {
-    background: var(--aeterni-color-info-default);
+.dash__ring-seg--brand-2,
+.dash__legend-dot--brand-2 {
+    --dash-tone: var(--aeterni-brand-300);
 }
 
-.dash__legend-dot--success {
-    background: var(--aeterni-color-success-default);
+.dash__ring-seg--brand-3,
+.dash__legend-dot--brand-3 {
+    --dash-tone: var(--aeterni-brand-400);
 }
 
-.dash__legend-dot--warning {
-    background: var(--aeterni-color-warning-default);
+.dash__ring-seg--brand-4,
+.dash__legend-dot--brand-4 {
+    --dash-tone: var(--aeterni-brand-500);
 }
 
-.dash__legend-dot--danger {
-    background: var(--aeterni-color-danger-default);
+.dash__ring-seg--brand-5,
+.dash__legend-dot--brand-5 {
+    --dash-tone: var(--aeterni-brand-600);
+}
+
+.dash__ring-seg--neutral-1,
+.dash__legend-dot--neutral-1 {
+    --dash-tone: var(--aeterni-gray-200);
+}
+
+.dash__ring-seg--neutral-2,
+.dash__legend-dot--neutral-2 {
+    --dash-tone: var(--aeterni-gray-300);
+}
+
+.dash__ring-seg--neutral-3,
+.dash__legend-dot--neutral-3 {
+    --dash-tone: var(--aeterni-gray-400);
+}
+
+.dash__ring-seg--neutral-4,
+.dash__legend-dot--neutral-4 {
+    --dash-tone: var(--aeterni-gray-500);
 }
 
 .dash__legend-label {
@@ -387,13 +396,14 @@
 .dash__legend-value {
     margin-inline-start: auto;
     font-variant-numeric: tabular-nums;
+    font-weight: var(--aeterni-font-weight-medium);
     color: var(--aeterni-text);
 }
 
 .dash__rows {
     display: grid;
-    gap: clamp(6px, .9vh, 12px);
-    margin-block-end: clamp(6px, .9vh, 12px);
+    gap: clamp(6px, .9vh, 10px);
+    margin-block-end: clamp(6px, .9vh, 10px);
 }
 
 .dash__row {
@@ -401,6 +411,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--aeterni-spacing-3);
+    min-width: 0;
 }
 
 .dash__row-label {
@@ -409,7 +420,7 @@
     white-space: nowrap;
 }
 
-/* 舞台：网格底 + 品牌光晕 + 水波 + 扫描线 + 实时波形 + 柱阵列。 */
+/* 舞台：中性点阵 + 一道刻度环 + 波形面积 + 柱阵列；没有任何光晕 / 扫描线。 */
 .dash__stage {
     position: relative;
     height: 100%;
@@ -419,87 +430,53 @@
 .dash__stage-grid {
     position: absolute;
     inset: 0;
-    background-image:
-        linear-gradient(to right, var(--aeterni-border-subtle) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--aeterni-border-subtle) 1px, transparent 1px);
-    background-size: 34px 34px;
-    opacity: .9;
-    animation: dash-grid 22s linear infinite;
+    background-image: radial-gradient(circle,
+        color-mix(in srgb, var(--aeterni-text) 9%, transparent) 1px,
+        transparent 1.2px);
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 45%, black 20%, transparent 78%);
+    mask-image: radial-gradient(ellipse at 50% 45%, black 20%, transparent 78%);
 }
 
-.dash__stage-halo {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    translate: -50% -50%;
-    width: min(62%, 520px);
-    aspect-ratio: 1;
-    border-radius: var(--aeterni-radius-round);
-    background: radial-gradient(circle, color-mix(in srgb, var(--aeterni-color-brand-default) 32%, transparent), transparent 68%);
-    animation: dash-halo 6s ease-in-out infinite;
-}
-
-.dash__stage-ripples {
+/* 刻度环是中性 hairline：给中心读数一个仪表的框，不发光。 */
+.dash__stage-dial {
     position: absolute;
     inset-block-start: 50%;
     inset-inline-start: 50%;
     translate: -50% -50%;
     width: min(46%, 380px);
     aspect-ratio: 1;
-}
-
-.dash__ripple {
-    position: absolute;
-    inset: 0;
-    border: var(--aeterni-border-width) solid color-mix(in srgb, var(--aeterni-color-brand-default) 45%, transparent);
+    border: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-round);
-    opacity: 0;
-    animation: dash-ripple 4.5s ease-out infinite;
-}
-
-.dash__ripple:nth-child(2) {
-    animation-delay: 1.5s;
-}
-
-.dash__ripple:nth-child(3) {
-    animation-delay: 3s;
-}
-
-.dash__stage-scan {
-    position: absolute;
-    inset-inline: 0;
-    block-size: 40%;
-    background: linear-gradient(to bottom,
-        transparent,
-        color-mix(in srgb, var(--aeterni-color-info-default) 14%, transparent),
-        transparent);
-    animation: dash-scan 7s ease-in-out infinite;
 }
 
 .dash__chart {
     position: absolute;
-    inset-block-end: 16%;
+    inset-block-end: 17%;
     inset-inline: 0;
     width: 100%;
-    height: 24%;
+    height: 23%;
+}
+
+.dash__chart-grid {
+    stroke: var(--aeterni-border-subtle);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.dash__chart-area {
+    fill: color-mix(in srgb, var(--aeterni-brand-400) 14%, transparent);
 }
 
 .dash__chart-line {
     fill: none;
-    stroke: var(--aeterni-color-brand-default);
+    stroke: var(--aeterni-brand-300);
     stroke-width: 1.6;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
 }
 
-.dash__chart-glow {
-    fill: none;
-    stroke: color-mix(in srgb, var(--aeterni-color-brand-default) 40%, transparent);
-    stroke-width: 5;
-    vector-effect: non-scaling-stroke;
-}
-
-/* 舞台中心读数：与水波、光晕同心，是这块屏的视觉焦点。 */
+/* 舞台中心读数：与刻度环同心，是这块屏唯一的视觉重心。 */
 .dash__stage-core {
     position: absolute;
     inset-block-start: 50%;
@@ -511,18 +488,17 @@
 }
 
 .dash__stage-core-value {
-    font-size: clamp(38px, 4.2vw, 76px);
+    font-size: clamp(44px, 5vw, 76px);
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     color: var(--aeterni-text);
-    text-shadow: 0 0 26px color-mix(in srgb, var(--aeterni-color-brand-default) 45%, transparent);
 }
 
 .dash__stage-core-label {
-    font-size: var(--aeterni-font-size-sm);
+    font-size: var(--aeterni-font-size-xs);
     letter-spacing: .18em;
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
 }
 
 .dash__stage-head {
@@ -535,12 +511,12 @@
 
 .dash__stage-eyebrow {
     font-size: var(--aeterni-font-size-xs);
-    letter-spacing: .08em;
-    color: var(--aeterni-text-tertiary);
+    letter-spacing: .06em;
+    color: var(--aeterni-text-secondary);
 }
 
 .dash__stage-title {
-    font-size: clamp(16px, 1.3vw, 22px);
+    font-size: clamp(16px, 1.3vw, 20px);
     font-weight: var(--aeterni-font-weight-semibold);
     color: var(--aeterni-text);
 }
@@ -556,14 +532,14 @@
     padding: 0 var(--aeterni-spacing-5) var(--aeterni-spacing-3);
 }
 
+/* 柱阵列只用一个品牌色档 + 半透明填充，不再做蓝紫渐变。 */
 .dash__bar {
     flex: 1 1 0;
     min-width: 0;
-    border-radius: var(--aeterni-radius-xs);
-    background: linear-gradient(to top,
-        color-mix(in srgb, var(--aeterni-color-brand-default) 68%, transparent),
-        color-mix(in srgb, var(--aeterni-color-info-default) 28%, transparent));
-    transition: height .8s var(--aeterni-ease-standard);
+    border-radius: var(--aeterni-radius-xs) var(--aeterni-radius-xs) 0 0;
+    background: color-mix(in srgb, var(--aeterni-brand-500) 70%, transparent);
+    transform-origin: bottom center;
+    transition: height var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
 .dash__gauges {
@@ -586,13 +562,13 @@
 }
 
 .dash__gauge-value {
-    font-size: clamp(15px, 1.1vw, 20px);
+    font-size: clamp(16px, 1.15vw, 20px);
     font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
     color: var(--aeterni-text);
 }
 
-/* 组件样本墙：当前格高亮呼吸，格子里的控件都是真实组件。 */
+/* 组件样本墙：当前格只用品牌 hairline + 选中底标记，不呼吸、不发光。 */
 .dash__samples {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -612,9 +588,8 @@
 }
 
 .dash__sample.is-current {
-    border-color: color-mix(in srgb, var(--aeterni-color-brand-default) 60%, transparent);
-    background: color-mix(in srgb, var(--aeterni-color-brand-default) 12%, transparent);
-    animation: dash-pulse 2.4s ease-in-out infinite;
+    border-color: var(--aeterni-color-brand-default);
+    background: var(--aeterni-surface-selected);
 }
 
 .dash__empty {
@@ -623,56 +598,68 @@
     gap: var(--aeterni-spacing-2);
     margin: 0;
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
-}
-
-/* 页脚：跑马灯 + 反馈组件入口 + 状态文案 ---------------------------------- */
-
-.dash__foot {
-    display: flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-4);
-}
-
-.dash__ticker {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
-}
-
-.dash__ticker-track {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-5);
-    white-space: nowrap;
-    animation: dash-marquee 36s linear infinite;
-}
-
-.dash__ticker-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--aeterni-spacing-2);
-    font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
-}
-
-.dash__ticker-item::before {
-    content: "";
-    width: 5px;
-    height: 5px;
-    border-radius: var(--aeterni-radius-round);
-    background: var(--aeterni-color-brand-default);
-}
-
-.dash__ticker-label {
     color: var(--aeterni-text-secondary);
 }
 
-.dash__ticker-value {
+/* 页脚：分组数据带 + 演示控制 + 状态文案 -------------------------------- */
+
+.dash__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    min-width: 0;
+    padding-block-start: 4px;
+    border-block-start: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+/* 分组数据带：静态一行；上一版是无限跑马灯，属于被收敛掉的循环装饰。 */
+.dash__tape {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    min-width: 0;
+}
+
+.dash__tape-item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-inline: 8px;
+    border-inline-start: var(--aeterni-border-width) solid var(--aeterni-border-subtle);
+    font-size: var(--aeterni-font-size-xs);
+    color: var(--aeterni-text-secondary);
+    white-space: nowrap;
+}
+
+.dash__tape-item:first-child {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+}
+
+.dash__tape-label {
+    color: var(--aeterni-text-secondary);
+}
+
+.dash__tape-value {
     font-variant-numeric: tabular-nums;
     color: var(--aeterni-text);
+}
+
+.dash__controls {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    min-width: 0;
+}
+
+.dash__control-label {
+    flex: 0 0 auto;
+    font-size: var(--aeterni-font-size-xs);
+    letter-spacing: .08em;
+    color: var(--aeterni-text-secondary);
+    white-space: nowrap;
 }
 
 .dash__dock-item {
@@ -683,125 +670,82 @@
 
 .dash__dock-label {
     font-size: var(--aeterni-font-size-xs);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     white-space: nowrap;
 }
 
 .dash__notice {
-    flex: 0 1 340px;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-start: auto;
     font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
     color: var(--aeterni-text-secondary);
     text-align: end;
 }
 
-/* 动效开关 ---------------------------------------------------------------
-   data-motion="off" 由页面上的 Switch 驱动，prefers-reduced-motion 由系统驱动。
-   两者都只暂停动画播放：读数、布局与过渡后的状态完全一致。 */
+/* 动效 -------------------------------------------------------------------
+   只有一次「数据到位」：舞台标题、中心读数与波形淡入 6px，柱阵列从底部长起。
+   页面 Switch（data-motion="off"）与系统 prefers-reduced-motion 都直接取消这段
+   出场，元素保持最终状态；不做无限发光 / 漂浮 / 扫描。 */
 
-.dash[data-motion="off"] *,
-.dash[data-motion="off"] *::before,
-.dash[data-motion="off"] *::after {
-    animation-play-state: paused !important;
+.dash__stage-head,
+.dash__stage-core,
+.dash__chart {
+    animation: dash-data-in var(--aeterni-duration-normal) var(--aeterni-ease-out) both;
+}
+
+.dash__bar {
+    animation: dash-bar-in var(--aeterni-duration-normal) var(--aeterni-ease-out) both;
+}
+
+.dash[data-motion="off"] .dash__stage-head,
+.dash[data-motion="off"] .dash__stage-core,
+.dash[data-motion="off"] .dash__chart,
+.dash[data-motion="off"] .dash__bar {
+    animation: none;
+}
+
+.dash[data-motion="off"] .dash__bar,
+.dash[data-motion="off"] .dash__sample {
+    transition: none;
+}
+
+@keyframes dash-data-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes dash-bar-in {
+    from {
+        opacity: .35;
+        transform: scaleY(.25);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleY(1);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .dash *,
-    .dash *::before,
-    .dash *::after {
-        animation-play-state: paused !important;
-    }
-}
-
-/* 关键帧 ----------------------------------------------------------------- */
-
-@keyframes dash-grid {
-    from {
-        background-position: 0 0;
+    .dash__stage-head,
+    .dash__stage-core,
+    .dash__chart,
+    .dash__bar {
+        animation: none;
     }
 
-    to {
-        background-position: 34px 34px;
-    }
-}
-
-@keyframes dash-halo {
-    0%,
-    100% {
-        opacity: .55;
-        scale: .94;
-    }
-
-    50% {
-        opacity: 1;
-        scale: 1.06;
-    }
-}
-
-@keyframes dash-ripple {
-    0% {
-        opacity: .8;
-        scale: .35;
-    }
-
-    70% {
-        opacity: .14;
-    }
-
-    100% {
-        opacity: 0;
-        scale: 1.15;
-    }
-}
-
-@keyframes dash-scan {
-    0% {
-        translate: 0 -60%;
-    }
-
-    100% {
-        translate: 0 170%;
-    }
-}
-
-@keyframes dash-spin {
-    from {
-        rotate: 0deg;
-    }
-
-    to {
-        rotate: 360deg;
-    }
-}
-
-@keyframes dash-pulse {
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--aeterni-color-brand-default) 0%, transparent);
-    }
-
-    50% {
-        box-shadow: 0 0 18px 0 color-mix(in srgb, var(--aeterni-color-brand-default) 26%, transparent);
-    }
-}
-
-@keyframes dash-marquee {
-    from {
-        translate: 0 0;
-    }
-
-    to {
-        translate: -50% 0;
-    }
-}
-
-@keyframes dash-blink {
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: .45;
+    .dash__bar,
+    .dash__sample {
+        transition: none;
     }
 }
 
@@ -827,12 +771,28 @@
         min-height: 320px;
     }
 
-    .dash__foot {
+    .dash__controls {
         flex-wrap: wrap;
     }
 
     .dash__notice {
         flex-basis: 100%;
         text-align: start;
+    }
+}
+
+/* 手机宽度：顶栏与仪表换行，保持每块内容都能读到。 */
+@media (max-width: 760px) {
+    .dash__top {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--aeterni-spacing-2);
+    }
+
+    .dash__meta {
+        justify-content: flex-start;
+    }
+
+    .dash__gauges {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

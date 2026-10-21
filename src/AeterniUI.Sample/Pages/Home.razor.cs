@@ -66,7 +66,7 @@ public partial class Home : ComponentBase, IAsyncDisposable
         ]),
         new("展示与反馈",
         [
-            new("tag-badge", "tag", "Tag + Badge", "标签与角标"),
+            new("tag-badge", "tag-badge", "Tag + Badge", "标签与角标"),
             new("progress", "progress", "Progress", "进度与进度条"),
             new("avatar", "avatar", "Avatar + Spinner", "身份与等待"),
             new("feedback", "feedback", "Dialog / Alert / Confirm", "通知与确认")

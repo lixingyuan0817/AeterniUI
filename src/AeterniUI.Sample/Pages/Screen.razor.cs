@@ -22,8 +22,8 @@ namespace AeterniUI.Sample.Pages;
 /// <see cref="ShowcaseCatalog"/> 的真实状态；波形、仪表与事件流是演示数据，各自带标签。</item>
 /// <item>大屏假定深色。进入时把主题切到 Dark、离开时恢复进入前的模式，页面不直接写
 /// <c>data-theme</c>。</item>
-/// <item>动画有两个开关：页面上的 SetSwitch 与系统级的 <c>prefers-reduced-motion</c>，
-/// 两者都只暂停动画，不改变任何数值。</item>
+/// <item>动画只有一次 200ms 的「数据到位」，没有循环发光或漂浮。页面上的 Switch 与
+/// 系统级 <c>prefers-reduced-motion</c> 都只关闭这段出场与数据过渡，不改变任何数值。</item>
 /// </list>
 /// </remarks>
 public partial class Screen : ComponentBase, IDisposable
@@ -62,7 +62,7 @@ public partial class Screen : ComponentBase, IDisposable
     private string _nav = "overview";
     private string _range = "hour";
     private bool _motion = true;
-    private string _notice = "点一下底部入口，可以看到 Toast / Alert / Confirm 的真实行为。";
+    private string _notice = "点下方入口，查看真实反馈组件的行为。";
 
     private static readonly IReadOnlyList<ShowcaseNavGroup> Catalog = ShowcaseCatalog.Groups;
 
@@ -91,21 +91,27 @@ public partial class Screen : ComponentBase, IDisposable
 
     private static readonly string[] GaugeLabels = ["渲染", "契约", "文档", "令牌"];
 
-    private static readonly Color[] GaugeColors = [Color.Primary, Color.Info, Color.Success, Color.Warning];
-
-    private static readonly string[] RingTones = ["primary", "info", "success", "warning", "danger", "neutral"];
+    /// <summary>
+    /// 分类色阶：品牌紫的 5 个明度档与 4 级中性灰交替，九个分组各占一档。
+    /// 环形分段与图例共用这份映射；语义色不参与分类，只留给状态与异常。
+    /// </summary>
+    private static readonly string[] RingTones =
+    [
+        "brand-1", "neutral-1", "brand-2", "neutral-2", "brand-3",
+        "neutral-3", "brand-4", "neutral-4", "brand-5"
+    ];
 
     /// <summary>事件流种子。全库演进里的真实批次名，时间与顺序由页面上的时钟决定（演示数据）。</summary>
     private static readonly IReadOnlyList<EventSeed> EventSeeds =
     [
         new("契约检查通过", "根属性、ARIA 与焦点模型逐项比对完成", FontAwesomeIcons.Solid.CircleNodes, Color.Success),
-        new("文档漂移检查通过", "retired 成员与文案表键没有出现未登记项", FontAwesomeIcons.Solid.ListCheck, Color.Info),
-        new("令牌对比度通过", "色阶、品牌与文字墨三族同屏比对", FontAwesomeIcons.Solid.ChartPie, Color.Primary),
-        new("滚动条覆盖通过", "带 overflow 的容器都声明了自己那套滚动条", FontAwesomeIcons.Solid.BarsProgress, Color.Neutral),
-        new("示例页构建完成", "示例宿主与静态站点同步产出", FontAwesomeIcons.Solid.ArrowsRotate, Color.Info),
-        new("组件渲染完成", "玻璃面板与图标在深色下重新合成", FontAwesomeIcons.Solid.Microchip, Color.Warning),
+        new("文档漂移检查通过", "retired 成员与文案表键没有出现未登记项", FontAwesomeIcons.Solid.ListCheck, Color.Success),
+        new("令牌对比度通过", "色阶、品牌与文字墨三族同屏比对", FontAwesomeIcons.Solid.ChartPie, Color.Success),
+        new("滚动条覆盖通过", "带 overflow 的容器都声明了自己那套滚动条", FontAwesomeIcons.Solid.BarsProgress, Color.Success),
+        new("示例页构建完成", "示例宿主与静态站点同步产出", FontAwesomeIcons.Solid.ArrowsRotate, Color.Neutral),
+        new("组件渲染完成", "玻璃面板与图标在深色下重新合成", FontAwesomeIcons.Solid.Microchip, Color.Neutral),
         new("主题切到深色", "大屏进入时请求深色，离开时恢复", FontAwesomeIcons.Solid.WandMagicSparkles, Color.Primary),
-        new("审阅批次收口", "本批次的缺陷全部给出证据并归档", FontAwesomeIcons.Solid.Signal, Color.Success)
+        new("审阅批次收口", "本批次的缺陷全部给出证据并归档", FontAwesomeIcons.Solid.Signal, Color.Neutral)
     ];
 
     private RangeEntry CurrentRange => Ranges.First(entry => entry.Id == _range);
@@ -126,7 +132,7 @@ public partial class Screen : ComponentBase, IDisposable
     private IReadOnlyList<MetricEntry> Metrics =>
     [
         new("组件", ShowcaseCatalog.ComponentCount.ToString(CultureInfo.InvariantCulture), $"{ShowcaseCatalog.GroupCount} 个分组"),
-        new("宿主", ShowcaseCatalog.HostCount.ToString(CultureInfo.InvariantCulture), "Server / WebAssembly"),
+        new("宿主", ShowcaseCatalog.HostCount.ToString(CultureInfo.InvariantCulture), "Server / WASM"),
         new("主题模式", ShowcaseCatalog.ThemeModeCount.ToString(CultureInfo.InvariantCulture), "System / Light / Dark"),
         new("导航条目", Catalog.Sum(group => group.Count).ToString(CultureInfo.InvariantCulture), "示例工程侧栏")
     ];
@@ -176,6 +182,9 @@ public partial class Screen : ComponentBase, IDisposable
             FormattableString.Invariant($"{index * step:0.##},{60 - value * 54:0.##}")));
     }
 
+    /// <summary>波形下方的面积填充：沿折线走一圈再落到基线，交给 polygon 闭合。</summary>
+    private string WaveAreaPointsText() => $"0,60 {WavePointsText()} 300,60";
+
     private static string PercentText(double value) =>
         FormattableString.Invariant($"{value:0}");
 
@@ -202,7 +211,7 @@ public partial class Screen : ComponentBase, IDisposable
     /// </summary>
     private void HandleMotionAfterBind()
     {
-        _notice = _motion ? "动画已开启。" : "动画已暂停（与 prefers-reduced-motion 同一套开关）。";
+        _notice = _motion ? "页面动画已开启：数据以短促阻尼过渡到位。" : "页面动画已关闭：数据直接到位。";
     }
     private async Task ClearEventsAsync()
     {

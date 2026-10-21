@@ -1,0 +1,87 @@
+/*
+   404 兜底页：与组件页共用同一套容器、标题阶梯与控件语法。
+   颜色、间距与焦点环全部来自 --aeterni-* Token，不引入一次性色值。
+*/
+
+.not-found {
+    box-sizing: border-box;
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-3);
+    width: min(560px, var(--sample-shell-width));
+    margin: calc(var(--sample-content-top) - var(--sample-header-inset)) auto 0;
+    padding: clamp(28px, 5vw, 48px);
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-2xl);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.not-found__code {
+    margin: 0;
+    color: var(--aeterni-color-brand-text);
+    font-family: var(--aeterni-font-family-mono);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .08em;
+}
+
+.not-found h1 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(30px, 2.6vw, 36px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.1;
+    letter-spacing: -.015em;
+}
+
+.not-found__lead {
+    max-width: 44ch;
+    margin: var(--aeterni-spacing-2) 0 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-md);
+    line-height: 1.7;
+}
+
+.not-found__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-4);
+    margin-top: var(--aeterni-spacing-4);
+}
+
+.not-found__primary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 var(--aeterni-spacing-5);
+    border-radius: var(--aeterni-radius-button);
+    background: var(--aeterni-color-brand-default);
+    color: var(--aeterni-text-inverse);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-medium);
+    text-decoration: none;
+}
+
+.not-found__primary:hover {
+    background: var(--aeterni-color-brand-hover);
+}
+
+.not-found__link {
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    text-decoration: none;
+}
+
+.not-found__link:hover {
+    text-decoration: underline;
+}
+
+.not-found__primary:focus-visible,
+.not-found__link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}

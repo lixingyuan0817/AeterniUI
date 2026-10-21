@@ -16,6 +16,13 @@
        padding is the shared first-content-row offset minus the shell's own top
        inset, so this page's first row lines up with every other page. */
     padding: calc(var(--sample-content-top) - var(--sample-header-inset)) 0 var(--aeterni-spacing-16);
+    animation: showcase-page-enter var(--aeterni-duration-slow) var(--aeterni-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .doc-icons {
+        animation: none;
+    }
 }
 
 .doc-icons__intro {
@@ -35,7 +42,11 @@
 .doc-icons h1 {
     margin: 0;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-4xl);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(30px, 2.6vw, 36px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.08;
+    letter-spacing: -.015em;
 }
 
 .doc-icons__lead {
@@ -90,14 +101,17 @@
     padding: var(--aeterni-spacing-6);
     border: 1px solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-xl);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-sm);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-xs);
 }
 
 .doc-icons__section > h2 {
     margin: 0;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-2xl);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 20px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
 }
 
 .doc-icons__section-lead {
@@ -177,15 +191,17 @@
 
 .doc-icons__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
-    gap: var(--aeterni-spacing-2);
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: var(--aeterni-spacing-1);
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
+/* 内置图标与 Font Awesome 共用同一套格子：列宽、格高、悬停面一致，
+   避免同一页面出现两种"图标卡"语言。 */
 .doc-icons__grid--builtin {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
 }
 
 .doc-icons__cell {
@@ -193,20 +209,20 @@
     justify-items: center;
     align-content: center;
     gap: var(--aeterni-spacing-2);
-    min-height: 92px;
-    padding: var(--aeterni-spacing-3);
+    min-height: 84px;
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-2);
     box-sizing: border-box;
-    border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-lg);
-    background: var(--aeterni-bg-surface);
+    border: 0;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
     color: var(--aeterni-text-secondary);
     text-align: center;
-    transition: var(--aeterni-transition-background), var(--aeterni-transition-border);
+    transition: var(--aeterni-transition-background);
 }
 
 .doc-icons__cell:hover {
-    border-color: var(--aeterni-color-brand-default);
     background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
 }
 
 .doc-icons__name {

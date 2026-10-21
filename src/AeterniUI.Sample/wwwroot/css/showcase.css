@@ -32,28 +32,24 @@
 */
 
 .showcase-layout {
-    --showcase-sidebar-width: 276px;
+    --showcase-sidebar-width: 264px;
     /* 卡片内边距只在这里定义一次：页头、demo 卡、API 段、说明段共用，任何一段单独写
        padding 都会让卡片的左右边界与侧栏错开。窄屏由 clamp 收窄，避免内容被挤到溢出。 */
-    --showcase-card-padding: clamp(16px, 3vw, 28px);
-    /* 段的纵向节奏：单独写在各段里时，任何一次 padding 重构都会把它清零（本批踩过：
-       卡片底部的说明段丢了底部内边距，段与段之间也贴在一起）。 */
-    --showcase-card-block: clamp(20px, 3vw, 30px);
+    --showcase-card-padding: clamp(18px, 3vw, 32px);
+    /* 段的纵向节奏：单独写在各段里时，任何一次 padding 重构都会把它清零；卡片底部的
+       说明段还靠它拿到上边距，段与段之间因此不会贴在一起。 */
+    --showcase-card-block: clamp(22px, 3vw, 30px);
     display: grid;
     grid-template-columns: var(--showcase-sidebar-width) minmax(0, 1fr);
     align-items: start;
-    gap: 32px;
+    gap: 36px;
     width: var(--sample-shell-width);
-    /* Keep the same neutral page canvas as 首页 and 图标页; surfaces below remain
-       responsible for grouping content without introducing a second page background. */
-    /* No extra `max-width` or inset arithmetic next to the token: a second clamp
-       here would silently shrink the shell (or, when the token is missing, blow it
-       up to full-bleed) instead of failing visibly. */
-    /* .sample-page already contributes --sample-header-inset of top padding, so
-       the first row lands exactly on --sample-content-top. */
+    /* 与首页 / 图标页共用同一条中性页面底；容器只负责分组，不引入第二层背景。 */
     margin: calc(var(--sample-content-top) - var(--sample-header-inset)) auto 0;
 }
 
+/* 侧栏不再是第三张卡：它直接落在页面底上，用一条细分隔线与内容面分开。
+   这样一屏只有「玻璃页头 + 内容面」两个面，右侧目录也就有了与正文同高的收边。 */
 .showcase-sidebar {
     position: sticky;
     /* Rest and stick at the same offset, and measure the panel from it: the bottom
@@ -64,36 +60,17 @@
     flex-direction: column;
     box-sizing: border-box;
     width: var(--showcase-sidebar-width);
-    /* Stable panel: collapsing the navigation must not resize the card; the inner
-       scroll container handles content that outgrows the viewport.
-
-       The budget subtracts --sample-page-bottom, not --sample-header-gap, because
-       the pinned range is the row height minus the panel: with the panel sized to
-       `100dvh - top - gap` it stays taller than the page's scroll range by
-       `page-bottom - gap`, and the browser drags it up by that much in the last
-       stretch of the scroll (very visible on short pages such as the install
-       guide). Subtracting the trailing space makes pinned range = scroll range at
-       any content height.
-
-       The vh line is the fallback: without it an engine that does not know dvh
-       would drop the declaration and let the panel grow to its content height. */
     height: calc(100vh - var(--sample-content-top) - var(--sample-page-bottom));
     height: calc(100dvh - var(--sample-content-top) - var(--sample-page-bottom));
     overflow: hidden;
-    padding: 18px;
-    border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-xl);
-    background: var(--aeterni-bg-elevated);
-    box-shadow: var(--aeterni-shadow-sm);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-    animation: showcase-fade-up var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) both;
-    transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
-}
-
-.showcase-sidebar:hover {
-    border-color: var(--aeterni-border);
-    box-shadow: var(--aeterni-shadow-md);
+    padding: 2px 18px 0 0;
+    border: 0;
+    border-inline-end: 1px solid var(--aeterni-border-subtle);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .showcase-nav {
@@ -102,9 +79,10 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     margin-right: -18px;
-    padding: 4px 0 22px;
-    padding-right: 18px;
+    padding: 4px 18px 26px 0;
     scrollbar-gutter: stable;
+    /* 列表被视口裁切时给一条淡出提示：读者知道下面还有条目，而不是内容突然消失。 */
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
 }
 
 /* The sidebar navigation is the library Menu component: it brings its own row
@@ -118,24 +96,14 @@
     box-sizing: border-box;
 }
 
-/* 侧栏检索：57 个条目靠翻菜单找不现实，搜索框是文档站的常规入口。状态行用
-   role="status" 报出匹配数量，键盘用户不必数条目。 */
-/* 检索独立成块：与导航分区之间用分隔线分开，读者一眼能看出"这是筛选，下面是条目"。 */
+/* 侧栏检索：57 个条目靠翻菜单找不现实，搜索框是文档站的常规入口。
+   它与导航之间只留一条细线，不再用卡片底或说明句做分区。 */
 .showcase-search {
     display: grid;
-    /* 与 .showcase-nav 同一条右侧出血（为滚动条留的 18px）：不加这一条，检索框会比菜单项
-       窄 18px，右侧看起来空一截。 */
     margin-right: -18px;
-    margin-bottom: 4px;
-    padding: 14px 18px 12px 0;
+    margin-bottom: 6px;
+    padding: 4px 18px 12px 0;
     border-bottom: 1px solid var(--aeterni-border-subtle);
-}
-
-/* 侧栏检索旁的边界说明：这里只筛条目，页内段落归页头的搜索框。 */
-.showcase-search__hint {
-    margin: 6px 0 0;
-    color: var(--aeterni-text-tertiary);
-    font-size: var(--aeterni-font-size-xs);
 }
 
 .showcase-nav__empty {
@@ -144,6 +112,11 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
     line-height: var(--aeterni-line-height-normal);
+}
+
+/* 侧栏检索占满栏宽：宿主通过组件自己的 Class 参数给宽度，不覆写 .aeterni-* 规则。 */
+.showcase-search__input {
+    width: 100%;
 }
 
 /* 页面级文档栏：当前条目、源码入口，以及目录顺序里的前后一篇。 */
@@ -191,7 +164,14 @@
 .showcase-install__steps h2 { display: flex; align-items: center; gap: var(--aeterni-spacing-2); margin: 0; color: var(--aeterni-text-primary); font-size: var(--aeterni-font-size-md); }
 .showcase-install__steps p { margin: var(--aeterni-spacing-2) 0 0; max-width: 68ch; color: var(--aeterni-text-secondary); font-size: var(--aeterni-font-size-sm); line-height: var(--aeterni-line-height-normal); }
 .showcase-install__steps pre { margin-top: var(--aeterni-spacing-3); }
-.showcase-page-note { margin: 30px 0 0; color: var(--aeterni-text-muted); font-size: var(--aeterni-font-size-sm); }
+.showcase-page-note {
+    max-width: 68ch;
+    margin: 18px 0 0;
+    color: var(--aeterni-text-secondary);
+    font-size: 15px;
+    line-height: 1.75;
+    text-wrap: pretty;
+}
 
 /* Sample content shown inside the generic preview stages. */
 
@@ -257,6 +237,7 @@
     margin: 0;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
+    line-height: 1.65;
 }
 
 .preview-stack {
@@ -298,7 +279,8 @@
     max-width: 100%;
     min-height: 1.25em;
     color: var(--aeterni-text-secondary);
-    font-size: 12px;
+    font-size: var(--aeterni-font-size-compact);
+    line-height: 1.6;
     text-align: center;
 }
 
@@ -525,25 +507,6 @@
     }
 }
 
-@keyframes showcase-fade-up {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .showcase-sidebar {
-        animation: none;
-        transition: none;
-    }
-}
-
 /* 色彩与语义 (/components/colors) -------------------------------------------
    页面级设计基础验收页：色族色卡、文字墨阶、字体、表面、圆角、阴影和间距全部
    手绘，只引用 `--aeterni-*` Token，且不覆写任何 `.aeterni-*` 组件规则。
@@ -556,7 +519,11 @@
 .showcase-colors__subtitle {
     margin: 36px 0 10px;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-lg);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 20px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
+    scroll-margin-top: var(--sample-content-top);
 }
 
 /* 规格表里的第一个小节标题紧贴段首：顶部的块间距已经由 Demos 段给出。 */
@@ -567,7 +534,7 @@
 /* 页面说明段：保留 .showcase-page-note 的基础样式，只收紧它紧跟在标题后
    的间距并限制行长。同权重、后定义，因此这里覆盖的是示例页自己的类。 */
 .showcase-colors__note {
-    max-width: 760px;
+    max-width: 660px;
     margin-top: var(--aeterni-spacing-2);
 }
 
@@ -789,7 +756,8 @@
 
 .showcase-colors__display {
     display: grid;
-    align-content: end;
+    align-self: start;
+    align-content: start;
     gap: var(--aeterni-spacing-3);
     padding: var(--aeterni-spacing-4);
 }
@@ -842,6 +810,7 @@
 .showcase-colors__size--md { font-size: var(--aeterni-font-size-md); }
 .showcase-colors__size--sm { font-size: var(--aeterni-font-size-sm); }
 .showcase-colors__size--xs { font-size: var(--aeterni-font-size-xs); }
+.showcase-colors__size--compact { font-size: var(--aeterni-font-size-compact); }
 
 .showcase-colors__font-meta {
     display: grid;
@@ -942,6 +911,7 @@
 .showcase-colors__radius-shape--sm { border-radius: var(--aeterni-radius-sm); }
 .showcase-colors__radius-shape--md { border-radius: var(--aeterni-radius-md); }
 .showcase-colors__radius-shape--lg { border-radius: var(--aeterni-radius-lg); }
+.showcase-colors__radius-shape--button { border-radius: var(--aeterni-radius-button); }
 .showcase-colors__radius-shape--xl { border-radius: var(--aeterni-radius-xl); }
 .showcase-colors__radius-shape--2xl { border-radius: var(--aeterni-radius-2xl); }
 .showcase-colors__radius-shape--3xl { border-radius: var(--aeterni-radius-3xl); }
@@ -1266,43 +1236,14 @@
 .component-preview { position: relative; }
 .component-preview {
     position: relative;
-    isolation: isolate;
     overflow: visible;
-    border: 1px solid var(--aeterni-border);
-    border-radius: var(--aeterni-radius-xl);
     background: transparent;
-    box-shadow: var(--aeterni-shadow-sm);
-    /* Do not retain the opacity animation's compositing state around child popovers. */
-    animation: component-preview-enter var(--aeterni-duration-slow) var(--aeterni-ease-emphasized) backwards;
-    transition: var(--aeterni-transition-shadow), var(--aeterni-transition-border);
-}
-
-.component-preview::before {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--aeterni-bg-elevated);
-    -webkit-backdrop-filter: var(--aeterni-blur-md);
-    backdrop-filter: var(--aeterni-blur-md);
-    content: "";
-    pointer-events: none;
-}
-
-/* A modal backdrop must escape the preview card's isolated stacking context so
-   backdrop-filter samples the whole page rather than only this card. */
-.component-preview.component-preview--modal-open {
-    isolation: auto;
-    animation: none;
-}
-
-.component-preview.component-preview--modal-open::before {
-    display: none;
-}
-
-.component-preview:hover {
-    border-color: var(--aeterni-border-strong);
-    box-shadow: var(--aeterni-shadow-md);
+    /* 面的责任移到 .component-page：页头之后只有一张内容面，正文与右栏目录同属它，
+       右边线因此与页头右缘对齐。卡片不再自带边框、圆角、阴影与玻璃。
+       这里也刻意不写 `isolation: isolate`：卡片里没有任何玻璃/滤镜需要隔离，
+       而弹层（Popover 的 z-index 1060）必须能压过同级的右栏目录（position: sticky、
+       z-index auto）。一旦隔离，卡片内的 z-index 就被关在卡片这个层叠上下文里，
+       日期/下拉弹层会被后绘制的目录盖住。 */
 }
 
 .component-preview__header {
@@ -1310,7 +1251,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
-    padding: 26px var(--showcase-card-padding) 22px;
+    padding: 30px var(--showcase-card-padding) 22px;
     border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
@@ -1318,27 +1259,30 @@
 .component-preview__section-kicker {
     margin: 0;
     color: var(--aeterni-color-brand-text);
-    font-size: 11px;
+    font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .12em;
+    letter-spacing: .1em;
     text-transform: uppercase;
 }
 
+.component-preview__header h1,
 .component-preview__header h2 {
-    margin: 7px 0 8px;
+    margin: 8px 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(24px, 3vw, 32px);
+    font-size: clamp(30px, 2.6vw, 36px);
     font-weight: var(--aeterni-font-weight-semibold);
-    line-height: 1.1;
+    line-height: 1.08;
+    letter-spacing: -.015em;
 }
 
 .component-preview__description {
-    max-width: 640px;
+    max-width: 62ch;
     margin: 0;
     color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
+    font-size: var(--aeterni-font-size-md);
     line-height: var(--aeterni-line-height-relaxed);
+    text-wrap: pretty;
 }
 
 .component-preview__name {
@@ -1385,13 +1329,15 @@
 .component-preview__section-heading h3 {
     margin: 0;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-md);
+    font-family: var(--aeterni-font-family-display);
+    font-size: var(--aeterni-font-size-lg);
     font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
 }
 
 .component-preview__hint {
-    color: var(--aeterni-text-muted);
-    font-size: 11px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
     white-space: nowrap;
 }
 
@@ -1399,15 +1345,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 240px;
-    padding: 30px;
-    border: 1px dashed var(--aeterni-border-strong);
+    min-height: 168px;
+    padding: 28px;
+    border: 1px solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-lg);
-    background:
-        linear-gradient(var(--aeterni-border-subtle) 1px, transparent 1px),
-        linear-gradient(90deg, var(--aeterni-border-subtle) 1px, transparent 1px),
-        var(--aeterni-bg-primary);
-    background-size: 24px 24px;
+    background-color: var(--aeterni-bg-primary);
+    background-image: radial-gradient(circle, var(--aeterni-border) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    background-position: -1px -1px;
 }
 
 .component-preview__controls {
@@ -1448,11 +1393,11 @@
     grid-template-columns: minmax(110px, .7fr) minmax(150px, 1fr) minmax(220px, 2fr);
     gap: 14px;
     align-items: start;
-    padding: 11px 14px;
+    padding: 12px 14px;
     border-top: 1px solid var(--aeterni-border-subtle);
     color: var(--aeterni-text-secondary);
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.6;
 }
 
 .component-preview__api-row:first-child {
@@ -1461,27 +1406,26 @@
 
 .component-preview__api-row--header {
     background: var(--aeterni-bg-secondary);
-    color: var(--aeterni-text-muted);
-    font-size: 10px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .06em;
-    text-transform: uppercase;
+    letter-spacing: .04em;
 }
 
 .component-preview__api-row code,
 .component-preview__contract code {
     color: var(--aeterni-color-brand-text);
     font-family: var(--aeterni-font-family-mono);
-    font-size: 11px;
+    font-size: var(--aeterni-font-size-xs);
     overflow-wrap: anywhere;
 }
 
 .component-preview__api-row span code + small {
     display: block;
     margin-top: 3px;
-    color: var(--aeterni-text-muted);
+    color: var(--aeterni-text-secondary);
     font-family: var(--aeterni-font-family-base);
-    font-size: 11px;
+    font-size: var(--aeterni-font-size-xs);
 }
 
 .component-preview__contract-list {
@@ -1497,20 +1441,21 @@
     border-radius: var(--aeterni-radius-md);
     background: var(--aeterni-bg-secondary);
     color: var(--aeterni-text-secondary);
-    font-size: 12px;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.6;
 }
 
 .component-preview__notes {
     display: flex;
     gap: 10px;
-    margin-top: 24px;
-    padding: 12px 14px;
+    margin-top: 0;
+    padding: 14px 16px;
     border: 1px solid var(--aeterni-info-soft);
     border-radius: var(--aeterni-radius-md);
     background: var(--aeterni-info-soft);
     color: var(--aeterni-text-secondary);
-    font-size: 12px;
-    line-height: 1.55;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: 1.7;
 }
 
 .component-preview__notes-mark {
@@ -1570,25 +1515,8 @@
     }
 
     .component-preview__canvas {
-        min-height: 190px;
-        padding: 20px 14px;
-    }
-}
-
-@keyframes component-preview-enter {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .component-preview {
-        animation: none;
-        transition: none;
+        min-height: 176px;
+        padding: 20px 16px;
     }
 }
 
@@ -1625,13 +1553,13 @@
     overflow-x: auto;
     margin: 0;
     padding: 16px 18px;
-    border: 1px solid var(--aeterni-border);
+    border: 1px solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-md);
     background: var(--aeterni-bg-tertiary);
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-mono);
-    font-size: 12px;
-    line-height: 1.6;
+    font-size: 12.5px;
+    line-height: 1.7;
     tab-size: 4;
 }
 
@@ -1644,10 +1572,18 @@
     margin-top: 0;
 }
 
+/* notes 里的每一条是独立的一句话：竖排、限制行长，不随卡片宽度拉成一整行。 */
+.component-preview__notes > div {
+    display: grid;
+    gap: 8px;
+    max-width: 68ch;
+    text-wrap: pretty;
+}
+
 /* demo 卡片：一页多段演示的载体。每张卡自带锚点（右栏 TOC 与分享链接用），标题用 h3，
    说明紧跟其后；预览区沿用 .component-preview__canvas 的排版。 */
 .component-demo + .component-demo {
-    margin-top: 26px;
+    margin-top: 32px;
 }
 
 .component-demo__header {
@@ -1657,15 +1593,19 @@
 .component-demo__header h3 {
     margin: 0 0 6px;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-md);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 17px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
 }
 
 .component-demo__description {
     margin: 0;
-    max-width: 68ch;
+    max-width: 60ch;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-normal);
+    line-height: 1.7;
+    text-wrap: pretty;
 }
 
 .component-demo__controls {
@@ -1705,18 +1645,25 @@
     scroll-margin-top: var(--sample-content-top);
 }
 
-.component-page__section h2 {
-    margin: 0 0 12px;
+.component-page__section h2,
+.component-page__when h2,
+.component-page__related h2,
+.component-page__notes-section h2 {
+    margin: 0 0 10px;
     color: var(--aeterni-text-primary);
-    font-size: var(--aeterni-font-size-md);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 20px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
 }
 
 .component-page__when p {
     margin: 0 0 8px;
-    max-width: 72ch;
+    max-width: 68ch;
     color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-relaxed);
+    font-size: var(--aeterni-font-size-md);
+    line-height: 1.75;
+    text-wrap: pretty;
 }
 
 .component-page__related ul {
@@ -1730,11 +1677,11 @@
 
 .component-page__related a {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 5px 11px;
     border: 1px solid var(--aeterni-border-subtle);
-    border-radius: var(--aeterni-radius-sm);
+    border-radius: var(--aeterni-radius-full);
     color: var(--aeterni-color-brand-text);
-    font-size: var(--aeterni-font-size-xs);
+    font-size: 13px;
     text-decoration: none;
 }
 
@@ -1749,33 +1696,39 @@
 
 /* 相关组件与何时使用的内边距由上面的成组规则给出。 */
 
-/* 正文 + 右栏目录：目录只在有位置时出现（1280px 以上），窄屏收起而不是挤压正文——
-   正文的可读宽度优先，这也是组件页右侧一直空着的那块空间的用途。 */
+/* 正文 + 右栏目录：目录只在有位置时出现（1280px 以上），窄屏收成正文顶部的一份
+   可展开列表。正文与目录同处一张内容面，右边线与页头右缘对齐。 */
 .component-page {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 188px;
+    grid-template-columns: minmax(0, 1fr) 176px;
     align-items: start;
-    gap: var(--aeterni-spacing-5);
+    gap: 32px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-sm);
+    animation: showcase-page-enter var(--aeterni-duration-slow) var(--aeterni-ease-out) both;
 }
 
 .component-page__toc {
     position: sticky;
     top: var(--sample-content-top);
-    padding: 4px 0;
-    font-size: var(--aeterni-font-size-xs);
+    align-self: start;
+    padding: 30px var(--showcase-card-padding) 30px 0;
+    font-size: 13px;
 }
 
 .component-page__toc-title {
-    margin: 0 0 8px;
-    color: var(--aeterni-text-tertiary);
+    margin: 0 0 10px;
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
-    letter-spacing: .08em;
-    text-transform: uppercase;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .06em;
 }
 
 .component-page__toc ul {
     display: grid;
-    gap: 2px;
+    gap: 1px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -1784,10 +1737,11 @@
 
 .component-page__toc-link {
     display: block;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-inline-start: 2px solid transparent;
     margin-inline-start: -1px;
     color: var(--aeterni-text-secondary);
+    font-size: 13px;
     text-decoration: none;
 }
 
@@ -1798,6 +1752,7 @@
 .component-page__toc-link.is-current {
     border-inline-start-color: var(--aeterni-color-brand-default);
     color: var(--aeterni-color-brand-text);
+    font-weight: var(--aeterni-font-weight-medium);
 }
 
 .component-page__toc-link:focus-visible {
@@ -1806,13 +1761,87 @@
     border-radius: var(--aeterni-radius-xs);
 }
 
+.component-page__toc-mobile {
+    display: none;
+}
+
+@keyframes showcase-page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 @media (max-width: 1280px) {
     .component-page {
         grid-template-columns: minmax(0, 1fr);
+        gap: 0;
     }
 
     .component-page__toc {
         display: none;
+    }
+
+    .component-page__toc-mobile {
+        display: block;
+        padding: 14px var(--showcase-card-padding);
+        border-bottom: 1px solid var(--aeterni-border-subtle);
+    }
+
+    .component-page__toc-mobile summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--aeterni-spacing-3);
+        cursor: pointer;
+        color: var(--aeterni-text-secondary);
+        font-size: 13px;
+        font-weight: var(--aeterni-font-weight-medium);
+        list-style: none;
+    }
+
+    .component-page__toc-mobile summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .component-page__toc-mobile summary::after {
+        content: "▾";
+        font-size: 11px;
+        transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    }
+
+    .component-page__toc-mobile[open] summary::after {
+        transform: rotate(180deg);
+    }
+
+    .component-page__toc-mobile ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .component-page__toc-mobile a {
+        color: var(--aeterni-text-secondary);
+        font-size: 13px;
+        text-decoration: none;
+    }
+
+    .component-page__toc-mobile a:hover {
+        color: var(--aeterni-color-brand-text);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .component-page {
+        animation: none;
     }
 }
 
@@ -1826,7 +1855,7 @@
 
 .component-page__edit {
     color: var(--aeterni-color-brand-text);
-    font-size: var(--aeterni-font-size-xs);
+    font-size: 13px;
     text-decoration: none;
 }
 
@@ -1852,20 +1881,110 @@
     overflow-x: auto;
 }
 
-/* 窄屏把侧栏叠到内容之上：两栏网格在 1000px 以下会把内容压成一列窄字，卡片与侧栏也就
-   对不齐了。断点取侧栏宽度加内容最小可读宽。 */
+/* 窄屏把侧栏收成一份可展开的「组件目录」：桌面隐藏开关并强制展开内容，
+   移动端默认折叠，展开状态由 ComponentsLayout 的 aria-expanded 与 .is-open 表达。 */
+.showcase-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3);
+    width: 100%;
+    min-height: var(--aeterni-touch-target-min);
+    padding: 10px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--aeterni-text-primary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    text-align: start;
+    cursor: pointer;
+}
+
+.showcase-nav-toggle:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-sm);
+}
+
+.showcase-nav-toggle__chevron {
+    width: 8px;
+    height: 8px;
+    margin-inline-end: 4px;
+    border-right: 1.5px solid var(--aeterni-text-secondary);
+    border-bottom: 1.5px solid var(--aeterni-text-secondary);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.showcase-nav-toggle[aria-expanded="true"] .showcase-nav-toggle__chevron {
+    transform: rotate(225deg) translateY(-2px);
+}
+
+.showcase-nav-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
 @media (max-width: 1000px) {
     .showcase-layout {
         grid-template-columns: minmax(0, 1fr);
+        gap: var(--aeterni-spacing-5);
     }
 
     .showcase-sidebar {
         position: static;
         width: 100%;
+        height: auto;
+        padding: 0;
+        border-inline-end: 0;
+        border-bottom: 1px solid var(--aeterni-border-subtle);
+    }
+
+    .showcase-nav-toggle {
+        display: flex;
+    }
+
+    .showcase-nav-body {
+        display: none;
+    }
+
+    .showcase-nav-body.is-open {
+        display: flex;
+        padding-bottom: var(--aeterni-spacing-3);
     }
 
     .showcase-nav {
-        max-height: 40vh;
+        max-height: 46vh;
+        margin-right: 0;
+        padding: 4px 0 12px;
+    }
+
+    .showcase-search {
+        margin-right: 0;
+        padding: 2px 0 12px;
+    }
+}
+
+/* 移动端页头：搜索收成图标按钮，快捷键提示属于桌面逻辑，不放进来。 */
+@media (max-width: 700px) {
+    .sample-header__search {
+        flex: 0 0 auto;
+    }
+
+    .showcase-search-trigger {
+        width: 34px;
+        min-height: 34px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .showcase-search-trigger__label,
+    .showcase-search-trigger__kbd {
+        display: none;
     }
 }
 
@@ -2117,7 +2236,8 @@
     font-size: var(--aeterni-font-size-xs);
 }
 
-/* 页面反馈闭环：正文最末一行，投票与仓库出口分列两端。 */
+/* 页面反馈闭环：正文最末一行，投票与仓库出口分列两端；左右内边距与卡片
+   其它段一致，否则这一行会贴着卡片边缘，读起来像渲染错误。 */
 .component-feedback {
     display: flex;
     flex-wrap: wrap;
@@ -2125,7 +2245,7 @@
     justify-content: space-between;
     gap: var(--aeterni-spacing-3);
     margin-block-start: var(--aeterni-spacing-8);
-    padding-block-start: var(--aeterni-spacing-4);
+    padding: var(--aeterni-spacing-4) var(--showcase-card-padding) var(--showcase-card-padding);
     border-block-start: 1px solid var(--aeterni-border-subtle);
 }
 
@@ -2145,6 +2265,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--aeterni-spacing-4);
+    margin-inline-start: auto;
 }
 
 .component-feedback__link {

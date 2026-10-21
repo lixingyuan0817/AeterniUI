@@ -25,6 +25,21 @@
         </div>
     </header>
 
+    @* 窄屏没有右栏目录的位置：同一份条目收成页头下方的一行可展开列表，
+       10,000px 长的规格页也还能跳段。桌面由 CSS 隐藏。 *@
+    @if (TocEntries.Count > 0)
+    {
+        <details class="component-page__toc-mobile">
+            <summary>本页目录</summary>
+            <ul>
+                @foreach (var entry in TocEntries)
+                {
+                    <li><a href="@SectionHref(entry.Id)">@entry.Title</a></li>
+                }
+            </ul>
+        </details>
+    }
+
     @if (WhenToUse is not null)
     {
         <section class="component-page__when" aria-labelledby="@($"{AnchorId}-when-title")">
@@ -141,6 +156,14 @@
     [Parameter]
     public RenderFragment? Notes { get; set; }
 
+    /// <summary>
+    /// 手写段落（例如色彩规格页的九张表）的目录条目：它们不是 DemoCard，
+    /// 不会自己登记，需要页面把「锚点 id + 标题」交给骨架，右栏与移动端目录
+    /// 才能覆盖这些段落。条目顺序即页面中的出现顺序。
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<ShowcaseSection>? AdditionalSections { get; set; }
+
     [Parameter]
     public IReadOnlyList<ShowcaseRelatedLink>? Related { get; set; }
 
@@ -165,6 +188,11 @@
             }
 
             entries.AddRange(_sections.Sections);
+
+            if (AdditionalSections is not null)
+            {
+                entries.AddRange(AdditionalSections);
+            }
 
             if (HasApi)
             {

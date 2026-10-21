@@ -178,8 +178,76 @@ h1:focus-visible {
     }
 }
 
+/* 内联代码统一走中性墨色。之前这里是一条硬编码玫红，既不在六色族规格里，也不随
+   品牌层与深浅主题变化；正文里每段出现多个代码词时，它把彩色资源从语义状态上抢走。 */
 code {
-    color: #c02d76;
+    color: var(--aeterni-text-secondary);
+}
+
+/* 站点页脚：三个页面共用的收束动作。字体、间距与分隔线都取自 Token，
+   与页面正文同一条左锚线（--sample-shell-width）。 */
+.sample-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--aeterni-spacing-3) var(--aeterni-spacing-6);
+    width: var(--sample-shell-width);
+    margin: clamp(40px, 7vh, 72px) auto 0;
+    padding: var(--aeterni-spacing-5) 0 var(--aeterni-spacing-3);
+    border-top: 1px solid var(--aeterni-border-subtle);
+}
+
+.sample-footer__brand {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
+}
+
+.sample-footer__brand span {
+    color: var(--aeterni-text-secondary);
+    font-weight: var(--aeterni-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+}
+
+.sample-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-2) var(--aeterni-spacing-5);
+}
+
+.sample-footer__links a {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    text-decoration: none;
+}
+
+.sample-footer__links a:hover {
+    color: var(--aeterni-color-brand-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sample-footer__links a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    border-radius: var(--aeterni-radius-xs);
+}
+
+.sample-footer__note {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+@media (max-width: 600px) {
+    .sample-footer {
+        flex-direction: column;
+        gap: var(--aeterni-spacing-2);
+    }
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

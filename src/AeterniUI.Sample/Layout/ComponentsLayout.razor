@@ -1,4 +1,4 @@
-﻿@layout MainLayout
+@layout MainLayout
 @inherits LayoutComponentBase
 @using AeterniUI.Enums
 @using AeterniUI.Icons
@@ -9,29 +9,39 @@
    providers and the header stay in one place. *@
 <div class="showcase-layout">
     <aside class="showcase-sidebar">
-        @* 检索独立成块：与下面的导航分区之间用分隔线分开，避免"搜索框 + 57 条菜单"糊成一片。
-           不再显示条目计数——它对读者没有用，匹配结果本身就能说明问题。
-           页头还有一个搜索框：那个搜页内段落，这里只筛条目。 *@
-        <div class="showcase-search">
-            <Input Id="showcase-search"
-                   Value="@_query"
-                   ValueChanged="HandleQueryChanged"
-                   Size="Size.Small"
-                   Placeholder="搜索组件…"
-                   AriaLabel="搜索组件" />
-            @* 侧栏检索只筛条目；页内内容由页头的搜索框负责（搜段标题与页码来源）。两处提示
-               各说各的边界，读者不用猜哪个能搜到页内段落。 *@
-            <p class="showcase-search__hint">只筛左侧条目；搜索页内段请用页头搜索框</p>
-        </div>
-        <div class="showcase-nav">
-            @if (FilteredGroups.Count > 0)
-            {
-                <Menu Items="FilteredGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
-            }
-            else
-            {
-                <p class="showcase-nav__empty">没有匹配“@_query”的组件。试试“选择”“日期”或“反馈”。</p>
-            }
+        @* 桌面把检索与导航直接铺在页面底上；<=1000px 时整块收进「组件目录」开关，
+           默认折叠，读者先看到标题与示例，再按需展开 57 个条目。开关用 C# 状态驱动，
+           桌面由 CSS 隐藏按钮、强制展开内容，不需要额外的 JS 或第二套 DOM。 *@
+        <button type="button"
+                class="showcase-nav-toggle"
+                aria-expanded="@(_navOpen ? "true" : "false")"
+                aria-controls="showcase-nav-body"
+                @onclick="ToggleNav">
+            <span>组件目录</span>
+            <span class="showcase-nav-toggle__chevron" aria-hidden="true"></span>
+        </button>
+        <div id="showcase-nav-body" class="showcase-nav-body @(_navOpen ? "is-open" : null)">
+            @* 检索只筛条目，页内段落由页头搜索覆盖；placeholder 自己说明了范围，
+               不再写一行常驻说明把两处搜索的分工讲进界面。 *@
+            <div class="showcase-search">
+                <Input Id="showcase-search"
+                       Class="showcase-search__input"
+                       Value="@_query"
+                       ValueChanged="HandleQueryChanged"
+                       Size="Size.Small"
+                       Placeholder="筛选组件…"
+                       AriaLabel="筛选组件" />
+            </div>
+            <div class="showcase-nav">
+                @if (FilteredGroups.Count > 0)
+                {
+                    <Menu Items="FilteredGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
+                }
+                else
+                {
+                    <p class="showcase-nav__empty">没有匹配“@_query”的组件。试试“选择”“日期”或“反馈”。</p>
+                }
+            </div>
         </div>
     </aside>
 
@@ -71,6 +81,14 @@
         .ToArray();
 
     private string _query = string.Empty;
+
+    /// <summary>
+    /// 窄屏「组件目录」是否展开。桌面端由 CSS 隐藏开关并强制展开内容，
+    /// 因此这个状态只在 <=1000px 时影响画面。
+    /// </summary>
+    private bool _navOpen;
+
+    private void ToggleNav() => _navOpen = !_navOpen;
 
     /// <summary>
     /// Sidebar selection follows the route instead of a page parameter, because the

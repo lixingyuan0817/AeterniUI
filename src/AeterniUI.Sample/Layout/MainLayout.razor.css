@@ -8,6 +8,8 @@
 .sample-page {
     position: relative;
     isolation: isolate;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
     min-height: 100vh;
     /* The top inset is the header's own inset, so the first content row lands on
@@ -19,6 +21,16 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-color);
 }
 
+/* 内容区吃满剩余高度：页脚因此能贴住视口底部，短页面（404）不会把页脚吊在半空。 */
+.sample-page__content {
+    flex: 1 0 auto;
+    padding-bottom: clamp(24px, 4vh, 40px);
+}
+
+.sample-footer {
+    margin-top: auto;
+}
+
 .sample-page__ambient {
     position: absolute;
     z-index: -1;
@@ -27,68 +39,20 @@
     pointer-events: none;
 }
 
+/* 纯中性暗角：给页面一点纵深，但不引入任何色相（R = G = B）。之前的三色光斑
+   把整页底色染成有彩灰，深色下还让页底偏离到 +7 冷偏移，和规格页自己写的
+   「容器与页面背景只能是无彩色或统一玻璃配方」冲突。 */
 .sample-page__ambient::before {
     position: absolute;
     inset: 0;
-    background-image: linear-gradient(115deg,
-        color-mix(in srgb, var(--aeterni-color-brand-default) 4%, transparent),
-        transparent 42%,
-        color-mix(in srgb, var(--aeterni-color-info-default) 3%, transparent));
+    background:
+        radial-gradient(120% 70% at 50% -12%,
+            color-mix(in srgb, var(--aeterni-text) 4%, transparent),
+            transparent 62%),
+        radial-gradient(80% 55% at 100% 106%,
+            color-mix(in srgb, var(--aeterni-text) 2.5%, transparent),
+            transparent 72%);
     content: "";
-}
-
-.sample-page__orb {
-    --sample-orb-color: var(--aeterni-color-brand-default);
-    --sample-orb-size: clamp(300px, 42vw, 680px);
-    --sample-orb-opacity: .24;
-
-    position: absolute;
-    width: var(--sample-orb-size);
-    height: var(--sample-orb-size);
-    border-radius: var(--aeterni-radius-round);
-    background: radial-gradient(circle at 45% 45%,
-        color-mix(in srgb, var(--sample-orb-color) 36%, transparent),
-        color-mix(in srgb, var(--sample-orb-color) 13%, transparent) 42%,
-        transparent 72%);
-    opacity: var(--sample-orb-opacity);
-    filter: blur(2px);
-    animation: sample-orb-drift 28s var(--aeterni-ease-in-out) infinite alternate;
-    will-change: transform;
-}
-
-.sample-page__orb--brand {
-    top: -22%;
-    left: -12%;
-}
-
-.sample-page__orb--info {
-    --sample-orb-color: var(--aeterni-color-info-default);
-    --sample-orb-size: clamp(260px, 36vw, 580px);
-    --sample-orb-opacity: .18;
-
-    right: -10%;
-    bottom: -18%;
-    animation-delay: -9s;
-}
-
-.sample-page__orb--success {
-    --sample-orb-color: var(--aeterni-color-success-default);
-    --sample-orb-size: clamp(180px, 24vw, 380px);
-    --sample-orb-opacity: .12;
-
-    top: 38%;
-    left: 42%;
-    animation-delay: -17s;
-}
-
-@keyframes sample-orb-drift {
-    from {
-        transform: translate3d(-18px, 12px, 0) scale(.96);
-    }
-
-    to {
-        transform: translate3d(28px, -24px, 0) scale(1.08);
-    }
 }
 
 .sample-header {
@@ -99,6 +63,14 @@
     width: var(--sample-shell-width);
     max-height: calc(100vh - var(--sample-header-inset) * 2);
     margin-inline: auto;
+    /* 玻璃面只在有边界与投影时才读得出「浮起」：Surface 自己负责材质，宿主在
+        外壳补一圈 hairline 与一层软投影，不覆写组件的任何 .aeterni- 规则。
+        这里必须用 box-shadow 而不是 filter: drop-shadow——`filter` 会在页头上建立
+        新的 backdrop root，里面 Surface 的 `backdrop-filter` 只能采样页头自身，
+        模糊就整块消失了。 */
+    border-radius: var(--aeterni-radius-2xl);
+    outline: 1px solid var(--aeterni-border-subtle);
+    box-shadow: 0 10px 26px rgba(12, 12, 16, .10);
 }
 
 .sample-header__bar {
@@ -126,8 +98,9 @@
     place-items: center;
     width: 30px;
     height: 30px;
-    border-radius: var(--aeterni-radius-md);
+    border-radius: var(--aeterni-radius-lg);
     background: var(--aeterni-color-brand-default);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
     color: var(--aeterni-text-inverse);
     font-size: 14px;
     font-weight: var(--aeterni-font-weight-bold);
@@ -137,6 +110,7 @@
     font-family: var(--aeterni-font-family-display);
     font-size: 17px;
     font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
 }
 
 .brand-name span {
@@ -189,6 +163,7 @@
 }
 
 .app-nav ::deep .app-nav__link {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -202,11 +177,28 @@
     transition: var(--aeterni-transition-color);
 }
 
+/* 当前项与悬停用同一条 2px 下划线表达，靠 transform 从左滑入；比直接换
+   text-decoration 更接近「仪器拨到位」的手感，也不挤动导航宽度。 */
+.app-nav ::deep .app-nav__link::after {
+    position: absolute;
+    right: 8px;
+    bottom: 2px;
+    left: 8px;
+    height: 2px;
+    border-radius: var(--aeterni-radius-full);
+    background: var(--aeterni-color-brand-default);
+    content: "";
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized);
+}
+
 .app-nav ::deep .app-nav__link:hover {
     color: var(--aeterni-text-primary);
-    text-decoration: underline;
-    text-decoration-color: var(--aeterni-color-brand-default);
-    text-underline-offset: 5px;
+}
+
+.app-nav ::deep .app-nav__link:hover::after {
+    transform: scaleX(1);
 }
 
 .app-nav ::deep .app-nav__link:active {
@@ -222,15 +214,15 @@
 .app-nav ::deep .app-nav__link.active {
     color: var(--aeterni-color-brand-default);
     font-weight: var(--aeterni-font-weight-semibold);
-    text-decoration: underline;
-    text-decoration-color: var(--aeterni-color-brand-default);
-    text-underline-offset: 5px;
-    text-decoration-thickness: 2px;
+}
+
+.app-nav ::deep .app-nav__link.active::after {
+    transform: scaleX(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .sample-page__orb {
-        animation: none;
+    .app-nav ::deep .app-nav__link::after {
+        transition: none;
     }
 }
 

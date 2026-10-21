@@ -4,50 +4,85 @@
 
 <PageTitle>Aeterni UI · Blazor 组件库</PageTitle>
 
-@* 首页（/）：库的展示入口。三段——Hero、常用组件墙、基础使用代码窗口。
-   组件墙里的每一个预览都是真组件、真绑定（开关能切、滑块能拖、反馈按钮会真的弹
-   Toast / Alert / Confirm），不是截图也不是静态标记。
+@* 首页（/）：库的展示入口。三段——Hero（真实读数 + 实时样例 + 入口）、常用组件墙、
+   开始使用。组件墙里的每一个预览都是真组件、真绑定（开关能切、滑块能拖、反馈按钮会真的
+   弹 Toast / Alert / Confirm），不是截图也不是静态标记。
    动画在 wwwroot/js/sample-home.js 里用 GSAP 写：data-home-* 只是给 JS 的挂钩，
    页面逻辑与可访问性完全不依赖它——脚本没加载时卡片照样在，只是不做入场与浮起。 *@
 <main class="doc-home" @ref="_root">
     <section class="doc-hero" data-home-hero aria-labelledby="doc-hero-title">
-        <p class="doc-hero__eyebrow">.NET 10 · Blazor Server / WebAssembly</p>
-        <h1 id="doc-hero-title" tabindex="-1">AeterniUI</h1>
-        <p class="doc-hero__lede">
-            面向 Blazor 的组件库：语义 Token 打底、玻璃配方统一表面，
-            <code>--aeterni-*</code> 一套变量管住深浅两个主题与三个品牌色层。
-        </p>
-        <div class="doc-hero__actions">
-            <Button OnClick="GoToComponents">查看安装与全部组件</Button>
-            <a class="doc-hero__link" href="https://github.com/lixingyuan0817/AeterniUI"
-               target="_blank" rel="noopener noreferrer">
-                GitHub 源码
-                <span aria-hidden="true">↗</span>
-            </a>
+        <div class="doc-hero__copy">
+            <p class="doc-hero__eyebrow">
+                <span class="doc-hero__eyebrow-dot" aria-hidden="true"></span>
+                .NET 10 · Blazor Server / WebAssembly
+            </p>
+            <h1 id="doc-hero-title" tabindex="-1">AeterniUI</h1>
+            <p class="doc-hero__lede">
+                面向 Blazor 的组件库：语义 Token 打底、玻璃配方统一表面，
+                <code>--aeterni-*</code> 一套变量管住深浅两个主题与三个品牌色层。
+            </p>
+            <div class="doc-hero__actions">
+                <Button Size="Size.Large" OnClick="GoToComponents">浏览组件与安装</Button>
+                <a class="doc-hero__link" href="https://github.com/lixingyuan0817/AeterniUI"
+                   target="_blank" rel="noopener noreferrer">
+                    GitHub 源码
+                    <span aria-hidden="true">↗</span>
+                </a>
+            </div>
+            <ul class="doc-hero__stats">
+                <li class="doc-hero__stat">
+                    <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ComponentCount">0</span>
+                    <span class="doc-hero__stat-label">个组件</span>
+                </li>
+                <li class="doc-hero__stat">
+                    <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.GroupCount">0</span>
+                    <span class="doc-hero__stat-label">个分组</span>
+                </li>
+                <li class="doc-hero__stat">
+                    <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.HostCount">0</span>
+                    <span class="doc-hero__stat-label">种宿主</span>
+                </li>
+                <li class="doc-hero__stat">
+                    <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ThemeModeCount">0</span>
+                    <span class="doc-hero__stat-label">种主题模式</span>
+                </li>
+            </ul>
         </div>
-        <ul class="doc-hero__stats">
-            <li class="doc-hero__stat">
-                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ComponentCount">0</span>
-                <span class="doc-hero__stat-label">个组件</span>
-            </li>
-            <li class="doc-hero__stat">
-                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.GroupCount">0</span>
-                <span class="doc-hero__stat-label">个分组</span>
-            </li>
-            <li class="doc-hero__stat">
-                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.HostCount">0</span>
-                <span class="doc-hero__stat-label">种宿主</span>
-            </li>
-            <li class="doc-hero__stat">
-                <span class="doc-hero__stat-value" data-home-count="@ShowcaseCatalog.ThemeModeCount">0</span>
-                <span class="doc-hero__stat-label">种主题模式</span>
-            </li>
-        </ul>
-        <span class="doc-hero__spot" data-home-spot aria-hidden="true"></span>
+
+        @* 首屏的主角是真实组件：换品牌色、切主题、输入与保存都在这里生效，读者不必先
+           翻到组件页就能判断这套库用起来是什么手感。样例只组合公共组件，不写一次性样式。 *@
+        <div class="doc-hero__specimen" data-home-stage>
+            <header class="doc-hero__specimen-head">
+                <span class="doc-hero__specimen-title">实时样例</span>
+                <Tag Color="Color.Success" Variant="TagVariant.Soft" Size="Size.Small">可交互</Tag>
+            </header>
+            <div class="doc-hero__specimen-body">
+                <p class="doc-hero__specimen-label">品牌色</p>
+                <ThemeBrandSwitch Size="Size.Small" AriaLabel="品牌色（示例）" />
+                <p class="doc-hero__specimen-label">主题模式</p>
+                <ThemeSwitch Size="Size.Small" AriaLabel="主题模式（示例）" />
+                <div class="doc-hero__specimen-field">
+                    <Input Value="@_name"
+                           ValueChanged="HandleNameChanged"
+                           Placeholder="项目名称"
+                           Size="Size.Small"
+                           AriaLabel="示例项目名称" />
+                    <Button Size="Size.Small" OnClick="ShowToastAsync">保存</Button>
+                </div>
+                <Progress Value="@_progress" Max="100" ShowValue="true" AriaLabel="示例进度" />
+            </div>
+            <p class="doc-hero__specimen-note">上面的控件都来自组件库本身，切换会真的生效。</p>
+        </div>
     </section>
 
     <section class="doc-showcase" aria-labelledby="doc-showcase-title">
-        <h2 id="doc-showcase-title">常用组件</h2>
+        <div class="doc-showcase__head">
+            <h2 id="doc-showcase-title">常用组件</h2>
+            <a class="doc-showcase__all" href="/components">
+                全部 @ShowcaseCatalog.ComponentCount 个组件
+                <span aria-hidden="true">→</span>
+            </a>
+        </div>
 
         @foreach (var group in Groups)
         {
@@ -139,34 +174,27 @@
     </section>
 
     <section class="doc-start" aria-labelledby="doc-start-title">
-        <h2 id="doc-start-title" class="doc-code__kicker">基础使用</h2>
-        <div class="doc-code__window">
-            <div class="doc-code__bar">
-                <span class="doc-code__dot" aria-hidden="true"></span>
-                <span class="doc-code__dot" aria-hidden="true"></span>
-                <span class="doc-code__dot" aria-hidden="true"></span>
-                <span class="doc-code__file">Program.cs · 布局 · 使用示例</span>
+        <div class="doc-start__copy">
+            <p class="doc-start__kicker">开始使用</p>
+            <h2 id="doc-start-title">注册服务、引入样式，两处就位</h2>
+            <p class="doc-start__note">
+                示例站的每一页都由这套组件搭建：语义 Token、玻璃表面与深浅主题随项目一起走，
+                不需要在页面里再写第二套颜色或间距。
+            </p>
+            <div class="doc-start__actions">
+                <Button OnClick="GoToComponents">查看安装与全部组件</Button>
+                <a class="doc-hero__link" href="/components/colors">
+                    浏览设计基础
+                    <span aria-hidden="true">→</span>
+                </a>
             </div>
-            <pre class="doc-code__body"><code><span class="tok-c">// 1. 注册服务（Program.cs）</span>
-builder.Services.<span class="tok-fn">AddAeterniUI</span>();
-
-<span class="tok-c">// 2. 引入样式（wwwroot/index.html）</span>
-&lt;link rel=<span class="tok-str">"stylesheet"</span>
-      href=<span class="tok-str">"_content/AeterniUI/css/aeterni_ui.css"</span> /&gt;
-
-<span class="tok-c">// 3. 根布局放置 Provider（MainLayout.razor）</span>
-&lt;<span class="tok-tag">ThemeProvider</span> /&gt;
-&lt;<span class="tok-tag">DialogProvider</span> /&gt;
-
-<span class="tok-c">// 4. 使用组件</span>
-&lt;<span class="tok-tag">Button</span> Intent=<span class="tok-str">"ButtonIntent.Default"</span>
-        OnClick=<span class="tok-str">"SaveChanges"</span>&gt;保存更改&lt;/<span class="tok-tag">Button</span>&gt;
-
-&lt;<span class="tok-tag">Input</span> @@bind-Value=<span class="tok-str">"name"</span>
-       Placeholder=<span class="tok-str">"请输入姓名"</span> /&gt;
-
-&lt;<span class="tok-tag">ThemeSwitch</span> AriaLabel=<span class="tok-str">"主题模式"</span> /&gt;</code></pre>
         </div>
+        <pre class="doc-start__code"><code>// Program.cs
+builder.Services.AddAeterniUI();
+
+// wwwroot/index.html
+&lt;link rel=<span class="tok-str">"stylesheet"</span>
+      href=<span class="tok-str">"_content/AeterniUI/css/aeterni_ui.css"</span> /&gt;</code></pre>
     </section>
 </main>
 
