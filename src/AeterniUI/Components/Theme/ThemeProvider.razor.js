@@ -125,15 +125,14 @@ function endTransition(animate) {
 
 /** The transition length the stylesheet actually applies, so the class is dropped
  * when the swap has finished rather than after a hand-tuned constant. The rule
- * uses `calc(--aeterni-duration-slower + --aeterni-duration-fast)`; reading both
- * tokens keeps this in step when the scale changes and collapses to 0ms under
+ * uses the slow step (300ms); reading it keeps this in step when the scale
+ * changes and collapses to 0ms under
  * `prefers-reduced-motion`, where the stylesheet zeroes the duration tokens. */
 function transitionDurationMs() {
     const styles = getComputedStyle(document.documentElement);
-    const slower = parseCssDuration(styles.getPropertyValue('--aeterni-duration-slower'));
-    const fast = parseCssDuration(styles.getPropertyValue('--aeterni-duration-fast'));
+    const slow = parseCssDuration(styles.getPropertyValue('--aeterni-duration-slow'));
     // A small margin so the class outlives the transition by a frame.
-    return slower + fast + 20;
+    return slow + 20;
 }
 
 function parseCssDuration(value) {

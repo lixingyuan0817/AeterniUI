@@ -92,13 +92,13 @@ public partial class Screen : ComponentBase, IDisposable
     private static readonly string[] GaugeLabels = ["渲染", "契约", "文档", "令牌"];
 
     /// <summary>
-    /// 分类色阶：品牌紫的 5 个明度档与 4 级中性灰交替，九个分组各占一档。
-    /// 环形分段与图例共用这份映射；语义色不参与分类，只留给状态与异常。
+    /// 分类色阶：品牌紫的 5 个明度档与 4 级中性灰交替。分段按条目数降序排列，
+    /// 相邻两段永远落在不同的色系上；图例同时给出数量与百分比。语义色不参与分类。
     /// </summary>
     private static readonly string[] RingTones =
     [
-        "brand-1", "neutral-1", "brand-2", "neutral-2", "brand-3",
-        "neutral-3", "brand-4", "neutral-4", "brand-5"
+        "brand-5", "neutral-1", "brand-4", "neutral-2", "brand-3",
+        "neutral-3", "brand-2", "neutral-4", "brand-1"
     ];
 
     /// <summary>事件流种子。全库演进里的真实批次名，时间与顺序由页面上的时钟决定（演示数据）。</summary>
@@ -342,13 +342,17 @@ public partial class Screen : ComponentBase, IDisposable
         var segments = new List<RingSegment>();
         var index = 0;
 
-        foreach (var group in Catalog)
+        // Descending by count: the three largest slices come first, alternate brand/neutral
+        // tones so neighbours always differ in lightness, and every legend row carries its
+        // percentage — the ring alone cannot encode nine categories readably.
+        foreach (var group in Catalog.OrderByDescending(entry => entry.Count))
         {
             var ratio = group.Count / (double)total;
             var length = Math.Max(ratio * circumference - gap, 1.5);
             segments.Add(new RingSegment(
                 group.Label,
                 group.Count,
+                FormattableString.Invariant($"{ratio * 100:0}%"),
                 RingTones[index % RingTones.Length],
                 FormattableString.Invariant($"{length:0.##} {circumference - length:0.##}"),
                 FormattableString.Invariant($"{-offset:0.##}")));
@@ -396,5 +400,5 @@ public partial class Screen : ComponentBase, IDisposable
     private sealed record TickerEntry(string Label, int Count);
     private sealed record EventSeed(string Title, string Description, IconDefinition Icon, Color Color);
 
-    private sealed record RingSegment(string Label, int Count, string Tone, string DashArray, string DashOffset);
+    private sealed record RingSegment(string Label, int Count, string Share, string Tone, string DashArray, string DashOffset);
 }

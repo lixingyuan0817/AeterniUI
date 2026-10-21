@@ -1,5 +1,6 @@
 @layout MainLayout
 @inherits LayoutComponentBase
+@implements IAsyncDisposable
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 @using AeterniUI.Sample.Components.Showcase
@@ -72,6 +73,11 @@
 @code {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
+
+    private IJSObjectReference? _navModule;
 
     private static readonly IReadOnlyList<ShowcaseNavGroup> NavigationGroups = ShowcaseCatalog.Groups;
 
@@ -183,4 +189,66 @@
 
     /// <summary>Wraps a definition so <see cref="MenuGroup"/> can render a group icon.</summary>
     private static RenderFragment GroupIcon(IconDefinition definition) => @<Icon Definition="@definition" />;
+
+    /// <summary>
+    /// SPA 导航不会重建布局，侧栏滚动位置留在上一页；每次路由变化后把当前项滚进
+    /// 可视范围，深一层的组件页（DatePicker 等）打开时左栏不会停在顶部。
+    /// </summary>
+    protected override void OnInitialized() => NavigationManager.LocationChanged += HandleLocationChanged;
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(RevealSelectedAsync);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _navModule = await Js.InvokeAsync<IJSObjectReference>("import", "./js/sample-nav.js");
+            }
+            catch (JSException)
+            {
+                // 脚本没就位时导航照旧可用，只是不会自动滚动。
+                _navModule = null;
+            }
+        }
+
+        await RevealSelectedAsync();
+    }
+
+    private async Task RevealSelectedAsync()
+    {
+        if (_navModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _navModule.InvokeVoidAsync("revealSelected");
+        }
+        catch (JSException)
+        {
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+
+        if (_navModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _navModule.DisposeAsync();
+        }
+        catch (JSException)
+        {
+        }
+
+        _navModule = null;
+    }
 }

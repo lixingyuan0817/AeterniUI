@@ -58,7 +58,7 @@ const pick = index => evaluate(`(() => {
 //
 // The timestamps are taken in the page, not by polling from here: every poll is
 // a CDP round trip, and on a loaded CI runner that latency dwarfed the duration
-// being measured (620ms was reported as 1000ms). The observer records the add
+// being measured (a 300ms window was reported as 1000ms). The observer records the add
 // and the remove with performance.now(), so the number is the duration the
 // browser actually applied.
 async function measureTransition(optionIndex) {
@@ -125,12 +125,11 @@ const themeDiag = await evaluate(`JSON.stringify((() => {
 })())`);
 check('REV-121 the transition class is applied on a real theme switch', normal.appliedImmediately && normal.sawClass,
     `applied=${normal.appliedImmediately} observed=${normal.sawClass} ready=${themeReady} diag=${themeDiag}`);
-// 上界放宽到 950ms：窗口要证明的是"等待来自 Token 的约 620ms"，而不是"精确等于 620ms"。
-// 在负载较高的 CI runner 上，定时器回调会晚 100～150ms 触发（连续两次实测 770ms / 755ms），
-// 卡在 750ms 只会得到一个与功能无关的红灯；下界 550ms 仍然拦住"立刻移除"，reduced-motion
-// 那条断言（≤200ms）则继续守住"真的按偏好收敛"。
-check('REV-121 it is removed once the token-derived duration elapses (~620ms)',
-    normal.removedAfter !== null && normal.removedAfter >= 550 && normal.removedAfter <= 950,
+// 上界放宽到 560ms：窗口要证明的是"等待来自 Token 的约 320ms（slow 300 + 20 余量）"，
+// 而不是精确等于 320ms。负载高的 runner 上定时器回调会晚 100～150ms；下界 260ms 仍拦住
+// "立刻移除"，reduced-motion 断言（≤200ms）继续守住"真的按偏好收敛"。
+check('REV-121 it is removed once the token-derived duration elapses (~320ms)',
+    normal.removedAfter !== null && normal.removedAfter >= 260 && normal.removedAfter <= 560,
     `removed after ${normal.removedAfter}ms`);
 
 await setReducedMotion(true);
@@ -906,8 +905,8 @@ if (searchPoint) {
 }
 
 // ---------------------------------------------------------------- REV-148
-// Retiring an entry has to wait for the real exit animation (300ms token) instead
-// of the retired 180/220ms delays, and reduced motion has to collapse it.
+// Retiring an entry has to wait for the real exit animation (150ms exit) instead
+// of a hand-tuned delay, and reduced motion has to collapse it.
 await goto(`${BASE}/components/feedback`);
 await waitForApp();
 
@@ -935,7 +934,7 @@ const toastExit = await evaluate(`(async () => {
     return { removedAfter: Math.round(performance.now() - start), stillThere: document.body.contains(toast) };
 })()`);
 check('REV-148 the toast plays its full exit animation before it is retired',
-    !toastExit.error && !toastExit.stillThere && toastExit.removedAfter >= 250 && toastExit.removedAfter <= 900,
+    !toastExit.error && !toastExit.stillThere && toastExit.removedAfter >= 100 && toastExit.removedAfter <= 600,
     JSON.stringify(toastExit));
 
 await setReducedMotion(true);

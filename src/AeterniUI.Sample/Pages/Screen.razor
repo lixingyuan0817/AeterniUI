@@ -106,8 +106,8 @@
                         }
                     </svg>
                     <div class="dash__ring-center">
-                        <span class="dash__ring-value">@ShowcaseCatalog.ComponentCount</span>
-                        <span class="dash__ring-label">组件</span>
+                        <span class="dash__ring-value">@_ring.Sum(segment => segment.Count)</span>
+                        <span class="dash__ring-label">导航条目</span>
                     </div>
                 </div>
                 <ul class="dash__legend">
@@ -115,8 +115,10 @@
                     {
                         <li class="dash__legend-item">
                             <span class="dash__legend-dot dash__legend-dot--@segment.Tone" aria-hidden="true"></span>
-                            <span class="dash__legend-label">@segment.Label</span>
-                            <span class="dash__legend-value">@segment.Count</span>
+                            <span class="dash__legend-copy">
+                                <span class="dash__legend-label">@segment.Label</span>
+                                <span class="dash__legend-value">@segment.Count · @segment.Share</span>
+                            </span>
                         </li>
                     }
                 </ul>

@@ -92,19 +92,19 @@
         CloseOnEscape="@_drawerCloseOnEscape"
         CloseOnOutsideClick="@_drawerCloseOnOutsideClick"
         ShowCloseButton="@_drawerShowCloseButton"
-        Title="面板设置"
+        Title="通知偏好"
         Footer="@DrawerActions">
     <div class="preview-drawer-content">
-        <p>面板内容位于可滚动的 body 区域，底部操作条固定在面板底部。</p>
+        <p>选择要接收的更新；保存后立即生效，随时可以在这里改回来。</p>
 
-        <Input AriaLabel="面板名称" Placeholder="面板名称" @bind-Value="_drawerName" />
+        <Switch @bind-Value="_notifyReleases">版本发布</Switch>
+        <Switch @bind-Value="_notifySecurity">安全公告</Switch>
+        <Switch @bind-Value="_notifyDigest">每周摘要</Switch>
 
+        <Input AriaLabel="通知邮箱" Placeholder="通知邮箱" @bind-Value="_notifyEmail" />
+
+        <p>版本发布与安全公告默认开启；每周摘要按周一早上发送，可以随时关闭。</p>
         <p>模态形态打开后焦点进入面板，Tab 只在面板内循环；关闭时焦点回到刚才的按钮。</p>
-
-        @for (var index = 1; index <= 6; index++)
-        {
-            <p>占位段落 @index：用于演示 body 区域超出面板高度时只在面板内滚动，背景页面保持不动。</p>
-        }
     </div>
 </Drawer>
 
@@ -130,7 +130,7 @@
                 CloseOnEscape="@CloseOnEscape"
                 CloseOnOutsideClick="@CloseOnOutsideClick"
                 ShowCloseButton="@ShowCloseButton"
-                Title="面板设置"
+                Title="通知偏好"
                 Footer="DrawerActions">
             <p>点遮罩、按 Escape 或点关闭按钮都通过 OpenChanged 请求关闭。</p>
         </Drawer>
@@ -154,7 +154,13 @@
 
     private bool _drawerShowCloseButton = true;
 
-    private string _drawerName = "示例面板";
+    private bool _notifyReleases = true;
+
+    private bool _notifySecurity = true;
+
+    private bool _notifyDigest;
+
+    private string _notifyEmail = "dev@aeterniui.dev";
 
     private string _drawerNote = "尚未打开面板";
 

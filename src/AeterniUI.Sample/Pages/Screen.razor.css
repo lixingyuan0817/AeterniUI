@@ -325,11 +325,18 @@
 
 .dash__legend-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--aeterni-spacing-1);
     min-width: 0;
     font-size: var(--aeterni-font-size-xs);
     color: var(--aeterni-text-secondary);
+}
+
+.dash__legend-copy {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.25;
 }
 
 .dash__legend-dot {
@@ -394,7 +401,7 @@
 }
 
 .dash__legend-value {
-    margin-inline-start: auto;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
     font-weight: var(--aeterni-font-weight-medium);
     color: var(--aeterni-text);

@@ -213,13 +213,14 @@
 }
 
 .aeterni-drawer.is-closing .aeterni-drawer__panel {
-    animation: aeterni-drawer-exit-inline var(--aeterni-duration-slow) var(--aeterni-ease-in) both;
+    /* 210ms vs the 300ms entry; the panel is large enough that it should not snap. */
+    animation: aeterni-drawer-exit-inline calc(var(--aeterni-duration-slow) * .7) var(--aeterni-ease-in) both;
 }
 .aeterni-drawer.is-closing:is(.aeterni-drawer--top, .aeterni-drawer--bottom) .aeterni-drawer__panel {
     animation-name: aeterni-drawer-exit-block;
 }
 .aeterni-drawer.is-closing .aeterni-drawer__backdrop {
-    animation: aeterni-drawer-fade-out var(--aeterni-duration-normal) var(--aeterni-ease-in) both;
+    animation: aeterni-drawer-fade-out calc(var(--aeterni-duration-normal) * .8) var(--aeterni-ease-in) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -274,6 +274,47 @@
     width: min(100%, 520px);
 }
 
+/* Labelled comparison matrix (Button variants/intents/loading). Each row keeps its
+   caption so a wrapped or stacked row still says what it is comparing. */
+.preview-matrix {
+    gap: var(--aeterni-spacing-3);
+    width: min(100%, 600px);
+    justify-items: stretch;
+    text-align: start;
+}
+
+.preview-matrix-row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--aeterni-spacing-3);
+    width: 100%;
+}
+
+.preview-matrix-caption {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+}
+
+.preview-matrix .preview-state-row {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+@media (max-width: 600px) {
+    .preview-matrix-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .preview-matrix .preview-state-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--aeterni-spacing-2);
+        justify-items: start;
+    }
+}
+
 .preview-feedback {
     display: block;
     max-width: 100%;
@@ -811,6 +852,8 @@
 .showcase-colors__size--sm { font-size: var(--aeterni-font-size-sm); }
 .showcase-colors__size--xs { font-size: var(--aeterni-font-size-xs); }
 .showcase-colors__size--compact { font-size: var(--aeterni-font-size-compact); }
+.showcase-colors__size--6xl,
+.showcase-colors__size--5xl { white-space: nowrap; }
 
 .showcase-colors__font-meta {
     display: grid;
@@ -1345,8 +1388,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 168px;
-    padding: 28px;
+    /* Content-driven stage: border-box keeps the outer height close to the token
+       (168 + 56 padding + border was 226px), so a single-control demo no longer
+       reserves a display-case height. */
+    box-sizing: border-box;
+    min-height: clamp(96px, 12vh, 140px);
+    padding: 24px;
     border: 1px solid var(--aeterni-border-subtle);
     border-radius: var(--aeterni-radius-lg);
     background-color: var(--aeterni-bg-primary);
@@ -1515,8 +1562,8 @@
     }
 
     .component-preview__canvas {
-        min-height: 176px;
-        padding: 20px 16px;
+        min-height: 120px;
+        padding: 18px 14px;
     }
 }
 

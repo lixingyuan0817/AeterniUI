@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.38.0`
+文档版本：`10.38.1`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -108,7 +108,7 @@
 - `ThemeBrandSwitch` 提供 Purple、Green、Orange 品牌分段切换，与 `ThemeSwitch` 是同一套结构：它是 `Segmented` 的专用用法，订阅 `BrandChanged` 在外部改动时同步选中态，尺寸档位与标签（`ThemeBrandSwitchLabel` / `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel` / `ThemeBrandOrangeLabel`）都取既有约定。
 - 品牌色层通过 `<html data-aeterni-brand>` 输出，与明暗维度同一元素；切换品牌会复用主题切换的过渡动画（`aeterni-theme-transitioning`）。
 - 主题模式与品牌色层分别在 `localStorage` 的 `aeterni.theme.mode` 和 `aeterni.theme.brand` 下持久化，两个键互相独立：清除其中一个不会重置另一个。
-- 主题切换包含过渡动画，并适配 reduced-motion 场景。
+- 主题切换包含过渡动画（300ms，只过渡颜色承载属性），并适配 reduced-motion 场景。
 
 - `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`），表示实际生效的主题。`ThemeService.Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），不属于 `ThemeMode` 的取值空间。
 ## 4. Button
@@ -960,7 +960,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
 - `CloseOnEscape` 在焦点位于通知内部时生效（键盘用户 Tab 到关闭按钮后按 Escape 即可关闭）；通知是非模态的、不抢焦点，因此指针用户仍以关闭按钮为主，这是刻意的无障碍取舍而不是失效参数。
-- 支持 Alert 滑出动画。退场等待实测动画结束（`--aeterni-duration-slow`，约 300ms）后才移除条目并完成 `AlertAsync` / `CloseAsync`：此前的固定 180/220ms 会在动画 60%/73% 处把节点摘掉，reduced-motion 下还会原地冻结；现在只有宿主没有渲染 Provider 时才退回到 1 秒上限。
+- 支持 Alert 滑出动画。退场等待实测动画结束（进场 200ms、退场 150ms）后才移除条目并完成 `AlertAsync` / `CloseAsync`：此前的固定 180/220ms 会在动画 60%/73% 处把节点摘掉，reduced-motion 下还会原地冻结；现在只有宿主没有渲染 Provider 时才退回到 1 秒上限。
 
 ### Toast
 

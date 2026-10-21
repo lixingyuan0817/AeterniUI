@@ -227,7 +227,7 @@
 .aeterni-dialog-provider__alert.is-closing,
 .aeterni-dialog-provider__toast.is-closing {
     pointer-events: none;
-    animation: aeterni-notice-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
+    animation: aeterni-notice-exit calc(var(--aeterni-duration-normal) * .75) var(--aeterni-ease-in) forwards;
 }
 
 @keyframes aeterni-notice-enter {

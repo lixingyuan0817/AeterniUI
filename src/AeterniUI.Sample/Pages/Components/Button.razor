@@ -36,25 +36,34 @@
                   Description="同一语意色在五个变体下的表现一致；加载态不改变变体的墨色，只把内容换成忙碌指示。"
                   Code="@VariantCode">
             <Preview>
-                <div class="preview-stack">
-                    <div class="preview-state-row" aria-label="变体对照">
-                        <Button Variant="ButtonVariant.Solid">Solid</Button>
-                        <Button Variant="ButtonVariant.Outline">Outline</Button>
-                        <Button Variant="ButtonVariant.Soft">Soft</Button>
-                        <Button Variant="ButtonVariant.Ghost">Ghost</Button>
-                        <Button Variant="ButtonVariant.Link">Link</Button>
+                <div class="preview-stack preview-matrix">
+                    <div class="preview-matrix-row">
+                        <span class="preview-matrix-caption">变体</span>
+                        <div class="preview-state-row" aria-label="变体对照">
+                            <Button Variant="ButtonVariant.Solid">Solid</Button>
+                            <Button Variant="ButtonVariant.Outline">Outline</Button>
+                            <Button Variant="ButtonVariant.Soft">Soft</Button>
+                            <Button Variant="ButtonVariant.Ghost">Ghost</Button>
+                            <Button Variant="ButtonVariant.Link">Link</Button>
+                        </div>
                     </div>
-                    <div class="preview-state-row" aria-label="语意对照">
-                        <Button Intent="ButtonIntent.Default">Default</Button>
-                        <Button Intent="ButtonIntent.Neutral">Neutral</Button>
-                        <Button Intent="ButtonIntent.Warning">Warning</Button>
-                        <Button Intent="ButtonIntent.Danger">Danger</Button>
+                    <div class="preview-matrix-row">
+                        <span class="preview-matrix-caption">语意</span>
+                        <div class="preview-state-row" aria-label="语意对照">
+                            <Button Intent="ButtonIntent.Default">Default</Button>
+                            <Button Intent="ButtonIntent.Neutral">Neutral</Button>
+                            <Button Intent="ButtonIntent.Warning">Warning</Button>
+                            <Button Intent="ButtonIntent.Danger">Danger</Button>
+                        </div>
                     </div>
-                    <div class="preview-state-row" aria-label="加载态对照">
-                        <Button Variant="ButtonVariant.Solid" Loading="true">Solid</Button>
-                        <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
-                        <Button Variant="ButtonVariant.Soft" Loading="true">Soft</Button>
-                        <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
+                    <div class="preview-matrix-row">
+                        <span class="preview-matrix-caption">加载</span>
+                        <div class="preview-state-row" aria-label="加载态对照">
+                            <Button Variant="ButtonVariant.Solid" Loading="true">Solid</Button>
+                            <Button Variant="ButtonVariant.Outline" Loading="true">Outline</Button>
+                            <Button Variant="ButtonVariant.Soft" Loading="true">Soft</Button>
+                            <Button Variant="ButtonVariant.Ghost" Loading="true">Ghost</Button>
+                        </div>
                     </div>
                 </div>
             </Preview>

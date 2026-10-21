@@ -473,6 +473,32 @@
     }
 }
 
+/* 手机上的组件目录：预览压到 72px，名称/说明/入口收成一行，避免 12 张卡
+   拖出两屏半的重复滚动。 */
+@media (max-width: 600px) {
+    .doc-showcase__grid {
+        gap: 10px;
+    }
+
+    .doc-showcase__preview {
+        min-height: 72px;
+        padding: 10px 12px;
+    }
+
+    .doc-showcase__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 10px 14px;
+    }
+
+    .doc-showcase__link {
+        margin-block-start: 0;
+        margin-inline-start: auto;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .doc-showcase__card {
         transition: none;

@@ -985,7 +985,11 @@ html.aeterni-theme-transitioning body,
 html.aeterni-theme-transitioning body *,
 html.aeterni-theme-transitioning body *::before,
 html.aeterni-theme-transitioning body *::after {
-    transition-property: color, background-color, border-color, outline-color, box-shadow, opacity, transform !important;
-    transition-duration: calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) !important;
+    /* The swap is a state change, not a page transition: 300ms, colour-bearing properties
+       only. Transitioning transform/opacity on every element forced a full-page compositing
+       pass and made the page feel like it was moving; the properties below are the ones a
+       theme actually changes. */
+    transition-property: color, background-color, border-color, outline-color, box-shadow, fill, stroke !important;
+    transition-duration: var(--aeterni-duration-slow) !important;
     transition-timing-function: var(--aeterni-ease-in-out) !important;
 }

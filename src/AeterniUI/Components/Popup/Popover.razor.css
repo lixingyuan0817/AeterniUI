@@ -37,10 +37,11 @@
 }
 
 .aeterni-popover.is-closing .aeterni-popover__surface {
-    animation: aeterni-popover-exit var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+    /* Exit 80ms vs the 100ms entry. */
+    animation: aeterni-popover-exit calc(var(--aeterni-duration-fast) * .8) var(--aeterni-ease-in) both;
 }
 .aeterni-popover.is-closing .aeterni-popover__backdrop {
-    animation: aeterni-popover-fade-out var(--aeterni-duration-fast) var(--aeterni-ease-in) both;
+    animation: aeterni-popover-fade-out calc(var(--aeterni-duration-fast) * .8) var(--aeterni-ease-in) both;
 }
 
 @keyframes aeterni-popover-exit { to { opacity: 0; transform: translateY(-4px); } }

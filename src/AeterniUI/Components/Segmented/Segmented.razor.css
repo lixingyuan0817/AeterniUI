@@ -61,7 +61,10 @@
     background: var(--aeterni-state-background-checked);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateX(calc(var(--aeterni-segmented-index, 0) * 100%));
-    transition: transform calc(var(--aeterni-duration-slower) + var(--aeterni-duration-fast)) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    /* Selected-state travel: 200ms. This is the most frequent micro-interaction in the
+       docs (preview/code, theme, brand), so it uses the normal step instead of the
+       600ms slower+fast compound that read as a slow rail. */
+    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
     will-change: transform;
 }
 

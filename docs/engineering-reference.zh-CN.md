@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.38.0`
+文档版本：`10.38.1`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -563,6 +563,9 @@ transition: var(--aeterni-transition-button);
 - 变换动画应使用 `transform`，不要改变布局属性。已登记的例外：折叠面板的自动高度展开/收起使用 `grid-template-rows: 0fr → 1fr`（`Menu` 的 `aeterni-menu__collapse`），因为在不引入 JS 测量高度的情况下它是不改变 DOM 结构的唯一方案；该属性只能用在自有折叠容器上，且必须同时兼容 `prefers-reduced-motion: reduce`。
 - 不为点击添加夸张的缩放或跳动效果。
 - 不使用无限循环动画表达普通交互状态。
+- 状态切换用短档：`Segmented` 的选中滑块 200ms（normal 档），不要用 `slower + fast` 的 600ms 长轨——它是示例站里最高频的微交互。
+- 主题与品牌切换只过渡颜色承载属性（`color` / `background-color` / `border-color` / `outline-color` / `box-shadow` / `fill` / `stroke`），300ms；不要把 `transform` / `opacity` 纳入切换，否则整页都会被卷进合成层，读起来像“页面在动”。
+- 浮层退场约为进场的 60–75%，并用加速曲线：Popover 80/100ms、Dialog 与 Notice 150/200ms、Drawer 210/300ms。
 - 必须兼容 `prefers-reduced-motion: reduce`。
 
 ## 7. HTML 语义和可访问性

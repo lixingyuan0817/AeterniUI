@@ -1,10 +1,23 @@
 # AeterniUI 发布历史
 
-文档版本：`10.38.0`
+文档版本：`10.38.1`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.38.1 示例站精修、动效校准与大屏口径修正
+
+`10.38.0` 之后的设计审核（UI / 色彩 / 动效三层）落地的精修批次：只调整示例宿主、示例文案与动效时长，不新增公共 API；组件 Token 与语义色板未变。
+
+- [x] 示例画布：`.component-preview__canvas` 补 `box-sizing: border-box`，最小高度改为 `clamp(96px, 12vh, 140px)`、内边距 24px；单控件示例不再保留 226px 的展示柜高度（Button 页 4,145 → 3,760px，DatePicker 页 5,868 → 5,660px），点阵与 hairline 保留。
+- [x] 运营大屏：分组环按条目数降序排列，品牌紫明度档与中性灰交替；图例改为「名称 + 数量 · 百分比」两行；环心由 57 组件改为 64 导航条目，与分段合计及 `aria-label` 口径一致。
+- [x] 移动端：Button「变体与语意对照」加行标签（变体 / 语意 / 加载），≤600px 用两列 grid，加载行的忙碌指示不再被误读成字母前缀；首页组件墙预览压到 72px、meta 收成一行（移动端首页 4,754 → 3,548px）。
+- [x] 示例内容：Drawer 由「示例面板 / 占位段落 1–6」改为真实的「通知偏好」（三个开关 + 通知邮箱），实现说明留在正文；示例宿主统一 `DatePickerPlaceholder = "选择日期"`，中文页面不再混用 `Select date`。
+- [x] 侧栏：新增 `wwwroot/js/sample-nav.js`，路由变化后把当前菜单项滚入侧栏可视范围（DatePicker 等深条目不再停在折叠线以下）；脚本缺失时静默降级。
+- [x] 动效：`Segmented` 选中滑块 600 → 200ms（normal 档）；主题/品牌切换 600 → 300ms，且只过渡颜色承载属性（color / background-color / border-color / outline-color / box-shadow / fill / stroke），不再把 transform / opacity 计入整页切换；`ThemeProvider` 的过渡类清理时长改读 slow 档（320ms 上限）；Popover 退场 80ms（进场 100ms）、Dialog 与 Notice 退场 150ms（进场 200ms）、Drawer 退场 210ms（进场 300ms），退场统一用加速曲线。
+- [x] 文档：`engineering-reference` §6.4 增补状态切换、主题切换与浮层退出的时长规则；`delivered-features` 更新主题过渡与 Alert 退场时长；`AGENTS.md`、五份版本头文档、README tag 示例与 `Directory.Build.props` 同步 10.38.1。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`、`check-contrast.mjs`（315 项）、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。视觉证据：桌面 Button / DatePicker / Colors / Screen、移动端首页与 Button、Drawer 打开态、深色主题。`tests/browser/run.sh` 发布后跑到 CDP `setDeviceMetricsOverride` 时因本机 Chrome 版本报 `Target does not support metrics override` 中断（与本次改动无关，中断前已有多条断言 PASS）；该套件在本机历史记录中同样存在环境项。
 
 ## 10.38.0 `Anchor` 页内锚点导航（优先级 9 第 2 项交付）
 

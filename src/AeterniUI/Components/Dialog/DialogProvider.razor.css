@@ -329,7 +329,8 @@
 /* Closing states ------------------------------------------------------------ */
 
 .aeterni-dialog-provider__dialog.is-closing {
-    animation: aeterni-dialog-exit var(--aeterni-duration-slow) var(--aeterni-ease-in) forwards;
+    /* 150ms (75% of the 200ms entry) so closing feels faster than opening. */
+    animation: aeterni-dialog-exit calc(var(--aeterni-duration-normal) * .75) var(--aeterni-ease-in) forwards;
 }
 
 .aeterni-dialog-provider__dialog.is-shaking {
