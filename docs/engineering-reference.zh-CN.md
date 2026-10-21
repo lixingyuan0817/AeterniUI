@@ -699,6 +699,8 @@ export function dispose(key) {
 - `lockScroll()` —— 带滚动条宽度补偿、引用计数的页面滚动锁；返回幂等的释放函数，重叠浮层不会互相解锁。
 - 组件模块通过相对路径导入（`../../js/aeterni_floating.js`）。共享文件放 `wwwroot/js/`，因为它不属于任何单个组件；而组件模块必须是组件目录下的 `*.razor.js`（只有这个命名会被 Razor SDK 当作静态资源发布）。
 - **浮层不得用 `transform`/`translate` 做偏移**：变换会让浮层成为自身 `position: fixed` 遮罩的包含块。需要像素级偏移时用 `margin`（Popover 用 `margin-left` 承载 `--aeterni-popover-shift-x`）。
+- **宿主不要把 `PopupHost` 关进层叠上下文**：`isolation: isolate`、`filter`、`backdrop-filter`、`transform`、`will-change` 都会建立层叠上下文；浮层的 `--aeterni-z-popover`（1060）只在同一个层叠上下文里与同级元素比较，一旦被关进卡片这类隔离层，就会被后绘制的同级元素（例如 `position: sticky` 的页内目录）压住。需要隔离卡片内部层级时，把浮层的 `PopupHost` 提到页面级，或让目录不再与浮层处在同一个父层叠上下文里。
+- **玻璃面不要放在带 `filter` 的祖先里**：`filter` 会建立新的 backdrop root，内部 `backdrop-filter` 只能采样这个 root 里的内容，模糊会整块失效（填充色还在，于是表现为“有底色、没模糊、字直接透出来”）。页头这类玻璃外壳需要投影时用 `box-shadow`，不要用 `filter: drop-shadow()`。
 - 关闭始终由使用方的 `OpenChanged` 驱动：JS 只负责“请求关闭”，不直接改 DOM 状态，也不假设参数未被绑定。
 - 堆栈类浮层（Dialog）可以保留自己的 Tab/Escape 处理，因为它要判断“只有最顶层响应”；这类差异必须在代码注释与当前功能文档里写明。
 
