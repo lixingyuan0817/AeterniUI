@@ -1,5 +1,10 @@
 .aeterni-descriptions {
     --aeterni-descriptions-columns: 3;
+    /* Fixed label column, not a fraction of the item width: a Span>1 item is as
+       wide as several columns, and a fractional label column grew with it — the
+       value of "说明" started ~150px right of the value in the single-column
+       rows above. 7rem is the previous minimum. */
+    --aeterni-descriptions-label-width: 7rem;
 
     display: grid;
     grid-template-columns: repeat(var(--aeterni-descriptions-columns), minmax(0, 1fr));
@@ -11,7 +16,7 @@
 
 .aeterni-descriptions__item {
     display: grid;
-    grid-template-columns: minmax(7rem, .7fr) minmax(0, 1.3fr);
+    grid-template-columns: var(--aeterni-descriptions-label-width) minmax(0, 1fr);
     column-gap: var(--aeterni-spacing-3);
     align-items: start;
     min-width: 0;

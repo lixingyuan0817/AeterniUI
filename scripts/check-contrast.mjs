@@ -26,7 +26,7 @@ const CSS_FILE = 'src/AeterniUI/wwwroot/css/aeterni_ui.css';
 const target = process.argv[2] ?? CSS_FILE;
 const STOPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 const TEXT_FLOOR = 4.5;      // body text and any label inside a filled control
-const GRAPHIC_FLOOR = 3;     // icons, borders, focus rings (non-text contrast)
+const GRAPHIC_FLOOR = 3;     // icons and focus rings (non-text contrast); control hairlines are an explicit exception, see engineering-reference §5.4
 const ACCOUNTING_MARGIN = 1.1;
 const DARK_MEDIA = 'prefers-color-scheme: dark';
 

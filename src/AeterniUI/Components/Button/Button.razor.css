@@ -252,6 +252,10 @@
     min-height: var(--aeterni-control-height-sm);
     padding-inline: var(--aeterni-spacing-1);
     border-color: transparent;
+    /* The underline is the resting affordance: without it Link and Ghost are
+       the same transparent brand text until the pointer arrives. */
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .aeterni-button--link:hover:not(:disabled) {
@@ -267,6 +271,10 @@
     background: transparent;
     color: var(--aeterni-button-color-active);
     box-shadow: none;
+}
+
+.aeterni-button--link:disabled {
+    text-decoration: none;
 }
 
 .aeterni-button.is-icon-only {

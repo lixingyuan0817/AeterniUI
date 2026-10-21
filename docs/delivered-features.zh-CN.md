@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.38.1`
+文档版本：`10.38.2`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -89,7 +89,7 @@
 - 提供玻璃表面的角色别名（填充是独立档位，模糊跟随既有刻度）：`--aeterni-bg-glass`（浅色 68% / 深色 72%，不再跟随 `--aeterni-bg-elevated`）、`--aeterni-blur-glass`（跟随 `--aeterni-blur-md`）和 `--aeterni-blur-scrim`（跟随 `--aeterni-blur-sm`）。库内十处磨砂消费者（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板与遮罩、Drawer 面板与遮罩、Popover 表面与遮罩、Tooltip、Alert/Toast 卡片）统一引用这三个别名，宿主覆盖一处就能整体调整全库玻璃配方，不必逐个组件改。填充停在 68% / 72% 是实测下限，不是偏好值：这两支墨——`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`）与 `--aeterni-text-on-glass-tertiary`（同样写法的 67%）——都按「最坏背景」（纯黑／纯白）定档，再淡一档就会吃掉这两支墨的 1.1× 余量——它们是全库最紧的一对，浅色由三级墨绑定（1.15×）、深色由次要墨绑定（1.14×）。两支墨都只声明一次、按主体墨的比例给出，所以浅深两主题余量相同、也不会各自漂移，代码里把角色名接过去就行。全部磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都用它们接管 `--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 与 `--aeterni-text-tertiary`（`--aeterni-state-color-muted` 全库零读取，已随 REV-122 退出接管名单），补掉标准墨在玻璃填充上的缺口（深色最坏背景：标准次要墨 3.41:1、标准三级墨 2.51:1 → 接管后 5.11:1 / 3.51:1）；不透明表面（含 `is-no-blur` 的通知卡片）与三类遮罩仍用标准墨，遮罩本来就不承字。
 - 玻璃表面在 `prefers-reduced-transparency: reduce` 与「不支持 `backdrop-filter`」两种情况下退到不透明：填充改 `--aeterni-bg-solid`、模糊归 `none`。只摘模糊会留下半透明色斑——既没有模糊解释它，也没有不透明底承字，两种读法都不如实心表面。同一处把两支玻璃专用墨退回标准墨：它们的用途就是扛住透出来的背景，填充已经是实心表面之后就没有背景要扛了。遮罩只摘模糊、保留压暗，因此它仍然把背后的页面压下去。
 - 提供可发现滚动条 Token：`--aeterni-scrollbar-size`（6px）、`--aeterni-scrollbar-thumb`（`--aeterni-border-strong`）、`--aeterni-scrollbar-track`（**透明**）。库内十二个可滚动容器——`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、`TimeOptionList` 与通知堆栈——统一消费这三个 Token：可见滚动条写 `scrollbar-width: thin` + `scrollbar-color` 与 `::-webkit-scrollbar` 两套声明（后者按滚动主轴只写 `width` 或 `height`），需要隐藏的（`TimeOptionList` 的时／分／秒列）写 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`。滑轨保持透明，用 `scrollbar-gutter` 预留的槽位因此不会变成常驻的灰／白色竖条。宿主侧只需在根元素写一次 `scrollbar-color`（该属性继承），宽度因不继承而要对元素本身声明；示例站的做法见 `showcase.css`。
-- 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与 `--aeterni-radius-button*`、`--aeterni-radius-input*`、`--aeterni-radius-surface`；同一尺寸档位的 Button、Input 和 Textarea 圆角一致。
+- 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与独立的 `--aeterni-radius-button`（单值，三档统一）、`--aeterni-radius-input*`（按档取 4 / 6 / 8px）、`--aeterni-radius-surface`；Input 与 Textarea 同档一致，Button 有意保留自己的形状语言，不与字段共用圆角档。
 - 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
 - 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
 - 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
@@ -131,10 +131,10 @@
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
 - `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
-- 按钮圆角使用 `--aeterni-radius-button` 系列 Token，默认值为 `0.625rem`，Small/Large 与默认保持同一圆角视觉。
+- 按钮圆角使用独立的 `--aeterni-radius-button`（单值 `0.625rem`，三档统一），不随字段圆角档位变化；这是动作控件与字段的形状区分。
 - 禁用状态统一消费 `--aeterni-state-*` Token，保持所有变体的前景、背景和边框可读；`Link` 禁用时不会显示下划线。
 - 加载状态包含 Spinner、`aria-busy` 和禁用交互；加载时用内联 Spinner 替换起始图标、标签保持完整可读，Spinner 取变体自身的加载墨色（`--aeterni-button-loading-foreground`），实心与透明变体下都清晰可见。
-- `Link` 变体悬浮时只显示下划线，不显示背景色。
+- `Link` 变体静止态即带下划线（3px 偏移），悬浮只改变颜色、不显示背景色；与 Ghost 的区别不依赖 hover。
 
 ### 行为与无障碍
 
@@ -263,7 +263,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 - 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
 - 悬浮与聚焦均使用主题色边框；`:focus-visible` 额外绘制全库统一的焦点环（`--aeterni-focus-width` + `--aeterni-focus-color`，文本输入在鼠标聚焦时同样匹配 `:focus-visible`）。
 - 无效状态在悬浮、聚焦下始终保留危险色边框，焦点环改用 `--aeterni-focus-color-invalid`，错误提示不会被焦点环覆盖。
-- `Small` / `Large` 档位同步切换圆角阶梯，保持与同档 Button 一致。
+- `Small` / `Large` 档位同步切换控件圆角阶梯（4 / 6 / 8px）；Button 使用独立的 `--aeterni-radius-button`，不与字段共用同一档。
 
 ### 行为与无障碍
 
@@ -1092,10 +1092,10 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 `Segmented<TValue>` 提供互斥选项切换（分段控件）：
 
 - `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`、可选 `AriaLabel`。
-- `Size` 三档的轨道高度是 32 / 36 / 44px：`Default` 与 `Large` 取控件高度档位（`--aeterni-control-height-md/lg`），`Small` 因为 3px 内缩加 24px 热区恰好需要 32px，比 `--aeterni-control-height-sm`（28px）高 4px——这是"三档内缩一致"的直接代价。`FullWidth` 占满父容器，否则宽度跟随内容。
+- `Size` 三档的轨道高度是 32 / 36 / 44px：`Default` 与 `Large` 取控件高度档位（`--aeterni-control-height-md/lg`），`Small` 因为 3px 内缩加 24px 热区恰好需要 32px，比 `--aeterni-control-height-sm`（28px）高 4px——这是"三档内缩一致"的直接代价。`Small` 不要与 28px 的 Button / Input 同排混用；需要 28px 控件行时用 `Default` 档，或接受 4px 高差。`FullWidth` 占满父容器，否则宽度跟随内容。
 - 轨道外观是一根 1px 的 `--aeterni-border-strong` 描边加 `--aeterni-bg-secondary` 填充：分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，又不引出一层填充。禁用档与无效档照样换描边色。
 - `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。它由 `--aeterni-spacing-1` 减一个描边得到（3px），**三档相同**：边框到滑块之间的间距不随 `Size` 变化。热区与高度约束见 [`engineering-reference`](engineering-reference.zh-CN.md)。
-- 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` / `Button` 的圆角同源。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
+- 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` 的圆角同源（Button 使用独立的 `--aeterni-radius-button`，不同源）。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
 - `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。形状只重指轨道圆角，`Pill` 额外把滑块与选项的内沿半径交回半高裁切；内缩取圆角档推导来的值、滑块宽度与位移由选项数量推导，所以两档的滑块几何完全一致。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供；原生 radio 组没有 `Home`/`End`，组件补上这一对（跳到首/尾可用项并把真实焦点一起带过去），并且只交出一个最小 JS 模块去阻止这两个键的默认页面滚动——方向键仍完全归浏览器，组件不接管。
 - 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。

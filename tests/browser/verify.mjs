@@ -544,6 +544,19 @@ check('Descriptions keeps native label/value semantics inside the page',
         && descriptions.pageOverflow <= 1,
     JSON.stringify(descriptions));
 
+const descriptionAlignment = await evaluate(`(() => {
+    const items = [...document.querySelectorAll('.aeterni-descriptions__item')];
+    const offsets = items
+        .map(item => item.querySelector('dd'))
+        .filter(Boolean)
+        .map(value => Math.round(value.getBoundingClientRect().left
+            - value.parentElement.getBoundingClientRect().left));
+    return { offsets, spread: offsets.length ? Math.max(...offsets) - Math.min(...offsets) : null };
+})()`);
+check('Descriptions starts every value at the same label-column offset, including spanning rows',
+    descriptionAlignment.offsets.length >= 5 && descriptionAlignment.spread !== null && descriptionAlignment.spread <= 1,
+    JSON.stringify(descriptionAlignment));
+
 for (const columns of [1, 2]) {
     await evaluate(`(() => {
         const trigger = document.querySelector('[role="combobox"][id="descriptions-columns"]');

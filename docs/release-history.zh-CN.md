@@ -1,10 +1,23 @@
 # AeterniUI 发布历史
 
-文档版本：`10.38.1`
+文档版本：`10.38.2`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.38.2 组件库本体审核修复：Descriptions 对齐、圆角口径与 Link 语义
+
+对 10.38.1 之后组件库本体审核（57 个组件、组件级 CSS/Token 与组件板）落地的修复批次；不新增公共 API。
+
+- [x] **Descriptions 跨列对齐**：`.aeterni-descriptions__item` 的标签列从 `minmax(7rem, .7fr)` 改为固定 `--aeterni-descriptions-label-width`（默认 `7rem`），值列 `minmax(0, 1fr)`。此前 `Span>1` 的 item 更宽，标签列随 `fr` 放大，`说明` 行的值比普通行右移约 150px；修复后所有行的值起点一致（浏览器断言 spread ≤ 1px）。
+- [x] **圆角口径纠偏**：明确 `Button` 使用独立的 `--aeterni-radius-button`（单值 `0.625rem`，三档统一），`Input` / `Textarea` 走 `4 / 6 / 8px` 字段阶梯；修正 `delivered-features` 四处、`engineering-reference` 两处“同档 Button/Input 圆角一致 / 同源”的错误规格（历史 release-history 条目保持原样，不重写历史）。示例站 Colors 页原有说明不变。
+- [x] **Link 变体静止态**：`.aeterni-button--link` 常驻下划线（`text-underline-offset: 3px`），禁用时移除；与 Ghost 的区分不再依赖 hover。
+- [x] **控件描边对比度口径**：确认 `--aeterni-border*` / `--aeterni-control-border` 是低强度 hairline（浅色对白面约 1.2–1.5:1），为显式例外而非漏检；修正 `check-contrast.mjs` 的 `GRAPHIC_FLOOR` 注释与 `engineering-reference` §5.4 中“边框逐组测量”的表述，并写入例外说明。本轮不把基础描边加黑，避免全库视觉回归；需要更强边界的宿主应新增 `--aeterni-control-border-strong` 一类 Token 另评。
+- [x] **Small Segmented 混排约束**：在 `delivered-features` 补“不与 28px Button/Input 同排混用”的使用约束；32px 的几何取舍本身不变。
+- [x] **回归断言**：`tests/browser/verify.mjs` 新增 Descriptions“所有 value 的标签列偏移一致（spread ≤ 1px）”检查。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`bash scripts/check-docs.sh`、`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。视觉证据：Descriptions 修复前后对比、Button 变体板的 Link 下划线（`.design-audit/shots/fix4/`）。`tests/browser/run.sh` 因本机 Chrome CDP `setDeviceMetricsOverride` 环境项仍未跑通（与本次改动无关）。
+- 按「修复与优化递增第三位」从 `10.38.1` 升到 `10.38.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.1 示例站精修、动效校准与大屏口径修正
 
