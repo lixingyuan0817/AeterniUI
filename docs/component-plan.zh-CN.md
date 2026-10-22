@@ -1,6 +1,6 @@
 # AeterniUI 组件计划
 
-文档版本：`10.39.0`
+文档版本：`10.40.0`
 
 文档状态：当前活动计划；只记录尚未交付的组件、能力、依赖、决策门和验收条件。
 
@@ -19,7 +19,7 @@
 
 | 优先级 | 计划 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；`Upload`（10.32.0）、`Cascader`（10.35.0）、`Transfer`（10.37.0）、`Anchor`（10.38.0）与布局类 `Splitter`（10.39.0）已交付，剩余候选见 §3 |
+| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；`Upload`（10.32.0）、`Cascader`（10.35.0）、`Transfer`（10.37.0）、`Anchor`（10.38.0）、布局类 `Splitter`（10.39.0）与导航树 `NavTree`（10.40.0）已交付，剩余候选见 §3 |
 
 当前唯一活动计划是优先级 9。上一轮质量收口（第十轮审阅）已全部收口并归档，不在本文件保留条目；新一轮审阅发现只登记在 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)，其阶段状态以该文件为准。质量收口包含用户可见功能、无障碍、文档漂移、Token 纪律与示例缺口，启动时必须单独成批，不与新组件开发混合。
 
@@ -64,7 +64,7 @@
 | 页头 | 当前条目、「在 GitHub 编辑」 | 已交付 |
 | 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已交付（62 个卡片化页面，其中 58 页每页至少一段 `<Controls>`；`Colors`、`Install` 讲规格与步骤，没有带可调属性的实例） |
 | 03 示例代码 | 可复制的 Razor 片段 | 已交付（每个页面都有可复制代码块：卡片化页面每段一间，非组件页是步骤与配方片段） |
-| 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（58 个页面 / 722 行） |
+| 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（59 个页面 / 729 行） |
 | 05 说明与边界 | 无障碍、状态与职责边界 | 已交付（每个页面都有内容） |
 | 页脚 | 目录顺序的上一页/下一页 | 已交付 |
 | 「何时使用」与「相关组件」 | 决定读者是否该用它、下一步看谁 | 已交付（非组件页也改用同一骨架，段锚点与搜索结果因此走同一套机制） |
@@ -74,13 +74,13 @@
 
 - `scripts/generate-api-reference.mjs` 解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `src/AeterniUI.Sample/Components/Showcase/ShowcaseApiReference.generated.cs`；生成物提交进仓库，CI 用 `--check` 拒绝过期产物（与 `generate-fontawesome-icons.mjs` 同一约定）。
 - 编辑内容与生成物分离：说明文字在 `scripts/api-descriptions.json`，生成器推不出来的行（模型、服务与 `Value / StartDate / EndDate` 这类汇总写法）在 `scripts/api-extra-rows.json`；「自哪个版本」在 `scripts/api-since.json`，只登记 `release-history` 明确记录过的新增成员，不猜测。
-- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 58 个页面重复生成。
+- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 59 个页面重复生成。
 - 没有对应组件目录的页也能有生成式 API 表：`Feedback` 记录的是 `IDialogService` 与各个选项类型，行全部来自 `api-extra-rows.json`，生成器在成员为空时照样为它产出条目。**页面上没有手写表，也没有被门禁放过的例外。**
 - 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致；浏览器断言另有一条真实渲染检查（反馈页的 API 区确实渲染出服务与选项行）。
 
 ### 搜索索引：生成而不是手写
 
-- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（当前 517 条，覆盖 65 个页面条目与各页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
+- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（当前 524 条，覆盖 66 个页面条目与各页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
 - 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
 - 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，「参数与事件」读的是 API 生成物（所以 `Feedback` 页在这一项修好之后也有了该段）。生成顺序因此是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
 - 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。

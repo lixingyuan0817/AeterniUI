@@ -1,10 +1,24 @@
 # AeterniUI 发布历史
 
-文档版本：`10.39.0`
+文档版本：`10.40.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.40.0 `NavTree` 导航树与 trailing 操作区（新组件交付）
+
+PR #29（`feat/nav-tree`）以 squash 合入 main（`6ba6173`）后落地的发布批次。交付层级导航组件 `NavTree` 与节点模型 `NavTreeNode`：节点按钮右侧的 `Trailing` 是按钮的兄弟区域，可承载独立的 `PopupHost` + `Popover` + `Menu` 操作入口，不会再出现 `MenuGroup` 只有内置 chevron、直接嵌套产生 button-in-button 的问题。
+
+合并前按要求只做了合并面核查，未重复审查组件实现：GitHub 判定 `MERGEABLE`（与 10.39.0 的文档改动无冲突），PR diff 中未发现凭据、密钥、token、本机绝对路径、`.env`、外部网络请求或 `eval` / `innerHTML` 一类危险调用（仅文档里的「语义 token」字样命中关键词）。
+
+- [x] 组件 `Components/NavTree/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js` / `NavTreeNode.cs`）：`Items`、`SelectedId` + `SelectedIdChanged`、`OnNodeSelected`、`OpenKeys` + `OpenKeysChanged`、`AriaLabel`；节点支持 `Children`、`Icon`、`Description`、`Trailing`、`Disabled`、`Visible`，节点 Id 必须非空且唯一。
+- [x] 语义与键盘：`role="tree"` / `treeitem` / `group` + `aria-level`、`aria-selected`、`aria-expanded`；单一 Tab 停留点，`↑`/`↓` 移动、`→` 展开或进入子节点、`←` 折叠或回父节点、`Home`/`End` 首尾，`Enter`/`Space` 保留原生按钮激活；JS 只负责焦点移动与方向键滚动抑制，展开/选中模型在 C#。
+- [x] 示例与生成物：`/components/nav-tree`（两级导航 + trailing 动作菜单）并登记进 `ShowcaseCatalog`（导航条目 59）；API 表（59 页 / 729 行）与搜索索引（524 条 / 66 页）生成物重跑；`scripts/api-since.json` 补 7 个 `NavTree.*` 成员（`10.40.0`），示例 API 表的「自哪个版本」列显示该版本。
+- [x] 测试：`tests/nav-tree.test.mjs` 覆盖方向键滚动抑制、trailing 不拦截、焦点与释放；契约检查扩到 **42 组**，`node --test tests/*.test.mjs` 共 **123 项**。
+- [x] 文档与版本：`delivered-features` §54（NavTree 章节由 PR 提供）、`component-plan` §2 / §3 登记与 §4 计数、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例同步。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 123 项通过；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 729 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过；PR #29 的 CI `build` 作业通过，浏览器作业沿用 10.38.4 起的既有环境项（Dialog 居中、遮罩铺满视口两条视口几何断言）。
+- 按「功能新增递增第二位」（§4.9）从 `10.39.0` 升到 `10.40.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.39.0 `Splitter` 可拖动分栏（新组件交付）
 
