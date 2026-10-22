@@ -1,10 +1,14 @@
 // A splitter owns one pointer gesture at a time. The live width is written to a
 // CSS custom property; Blazor only hears about committed changes.
+//
+// Keyboard handling lives here rather than in C#: only the keys this module owns
+// may preventDefault() (an unhandled arrow key must still scroll the page), and
+// the committed width is painted before the Blazor round-trip.
 const instances = new Map();
 
 export function init(dotNetRef, instanceId) {
     dispose(instanceId);
-    instances.set(instanceId, { dotNetRef, state: null, disposed: false });
+    instances.set(instanceId, { dotNetRef, state: null });
 }
 
 export function attach(instanceId, root, handle, options) {
@@ -16,16 +20,19 @@ export function attach(instanceId, root, handle, options) {
     detach(instance);
 
     const orientation = options?.orientation === 'vertical' ? 'vertical' : 'horizontal';
-    const min = Math.max(0, Number(options?.min) || 0);
-    const max = Math.max(min, Number(options?.max) || min);
+    const min = Math.max(0, numeric(options?.min, 0));
+    const max = Math.max(min, numeric(options?.max, min));
     const persistKey = typeof options?.persistKey === 'string' ? options.persistKey : null;
     const state = {
         root,
         handle,
+        dotNetRef: instance.dotNetRef,
         orientation,
+        rtl: directionOf(root) === 'rtl',
         min,
         max,
-        width: clamp(Number(options?.firstSize) || min, min, max),
+        width: 0,
+        disabled: Boolean(options?.disabled),
         persistKey,
         dragging: false,
         pointerId: 0,
@@ -41,8 +48,10 @@ export function attach(instanceId, root, handle, options) {
     };
 
     instance.state = state;
-    state.width = readStored(state) ?? state.width;
+    const stored = readStored(state);
+    state.width = stored ?? clamp(numeric(options?.firstSize, min), min, max);
     apply(state, state.width, false);
+    applyDisabled(state);
 
     state.onPointerDown = event => startDrag(state, event);
     state.onPointerMove = event => moveDrag(state, event);
@@ -54,8 +63,9 @@ export function attach(instanceId, root, handle, options) {
     handle.addEventListener('keydown', state.onKeyDown);
     handle.addEventListener('dblclick', state.onDoubleClick);
 
-    if (persistKey && readStored(state) !== null) {
-        instance.dotNetRef?.invokeMethodAsync('OnSizeRestoredAsync', state.width).catch(() => {});
+    // A restored width is the value the host must adopt, not just a painted width.
+    if (stored !== null) {
+        state.dotNetRef?.invokeMethodAsync('OnSizeRestoredAsync', state.width).catch(() => {});
     }
 }
 
@@ -72,13 +82,17 @@ export function sync(instanceId, root, handle, options) {
     }
 
     state.orientation = options?.orientation === 'vertical' ? 'vertical' : 'horizontal';
-    state.min = Math.max(0, Number(options?.min) || 0);
-    state.max = Math.max(state.min, Number(options?.max) || state.min);
+    state.rtl = directionOf(root) === 'rtl';
+    state.min = Math.max(0, numeric(options?.min, 0));
+    state.max = Math.max(state.min, numeric(options?.max, state.min));
     state.persistKey = typeof options?.persistKey === 'string' ? options.persistKey : null;
-    state.handle.setAttribute('aria-disabled', options?.disabled ? 'true' : 'false');
+    state.disabled = Boolean(options?.disabled);
+    applyDisabled(state);
 
+    // While a gesture is in flight the live width wins; the host re-renders on
+    // commit and would otherwise snap the pane back under the pointer.
     if (!state.dragging) {
-        state.width = clamp(Number(options?.firstSize) || state.width, state.min, state.max);
+        state.width = clamp(numeric(options?.firstSize, state.width), state.min, state.max);
         apply(state, state.width, false);
     }
 }
@@ -90,7 +104,6 @@ export function dispose(instanceId) {
     }
 
     detach(instance);
-    instance.disposed = true;
     instances.delete(instanceId);
 }
 
@@ -101,22 +114,21 @@ function detach(instance) {
     }
 
     state.handle.removeEventListener('pointerdown', state.onPointerDown);
-    state.handle.removeEventListener('pointermove', state.onPointerMove);
-    state.handle.removeEventListener('pointerup', state.onPointerUp);
-    state.handle.removeEventListener('pointercancel', state.onPointerUp);
     state.handle.removeEventListener('keydown', state.onKeyDown);
     state.handle.removeEventListener('dblclick', state.onDoubleClick);
-    stopDrag(state, null, false);
+    stopDrag(state, false);
     instance.state = null;
 }
 
 function startDrag(state, event) {
-    if (state.handle.getAttribute('aria-disabled') === 'true' || event.button !== 0) {
+    if (state.disabled || event.button !== 0) {
         return;
     }
 
     event.preventDefault();
     state.dragging = true;
+    // Read the direction per gesture: a host can flip dir after the module attached.
+    state.rtl = directionOf(state.root) === 'rtl';
     state.pointerId = event.pointerId;
     state.start = state.orientation === 'horizontal' ? event.clientX : event.clientY;
     state.startSize = state.width;
@@ -137,11 +149,13 @@ function moveDrag(state, event) {
     }
 
     event.preventDefault();
-    const delta = (state.orientation === 'horizontal' ? event.clientX : event.clientY) - state.start;
-    apply(state, state.startSize + delta, false);
+    const client = state.orientation === 'horizontal' ? event.clientX : event.clientY;
+    // In RTL the first pane sits on the right, so dragging left grows it.
+    const sign = state.orientation === 'horizontal' && state.rtl ? -1 : 1;
+    apply(state, state.startSize + (client - state.start) * sign, false);
 }
 
-function stopDrag(state, event, commitChange = true) {
+function stopDrag(state, commitChange = true) {
     if (!state.dragging) {
         return;
     }
@@ -165,20 +179,23 @@ function stopDrag(state, event, commitChange = true) {
 }
 
 function handleKey(state, event) {
-    if (state.handle.getAttribute('aria-disabled') === 'true' || event.altKey || event.ctrlKey || event.metaKey) {
+    if (state.disabled || event.altKey || event.ctrlKey || event.metaKey) {
         return;
     }
 
     const step = event.shiftKey ? 32 : 8;
     const horizontal = state.orientation === 'horizontal';
+    // Logical direction: ArrowRight grows the first pane in LTR, shrinks it in RTL.
+    // Read it per key press for the same reason the drag reads it per gesture.
+    const direction = horizontal && directionOf(state.root) === 'rtl' ? -1 : 1;
     let next = null;
 
     switch (event.key) {
         case 'ArrowLeft':
-            next = horizontal ? state.width - step : null;
+            next = horizontal ? state.width - step * direction : null;
             break;
         case 'ArrowRight':
-            next = horizontal ? state.width + step : null;
+            next = horizontal ? state.width + step * direction : null;
             break;
         case 'ArrowUp':
             next = horizontal ? null : state.width - step;
@@ -206,8 +223,7 @@ function handleKey(state, event) {
 
 function commit(state, value) {
     apply(state, value, true);
-    const instance = [...instances.values()].find(candidate => candidate.state === state);
-    instance?.dotNetRef?.invokeMethodAsync('OnSizeChangedAsync', state.width).catch(() => {});
+    state.dotNetRef?.invokeMethodAsync('OnSizeChangedAsync', state.width).catch(() => {});
 }
 
 function apply(state, value, persist) {
@@ -220,8 +236,35 @@ function apply(state, value, persist) {
     }
 }
 
+function applyDisabled(state) {
+    if (state.disabled) {
+        state.handle.setAttribute('aria-disabled', 'true');
+    } else {
+        state.handle.removeAttribute?.('aria-disabled');
+    }
+}
+
+// 0 is a legal size (MinFirstSize may be 0), so a missing or malformed option must
+// be told apart from a real 0 rather than collapsed by `||`.
+function numeric(value, fallback) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function clamp(value, min, max) {
     return Math.round(Math.max(min, Math.min(max, value)));
+}
+
+function directionOf(element) {
+    if (typeof getComputedStyle !== 'function' || !element) {
+        return 'ltr';
+    }
+
+    try {
+        return getComputedStyle(element).direction === 'rtl' ? 'rtl' : 'ltr';
+    } catch {
+        return 'ltr';
+    }
 }
 
 function readStored(state) {

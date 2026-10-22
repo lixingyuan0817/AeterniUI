@@ -56,12 +56,28 @@ public partial class Splitter : AeterniComponent
     [Parameter, EditorRequired]
     public RenderFragment? SecondPane { get; set; }
 
-    private ElementReference _root;
-    private ElementReference _handle;
+    private ElementReference _renderedRootElement;
+    private ElementReference _renderedHandle;
     private int _size;
+    private bool _hasSize;
     private int _lastFirstSize;
     private bool _needsSync;
     private bool _attached;
+
+    /// <summary>
+    /// The element this component rendered. REV-147: feeding the rendered node back to
+    /// <see cref="AeterniComponent.RootElement" /> keeps <c>Element</c> / <c>ElementChanged</c>
+    /// alive; binding <c>@ref</c> straight to a private field leaves both parameters dead.
+    /// </summary>
+    private ElementReference RenderedRootElement
+    {
+        get => _renderedRootElement;
+        set
+        {
+            _renderedRootElement = value;
+            RootElement = value;
+        }
+    }
 
     private string SeparatorOrientation =>
         Orientation == Orientation.Horizontal ? "vertical" : "horizontal";
@@ -95,9 +111,11 @@ public partial class Splitter : AeterniComponent
 
         // Keep the last dragged width when the host re-renders with the same
         // FirstSize value. A changed parameter is a deliberate external reset.
-        if (_size == 0 || FirstSize != _lastFirstSize)
+        // The flag, not a 0 sentinel: 0 is a legal size when MinFirstSize is 0.
+        if (!_hasSize || FirstSize != _lastFirstSize)
         {
             _size = FirstSize;
+            _hasSize = true;
         }
 
         _lastFirstSize = FirstSize;
@@ -106,8 +124,7 @@ public partial class Splitter : AeterniComponent
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-splitter")
-        .Add("aeterni-splitter--vertical", Orientation == Orientation.Vertical)
-        .Add("is-disabled", Disabled);
+        .Add("aeterni-splitter--vertical", Orientation == Orientation.Vertical);
 
     protected override StyleBuilder BuildStyle() => base.BuildStyle()
         .Add("--aeterni-splitter-first-size", $"{_size.ToString(CultureInfo.InvariantCulture)}px");
@@ -118,19 +135,19 @@ public partial class Splitter : AeterniComponent
         {
             if (_needsSync)
             {
-                await JsModuleManager.InvokeModuleVoidAsync("splitter", "sync", InstanceId, _root, _handle, BuildOptions());
+                await JsModuleManager.InvokeModuleVoidAsync("splitter", "sync", InstanceId, RenderedRootElement, _renderedHandle, BuildOptions());
                 _needsSync = false;
             }
 
             return;
         }
 
-        if (string.IsNullOrEmpty(_root.Id))
+        if (string.IsNullOrEmpty(RenderedRootElement.Id))
         {
             return;
         }
 
-        await JsModuleManager.InvokeModuleVoidAsync("splitter", "attach", InstanceId, _root, _handle, BuildOptions());
+        await JsModuleManager.InvokeModuleVoidAsync("splitter", "attach", InstanceId, RenderedRootElement, _renderedHandle, BuildOptions());
         _attached = true;
         _needsSync = false;
     }
@@ -140,27 +157,15 @@ public partial class Splitter : AeterniComponent
     /// 这里只同步 Blazor 状态并触发公开回调。
     /// </summary>
     [JSInvokable]
-    public async Task OnSizeChangedAsync(int size)
-    {
-        if (IsDisposed)
-        {
-            return;
-        }
-
-        _size = Math.Clamp(size, MinFirstSize, MaxFirstSize);
-        if (FirstSizeChanged.HasDelegate)
-        {
-            await FirstSizeChanged.InvokeAsync(_size);
-        }
-
-        await InvokeAsync(StateHasChanged);
-    }
+    public Task OnSizeChangedAsync(int size) => ApplyCommittedSizeAsync(size);
 
     /// <summary>
     /// JS 恢复持久化宽度时调用；本次挂载中恢复值优先于初始 FirstSize 参数。
     /// </summary>
     [JSInvokable]
-    public async Task OnSizeRestoredAsync(int size)
+    public Task OnSizeRestoredAsync(int size) => ApplyCommittedSizeAsync(size);
+
+    private async Task ApplyCommittedSizeAsync(int size)
     {
         if (IsDisposed)
         {
@@ -168,6 +173,7 @@ public partial class Splitter : AeterniComponent
         }
 
         _size = Math.Clamp(size, MinFirstSize, MaxFirstSize);
+        _hasSize = true;
         if (FirstSizeChanged.HasDelegate)
         {
             await FirstSizeChanged.InvokeAsync(_size);

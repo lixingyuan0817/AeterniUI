@@ -26,6 +26,7 @@ class StubElement {
 
     getAttribute(name) { return this.attrs.get(name) ?? null; }
     setAttribute(name, value) { this.attrs.set(name, value); }
+    removeAttribute(name) { this.attrs.delete(name); }
     addEventListener(name, listener) { this.listeners.set(name, listener); }
     removeEventListener(name) { this.listeners.delete(name); }
     setPointerCapture(id) { this.pointerId = id; }
@@ -131,4 +132,104 @@ test('sync applies an external size and clamp without re-registering listeners',
     assert.equal(handle.listeners.size, 3);
     dispose('splitter-1');
     assert.equal(handle.listeners.size, 0);
+});
+
+test('a legal zero size is not mistaken for "no size yet"', () => {
+    storage.clear();
+    const { root, handle } = fixture({ min: 0, firstSize: 0 });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '0px');
+    assert.equal(handle.getAttribute('aria-valuenow'), '0');
+
+    sync('splitter-1', root, handle, { orientation: 'horizontal', min: 0, max: 600, firstSize: 0 });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '0px');
+    assert.equal(handle.getAttribute('aria-valuenow'), '0');
+    dispose('splitter-1');
+});
+
+test('only the keys this module owns prevent the default action', () => {
+    storage.clear();
+    const { handle } = fixture();
+    const prevented = [];
+    const handler = handle.listeners.get('keydown');
+    const send = (key, extra = {}) => handler({ key, preventDefault: () => prevented.push(key), ...extra });
+
+    send('ArrowRight');
+    send('ArrowLeft');
+    send('Home');
+    send('End');
+    send('PageDown');
+    assert.deepEqual(prevented, ['ArrowRight', 'ArrowLeft', 'Home', 'End']);
+
+    // A horizontal splitter ignores the vertical arrows so the page can still scroll.
+    prevented.length = 0;
+    send('ArrowUp');
+    send('ArrowDown');
+    assert.deepEqual(prevented, []);
+    dispose('splitter-1');
+});
+
+test('disposing mid-drag releases the window listeners, pointer capture and body cursor', () => {
+    storage.clear();
+    const { handle } = fixture();
+    handle.dispatch('pointerdown', { clientX: 300 });
+    assert.equal(window.listeners.size, 3);
+    assert.equal(handle.pointerId, 1);
+    assert.equal(document.body.style.cursor, 'col-resize');
+    assert.equal(handle.classList.values.has('is-dragging'), true);
+
+    dispose('splitter-1');
+    assert.equal(window.listeners.size, 0);
+    assert.equal(handle.listeners.size, 0);
+    assert.equal(handle.pointerId, 0);
+    assert.equal(handle.classList.values.has('is-dragging'), false);
+    assert.equal(document.body.style.cursor, '');
+    assert.equal(document.body.style.userSelect, '');
+});
+
+test('disabled splitter ignores pointer and keyboard input and reports aria-disabled', () => {
+    storage.clear();
+    const { root, handle, calls } = fixture({ disabled: true });
+    assert.equal(handle.getAttribute('aria-disabled'), 'true');
+
+    handle.dispatch('pointerdown', { clientX: 300 });
+    assert.equal(window.listeners.size, 0, 'a disabled handle must not start a drag');
+    handle.dispatch('keydown', { key: 'ArrowRight' });
+    assert.equal(calls.length, 0, 'a disabled splitter must not commit');
+
+    sync('splitter-1', root, handle, { orientation: 'horizontal', min: 200, max: 600, firstSize: 300, disabled: false });
+    assert.equal(handle.getAttribute('aria-disabled'), null);
+    handle.dispatch('keydown', { key: 'ArrowRight' });
+    assert.deepEqual(calls.at(-1), ['OnSizeChangedAsync', 308]);
+    dispose('splitter-1');
+});
+
+test('a stored width is clamped into the current range', () => {
+    storage.clear();
+    storage.set('splitter-test', '900');
+    const { root, calls } = fixture();
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '600px');
+    assert.deepEqual(calls, [['OnSizeRestoredAsync', 600]]);
+    dispose('splitter-1');
+});
+
+test('RTL horizontal splitters mirror drag deltas and arrow keys', () => {
+    storage.clear();
+    globalThis.getComputedStyle = () => ({ direction: 'rtl' });
+    try {
+        const { root, handle } = fixture({ firstSize: 300 });
+
+        handle.dispatch('pointerdown', { clientX: 500 });
+        window.listeners.get('pointermove')({ clientX: 440, preventDefault() {} });
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '360px');
+        window.listeners.get('pointerup')({ pointerId: 1, preventDefault() {} });
+
+        // In RTL the first pane sits on the right, so ArrowRight shrinks it.
+        handle.dispatch('keydown', { key: 'ArrowRight' });
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '352px');
+        handle.dispatch('keydown', { key: 'ArrowLeft' });
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '360px');
+        dispose('splitter-1');
+    } finally {
+        delete globalThis.getComputedStyle;
+    }
 });

@@ -72,6 +72,34 @@
                 </div>
             </Preview>
         </DemoCard>
+
+        <DemoCard Id="splitter-disabled"
+                  Title="禁用"
+                  Description="Disabled 时分隔条退出 Tab 序，指针与键盘都不再响应；宽度保持当前值。"
+                  Code="@DisabledCode">
+            <Preview>
+                <div class="preview-splitter-frame">
+                    <Splitter FirstSize="220"
+                              MinFirstSize="200"
+                              MaxFirstSize="600"
+                              Disabled="true"
+                              AriaLabel="禁用的预览分栏">
+                        <FirstPane>
+                            <div class="preview-splitter-pane">
+                                <strong>固定</strong>
+                                <span>200–600px</span>
+                            </div>
+                        </FirstPane>
+                        <SecondPane>
+                            <div class="preview-splitter-pane">
+                                <strong>内容</strong>
+                                <span>分隔条不可操作</span>
+                            </div>
+                        </SecondPane>
+                    </Splitter>
+                </div>
+            </Preview>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>分隔条输出 <code>role="separator"</code>、显式 <code>aria-orientation</code> 和 <code>aria-valuemin</code>/<code>aria-valuemax</code>/<code>aria-valuenow</code>；键盘支持方向键、Shift 加速、Home/End 和双击复位。</span>
@@ -105,6 +133,16 @@
                   MaxFirstSize="240">
             <FirstPane>上方</FirstPane>
             <SecondPane>下方</SecondPane>
+        </Splitter>
+        """;
+
+    private const string DisabledCode = """
+        <Splitter FirstSize="220"
+                  MinFirstSize="200"
+                  MaxFirstSize="600"
+                  Disabled="true">
+            <FirstPane>固定</FirstPane>
+            <SecondPane>内容</SecondPane>
         </Splitter>
         """;
 

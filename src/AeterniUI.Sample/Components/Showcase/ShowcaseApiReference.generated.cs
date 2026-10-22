@@ -164,15 +164,15 @@ public static class ShowcaseApiReference
             },
             ["splitter"] = new ShowcaseApiMember[]
             {
-                new("AriaLabel", "string?", "", "分隔条的可访问名称；未提供时使用组件库文案表。", "属性", ""),
-                new("FirstPane", "RenderFragment?", "", "第一栏（尺寸受控）的内容。", "属性", ""),
-                new("FirstSize", "int", "", "第一栏的初始像素宽度。", "属性", ""),
-                new("FirstSizeChanged", "EventCallback<int>", "", "指针拖动、键盘调整或双击复位结束后触发。拖动过程中的实时宽度由 JS 直接写入 CSS 变量，因此该回调不会随每个指针移动触发。", "事件回调", ""),
-                new("MaxFirstSize", "int", "", "第一栏允许的最大像素宽度。", "属性", ""),
-                new("MinFirstSize", "int", "", "第一栏允许的最小像素宽度。", "属性", ""),
-                new("Orientation", "Orientation", "", "分栏方向。Horizontal 左右排列（分隔条为垂直方向）； Vertical 上下排列。", "属性", ""),
-                new("PersistKey", "string?", "", "可选的 localStorage 键。提供时恢复该键上次保存的宽度，并在每次提交后保存。", "属性", ""),
-                new("SecondPane", "RenderFragment?", "", "第二栏的内容，占满剩余空间。", "属性", ""),
+                new("AriaLabel", "string?", "", "分隔条的可访问名称；未提供时使用组件库文案表。", "属性", "10.39.0"),
+                new("FirstPane", "RenderFragment?", "", "第一栏（尺寸受控）的内容。", "属性", "10.39.0"),
+                new("FirstSize", "int", "", "第一栏的初始像素宽度。", "属性", "10.39.0"),
+                new("FirstSizeChanged", "EventCallback<int>", "", "指针拖动、键盘调整或双击复位结束后触发。拖动过程中的实时宽度由 JS 直接写入 CSS 变量，因此该回调不会随每个指针移动触发。", "事件回调", "10.39.0"),
+                new("MaxFirstSize", "int", "", "第一栏允许的最大像素宽度。", "属性", "10.39.0"),
+                new("MinFirstSize", "int", "", "第一栏允许的最小像素宽度。", "属性", "10.39.0"),
+                new("Orientation", "Orientation", "", "分栏方向。Horizontal 左右排列（分隔条为垂直方向）； Vertical 上下排列。", "属性", "10.39.0"),
+                new("PersistKey", "string?", "", "可选的 localStorage 键。提供时恢复该键上次保存的宽度，并在每次提交后保存。", "属性", "10.39.0"),
+                new("SecondPane", "RenderFragment?", "", "第二栏的内容，占满剩余空间。", "属性", "10.39.0"),
             },
             ["empty"] = new ShowcaseApiMember[]
             {

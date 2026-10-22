@@ -19,35 +19,34 @@
     min-height: 0;
 }
 
+/* The hit area is the shared touch target; only the ::after hairline is painted.
+   Logical insets keep the seam on the first column under RTL as well: the handle's
+   inline-start edge sits half a hit area before the seam, so no physical transform
+   is needed (translateX would mirror the wrong way in RTL). */
 .aeterni-splitter__handle {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--aeterni-splitter-first-size, 280px);
+    inset-block: 0;
+    inset-inline-start: calc(var(--aeterni-splitter-first-size, 280px) - var(--aeterni-touch-target-min) / 2);
     z-index: 1;
-    width: 9px;
-    transform: translateX(-50%);
+    width: var(--aeterni-touch-target-min);
     cursor: col-resize;
     touch-action: none;
 }
 
 .aeterni-splitter--vertical .aeterni-splitter__handle {
-    top: var(--aeterni-splitter-first-size, 280px);
-    right: 0;
-    bottom: auto;
-    left: 0;
+    inset-block-start: calc(var(--aeterni-splitter-first-size, 280px) - var(--aeterni-touch-target-min) / 2);
+    inset-block-end: auto;
+    inset-inline: 0;
     width: auto;
-    height: 9px;
-    transform: translateY(-50%);
+    height: var(--aeterni-touch-target-min);
     cursor: row-resize;
 }
 
 .aeterni-splitter__handle::after {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
+    inset-block: 0;
+    inset-inline-start: 50%;
     width: var(--aeterni-border-width-thin);
     background: var(--aeterni-border-subtle);
     transform: translateX(-50%);
@@ -55,32 +54,33 @@
 }
 
 .aeterni-splitter--vertical .aeterni-splitter__handle::after {
-    top: 50%;
-    right: 0;
-    bottom: auto;
-    left: 0;
+    inset-block-start: 50%;
+    inset-block-end: auto;
+    inset-inline: 0;
     width: auto;
     height: var(--aeterni-border-width-thin);
     transform: translateY(-50%);
 }
 
-.aeterni-splitter__handle:hover::after,
-.aeterni-splitter__handle:focus-visible::after,
+/* The disabled handle keeps its hairline colour and never widens: hover must not
+   override the disabled state (disabled > hover). */
+.aeterni-splitter__handle:not([aria-disabled="true"]):hover::after,
+.aeterni-splitter__handle:not([aria-disabled="true"]):focus-visible::after,
 .aeterni-splitter__handle.is-dragging::after {
-    width: 2px;
+    width: calc(var(--aeterni-border-width-thin) * 2);
     background: var(--aeterni-color-brand);
 }
 
-.aeterni-splitter--vertical .aeterni-splitter__handle:hover::after,
-.aeterni-splitter--vertical .aeterni-splitter__handle:focus-visible::after,
+.aeterni-splitter--vertical .aeterni-splitter__handle:not([aria-disabled="true"]):hover::after,
+.aeterni-splitter--vertical .aeterni-splitter__handle:not([aria-disabled="true"]):focus-visible::after,
 .aeterni-splitter--vertical .aeterni-splitter__handle.is-dragging::after {
     width: auto;
-    height: 2px;
+    height: calc(var(--aeterni-border-width-thin) * 2);
 }
 
 .aeterni-splitter__handle:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
-    outline-offset: -2px;
+    outline-offset: var(--aeterni-focus-offset);
 }
 
 .aeterni-splitter__handle[aria-disabled="true"] {

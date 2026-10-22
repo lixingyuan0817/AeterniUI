@@ -138,6 +138,7 @@ public static class ShowcaseSearchIndex
         new("splitter", "Splitter", "基础组件", "splitter-when-title", "何时使用"),
         new("splitter", "Splitter", "基础组件", "splitter-horizontal", "水平分栏"),
         new("splitter", "Splitter", "基础组件", "splitter-vertical", "垂直分栏"),
+        new("splitter", "Splitter", "基础组件", "splitter-disabled", "禁用"),
         new("splitter", "Splitter", "基础组件", "splitter-api-title", "参数与事件"),
         new("splitter", "Splitter", "基础组件", "splitter-related-title", "相关组件"),
         new("splitter", "Splitter", "基础组件", "splitter-notes-title", "说明与边界"),

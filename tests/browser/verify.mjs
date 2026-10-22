@@ -3493,6 +3493,161 @@ check('InputNumber 方角步进按钮的悬停底色被圆角输入框裁切',
     stepper.overflow === 'hidden' && stepper.radii.every(radius => radius === '0px'),
     JSON.stringify({ overflow: stepper.overflow, radii: stepper.radii }));
 
+// ---------------------------------------------------------------- Splitter 分栏
+// 分隔条是 role="separator" 的可聚焦覆盖层：键盘每次步进 8px、Shift 32px、Home/End 到
+// 端点；指针拖动只在松开后回调 FirstSizeChanged。命中区取共享触控目标，视觉上仍是一条
+// 发丝线。RTL 下第一栏在右，箭头与拖拽增量都要镜像。
+await goto(`${BASE}/components/splitter`);
+await waitForApp();
+
+const splitterDeadline = Date.now() + 10000;
+while (Date.now() < splitterDeadline) {
+    if (await evaluate(`!!document.querySelector('.aeterni-splitter [role="separator"]')`)) break;
+    await sleep(100);
+}
+
+// 页面顺序是水平、垂直、禁用；按可访问名称定位，避免 first-match 量错实例。
+await evaluate(`(() => {
+    const handle = document.querySelector('.aeterni-splitter [role="separator"]');
+    handle.scrollIntoView({ block: 'center' });
+    return true;
+})()`);
+await sleep(100);
+
+async function splitterRead() {
+    return evaluate(`(() => {
+        const root = document.querySelector('.aeterni-splitter');
+        const handle = root.querySelector('[role="separator"]');
+        const rootBox = root.getBoundingClientRect();
+        const handleBox = handle.getBoundingClientRect();
+        return {
+            orientation: handle.getAttribute('aria-orientation'),
+            min: handle.getAttribute('aria-valuemin'),
+            max: handle.getAttribute('aria-valuemax'),
+            now: Number(handle.getAttribute('aria-valuenow')),
+            tabIndex: handle.getAttribute('tabindex'),
+            ariaDisabled: handle.getAttribute('aria-disabled'),
+            label: handle.getAttribute('aria-label'),
+            rootRight: rootBox.right,
+            x: handleBox.left + handleBox.width / 2,
+            y: handleBox.top + handleBox.height / 2,
+            hitWidth: handleBox.width,
+            hitHeight: handleBox.height,
+            feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+        };
+    })()`);
+}
+
+async function splitterKey(keyName, keyCode, modifiers = 0) {
+    await send('Input.dispatchKeyEvent', {
+        type: 'keyDown', key: keyName, code: keyName,
+        windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode, modifiers
+    });
+    await send('Input.dispatchKeyEvent', {
+        type: 'keyUp', key: keyName, code: keyName,
+        windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode, modifiers
+    });
+    await sleep(80);
+    return (await splitterRead()).now;
+}
+
+const touchTargetMin = await evaluate(
+    `parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--aeterni-touch-target-min'))`);
+const splitter = await splitterRead();
+check('Splitter 分隔条是带量值语义的 separator，命中区取共享触控目标',
+    splitter.orientation === 'vertical'
+        && splitter.min === '200' && splitter.max === '600'
+        && splitter.tabIndex === '0' && splitter.ariaDisabled === null
+        && splitter.label === '拖动调整预览分栏'
+        && splitter.hitWidth >= touchTargetMin && splitter.hitHeight > 0,
+    JSON.stringify({ ...splitter, touchTargetMin }));
+
+await evaluate(`document.querySelector('.aeterni-splitter [role="separator"]').focus()`);
+const splitterAfterRight = await splitterKey('ArrowRight', 39);
+const splitterAfterShift = await splitterKey('ArrowRight', 39, 8);
+const splitterAfterHome = await splitterKey('Home', 36);
+const splitterAfterEnd = await splitterKey('End', 35);
+const splitterAfterDown = await splitterKey('ArrowDown', 40);
+check('Splitter 键盘按 8px / Shift 32px / Home / End 提交，未处理的键不抢',
+    splitterAfterRight === splitter.now + 8
+        && splitterAfterShift === splitterAfterRight + 32
+        && splitterAfterHome === 200
+        && splitterAfterEnd === 600
+        && splitterAfterDown === 600,
+    JSON.stringify({ start: splitter.now, splitterAfterRight, splitterAfterShift, splitterAfterHome, splitterAfterEnd, splitterAfterDown }));
+
+// 指针拖动：先 Home 回到最小宽度，让分隔条落在预览框内；按下、移动 60px、松开，
+// 只有松开后才回调宿主，页面上的读数跟着变。
+await splitterKey('Home', 36);
+const beforeDrag = await splitterRead();
+await mouse('mousePressed', beforeDrag.x, beforeDrag.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseMoved', beforeDrag.x + 60, beforeDrag.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseReleased', beforeDrag.x + 60, beforeDrag.y, { buttons: 0, pointerType: 'mouse' });
+await sleep(350);
+const afterDrag = await splitterRead();
+check('Splitter 指针拖动按位移调整第一栏并在松开后回调宿主',
+    Math.abs(afterDrag.now - (beforeDrag.now + 60)) <= 2
+        && (afterDrag.feedback ?? '').includes(String(afterDrag.now)),
+    JSON.stringify({ before: beforeDrag, after: afterDrag }));
+
+const splitterDisabled = await evaluate(`(() => {
+    const handle = [...document.querySelectorAll('.aeterni-splitter [role="separator"]')]
+        .find(node => node.getAttribute('aria-label') === '禁用的预览分栏');
+    const box = handle.getBoundingClientRect();
+    return {
+        tabIndex: handle.getAttribute('tabindex'),
+        ariaDisabled: handle.getAttribute('aria-disabled'),
+        now: Number(handle.getAttribute('aria-valuenow')),
+        x: box.left + box.width / 2,
+        y: box.top + box.height / 2
+    };
+})()`);
+await mouse('mousePressed', splitterDisabled.x, splitterDisabled.y, { buttons: 1, pointerType: 'mouse' });
+await mouse('mouseMoved', splitterDisabled.x + 60, splitterDisabled.y, { buttons: 1, pointerType: 'mouse' });
+await mouse('mouseReleased', splitterDisabled.x + 60, splitterDisabled.y, { buttons: 0, pointerType: 'mouse' });
+await sleep(200);
+const splitterDisabledAfter = await evaluate(`(() => {
+    const handle = [...document.querySelectorAll('.aeterni-splitter [role="separator"]')]
+        .find(node => node.getAttribute('aria-label') === '禁用的预览分栏');
+    return {
+        now: Number(handle.getAttribute('aria-valuenow')),
+        dragging: handle.classList.contains('is-dragging'),
+        cursor: getComputedStyle(handle).cursor
+    };
+})()`);
+check('Splitter 禁用态退出 Tab 序、不接受指针拖动',
+    splitterDisabled.tabIndex === '-1'
+        && splitterDisabled.ariaDisabled === 'true'
+        && splitterDisabledAfter.now === splitterDisabled.now
+        && splitterDisabledAfter.dragging === false
+        && splitterDisabledAfter.cursor === 'not-allowed',
+    JSON.stringify({ before: splitterDisabled, after: splitterDisabledAfter }));
+
+// RTL：第一栏排到右侧，分隔条贴它的内侧边缘；ArrowRight 改为缩小第一栏。
+const splitterRtl = await evaluate(`(async () => {
+    document.documentElement.dir = 'rtl';
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const root = document.querySelector('.aeterni-splitter');
+    const handle = root.querySelector('[role="separator"]');
+    const rootBox = root.getBoundingClientRect();
+    const handleBox = handle.getBoundingClientRect();
+    return {
+        seamFromRight: Math.round(rootBox.right - (handleBox.left + handleBox.width / 2)),
+        now: Number(handle.getAttribute('aria-valuenow'))
+    };
+})()`);
+await evaluate(`document.querySelector('.aeterni-splitter [role="separator"]').focus()`);
+const splitterRtlAfterRight = await splitterKey('ArrowRight', 39);
+const splitterRtlAfterLeft = await splitterKey('ArrowLeft', 37);
+await evaluate(`document.documentElement.dir = 'ltr'`);
+check('Splitter 在 RTL 下第一栏排到右侧，方向键按逻辑方向镜像',
+    Math.abs(splitterRtl.seamFromRight - splitterRtl.now) <= 2
+        && splitterRtlAfterRight === splitterRtl.now - 8
+        && splitterRtlAfterLeft === splitterRtl.now,
+    JSON.stringify({ splitterRtl, splitterRtlAfterRight, splitterRtlAfterLeft }));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

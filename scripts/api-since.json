@@ -48,6 +48,15 @@
     "Anchor.Smooth": "10.38.0",
     "Anchor.AriaLabel": "10.38.0",
     "AnchorLink.Id": "10.38.0",
-    "AnchorLink.Title": "10.38.0"
+    "AnchorLink.Title": "10.38.0",
+    "Splitter.Orientation": "10.39.0",
+    "Splitter.FirstSize": "10.39.0",
+    "Splitter.MinFirstSize": "10.39.0",
+    "Splitter.MaxFirstSize": "10.39.0",
+    "Splitter.FirstSizeChanged": "10.39.0",
+    "Splitter.PersistKey": "10.39.0",
+    "Splitter.AriaLabel": "10.39.0",
+    "Splitter.FirstPane": "10.39.0",
+    "Splitter.SecondPane": "10.39.0"
   }
 }

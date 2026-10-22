@@ -1,11 +1,12 @@
 @inherits AeterniComponent
 
 @* The handle is an overlay on the seam; the two panes stay in the grid so the
-   host can put its own scrolling surfaces inside them. *@
-<div @ref="_root" @attributes="BuildAttributes()">
-    <div class="aeterni-splitter__pane aeterni-splitter__pane--first">@FirstPane</div>
+   host can put its own scrolling surfaces inside them. @ref goes through
+   RenderedRootElement so the base class still receives Element / ElementChanged. *@
+<div @ref="RenderedRootElement" @attributes="BuildAttributes()">
+    <div class="aeterni-splitter__pane">@FirstPane</div>
 
-    <div @ref="_handle"
+    <div @ref="_renderedHandle"
          class="aeterni-splitter__handle"
          role="separator"
          tabindex="@(Disabled ? "-1" : "0")"
@@ -16,5 +17,5 @@
          aria-label="@EffectiveAriaLabel"
          aria-disabled="@(Disabled ? "true" : null)"></div>
 
-    <div class="aeterni-splitter__pane aeterni-splitter__pane--second">@SecondPane</div>
+    <div class="aeterni-splitter__pane">@SecondPane</div>
 </div>

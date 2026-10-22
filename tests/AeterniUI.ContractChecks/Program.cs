@@ -3262,6 +3262,14 @@ async Task CheckEnumValidationAsync()
         ("InputNumber.Size", () => RenderAsync<InputNumber<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Size"] = (Size)99 })),
         ("Slider.Size", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Size"] = (Size)99 })),
         ("Slider.Orientation", () => RenderAsync<Slider<int>>(new Dictionary<string, object?> { ["Value"] = 1, ["Orientation"] = (Orientation)99 })),
+        ("Splitter.Orientation", () => RenderAsync<Splitter>(new Dictionary<string, object?> {
+            ["FirstPane"] = (RenderFragment)(builder => builder.AddContent(0, "a")),
+            ["SecondPane"] = (RenderFragment)(builder => builder.AddContent(0, "b")),
+            ["Orientation"] = (Orientation)99 })),
+        ("Splitter.FirstSize", () => RenderAsync<Splitter>(new Dictionary<string, object?> {
+            ["FirstPane"] = (RenderFragment)(builder => builder.AddContent(0, "a")),
+            ["SecondPane"] = (RenderFragment)(builder => builder.AddContent(0, "b")),
+            ["MinFirstSize"] = 200, ["MaxFirstSize"] = 600, ["FirstSize"] = 700 })),
         ("Timeline.Orientation", () => RenderAsync<Timeline>(new Dictionary<string, object?> { ["Items"] = Array.Empty<TimelineItem>(), ["Orientation"] = (Orientation)99 })),
         ("ThemeSwitch.Size", () => RenderAsync<AeterniUI.Components.Theme.ThemeSwitch>(new Dictionary<string, object?> { ["Size"] = (Size)99 })),
         ("Segmented.Shape", () => RenderAsync<Segmented<string>>(new Dictionary<string, object?> {
@@ -3765,7 +3773,7 @@ async Task CheckSplitterAsync()
     });
 
     Require(horizontal.Contains("class=\"aeterni-splitter", StringComparison.Ordinal)
-        && horizontal.Contains("aeterni-splitter__pane--first", StringComparison.Ordinal)
+        && horizontal.Contains("aeterni-splitter__pane", StringComparison.Ordinal)
         && horizontal.Contains("first-pane", StringComparison.Ordinal)
         && horizontal.Contains("second-pane", StringComparison.Ordinal),
         "Splitter renders both panes inside its root.");
@@ -3778,6 +3786,37 @@ async Task CheckSplitterAsync()
         "Splitter exposes a vertical separator with the configured value range.");
     Require(horizontal.Contains("--aeterni-splitter-first-size: 300px", StringComparison.Ordinal),
         "Splitter publishes its first-pane size through the layout custom property.");
+    Require(horizontal.Contains("tabindex=\"0\"", StringComparison.Ordinal)
+        && !horizontal.Contains("aria-disabled", StringComparison.Ordinal),
+        "An enabled Splitter keeps one tab stop and renders no disabled state.");
+
+    var defaultLabel = await RenderAsync<Splitter>(new Dictionary<string, object?>
+    {
+        [nameof(Splitter.FirstPane)] = first,
+        [nameof(Splitter.SecondPane)] = second
+    });
+    Require(defaultLabel.Contains("aria-label=\"Resize panes\"", StringComparison.Ordinal),
+        "Splitter falls back to the text table for its accessible name.");
+
+    var disabled = await RenderAsync<Splitter>(new Dictionary<string, object?>
+    {
+        [nameof(Splitter.FirstPane)] = first,
+        [nameof(Splitter.SecondPane)] = second,
+        [nameof(Splitter.Disabled)] = true
+    });
+    Require(disabled.Contains("tabindex=\"-1\"", StringComparison.Ordinal)
+        && disabled.Contains("aria-disabled=\"true\"", StringComparison.Ordinal),
+        "A disabled Splitter leaves the tab order and reports aria-disabled.");
+
+    // REV-147: the rendered node must flow back through the base class, otherwise
+    // Element and ElementChanged stay dead parameters. Splitter is the one component
+    // that binds @ref to RenderedRootElement instead of RootElement directly.
+    var repositoryRoot = FindRepositoryRoot();
+    var razor = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/Splitter/Splitter.razor"));
+    var code = await File.ReadAllTextAsync(Path.Combine(repositoryRoot, "src/AeterniUI/Components/Splitter/Splitter.razor.cs"));
+    Require(razor.Contains("@ref=\"RenderedRootElement\"", StringComparison.Ordinal)
+        && code.Contains("RootElement = value;", StringComparison.Ordinal),
+        "Splitter must feed its rendered root back to the base class so Element / ElementChanged work.");
 
     var vertical = await RenderAsync<Splitter>(new Dictionary<string, object?>
     {

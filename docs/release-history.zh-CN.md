@@ -1,10 +1,27 @@
 # AeterniUI 发布历史
 
-文档版本：`10.38.4`
+文档版本：`10.39.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.39.0 `Splitter` 可拖动分栏（新组件交付）
+
+PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落地的发布批次。交付布局组件 `Splitter`，并同批修掉合并前只读审查发现的三个阻塞问题：`Element` / `ElementChanged` 未绑定、合法尺寸 `0` 被当成未初始化哨兵、无消费者的 `is-disabled` 类名；RTL、命中区、禁用态与真实浏览器断言一并补齐。
+
+- [x] 组件 `Components/Splitter/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js`）：参数 `Orientation`、`FirstSize`（默认 `280`）、`MinFirstSize`（`200`）、`MaxFirstSize`（`600`）、`FirstSizeChanged`、`PersistKey`、`AriaLabel`、`FirstPane` / `SecondPane`；参数在设置阶段校验（`0 <= MinFirstSize < MaxFirstSize`，`FirstSize` 必须落在区间内），非法枚举与越界尺寸抛 `ArgumentOutOfRangeException`。
+- [x] 根元素绑定：`@ref` 经私有 `RenderedRootElement` 回写 `RootElement`（REV-147 写法），`Element` / `ElementChanged` 恢复可用；JS 模块仍只拿组件自己渲染的节点（与 Toolbar、ToggleGroup、Menu、三个 combobox 的归属口径一致）。契约检查新增该守卫，防止再次退回私有字段直绑。
+- [x] 尺寸语义：`0` 是合法尺寸（`MinFirstSize` 可为 `0`）。C# 用 `_hasSize` 标志、JS 用 `Number.isFinite` 区分「未给出」与「0」，修复 `MinFirstSize=0` 折叠后宿主重渲染把宽度弹回 `FirstSize` 的问题。
+- [x] 语义与键盘：`role="separator"` + 显式 `aria-orientation`（水平分栏 `vertical`、垂直分栏 `horizontal`）+ `aria-valuemin` / `aria-valuemax` / `aria-valuenow` + 可访问名称（缺省回退 `AeterniUITextOptions.SplitterLabel`）。单一 Tab 停留点；`←`/`→` 或 `↑`/`↓` 每次 8px、`Shift` 32px、`Home`/`End` 到端点、双击回最小；只对处理过的按键 `preventDefault`。禁用时 `tabindex="-1"` + `aria-disabled="true"`，指针与键盘都不提交。
+- [x] 指针与持久化：Pointer Capture 跟随；拖动期间 JS 直接把宽度写进 `--aeterni-splitter-first-size`（不逐帧回调），松开 / 键盘提交 / 双击 / 恢复持久化宽度时才回调 `FirstSizeChanged`；`PersistKey` 读写 localStorage 并 clamp 到当前区间。拖动中 `dispose` 会移除 window 监听、释放指针捕获并还原 body 光标。
+- [x] RTL 与命中区：水平分栏改用逻辑 inset（`inset-inline-start`）并把命中区宽度按半宽内缩，RTL 下第一栏在右、分隔条仍落在接缝上；拖拽增量与 `←`/`→` 按逻辑方向镜像，方向在每次手势与按键时读取，宿主运行时改 `dir` 也生效。分隔条命中区取 `--aeterni-touch-target-min`（24px），视觉仍是 `--aeterni-border-width-thin` 发丝线；hover 组排除 `aria-disabled="true"`，焦点环改用 `--aeterni-focus-offset`。
+- [x] 清理：删掉无消费者的 `is-disabled` 与 `aeterni-splitter__pane--first/--second` 类；`OnSizeChangedAsync` / `OnSizeRestoredAsync` 复用同一提交路径；`sync` 在启用态移除 `aria-disabled`（与 markup 一致）；`readStored` 只读一次。
+- [x] 示例与生成物：`/components/splitter` 覆盖水平、垂直与禁用三态并登记进 `ShowcaseCatalog`（导航条目 58）；API 表（58 页 / 722 行）与搜索索引（517 条 / 65 页）生成物重跑；`scripts/api-since.json` 补 9 个 `Splitter.*` 成员（`10.39.0`），示例 API 表的「自哪个版本」列显示该版本。
+- [x] 文档：`delivered-features` §53 补 RTL、命中区、禁用与实现边界（固定像素轨道在窄容器下的表现、无 JS 时不响应拖动与键盘）；`component-plan` §2 / §3 登记交付并更新 §4 的页面与索引计数；`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例同步。
+- [x] 回归：`tests/splitter.test.mjs` 从 4 项扩到 10 项（合法 0 尺寸、按键 `preventDefault` 边界、拖动中 `dispose`、禁用 no-op、存储 clamp、RTL 镜像）；`tests/browser/verify.mjs` 新增 5 条 Splitter 断言（分隔条语义与命中区、键盘步进、真实指针拖动与宿主回显、禁用态、RTL 接缝与方向键）。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误；本机 6 条 `NU1900` 为沙箱拒绝写 NuGet 漏洞缓存，与代码无关）；契约检查 **41 组**；`node --test tests/*.test.mjs` **122 项**通过；`check-css-comments.mjs`（80 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（95 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（58 页 / 722 行）、`generate-search-index.mjs --check`（517 条 / 65 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器：本机 Chrome 156 上单独运行 Splitter 断言 **5/5 PASS**（命中区 24px、键盘 280→288→320→200→600、指针拖动 200→260 且宿主读数同步、禁用态 `cursor: not-allowed` 且值不变、RTL 接缝 260 与 `→` 反向）；`tests/browser/run.sh` 全量套件在本机运行到 upload 页后卡住（与本次改动无关的既有环境项，10.38.2 起记录），CI 浏览器作业在 PR #28 上的失败项仍是 10.38.4 基线上同样的两条视口几何断言（Dialog 居中、遮罩铺满视口，1440 与 1430 的滚动条差），`build` 作业在 PR 与 main 上均通过。
+- 按「功能新增递增第二位」（§4.9）从 `10.38.4` 升到 `10.39.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.38.4 交互修补：滚动锁视口稳定、Confirm 抖动反馈与 InputNumber 连体步进
 

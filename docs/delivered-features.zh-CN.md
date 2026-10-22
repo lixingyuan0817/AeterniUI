@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.38.4`
+文档版本：`10.39.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -17,7 +17,7 @@
 - 本文档以当前源码中的公开组件、`[Parameter]`、`EventCallback`、公开服务和配置类型为准；实现细节不等同于公共 API。
 - 本文档是交付功能的唯一事实源；任何“已实现/已交付”表述必须能在源码、示例或契约检查中定位证据，不能仅靠历史记录或陈述式摘要维持。
 - 若某能力被移除、降级或重构，必须同步删除或更新相关章节，并在 [`release-history.zh-CN.md`](release-history.zh-CN.md) 记录修订；不能在本文件保留已失效的承诺。
-- 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。需要 JS 模块的组件把**自己渲染的节点**交给模块，而不是 `RootElement`：宿主传入 `Element` 会把 `RootElement` 换成外部元素，模块的所有权校验随之失败，方向键与单一 Tab 停留点会静默失效（Toolbar、ToggleGroup、Menu 与三个 combobox 均已按此实现）。
+- 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。需要 JS 模块的组件把**自己渲染的节点**交给模块，而不是 `RootElement`：宿主传入 `Element` 会把 `RootElement` 换成外部元素，模块的所有权校验随之失败，方向键与单一 Tab 停留点会静默失效（Toolbar、ToggleGroup、Menu、三个 combobox 与 Splitter 均已按此实现）。
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
 - 公共枚举参数一律在 `OnParametersSet` 用 `Enum.IsDefined` 校验，非法值抛带实际值与原因的 `ArgumentOutOfRangeException`；不再有"非法值静默降级为默认档"的组件。`ToggleGroup.SelectionMode` 例外：它是取值白名单（`SelectionMode.None` 是已定义成员但对动作组无意义，仍需拒绝）。需要无障碍名称的组件（`IconButton`、`ToggleGroup`、`Toolbar`、`ToolbarGroup`）在留空时抛 `ArgumentException`，`FlashCardGroup` 改为回退文案表。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，不会写入交付功能。
@@ -1677,13 +1677,15 @@ async Task StartUpload(UploadFile file)
 
 ### 行为与无障碍
 
-分隔条是 `role="separator"` 的可聚焦元素，带显式 `aria-orientation`（水平分栏输出 `vertical`，垂直分栏输出 `horizontal`）、`aria-valuemin` / `aria-valuemax` / `aria-valuenow` 和可访问名称。指针拖动使用 Pointer Capture，离开分隔条仍跟随；键盘在水平方向使用 `←`/`→`、垂直方向使用 `↑`/`↓`，`Shift` 以 32px 步进，`Home`/`End` 跳到最小/最大，双击恢复最小宽度。焦点环使用共享 focus token，拖动时用 JS 临时设置页面光标和禁止选择，结束后恢复。
+分隔条是 `role="separator"` 的可聚焦元素，带显式 `aria-orientation`（水平分栏输出 `vertical`，垂直分栏输出 `horizontal`）、`aria-valuemin` / `aria-valuemax` / `aria-valuenow` 和可访问名称。指针拖动使用 Pointer Capture，离开分隔条仍跟随；键盘在水平方向使用 `←`/`→`、垂直方向使用 `↑`/`↓`，`Shift` 以 32px 步进，`Home`/`End` 跳到最小/最大，双击恢复最小宽度。分隔条的命中区取共享触控目标 `--aeterni-touch-target-min`，视觉上仍是一条发丝线；焦点环使用共享 focus token，拖动时用 JS 临时设置页面光标和禁止选择，结束后恢复。
+
+水平分栏按逻辑方向排列：RTL 下第一栏在右、分隔条贴第一栏的内侧边缘，指针拖动增量与 `←`/`→` 一并镜像（`→` 在 RTL 下缩小第一栏）。键盘只接管自己处理过的按键（其余按键与滚动保留给页面）。
 
 JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach` / `sync` / `dispose` 按实例管理监听器，`[JSInvokable]` 入口有 `IsDisposed` 守卫。移除组件时由基类的 JS module 生命周期释放。
 
 ### 实现边界
 
-第一版只提供两个面板和一个主分隔条，不提供多栏嵌套管理、折叠按钮、吸附点、百分比/星号尺寸或服务端渲染下的拖拽增强；没有 JS 时分隔条仍保留可访问名称和值语义，但不会拖动。示例：`/components/splitter`。
+第一版只提供两个面板和一个主分隔条，不提供多栏嵌套管理、折叠按钮、吸附点、百分比/星号尺寸或服务端渲染下的拖拽增强；第一栏是固定像素轨道，容器窄于 `FirstSize` 时第二栏会被压到 0 宽、分隔条可能被裁切，宿主需要保证容器至少容纳最小宽度（或改用其他布局）。没有 JS 时分隔条仍保留可访问名称与值语义，但既不响应拖动也不响应键盘。示例：`/components/splitter`。
 
 ### 基础用法
 
