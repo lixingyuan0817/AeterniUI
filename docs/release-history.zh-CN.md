@@ -1,10 +1,20 @@
 # AeterniUI 发布历史
 
-文档版本：`10.40.1`
+文档版本：`10.40.2`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.40.2 修复：Splitter 持久化恢复循环、NavTree 选中态与辅助说明
+
+PR #30（`fix/splitter-navtree-polish`）以 squash 合入 main（`f4ec37d`）。该提交只包含组件与文档改动，没有随带的版本号与发布记录；本批按 §4.9 补上版本与归档，代码改动以 `f4ec37d` 为准。
+
+- [x] **Splitter 持久化恢复循环**：带 `PersistKey` 且 localStorage 已有宽度时，`attach` 期间恢复回调会触发 `OnSizeRestoredAsync` → `StateHasChanged`；此前 `_attached` 在 `await` 之后才置真，重渲染判定为"未挂载"又调一次 `attach`、再触发恢复，形成 JS/.NET 微任务无限循环（Workbench 的 Tauri WebView 上 99.7% CPU、界面可渲染但不可点击；无痕环境没有已存宽度，因此不触发）。现在在 await 前先标记 attached，恢复回调触发的重渲染走 `sync`；`attach` 抛错时 catch 还原标记以保留重试。同一源码实测 CPU 从 99.7% 降到约 3%，拖动/折叠/点击恢复。
+- [x] **NavTree 选中态与辅助说明**：选中行改用与 `Menu` 相同的 `--aeterni-state-*` token（选中背景、品牌文字、左侧强调线），并补 hover/active 不覆盖选中态的规则；辅助说明字号减小 1px、使用 `--aeterni-text-secondary` 与 `line-height: normal`，标题与说明间距 1px → 2px。
+- [x] **文档**：`delivered-features` 的 Splitter 章节补上恢复回调与 attached 标记的因果，NavTree 章节把"使用共享语义 token"收敛到与 `Menu` 同组的具体口径。
+- 验证：PR #30 的 CI `build` 作业通过；本机 `dotnet build aeterni_ui.slnx` 0 错误、契约检查 42 组、`node --test tests/*.test.mjs` 131 项、`bash scripts/check-docs.sh`、`node scripts/check-css-comments.mjs`、`node scripts/check-doc-drift.mjs` 通过；本发版提交只改版本头与 release-history，门禁复跑通过。
+- 按「修复与优化递增第三位」（§4.9）从 `10.40.1` 升到 `10.40.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.40.1 修复：锁滚动预留的滚动条槽没被压暗（CI 浏览器作业的两条几何断言）
 
