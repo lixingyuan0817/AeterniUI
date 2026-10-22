@@ -470,8 +470,9 @@
        Large neutral surfaces stay hueless on purpose (R = G = B). A container that
        carries even a +2 blue/violet cast reads as "brand tinted" once it covers a
        sidebar or a card, and the frosted layers amplify it through their
-       saturate() filter. Only text keeps the small cool bias that gives the
-       "cold neutral" family its name. */
+       saturate() filter. Text and surfaces are both hueless (R = G = B); the
+       "cold neutral" name describes this low-chroma ink ladder, not a blue cast
+       on text. */
     --aeterni-bg: #F7F7F7;
     --aeterni-bg-primary: var(--aeterni-bg);
     --aeterni-bg-secondary: #F0F0F0;

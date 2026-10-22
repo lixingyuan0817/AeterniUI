@@ -6,6 +6,9 @@
 /dist/
 /.sample-publish/
 
+# Local design-audit artifacts (screenshots, probe logs, chrome profile)
+/.design-audit/
+
 # Local SDK pin (varies per machine; CI pins its own SDK via setup-dotnet)
 /global.json
 

@@ -35,27 +35,53 @@
     background: var(--aeterni-bg-tertiary);
 }
 
+/* The fill animates `transform` only: `inline-size` changed the box every frame and
+   ran Layout. At value 1 the fill is the whole track, which is the same painted
+   extent the old `width: 100% * value` produced. */
 .aeterni-slider__fill {
     position: absolute;
     inset-inline-start: 0;
     inset-block: 0;
-    inline-size: calc(100% * var(--aeterni-slider-value));
+    inline-size: 100%;
     border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-state-background-checked);
-    transition: inline-size var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    transform: scaleX(var(--aeterni-slider-value));
+    transform-origin: left center;
+    transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.aeterni-slider:dir(rtl) .aeterni-slider__fill {
+    transform-origin: right center;
+}
+
+/* The slot spans the root so a translate percentage resolves against the whole
+   travel; the thumb itself stays at the slot's inline start. Translating the thumb
+   would resolve `100%` against the thumb's own size, which is why the slot exists. */
+.aeterni-slider__thumb-slot {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    display: block;
+    block-size: var(--aeterni-slider-thumb-size);
+    translate: 0 -50%;
+    transform: translateX(calc(var(--aeterni-slider-value) * (100% - var(--aeterni-slider-thumb-size))));
+    transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    pointer-events: none;
+}
+
+.aeterni-slider:dir(rtl) .aeterni-slider__thumb-slot {
+    transform: translateX(calc(-1 * var(--aeterni-slider-value) * (100% - var(--aeterni-slider-thumb-size))));
 }
 
 .aeterni-slider__thumb {
     position: absolute;
-    inset-inline-start: calc((100% - var(--aeterni-slider-thumb-size)) * var(--aeterni-slider-value));
-    inset-block-start: 50%;
+    inset-inline-start: 0;
+    inset-block-start: 0;
     inline-size: var(--aeterni-slider-thumb-size);
     block-size: var(--aeterni-slider-thumb-size);
-    translate: 0 -50%;
     border-radius: var(--aeterni-radius-round);
     background: var(--aeterni-state-background-thumb);
     box-shadow: var(--aeterni-shadow-sm);
-    transition: inset-inline-start var(--aeterni-duration-fast) var(--aeterni-ease-standard);
 }
 
 /* Pointer feedback walks the brand ramp: the filled block steps one shade as a
@@ -114,7 +140,7 @@
 }
 
 .aeterni-slider.is-dragging .aeterni-slider__fill,
-.aeterni-slider.is-dragging .aeterni-slider__thumb {
+.aeterni-slider.is-dragging .aeterni-slider__thumb-slot {
     transition: none;
 }
 
@@ -154,21 +180,31 @@
     inset-block-start: auto;
     inset-block-end: 0;
     inline-size: auto;
-    block-size: calc(100% * var(--aeterni-slider-value));
-    transition: block-size var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    block-size: 100%;
+    transform: scaleY(var(--aeterni-slider-value));
+    transform-origin: bottom center;
+    transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+}
+
+.aeterni-slider--vertical .aeterni-slider__thumb-slot {
+    inset-inline: auto;
+    inset-inline-start: calc(50% - var(--aeterni-slider-thumb-size) / 2);
+    inset-block: 0;
+    inline-size: var(--aeterni-slider-thumb-size);
+    block-size: 100%;
+    translate: none;
+    transform: translateY(calc(-1 * var(--aeterni-slider-value) * (100% - var(--aeterni-slider-thumb-size))));
 }
 
 .aeterni-slider--vertical .aeterni-slider__thumb {
-    inset-inline-start: calc(50% - var(--aeterni-slider-thumb-size) / 2);
+    inset-inline-start: 0;
     inset-block-start: auto;
-    inset-block-end: calc((100% - var(--aeterni-slider-thumb-size)) * var(--aeterni-slider-value));
-    translate: none;
-    transition: inset-block-end var(--aeterni-duration-fast) var(--aeterni-ease-standard);
+    inset-block-end: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .aeterni-slider__fill,
-    .aeterni-slider__thumb {
+    .aeterni-slider__thumb-slot {
         transition: none;
     }
 }

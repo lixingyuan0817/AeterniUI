@@ -29,6 +29,19 @@ builder.Services.AddAeterniUI(options =>
     options.Text.ToastCloseLabel = "关闭通知";
     options.Text.DrawerLabel = "面板";
     options.Text.DrawerCloseLabel = "关闭面板";
+
+    // Upload 的默认文案是英文，示例站之前漏配，画布里会直接出现一整句英文；
+    // 选文件后的状态与超限错误也来自这一组文案，因此一起补齐。
+    options.Text.UploadLabel = "上传文件";
+    options.Text.UploadFileListLabel = "已选文件";
+    options.Text.UploadDropText = "拖放文件到此处，或点击选择";
+    options.Text.UploadRemoveLabel = "移除";
+    options.Text.UploadStatusPendingLabel = "待上传";
+    options.Text.UploadStatusUploadingLabel = "上传中";
+    options.Text.UploadStatusSuccessLabel = "已上传";
+    options.Text.UploadStatusErrorLabel = "上传失败";
+    options.Text.UploadFileTooLargeErrorFormat = "超过 {0} 的大小限制";
+    options.Text.UploadTooManyFilesErrorFormat = "超过 {0} 个文件的数量限制";
 });
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });

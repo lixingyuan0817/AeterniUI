@@ -4,6 +4,13 @@
     /* The busy glyph is the only feedback left once interaction is blocked, so
        loading keeps the variant's ink instead of the disabled tier (REV-138). */
     --aeterni-icon-button-loading-foreground: var(--aeterni-button-foreground);
+    /* Connected segments read the divider scale Button declares. Without these
+       two declarations the group's `var(--aeterni-button-divider-transparent)`
+       is invalid at computed-value time on an icon segment, so the seam falls
+       back to currentColor and paints as a hard ink line (the InputNumber
+       steppers were the visible case). */
+    --aeterni-button-divider-solid: color-mix(in srgb, var(--aeterni-button-foreground) 32%, transparent);
+    --aeterni-button-divider-transparent: color-mix(in srgb, var(--aeterni-button-color) 45%, transparent);
 
     position: relative;
     box-sizing: border-box;

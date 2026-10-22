@@ -1,4 +1,4 @@
-﻿@namespace AeterniUI.Sample.Components.Showcase
+@namespace AeterniUI.Sample.Components.Showcase
 @implements IDisposable
 @using AeterniUI.Enums
 
@@ -37,7 +37,12 @@
         <div class="component-preview__canvas">@Preview</div>
         @if (Controls is not null)
         {
-            <div class="component-demo__controls">@Controls</div>
+            @* 可调参数是「演示的一部分」，不是调试面板：给一行标题与一条分隔线，
+               读者才知道这些字段可以动，而不是组件默认样式。 *@
+            <div class="component-demo__controls">
+                <p class="component-demo__controls-label">可调参数</p>
+                @Controls
+            </div>
         }
     </div>
 

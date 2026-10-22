@@ -114,7 +114,10 @@
 }
 
 .brand-name span {
-    color: var(--aeterni-color-brand-default);
+    /* The fill stop is a background colour; as text it only clears 4.5:1 on the
+       default purple. The green hue measured 4.42:1 on the glass header, so the
+       wordmark's accent takes the text stop and the mark/underline keep the fill. */
+    color: var(--aeterni-color-brand-text);
 }
 
 /* 版本入口：只读的版本徽标，安静地贴在品牌名右侧；hover 时才给链接色。
@@ -134,7 +137,7 @@
 
 .app-version:hover,
 .app-version:focus-visible {
-    color: var(--aeterni-color-brand-default);
+    color: var(--aeterni-color-brand-text);
     border-color: var(--aeterni-color-brand-default);
 }
 
@@ -212,7 +215,7 @@
 }
 
 .app-nav ::deep .app-nav__link.active {
-    color: var(--aeterni-color-brand-default);
+    color: var(--aeterni-color-brand-text);
     font-weight: var(--aeterni-font-weight-semibold);
 }
 

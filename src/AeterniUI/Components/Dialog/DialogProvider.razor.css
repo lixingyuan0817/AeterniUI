@@ -61,7 +61,11 @@
     box-shadow: var(--aeterni-shadow-modal);
     -webkit-backdrop-filter: var(--aeterni-blur-glass);
     backdrop-filter: var(--aeterni-blur-glass);
-    animation: none;
+    /* 200ms entry, the mirror of the 150ms exit (75%). The panel used to appear at
+       full opacity while the backdrop was still fading in, so opening read as a
+       flash and only closing carried the scale/translate; the pair below is the
+       same motion in reverse. */
+    animation: aeterni-dialog-enter var(--aeterni-duration-normal) var(--aeterni-ease-out);
 }
 
 .aeterni-dialog-provider__dialog::-webkit-scrollbar,
@@ -328,6 +332,20 @@
 
 /* Closing states ------------------------------------------------------------ */
 
+/* Pins a finished shake to a settled panel. Removing the shake class otherwise
+   hands the animation property back to `aeterni-dialog-enter`, which replays the
+   entry from opacity 0 — the flash users read as a refresh. The shake and close
+   rules below come after this one so they still take over. */
+.aeterni-dialog-provider__dialog.is-settled {
+    animation: none;
+}
+
+.aeterni-dialog-provider__backdrop.is-closing {
+    /* The scrim leaves with the panel; without this it hides a frame later at full
+       darkness, which reads as a flash on close. */
+    animation: aeterni-dialog-fade-out calc(var(--aeterni-duration-normal) * .75) var(--aeterni-ease-in) forwards;
+}
+
 .aeterni-dialog-provider__dialog.is-closing {
     /* 150ms (75% of the 200ms entry) so closing feels faster than opening. */
     animation: aeterni-dialog-exit calc(var(--aeterni-duration-normal) * .75) var(--aeterni-ease-in) forwards;
@@ -342,13 +360,26 @@
     to { opacity: 1; }
 }
 
-/* Keyframe offsets are motion distances, not layout sizes. */
+@keyframes aeterni-dialog-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes aeterni-dialog-enter {
+    from { opacity: 0; transform: translateY(-6px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Keyframe offsets are motion distances, not layout sizes. The first swing is
+   the widest and each return loses amplitude, so the box settles instead of
+   bouncing on both edges; a symmetrical left/right pair read as a jitter. */
 
 @keyframes aeterni-dialog-shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    50% { transform: translateX(4px); }
-    75% { transform: translateX(-3px); }
+    15% { transform: translateX(-6px); }
+    35% { transform: translateX(5px); }
+    55% { transform: translateX(-4px); }
+    75% { transform: translateX(2px); }
 }
 
 @keyframes aeterni-dialog-exit {

@@ -6,9 +6,10 @@
    colour modifier below only re-points it. */
 .aeterni-progress {
     --aeterni-progress-accent: var(--aeterni-color-brand-text);
-    /* Bar width is data, not a style tier: Progress writes it from C# and the
-       indeterminate rule below overrides it, so no !important is needed. */
-    --aeterni-progress-value: 0%;
+    /* Bar length is data, not a style tier: Progress writes a unitless 0..1
+       fraction from C#, and the bar scales with it instead of resizing its box.
+       The indeterminate rule below overrides it, so no !important is needed. */
+    --aeterni-progress-value: 0;
 
     display: flex;
     align-items: center;
@@ -29,11 +30,17 @@
 }
 
 .aeterni-progress__bar {
-    width: var(--aeterni-progress-value);
+    width: 100%;
     height: 100%;
     border-radius: inherit;
     background: var(--aeterni-progress-accent);
-    transition: width var(--aeterni-duration-normal) var(--aeterni-ease-standard);
+    transform: scaleX(var(--aeterni-progress-value));
+    transform-origin: left center;
+    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-standard);
+}
+
+.aeterni-progress:dir(rtl) .aeterni-progress__bar {
+    transform-origin: right center;
 }
 
 /* Color.Primary is the explicit form of the brand default bar. */
@@ -80,6 +87,8 @@
    specificity, so the bar width stays a single declarative source. */
 .aeterni-progress.is-indeterminate .aeterni-progress__bar {
     width: 35%;
+    /* The sweep owns the transform; the value-derived scale must not shrink it. */
+    transform: none;
     animation: aeterni-progress-indeterminate var(--aeterni-duration-slower) var(--aeterni-ease-in-out) infinite;
 }
 
@@ -96,6 +105,7 @@
 
     .aeterni-progress.is-indeterminate .aeterni-progress__bar {
         width: 100%;
+        transform: none;
         animation: none;
     }
 }

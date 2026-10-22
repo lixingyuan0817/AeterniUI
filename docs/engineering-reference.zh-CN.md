@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.38.2`
+文档版本：`10.38.4`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -426,11 +426,11 @@ background: #8b4df6;
   直接拿填充档当文字用是常见错误：亮色填充档（绿、黄）在浅底上只有 2.2:1。需要与浅色轨道/页面拉开明度的**实心图形**（进度条填充、评分星形）同样取文字形态：它们虽然“实心”，但对比对象不是自己的墨色而是浅色表面。
 - **每个色相层都要按本节配方完整重建**：新增品牌色相时不能只替换 500 档，也不能照抄另一色相的档位——各档明度与 `-text` 停靠档必须按该色相自身重挑，但浅端仍统一到 L 0.976、深端统一到 L 0.30，chroma 仍在中档收敛。
 - **chroma 剖面必须用绝对值，不能套用「占本色相色域宽度的比例」**：sRGB 色域宽度随色相与明度变化，绿色在 L 0.85 附近最宽（maxC ≈ 0.27），紫色恰好相反——L 0.57 附近 ≈ 0.27，到 L 0.85 只剩 ≈ 0.08。按相对比例迁移会把绿色的峰值挤到浅档并产出荧光绿（`#AEFDAB`）。正确做法是把源色相的**绝对 chroma 剖面**归一化到 500 档峰值后套用，紫罗兰即为 `50:0.081, 100:0.183, 200:0.355, 300:0.565, 400:0.807, 500:1.0, 600:0.941, 700:0.812, 800:0.656, 900:0.522`。
-- **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色锚在 L 0.552（外部参考绿 `#1F883D`）时承白字 4.52:1，刚好过 4.5:1 线。**余量低于 1.1× 的锚点必须显式记账**：绿色 500 当前的 1.004× 就是全库最紧的一条对比度门禁，任何进一步提亮、提高 chroma 或改动语义停靠档都会击穿它；换锚点或新增色相层时把门禁集合重跑一遍，并把新的最紧余量写进注释与对应变更记录。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。
+- **500 档明度按该色相的对比度行为定，不能只按「看起来像不像」定**：chroma 对白字对比度的作用方向会随色相反转——紫罗兰提高 chroma 提升白字对比度（4.65 → 5.13），绿色提高 chroma 反而降低（5.46 → 5.18）。因此绿色填充档必须比紫罗兰更低：紫罗兰 500 档 L 0.565，绿色锚在 L 0.552（外部参考绿 `#1F883D`）时承白字 4.52:1，刚好过 4.5:1 线。**余量低于 1.1× 的锚点必须显式记账**：绿色 500 当前的 1.004× 就是全库最紧的一条对比度门禁，任何进一步提亮、提高 chroma 或改动语义停靠档都会击穿它；换锚点或新增色相层时把门禁集合重跑一遍，并把新的最紧余量写进注释与对应变更记录。锚点必须**枚举扫描**确定，不能二分——对比度门禁集合对 500 档明度非单调。语意族同样适用这条记账规则：当前最紧的是 `info` 实心承 `--aeterni-color-on-semantic` 的 **4.59:1（margin 1.02）**，改动 info 500 档或 on-semantic 前先复算这一组。
 - **上述门禁由 `node scripts/check-contrast.mjs` 实测执行，不是人工校对**：脚本解析 Token 文件、重放「品牌 × 浅色／深色／系统深色」的级联、跟随 `var()` 链解析出实际颜色，再对实心填充承字、品牌文字、链接、图标与焦点环逐组测量（文字 4.5:1，非文字 3:1）；控件静止描边是显式例外，见上一节的边界说明。色相层增删或色阶改动后必须跑它；余量低于 1.1× 的色相层若没在自己的注释块里写明该对比度，脚本会直接失败。因为色相层是「一处改动、全站换色」的间接层，这条自动拦截是唯一能在构建期发现承字对比度被改坏的手段。
 - **同一个组件内的多种 accent 角色必须分开命名**：通知卡片同时需要填充（卡片底色、徽标底色、进度环）和 ink（徽标图标、头部图标），因此拆为 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；用一个变量兼两个角色，就会把 ink 拖到填充档的对比度。
 - **容器背景只能是黑、白、灰或毛玻璃**：`--aeterni-bg-*`、`--aeterni-bg-surface`、`--aeterni-bg-elevated` 和 `--aeterni-surface-soft` 的 R、G、B 必须相等（深色主题统一允许 ≤ 3 的冷偏移）。容器带上 +2 以上的蓝/紫偏移时，在侧边栏、卡片、磨砂层这种大面积上会被读成「品牌色底」，而且 `backdrop-filter: saturate()` 会把偏移放大。彩色只允许出现在品牌/语意色元素、交互状态和通知卡片这类「内容表面」上。壁纸、背景内容层不在此列——它们是被模糊的对象，不是容器背景。
-- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是每个组件各自为政的配方。填充是独立档位（浅 68% / 深 72%），不是「抬高一层」的别名：抬高只要求落在页面上，磨砂要按最坏背景（纯黑／纯白）保证墨可读，把两者塞进一个值就是填充曾经偏厚、糊不进背景的原因。这两支墨（`--aeterni-text-on-glass-secondary` 93%、`--aeterni-text-on-glass-tertiary` 67%，都按主体墨的比例声明一次）是给磨砂态专用的：**每一个**磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都要把这四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 接 `--aeterni-text-on-glass-secondary`，`--aeterni-text-tertiary` 接 `--aeterni-text-on-glass-tertiary`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。新增磨砂表面时按同样四条照抄，`Card.razor.css` 是这一段的注释范本（名单曾含 `--aeterni-state-color-muted`：它全库零读取，已随 REV-122 从各玻璃块删除，令牌层声明保留但不再纳入接管）。不透明表面（例如 `is-no-blur` 的通知卡片）与遮罩不接管——遮罩不承字，改成玻璃墨只会把压暗加深。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`、两支玻璃专用墨退回标准墨），不能只摘 `backdrop-filter`。玻璃只保证中性墨：品牌墨（`--aeterni-text-link`、`--aeterni-color-brand-text`）的亮度是照着页面定的，透出来的背景一深／一浅就会掉到 4.5:1 以下（浅色最坏 2.98:1、深色 2.27:1），所以玻璃面板要么用在页面级内容之上，要么改用实心变体。
+- **玻璃配方只有一套，声明在 Token 层**：所有磨砂表面都消费 `--aeterni-bg-glass` 与 `--aeterni-blur-glass`（遮罩用 `--aeterni-blur-scrim`），不要在自己组件里重写填充档位或模糊半径——宿主需要一个整体旋钮，而不是每个组件各自为政的配方。填充是独立档位（浅 68% / 深 72%），不是「抬高一层」的别名：抬高只要求落在页面上，磨砂要按最坏背景（纯黑／纯白）保证墨可读，把两者塞进一个值就是填充曾经偏厚、糊不进背景的原因。这两支墨（`--aeterni-text-on-glass-secondary` 93%、`--aeterni-text-on-glass-tertiary` 67%，都按主体墨的比例声明一次）是给磨砂态专用的：**每一个**磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都要把这四个角色名（`--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 接 `--aeterni-text-on-glass-secondary`，`--aeterni-text-tertiary` 接 `--aeterni-text-on-glass-tertiary`）一起接管过去，因为别名在主题块里就已经完成 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上。新增磨砂表面时按同样四条照抄，`Card.razor.css` 是这一段的注释范本（名单曾含 `--aeterni-state-color-muted`：它全库零读取，已随 REV-122 从各玻璃块删除，令牌层声明保留但不再纳入接管）。不透明表面（例如 `is-no-blur` 的通知卡片）与遮罩不接管——遮罩不承字，改成玻璃墨只会把压暗加深。模糊只能采样元素**背后**的内容，所以玻璃面板与它的背景内容必须是兄弟节点：把背景放进玻璃元素内部，只会被填充盖住、永远不会被模糊。玻璃表面在 `prefers-reduced-transparency: reduce` 下退到不透明（填充 `--aeterni-bg-solid`、模糊 `none`、两支玻璃专用墨退回标准墨），不能只摘 `backdrop-filter`。玻璃只保证中性墨：品牌墨（`--aeterni-text-link`、`--aeterni-color-brand-text`）的亮度是照着页面定的，透出来的背景一深／一浅就会掉到 4.5:1 以下（浅色最坏 2.98:1、深色 2.27:1），所以玻璃面板要么用在页面级内容之上，要么改用实心变体。通知卡片的徽标是玻璃内唯一承载语意墨的表面：它用 `color-mix(in srgb, var(--aeterni-dialog-accent) 16%, var(--aeterni-bg-solid))` 保持不透明底色，因此不在上述中性墨保证范围内；不要把它改回 `transparent`，否则最坏背景（玻璃采样纯黑/纯白）上语义 ink 会跌到 2.3–2.8:1。
 - **文字色阶 = 单一墨色 + 不透明度阶梯**（Apple 的 label 模型）。不要给每一级另调一个 hex：那样两级之间既不同色又只差一点，看起来像脏。当前阶梯与允许的用法：
 
   | Token | 浅色 | 深色 | 允许的用法（浅色主题在页面上的对比度） |
@@ -568,6 +568,8 @@ transition: var(--aeterni-transition-button);
 - 状态切换用短档：`Segmented` 的选中滑块 200ms（normal 档），不要用 `slower + fast` 的 600ms 长轨——它是示例站里最高频的微交互。
 - 主题与品牌切换只过渡颜色承载属性（`color` / `background-color` / `border-color` / `outline-color` / `box-shadow` / `fill` / `stroke`），300ms；不要把 `transform` / `opacity` 纳入切换，否则整页都会被卷进合成层，读起来像“页面在动”。
 - 浮层退场约为进场的 60–75%，并用加速曲线：Popover 80/100ms、Dialog 与 Notice 150/200ms、Drawer 210/300ms。
+- 进场按浮层体量分三级，同类控件不得各写一套：小浮层（Popover、ComboBox/Cascader 弹层）100ms `ease-out`；通知类（Notice/Toast）200ms `ease-emphasized`；面板类里 Dialog 200ms `ease-out`、Drawer 300ms `ease-emphasized`。Dialog 面板必须与遮罩同帧进入（200ms，关键帧与 150ms 退场互逆），不得只让遮罩淡入；Drawer 遮罩与面板共用 300ms 进场、210ms 退场，关闭过程中页面必须始终处于暗场。遮罩拒绝关闭时的抖动是独立提示动画：每次点击都重新触发一次；抖完保持 `is-settled`（该态声明 `animation: none`），不得落回进场关键帧从 `opacity: 0` 重播，否则会被读成页面刷新；`prefers-reduced-motion: reduce` 下抖动直接省略。
+- 滑块与进度条的数值长度只用 `transform: scaleX()/scaleY()` 表达，不用 `width` / `inline-size` 过渡（每帧布局会被读成掉帧）；RTL 下填充起点随方向镜像。`ease-emphasized` 曲线下可感知行程约为时长的 2/3（Segmented 200ms 实测约 130ms），调参时以感知时长而非名义时长为锚点。
 - 必须兼容 `prefers-reduced-motion: reduce`。
 
 ## 7. HTML 语义和可访问性
@@ -701,7 +703,7 @@ export function dispose(key) {
 
 - `fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift` —— 翻转与交叉轴贴边的全部数值。居中对齐（Tooltip）与边对齐（Popover）用不同的 clamp，不要拿一个公式套两种几何。
 - `createFocusTrap(container, { onEscape })` —— Tab 循环、Escape 上报、释放时把焦点还给打开前的元素；返回幂等的 `release()`。
-- `lockScroll()` —— 带滚动条宽度补偿、引用计数的页面滚动锁；返回幂等的释放函数，重叠浮层不会互相解锁。
+- `lockScroll()` —— 引用计数的页面滚动锁，返回幂等的释放函数，重叠浮层不会互相解锁。页面确实可滚动且浏览器支持时，优先在根元素保留 `scrollbar-gutter: stable`，让视口宽度与 fixed 页头、流内正文的对齐关系在开、关浮层前后保持不变（fixed 元素按含滚动条的视口取百分比，流内元素按扣除滚动条的内容宽度取百分比；只补 `body` 的 `padding-right` 无法同时修好这两条基准）；不支持时退回 `body` 的 `padding-right` 补偿，解锁时把 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原，不留下第二套布局基准。
 - 组件模块通过相对路径导入（`../../js/aeterni_floating.js`）。共享文件放 `wwwroot/js/`，因为它不属于任何单个组件；而组件模块必须是组件目录下的 `*.razor.js`（只有这个命名会被 Razor SDK 当作静态资源发布）。
 - **浮层不得用 `transform`/`translate` 做偏移**：变换会让浮层成为自身 `position: fixed` 遮罩的包含块。需要像素级偏移时用 `margin`（Popover 用 `margin-left` 承载 `--aeterni-popover-shift-x`）。
 - **宿主不要把 `PopupHost` 关进层叠上下文**：`isolation: isolate`、`filter`、`backdrop-filter`、`transform`、`will-change` 都会建立层叠上下文；浮层的 `--aeterni-z-popover`（1060）只在同一个层叠上下文里与同级元素比较，一旦被关进卡片这类隔离层，就会被后绘制的同级元素（例如 `position: sticky` 的页内目录）压住。需要隔离卡片内部层级时，把浮层的 `PopupHost` 提到页面级，或让目录不再与浮层处在同一个父层叠上下文里。
@@ -972,6 +974,7 @@ FormField
 
 - 默认使用水平、连接式布局；设置 `Connected="false"` 时恢复按钮之间的 token 间距并保留 Button 自身的默认圆角。
 - 连接式布局在相邻 Button 之间保留 1px token 分隔线，避免相同颜色的实心按钮视觉上合并；连接几何与分隔线档位归 Button（它才是渲染这段表面的元素，父组件的隔离样式到不了子组件根元素），`ButtonGroup` 与 `SplitButton` 共用 `--aeterni-button-divider-solid`（自身前景色 32%）与 `--aeterni-button-divider-transparent`（强调色 45%）两档，两处不再各写一套数字；`--aeterni-button-group-divider` 是该组的宿主覆盖钩子，设置后实心与透明两档同时改色。
+- `InputNumber` 的步进按钮是字段内部构件，不是独立的按钮组：组件把 `--aeterni-button-group-divider` 指向 `--aeterni-control-border`，让分隔线读成字段描边的延续；外层字段 `overflow: hidden` 负责把方角步进按钮的悬停 / 按下底色裁进圆角。缺少这两条时，`IconButton` 未声明 `--aeterni-button-divider-*` 会让 `border-inline-start-color` 在计算值阶段失效并回落到 `currentColor` 的深色墨线，方角悬停底色也会在圆角外露出直角色块。
 - `Orientation="Orientation.Vertical"` 用于垂直组合。
 - `FullWidth` 让组占满父容器，并让内部 Button 平均分配可用宽度。
 - `Disabled` 通过级联上下文传递给内部 Button，不只在容器上添加视觉状态。

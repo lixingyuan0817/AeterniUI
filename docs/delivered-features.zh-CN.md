@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.38.2`
+文档版本：`10.38.4`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -399,6 +399,8 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 组件复用 `Input` 的字段状态：在 `FormField` 中时内部输入采用字段输入 ID，`label for` 解析到可编辑元素，禁用、必填与无效状态沿级联上下文合并。`InputNumber` 的 JS 只拦截被处理按键的默认行为（`ArrowUp` / `ArrowDown` / `PageUp` / `PageDown`），避免 PageUp/PageDown 在步进的同时滚动页面；步进逻辑全部在 C#。
 
 连体分组自己拥有可见边框（内部 `Input` 的边框已被分组规则压平），因此指针悬浮反馈也由分组负责：`Search`、`Autocomplete` 与 `InputNumber` 的分组在悬浮时切到 `--aeterni-control-border-hover`，并排除聚焦、无效、禁用与只读状态。
+
+增减按钮之间的分隔线属于字段描边而不是按钮组的强调缝：控件把 `--aeterni-button-group-divider` 指向 `--aeterni-control-border`，并与外层字段的 `overflow: hidden` 配合，把方角步进按钮的悬停 / 按下底色裁进字段圆角，避免出现深色墨线和圆角外露出的直角色块。
 
 ### 实现边界
 
@@ -901,7 +903,9 @@ builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green
 Provider 统一负责遮罩、焦点管理、背景滚动锁定和弹层层级，并通过 `IDialogService` 对外提供能力，
 因此应用组件不访问 Provider 内部状态。消息内容按纯文本安全输出。
 
-锁定背景滚动时会按“视口宽度 − 文档可用宽度”补偿 `body` 的右内边距，打开与关闭对话框都不会让背景横向跳动。
+锁定背景滚动时优先在根元素保留 `scrollbar-gutter: stable`（仅在页面确实可滚动且浏览器支持时），开、关浮层前后视口宽度不变，fixed 页头与流内正文始终对齐；浏览器不支持时退回 `body` 右内边距补偿，解锁时 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原。
+
+Dialog 与 Confirm 的面板进场 200ms、退场 150ms（均为 normal 档的派生值）；遮罩以同一 150ms 淡出并与面板同帧开始，关闭时等待面板实测退场动画结束后再移除节点，遮罩不会提前消失或残留一帧。`prefers-reduced-motion: reduce` 下面板与遮罩都不播放动画。
 
 ### 实现边界
 
@@ -946,7 +950,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 通过 `IDialogService.ConfirmAsync` 提供基于 Dialog 的确认交互。
 - `ConfirmOptions` 提供 `ConfirmText`、`CancelText`，并继承 `DialogOptions`。两者留空（默认）时分别回退到 `AeterniUITextOptions.ConfirmAcceptLabel` 与 `ConfirmCancelLabel`，因此按文案表本地化的宿主不必逐个确认框设置；显式设置的值优先。
 - 提供取消和确认两个动作，返回 `Task<bool>`。
-- 点击不可关闭的外部遮罩时，弹窗会进行轻微抖动反馈。
+- 点击不可关闭的外部遮罩时，弹窗会进行轻微抖动反馈：每次点击都会重新抖一下；抖动结束后停在 `is-settled`，不会落回进场关键帧从 `opacity: 0` 重播（否则会被读成页面刷新）；`prefers-reduced-motion: reduce` 下抖动与进场都直接跳到终态。
 
 ### Alert
 
@@ -1166,7 +1170,7 @@ Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸�
 `Drawer` 提供从视口边缘滑出的面板：
 
 - `Open` / `OpenChanged`（受控，支持 `@bind-Open`）、`Placement`（`DrawerPlacement`：`Start` / `End` / `Top` / `Bottom`，默认 `End`）、`Modal`（默认 `true`）。
-- 模态形态：遮罩、`role="dialog"` + `aria-modal="true"`、Tab 焦点陷阱、背景滚动锁（带滚动条宽度补偿）、关闭后焦点回到打开它的元素。
+- 模态形态：遮罩、`role="dialog"` + `aria-modal="true"`、Tab 焦点陷阱、背景滚动锁（优先用 `scrollbar-gutter` 预留滚动条，开、关面板前后视口宽度不变；不支持时退回给 `body` 补 `padding-right`）、关闭后焦点回到打开它的元素。
 - 非模态形态：不渲染遮罩、不锁滚动、不抢焦点，输出 `role="region"`；页面保持可交互，只在面板外的指针按下或 Escape 时请求关闭。
 - 关闭路径统一由 `OpenChanged` 驱动：`CloseOnEscape`、`CloseOnOutsideClick`、内置关闭按钮（`ShowCloseButton`）都只“请求关闭”，`@bind-Open` 仍是唯一事实源；`Disabled` 会锁住所有关闭路径。
 - 内容分三段：`Title`（标题，同时作为面板的无障碍名称）、`ChildContent`（可滚动的 body）与 `Footer`（不滚动的底部操作条）；关闭按钮的无障碍名称可用 `CloseLabel` 覆盖、缺省取 `AeterniUITextOptions.DrawerCloseLabel`；面板本身可用 `AriaLabel` 覆盖名称。
@@ -1179,7 +1183,7 @@ Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸�
 
 ### 实现边界
 
-面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成。Drawer 按方位滑出、Popover 内容淡出上移；退出复用现有动效 Token，等待浏览器实际动画结束后隐藏并释放焦点陷阱与滚动锁。快速重开/释放会取消旧完成回调；reduced-motion 不等待固定毫秒数。Visible=false 立即隐藏并释放，不保留退场。
+面板是 `position: fixed`，所以应放在 Layout 或页面层级，而不是放在带 `transform` / `filter` / `backdrop-filter` 的容器（例如玻璃卡）里——那些祖先会成为固定定位的包含块。当前不支持多抽屉堆叠、可拖拽调宽与路由集成。Drawer 按方位滑出、Popover 内容淡出上移；模态遮罩与面板同步过渡（入场 300ms，退场 210ms，同一帧开始并同一时长结束），等待浏览器实际动画结束后隐藏并释放焦点陷阱与滚动锁。快速重开/释放会取消旧完成回调；reduced-motion 不等待固定毫秒数。Visible=false 立即隐藏并释放，不保留退场。
 
 ## 38. 服务注册
 
@@ -1529,6 +1533,7 @@ builder.Services.AddAeterniUI(options =>
 - `ItemTemplate`（`RenderFragment<DescriptionItem>`）只接管值区域，标签仍由组件输出；没有内容且未提供模板时显示中性破折号占位，该占位符的无障碍名称取 `AeterniUITextOptions.DescriptionsEmptyValueLabel`（默认 `Empty value`），非英文宿主可整体覆写。
 - 横向布局把标签与值放在同一行，纵向布局把每项堆叠；`Span` 控制项目占用的网格列数，窄屏自动收为单列。
 - `Bordered` 绘制中性边框，不给描述内容添加彩色容器背景；根元素通过 `AriaLabel` 可选命名。
+- 默认变体不绘制逐项行线，行与行由网格间距分隔；整行分隔线只属于 `Bordered` 变体，避免 `Span` 项与普通项混排时出现长短不一的线段。
 
 ### 行为与无障碍
 
@@ -1551,6 +1556,7 @@ builder.Services.AddAeterniUI(options =>
 - 自有文案使用 `AeterniUITextOptions.UploadLabel`、`UploadFileListLabel`、`UploadDropText`、`UploadRemoveLabel`、`UploadStatusPendingLabel`、`UploadStatusUploadingLabel`、`UploadStatusSuccessLabel`、`UploadStatusErrorLabel`、`UploadFileTooLargeErrorFormat` 和 `UploadTooManyFilesErrorFormat`。
 - `UploadFile` 暴露 `Content`（`IBrowserFile`）、`Name`、`Size`、`ContentType`、`Status`（`UploadStatus`）、`Percent` 和 `ErrorMessage`；宿主在收到的实例上直接改 `Status` / `Percent` / `ErrorMessage` 即可，重渲染不会替换对象。
 - 被 `MaxFileSize` 或 `MaxFileCount` 拒绝的文件仍进入列表并标记为 `UploadStatus.Error`，原因按文案表格式化，用户因此能看到被拒原因；这类条目不计入 `MaxFileCount` 的已接受数量。
+- 文件行元信息（文件大小等）使用 `--aeterni-text-secondary`：它用于判断超限原因，按正文可读信息处理；状态文字取语意 accent 档，并辅以状态色条与文案，弱化墨色不是唯一区分手段。
 
 ### 行为与无障碍
 

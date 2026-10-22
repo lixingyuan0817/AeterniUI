@@ -1,10 +1,35 @@
 # AeterniUI 发布历史
 
-文档版本：`10.38.2`
+文档版本：`10.38.4`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.38.4 交互修补：滚动锁视口稳定、Confirm 抖动反馈与 InputNumber 连体步进
+
+针对 10.38.3 批次落地后的本地验收反馈落地的修复批次；不新增公共 API，不改 Token 色板、玻璃配方与组件对外语义。
+
+- [x] **滚动锁视口稳定**：`aeterni_floating.js` 的 `lockScroll` 不再用 `body { padding-right }` 模拟滚动条宽度。页面确实可滚动且浏览器支持时，在根元素保留 `scrollbar-gutter: stable`，开、关浮层前后视口宽度不变，fixed 页头与流内页脚始终对齐；不支持时退回原来的 padding 方案，解锁时 `overflow`、`padding-right`、`scrollbar-gutter` 一并还原。此前 fixed 页头按含滚动条的视口宽度解析、正文按扣除滚动条的宽度解析，Confirm 一开一关页头就会横向跳一下。
+- [x] **Confirm 抖动不再像刷新**：每次点击外围都会重新抖一下；C# 端在抖动结束后再摘掉 `is-shaking` 并补 `is-settled`，下一次点击先清 `is-settled` 再挂 `is-shaking`，CSS 把 `.is-settled { animation: none }` 放在 `is-shaking` 之前，面板不会落回 `animation: enter` 从 `opacity: 0` 重播；抖动关键帧改为 0 / 15% / 35% / 55% / 75% 的 `-6px / 5px / -4px / 2px` 衰减，时长仍取 `--aeterni-duration-slow`。JS 的 `waitForShake` 改为在 500ms 内用 `requestAnimationFrame` 轮询到抖动动画再等它结束，并遵守 `prefers-reduced-motion`。
+- [x] **InputNumber 连体步进**：外层字段 `overflow: hidden`，方角步进按钮的悬停 / 按下底色被字段圆角裁掉；分隔线改用字段自身描边（`--aeterni-button-group-divider: var(--aeterni-control-border)`），不再因 `IconButton` 缺少 `--aeterni-button-divider-*` 让 `border-inline-start-color` 在计算值阶段失效并回落到 `currentColor` 的深色墨线。`IconButton` 同步补上 45% / 32% 两档分隔线 Token，供其他透明按钮组复用。
+- [x] **回归断言**：`tests/browser/verify.mjs` 新增「锁滚动不再让固定页头与正文左锚线错位」「锁滚动用 scrollbar-gutter 而不是 body padding」「点击 Confirm 外围每次都只抖一下、不重播进场」「InputNumber 分隔线复用字段描边」「方角步进底色被圆角裁切」五项。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 166 项中通过 162 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（Dialog 居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/number-fix/`（InputNumber 浅色 / 悬停 / 深色及 2× 局部）、`.design-audit/shots/three-issues/`（Confirm 抖动中与抖动后）。
+- 按「修复与优化递增第三位」将版本从 `10.38.2` 直接升到 `10.38.4`（`10.38.3` 批次没有单独提交与发布，两批改动同批提交）：`Directory.Build.props`、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+
+## 10.38.3 设计审核修复：浮层动效、状态墨阶与表单测量（未单独发布，随 10.38.4 一并发布）
+
+对 10.38.1 之后 UI / 色彩 / 动效三层审核与组件板审核落地的修复批次；不新增公共 API，不改 Token 色板、玻璃配方与组件对外语义。
+
+- [x] **浮层动效**：Dialog 面板补 200ms 进场（此前只有遮罩淡入、面板瞬时出现），退场保持 150ms；遮罩补同一 150ms 淡出，关闭时等待面板实测退场动画结束后再移除节点（遮罩同帧同长淡出），关闭过程页面始终处于暗场。Drawer 遮罩补 300ms 进场 / 210ms 退场，与面板同帧开始、同帧结束（此前遮罩瞬时出现、消失）。
+- [x] **状态墨阶**：Upload 文件行的元信息（文件大小等）改用 `--aeterni-text-secondary`：它用于判断超限原因，按正文可读信息处理；此前用 `--aeterni-text-tertiary`，在 `--aeterni-bg-tertiary` 行底上浅色仅 4.08:1、深色 3.75:1。状态文字继续取语意 accent 档，靠状态色条与文案区分，不再依赖弱化墨色；FormField 的说明与错误文案改用 `--aeterni-line-height-normal`，12px 字号下从 1.2 提到 1.5。
+- [x] **表单测量**：Slider 的填充、滑块槽与竖向轨道改用 `transform: scaleX()/translateX()/scaleY()`，轨道保持满宽，RTL 镜像与禁用态不变；Progress 的确定态改为一层 `transform: scaleX(Value/Max)` 的满宽填充，不确定态沿用独立扫动关键帧。
+- [x] **提示卡**：NoticeCard 徽标从不透明底改为 `color-mix(accent 16%, --aeterni-bg-solid)`，语义图标对比度从 2.26–2.79:1 提升到 4.81–7.83:1；Alert 倒计时条不再给 `--aeterni-dialog-duration` 写 `5s` 字面量兜底，时长由 `NoticeCard` 以内联自定义属性写入。
+- [x] **示例宿主**：页头字标与当前导航项改用 `--aeterni-color-brand-text`，绿色 / 橙色品牌下不再落到 4.42:1 的品牌填充色；首页统计直接渲染终值（57 / 9 / 2 / 3），示例画布控制条标注「可调参数」；Upload 拖放区与状态文案中文化，Button / MenuButton 画布控件标签与勾选项中文化（日期与时间控件的中文文案已在更早批次落地，不重复计入本批）；Descriptions 默认变体去掉逐项行线（行线归 bordered 变体），示例换成业务文案；Colors 页验收表校正聚焦环口径并新增无效态聚焦环、语意族文字、语意实心承字与语意墨在柔和底四组（验收表从 5 行扩到 9 行）；Drawer 页删除与正文重复的实现说明。
+- [x] **回归断言**：`tests/browser/verify.mjs` 新增 Dialog 进场与退场同步、Drawer 遮罩与面板同步、Slider / Progress 的 transform、FormField 行高、Upload 中文文案、Descriptions 分隔线、页头品牌墨、首页统计终值等检查；`run.sh` 以 1440×900 启动窗口。
+- [x] **复核收尾**：`aeterni_ui.css` 的「冷中性」注释改为「墨阶名称、不是文字冷偏」，Colors 页同步该口径并校正验收表覆盖范围；`verify.mjs` 的 P7 连续轨道断言改为按轨道比例 `pressAt` 后读取提交值（轮询到 75% 落定），不再依赖单次拖拽时序。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 161 项中通过 157 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（搜索面板居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/fix5/`（浅色 / 深色 Dialog、Drawer 打开态、Slider / Progress / Upload / Descriptions / Colors）。
+- 按「修复与优化递增第三位」从 `10.38.2` 升到 `10.38.3`（该版本没有单独提交与 tag，改动随 10.38.4 一并发布）：`Directory.Build.props`、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.2 组件库本体审核修复：Descriptions 对齐、圆角口径与 Link 语义
 
@@ -1151,4 +1176,3 @@ Token 和现有基础组件
 ### 第四阶段固定交付物与验收
 
 沿用既有固定交付物；完成后同步 `delivered-features.zh-CN.md`、示例页、项目索引和本文档任务记录，并运行构建、文档、CSS 与 JavaScript 检查。
-

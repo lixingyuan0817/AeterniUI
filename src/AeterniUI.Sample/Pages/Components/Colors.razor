@@ -319,7 +319,7 @@
     </div>
 
     <h2 id="colors-surfaces" class="showcase-colors__subtitle">中性容器表面</h2>
-    <p class="showcase-page-note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字允许约 +4 的冷偏移，这是「冷中性」名称的来源。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。</p>
+    <p class="showcase-page-note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字与容器同为无彩，层级由不透明度阶梯表达；「冷中性」只是这套墨阶的名称，不是给文字加冷色。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。玻璃填充档（<code>--aeterni-bg-glass</code>，浅 68% / 深 72%）由 §5.4「玻璃配方只有一套」单独规定，不在本组取样。</p>
     <div class="showcase-colors__surfaces">
         <div class="showcase-colors__surface">
             <span class="showcase-colors__surface-chip showcase-colors__surface-chip--page"></span>
@@ -490,7 +490,7 @@
         }
     </div>
     <p class="showcase-page-note showcase-colors__note">
-        <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。语意色族（success / warning / danger / info）沿用同一套形态与门槛约定，需要时按同样方式补测。
+        <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。语意色族的文字承底在 PAIRS 里逐组实测（surface 覆盖 success / warning / danger / info，页面覆盖五族含 neutral）；实心承字（`--aeterni-color-on-semantic`）与柔和底（`-text` 叠在 `-soft` 上）由 success / warning / danger / info 四族覆盖，neutral 不参与这两组。
     </p>
 
     <h2 id="colors-consume" class="showcase-colors__subtitle">在应用里消费</h2>
@@ -514,7 +514,11 @@
         new("品牌文字与链接", "--aeterni-color-brand-text / --aeterni-text-link", "--aeterni-bg / --aeterni-bg-surface", "≥ 4.5:1"),
         new("品牌文字在着色表面", "--aeterni-color-brand-text", "--aeterni-bg-tertiary", "≥ 4.5:1"),
         new("品牌描边与图标", "--aeterni-color-brand-default", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
-        new("聚焦环", "--aeterni-state-color-focus", "--aeterni-bg-surface", "≥ 3:1")
+        new("聚焦环", "--aeterni-focus-color", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
+        new("无效态聚焦环", "--aeterni-focus-color-invalid", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
+        new("语意族文字与图标（success / warning / danger / info 覆盖 surface 与页面；neutral 仅页面）", "--aeterni-color-{family}-text", "--aeterni-bg / --aeterni-bg-surface", "≥ 4.5:1"),
+        new("语意实心上的标签（success / warning / danger / info）", "--aeterni-color-on-semantic", "--aeterni-color-{family}-default", "≥ 4.5:1"),
+        new("语意墨在柔和底上（success / warning / danger / info，叠加在 surface / page 上）", "--aeterni-color-{family}-text", "--aeterni-color-{family}-soft", "≥ 4.5:1")
     ];
 
     /// <summary>对比度验收组合的一行。</summary>

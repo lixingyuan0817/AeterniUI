@@ -195,7 +195,11 @@
 }
 
 .aeterni-upload__item-meta {
-    color: var(--aeterni-text-tertiary);
+    /* File size is readable information (it tells you which file exceeded the
+       limit), so it takes the secondary ink. The tertiary stop is for icons and
+       decoration; on this item's bg-tertiary fill it measured 4.08:1 light /
+       3.75:1 dark, below the 4.5:1 body-text floor. */
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
 }
 

@@ -101,7 +101,12 @@
     width: var(--aeterni-badge-size-md);
     height: var(--aeterni-badge-size-md);
     border-radius: var(--aeterni-radius-badge);
-    background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, transparent);
+    /* The badge is the one place a semantic/brand ink sits on the frosted card, and
+       the glass recipe only guarantees neutral inks. Mixing the accent with the
+       opaque solid fill instead of `transparent` keeps the chip on an opaque tint,
+       so the accent ink no longer depends on what the glass is sampling (worst
+       case was 2.26-2.79:1 over a black pane). */
+    background: color-mix(in srgb, var(--aeterni-dialog-accent) 16%, var(--aeterni-bg-solid));
     color: var(--aeterni-dialog-accent-ink);
 }
 
@@ -214,7 +219,9 @@
     stroke: color-mix(in srgb, var(--aeterni-dialog-accent) 80%, var(--aeterni-bg-elevated));
     stroke-dasharray: 1;
     stroke-dashoffset: 0;
-    animation: aeterni-progress-drain var(--aeterni-dialog-duration, 5s) var(--aeterni-ease-linear) forwards;
+    /* The countdown length is host data, written as an inline custom property on the
+       progress wrapper; the component stylesheet never carries a duration literal. */
+    animation: aeterni-progress-drain var(--aeterni-dialog-duration) var(--aeterni-ease-linear) forwards;
 }
 
 @keyframes aeterni-progress-drain {

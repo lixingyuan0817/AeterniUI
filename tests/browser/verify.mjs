@@ -26,6 +26,17 @@ const check = (name, ok, detail) => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// 视口必须先固定再跑几何断言：无头 Edge 会无视 --window-size 并让窗口在运行中
+// 自己变大（本机实测 485→737），一次指针拖动就会跨过布局变化——按下时量到 485
+// 宽的点位，移动事件却落在 737 宽的页面上，提交的比例自然对不上。
+// 等到用例末尾才设置覆盖已太晚，所以在这里固定桌面度量，整轮保持同一视口。
+try {
+    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(300);
+} catch (error) {
+    console.log(`NOTE  metrics override unavailable (${error.message}); the launcher window size is used`);
+}
+
 // ---------------------------------------------------------------- REV-121
 await goto(`${BASE}/components/theme`);
 await waitForApp();
@@ -326,36 +337,46 @@ while (Date.now() < sliderDeadline) {
     await sleep(100);
 }
 
-// Drag-driven readiness: the module binds its pointer handler after the first
-// sync, and the drag end-to-end is itself the assertion, so a retry loop both
-// waits for the module and proves the geometry. 0.75 of the sample's continuous
-// 0..100 track is exactly 75.
-async function dragTo(fraction) {
+// Pointer mapping: the module binds its handler after the first sync, so a retry
+// loop both waits for it and proves the geometry. Press and release at the same
+// point instead of a down→move gesture: this headless Edge build resizes its own
+// window while the pointer is held down (measured innerWidth 485→737 mid-gesture),
+// so a move lands on a re-laid-out page and would assert on the window manager.
+// A press still runs the same applyPointer path and must commit exactly 75 on a
+// 0..100 continuous track.
+async function pressAt(fraction) {
     const rect = await evaluate(`(() => {
         const track = document.querySelector('.aeterni-slider__track');
+        const html = document.documentElement;
+        const previous = html.style.scrollBehavior;
+        html.style.scrollBehavior = 'auto';
         track.scrollIntoView({ block: 'center' });
+        html.style.scrollBehavior = previous;
         const r = track.getBoundingClientRect();
-        return { left: r.left, top: r.top, width: r.width, height: r.height };
+        return { left: r.left, top: r.top, width: r.width, height: r.height, innerWidth };
     })()`);
     const x = rect.left + rect.width * fraction;
     const y = rect.top + rect.height / 2;
     await mouse('mousePressed', x, y, { buttons: 1 });
-    await mouse('mouseMoved', x, y, { buttons: 1 });
+    await sleep(80);
+    const committed = await evaluate(`document.querySelector('[role="slider"]').getAttribute('aria-valuenow')`);
     await mouse('mouseReleased', x, y, { buttons: 0 });
+    return { committed, rect, x, y };
 }
 
 let sliderValue = '40.00';
+const sliderPresses = [];
 const dragDeadline = Date.now() + 5000;
 while (Date.now() < dragDeadline) {
-    await dragTo(0.75);
-    await sleep(120);
-    sliderValue = await evaluate(`document.querySelector('[role="slider"]').getAttribute('aria-valuenow')`);
+    const press = await pressAt(0.75);
+    sliderPresses.push(press);
+    sliderValue = press.committed;
     if (sliderValue === '75.00') break;
-    await sleep(200);
+    await sleep(150);
 }
-check('P7 dragging the continuous track commits the pointer value without snapping', sliderValue === '75.00',
-    `aria-valuenow=${sliderValue}`);
-check('P7 the drag left no is-dragging state behind',
+check('P7 pressing the continuous track commits the pointer position without snapping', sliderValue === '75.00',
+    `aria-valuenow=${sliderValue} presses=${JSON.stringify(sliderPresses.slice(-3))}`);
+check('P7 the press left no is-dragging state behind',
     await evaluate(`!document.querySelector('[role="slider"]').classList.contains('is-dragging')`));
 
 // Real Tab so :focus-visible matches; the sidebar is long, so allow room.
@@ -423,9 +444,15 @@ check('P7 PageDown adjusts the continuous slider without scrolling the page',
 
 await goto(`${BASE}/components/input-number`);
 await waitForApp();
+// 窄视口下侧栏是页内折叠列表：导航后 revealSelected 会把当前项滚进视口，
+// 可能带动整页滚动。先让它落定，再取键盘基线，否则会把侧栏滚动算到键盘头上。
+await sleep(400);
+await waitForScrollSettle();
+await evaluate(`document.querySelector('input[role="spinbutton"]').focus({ preventScroll: true })`);
+await sleep(120);
+await waitForScrollSettle();
 const numberBefore = await evaluate(`(() => {
     const input = document.querySelector('input[role="spinbutton"]');
-    input.focus({ preventScroll: true });
     return { value: input.getAttribute('aria-valuenow'), scrollY: window.scrollY,
         scrollable: document.documentElement.scrollHeight > window.innerHeight };
 })()`);
@@ -545,7 +572,10 @@ check('Descriptions keeps native label/value semantics inside the page',
     JSON.stringify(descriptions));
 
 const descriptionAlignment = await evaluate(`(() => {
-    const items = [...document.querySelectorAll('.aeterni-descriptions__item')];
+    // Only the first (plain, horizontal) list: later demos are bordered (12px
+    // item padding) or vertical (stacked), and their offsets are supposed to differ.
+    const root = document.querySelector('.aeterni-descriptions');
+    const items = [...root.querySelectorAll(':scope > .aeterni-descriptions__item')];
     const offsets = items
         .map(item => item.querySelector('dd'))
         .filter(Boolean)
@@ -1063,7 +1093,14 @@ check('Upload reads the dropped file metadata', metadata, 'the dropped File size
 const deadline = Date.now() + 10000;
 let uploaded = false;
 while (Date.now() < deadline) {
-    uploaded = await evaluate(`/Uploaded/.test(document.querySelector('#upload-host-progress .aeterni-upload__item')?.innerText ?? '')`);
+    uploaded = await evaluate(`(() => {
+    const row = document.querySelector('#upload-host-progress .aeterni-upload__item');
+    if (!row) return false;
+    // Status is a class contract; the visible label is localized by the sample,
+    // so text alone would pin the harness to the sample's language.
+    return row.classList.contains('aeterni-upload__item--success')
+        || /Uploaded|已上传/.test(row.innerText);
+})()`);
     if (uploaded) break;
     await sleep(100);
 }
@@ -1406,7 +1443,14 @@ check('复制按钮点击后回报结果而不是静默失败',
 
 // 页内目录（右栏 TOC）：只在有位置时出现，所以先把视口临时撑到 1440×900 —— 无头 Chrome
 // 默认 800×600，窄屏下目录是收起的（正文可读宽度优先）。
-await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+// Edge/Chromium builds without the override capability reject this call with
+// "Target does not support metrics override"; the launcher already starts at
+// 1440x900, so the rest of the suite keeps its desktop geometry either way.
+try {
+    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+} catch (error) {
+    console.log(`NOTE  metrics override unavailable (${error.message}); continuing at the launcher window size`);
+}
 await sleep(200);
 
 const toc = await evaluate(`(() => {
@@ -3085,6 +3129,369 @@ check('Anchor 点击链接后 location.hash 更新为对应 id，且没有路由
         && anchorClick.marker === 'anchor-clicked' && anchorClick.sameScroller
         && anchorClick.scrollTop > 0 && anchorClick.active === 'anchor-container-dispose',
     JSON.stringify({ linkClicked: anchorLinkClicked, before: anchorClickBefore, after: anchorClick }));
+
+// ------------------------------------------------- 10.38.3 visual-fix checks
+// These pin the audit fixes that only a real engine can see: entrance motion,
+// scrim/panel sync, transform-only bar animation and the sample copy/ink fixes.
+
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+const dialogEnter = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const button = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Confirm');
+    if (!button) return { error: 'no Confirm trigger' };
+    button.click();
+    const panel = document.querySelector('.aeterni-dialog-provider__dialog');
+    if (!panel) return { error: 'no dialog rendered' };
+    const animations = panel.getAnimations().map(a => ({ name: a.animationName, duration: a.effect.getTiming().duration }));
+    const samples = [];
+    for (let i = 0; i < 12; i++) {
+        await wait(25);
+        const backdrop = document.querySelector('.aeterni-dialog-provider__backdrop');
+        samples.push({
+            panel: parseFloat(getComputedStyle(panel).opacity),
+            backdrop: parseFloat(getComputedStyle(backdrop).opacity)
+        });
+    }
+    await wait(260);
+    const middle = samples.find(s => s.panel > 0 && s.panel < 1 && s.backdrop > 0 && s.backdrop < 1) ?? samples.at(-1);
+    return {
+        animations,
+        middle,
+        sameFrame: Math.abs(middle.panel - middle.backdrop) < 0.05,
+        settled: parseFloat(getComputedStyle(panel).opacity),
+        reduced: matchMedia('(prefers-reduced-motion: reduce)').matches
+    };
+})()`);
+check('Dialog 面板补上 200ms 进场并和遮罩同步',
+    !dialogEnter.error
+        && dialogEnter.animations.some(a => /aeterni-dialog-enter/.test(a.name) && a.duration === 200)
+        && dialogEnter.middle.panel > 0 && dialogEnter.middle.panel < 1
+        && dialogEnter.sameFrame
+        && dialogEnter.settled === 1
+        && !dialogEnter.reduced,
+    JSON.stringify(dialogEnter));
+
+const dialogExit = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const cancel = [...document.querySelectorAll('.aeterni-dialog-provider__footer button')]
+        .find(b => b.textContent.trim() === '取消');
+    if (!cancel) return { error: 'no cancel button' };
+    cancel.click();
+    const samples = [];
+    for (let i = 0; i < 10; i++) {
+        await wait(20);
+        const panel = document.querySelector('.aeterni-dialog-provider__dialog');
+        const backdrop = document.querySelector('.aeterni-dialog-provider__backdrop');
+        samples.push({
+            panel: panel ? parseFloat(getComputedStyle(panel).opacity) : 0,
+            backdrop: backdrop ? parseFloat(getComputedStyle(backdrop).opacity) : 0
+        });
+    }
+    await wait(220);
+    return { samples, gone: !document.querySelector('.aeterni-dialog-provider__dialog') };
+})()`);
+const dialogExitMiddle = dialogExit.samples?.find(s => s.panel > 0 && s.panel < 1 && s.backdrop > 0 && s.backdrop < 1);
+check('Dialog 退场时面板与遮罩同步淡出并一起移除',
+    !dialogExit.error
+        && !!dialogExitMiddle
+        && Math.abs(dialogExitMiddle.panel - dialogExitMiddle.backdrop) < 0.15
+        && dialogExit.gone,
+    JSON.stringify(dialogExit));
+
+await goto(`${BASE}/components/drawer`);
+await waitForApp();
+const drawerTiming = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const button = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '右侧（End）');
+    if (!button) return { error: 'no drawer trigger' };
+    button.click();
+    await wait(60);
+    const scrim = document.querySelector('.aeterni-drawer__backdrop');
+    const panel = document.querySelector('.aeterni-drawer__panel');
+    if (!scrim || !panel) return { error: 'no drawer rendered' };
+    const read = node => node.getAnimations().map(a => a.effect.getTiming().duration);
+    const open = { scrim: read(scrim), panel: read(panel) };
+    scrim.click();
+    const deadline = Date.now() + 2000;
+    let closing = { scrim: [], panel: [] };
+    while (Date.now() < deadline) {
+        await wait(40);
+        closing = { scrim: read(scrim), panel: read(panel) };
+        if (closing.scrim.includes(210) || closing.panel.includes(210)) break;
+    }
+    return { open, closing };
+})()`);
+check('Drawer 遮罩与面板共用 300ms 进场 / 210ms 退场',
+    !drawerTiming.error
+        && drawerTiming.open.scrim.includes(300) && drawerTiming.open.panel.includes(300)
+        && drawerTiming.closing.scrim.includes(210) && drawerTiming.closing.panel.includes(210),
+    JSON.stringify(drawerTiming));
+
+await goto(`${BASE}/components/slider`);
+await waitForApp();
+const sliderMotion = await evaluate(`(() => {
+    const fill = document.querySelector('.aeterni-slider__fill');
+    const slot = document.querySelector('.aeterni-slider__thumb-slot');
+    const thumb = document.querySelector('.aeterni-slider__thumb');
+    if (!fill || !slot || !thumb) return { error: 'slider parts missing' };
+    const fillStyle = getComputedStyle(fill);
+    const slotStyle = getComputedStyle(slot);
+    const track = document.querySelector('.aeterni-slider__track').getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+    const matrix = new DOMMatrixReadOnly(slotStyle.transform);
+    return {
+        fillTransition: fillStyle.transitionProperty,
+        fillTransform: fillStyle.transform,
+        slotTransition: slotStyle.transitionProperty,
+        slotTranslateX: matrix.m41,
+        trackWidth: Math.round(track.width),
+        fillWidth: Math.round(parseFloat(fillStyle.width)),
+        thumbInsideTrack: thumbRect.left >= track.left - 2 && thumbRect.right <= track.right + 2
+    };
+})()`);
+check('Slider 填充与滑块只过渡 transform，位置落在轨道内',
+    !sliderMotion.error
+        && sliderMotion.fillTransition === 'transform' && sliderMotion.slotTransition === 'transform'
+        && sliderMotion.fillTransform !== 'none' && sliderMotion.slotTranslateX > 0
+        && sliderMotion.fillWidth === sliderMotion.trackWidth
+        && sliderMotion.thumbInsideTrack,
+    JSON.stringify(sliderMotion));
+
+await goto(`${BASE}/components/progress`);
+await waitForApp();
+const progressMotion = await evaluate(`(() => {
+    const bar = document.querySelector('.aeterni-progress__bar');
+    if (!bar) return { error: 'no progress bar' };
+    const style = getComputedStyle(bar);
+    const track = bar.parentElement.getBoundingClientRect();
+    return {
+        transition: style.transitionProperty,
+        transform: style.transform,
+        width: Math.round(parseFloat(style.width)),
+        trackWidth: Math.round(track.width)
+    };
+})()`);
+check('Progress 填充只用 transform 缩放，宽度铺满轨道',
+    !progressMotion.error && progressMotion.transition === 'transform'
+        && progressMotion.transform !== 'none'
+        && progressMotion.width === progressMotion.trackWidth,
+    JSON.stringify(progressMotion));
+
+await goto(`${BASE}/components/form-validation`);
+await waitForApp();
+const fieldLineHeight = await evaluate(`(() => {
+    const description = document.querySelector('.aeterni-form-field__description');
+    if (!description) return { error: 'no description' };
+    const style = getComputedStyle(description);
+    return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        ratio: parseFloat(style.lineHeight) / parseFloat(style.fontSize)
+    };
+})()`);
+check('FormField 说明文字行高达到 normal 档（1.5）',
+    !fieldLineHeight.error && Math.abs(fieldLineHeight.ratio - 1.5) < 0.05,
+    JSON.stringify(fieldLineHeight));
+
+await goto(`${BASE}/components/upload`);
+await waitForApp();
+const uploadCopy = await evaluate(`(() => {
+    const drop = document.querySelector('.aeterni-upload__drop');
+    return { text: drop ? drop.textContent.replace(/\\s+/g, ' ').trim() : null };
+})()`);
+check('Upload 示例画布使用中文拖放文案',
+    !!uploadCopy.text && /拖放文件/.test(uploadCopy.text) && !/Drop files|click to browse/i.test(uploadCopy.text),
+    JSON.stringify(uploadCopy));
+
+await goto(`${BASE}/components/descriptions`);
+await waitForApp();
+const descriptionRules = await evaluate(`(() => {
+    const items = [...document.querySelectorAll('.aeterni-descriptions__item')];
+    return {
+        count: items.length,
+        borders: items.slice(0, 4).map(item => getComputedStyle(item).borderBottomWidth)
+    };
+})()`);
+check('Descriptions 默认变体不再输出 per-item 分隔线',
+    descriptionRules.count > 0 && descriptionRules.borders.every(width => width === '0px'),
+    JSON.stringify(descriptionRules));
+
+await goto(`${BASE}/components/colors`);
+await waitForApp();
+const headerInk = await evaluate(`(() => {
+    const root = getComputedStyle(document.documentElement);
+    const parse = value => {
+        const probe = document.createElement('span');
+        probe.style.color = value.trim();
+        document.body.appendChild(probe);
+        const rgb = getComputedStyle(probe).color;
+        probe.remove();
+        return rgb;
+    };
+    const brandText = parse(root.getPropertyValue('--aeterni-color-brand-text'));
+    const brandFill = parse(root.getPropertyValue('--aeterni-color-brand-default'));
+    const wordmark = document.querySelector('.brand-name span');
+    const active = document.querySelector('.app-nav__link.active');
+    return {
+        brandText,
+        brandFill,
+        wordmark: wordmark ? getComputedStyle(wordmark).color : null,
+        active: active ? getComputedStyle(active).color : null
+    };
+})()`);
+check('页头品牌字标与当前导航项使用品牌文字墨而非填充档',
+    headerInk.wordmark === headerInk.brandText
+        && headerInk.active === headerInk.brandText
+        && headerInk.brandText !== headerInk.brandFill,
+    JSON.stringify(headerInk));
+
+await goto(`${BASE}/`);
+await waitForApp();
+const homeStats = await evaluate(`(() => {
+    const values = [...document.querySelectorAll('.doc-hero__stat-value')].map(node => node.textContent.trim());
+    const link = [...document.querySelectorAll('a')].find(a => /全部\\s*\\d+\\s*个组件/.test(a.textContent));
+    const total = link ? Number((link.textContent.match(/\\d+/) ?? [])[0]) : null;
+    return { values, total };
+})()`);
+check('首页统计直接渲染终值且与「全部 N 个组件」一致',
+    homeStats.values.length === 4
+        && homeStats.values.every(value => /^\d+$/.test(value) && value !== '0')
+        && Number(homeStats.values[0]) === homeStats.total,
+    JSON.stringify(homeStats));
+
+// -------------------------------------------------- 10.38.4 三处交互修复
+// 打开 Confirm 会隐藏页面滚动条。占位消失时视口变宽，按视口量宽的固定页头
+// 就会横向跳一下，关闭时再跳回来。锁滚动现在改为预留 scrollbar-gutter，
+// 布局视口宽度全程不变，页头矩形在开、关两种状态下必须完全一致。
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+const readHeader = `(() => {
+    const rectOf = selector => {
+        const rect = document.querySelector(selector)?.getBoundingClientRect();
+        return rect ? { x: Math.round(rect.x * 100) / 100, w: Math.round(rect.width * 100) / 100 } : null;
+    };
+    return {
+        header: rectOf('.sample-header'),
+        footer: rectOf('.sample-footer'),
+        scrollbar: innerWidth - document.documentElement.clientWidth,
+        bodyPaddingRight: getComputedStyle(document.body).paddingRight,
+        gutter: getComputedStyle(document.documentElement).scrollbarGutter
+    };
+})()`;
+const headerBefore = await evaluate(readHeader);
+const headerOpen = await evaluate(`(async () => {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    [...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Confirm').click();
+    await wait(500);
+    return ${readHeader};
+})()`);
+const headerClosed = await evaluate(`(async () => {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    [...document.querySelectorAll('.aeterni-dialog-provider__dialog button')].find(button => button.textContent.includes('取消')).click();
+    await wait(600);
+    return ${readHeader};
+})()`);
+// 页头是 fixed，百分比宽度按视口含滚动条的宽度解析；页脚在流内，按减去滚动条
+// 的内容宽度解析。两者同用 --sample-shell-width，锁滚动前后必须仍对齐。窗口在
+// 无头 Edge 里会自己变宽，所以比较的是两个元素彼此的差，而不是某个绝对值。
+const aligned = state => state.header && state.footer
+    && Math.abs(state.header.x - state.footer.x) < 0.5
+    && Math.abs(state.header.w - state.footer.w) < 0.5;
+if (headerBefore.scrollbar > 0) {
+    check('锁滚动不再让固定页头与正文左锚线错位',
+        aligned(headerBefore) && aligned(headerOpen) && aligned(headerClosed),
+        JSON.stringify({ headerBefore, headerOpen, headerClosed }));
+    check('锁滚动用 scrollbar-gutter 预留轨道而不是给 body 补 padding',
+        headerOpen.gutter === 'stable' && headerOpen.bodyPaddingRight === headerBefore.bodyPaddingRight,
+        JSON.stringify({ gutter: headerOpen.gutter, padding: headerOpen.bodyPaddingRight }));
+} else {
+    check('锁滚动不再让固定页头与正文左锚线错位', true, '本引擎的滚动条是覆盖式，没有占位可跳，跳过对齐断言');
+}
+
+// 点击遮罩只应抖一下：抖动期间透明度保持 1，抖动结束后停在 is-settled，
+// 不能再落回 `animation: enter` 从 opacity 0 重播（用户读作页面刷新）。
+const shake = await evaluate(`(async () => {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    [...document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Confirm').click();
+    await wait(500);
+    const panel = document.querySelector('.aeterni-dialog-provider__dialog');
+    const backdrop = document.querySelector('.aeterni-dialog-provider__backdrop');
+    const samples = [];
+    backdrop.click();
+    for (let i = 0; i < 14; i++) {
+        await wait(30);
+        samples.push({
+            opacity: Number(getComputedStyle(panel).opacity),
+            animations: panel.getAnimations().map(animation => animation.animationName),
+            shaking: panel.classList.contains('is-shaking'),
+            settled: panel.classList.contains('is-settled')
+        });
+    }
+    const finalOpacity = Number(getComputedStyle(panel).opacity);
+    const className = panel.className;
+
+    // 第二次点击外围同样要再抖一下，不能变成“点一次以后就没反应”。
+    const repeatSamples = [];
+    backdrop.click();
+    for (let i = 0; i < 10; i++) {
+        await wait(30);
+        repeatSamples.push({
+            opacity: Number(getComputedStyle(panel).opacity),
+            animations: panel.getAnimations().map(animation => animation.animationName),
+            shaking: panel.classList.contains('is-shaking'),
+            settled: panel.classList.contains('is-settled')
+        });
+    }
+    await wait(400);
+    const repeatFinalOpacity = Number(getComputedStyle(panel).opacity);
+    const repeatClass = panel.className;
+
+    const stillOpen = !!document.querySelector('.aeterni-dialog-provider__dialog');
+    [...document.querySelectorAll('.aeterni-dialog-provider__dialog button')].find(button => button.textContent.includes('取消'))?.click();
+    await wait(500);
+    return { samples, finalOpacity, className, repeatSamples, repeatFinalOpacity, repeatClass, stillOpen };
+})()`);
+check('点击 Confirm 外围每次都只抖一下，不重播进场（无透明度闪回）',
+    shake.samples.every(sample => sample.opacity >= 0.95)
+        && shake.samples.every(sample => !sample.animations.some(name => /enter/.test(name)))
+        && shake.samples.some(sample => sample.shaking)
+        && shake.samples.some(sample => sample.animations.some(name => /shake/.test(name)))
+        && shake.finalOpacity >= 0.99
+        && /is-settled/.test(shake.className)
+        && shake.repeatSamples.every(sample => sample.opacity >= 0.95)
+        && shake.repeatSamples.every(sample => !sample.animations.some(name => /enter/.test(name)))
+        && shake.repeatSamples.some(sample => sample.shaking && sample.animations.some(name => /shake/.test(name)))
+        && shake.repeatFinalOpacity >= 0.99
+        && /is-settled/.test(shake.repeatClass)
+        && shake.stillOpen,
+    JSON.stringify({ className: shake.className, repeatClass: shake.repeatClass, finalOpacity: shake.finalOpacity, repeatFinalOpacity: shake.repeatFinalOpacity }));
+
+// InputNumber：两个方角步进按钮之间的分隔线取自字段描边，且方角悬停底色
+// 要被外层圆角裁掉，不能在圆角外露出直角色块。
+await goto(`${BASE}/components/input-number`);
+await waitForApp();
+const stepper = await evaluate(`(() => {
+    const root = document.querySelector('.aeterni-input-number');
+    const field = root.querySelector('.aeterni-input-number__field');
+    const buttons = [...root.querySelectorAll('.aeterni-input-number__controls .aeterni-icon-button')];
+    const seam = getComputedStyle(buttons[buttons.length - 1]).borderInlineStartColor;
+    const alpha = /rgba?\\(([^)]+)\\)/.exec(seam);
+    const parts = alpha ? alpha[1].split(',').map(Number) : [];
+    return {
+        seam,
+        seamAlpha: parts.length === 4 ? parts[3] : 1,
+        fieldBorder: getComputedStyle(field).borderColor,
+        overflow: getComputedStyle(field).overflow,
+        radii: buttons.map(button => getComputedStyle(button).borderRadius)
+    };
+})()`);
+check('InputNumber 步进分隔线复用输入框描边，不再是深色墨线',
+    stepper.seam === stepper.fieldBorder && stepper.seamAlpha < 0.2,
+    JSON.stringify(stepper));
+check('InputNumber 方角步进按钮的悬停底色被圆角输入框裁切',
+    stepper.overflow === 'hidden' && stepper.radii.every(radius => radius === '0px'),
+    JSON.stringify({ overflow: stepper.overflow, radii: stepper.radii }));
 
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);

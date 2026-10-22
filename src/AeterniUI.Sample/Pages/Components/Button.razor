@@ -1,4 +1,4 @@
-﻿@page "/components/button"
+@page "/components/button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -94,26 +94,26 @@
                 </div>
                 <div class="control-grid">
                     <div class="control-field">
-                        <span>Variant</span>
-                        <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                        <span>变体</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="button-variant" AriaLabel="变体" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
                     </div>
                     <div class="control-field">
-                        <span>Intent</span>
-                        <ShowcaseSelect TValue="ButtonIntent" Id="button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
+                        <span>意图</span>
+                        <ShowcaseSelect TValue="ButtonIntent" Id="button-intent" AriaLabel="意图" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
                     </div>
                     <div class="control-field">
-                        <span>Size</span>
-                        <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                        <span>尺寸</span>
+                        <ShowcaseSelect TValue="Size" Id="button-size" AriaLabel="尺寸" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
                     </div>
                     <div class="control-field">
-                        <span>Type</span>
-                        <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="Type" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_type" />
+                        <span>类型</span>
+                        <ShowcaseSelect TValue="ButtonType" Id="button-type" AriaLabel="类型" Options="@(Enum.GetValues<ButtonType>())" @bind-Value="_type" />
                     </div>
                 </div>
-                <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
-                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
-                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
-                <Checkbox Size="Size.Small" @bind-Value="_hasIcon">StartIcon</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_loading">加载</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">禁用</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_fullWidth">占满宽度</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_hasIcon">起始图标</Checkbox>
             </Controls>
         </DemoCard>
 

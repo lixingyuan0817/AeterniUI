@@ -19,6 +19,10 @@
     border-radius: var(--aeterni-input-number-group-radius);
     background: var(--aeterni-control-background);
     transition: var(--aeterni-transition-control);
+    /* The step buttons are square so their own radii cannot follow the field's
+       outer radius. Clip the hover/active fill to the wrapper instead, or the
+       flat tint paints square corners outside the rounded field. */
+    overflow: hidden;
 }
 
 .aeterni-input-number__field:focus-within {
@@ -38,6 +42,10 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
+    /* The seam between the two steppers is field chrome, not an action divider:
+       reuse the field's own border token so it reads as a hairline continuation
+       instead of the accent or ink line a button group would derive. */
+    --aeterni-button-group-divider: var(--aeterni-control-border);
 }
 
 .aeterni-input-number__controls ::deep .aeterni-button-group {

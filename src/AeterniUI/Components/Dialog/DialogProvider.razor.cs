@@ -13,6 +13,11 @@ public partial class DialogProvider : AeterniComponent
 {
     private static readonly ToastPosition[] NoticePositions = Enum.GetValues<ToastPosition>();
     private readonly HashSet<string> _shakingDialogs = [];
+    // A dialog that already shook must not fall back to the entry animation when
+    // the shake class is removed: swapping animation names replays `enter` from
+    // opacity 0, which reads as a page refresh. `is-settled` pins the panel to no
+    // running animation until it closes.
+    private readonly HashSet<string> _settledDialogs = [];
 
     [Inject]
     protected DialogService DialogService { get; set; } = default!;
@@ -114,7 +119,18 @@ public partial class DialogProvider : AeterniComponent
             return;
         }
 
-        if (dialog.Kind != DialogContentKind.Confirm || IsDisposed || !_shakingDialogs.Add(dialog.Id))
+        if (dialog.Kind != DialogContentKind.Confirm || IsDisposed)
+        {
+            return;
+        }
+
+        // A settled panel shakes again on every outside click: clearing the flag
+        // turns `animation` from none back to shake, while the flag is re-added in
+        // `finally` before `is-shaking` is dropped, so the entry animation never
+        // comes back in between.
+        _settledDialogs.Remove(dialog.Id);
+
+        if (!_shakingDialogs.Add(dialog.Id))
         {
             return;
         }
@@ -130,6 +146,7 @@ public partial class DialogProvider : AeterniComponent
         }
         finally
         {
+            _settledDialogs.Add(dialog.Id);
             _shakingDialogs.Remove(dialog.Id);
             if (!IsDisposed)
             {
@@ -162,6 +179,7 @@ public partial class DialogProvider : AeterniComponent
     private string BuildDialogClass(DialogEntry dialog) => ClassBuilder("aeterni-dialog-provider__dialog")
         .Add(ComponentClass.ForColor("aeterni-dialog-provider__dialog", dialog.Options.Severity.ToColor()))
         .Add("is-shaking", IsDialogShaking(dialog.Id))
+        .Add("is-settled", _settledDialogs.Contains(dialog.Id))
         .Add("is-closing", dialog.IsClosing)
         .Build();
 
@@ -172,6 +190,7 @@ public partial class DialogProvider : AeterniComponent
         DialogService.Changed -= HandleDialogChanged;
 
         _shakingDialogs.Clear();
+        _settledDialogs.Clear();
         _jsReady = false;
         return ValueTask.CompletedTask;
     }

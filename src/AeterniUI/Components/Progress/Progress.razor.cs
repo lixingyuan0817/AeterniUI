@@ -28,10 +28,11 @@ public partial class Progress : AeterniComponent
         .Add(ColorClass)
         .Add("is-indeterminate", Indeterminate);
 
-    // The bar width travels as a custom property instead of an inline `width`, so the
-    // indeterminate sweep can override it from the stylesheet without !important.
+    // The bar length travels as a unitless 0..1 fraction instead of an inline `width`,
+    // so the stylesheet scales with `transform` (no per-frame layout) and the
+    // indeterminate sweep can override it without !important.
     protected override StyleBuilder BuildStyle() => base.BuildStyle()
-        .Add("--aeterni-progress-value", Percentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%", !Indeterminate);
+        .Add("--aeterni-progress-value", (Percentage / 100d).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture), !Indeterminate);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

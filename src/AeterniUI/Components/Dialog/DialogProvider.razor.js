@@ -246,16 +246,45 @@ export function initProgress(key, root) {
 /** Resolves once the dialog's shake animation has finished. The C# side awaits
  * this instead of guessing the CSS duration: a hand-tuned delay drifts whenever
  * the motion scale changes, and under `prefers-reduced-motion` the animation
- * completes instantly while a fixed delay would still block. */
+ * completes instantly while a fixed delay would still block.
+ *
+ * The dialog class is written by Blazor and this call can reach the browser
+ * before that render lands, so the animation is polled across frames instead of
+ * being read once. Reading it once raced empty, the C# side removed the class a
+ * frame later, and the panel fell back to the entry animation — a visible flash
+ * users read as a refresh. */
 export async function waitForShake(key, dialogId) {
     if (!instances.has(key)) {
         return;
     }
 
     const dialog = document.querySelector(`[data-aeterni-dialog-id="${dialogId}"]`);
-    const shakes = (dialog?.getAnimations?.() ?? [])
-        .filter(animation => /shake/.test(animation.animationName ?? ''));
-    await Promise.allSettled(shakes.map(animation => animation.finished));
+    if (!dialog) {
+        return;
+    }
+
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    const findShake = () => (dialog.getAnimations?.() ?? [])
+        .find(animation => /shake/.test(animation.animationName ?? ''));
+    const deadline = performance.now() + 500;
+    let shake = findShake();
+    while (!shake && performance.now() < deadline) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        shake = findShake();
+    }
+
+    if (!shake) {
+        return;
+    }
+
+    try {
+        await shake.finished;
+    } catch {
+        // A rerender cancelled the animation; the caller removes the class.
+    }
 }
 
 function disposeProgress() {

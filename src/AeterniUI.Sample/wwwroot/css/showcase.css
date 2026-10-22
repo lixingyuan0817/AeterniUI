@@ -1038,7 +1038,7 @@
 
 .showcase-colors__table-row {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 0.7fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr) minmax(0, 1.35fr) minmax(0, 0.55fr);
     gap: var(--aeterni-spacing-3);
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-4);
     color: var(--aeterni-text-secondary);
@@ -1657,6 +1657,16 @@
 
 .component-demo__controls {
     margin-top: 14px;
+    padding-top: 14px;
+    border-block-start: var(--aeterni-border-width) solid var(--aeterni-separator);
+}
+
+.component-demo__controls-label {
+    margin: 0 0 10px;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: var(--aeterni-letter-spacing-wide);
 }
 
 /* 复制按钮从段标题移到代码块上方后，需要自己撑起一行。 */

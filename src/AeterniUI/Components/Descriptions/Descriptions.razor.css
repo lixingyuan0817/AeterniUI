@@ -14,6 +14,11 @@
     color: var(--aeterni-text-primary);
 }
 
+/* Row rules live on the bordered variant only. A per-item rule cannot be a row
+   rule in this grid: a row with fewer items (or none after a Span takes the whole
+   width) draws a shorter, offset segment, so one list ends up with three line
+   styles. The default variant keeps rows apart with the grid gap instead, and the
+   bordered variant owns the full grid lines. */
 .aeterni-descriptions__item {
     display: grid;
     grid-template-columns: var(--aeterni-descriptions-label-width) minmax(0, 1fr);
@@ -21,7 +26,6 @@
     align-items: start;
     min-width: 0;
     padding-block: var(--aeterni-spacing-3);
-    border-block-end: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
 .aeterni-descriptions__label,

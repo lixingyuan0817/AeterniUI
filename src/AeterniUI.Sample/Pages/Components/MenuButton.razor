@@ -1,4 +1,4 @@
-﻿@page "/components/menu-button"
+@page "/components/menu-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Components.Menu
@@ -38,21 +38,21 @@
             </Preview>
             <Controls>
                 <div class="control-field">
-                    <label for="menu-button-label">Label</label>
+                    <label for="menu-button-label">标签</label>
                     <input id="menu-button-label" @bind="_label" />
                 </div>
                 <div class="control-grid">
                     <div class="control-field">
-                        <span>Variant</span>
-                        <ShowcaseSelect TValue="ButtonVariant" Id="menu-button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                        <span>变体</span>
+                        <ShowcaseSelect TValue="ButtonVariant" Id="menu-button-variant" AriaLabel="变体" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
                     </div>
                     <div class="control-field">
-                        <span>Size</span>
-                        <ShowcaseSelect TValue="Size" Id="menu-button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                        <span>尺寸</span>
+                        <ShowcaseSelect TValue="Size" Id="menu-button-size" AriaLabel="尺寸" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
                     </div>
                     <div class="control-field">
-                        <span>Placement</span>
-                        <ShowcaseSelect TValue="PopupPlacement" Id="menu-button-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                        <span>位置</span>
+                        <ShowcaseSelect TValue="PopupPlacement" Id="menu-button-placement" AriaLabel="位置" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
                     </div>
                 </div>
             </Controls>

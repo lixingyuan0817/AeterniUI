@@ -22,11 +22,15 @@
 .aeterni-form-field__description {
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
+    /* xs copy can wrap to several lines (a validation rule, a format hint); inherit
+       `normal` would leave it at ~1.2, which is tight for CJK body text. */
+    line-height: var(--aeterni-line-height-normal);
 }
 
 .aeterni-form-field__error {
     color: var(--aeterni-color-danger-text);
     font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
 }
 
 .aeterni-form-field.is-disabled {

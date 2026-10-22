@@ -110,17 +110,40 @@ let scrollLockState = null;
  * Locks page scroll while keeping the background from reflowing by the scrollbar
  * width. Reference counted, so two overlapping overlays cannot unlock each other.
  * Returns an idempotent release function.
+ *
+ * The width is kept by reserving the scrollbar track with `scrollbar-gutter`,
+ * not by padding the body. Padding only compensated in-flow content: fixed
+ * chrome (a sticky header, a fixed toolbar) still measured against the wider
+ * viewport and jumped by the scrollbar width when the track disappeared, then
+ * jumped back on unlock. A reserved gutter keeps the layout viewport the same
+ * width the whole time, so nothing moves. Browsers without `scrollbar-gutter`
+ * keep the padding compensation.
  */
 export function lockScroll() {
     if (scrollLockCount === 0) {
         const body = document.body;
-        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        // DOM stubs used by the Node tests only model `document.body`; keep the
+        // gutter path optional so the module stays loadable without a document
+        // element, and fall back to the body padding compensation there.
+        const root = document.documentElement ?? null;
+        const rootStyle = root?.style ?? null;
+        const scrollbarWidth = root ? window.innerWidth - root.clientWidth : 0;
+        const reservesGutter = typeof CSS !== 'undefined'
+            && typeof CSS.supports === 'function'
+            && CSS.supports('scrollbar-gutter', 'stable');
         scrollLockState = {
             overflow: body.style.overflow,
-            paddingRight: body.style.paddingRight
+            paddingRight: body.style.paddingRight,
+            scrollbarGutter: rootStyle ? rootStyle.scrollbarGutter : null
         };
 
-        if (scrollbarWidth > 0) {
+        if (reservesGutter) {
+            // Only lock pages that actually scroll: reserving a gutter on a short
+            // page would introduce a stripe the page never had.
+            if (rootStyle && root.scrollHeight > root.clientHeight) {
+                rootStyle.scrollbarGutter = 'stable';
+            }
+        } else if (scrollbarWidth > 0) {
             body.style.paddingRight = `${scrollbarWidth}px`;
         }
 
@@ -139,8 +162,15 @@ export function lockScroll() {
         scrollLockCount = Math.max(0, scrollLockCount - 1);
 
         if (scrollLockCount === 0 && scrollLockState) {
+            // Restore the scroller first so the track comes back before the gutter
+            // reservation is dropped; the other order would expand the viewport for
+            // one frame.
             document.body.style.overflow = scrollLockState.overflow;
             document.body.style.paddingRight = scrollLockState.paddingRight;
+            const rootStyle = document.documentElement?.style;
+            if (rootStyle && scrollLockState.scrollbarGutter !== null) {
+                rootStyle.scrollbarGutter = scrollLockState.scrollbarGutter;
+            }
             scrollLockState = null;
         }
     };

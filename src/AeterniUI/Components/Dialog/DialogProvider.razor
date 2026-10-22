@@ -56,7 +56,7 @@
             @foreach (var dialog in DialogService.Dialogs)
             {
                 var titleId = $"{dialog.Id}-title";
-                <div class="aeterni-dialog-provider__backdrop"
+                <div class="aeterni-dialog-provider__backdrop @(dialog.IsClosing ? "is-closing" : null)"
                      @onclick="() => HandleOverlayClickAsync(dialog)">
                     <section class="@BuildDialogClass(dialog)"
                              data-aeterni-dialog-id="@dialog.Id"

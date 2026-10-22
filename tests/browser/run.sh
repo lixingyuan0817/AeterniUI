@@ -34,8 +34,12 @@ fi
 
 node "$ROOT/tests/browser/serve.mjs" "$ROOT/dist" "$PORT" >"$HTTP_LOG" 2>&1 &
 HTTP_PID=$!
+# 1440x900 matches the desktop checks (TOC, component geometry). Some Chromium
+# builds refuse CDP metrics overrides; starting at the right window size keeps the
+# suite meaningful even when the override below has to be skipped.
 "$(find_chrome)" --headless=new --remote-debugging-port="$CDP_PORT" \
     --no-first-run --no-default-browser-check --disable-gpu --no-sandbox \
+    --window-size=1440,900 \
     --user-data-dir="$PROFILE" about:blank >"$CHROME_LOG" 2>&1 &
 CHROME_PID=$!
 

@@ -1,4 +1,4 @@
-﻿@page "/components/descriptions"
+@page "/components/descriptions"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -35,8 +35,8 @@
                 <Checkbox @bind-Value="_bordered">显示边框</Checkbox>
                 <Checkbox @bind-Value="_useTemplate">使用值模板</Checkbox>
                 <div class="control-field">
-                    <span>Columns</span>
-                    <ShowcaseSelect TValue="int" Id="descriptions-columns" AriaLabel="Columns" Options="@ColumnOptions" @bind-Value="_columns" />
+                    <span>列数</span>
+                    <ShowcaseSelect TValue="int" Id="descriptions-columns" AriaLabel="列数" Options="@ColumnOptions" @bind-Value="_columns" />
                 </div>
             </Controls>
         </DemoCard>
@@ -113,7 +113,7 @@
         new("创建时间", "2026-10-08 17:36"),
         // Keep the interactive preview valid when Columns changes to 1 or 2.
         // DescriptionItem.Span is intentionally strict and cannot exceed Columns.
-        new("说明", "组件库示例订单，用于展示长文本在描述列表中的换行行为。", Span: Math.Min(3, _columns))
+        new("说明", "订单需在 24 小时内完成付款，逾期自动取消并通知下单人；如需修改收货信息，请在发货前联系客服。", Span: Math.Min(3, _columns))
     ];
 
     private static IReadOnlyList<DescriptionItem> TemplateItems =>
