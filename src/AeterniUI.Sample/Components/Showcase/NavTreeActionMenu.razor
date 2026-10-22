@@ -1,0 +1,52 @@
+@using AeterniUI.Enums
+@using AeterniUI.Components.IconButton
+@using AeterniUI.Components.Menu
+@using AeterniUI.Components.Popup
+
+<PopupHost>
+    <IconButton Variant="ButtonVariant.Ghost"
+                Intent="ButtonIntent.Neutral"
+                Size="Size.Small"
+                AriaLabel="@($"操作 {Label}")"
+                OnClick="ToggleMenu">
+        <span class="nav-tree-action-menu__glyph" aria-hidden="true">⋯</span>
+    </IconButton>
+
+    <Popover Open="_open"
+             OpenChanged="HandleOpenChanged"
+             Placement="PopupPlacement.BottomEnd"
+             RestoreFocusOnClose="true"
+             AriaLabel="@($"操作 {Label}")"
+             Style="min-width: 150px;">
+        <Menu Items="_items" AriaLabel="@($"操作 {Label}")" OnItemSelected="HandleSelected" />
+    </Popover>
+</PopupHost>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> OnAction { get; set; }
+
+    private bool _open;
+
+    private IReadOnlyList<MenuGroup> _items =>
+    [
+        new("actions", "操作",
+        [
+            new("rename", "重命名"),
+            new("delete", "删除", "从工作区移除")
+        ])
+    ];
+
+    private void ToggleMenu(MouseEventArgs _) => _open = !_open;
+
+    private void HandleOpenChanged(bool open) => _open = open;
+
+    private async Task HandleSelected(MenuItem item)
+    {
+        _open = false;
+        await OnAction.InvokeAsync(item.Label);
+    }
+}
