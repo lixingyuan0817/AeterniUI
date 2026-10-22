@@ -19,7 +19,7 @@
     <Demos>
         <DemoCard Id="nav-tree-basic"
                   Title="两级导航"
-                  Description="项目节点展开后显示会话子节点；点击节点选中，右侧反馈当前节点。"
+                  Description="项目节点只负责展开/折叠，点击会话节点才进入选中态；右侧反馈当前会话。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-nav-tree">
@@ -53,7 +53,8 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>根元素是 <code>role="tree"</code>，节点是 <code>role="treeitem"</code>；展开状态同步到 <code>aria-expanded</code>，选中状态同步到 <code>aria-selected</code>。</span>
+        <span>根元素是 <code>role="tree"</code>，节点是 <code>role="treeitem"</code>；展开状态同步到 <code>aria-expanded</code>，选中状态只出现在叶子节点上（<code>aria-selected</code>）。</span>
+        <span>可展开节点是导航组：点击、<code>Enter</code> 与 <code>Space</code> 只切换展开/折叠，不改变选中，也不会触发 <code>SelectedIdChanged</code> / <code>OnNodeSelected</code>。</span>
         <span>树只有一个 Tab 停留点，方向键移动焦点：上下切换节点，右键展开/进入子节点，左键折叠/回到父节点，Home/End 跳到两端。</span>
         <span><code>Trailing</code> 是节点右侧的独立区域，不参与节点按钮的点击；适合放操作菜单、计数或状态标记。</span>
     </Notes>

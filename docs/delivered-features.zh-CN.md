@@ -1706,7 +1706,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 `NavTree` 是用于项目、会话和设置等层级导航的树。它与 `Menu` 的分工：`Menu` 是动作/命令列表，`NavTree` 是导航结构，节点可以有独立的 trailing 区域。
 
 - `Items`：根节点列表；`NavTreeNode` 支持 `Children`、`Icon`、`Description`、`Trailing`、`Disabled` 和 `Visible`，节点 Id 必须非空且唯一。
-- `SelectedId` + `SelectedIdChanged`、`OnNodeSelected`：受控/非受控选择；`SelectedId` 为空且没有回调时，树保留自己的内部选择。
+- `SelectedId` + `SelectedIdChanged`、`OnNodeSelected`：受控/非受控选择；`SelectedId` 为空且没有回调时，树保留自己的内部选择。**只有叶子节点会进入选中态**：可展开节点是导航组，激活它只切换展开/折叠，不写 `SelectedId`，也不触发 `SelectedIdChanged` / `OnNodeSelected`。
 - `OpenKeys` + `OpenKeysChanged`：受控/非受控展开状态；没有子节点的节点不会输出 `aria-expanded`。
 - `AriaLabel`：根树的可访问名称，缺省取 `AeterniUITextOptions.NavTreeLabel`。
 - `Trailing` 是节点按钮的**兄弟区域**，可放 `PopupHost` + `Popover` + `Menu` 等独立动作入口，不会产生按钮嵌套。
@@ -1714,13 +1714,13 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 
 ### 行为与无障碍
 
-根元素是 `role="tree"`，每个可见节点是 `role="treeitem"`，`aria-level` 表示层级；有子节点的节点输出 `"true"`/`"false"` 的 `aria-expanded`，选中节点输出 `"true"`/`"false"` 的 `aria-selected`。整棵树只有一个 Tab 停留点，方向键在可见节点间移动：`↑`/`↓` 上一个/下一个，`→` 展开或进入第一个子节点，`←` 折叠或回到父节点，`Home`/`End` 跳到首尾；`Enter`/`Space` 保留节点按钮原生激活。点击节点也会选中它，有子节点时同时切换展开状态。
+根元素是 `role="tree"`，每个可见节点是 `role="treeitem"`，`aria-level` 表示层级；有子节点的节点输出 `"true"`/`"false"` 的 `aria-expanded`，只有叶子节点输出 `"true"`/`"false"` 的 `aria-selected`——导航组不参与选中，因此不输出该属性，也不会渲染选中样式。整棵树只有一个 Tab 停留点，方向键在可见节点间移动：`↑`/`↓` 上一个/下一个，`→` 展开或进入第一个子节点，`←` 折叠或回到父节点，`Home`/`End` 跳到首尾；`Enter`/`Space` 保留节点按钮原生激活。点击可展开节点只切换展开状态，点击叶子节点才进入选中态。
 
 `Trailing` 在节点按钮之外，内部动作按钮是独立焦点目标；方向键拦截只作用于树节点按钮，trailing 的菜单/按钮保留自己的键盘行为。JS 只负责移动焦点和抑制方向键导致的页面滚动，展开/选中模型在 C# 中。
 
 ### 实现边界
 
-第一版支持任意深度的数据，但视觉缩进会随层级累积；超深树需要宿主限制或改用更扁平的信息架构。不提供内置拖拽排序、内联重命名、异步加载子节点、搜索过滤或虚拟化；这些由宿主在节点数据/动作区中处理。示例：`/components/nav-tree`。
+第一版支持任意深度的数据，但视觉缩进会随层级累积；超深树需要宿主限制或改用更扁平的信息架构。选中只落在叶子节点上：需要"可选中分组"时改用 `Menu`，或让该节点不带 `Children` 并自行处理展开。不提供内置拖拽排序、内联重命名、异步加载子节点、搜索过滤或虚拟化；这些由宿主在节点数据/动作区中处理。示例：`/components/nav-tree`。
 
 ### 基础用法
 

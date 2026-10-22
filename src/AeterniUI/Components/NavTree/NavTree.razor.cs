@@ -18,10 +18,14 @@ public partial class NavTree : AeterniComponent
     [Parameter, EditorRequired]
     public IReadOnlyList<NavTreeNode> Items { get; set; } = [];
 
-    /// <summary>受控的选中节点 Id；未传入时由树自己维护选择。</summary>
+    /// <summary>
+    /// 受控的选中节点 Id；未传入时由树自己维护选择。只有叶子节点会进入选中态：
+    /// 可展开节点是导航组，只负责展开/折叠，不会渲染选中样式。
+    /// </summary>
     [Parameter]
     public string? SelectedId { get; set; }
 
+    /// <summary>叶子节点被选中时触发；可展开节点只切换展开状态，不触发该回调。</summary>
     [Parameter]
     public EventCallback<string> SelectedIdChanged { get; set; }
 
@@ -32,7 +36,7 @@ public partial class NavTree : AeterniComponent
     [Parameter]
     public EventCallback<IReadOnlyList<string>> OpenKeysChanged { get; set; }
 
-    /// <summary>节点被点击选中后触发；有子节点时同时切换展开状态。</summary>
+    /// <summary>叶子节点被点击选中后触发；可展开节点只切换展开状态，不触发该回调。</summary>
     [Parameter]
     public EventCallback<NavTreeNode> OnNodeSelected { get; set; }
 
@@ -149,12 +153,25 @@ public partial class NavTree : AeterniComponent
 
     private bool IsSelected(string id) => string.Equals(EffectiveSelectedId, id, StringComparison.Ordinal);
 
+    /// <summary>
+    /// Expandable nodes are navigation groups: activating one only toggles its
+    /// expansion, so a project header never looks like a destination. Selection
+    /// belongs to leaves.
+    /// </summary>
+    private static bool CanSelect(NavTreeNode node) => !node.HasChildren;
+
+    private bool IsNodeSelected(NavTreeNode node) => CanSelect(node) && IsSelected(node.Id);
+
     private string NodeElementId(string nodeId) =>
         $"{ElementId}-node-{nodeId.Replace(' ', '-')}";
 
     private string TabIndexFor(string nodeId)
     {
-        var active = _focusedNodeId ?? EffectiveSelectedId ?? FirstVisibleNodeId;
+        // A host can point SelectedId at a group node; it never renders selected,
+        // so it must not take the tree's single tab stop either.
+        var selectedLeaf = _visibleNodes
+            .FirstOrDefault(candidate => CanSelect(candidate.Node) && IsSelected(candidate.Node.Id))?.Node.Id;
+        var active = _focusedNodeId ?? selectedLeaf ?? FirstVisibleNodeId;
         return string.Equals(active, nodeId, StringComparison.Ordinal) ? "0" : "-1";
     }
 
@@ -170,7 +187,10 @@ public partial class NavTree : AeterniComponent
         _focusedNodeId = node.Id;
         if (node.HasChildren)
         {
+            // Navigation groups only expand/collapse; selecting them would give
+            // the group row a destination look it does not have.
             await ToggleNodeAsync(node);
+            return;
         }
 
         _internalSelectedId = node.Id;

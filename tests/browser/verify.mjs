@@ -3693,6 +3693,62 @@ check('Splitter 在 RTL 下第一栏排到右侧，方向键按逻辑方向镜�
         && splitterRtlAfterLeft === splitterRtl.now,
     JSON.stringify({ splitterRtl, splitterRtlAfterRight, splitterRtlAfterLeft }));
 
+// ---------------------------------------------------------------- NavTree 分组与选中
+// 可展开节点是导航组：点击只切换展开，不写选中；叶子节点才进入选中态。示例页第一棵树
+// 初始选中 workbench-rust，右侧 feedback 显示当前节点。
+await goto(`${BASE}/components/nav-tree`);
+await waitForApp();
+const navTreeDeadline = Date.now() + 10000;
+while (Date.now() < navTreeDeadline) {
+    if (await evaluate(`!!document.querySelector('.aeterni-nav-tree')`)) break;
+    await sleep(100);
+}
+
+const readNavTree = () => evaluate(`(() => {
+    const tree = document.querySelector('.aeterni-nav-tree');
+    if (!tree) return { error: 'missing tree' };
+    const items = [...tree.querySelectorAll('[role="treeitem"]')];
+    const group = items.find(item => item.getAttribute('aria-level') === '1');
+    const selected = items.filter(item => item.classList.contains('is-selected'));
+    return {
+        expanded: group?.getAttribute('aria-expanded') ?? null,
+        groupSelected: group?.classList.contains('is-selected') ?? null,
+        groupAriaSelected: group?.getAttribute('aria-selected') ?? null,
+        selectedLabels: selected.map(item => item.querySelector('.aeterni-nav-tree__label')?.textContent?.trim() ?? ''),
+        feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+
+const clickNavTreeButton = label => evaluate(`(() => {
+    const tree = document.querySelector('.aeterni-nav-tree');
+    const button = [...tree.querySelectorAll('button')].find(node => node.textContent.includes(${JSON.stringify(label)}));
+    if (!button) return false;
+    button.click();
+    return true;
+})()`);
+
+const navInitial = await readNavTree();
+const clickedGroup = await clickNavTreeButton('AeterniWorkbench');
+await sleep(250);
+const navAfterGroup = await readNavTree();
+check('NavTree 可展开节点只切换展开、不进入选中态',
+    clickedGroup
+        && navInitial.expanded === 'true' && navAfterGroup.expanded === 'false'
+        && navInitial.groupSelected === false && navAfterGroup.groupSelected === false
+        && navInitial.groupAriaSelected === null && navAfterGroup.groupAriaSelected === null
+        && navAfterGroup.feedback === navInitial.feedback,
+    JSON.stringify({ navInitial, navAfterGroup }));
+
+const clickedLeaf = await clickNavTreeButton('NavTree 组件');
+await sleep(250);
+const navAfterLeaf = await readNavTree();
+check('NavTree 叶子节点点击进入选中态',
+    clickedLeaf
+        && navAfterLeaf.selectedLabels.length === 1
+        && navAfterLeaf.selectedLabels[0] === 'NavTree 组件'
+        && (navAfterLeaf.feedback ?? '').includes('nav-tree'),
+    JSON.stringify({ navAfterLeaf }));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

@@ -3882,6 +3882,52 @@ async Task CheckNavTreeAsync()
         && html.Contains("leading-icon", StringComparison.Ordinal),
         "NavTree renders labels, descriptions, icons and selected state.");
 
+    // Groups (nodes with children) are navigation labels: they toggle and never
+    // take the selected treatment, so aria-selected only exists on the three
+    // leaves of this fixture (child-a, child-b, other).
+    var ariaSelectedCount = html.Split("aria-selected=", StringSplitOptions.None).Length - 1;
+    Require(ariaSelectedCount == 3,
+        $"NavTree must only expose aria-selected on leaves (3 expected), found {ariaSelectedCount}.");
+
+    // Read the opening tag of each treeitem instead of a text slice: the selected
+    // child's class attribute would otherwise leak into the group's slice.
+    static IEnumerable<string> TreeItemTags(string markup)
+    {
+        var index = 0;
+        while ((index = markup.IndexOf("<li class=\"aeterni-nav-tree__node", index, StringComparison.Ordinal)) >= 0)
+        {
+            var end = markup.IndexOf('>', index);
+            if (end < 0)
+            {
+                yield break;
+            }
+
+            yield return markup[index..(end + 1)];
+            index = end + 1;
+        }
+    }
+
+    var groupTag = TreeItemTags(html).FirstOrDefault(tag => tag.Contains("aria-level=\"1\"", StringComparison.Ordinal));
+    Require(groupTag is not null
+        && !groupTag.Contains("aria-selected", StringComparison.Ordinal)
+        && !groupTag.Contains("is-selected", StringComparison.Ordinal),
+        "NavTree must not mark an expandable group item as selected.");
+
+    var groupSelected = await RenderAsync<NavTree>(new Dictionary<string, object?>
+    {
+        [nameof(NavTree.Items)] = items,
+        [nameof(NavTree.SelectedId)] = "project",
+        [nameof(NavTree.OpenKeys)] = new[] { "project" }
+    });
+    var groupSelectedGroupTag = TreeItemTags(groupSelected)
+        .FirstOrDefault(tag => tag.Contains("aria-level=\"1\"", StringComparison.Ordinal));
+    var groupSelectedCount = groupSelected.Split("aria-selected=", StringSplitOptions.None).Length - 1;
+    Require(groupSelectedGroupTag is not null
+        && !groupSelectedGroupTag.Contains("is-selected", StringComparison.Ordinal)
+        && !groupSelectedGroupTag.Contains("aria-selected", StringComparison.Ordinal)
+        && groupSelectedCount == 3,
+        "NavTree must ignore a SelectedId that points at an expandable group node.");
+
     var withTrailing = await RenderAsync<NavTree>(new Dictionary<string, object?>
     {
         [nameof(NavTree.Items)] = new[]

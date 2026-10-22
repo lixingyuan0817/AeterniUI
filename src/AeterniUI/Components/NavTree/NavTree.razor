@@ -11,10 +11,10 @@
     private RenderFragment RenderNode(NavTreeNode node, int depth) => @<text>
         @if (node.Visible)
         {
-            <li class="aeterni-nav-tree__node @(IsSelected(node.Id) ? "is-selected" : null)"
+            <li class="aeterni-nav-tree__node @(IsNodeSelected(node) ? "is-selected" : null)"
                 role="treeitem"
                 aria-level="@(depth + 1)"
-                aria-selected="@(IsSelected(node.Id) ? "true" : "false")"
+                aria-selected="@(CanSelect(node) ? (IsNodeSelected(node) ? "true" : "false") : null)"
                 aria-expanded="@(node.HasChildren ? (IsOpen(node.Id) ? "true" : "false") : null)">
                 <div class="aeterni-nav-tree__row">
                     <button type="button"
