@@ -1,0 +1,7 @@
+.preview-nav-tree {
+    width: 320px;
+    padding: var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+}

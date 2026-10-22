@@ -769,6 +769,16 @@ public static class ShowcaseApiReference
                 new("SelectedId", "string?", "", "当前选中项的 Id，用于选中态和 aria-current。", "属性", ""),
                 new("SelectedIdChanged", "EventCallback<string>", "", "选中项变化时触发，支持 @bind-SelectedId。", "事件回调", ""),
             },
+            ["nav-tree"] = new ShowcaseApiMember[]
+            {
+                new("AriaLabel", "string?", "", "树的可访问名称；未提供时使用组件库文案表。", "属性", ""),
+                new("Items", "IReadOnlyList<NavTreeNode>", "", "根节点列表；节点按数据顺序渲染，子节点递归展开。", "属性", ""),
+                new("OnNodeSelected", "EventCallback<NavTreeNode>", "", "节点被点击选中后触发；有子节点时同时切换展开状态。", "事件回调", ""),
+                new("OpenKeys", "IReadOnlyList<string>?", "", "受控的展开节点 Id 集合；未传入时由树自己维护展开状态。", "属性", ""),
+                new("OpenKeysChanged", "EventCallback<IReadOnlyList<string>>", "", "", "事件回调", ""),
+                new("SelectedId", "string?", "", "受控的选中节点 Id；未传入时由树自己维护选择。", "属性", ""),
+                new("SelectedIdChanged", "EventCallback<string>", "", "", "事件回调", ""),
+            },
             ["tabs"] = new ShowcaseApiMember[]
             {
                 new("AriaLabel", "string?", "", "标签栏可访问名称。", "属性", ""),

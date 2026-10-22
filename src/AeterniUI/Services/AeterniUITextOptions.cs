@@ -36,6 +36,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of a <c>Splitter</c> separator.</summary>
     public string SplitterLabel { get; set; } = "Resize panes";
 
+    /// <summary>Accessible name of a <c>NavTree</c>.</summary>
+    public string NavTreeLabel { get; set; } = "Navigation";
+
     /// <summary>Accessible name of a <c>Search</c> landmark and input.</summary>
     public string SearchLabel { get; set; } = "Search";
 
@@ -323,6 +326,7 @@ public sealed class AeterniUITextOptions
         CascaderPathSeparator = Or(CascaderPathSeparator, defaults.CascaderPathSeparator);
         AnchorLabel = Or(AnchorLabel, defaults.AnchorLabel);
         SplitterLabel = Or(SplitterLabel, defaults.SplitterLabel);
+        NavTreeLabel = Or(NavTreeLabel, defaults.NavTreeLabel);
         SearchLabel = Or(SearchLabel, defaults.SearchLabel);
         SearchSubmitLabel = Or(SearchSubmitLabel, defaults.SearchSubmitLabel);
         SearchClearLabel = Or(SearchClearLabel, defaults.SearchClearLabel);

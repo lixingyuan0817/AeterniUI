@@ -16,6 +16,7 @@ using AeterniUI.Components.InputNumber;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.MultiSelect;
+using AeterniUI.Components.NavTree;
 using AeterniUI.Components.Search;
 using AeterniUI.Components.Segmented;
 using AeterniUI.Components.Slider;
@@ -61,6 +62,7 @@ await CheckSplitButtonAsync();
 await CheckSearchAsync();
 await CheckAutocompleteAsync();
 await CheckMultiSelectAsync();
+await CheckNavTreeAsync();
 await CheckCascaderAsync();
 await CheckInputNumberAsync();
 await CheckSliderAsync();
@@ -102,7 +104,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (41 groups).");
+Console.WriteLine("Component contract checks passed (42 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -3831,6 +3833,67 @@ async Task CheckSplitterAsync()
     Require(vertical.Contains("aeterni-splitter--vertical", StringComparison.Ordinal)
         && vertical.Contains("aria-orientation=\"horizontal\"", StringComparison.Ordinal),
         "Vertical Splitter flips the separator orientation and pane stacking class.");
+}
+
+
+async Task CheckNavTreeAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(NavTree), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "navtree",
+        "NavTree declares its interactive navigation module.");
+
+    RenderFragment trailing = builder => builder.AddContent(0, "trailing-actions");
+    RenderFragment icon = builder => builder.AddContent(0, "leading-icon");
+    var items = new NavTreeNode[]
+    {
+        new(
+            "project",
+            "Project",
+            [
+                new("child-a", "Child A", Icon: icon),
+                new("child-b", "Child B")
+            ],
+            Icon: icon,
+            Description: "Project description"),
+        new("other", "Other")
+    };
+
+    var html = await RenderAsync<NavTree>(new Dictionary<string, object?>
+    {
+        [nameof(NavTree.Items)] = items,
+        [nameof(NavTree.SelectedId)] = "child-a",
+        [nameof(NavTree.OpenKeys)] = new[] { "project" },
+        [nameof(NavTree.AriaLabel)] = "Contract navigation"
+    });
+
+    Require(html.Contains("role=\"tree\"", StringComparison.Ordinal)
+        && html.Contains("aria-label=\"Contract navigation\"", StringComparison.Ordinal)
+        && html.Contains("aeterni-nav-tree", StringComparison.Ordinal),
+        "NavTree renders its tree root with an accessible name.");
+    Require(html.Contains("role=\"treeitem\"", StringComparison.Ordinal)
+        && html.Contains("aria-level=\"1\"", StringComparison.Ordinal)
+        && html.Contains("aria-level=\"2\"", StringComparison.Ordinal)
+        && html.Contains("aria-expanded=\"true\"", StringComparison.Ordinal),
+        "NavTree exposes treeitem levels and expanded state.");
+    Require(html.Contains("Child A", StringComparison.Ordinal)
+        && html.Contains("aria-selected=\"true\"", StringComparison.Ordinal)
+        && html.Contains("Project description", StringComparison.Ordinal)
+        && html.Contains("leading-icon", StringComparison.Ordinal),
+        "NavTree renders labels, descriptions, icons and selected state.");
+
+    var withTrailing = await RenderAsync<NavTree>(new Dictionary<string, object?>
+    {
+        [nameof(NavTree.Items)] = new[]
+        {
+            new NavTreeNode("project", "Project", [new("child", "Child")], Trailing: trailing)
+        },
+        [nameof(NavTree.OpenKeys)] = new[] { "project" }
+    });
+    var buttonEnd = withTrailing.IndexOf("</button>", StringComparison.Ordinal);
+    var trailingStart = withTrailing.IndexOf("trailing-actions", StringComparison.Ordinal);
+    Require(buttonEnd >= 0 && trailingStart > buttonEnd,
+        "NavTree renders Trailing as a sibling after the node button.");
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)

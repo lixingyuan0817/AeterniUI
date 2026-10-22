@@ -467,6 +467,14 @@ public static class ShowcaseSearchIndex
         new("menu", "Menu", "导航组件", "menu-related-title", "相关组件"),
         new("menu", "Menu", "导航组件", "menu-notes-title", "说明与边界"),
 
+        new("nav-tree", "NavTree", "导航组件", "nav-tree", "NavTree"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-when-title", "何时使用"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-basic", "两级导航"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-trailing", "节点右侧操作"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-api-title", "参数与事件"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-related-title", "相关组件"),
+        new("nav-tree", "NavTree", "导航组件", "nav-tree-notes-title", "说明与边界"),
+
         new("tabs", "Tabs / Tab", "导航组件", "tabs", "Tabs / Tab"),
         new("tabs", "Tabs / Tab", "导航组件", "tabs-when-title", "何时使用"),
         new("tabs", "Tabs / Tab", "导航组件", "tabs-basic", "基础用法"),
