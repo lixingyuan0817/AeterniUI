@@ -2043,9 +2043,11 @@ const gutterCover = await evaluate(`(() => {
     if (!scrim) return { error: 'missing scrim' };
     const rect = scrim.getBoundingClientRect();
     const luminance = value => {
-        const parts = /rgba?\(([^)]+)\)/.exec(value);
-        if (!parts) return null;
-        const [r, g, b] = parts[1].split(',').map(Number);
+        const text = String(value);
+        const inner = text.slice(text.indexOf('(') + 1, text.indexOf(')'));
+        const parts = inner.split(',').map(Number);
+        if (parts.length < 3 || parts.some(part => Number.isNaN(part))) return null;
+        const [r, g, b] = parts;
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     };
     const rootBg = getComputedStyle(root).backgroundColor;
