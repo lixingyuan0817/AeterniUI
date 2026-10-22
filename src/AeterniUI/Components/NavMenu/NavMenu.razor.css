@@ -22,6 +22,15 @@
     min-width: 0;
 }
 
+/* The zero-height grid track only collapses if the inner list loses its
+   automatic minimum size and clips its overflow (same recipe as Menu). Without
+   both, the closed group keeps its children's height and the next group leaves a
+   large gap even though aria-expanded is already false. */
+.aeterni-nav-menu__children {
+    min-height: 0;
+    overflow: hidden;
+}
+
 /* Children hang off a guide line that starts under the group row. The margin
    lines the line up with the group toggle's icon edge instead of the row box. */
 .aeterni-nav-menu__children {
@@ -141,6 +150,7 @@
     display: grid;
     grid-template-rows: 0fr;
     min-height: 0;
+    align-content: start;
     opacity: 0;
     visibility: hidden;
     transition: grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal);

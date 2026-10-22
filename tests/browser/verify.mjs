@@ -3711,13 +3711,17 @@ const readNavMenu = () => evaluate(`(() => {
     const group = rows.find(row => row.querySelector('button[aria-expanded]'));
     const selected = rows.filter(row => row.classList.contains('is-selected'));
     const guide = menu.querySelector('.aeterni-nav-menu__children');
+    const collapse = menu.querySelector('.aeterni-nav-menu__collapse');
     return {
         expanded: group?.querySelector('button[aria-expanded]')?.getAttribute('aria-expanded') ?? null,
         groupSelected: group?.classList.contains('is-selected') ?? null,
         groupAriaCurrent: group?.querySelector('button')?.getAttribute('aria-current') ?? null,
         selectedLabels: selected.map(row => row.querySelector('.aeterni-nav-menu__label')?.textContent?.trim() ?? ''),
         feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
-        guideWidth: guide ? getComputedStyle(guide).borderInlineStartWidth : null
+        guideWidth: guide ? getComputedStyle(guide).borderInlineStartWidth : null,
+        groupHeight: group ? Math.round(group.getBoundingClientRect().height) : null,
+        collapseHeight: collapse ? Math.round(collapse.getBoundingClientRect().height) : null,
+        menuHeight: Math.round(menu.getBoundingClientRect().height)
     };
 })()`);
 
@@ -3732,7 +3736,7 @@ const clickNavMenuRow = label => evaluate(`(() => {
 
 const navMenuInitial = await readNavMenu();
 const clickedGroup = await clickNavMenuRow('AeterniWorkbench');
-await sleep(250);
+await sleep(450);
 const navMenuAfterGroup = await readNavMenu();
 check('NavMenu 分组行只切换展开、不进入选中态',
     clickedGroup
@@ -3741,6 +3745,15 @@ check('NavMenu 分组行只切换展开、不进入选中态',
         && navMenuInitial.groupAriaCurrent === null && navMenuAfterGroup.groupAriaCurrent === null
         && navMenuAfterGroup.feedback === navMenuInitial.feedback,
     JSON.stringify({ navMenuInitial, navMenuAfterGroup }));
+check('NavMenu 折叠后子内容让出高度（分组之间不留空占位）',
+    navMenuAfterGroup.collapseHeight === 0
+        && navMenuAfterGroup.groupHeight <= navMenuInitial.groupHeight - 40
+        && navMenuAfterGroup.menuHeight <= navMenuInitial.menuHeight - 40,
+    JSON.stringify({
+        collapseHeight: navMenuAfterGroup.collapseHeight,
+        groupHeight: [navMenuInitial.groupHeight, navMenuAfterGroup.groupHeight],
+        menuHeight: [navMenuInitial.menuHeight, navMenuAfterGroup.menuHeight]
+    }));
 check('NavMenu 展开的分组下方有引导线',
     navMenuInitial.guideWidth !== null && parseFloat(navMenuInitial.guideWidth) > 0,
     JSON.stringify({ guideWidth: navMenuInitial.guideWidth }));
