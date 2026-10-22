@@ -1,0 +1,160 @@
+/* Sidebar navigation menu: disclosure groups plus selectable leaves. Rows are
+   host templates, so this sheet only owns the shell (row layout, states, focus,
+   and the guides under an open group). The group header has no built-in chevron. */
+
+.aeterni-nav-menu {
+    display: grid;
+    align-content: start;
+    gap: var(--aeterni-spacing-1);
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.aeterni-nav-menu__list,
+.aeterni-nav-menu__children {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 0;
+}
+
+/* Children hang off a guide line that starts under the group row. The margin
+   lines the line up with the group toggle's icon edge instead of the row box. */
+.aeterni-nav-menu__children {
+    margin-inline-start: var(--aeterni-spacing-4);
+    padding-inline-start: var(--aeterni-spacing-2);
+    border-inline-start: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
+}
+
+.aeterni-nav-menu__node {
+    min-width: 0;
+}
+
+.aeterni-nav-menu__row {
+    display: flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+    border-radius: var(--aeterni-radius-md);
+}
+
+/* Toggles and links share one row shape; the host template decides the content. */
+.aeterni-nav-menu__button {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    min-height: var(--aeterni-row-height-compact);
+    padding: 0 var(--aeterni-spacing-2);
+    border: var(--aeterni-border-width) solid transparent;
+    border-radius: var(--aeterni-radius-md);
+    background: transparent;
+    color: var(--aeterni-text-secondary);
+    font: inherit;
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-tight);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.aeterni-nav-menu__button:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-primary);
+}
+
+/* Selected leaves use the same state tokens as Menu, so navigation and action
+   menus read as one system. */
+.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button {
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
+}
+
+.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button:hover:not(:disabled) {
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-nav-menu__button:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-nav-menu__button:disabled {
+    cursor: not-allowed;
+    color: var(--aeterni-state-color-disabled);
+}
+
+.aeterni-nav-menu__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--aeterni-icon-size-md);
+    height: var(--aeterni-icon-size-md);
+    color: var(--aeterni-text-tertiary);
+}
+
+.aeterni-nav-menu__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.aeterni-nav-menu__label,
+.aeterni-nav-menu__description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aeterni-nav-menu__description {
+    color: var(--aeterni-text-secondary);
+    font-size: calc(var(--aeterni-font-size-xs) - 1px);
+    line-height: var(--aeterni-line-height-normal);
+}
+
+.aeterni-nav-menu__trailing {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    padding-inline-end: var(--aeterni-spacing-1);
+}
+
+/* Same collapse recipe as Menu: a zero-height grid track that still keeps the
+   keyboard/focus order out of the closed region (visibility), animating only the
+   row track so the guide line is clipped while closed. */
+.aeterni-nav-menu__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    min-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: grid-template-rows var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out), visibility 0s linear var(--aeterni-duration-normal);
+}
+
+.aeterni-nav-menu__collapse.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s, 0s, 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aeterni-nav-menu__collapse {
+        transition: none;
+    }
+}

@@ -1,0 +1,156 @@
+@page "/components/nav-menu"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+@using AeterniUI.Icons
+@using AeterniUI.Components.NavMenu
+
+<PageTitle>Aeterni UI · NavMenu</PageTitle>
+
+<ComponentPage AnchorId="nav-menu"
+               Category="导航组件"
+               Title="NavMenu"
+               ComponentName="NavMenu"
+               Description="侧边导航菜单：分组行只负责展开/折叠，叶子行才进入选中态；每一行都可以是自定义模板。"
+               Related="@NavMenuRelated">
+    <WhenToUse>
+        <p>需要在侧边持续展示“项目 → 会话”这类层级导航、并且每行还要放状态、徽标或右侧动作时使用。只需要一组动作时用 <code>Menu</code>；需要可切换的内容面板时用 <code>Tabs</code>。</p>
+        <p>分组行没有内置的右侧折叠图标：展开状态由 <code>aria-expanded</code> 与左侧引导线表达；需要图标时在 <code>RowTemplate</code> 里自己画。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="nav-menu-basic"
+                  Title="两级导航"
+                  Description="项目行只展开/折叠，会话行才进入选中态；默认行渲染图标、标题与说明。"
+                  Code="@BasicCode">
+            <Preview>
+                <div class="preview-nav-menu">
+                    <NavMenu Items="_items"
+                             SelectedId="@_selectedId"
+                             SelectedIdChanged="HandleSelected"
+                             OpenKeys="@_openKeys"
+                             OpenKeysChanged="HandleOpenKeysChanged"
+                             AriaLabel="项目与会话导航预览" />
+                </div>
+                <span class="preview-feedback" role="status">当前节点：@(_selectedId ?? "未选择")</span>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="nav-menu-rows"
+                  Title="整行模板与右侧操作"
+                  Description="RowTemplate 接管整行内容（层级、状态、徽标都可以画），Trailing 仍在按钮之外，可放独立动作菜单。"
+                  Code="@RowsCode">
+            <Preview>
+                <div class="preview-nav-menu preview-nav-menu--wide">
+                    <NavMenu Items="_templatedItems"
+                             SelectedId="@_selectedId"
+                             SelectedIdChanged="HandleSelected"
+                             OpenKeys="@_openKeys"
+                             OpenKeysChanged="HandleOpenKeysChanged"
+                             OnItemSelected="HandleNodeSelected"
+                             AriaLabel="自定义行的项目导航预览" />
+                </div>
+                <span class="preview-feedback" role="status">@_actionNote</span>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>可展开节点是导航组：点击、<code>Enter</code> 与 <code>Space</code> 只切换展开/折叠，不写 <code>SelectedId</code>，也不触发 <code>SelectedIdChanged</code> / <code>OnItemSelected</code>。</span>
+        <span><code>RowTemplate</code> 渲染在行按钮内部，用来画整行内容；动作按钮放在 <code>Trailing</code>（按钮的兄弟位置），避免嵌套按钮。</span>
+        <span>层级不限于两级：任意深度的 <code>Children</code> 都会按同样的展开模型渲染；<code>Accordion</code> 让每个层级最多展开一个分组。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] NavMenuRelated =
+    [
+        new("Menu", "/components/menu"),
+        new("Tabs", "/components/tabs"),
+        new("List", "/components/list")
+    ];
+
+    private const string BasicCode = """
+        <NavMenu Items="Items"
+                 SelectedId="@selectedId"
+                 SelectedIdChanged="OnSelected"
+                 OpenKeys="@openKeys"
+                 OpenKeysChanged="OnOpenKeysChanged" />
+        """;
+
+    private const string RowsCode = """
+        var items = new NavMenuNode[]
+        {
+            new("project-1", "AeterniWorkbench",
+                [new("session", "会话")],
+                RowTemplate: context => @<span class="project-row">…</span>,
+                Trailing: @<ProjectActions />)
+        };
+        """;
+
+    private string? _selectedId = "workbench-rust";
+    private string _actionNote = "在分组右侧选择操作；分组行不进入选中态。";
+    private System.Collections.Generic.List<string> _openKeys = ["workbench", "aeterni-ui"];
+
+    private IReadOnlyList<NavMenuNode> _items =>
+    [
+        new("workbench", "AeterniWorkbench",
+            [
+                new("workbench-rust", "Rust + Tauri 桌面壳", Description: "窗口与工作台布局"),
+                new("workbench-ui", "AeterniUI 接入", Description: "组件库与主题")
+            ],
+            Icon: FolderIcon()),
+        new("aeterni-ui", "AeterniUI",
+            [
+                new("nav-menu", "NavMenu 组件", Description: "侧边导航与行模板"),
+                new("splitter", "Splitter 组件", Description: "可拖动分栏")
+            ],
+            Icon: FolderIcon()),
+        new("aeterni-scheduler", "AeterniScheduler", Icon: FolderIcon())
+    ];
+
+    private IReadOnlyList<NavMenuNode> _templatedItems =>
+    [
+        new("workbench", "AeterniWorkbench",
+            [
+                new("workbench-rust", "Rust + Tauri 桌面壳", RowTemplate: SessionRow(3)),
+                new("workbench-ui", "AeterniUI 接入", RowTemplate: SessionRow(1))
+            ],
+            RowTemplate: ProjectRow("AeterniWorkbench", 3),
+            Trailing: Actions("AeterniWorkbench")),
+        new("aeterni-ui", "AeterniUI",
+            [
+                new("nav-menu", "NavMenu 组件", RowTemplate: SessionRow(0)),
+                new("splitter", "Splitter 组件", RowTemplate: SessionRow(0))
+            ],
+            RowTemplate: ProjectRow("AeterniUI", 2),
+            Trailing: Actions("AeterniUI")),
+        new("aeterni-scheduler", "AeterniScheduler",
+            RowTemplate: ProjectRow("AeterniScheduler", 0),
+            Trailing: Actions("AeterniScheduler"))
+    ];
+
+    private static RenderFragment FolderIcon() => @<Icon Definition="@AeterniIcons.EmptyBox" Size="Size.Small" />;
+
+    private static RenderFragment<NavMenuRowContext> ProjectRow(string label, int sessions) => context => @<span class="preview-nav-menu__project">
+        <span class="preview-nav-menu__project-name">@label</span>
+        <span class="preview-nav-menu__count">@sessions</span>
+    </span>;
+
+    private static RenderFragment<NavMenuRowContext> SessionRow(int unread) => context => @<span class="preview-nav-menu__session">
+        <span class="preview-nav-menu__dot" aria-hidden="true"></span>
+        <span class="preview-nav-menu__session-name">@context.Node.Label</span>
+        @if (unread > 0)
+        {
+            <span class="preview-nav-menu__count preview-nav-menu__count--accent">@unread</span>
+        }
+    </span>;
+
+    private RenderFragment Actions(string label) => @<NavMenuActionMenu Label="@label" OnAction="HandleAction" />;
+
+    private void HandleSelected(string id) => _selectedId = id;
+
+    private void HandleOpenKeysChanged(IReadOnlyList<string> keys) => _openKeys = [.. keys];
+
+    private void HandleNodeSelected(NavMenuNode node) => _actionNote = $"选中会话：{node.Label}";
+
+    private void HandleAction(string action) => _actionNote = $"对分组执行：{action}";
+}

@@ -57,13 +57,6 @@
     "Splitter.PersistKey": "10.39.0",
     "Splitter.AriaLabel": "10.39.0",
     "Splitter.FirstPane": "10.39.0",
-    "Splitter.SecondPane": "10.39.0",
-    "NavTree.Items": "10.40.0",
-    "NavTree.SelectedId": "10.40.0",
-    "NavTree.SelectedIdChanged": "10.40.0",
-    "NavTree.OpenKeys": "10.40.0",
-    "NavTree.OpenKeysChanged": "10.40.0",
-    "NavTree.OnNodeSelected": "10.40.0",
-    "NavTree.AriaLabel": "10.40.0"
+    "Splitter.SecondPane": "10.39.0"
   }
 }
