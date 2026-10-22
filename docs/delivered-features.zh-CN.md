@@ -1681,7 +1681,7 @@ async Task StartUpload(UploadFile file)
 
 水平分栏按逻辑方向排列：RTL 下第一栏在右、分隔条贴第一栏的内侧边缘，指针拖动增量与 `←`/`→` 一并镜像（`→` 在 RTL 下缩小第一栏）。键盘只接管自己处理过的按键（其余按键与滚动保留给页面）。
 
-JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach` / `sync` / `dispose` 按实例管理监听器，`[JSInvokable]` 入口有 `IsDisposed` 守卫。移除组件时由基类的 JS module 生命周期释放。
+JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach` / `sync` / `dispose` 按实例管理监听器，`[JSInvokable]` 入口有 `IsDisposed` 守卫。持久化宽度恢复会在 `attach` 期间触发一次 `StateHasChanged`；组件在 await JS 挂载前先标记 attached，避免恢复回调导致重复 attach 和 JS/.NET 微任务循环。移除组件时由基类的 JS module 生命周期释放。
 
 ### 实现边界
 
@@ -1710,7 +1710,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 - `OpenKeys` + `OpenKeysChanged`：受控/非受控展开状态；没有子节点的节点不会输出 `aria-expanded`。
 - `AriaLabel`：根树的可访问名称，缺省取 `AeterniUITextOptions.NavTreeLabel`。
 - `Trailing` 是节点按钮的**兄弟区域**，可放 `PopupHost` + `Popover` + `Menu` 等独立动作入口，不会产生按钮嵌套。
-- 选中行、hover、focus-visible 和禁用态使用共享语义 token；层级缩进和引导线由组件样式负责。
+- 选中行与 `Menu` 使用同一组 state token：选中背景、品牌文字和左侧强调线保持一致；hover/active 不覆盖选中态。辅助说明使用更小字号、`--aeterni-text-secondary` 和更松的行高；层级缩进和引导线由组件样式负责。
 
 ### 行为与无障碍
 
