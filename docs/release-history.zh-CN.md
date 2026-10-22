@@ -1,10 +1,19 @@
 # AeterniUI 发布历史
 
-文档版本：`10.41.0`
+文档版本：`10.41.1`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.41.1 修复：`NavMenu` 折叠的分组保留子内容高度，分组之间留下大空隙
+
+PR #34（`fix/nav-menu-collapse`）以 squash 合入 main（`7438efd`）。`NavMenu` 的折叠照搬了 `Menu` 的 `grid-template-rows: 0fr` 写法，但漏掉内层列表的 `min-height: 0` + `overflow: hidden`（`Menu` 的 `.aeterni-menu__items` 有这两条）：grid item 的自动最小尺寸按 `min-content` 解析，零高度轨道被内容撑开，于是 `aria-expanded` 已经是 `false`、子内容仍占据 80px，两个分组之间留下大空隙。
+
+- [x] `.aeterni-nav-menu__children` 补 `min-height: 0` + `overflow: hidden`；`.aeterni-nav-menu__collapse` 补 `align-content: start`，与 `Menu` 的折叠配方逐条对齐。
+- [x] 回归断言：`tests/browser/verify.mjs` 的 NavMenu 断言新增「折叠后子内容让出高度」——折叠后 collapse 高度为 0、分组高度与菜单高度各至少减少 40px；本机发布站实测折叠前 112 / 264 / 80px → 折叠后 32 / 184 / 0px，分组间距保持 4px 不变。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 731 行）、`generate-search-index.mjs --check`（524 条 / 66 页）通过。PR #34 的 CI `browser` 作业 **177/177 PASS**，新增「NavMenu 折叠后子内容让出高度」断言实测 `{"collapseHeight":0,"groupHeight":[112,32],"menuHeight":[264,184]}`。
+- 按「修复与优化递增第三位」（§4.9）从 `10.41.0` 升到 `10.41.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.41.0 `NavMenu` 侧边导航菜单（替换 `NavTree`，破坏性变更）
 
