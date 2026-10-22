@@ -57,6 +57,15 @@
     "Splitter.PersistKey": "10.39.0",
     "Splitter.AriaLabel": "10.39.0",
     "Splitter.FirstPane": "10.39.0",
-    "Splitter.SecondPane": "10.39.0"
+    "Splitter.SecondPane": "10.39.0",
+    "NavMenu.Items": "10.41.0",
+    "NavMenu.SelectedId": "10.41.0",
+    "NavMenu.SelectedIdChanged": "10.41.0",
+    "NavMenu.OnItemSelected": "10.41.0",
+    "NavMenu.OpenKeys": "10.41.0",
+    "NavMenu.OpenKeysChanged": "10.41.0",
+    "NavMenu.OnGroupToggled": "10.41.0",
+    "NavMenu.Accordion": "10.41.0",
+    "NavMenu.AriaLabel": "10.41.0"
   }
 }

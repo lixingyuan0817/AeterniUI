@@ -771,15 +771,15 @@ public static class ShowcaseApiReference
             },
             ["nav-menu"] = new ShowcaseApiMember[]
             {
-                new("Accordion", "bool", "", "每个层级最多展开一个导航组。", "属性", ""),
-                new("AriaLabel", "string?", "", "导航地标的可访问名称；未提供时使用组件库文案表。", "属性", ""),
-                new("Items", "IReadOnlyList<NavMenuNode>", "", "Root nodes; Children nests to any depth.", "属性", ""),
-                new("OnGroupToggled", "EventCallback<NavMenuNode>", "", "导航组展开/折叠后触发。", "事件回调", ""),
-                new("OnItemSelected", "EventCallback<NavMenuNode>", "", "叶子节点被点击选中后触发，带回节点本身。", "事件回调", ""),
-                new("OpenKeys", "IReadOnlyList<string>?", "", "受控的展开节点 Id 集合；未传入时由组件自己维护。", "属性", ""),
-                new("OpenKeysChanged", "EventCallback<IReadOnlyList<string>>", "", "", "事件回调", ""),
-                new("SelectedId", "string?", "", "受控的选中项 Id。只有叶子节点可以进入选中态（导航组只展开/折叠）。", "属性", ""),
-                new("SelectedIdChanged", "EventCallback<string>", "", "叶子节点被选中时触发。", "事件回调", ""),
+                new("Accordion", "bool", "", "每个层级最多展开一个导航组。", "属性", "10.41.0"),
+                new("AriaLabel", "string?", "", "导航地标的可访问名称；未提供时使用组件库文案表。", "属性", "10.41.0"),
+                new("Items", "IReadOnlyList<NavMenuNode>", "", "Root nodes; Children nests to any depth.", "属性", "10.41.0"),
+                new("OnGroupToggled", "EventCallback<NavMenuNode>", "", "导航组展开/折叠后触发。", "事件回调", "10.41.0"),
+                new("OnItemSelected", "EventCallback<NavMenuNode>", "", "叶子节点被点击选中后触发，带回节点本身。", "事件回调", "10.41.0"),
+                new("OpenKeys", "IReadOnlyList<string>?", "", "受控的展开节点 Id 集合；未传入时由组件自己维护。", "属性", "10.41.0"),
+                new("OpenKeysChanged", "EventCallback<IReadOnlyList<string>>", "", "", "事件回调", "10.41.0"),
+                new("SelectedId", "string?", "", "受控的选中项 Id。只有叶子节点可以进入选中态（导航组只展开/折叠）。", "属性", "10.41.0"),
+                new("SelectedIdChanged", "EventCallback<string>", "", "叶子节点被选中时触发。", "事件回调", "10.41.0"),
             },
             ["tabs"] = new ShowcaseApiMember[]
             {

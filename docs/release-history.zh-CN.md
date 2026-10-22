@@ -1,10 +1,24 @@
 # AeterniUI 发布历史
 
-文档版本：`10.40.2`
+文档版本：`10.41.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.41.0 `NavMenu` 侧边导航菜单（替换 `NavTree`，破坏性变更）
+
+PR #33（`feat/nav-menu`）以 squash 合入 main（`710c59a`）。用 `NavMenu` 替换 10.40.0 交付的 `NavTree`：沿用 `Menu` 的展开/选中模型，但分组行没有内置的右侧折叠图标、任意深度的每一行都可以整行模板、展开的分组下方带左侧引导线；`NavTree` 同版本物理删除。
+
+- [x] 新组件 `Components/NavMenu/`（`.razor` / `.razor.cs` / `.razor.css` / `.razor.js`）：`Items`、`SelectedId` + `SelectedIdChanged`、`OnItemSelected`、`OpenKeys` + `OpenKeysChanged`、`OnGroupToggled`、`Accordion`、`AriaLabel`（缺省 `AeterniUITextOptions.NavMenuLabel`）。`NavMenuNode` 支持 `Children`、`Icon`、`Description`、`Trailing`、`RowTemplate`、`Href`/`Target`、`Disabled`、`Visible`、`InitiallyOpen`，Id 必须非空且唯一。
+- [x] 分组与选中：带可见子节点的行是导航组，只有 `aria-expanded` / `aria-controls` 与展开/折叠，不输出 `aria-current`、不写 `SelectedId`、不触发选中回调；叶子行才可选中（`aria-current="page"` + 与 `Menu` 同一组 state token 的选中样式）。`SelectedId` 指向分组时被忽略。
+- [x] 任意深度与模板：`Children` 递归渲染，每层左侧引导线表达层级；`RowTemplate`（`RenderFragment<NavMenuRowContext>`）接管整行内容，上下文提供 `Node` / `Depth` / `IsExpanded` / `IsSelected` / `IsDisabled`，按钮的可访问名称始终取 `Label`；`Trailing` 在行按钮之外，可放独立动作菜单，不产生嵌套按钮。
+- [x] 键盘与语义：根是 `<nav aria-label>`，列表 `role="list"`；沿用 `Menu` 的模型（自然 Tab 顺序 + 方向键在可见行间移动、`→`/`←` 按书写方向展开/折叠并进入/回到父级、`Home`/`End` 首尾、`Enter`/`Space` 原生激活）；方向键只在行按钮上抑制滚动，trailing 动作保留自己的键盘行为；JS 只做焦点、滚动抑制与书写方向。
+- [x] 破坏性移除：删除 `Components/NavTree/`（`NavTree`、`NavTreeNode`）、示例页 `/components/nav-tree`、目录条目 `nav-tree`、`tests/nav-tree.test.mjs`、`delivered-features` §54 的 NavTree 章节与 `scripts/api-since.json` 的 `NavTree.*` 记录；文本键 `NavTreeLabel` 更名为 `NavMenuLabel`；示例辅助组件 `NavTreeActionMenu` 更名为 `NavMenuActionMenu`。迁移口径：`/components/nav-tree` → `/components/nav-menu`，`OnNodeSelected` 拆成 `OnItemSelected`（叶子）与 `OnGroupToggled`（分组），分组行只更新 `OpenKeys`。
+- [x] 示例与生成物：`/components/nav-menu` 覆盖默认行与「整行模板 + 右侧操作」两段 demo；API 表（59 页 / 731 行）与搜索索引（524 条 / 66 页）重跑；`scripts/api-since.json` 补 9 个 `NavMenu.*` 成员（`10.41.0`），示例 API 表的「自哪个版本」列显示该版本。
+- [x] 回归：契约检查仍为 42 组，NavMenu 覆盖导航地标、展开/控制、叶子 `aria-current`、分组不选中、链接 target guard、`Accordion` 单开、`RowTemplate` 深度、`Trailing` 兄弟位置与 Id 校验；`tests/nav-menu.test.mjs` 守键盘模块的行级滚动抑制、trailing 放行、焦点与 RTL；`tests/browser/verify.mjs` 新增 4 条真实浏览器断言（分组只展开、引导线、叶子选中、模板行与 Trailing）。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 731 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器：PR #33 的 CI `browser` 作业 **176/176 PASS**，四条 NavMenu 断言全部通过（分组展开 true→false 且无 `aria-current`/选中、引导线 1px、叶子选中 `NavMenu 组件` 且 feedback `当前节点：nav-menu`、模板行 3 个项目名 / 3 个 Trailing / 0 个嵌套按钮）；本机 Chrome 156 单独复跑结果一致。
+- 按「功能新增递增第二位」（§4.9）从 `10.40.2` 升到 `10.41.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.40.2 修复：Splitter 持久化恢复循环、NavTree 选中态与辅助说明
 
