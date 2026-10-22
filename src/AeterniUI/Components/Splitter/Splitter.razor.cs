@@ -147,9 +147,22 @@ public partial class Splitter : AeterniComponent
             return;
         }
 
-        await JsModuleManager.InvokeModuleVoidAsync("splitter", "attach", InstanceId, RenderedRootElement, _renderedHandle, BuildOptions());
+        // Mark the instance attached before awaiting the JS attach call. The
+        // restore callback can invoke OnSizeRestoredAsync and trigger a render
+        // while attach is still in flight; without this flag that render would
+        // attach again, invoke the restore callback again, and form an endless
+        // JS <-> .NET microtask loop (observed with a persisted width).
         _attached = true;
-        _needsSync = false;
+        try
+        {
+            await JsModuleManager.InvokeModuleVoidAsync("splitter", "attach", InstanceId, RenderedRootElement, _renderedHandle, BuildOptions());
+            _needsSync = false;
+        }
+        catch
+        {
+            _attached = false;
+            throw;
+        }
     }
 
     /// <summary>

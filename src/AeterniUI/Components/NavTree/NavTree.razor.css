@@ -44,9 +44,22 @@
     color: var(--aeterni-text-primary);
 }
 
+/* Keep the selected treatment on the same state tokens as Menu so navigation
+   trees and action menus read as one system. */
 .aeterni-nav-tree__node.is-selected > .aeterni-nav-tree__row > .aeterni-nav-tree__button {
-    background: var(--aeterni-bg-tertiary);
-    color: var(--aeterni-text-primary);
+    border-color: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
+}
+
+.aeterni-nav-tree__node.is-selected > .aeterni-nav-tree__row > .aeterni-nav-tree__button:hover:not(:disabled) {
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.aeterni-nav-tree__node.is-selected > .aeterni-nav-tree__row > .aeterni-nav-tree__button:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
 }
 
 .aeterni-nav-tree__button:focus-visible {
@@ -72,7 +85,7 @@
 .aeterni-nav-tree__copy {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     min-width: 0;
     flex: 1 1 auto;
 }
@@ -86,7 +99,8 @@
 
 .aeterni-nav-tree__description {
     color: var(--aeterni-text-secondary);
-    font-size: var(--aeterni-font-size-xs);
+    font-size: calc(var(--aeterni-font-size-xs) - 1px);
+    line-height: var(--aeterni-line-height-normal);
 }
 
 .aeterni-nav-tree__trailing {
