@@ -103,7 +103,7 @@ public static class ShowcaseCatalog
             new("list", "List / ListItem", "List 与 ListItem 组合选择"),
             new("virtual-list", "VirtualList", "大数据量虚拟列表"),
             new("menu", "Menu", "分组菜单"),
-            new("nav-tree", "NavTree", "项目/会话导航树"),
+            new("nav-menu", "NavMenu", "项目/会话导航菜单"),
             new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航"),
             new("pagination", "Pagination", "分页导航")
         ]),

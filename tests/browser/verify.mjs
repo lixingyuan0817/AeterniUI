@@ -3693,6 +3693,86 @@ check('Splitter 在 RTL 下第一栏排到右侧，方向键按逻辑方向镜�
         && splitterRtlAfterLeft === splitterRtl.now,
     JSON.stringify({ splitterRtl, splitterRtlAfterRight, splitterRtlAfterLeft }));
 
+// ---------------------------------------------------------------- NavMenu 分组与行模板
+// 分组行只展开/折叠、叶子才选中；RowTemplate 接管整行，Trailing 是按钮的兄弟区域，
+// 展开的分组下方有左侧引导线。示例页第一棵树初始选中 workbench-rust。
+await goto(`${BASE}/components/nav-menu`);
+await waitForApp();
+const navMenuDeadline = Date.now() + 10000;
+while (Date.now() < navMenuDeadline) {
+    if (await evaluate(`!!document.querySelector('.aeterni-nav-menu')`)) break;
+    await sleep(100);
+}
+
+const readNavMenu = () => evaluate(`(() => {
+    const menu = document.querySelector('.aeterni-nav-menu');
+    if (!menu) return { error: 'missing menu' };
+    const rows = [...menu.querySelectorAll('.aeterni-nav-menu__node')];
+    const group = rows.find(row => row.querySelector('button[aria-expanded]'));
+    const selected = rows.filter(row => row.classList.contains('is-selected'));
+    const guide = menu.querySelector('.aeterni-nav-menu__children');
+    return {
+        expanded: group?.querySelector('button[aria-expanded]')?.getAttribute('aria-expanded') ?? null,
+        groupSelected: group?.classList.contains('is-selected') ?? null,
+        groupAriaCurrent: group?.querySelector('button')?.getAttribute('aria-current') ?? null,
+        selectedLabels: selected.map(row => row.querySelector('.aeterni-nav-menu__label')?.textContent?.trim() ?? ''),
+        feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+        guideWidth: guide ? getComputedStyle(guide).borderInlineStartWidth : null
+    };
+})()`);
+
+const clickNavMenuRow = label => evaluate(`(() => {
+    const menu = document.querySelector('.aeterni-nav-menu');
+    const row = [...menu.querySelectorAll('.aeterni-nav-menu__button')]
+        .find(node => node.textContent.includes(${JSON.stringify(label)}));
+    if (!row) return false;
+    row.click();
+    return true;
+})()`);
+
+const navMenuInitial = await readNavMenu();
+const clickedGroup = await clickNavMenuRow('AeterniWorkbench');
+await sleep(250);
+const navMenuAfterGroup = await readNavMenu();
+check('NavMenu 分组行只切换展开、不进入选中态',
+    clickedGroup
+        && navMenuInitial.expanded === 'true' && navMenuAfterGroup.expanded === 'false'
+        && navMenuInitial.groupSelected === false && navMenuAfterGroup.groupSelected === false
+        && navMenuInitial.groupAriaCurrent === null && navMenuAfterGroup.groupAriaCurrent === null
+        && navMenuAfterGroup.feedback === navMenuInitial.feedback,
+    JSON.stringify({ navMenuInitial, navMenuAfterGroup }));
+check('NavMenu 展开的分组下方有引导线',
+    navMenuInitial.guideWidth !== null && parseFloat(navMenuInitial.guideWidth) > 0,
+    JSON.stringify({ guideWidth: navMenuInitial.guideWidth }));
+
+const clickedLeaf = await clickNavMenuRow('NavMenu 组件');
+await sleep(250);
+const navMenuAfterLeaf = await readNavMenu();
+check('NavMenu 叶子行点击进入选中态',
+    clickedLeaf
+        && navMenuAfterLeaf.selectedLabels.length === 1
+        && navMenuAfterLeaf.selectedLabels[0] === 'NavMenu 组件'
+        && (navMenuAfterLeaf.feedback ?? '').includes('nav-menu'),
+    JSON.stringify({ navMenuAfterLeaf }));
+
+// 第二段 demo 证明 RowTemplate 接管整行、Trailing 独立于行按钮且不产生按钮嵌套。
+const templatedRows = await evaluate(`(() => {
+    const menus = [...document.querySelectorAll('.aeterni-nav-menu')];
+    const templated = menus[1];
+    if (!templated) return { error: 'missing templated demo' };
+    const projectNames = [...templated.querySelectorAll('.preview-nav-menu__project-name')].map(node => node.textContent.trim());
+    const trailing = templated.querySelectorAll('.aeterni-nav-menu__trailing').length;
+    const nestedButtons = [...templated.querySelectorAll('.aeterni-nav-menu__button button')].length;
+    return { projectNames, trailing, nestedButtons };
+})()`);
+check('NavMenu RowTemplate 接管整行、Trailing 在按钮之外',
+    !templatedRows.error
+        && templatedRows.projectNames.length >= 1
+        && templatedRows.projectNames.includes('AeterniWorkbench')
+        && templatedRows.trailing >= 1
+        && templatedRows.nestedButtons === 0,
+    JSON.stringify(templatedRows));
+
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);
 console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

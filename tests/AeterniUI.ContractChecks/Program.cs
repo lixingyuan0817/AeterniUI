@@ -16,7 +16,7 @@ using AeterniUI.Components.InputNumber;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.MultiSelect;
-using AeterniUI.Components.NavTree;
+using AeterniUI.Components.NavMenu;
 using AeterniUI.Components.Search;
 using AeterniUI.Components.Segmented;
 using AeterniUI.Components.Slider;
@@ -62,7 +62,7 @@ await CheckSplitButtonAsync();
 await CheckSearchAsync();
 await CheckAutocompleteAsync();
 await CheckMultiSelectAsync();
-await CheckNavTreeAsync();
+await CheckNavMenuAsync();
 await CheckCascaderAsync();
 await CheckInputNumberAsync();
 await CheckSliderAsync();
@@ -3836,64 +3836,126 @@ async Task CheckSplitterAsync()
 }
 
 
-async Task CheckNavTreeAsync()
+async Task CheckNavMenuAsync()
 {
     var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
-        typeof(NavTree), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
-    Require(module.Interactive && module.Name == "navtree",
-        "NavTree declares its interactive navigation module.");
+        typeof(NavMenu), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "navmenu",
+        "NavMenu declares its interactive navigation module.");
 
     RenderFragment trailing = builder => builder.AddContent(0, "trailing-actions");
-    RenderFragment icon = builder => builder.AddContent(0, "leading-icon");
-    var items = new NavTreeNode[]
+    var items = new NavMenuNode[]
     {
         new(
             "project",
             "Project",
             [
-                new("child-a", "Child A", Icon: icon),
-                new("child-b", "Child B")
+                new("child-a", "Child A", Description: "Child A description"),
+                new("child-b", "Child B", Href: "/child-b", Target: "_blank", Description: "Child B description")
             ],
-            Icon: icon,
-            Description: "Project description"),
-        new("other", "Other")
+            Trailing: trailing),
+        new("leaf", "Leaf", Href: "/leaf")
     };
 
-    var html = await RenderAsync<NavTree>(new Dictionary<string, object?>
+    var html = await RenderAsync<NavMenu>(new Dictionary<string, object?>
     {
-        [nameof(NavTree.Items)] = items,
-        [nameof(NavTree.SelectedId)] = "child-a",
-        [nameof(NavTree.OpenKeys)] = new[] { "project" },
-        [nameof(NavTree.AriaLabel)] = "Contract navigation"
+        [nameof(NavMenu.Items)] = items,
+        [nameof(NavMenu.SelectedId)] = "child-a",
+        [nameof(NavMenu.OpenKeys)] = new[] { "project" },
+        [nameof(NavMenu.AriaLabel)] = "Contract navigation"
     });
 
-    Require(html.Contains("role=\"tree\"", StringComparison.Ordinal)
+    Require(html.Contains("<nav", StringComparison.Ordinal)
         && html.Contains("aria-label=\"Contract navigation\"", StringComparison.Ordinal)
-        && html.Contains("aeterni-nav-tree", StringComparison.Ordinal),
-        "NavTree renders its tree root with an accessible name.");
-    Require(html.Contains("role=\"treeitem\"", StringComparison.Ordinal)
-        && html.Contains("aria-level=\"1\"", StringComparison.Ordinal)
-        && html.Contains("aria-level=\"2\"", StringComparison.Ordinal)
-        && html.Contains("aria-expanded=\"true\"", StringComparison.Ordinal),
-        "NavTree exposes treeitem levels and expanded state.");
-    Require(html.Contains("Child A", StringComparison.Ordinal)
-        && html.Contains("aria-selected=\"true\"", StringComparison.Ordinal)
-        && html.Contains("Project description", StringComparison.Ordinal)
-        && html.Contains("leading-icon", StringComparison.Ordinal),
-        "NavTree renders labels, descriptions, icons and selected state.");
+        && html.Contains("aeterni-nav-menu", StringComparison.Ordinal)
+        && html.Contains("role=\"list\"", StringComparison.Ordinal),
+        "NavMenu renders a navigation landmark with a labelled list.");
 
-    var withTrailing = await RenderAsync<NavTree>(new Dictionary<string, object?>
+    Require(html.Contains("aria-expanded=\"true\"", StringComparison.Ordinal)
+        && html.Contains("aria-controls=", StringComparison.Ordinal)
+        && html.Contains("Child A description", StringComparison.Ordinal),
+        "NavMenu renders a disclosure group with its open state and default row content.");
+
+    Require(html.Contains("aria-current=\"page\"", StringComparison.Ordinal)
+        && html.Contains("aeterni-nav-menu__node is-selected", StringComparison.Ordinal)
+        && html.Contains("href=\"/child-b\"", StringComparison.Ordinal)
+        && html.Contains("rel=\"noopener noreferrer\"", StringComparison.Ordinal),
+        "NavMenu marks the selected leaf and renders leaf links with their target guard.");
+
+    // Groups are navigation labels, not destinations: a SelectedId pointing at one
+    // must not mark it selected or expose aria-current.
+    var groupSelected = await RenderAsync<NavMenu>(new Dictionary<string, object?>
     {
-        [nameof(NavTree.Items)] = new[]
+        [nameof(NavMenu.Items)] = items,
+        [nameof(NavMenu.SelectedId)] = "project",
+        [nameof(NavMenu.OpenKeys)] = new[] { "project" }
+    });
+    Require(!groupSelected.Contains("aria-current=", StringComparison.Ordinal)
+        && !groupSelected.Contains("is-selected", StringComparison.Ordinal),
+        "NavMenu must ignore a SelectedId that points at an expandable group.");
+
+    // Accordion keeps one open group per level: at the root only the first
+    // InitiallyOpen group stays expanded.
+    var accordion = await RenderAsync<NavMenu>(new Dictionary<string, object?>
+    {
+        [nameof(NavMenu.Items)] = new NavMenuNode[]
         {
-            new NavTreeNode("project", "Project", [new("child", "Child")], Trailing: trailing)
+            new("first", "First", [new("first-child", "First child")]),
+            new("second", "Second", [new("second-child", "Second child")])
         },
-        [nameof(NavTree.OpenKeys)] = new[] { "project" }
+        [nameof(NavMenu.Accordion)] = true
+    });
+    Require(accordion.Split("aria-expanded=\"true\"", StringSplitOptions.None).Length - 1 == 1
+        && accordion.Contains("aria-expanded=\"false\"", StringComparison.Ordinal),
+        "NavMenu Accordion keeps a single open group at each level.");
+
+    // RowTemplate owns the whole row; depth is part of the context so a template
+    // can style arbitrary nesting.
+    RenderFragment<NavMenuRowContext> template = context =>
+        builder => builder.AddContent(0, $"custom-row-{context.Node.Id}-depth-{context.Depth}");
+    var templated = await RenderAsync<NavMenu>(new Dictionary<string, object?>
+    {
+        [nameof(NavMenu.Items)] = new NavMenuNode[]
+        {
+            new("project", "Project", [new("child", "Child", RowTemplate: template)], RowTemplate: template),
+            new("leaf", "Leaf")
+        },
+        [nameof(NavMenu.OpenKeys)] = new[] { "project" }
+    });
+    Require(templated.Contains("custom-row-project-depth-0", StringComparison.Ordinal)
+        && templated.Contains("custom-row-child-depth-1", StringComparison.Ordinal)
+        && templated.Contains("aria-label=\"Project\"", StringComparison.Ordinal),
+        "NavMenu RowTemplate replaces the row content and receives its depth.");
+
+    var withTrailing = await RenderAsync<NavMenu>(new Dictionary<string, object?>
+    {
+        [nameof(NavMenu.Items)] = new NavMenuNode[]
+        {
+            new("project", "Project", [new("child", "Child")], Trailing: trailing)
+        },
+        [nameof(NavMenu.OpenKeys)] = new[] { "project" }
     });
     var buttonEnd = withTrailing.IndexOf("</button>", StringComparison.Ordinal);
     var trailingStart = withTrailing.IndexOf("trailing-actions", StringComparison.Ordinal);
     Require(buttonEnd >= 0 && trailingStart > buttonEnd,
-        "NavTree renders Trailing as a sibling after the node button.");
+        "NavMenu renders Trailing as a sibling after the row button.");
+
+    // Parameter validation: ids must be present and unique.
+    foreach (var (name, invalid) in new (string Name, IReadOnlyList<NavMenuNode> Nodes)[]
+    {
+        ("empty id", new NavMenuNode[] { new("", "Empty") }),
+        ("duplicate id", new NavMenuNode[] { new("dup", "One"), new("dup", "Two") })
+    })
+    {
+        try
+        {
+            await RenderAsync<NavMenu>(new Dictionary<string, object?> { [nameof(NavMenu.Items)] = invalid });
+            Require(false, $"NavMenu must reject {name} instead of rendering.");
+        }
+        catch (ArgumentException)
+        {
+        }
+    }
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)

@@ -1,0 +1,115 @@
+@inherits AeterniComponent
+
+@* Navigation sidebar: disclosure groups (expand/collapse only) and leaf links or
+   buttons (the only selectable rows). No built-in chevron: the group row owns its
+   whole template, and Trailing stays a sibling of the interactive element so a row
+   can carry its own action menu without nesting buttons. *@
+<nav @ref="RenderedRootElement" @attributes="BuildAttributes()" aria-label="@EffectiveAriaLabel">
+    <ul class="aeterni-nav-menu__list" role="list">
+        @foreach (var node in Items)
+        {
+            @RenderNode(node, 0)
+        }
+    </ul>
+</nav>
+
+@code {
+    private RenderFragment RenderNode(NavMenuNode node, int depth) => @<text>
+        @if (node.Visible)
+        {
+            var isGroup = node.HasChildren;
+            var nodeDisabled = IsDisabled(node);
+            var nodeSelected = IsSelected(node);
+            var nodeExpanded = isGroup && IsOpen(node.Id);
+            <li class="aeterni-nav-menu__node @(nodeSelected ? "is-selected" : null) @(nodeExpanded ? "is-open" : null)"
+                data-depth="@depth">
+                <div class="aeterni-nav-menu__row">
+                    @if (isGroup)
+                    {
+                        <button type="button"
+                                id="@NodeDomId(node)"
+                                class="aeterni-nav-menu__button"
+                                aria-expanded="@(nodeExpanded ? "true" : "false")"
+                                aria-controls="@RegionId(node)"
+                                aria-label="@(node.RowTemplate is not null ? node.Label : null)"
+                                disabled="@nodeDisabled"
+                                @onfocus="() => TrackFocus(node)"
+                                @onkeydown="HandleKeyDownAsync"
+                                @onclick="() => ToggleAsync(node)">
+                            @RowBody(node, depth, nodeExpanded, false, nodeDisabled)
+                        </button>
+                    }
+                    else if (node.Href is not null && !nodeDisabled)
+                    {
+                        <a id="@NodeDomId(node)"
+                           class="aeterni-nav-menu__button"
+                           href="@node.Href"
+                           target="@node.Target"
+                           rel="@LinkRel(node)"
+                           aria-current="@(nodeSelected ? "page" : null)"
+                           aria-label="@(node.RowTemplate is not null ? node.Label : null)"
+                           @onfocus="() => TrackFocus(node)"
+                           @onkeydown="HandleKeyDownAsync"
+                           @onclick="() => SelectAsync(node)">
+                            @RowBody(node, depth, false, nodeSelected, nodeDisabled)
+                        </a>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                id="@NodeDomId(node)"
+                                class="aeterni-nav-menu__button"
+                                aria-current="@(nodeSelected ? "page" : null)"
+                                aria-label="@(node.RowTemplate is not null ? node.Label : null)"
+                                disabled="@nodeDisabled"
+                                @onfocus="() => TrackFocus(node)"
+                                @onkeydown="HandleKeyDownAsync"
+                                @onclick="() => SelectAsync(node)">
+                            @RowBody(node, depth, false, nodeSelected, nodeDisabled)
+                        </button>
+                    }
+
+                    @if (node.Trailing is not null)
+                    {
+                        <div class="aeterni-nav-menu__trailing">@node.Trailing</div>
+                    }
+                </div>
+
+                @if (isGroup)
+                {
+                    <div class="aeterni-nav-menu__collapse @(nodeExpanded ? "is-open" : null)" id="@RegionId(node)">
+                        <ul class="aeterni-nav-menu__children" role="list">
+                            @foreach (var child in node.Children!)
+                            {
+                                @RenderNode(child, depth + 1)
+                            }
+                        </ul>
+                    </div>
+                }
+            </li>
+        }
+    </text>;
+
+    private RenderFragment RowBody(NavMenuNode node, int depth, bool expanded, bool selected, bool disabled)
+    {
+        if (node.RowTemplate is not null)
+        {
+            var context = new NavMenuRowContext(node, depth, expanded, selected, disabled);
+            return builder => node.RowTemplate(context)(builder);
+        }
+
+        return @<text>
+            @if (node.Icon is not null)
+            {
+                <span class="aeterni-nav-menu__icon" aria-hidden="true">@node.Icon</span>
+            }
+            <span class="aeterni-nav-menu__copy">
+                <span class="aeterni-nav-menu__label">@node.Label</span>
+                @if (!string.IsNullOrWhiteSpace(node.Description))
+                {
+                    <span class="aeterni-nav-menu__description">@node.Description</span>
+                }
+            </span>
+        </text>;
+    }
+}

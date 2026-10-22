@@ -1699,33 +1699,33 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 </Splitter>
 ```
 
-## 54. NavTree
+## 54. NavMenu
 
 ### 支持能力
 
-`NavTree` 是用于项目、会话和设置等层级导航的树。它与 `Menu` 的分工：`Menu` 是动作/命令列表，`NavTree` 是导航结构，节点可以有独立的 trailing 区域。
+`NavMenu` 是侧边导航菜单：沿用 `Menu` 的展开/选中模型，但分组行没有内置的右侧折叠图标、每一行都可以是自定义模板，展开的分组下方带一条引导线。它与 `Menu` 的分工：`Menu` 是动作/命令列表，`NavMenu` 是层级导航，节点可以任意深度嵌套，带 `Children` 的行是导航组。
 
-- `Items`：根节点列表；`NavTreeNode` 支持 `Children`、`Icon`、`Description`、`Trailing`、`Disabled` 和 `Visible`，节点 Id 必须非空且唯一。
-- `SelectedId` + `SelectedIdChanged`、`OnNodeSelected`：受控/非受控选择；`SelectedId` 为空且没有回调时，树保留自己的内部选择。
-- `OpenKeys` + `OpenKeysChanged`：受控/非受控展开状态；没有子节点的节点不会输出 `aria-expanded`。
-- `AriaLabel`：根树的可访问名称，缺省取 `AeterniUITextOptions.NavTreeLabel`。
-- `Trailing` 是节点按钮的**兄弟区域**，可放 `PopupHost` + `Popover` + `Menu` 等独立动作入口，不会产生按钮嵌套。
-- 选中行与 `Menu` 使用同一组 state token：选中背景、品牌文字和左侧强调线保持一致；hover/active 不覆盖选中态。辅助说明使用更小字号、`--aeterni-text-secondary` 和更松的行高；层级缩进和引导线由组件样式负责。
+- `Items`：根节点列表；`NavMenuNode` 支持 `Children`、`Icon`、`Description`、`Trailing`、`RowTemplate`、`Href`/`Target`、`Disabled`、`Visible` 与 `InitiallyOpen`，节点 Id 必须非空且唯一。
+- `SelectedId` + `SelectedIdChanged`、`OnItemSelected`：受控选择；**只有叶子节点（没有可见子节点）可以进入选中态**，可展开行只负责展开/折叠，不写 `SelectedId`，也不触发这两个回调。
+- `OpenKeys` + `OpenKeysChanged`、`OnGroupToggled`：受控/非受控展开；`Accordion` 让每个层级最多展开一个分组；未提供 `OpenKeys` 时会自动展开选中叶子所在的分组。
+- `RowTemplate`（`RenderFragment<NavMenuRowContext>`）：接管整行内容，`context` 提供 `Node`、`Depth`、`IsExpanded`、`IsSelected`、`IsDisabled`；模板渲染在行按钮内部，按钮的可访问名称始终取节点 `Label`。
+- `Trailing`：行按钮的**兄弟区域**，可放独立的动作菜单，不产生按钮嵌套。
+- `AriaLabel`：导航地标的可访问名称，缺省取 `AeterniUITextOptions.NavMenuLabel`。
 
 ### 行为与无障碍
 
-根元素是 `role="tree"`，每个可见节点是 `role="treeitem"`，`aria-level` 表示层级；有子节点的节点输出 `"true"`/`"false"` 的 `aria-expanded`，选中节点输出 `"true"`/`"false"` 的 `aria-selected`。整棵树只有一个 Tab 停留点，方向键在可见节点间移动：`↑`/`↓` 上一个/下一个，`→` 展开或进入第一个子节点，`←` 折叠或回到父节点，`Home`/`End` 跳到首尾；`Enter`/`Space` 保留节点按钮原生激活。点击节点也会选中它，有子节点时同时切换展开状态。
+根元素是 `<nav aria-label>`，列表是 `role="list"`；分组行是带 `aria-expanded` / `aria-controls` 的按钮，展开区域是嵌套列表。叶子行渲染为真实链接（提供 `Href` 时）或按钮，选中后输出 `aria-current="page"` 与选中样式；分组行不输出 `aria-current`。焦点沿用 `Menu` 的模型：链接与按钮保持原生 Tab 顺序，方向键在可见行之间移动，`→`/`←` 按书写方向展开/折叠并进入/回到父级，`Home`/`End` 跳到首尾；`Enter`/`Space` 保留原生激活。分组没有内置 chevron，展开态由 `aria-expanded` 与左侧引导线表达，`RowTemplate` 里可以自己画图标或状态。
 
-`Trailing` 在节点按钮之外，内部动作按钮是独立焦点目标；方向键拦截只作用于树节点按钮，trailing 的菜单/按钮保留自己的键盘行为。JS 只负责移动焦点和抑制方向键导致的页面滚动，展开/选中模型在 C# 中。
+`Trailing` 在行按钮之外，内部动作按钮是独立焦点目标；方向键只在行按钮上生效，trailing 的菜单/按钮保留自己的键盘行为。JS 只负责移动焦点、抑制方向键滚动并报告书写方向，展开/选中模型在 C#。
 
 ### 实现边界
 
-第一版支持任意深度的数据，但视觉缩进会随层级累积；超深树需要宿主限制或改用更扁平的信息架构。不提供内置拖拽排序、内联重命名、异步加载子节点、搜索过滤或虚拟化；这些由宿主在节点数据/动作区中处理。示例：`/components/nav-tree`。
+支持任意深度的数据；`Accordion` 按层级生效。分组行不可选中（需要"可选中分组"时用 `Menu`，或让该节点不带 `Children`）。不提供内置拖拽排序、内联重命名、异步加载子节点、搜索过滤或虚拟化；这些由宿主在节点数据/动作区中处理。示例：`/components/nav-menu`。
 
 ### 基础用法
 
 ```razor
-<NavTree Items="Items"
+<NavMenu Items="Items"
          SelectedId="@selectedId"
          SelectedIdChanged="OnSelected"
          OpenKeys="@openKeys"
@@ -1734,7 +1734,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 ```
 
 ```csharp
-private static readonly NavTreeNode[] Items =
+private static readonly NavMenuNode[] Items =
 [
     new("workbench", "AeterniWorkbench",
         [new("rust", "Rust + Tauri 桌面壳"), new("ui", "AeterniUI 接入")])
