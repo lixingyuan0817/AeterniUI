@@ -27,6 +27,11 @@
 }
 
 .aeterni-dialog-provider__backdrop {
+    /* The scroll lock reserves the scrollbar gutter, and a fixed layer is sized
+       against the reduced layout viewport. Grow over the reserved strip so the
+       scrim has no unpainted edge and the grid stays centred on the window. The
+       variable is 0px on overlay-scrollbar engines (nothing reserved). */
+    inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px));
     display: grid;
     place-items: center;
     box-sizing: border-box;

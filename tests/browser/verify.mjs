@@ -2033,6 +2033,49 @@ check('遮罩铺满整页视口',
     && Math.abs(panelGeometry.scrim.height - panelGeometry.viewport.h) <= 1,
     JSON.stringify({ scrim: panelGeometry.scrim, viewport: panelGeometry.viewport }));
 
+// 锁滚动会预留滚动条槽（scrollbar-gutter: stable），而固定层是按缩小后的布局视口排的：
+// 覆盖层必须用 `--aeterni-scroll-lock-gutter` 把内联末端伸过去。这条断言盯的是因果链的
+// 中间环节——变量确实写进了根元素、遮罩确实铺到窗口右边缘——而不是重复上面两条几何断言；
+// 覆盖式滚动条没有槽、变量为空，这一条自然退化为通过。
+const gutterCover = await evaluate(`(() => {
+    const root = document.documentElement;
+    const scrim = document.querySelector('.showcase-search-modal__backdrop');
+    if (!scrim) return { error: 'missing scrim' };
+    const rect = scrim.getBoundingClientRect();
+    const luminance = value => {
+        const parts = /rgba?\(([^)]+)\)/.exec(value);
+        if (!parts) return null;
+        const [r, g, b] = parts[1].split(',').map(Number);
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const rootBg = getComputedStyle(root).backgroundColor;
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    return {
+        gutter: getComputedStyle(root).getPropertyValue('--aeterni-scroll-lock-gutter').trim(),
+        gutterStyle: root.style.scrollbarGutter,
+        innerWidth,
+        scrimRight: rect.right,
+        insetEnd: getComputedStyle(document.querySelector('.showcase-search-modal')).insetInlineEnd,
+        rootBg,
+        bodyBg,
+        rootLuminance: luminance(rootBg),
+        bodyLuminance: luminance(bodyBg)
+    };
+})()`);
+check('锁滚动预留的滚动条槽被覆盖层接住（几何外扩 + 画布着色）',
+    !gutterCover.error
+    && (!gutterCover.gutter
+        || (gutterCover.gutterStyle === 'stable'
+            && parseFloat(gutterCover.gutter) > 0
+            && Math.abs(gutterCover.scrimRight - gutterCover.innerWidth) <= 1
+            && parseFloat(gutterCover.insetEnd) < 0
+            // 固定层只能排到布局视口，覆盖槽位要靠把根元素的画布底色换成「遮罩叠在页面底色上」；
+            // 页面底色不透明时这一步必须生效，否则右侧仍会留一条未压暗的亮条。
+            && gutterCover.rootLuminance !== null
+            && gutterCover.bodyLuminance !== null
+            && gutterCover.rootLuminance < gutterCover.bodyLuminance - 20)),
+    JSON.stringify(gutterCover));
+
 // 关闭要真的把滚动锁还回去：模态自己开完不还，页面就此锁死（开锁那半条在上面，这条盯释放）。
 await key('Escape', 'Escape', 27);
 const released = await waitForSearchState(state => !state.open);

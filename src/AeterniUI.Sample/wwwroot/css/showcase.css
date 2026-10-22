@@ -2123,6 +2123,9 @@
     position: fixed;
     z-index: var(--aeterni-z-modal);
     inset: 0;
+    /* 滚动锁预留的滚动条槽不计入固定层的布局视口：把内联末端伸过去，遮罩才能铺满窗口，
+       面板也回到窗口中心。覆盖式滚动条引擎上该变量是 0px，等于没有这条声明。 */
+    inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px));
     display: grid;
     box-sizing: border-box;
     padding: var(--aeterni-spacing-5);

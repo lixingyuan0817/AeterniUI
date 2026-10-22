@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.40.0`
+文档版本：`10.40.1`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -903,7 +903,7 @@ builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green
 Provider 统一负责遮罩、焦点管理、背景滚动锁定和弹层层级，并通过 `IDialogService` 对外提供能力，
 因此应用组件不访问 Provider 内部状态。消息内容按纯文本安全输出。
 
-锁定背景滚动时优先在根元素保留 `scrollbar-gutter: stable`（仅在页面确实可滚动且浏览器支持时），开、关浮层前后视口宽度不变，fixed 页头与流内正文始终对齐；浏览器不支持时退回 `body` 右内边距补偿，解锁时 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原。
+锁定背景滚动时优先在根元素保留 `scrollbar-gutter: stable`（仅在页面确实可滚动且浏览器支持时），开、关浮层前后视口宽度不变，fixed 页头与流内正文始终对齐；浏览器不支持时退回 `body` 右内边距补偿，解锁时 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原。 预留的滚动条槽由全屏覆盖层用 `--aeterni-scroll-lock-gutter` 外扩（Dialog 遮罩、Drawer 根层、Popover 遮罩与示例搜索模态都是消费者），所以居中面板对准窗口中心；槽位本身会被画成与遮罩相同的压暗色（根元素画布着色，固定层画不进槽位），右侧不会留一条未压暗的亮条。覆盖式滚动条引擎上该变量为 `0px`，行为不变。
 
 Dialog 与 Confirm 的面板进场 200ms、退场 150ms（均为 normal 档的派生值）；遮罩以同一 150ms 淡出并与面板同帧开始，关闭时等待面板实测退场动画结束后再移除节点，遮罩不会提前消失或残留一帧。`prefers-reduced-motion: reduce` 下面板与遮罩都不播放动画。
 
@@ -1170,7 +1170,7 @@ Avatar 不负责图片加载失败后的远程重试或头像组布局。尺寸�
 `Drawer` 提供从视口边缘滑出的面板：
 
 - `Open` / `OpenChanged`（受控，支持 `@bind-Open`）、`Placement`（`DrawerPlacement`：`Start` / `End` / `Top` / `Bottom`，默认 `End`）、`Modal`（默认 `true`）。
-- 模态形态：遮罩、`role="dialog"` + `aria-modal="true"`、Tab 焦点陷阱、背景滚动锁（优先用 `scrollbar-gutter` 预留滚动条，开、关面板前后视口宽度不变；不支持时退回给 `body` 补 `padding-right`）、关闭后焦点回到打开它的元素。
+- 模态形态：遮罩、`role="dialog"` + `aria-modal="true"`、Tab 焦点陷阱、背景滚动锁（优先用 `scrollbar-gutter` 预留滚动条，开、关面板前后视口宽度不变；预留槽由根层用 `--aeterni-scroll-lock-gutter` 盖住，面板贴窗口边缘而不是缩小后的布局视口；不支持时退回给 `body` 补 `padding-right`）、关闭后焦点回到打开它的元素。
 - 非模态形态：不渲染遮罩、不锁滚动、不抢焦点，输出 `role="region"`；页面保持可交互，只在面板外的指针按下或 Escape 时请求关闭。
 - 关闭路径统一由 `OpenChanged` 驱动：`CloseOnEscape`、`CloseOnOutsideClick`、内置关闭按钮（`ShowCloseButton`）都只“请求关闭”，`@bind-Open` 仍是唯一事实源；`Disabled` 会锁住所有关闭路径。
 - 内容分三段：`Title`（标题，同时作为面板的无障碍名称）、`ChildContent`（可滚动的 body）与 `Footer`（不滚动的底部操作条）；关闭按钮的无障碍名称可用 `CloseLabel` 覆盖、缺省取 `AeterniUITextOptions.DrawerCloseLabel`；面板本身可用 `AriaLabel` 覆盖名称。

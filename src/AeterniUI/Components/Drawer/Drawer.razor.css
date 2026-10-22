@@ -13,6 +13,10 @@
 
     position: fixed;
     inset: 0;
+    /* Cover the scrollbar gutter the scroll lock reserves (0px when the engine
+       uses overlay scrollbars); this also keeps the panel flush with the window
+       edge instead of the reduced layout edge. */
+    inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px));
     z-index: var(--aeterni-z-modal-backdrop);
     pointer-events: none;
 }

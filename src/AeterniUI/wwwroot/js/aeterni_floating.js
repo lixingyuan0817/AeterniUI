@@ -107,6 +107,67 @@ let scrollLockCount = 0;
 let scrollLockState = null;
 
 /**
+ * Inline custom property written on `<html>` while the scroll lock reserves a
+ * gutter. Full-viewport overlays extend their inline-end edge by this value
+ * (`inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px))`): fixed
+ * layers are laid out in the reduced viewport, so without the extension the
+ * reserved strip stays unpainted and a centred panel sits half a scrollbar off
+ * the window centre. The value is 0 on overlay-scrollbar engines, where nothing
+ * is reserved and the extension is a no-op.
+ */
+const SCROLL_LOCK_GUTTER = '--aeterni-scroll-lock-gutter';
+const OVERLAY_TOKEN = '--aeterni-overlay';
+
+function rgbaOf(value) {
+    const match = /rgba?\(([^)]+)\)/.exec(String(value ?? ''));
+    if (!match) {
+        return null;
+    }
+
+    const parts = match[1].split(',').map(part => Number.parseFloat(part));
+    if (parts.length < 3 || parts.slice(0, 3).some(part => Number.isNaN(part))) {
+        return null;
+    }
+
+    return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+}
+
+/**
+ * The reserved gutter is painted by the root element's background colour only:
+ * fixed layers are clipped to the layout viewport, so extending them (which the
+ * components still do for geometry) cannot paint the strip. Return the scrim's
+ * overlay flattened over the page background so the canvas can paint the same
+ * colour, or `null` when that would be wrong:
+ *
+ * - a transparent body would let the dimmed canvas show through the page content
+ *   as a second dim layer, so only opaque page backgrounds qualify;
+ * - without `getComputedStyle` (Node stubs) there is nothing to measure.
+ */
+function gutterPaintColor(root) {
+    if (typeof getComputedStyle !== 'function') {
+        return null;
+    }
+
+    const body = rgbaOf(getComputedStyle(document.body).backgroundColor);
+    if (!body || body.a < 0.999) {
+        return null;
+    }
+
+    // The gutter is painted from the canvas: the root's own colour when it is
+    // opaque, otherwise the body colour that propagates to the canvas.
+    const rootColor = rgbaOf(getComputedStyle(root).backgroundColor);
+    const page = rootColor && rootColor.a >= 0.999 ? rootColor : body;
+
+    const overlay = rgbaOf(getComputedStyle(root).getPropertyValue(OVERLAY_TOKEN));
+    if (!overlay) {
+        return null;
+    }
+
+    const mix = channel => Math.round(overlay[channel] * overlay.a + page[channel] * (1 - overlay.a));
+    return `rgb(${mix('r')}, ${mix('g')}, ${mix('b')})`;
+}
+
+/**
  * Locks page scroll while keeping the background from reflowing by the scrollbar
  * width. Reference counted, so two overlapping overlays cannot unlock each other.
  * Returns an idempotent release function.
@@ -134,7 +195,9 @@ export function lockScroll() {
         scrollLockState = {
             overflow: body.style.overflow,
             paddingRight: body.style.paddingRight,
-            scrollbarGutter: rootStyle ? rootStyle.scrollbarGutter : null
+            scrollbarGutter: rootStyle ? rootStyle.scrollbarGutter : null,
+            gutter: rootStyle?.getPropertyValue?.(SCROLL_LOCK_GUTTER) ?? '',
+            pageBackground: rootStyle ? (rootStyle.backgroundColor ?? '') : null
         };
 
         if (reservesGutter) {
@@ -142,6 +205,16 @@ export function lockScroll() {
             // page would introduce a stripe the page never had.
             if (rootStyle && root.scrollHeight > root.clientHeight) {
                 rootStyle.scrollbarGutter = 'stable';
+                // Measured before the lock hid the track, so it is the width the
+                // full-viewport overlays have to extend by.
+                if (scrollbarWidth > 0) {
+                    rootStyle.setProperty?.(SCROLL_LOCK_GUTTER, `${scrollbarWidth}px`);
+                    // Paint the strip the fixed layers cannot reach (see helper).
+                    const paint = gutterPaintColor(root);
+                    if (paint) {
+                        rootStyle.backgroundColor = paint;
+                    }
+                }
             }
         } else if (scrollbarWidth > 0) {
             body.style.paddingRight = `${scrollbarWidth}px`;
@@ -171,6 +244,18 @@ export function lockScroll() {
             if (rootStyle && scrollLockState.scrollbarGutter !== null) {
                 rootStyle.scrollbarGutter = scrollLockState.scrollbarGutter;
             }
+
+            // Leave a host-provided value in place instead of clearing it.
+            if (rootStyle) {
+                if (scrollLockState.gutter) {
+                    rootStyle.setProperty?.(SCROLL_LOCK_GUTTER, scrollLockState.gutter);
+                } else {
+                    rootStyle.removeProperty?.(SCROLL_LOCK_GUTTER);
+                }
+
+                rootStyle.backgroundColor = scrollLockState.pageBackground;
+            }
+
             scrollLockState = null;
         }
     };

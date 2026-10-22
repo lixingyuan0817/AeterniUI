@@ -78,6 +78,9 @@
 .aeterni-popover__backdrop {
     position: fixed;
     inset: 0;
+    /* Grow over the scrollbar gutter reserved by the scroll lock (0px on
+       overlay-scrollbar engines) so the scrim has no unpainted edge. */
+    inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px));
     z-index: var(--aeterni-z-modal-backdrop);
     background: var(--aeterni-overlay);
     -webkit-backdrop-filter: var(--aeterni-blur-scrim);

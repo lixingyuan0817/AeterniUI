@@ -1,10 +1,28 @@
 # AeterniUI 发布历史
 
-文档版本：`10.40.0`
+文档版本：`10.40.1`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.40.1 修复：锁滚动预留的滚动条槽没被压暗（CI 浏览器作业的两条几何断言）
+
+10.40.0 之后 `build` 工作流的 `browser` 作业仍红：171 条断言中 169 通过，恒失败的是「面板在视口里居中」「遮罩铺满整页视口」。复核确认不是环境项，而是 10.38.4 引入 `scrollbar-gutter: stable` 后留下的系统性缺陷：预留槽让布局视口缩小一个滚动条宽（CI 10px、经典滚动条本机 11px），两端都按布局视口排布：
+
+- `position: fixed; inset: 0` 的覆盖层只排到 1440 减槽宽，右侧留下一条未压暗的亮条（实测 `RGB(247,247,247)` 页面底色对比遮罩 `RGB(142,142,142)`）；
+- 居中容器按缩小后的宽度居中，面板中心落在 715 而不是 720。
+
+覆盖式滚动条（macOS 默认）宽度为 0，本地历史上无法复现，10.38.4 因此把它误记成「本机 Edge 环境项」。用 `--disable-features=OverlayScrollbar` 得到经典滚动条后，本机 Chrome 156 完整复现了 CI 的两个数字。
+
+修复要同时解决「几何」与「绘制」两件事，因为 Chrome 把固定定位的绘制裁在布局视口内，**外扩出来的槽位不会被画到**：
+
+- [x] 几何：`lockScroll()` 在预留槽位时把实测滚动条宽度写成根元素上的 `--aeterni-scroll-lock-gutter`（锁前测量、引用计数只在首个锁写入、末个释放恢复；宿主同名值原样还原）；`DialogProvider` 遮罩、`Drawer` 根层、`Popover` 遮罩、示例搜索模态四处用 `inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px))` 把内联末端伸出去，遮罩矩形与居中容器回到窗口尺寸，面板中心回到 720；RTL 下向左侧扩。覆盖式滚动条引擎上变量为 `0px`，声明等于不存在。
+- [x] 绘制：固定层画不进槽位，只有根元素的画布底色能铺到那里。锁定时把「遮罩色叠在页面底色上」的合成色写到根元素行内 `background-color`（读 `--aeterni-overlay` 与页面底色现算，解锁还原宿主原值）；页面底色透明时跳过，避免把画布变暗透到内容后面形成二次压暗。
+- [x] 回归断言：`tests/browser/verify.mjs` 新增「锁滚动预留的滚动条槽被覆盖层接住（几何外扩 + 画布着色）」——经典滚动条下要求 `scrollbar-gutter: stable`、变量 > 0、遮罩右边界与 `innerWidth` 差 ≤1、容器 `inset-inline-end` 为负、根元素底色的亮度比页面底色低 20 以上；覆盖式滚动条下变量为空，自然跳过。`tests/scroll-lock.test.mjs` 从 5 项扩到 8 项（画布合成色、透明底不染、宿主行内值还原）。
+- [x] 文档：`engineering-reference` 的共享浮层章节写明「覆盖层外扩 + 画布着色」两部分及原因（固定层被裁在布局视口内、透明底不染）；`delivered-features` 的 Dialog/Drawer 行为段补上「槽位被画成与遮罩相同的压暗色」；并更正 10.38.4 条目里把这两条失败归因为本机环境的记录。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` **131 项**通过；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 729 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器（本机 Chrome 156 + `--disable-features=OverlayScrollbar`，1440×900）：修复前 scrim 宽 1429、面板中心 714.5、右侧 11px 为 `RGB(247,247,247)`；修复后 scrim 宽 1440、面板中心 720、槽位与遮罩同为 `RGB(143,143,143)`，`--aeterni-scroll-lock-gutter` 为 `11px`、根元素底色 `rgb(143,143,143)`、页面底色 `rgb(247,247,247)`；Dialog 遮罩与 Drawer 根层同样测到 1440 宽。
+- 按「修复与优化递增第三位」（§4.9）从 `10.40.0` 升到 `10.40.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.40.0 `NavTree` 导航树与 trailing 操作区（新组件交付）
 
@@ -45,7 +63,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **Confirm 抖动不再像刷新**：每次点击外围都会重新抖一下；C# 端在抖动结束后再摘掉 `is-shaking` 并补 `is-settled`，下一次点击先清 `is-settled` 再挂 `is-shaking`，CSS 把 `.is-settled { animation: none }` 放在 `is-shaking` 之前，面板不会落回 `animation: enter` 从 `opacity: 0` 重播；抖动关键帧改为 0 / 15% / 35% / 55% / 75% 的 `-6px / 5px / -4px / 2px` 衰减，时长仍取 `--aeterni-duration-slow`。JS 的 `waitForShake` 改为在 500ms 内用 `requestAnimationFrame` 轮询到抖动动画再等它结束，并遵守 `prefers-reduced-motion`。
 - [x] **InputNumber 连体步进**：外层字段 `overflow: hidden`，方角步进按钮的悬停 / 按下底色被字段圆角裁掉；分隔线改用字段自身描边（`--aeterni-button-group-divider: var(--aeterni-control-border)`），不再因 `IconButton` 缺少 `--aeterni-button-divider-*` 让 `border-inline-start-color` 在计算值阶段失效并回落到 `currentColor` 的深色墨线。`IconButton` 同步补上 45% / 32% 两档分隔线 Token，供其他透明按钮组复用。
 - [x] **回归断言**：`tests/browser/verify.mjs` 新增「锁滚动不再让固定页头与正文左锚线错位」「锁滚动用 scrollbar-gutter 而不是 body padding」「点击 Confirm 外围每次都只抖一下、不重播进场」「InputNumber 分隔线复用字段描边」「方角步进底色被圆角裁切」五项。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 166 项中通过 162 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（Dialog 居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/number-fix/`（InputNumber 浅色 / 悬停 / 深色及 2× 局部）、`.design-audit/shots/three-issues/`（Confirm 抖动中与抖动后）。
+- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 166 项中通过 162 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（Dialog 居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/number-fix/`（InputNumber 浅色 / 悬停 / 深色及 2× 局部）、`.design-audit/shots/three-issues/`（Confirm 抖动中与抖动后）。（10.40.1 复核更正：其中 Dialog 居中、遮罩铺满视口两条并非本机环境项，而是 `scrollbar-gutter` 预留槽未被固定覆盖层覆盖的系统性缺陷，见 10.40.1。）
 - 按「修复与优化递增第三位」将版本从 `10.38.2` 直接升到 `10.38.4`（`10.38.3` 批次没有单独提交与发布，两批改动同批提交）：`Directory.Build.props`、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.3 设计审核修复：浮层动效、状态墨阶与表单测量（未单独发布，随 10.38.4 一并发布）

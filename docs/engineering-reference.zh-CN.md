@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.40.0`
+文档版本：`10.40.1`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -703,7 +703,7 @@ export function dispose(key) {
 
 - `fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift` —— 翻转与交叉轴贴边的全部数值。居中对齐（Tooltip）与边对齐（Popover）用不同的 clamp，不要拿一个公式套两种几何。
 - `createFocusTrap(container, { onEscape })` —— Tab 循环、Escape 上报、释放时把焦点还给打开前的元素；返回幂等的 `release()`。
-- `lockScroll()` —— 引用计数的页面滚动锁，返回幂等的释放函数，重叠浮层不会互相解锁。页面确实可滚动且浏览器支持时，优先在根元素保留 `scrollbar-gutter: stable`，让视口宽度与 fixed 页头、流内正文的对齐关系在开、关浮层前后保持不变（fixed 元素按含滚动条的视口取百分比，流内元素按扣除滚动条的内容宽度取百分比；只补 `body` 的 `padding-right` 无法同时修好这两条基准）；不支持时退回 `body` 的 `padding-right` 补偿，解锁时把 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原，不留下第二套布局基准。
+- `lockScroll()` —— 引用计数的页面滚动锁，返回幂等的释放函数，重叠浮层不会互相解锁。页面确实可滚动且浏览器支持时，优先在根元素保留 `scrollbar-gutter: stable`，让视口宽度与 fixed 页头、流内正文的对齐关系在开、关浮层前后保持不变（fixed 元素按含滚动条的视口取百分比，流内元素按扣除滚动条的内容宽度取百分比；只补 `body` 的 `padding-right` 无法同时修好这两条基准）；不支持时退回 `body` 的 `padding-right` 补偿，解锁时把 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原，不留下第二套布局基准。 预留槽位会把布局视口缩小一个滚动条宽，而 `position: fixed` 层正是按这个缩小后的视口排的：因此锁定时还会把实测宽度写成根元素上的 `--aeterni-scroll-lock-gutter`，**每个铺满视口的覆盖层都必须用 `inset-inline-end: calc(-1 * var(--aeterni-scroll-lock-gutter, 0px))` 把内联末端伸出去**，否则经典滚动条引擎（Linux / Windows、或关闭覆盖式滚动条的 macOS）上右侧会留一条未压暗的亮条，居中的面板也会偏半个滚动条。 但固定层只负责几何：Chrome 把 `position: fixed` 的绘制裁在布局视口内，外扩出来的那 10px 不会被画到。所以锁定时还会把「遮罩色叠在页面底色上」的合成色写到根元素的 `background-color`（画布铺满整个窗口，这是唯一能画进槽位的一层），解锁时还原宿主原来的行内值；页面底色不透明时才做这一步，透明底会把画布变暗透到内容后面变成二次压暗，此时宁可不染。当前消费者是 `DialogProvider` 的遮罩、`Drawer` 根层、`Popover` 遮罩与示例站的搜索模态；覆盖式滚动条引擎上该变量为 `0px`，声明等于不存在，不需要分支。
 - 组件模块通过相对路径导入（`../../js/aeterni_floating.js`）。共享文件放 `wwwroot/js/`，因为它不属于任何单个组件；而组件模块必须是组件目录下的 `*.razor.js`（只有这个命名会被 Razor SDK 当作静态资源发布）。
 - **浮层不得用 `transform`/`translate` 做偏移**：变换会让浮层成为自身 `position: fixed` 遮罩的包含块。需要像素级偏移时用 `margin`（Popover 用 `margin-left` 承载 `--aeterni-popover-shift-x`）。
 - **宿主不要把 `PopupHost` 关进层叠上下文**：`isolation: isolate`、`filter`、`backdrop-filter`、`transform`、`will-change` 都会建立层叠上下文；浮层的 `--aeterni-z-popover`（1060）只在同一个层叠上下文里与同级元素比较，一旦被关进卡片这类隔离层，就会被后绘制的同级元素（例如 `position: sticky` 的页内目录）压住。需要隔离卡片内部层级时，把浮层的 `PopupHost` 提到页面级，或让目录不再与浮层处在同一个父层叠上下文里。
