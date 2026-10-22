@@ -33,6 +33,9 @@ public sealed class AeterniUITextOptions
     /// <summary>Accessible name of the <c>Anchor</c> section navigation.</summary>
     public string AnchorLabel { get; set; } = "Page sections";
 
+    /// <summary>Accessible name of a <c>Splitter</c> separator.</summary>
+    public string SplitterLabel { get; set; } = "Resize panes";
+
     /// <summary>Accessible name of a <c>Search</c> landmark and input.</summary>
     public string SearchLabel { get; set; } = "Search";
 
@@ -319,6 +322,7 @@ public sealed class AeterniUITextOptions
         CascaderEmptyText = Or(CascaderEmptyText, defaults.CascaderEmptyText);
         CascaderPathSeparator = Or(CascaderPathSeparator, defaults.CascaderPathSeparator);
         AnchorLabel = Or(AnchorLabel, defaults.AnchorLabel);
+        SplitterLabel = Or(SplitterLabel, defaults.SplitterLabel);
         SearchLabel = Or(SearchLabel, defaults.SearchLabel);
         SearchSubmitLabel = Or(SearchSubmitLabel, defaults.SearchSubmitLabel);
         SearchClearLabel = Or(SearchClearLabel, defaults.SearchClearLabel);

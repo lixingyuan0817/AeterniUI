@@ -1661,7 +1661,43 @@ async Task StartUpload(UploadFile file)
 }
 ```
 
-## 53. 当前边界
+## 53. Splitter
+
+### 支持能力
+
+两个面板之间的可拖动分隔条，第一栏尺寸受控、第二栏占满剩余空间。水平和垂直方向共用一套 HTML、键盘和回调模型。
+
+- `Orientation`（`Orientation.Horizontal` / `Vertical`，默认 `Horizontal`；水平时两栏左右排列、分隔条为垂直方向，垂直时上下排列）。
+- `FirstSize`（第一栏初始像素尺寸，默认 `280`）、`MinFirstSize`（默认 `200`）、`MaxFirstSize`（默认 `600`）；参数必须满足 `0 <= MinFirstSize < MaxFirstSize` 且 `FirstSize` 位于区间内。
+- `FirstSizeChanged` 只在拖动结束、键盘提交、双击复位或恢复持久化宽度后回调；拖动过程中的实时尺寸直接写入 CSS 变量，不逐帧触发 Blazor 重渲染。
+- `PersistKey`：可选 localStorage 键；提供时恢复并保存第一栏宽度，不提供时由宿主通过 `FirstSize` / `FirstSizeChanged` 管理。
+- `FirstPane` / `SecondPane`：必填渲染片段。分栏不接管面板内部滚动，宿主可把各自的滚动容器放在面板里。
+- 自有可访问名称使用 `AeterniUITextOptions.SplitterLabel`，实例 `AriaLabel` 优先。
+- 继承的 `Disabled` 会禁用拖动和键盘操作，分隔条退出 Tab 序并输出 `aria-disabled="true"`。
+
+### 行为与无障碍
+
+分隔条是 `role="separator"` 的可聚焦元素，带显式 `aria-orientation`（水平分栏输出 `vertical`，垂直分栏输出 `horizontal`）、`aria-valuemin` / `aria-valuemax` / `aria-valuenow` 和可访问名称。指针拖动使用 Pointer Capture，离开分隔条仍跟随；键盘在水平方向使用 `←`/`→`、垂直方向使用 `↑`/`↓`，`Shift` 以 32px 步进，`Home`/`End` 跳到最小/最大，双击恢复最小宽度。焦点环使用共享 focus token，拖动时用 JS 临时设置页面光标和禁止选择，结束后恢复。
+
+JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach` / `sync` / `dispose` 按实例管理监听器，`[JSInvokable]` 入口有 `IsDisposed` 守卫。移除组件时由基类的 JS module 生命周期释放。
+
+### 实现边界
+
+第一版只提供两个面板和一个主分隔条，不提供多栏嵌套管理、折叠按钮、吸附点、百分比/星号尺寸或服务端渲染下的拖拽增强；没有 JS 时分隔条仍保留可访问名称和值语义，但不会拖动。示例：`/components/splitter`。
+
+### 基础用法
+
+```razor
+<Splitter FirstSize="280"
+          MinFirstSize="200"
+          MaxFirstSize="600"
+          FirstSizeChanged="OnSizeChanged">
+    <FirstPane>左侧导航</FirstPane>
+    <SecondPane>右侧内容</SecondPane>
+</Splitter>
+```
+
+## 54. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。

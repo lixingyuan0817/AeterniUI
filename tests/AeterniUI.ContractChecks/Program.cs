@@ -19,6 +19,7 @@ using AeterniUI.Components.MultiSelect;
 using AeterniUI.Components.Search;
 using AeterniUI.Components.Segmented;
 using AeterniUI.Components.Slider;
+using AeterniUI.Components.Splitter;
 using AeterniUI.Components.Stepper;
 using AeterniUI.Components.Timeline;
 using AeterniUI.Components.TimePicker;
@@ -63,6 +64,7 @@ await CheckMultiSelectAsync();
 await CheckCascaderAsync();
 await CheckInputNumberAsync();
 await CheckSliderAsync();
+await CheckSplitterAsync();
 await CheckPaginationGeometryAsync();
 await CheckBreadcrumbAsync();
 await CheckStepperAsync();
@@ -100,7 +102,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (40 groups).");
+Console.WriteLine("Component contract checks passed (41 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -3739,6 +3741,57 @@ async Task CheckTokenSurfaceAsync()
             $"The --aeterni-{family}-* ramp must declare exactly the committed stops: " +
             $"missing [{string.Join(", ", stops.Except(declared))}], unexpected [{string.Join(", ", declared.Except(stops))}].");
     }
+}
+
+
+async Task CheckSplitterAsync()
+{
+    var module = (AeterniUI.Attributes.JsModuleAttribute)Attribute.GetCustomAttribute(
+        typeof(Splitter), typeof(AeterniUI.Attributes.JsModuleAttribute))!;
+    Require(module.Interactive && module.Name == "splitter",
+        "Splitter declares its interactive splitter module.");
+
+    RenderFragment first = builder => builder.AddContent(0, "first-pane");
+    RenderFragment second = builder => builder.AddContent(0, "second-pane");
+
+    var horizontal = await RenderAsync<Splitter>(new Dictionary<string, object?>
+    {
+        [nameof(Splitter.FirstPane)] = first,
+        [nameof(Splitter.SecondPane)] = second,
+        [nameof(Splitter.FirstSize)] = 300,
+        [nameof(Splitter.MinFirstSize)] = 200,
+        [nameof(Splitter.MaxFirstSize)] = 600,
+        [nameof(Splitter.AriaLabel)] = "Resize preview"
+    });
+
+    Require(horizontal.Contains("class=\"aeterni-splitter", StringComparison.Ordinal)
+        && horizontal.Contains("aeterni-splitter__pane--first", StringComparison.Ordinal)
+        && horizontal.Contains("first-pane", StringComparison.Ordinal)
+        && horizontal.Contains("second-pane", StringComparison.Ordinal),
+        "Splitter renders both panes inside its root.");
+    Require(horizontal.Contains("role=\"separator\"", StringComparison.Ordinal)
+        && horizontal.Contains("aria-orientation=\"vertical\"", StringComparison.Ordinal)
+        && horizontal.Contains("aria-valuemin=\"200\"", StringComparison.Ordinal)
+        && horizontal.Contains("aria-valuemax=\"600\"", StringComparison.Ordinal)
+        && horizontal.Contains("aria-valuenow=\"300\"", StringComparison.Ordinal)
+        && horizontal.Contains("aria-label=\"Resize preview\"", StringComparison.Ordinal),
+        "Splitter exposes a vertical separator with the configured value range.");
+    Require(horizontal.Contains("--aeterni-splitter-first-size: 300px", StringComparison.Ordinal),
+        "Splitter publishes its first-pane size through the layout custom property.");
+
+    var vertical = await RenderAsync<Splitter>(new Dictionary<string, object?>
+    {
+        [nameof(Splitter.FirstPane)] = first,
+        [nameof(Splitter.SecondPane)] = second,
+        [nameof(Splitter.Orientation)] = Orientation.Vertical,
+        [nameof(Splitter.FirstSize)] = 140,
+        [nameof(Splitter.MinFirstSize)] = 100,
+        [nameof(Splitter.MaxFirstSize)] = 240
+    });
+
+    Require(vertical.Contains("aeterni-splitter--vertical", StringComparison.Ordinal)
+        && vertical.Contains("aria-orientation=\"horizontal\"", StringComparison.Ordinal),
+        "Vertical Splitter flips the separator orientation and pane stacking class.");
 }
 
 async Task<string> RenderAsync<TComponent>(IDictionary<string, object?> parameters)

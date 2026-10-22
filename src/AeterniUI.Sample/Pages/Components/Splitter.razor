@@ -1,0 +1,114 @@
+@page "/components/splitter"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · Splitter</PageTitle>
+
+<ComponentPage AnchorId="splitter"
+               Category="基础组件"
+               Title="Splitter"
+               ComponentName="Splitter"
+               Description="两个面板之间可拖动的分隔条，支持水平/垂直方向、范围限制、键盘与可选持久化。"
+               Related="@SplitterRelated">
+    <WhenToUse>
+        <p>需要在同一块空间里并排展示导航与内容、编辑区与预览区，并让使用者自行调整比例时使用。只需要静态分界时用 <code>Divider</code>；需要覆盖页面边缘的临时面板时用 <code>Drawer</code>。</p>
+        <p>分栏本身不负责滚动；把滚动容器放进各自的面板，两个面板就能独立滚动。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="splitter-horizontal"
+                  Title="水平分栏"
+                  Description="拖拽中间分隔条调整第一栏宽度；宽度限制在 200–600px，松开后触发 FirstSizeChanged。"
+                  Code="@HorizontalCode">
+            <Preview>
+                <div class="preview-splitter-frame">
+                    <Splitter FirstSize="_horizontalSize"
+                              MinFirstSize="200"
+                              MaxFirstSize="600"
+                              FirstSizeChanged="HandleHorizontalSizeChanged"
+                              AriaLabel="拖动调整预览分栏">
+                        <FirstPane>
+                            <div class="preview-splitter-pane">
+                                <strong>导航</strong>
+                                <span>200–600px</span>
+                            </div>
+                        </FirstPane>
+                        <SecondPane>
+                            <div class="preview-splitter-pane">
+                                <strong>内容</strong>
+                                <span>占满剩余空间</span>
+                            </div>
+                        </SecondPane>
+                    </Splitter>
+                </div>
+                <span class="preview-feedback" role="status">第一栏宽度：@_horizontalSize px</span>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="splitter-vertical"
+                  Title="垂直分栏"
+                  Description="Orientation=Vertical 时上下分栏，分隔条变为水平方向；键盘使用上下方向键。"
+                  Code="@VerticalCode">
+            <Preview>
+                <div class="preview-splitter-frame preview-splitter-frame--vertical">
+                    <Splitter Orientation="Orientation.Vertical"
+                              FirstSize="140"
+                              MinFirstSize="100"
+                              MaxFirstSize="240"
+                              AriaLabel="调整上下两个预览面板">
+                        <FirstPane>
+                            <div class="preview-splitter-pane">
+                                <strong>上方</strong>
+                                <span>固定范围 100–240px</span>
+                            </div>
+                        </FirstPane>
+                        <SecondPane>
+                            <div class="preview-splitter-pane">
+                                <strong>下方</strong>
+                                <span>剩余高度</span>
+                            </div>
+                        </SecondPane>
+                    </Splitter>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>分隔条输出 <code>role="separator"</code>、显式 <code>aria-orientation</code> 和 <code>aria-valuemin</code>/<code>aria-valuemax</code>/<code>aria-valuenow</code>；键盘支持方向键、Shift 加速、Home/End 和双击复位。</span>
+        <span>拖动时 JS 直接更新 <code>--aeterni-splitter-first-size</code>，不逐帧触发 Blazor 重渲染；松开、键盘提交或恢复持久化宽度时才回调 <code>FirstSizeChanged</code>。</span>
+        <span><code>PersistKey</code> 使用 localStorage 保存宽度；不需要持久化时不传，由宿主通过 <code>FirstSize</code> / <code>FirstSizeChanged</code> 管理。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] SplitterRelated =
+    [
+        new("Divider", "/components/divider"),
+        new("Drawer", "/components/drawer"),
+        new("Tabs", "/components/tabs")
+    ];
+
+    private const string HorizontalCode = """
+        <Splitter FirstSize="280"
+                  MinFirstSize="200"
+                  MaxFirstSize="600"
+                  FirstSizeChanged="OnSizeChanged">
+            <FirstPane>左侧导航</FirstPane>
+            <SecondPane>右侧内容</SecondPane>
+        </Splitter>
+        """;
+
+    private const string VerticalCode = """
+        <Splitter Orientation="Orientation.Vertical"
+                  FirstSize="140"
+                  MinFirstSize="100"
+                  MaxFirstSize="240">
+            <FirstPane>上方</FirstPane>
+            <SecondPane>下方</SecondPane>
+        </Splitter>
+        """;
+
+    private int _horizontalSize = 280;
+
+    private void HandleHorizontalSizeChanged(int size) => _horizontalSize = size;
+}
