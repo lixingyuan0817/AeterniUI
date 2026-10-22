@@ -1,0 +1,32 @@
+.preview-splitter-frame {
+    height: 280px;
+    overflow: hidden;
+    border: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+}
+
+.preview-splitter-frame--vertical {
+    height: 320px;
+}
+
+.preview-splitter-pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aeterni-spacing-2);
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+    padding: var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.preview-splitter-pane strong {
+    color: var(--aeterni-text);
+    font-size: var(--aeterni-font-size-md);
+}
+
+.preview-splitter-pane span {
+    color: var(--aeterni-text-tertiary);
+}
