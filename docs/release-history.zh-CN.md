@@ -1,10 +1,19 @@
 # AeterniUI 发布历史
 
-文档版本：`10.43.0`
+文档版本：`10.43.1`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.43.1 修复：NavMenu 分组行与首个子项之间没有行距
+
+10.43.0 把 hover/选中画到 `.aeterni-nav-menu__row` 后暴露了一个间距缺口：分组节点的首个子项紧贴分组行（collapse 轨道没有外边距），选中的子项与上方 hover 的分组行会画出两块粘连的背景；这也与 Menu 的「分组标题 → 子项」间距配方不一致。
+
+- [x] `.aeterni-nav-menu__node` 改为 `display: grid; align-content: start`，`.is-open` 时使用 `gap: var(--aeterni-nav-menu-gap)`：展开分组在行与子列表之间保留与同级行一致的行距（Default/Compact 4px、Comfortable 2px），已折叠分组不保留空轨道；子级缩进与引导线不受影响。
+- [x] 契约检查新增 `.aeterni-nav-menu__node.is-open` 的 gap 配方断言（防止以后又把间距画回按钮层级）；浏览器断言新增「分组行与首个子项保留行距且等于列表 gap」（**192/192 PASS**）。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **192/192 PASS**；`check-css-comments.mjs`、`check-scrollbars.mjs`、`check-contrast.mjs`、`check-doc-drift.mjs`、`bash scripts/check-docs.sh` 与两个生成物 `--check` 保持通过。
+- 按「修复与优化递增第三位」（§4.9）从 `10.43.0` 升到 `10.43.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.43.0 NavMenu 密度与行级状态、IconButton chrome 预设、Menu/Popover/Dialog 补全
 

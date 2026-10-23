@@ -180,6 +180,14 @@ internal static class NavMenuEnhancementChecks
             && css.Contains("color: var(--aeterni-nav-menu-row-color)", StringComparison.Ordinal),
             "Every NavMenu tier variable must have a consumer in the component stylesheet.");
 
+        var nodeRule = Rule(css, ".aeterni-nav-menu__node");
+        var openNodeRule = Rule(css, ".aeterni-nav-menu__node.is-open");
+        Require(nodeRule.Contains("display: grid", StringComparison.Ordinal)
+            && openNodeRule.Contains("gap: var(--aeterni-nav-menu-gap)", StringComparison.Ordinal),
+            "An open NavMenu group must keep the list row gap before its first child "
+            + "(the same group-to-items recipe Menu uses); otherwise a selected child and the "
+            + "hovered group row above it paint touching backgrounds.");
+
         var comfortableRule = Rule(css, ".aeterni-nav-menu--density-comfortable");
         Require(comfortableRule.Contains("--aeterni-control-height-md", StringComparison.Ordinal)
             && comfortableRule.Contains("--aeterni-border-width) * 2", StringComparison.Ordinal)

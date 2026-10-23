@@ -117,8 +117,20 @@
     border-inline-start: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
 }
 
+/* Disclosure nodes stack their row and children as one unit. The list-level gap
+   separates nodes, but the first child would otherwise sit flush against its group
+   row (the collapse track has no outer margin), so a selected child and the hovered
+   group header above it touched. Menu gives an open group the same spacing between
+   its toggle and its items; this mirrors that recipe. A closed node keeps gap 0 so
+   the zero-height collapse does not leave an empty track behind. */
 .aeterni-nav-menu__node {
+    display: grid;
+    align-content: start;
     min-width: 0;
+}
+
+.aeterni-nav-menu__node.is-open {
+    gap: var(--aeterni-nav-menu-gap);
 }
 
 /* The row is the interactive box: its padding, radius and ink include the

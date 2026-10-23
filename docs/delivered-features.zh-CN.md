@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.43.0`
+文档版本：`10.43.1`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1759,6 +1759,8 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 根元素是 `<nav aria-label>`，列表是 `role="list"`；分组行是带 `aria-expanded` / `aria-controls` 的按钮，展开区域是嵌套列表。叶子行渲染为真实链接（提供 `Href` 时）或按钮，选中后输出 `aria-current="page"` 与选中样式；分组行不输出 `aria-current`。焦点沿用 `Menu` 的模型：链接与按钮保持原生 Tab 顺序，方向键在可见行之间移动，`→`/`←` 按书写方向展开/折叠并进入/回到父级，`Home`/`End` 跳到首尾；`Enter`/`Space` 保留原生激活。分组没有内置 chevron，展开态由 `aria-expanded` 与左侧引导线表达，`RowTemplate` 里可以自己画图标或状态。
 
 `Trailing` 在行按钮之外，内部动作按钮是独立焦点目标；方向键只在行按钮上生效，trailing 的菜单/按钮保留自己的键盘行为。JS 只负责移动焦点、抑制方向键滚动并报告书写方向，展开/选中模型在 C#。
+
+展开分组在分组行与首个子项之间保留与同级行一致的行距（与 `Menu` 的「分组标题 → 子项」配方一致，`is-open` 时使用 `--aeterni-nav-menu-gap`），因此选中的子项与上方 hover 的分组行不会出现粘连背景。
 
 hover、选中与按下都画在 `.aeterni-nav-menu__row` 上（含 `Trailing` 区域）：行容器持有 `is-selected` / `is-disabled`，按钮透明并只负责焦点环，行墨通过 `currentColor` 传给右侧动作，因此不会出现「名字亮了、图标还灰着」的割裂。选中沿用 Menu/List 的 state Token（淡染底 + primary/selected 墨 + 内嵌选中线），hover 用 `--aeterni-state-background-hover`。
 

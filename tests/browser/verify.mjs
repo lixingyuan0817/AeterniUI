@@ -4054,6 +4054,26 @@ check('NavMenu Comfortable 密度与行级选中状态',
         && denseNav.descriptionFont === '11px',
     JSON.stringify({ denseNav, selectedInk }));
 
+// 分组行与首个子项之间也必须留出行距：Menu 的 group → items 配方同样有 4px，
+// 否则选中的子项和上方 hover 的分组行会画出两块粘连的背景。
+const groupChildGap = await evaluate(`(() => {
+    const card = document.querySelector('#nav-menu-basic');
+    const menu = card?.querySelector('.aeterni-nav-menu');
+    const group = [...(menu?.querySelectorAll('.aeterni-nav-menu__node.is-open') ?? [])]
+        .find(node => node.querySelector(':scope > .aeterni-nav-menu__collapse.is-open'));
+    const row = group?.querySelector(':scope > .aeterni-nav-menu__row');
+    const firstChild = group?.querySelector(':scope > .aeterni-nav-menu__collapse > .aeterni-nav-menu__children > .aeterni-nav-menu__node');
+    const childRow = firstChild?.querySelector(':scope > .aeterni-nav-menu__row');
+    if (!row || !childRow) return { error: 'open group missing' };
+    return {
+        gap: Math.round((childRow.getBoundingClientRect().top - row.getBoundingClientRect().bottom) * 100) / 100,
+        listGap: parseFloat(getComputedStyle(menu.querySelector('.aeterni-nav-menu__list')).gap)
+    };
+})()`);
+check('NavMenu 分组行与首个子项保留行距（与 Menu 的分组配方一致）',
+    !groupChildGap.error && groupChildGap.gap > 0 && groupChildGap.gap === groupChildGap.listGap,
+    JSON.stringify(groupChildGap));
+
 // hover 必须画在整行上：把指针移到分组行右侧的 Trailing 上，行容器的背景应变成 state-hover。
 const hoverScrolled = await evaluate(`(() => {
     const card = document.querySelector('#nav-menu-row-state');
