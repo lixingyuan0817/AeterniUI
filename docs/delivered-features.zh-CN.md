@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.43.1`
+文档版本：`10.44.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -1795,7 +1795,7 @@ private static readonly NavMenuNode[] Items =
 
 `IconButtonMenu` 把图标触发器、浮层与菜单合成一个组件，等价于 `IconButton` + `PopupHost` + `Popover` + `Menu` 的手工组合：
 
-- `Icon`、`Items`、`AriaLabel` 为必填；`Variant`（默认 `Ghost`）、`Intent`（默认 `Neutral`）、`Size`（默认 `Default`）、`Placement`（默认 `BottomEnd`）、`Flat`、`Open` / `OpenChanged`、`OnItemSelected`、`Loading`，并继承 `Disabled`。
+- `Icon`、`Items`、`AriaLabel` 为必填；`Variant`（默认 `Ghost`）、`Intent`（默认 `Neutral`）、`Size`（默认 `Default`）、`Shape`（`IconButtonShape`：`Square` 默认 / `Circle`）、`Placement`（默认 `BottomEnd`）、`Flat`、`Open` / `OpenChanged`、`OnItemSelected`、`Loading`，并继承 `Disabled`。`Shape` 直接透传给内部 `IconButton`，只改触发器轮廓（圆形使用 `--aeterni-radius-full`），菜单、焦点环与键盘行为不变。
 - 触发器输出 `aria-haspopup="menu"`、`aria-expanded` 字符串与指向真实菜单根 id 的 `aria-controls`；`AriaLabel` 同时命名触发器与菜单。
 - 受控语义与 `MenuButton` 相同：绑定 `OpenChanged` 后由宿主决定开关，未绑定时内部维护；选择菜单项先触发 `OnItemSelected`，随后关闭菜单。
 - `Flat` 直接转发 `Menu.Flat`；弹出层沿用 `MenuButton` 的紧凑留白变量（`--aeterni-popover-content-padding` 与 `--aeterni-menu-item-padding`）。

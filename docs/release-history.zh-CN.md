@@ -1,10 +1,20 @@
 # AeterniUI 发布历史
 
-文档版本：`10.43.1`
+文档版本：`10.44.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.44.0 `IconButtonMenu` 支持 `Shape`
+
+`IconButtonMenu` 内部一直用 `IconButton` 做触发器，但 10.43.0 给 `IconButton` 增加的 `Shape` 没有透传出来，圆形 chrome 动作（例如标题栏/行尾的圆形「更多」）只能退回手写 `IconButton + Popover + Menu`。
+
+- [x] `IconButtonMenu` 新增 `Shape`（`IconButtonShape`：`Square` 默认 / `Circle`），直接传给内部 `IconButton`；非法值在参数设置阶段抛 `ArgumentOutOfRangeException`，`Tone` / `Compact` 等其余触发器参数保持原状。
+- [x] 示例页基础用法增加 Shape 控件，并把第二个触发器固定为 `Circle` 展示轮廓；契约检查增加 Shape 默认值、非法枚举与 `aeterni-icon-button--circle` 透传断言；浏览器断言新增「Shape=Circle 落到真实触发器」（**193/193 PASS**）。
+- [x] 文档：`delivered-features` §55 补充 Shape 的参数/边界说明；API 表（61 页 / 776 行）与 `api-since` 同步。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **193/193 PASS**；文档/CSS/对比度/生成物门禁通过。
+- 按「功能新增递增第二位」（§4.9）从 `10.43.1` 升到 `10.44.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.43.1 修复：NavMenu 分组行与首个子项之间没有行距
 

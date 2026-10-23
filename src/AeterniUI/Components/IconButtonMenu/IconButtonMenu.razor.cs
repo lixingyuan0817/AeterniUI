@@ -38,6 +38,14 @@ public partial class IconButtonMenu : AeterniComponent
     [Parameter]
     public Size Size { get; set; } = Size.Default;
 
+    /// <summary>
+    /// Trigger outline: <see cref="IconButtonShape.Square" /> (default) or
+    /// <see cref="IconButtonShape.Circle" /> for window-chrome style controls.
+    /// Forwarded to the inner <c>IconButton</c>.
+    /// </summary>
+    [Parameter]
+    public IconButtonShape Shape { get; set; } = IconButtonShape.Square;
+
     [Parameter]
     public PopupPlacement Placement { get; set; } = PopupPlacement.BottomEnd;
 
@@ -104,6 +112,11 @@ public partial class IconButtonMenu : AeterniComponent
         if (!Enum.IsDefined(Size))
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown icon button menu size.");
+        }
+
+        if (!Enum.IsDefined(Shape))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Shape), Shape, "Unknown icon button menu shape.");
         }
 
         if (!Enum.IsDefined(Placement))

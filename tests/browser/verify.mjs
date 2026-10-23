@@ -3847,6 +3847,22 @@ check('IconButtonMenu 选择菜单项后关闭并把焦点还给触发器',
         && (iconMenuSelected.feedback ?? '').includes('已选择'),
     JSON.stringify(iconMenuSelected));
 
+// Shape 必须透传到真实触发器：行操作按钮在示例里固定为 Circle。
+const iconMenuShape = await evaluate(`(() => {
+    const trigger = [...document.querySelectorAll('.aeterni-icon-button-menu .aeterni-icon-button')]
+        .find(node => node.getAttribute('aria-label') === '行操作');
+    if (!trigger) return { error: 'no row trigger' };
+    const box = trigger.getBoundingClientRect();
+    return {
+        circle: trigger.classList.contains('aeterni-icon-button--circle'),
+        width: Math.round(box.width),
+        radius: parseFloat(getComputedStyle(trigger).borderRadius)
+    };
+})()`);
+check('IconButtonMenu Shape=Circle 透传到真实触发器',
+    !iconMenuShape.error && iconMenuShape.circle && iconMenuShape.radius >= iconMenuShape.width / 2,
+    JSON.stringify(iconMenuShape));
+
 // 第二段 demo：Flat 菜单。打开后应没有分组开关，箭头键只在条目间移动。
 const flatMenuOpened = await evaluate(`(async () => {
     const wait = ms => new Promise(r => setTimeout(r, ms));

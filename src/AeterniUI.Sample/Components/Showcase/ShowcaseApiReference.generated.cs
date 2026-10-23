@@ -72,6 +72,7 @@ public static class ShowcaseApiReference
                 new("Open", "bool", "", "可选受控打开状态；未绑定 OpenChanged 时由组件内部维护。", "属性", "10.42.0"),
                 new("OpenChanged", "EventCallback<bool>", "", "打开状态变化时触发，支持 @bind-Open。", "事件回调", "10.42.0"),
                 new("Placement", "PopupPlacement", "", "菜单弹出方向，默认 BottomEnd。", "属性", "10.42.0"),
+                new("Shape", "IconButtonShape", "", "触发器轮廓：Square 方形、Circle 圆形；只改轮廓，不影响菜单与焦点行为。", "属性", "10.44.0"),
                 new("Size", "Size", "", "触发器尺寸。", "属性", "10.42.0"),
                 new("Variant", "ButtonVariant", "", "触发器视觉变体，默认 Ghost。", "属性", "10.42.0"),
             },

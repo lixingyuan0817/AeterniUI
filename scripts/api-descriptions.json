@@ -701,7 +701,8 @@
       "Open": "可选受控打开状态；未绑定 OpenChanged 时由组件内部维护。",
       "OpenChanged": "打开状态变化时触发，支持 @bind-Open。",
       "OnItemSelected": "菜单项被选择时触发；随后菜单关闭。",
-      "Loading": "触发器忙碌状态；忙碌时不能打开菜单。"
+      "Loading": "触发器忙碌状态；忙碌时不能打开菜单。",
+      "Shape": "触发器轮廓：Square 方形、Circle 圆形；只改轮廓，不影响菜单与焦点行为。"
     },
     "form-dialog": {
       "Open": "受控打开状态；为 true 时把 ChildContent 交给 DialogProvider 打开。",

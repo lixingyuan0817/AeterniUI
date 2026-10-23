@@ -102,6 +102,7 @@
     "IconButton.Compact": "10.43.0",
     "Icon.Tone": "10.43.0",
     "Popup.MinWidth": "10.43.0",
-    "Popup.Width": "10.43.0"
+    "Popup.Width": "10.43.0",
+    "IconButtonMenu.Shape": "10.44.0"
   }
 }

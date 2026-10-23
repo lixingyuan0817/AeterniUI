@@ -194,6 +194,18 @@ internal static class IconButtonMenuChecks
             && trigger.Contains("aria-expanded=\"false\"", StringComparison.Ordinal),
             "IconButtonMenu trigger must announce the menu popup and its collapsed state.");
 
+        var circle = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        {
+            [nameof(IconButtonMenu.Id)] = "contract-icon-menu-circle",
+            [nameof(IconButtonMenu.Icon)] = icon,
+            [nameof(IconButtonMenu.Items)] = Groups,
+            [nameof(IconButtonMenu.AriaLabel)] = "More actions",
+            [nameof(IconButtonMenu.Shape)] = IconButtonShape.Circle
+        });
+        var circleTrigger = Regex.Match(circle, "<button\\b[^>]*id=\"contract-icon-menu-circle-trigger\"[^>]*>").Value;
+        Require(circleTrigger.Contains("aeterni-icon-button--circle", StringComparison.Ordinal),
+            "IconButtonMenu must forward Shape=Circle to the real trigger button.");
+
         var controlledId = Regex.Match(trigger, "aria-controls=\"([^\"]+)\"").Groups[1].Value;
         Require(!string.IsNullOrEmpty(controlledId) && Regex.IsMatch(html, $"<nav[^>]*id=\"{Regex.Escape(controlledId)}\""),
             "IconButtonMenu aria-controls must resolve to the real menu root.");
@@ -254,6 +266,7 @@ internal static class IconButtonMenuChecks
         Require(defaults.Variant == ButtonVariant.Ghost
             && defaults.Intent == ButtonIntent.Neutral
             && defaults.Size == Size.Default
+            && defaults.Shape == IconButtonShape.Square
             && defaults.Placement == PopupPlacement.BottomEnd
             && !defaults.Flat
             && !defaults.Loading
@@ -288,6 +301,7 @@ internal static class IconButtonMenuChecks
         var invalidVariant = (ButtonVariant)99;
         var invalidIntent = (ButtonIntent)99;
         var invalidSize = (Size)99;
+        var invalidShape = (IconButtonShape)99;
         var invalidPlacement = (PopupPlacement)99;
 
         await RequireEnumRejectedAsync(
@@ -299,6 +313,9 @@ internal static class IconButtonMenuChecks
         await RequireEnumRejectedAsync(
             Valid(parameters => parameters[nameof(IconButtonMenu.Size)] = invalidSize),
             nameof(IconButtonMenu.Size), invalidSize);
+        await RequireEnumRejectedAsync(
+            Valid(parameters => parameters[nameof(IconButtonMenu.Shape)] = invalidShape),
+            nameof(IconButtonMenu.Shape), invalidShape);
         await RequireEnumRejectedAsync(
             Valid(parameters => parameters[nameof(IconButtonMenu.Placement)] = invalidPlacement),
             nameof(IconButtonMenu.Placement), invalidPlacement);
