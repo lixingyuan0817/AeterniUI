@@ -26,8 +26,6 @@
                 <div class="preview-nav-menu">
                     <NavMenu Items="_items"
                              Density="@_density"
-                             IconSize="@_iconSize"
-                             DescriptionSize="@_descriptionSize"
                              ChildIndent="@_childIndent"
                              SelectedId="@_selectedId"
                              SelectedIdChanged="HandleSelected"
@@ -42,14 +40,6 @@
                     <div class="control-field">
                         <span>密度</span>
                         <ShowcaseSelect TValue="NavMenuDensity" Id="nav-menu-density" AriaLabel="密度" Options="@(Enum.GetValues<NavMenuDensity>())" @bind-Value="_density" />
-                    </div>
-                    <div class="control-field">
-                        <span>图标</span>
-                        <ShowcaseSelect TValue="NavMenuIconSize" Id="nav-menu-icon-size" AriaLabel="图标尺寸" Options="@(Enum.GetValues<NavMenuIconSize>())" @bind-Value="_iconSize" />
-                    </div>
-                    <div class="control-field">
-                        <span>描述字号</span>
-                        <ShowcaseSelect TValue="NavMenuTextSize" Id="nav-menu-description-size" AriaLabel="描述字号" Options="@(Enum.GetValues<NavMenuTextSize>())" @bind-Value="_descriptionSize" />
                     </div>
                     <div class="control-field">
                         <span>子级缩进</span>
@@ -100,7 +90,8 @@
         <span>可展开节点是导航组：点击、<code>Enter</code> 与 <code>Space</code> 只切换展开/折叠，不写 <code>SelectedId</code>，也不触发 <code>SelectedIdChanged</code> / <code>OnItemSelected</code>。</span>
         <span><code>RowTemplate</code> 渲染在行按钮内部，用来画整行内容；动作按钮放在 <code>Trailing</code>（按钮的兄弟位置），避免嵌套按钮。</span>
         <span>行级状态（hover / 选中 / 按下）画在行容器上而不是按钮上，<code>Trailing</code> 属于同一行，所以背景、墨色与选中线会覆盖到右侧动作。</span>
-        <span>密度、图标尺寸、描述字号与子级缩进都由根 class 上的组件级变量驱动；<code>Density</code> 默认档与旧版观感一致，<code>Comfortable</code> 对齐工作台侧栏的 38px 行高。</span>
+        <span>密度与子级缩进由根 class 上的组件级变量驱动；<code>Density</code> 默认档与旧版观感一致，<code>Comfortable</code> 对齐工作台侧栏的 38px 行高。</span>
+        <span>图标大小与描述字号不是 NavMenu 参数：默认行沿用 16px 图标槽与 11px 描述档，需要其它大小时在节点的 <code>Icon</code> / <code>Description</code> 内容或 <code>RowTemplate</code> 里自己指定。</span>
         <span>层级不限于两级：任意深度的 <code>Children</code> 都会按同样的展开模型渲染；<code>Accordion</code> 让每个层级最多展开一个分组。</span>
     </Notes>
 </ComponentPage>
@@ -145,8 +136,6 @@
     private System.Collections.Generic.List<string> _openKeys = ["workbench", "aeterni-ui"];
 
     private NavMenuDensity _density = NavMenuDensity.Default;
-    private NavMenuIconSize _iconSize = NavMenuIconSize.Default;
-    private NavMenuTextSize _descriptionSize = NavMenuTextSize.Default;
     private NavMenuChildIndent _childIndent = NavMenuChildIndent.Default;
 
     private string? _trailingSelectedId = "workspace-shell";

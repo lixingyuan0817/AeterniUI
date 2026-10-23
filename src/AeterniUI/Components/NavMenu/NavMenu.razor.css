@@ -4,10 +4,12 @@
    chevron.
 
    Every metric is declared once on the root as a component-level variable and
-   consumed below; density / icon / description / indent tiers only retune those
-   variables on a modifier class. Hover, selected and pressed paint the row box,
-   Trailing included, while the inner link or button stays transparent and only
-   carries the focus ring. */
+   consumed below; density / indent tiers only retune those variables on a
+   modifier class. Icon and description sizes are content concerns: the default
+   row uses one icon slot and one description step, and a host that needs other
+   sizes sets them on the node content or inside RowTemplate. Hover, selected and
+   pressed paint the row box, Trailing included, while the inner link or button
+   stays transparent and only carries the focus ring. */
 
 .aeterni-nav-menu {
     /* Defaults reproduce the pre-tier look exactly: 32px row, vertical 0 /
@@ -56,26 +58,6 @@
     --aeterni-nav-menu-row-radius: var(--aeterni-radius-md);
     --aeterni-nav-menu-row-color: var(--aeterni-text-secondary);
     --aeterni-nav-menu-font-size: var(--aeterni-font-size-xs);
-}
-
-/* Icon slot tiers. The slot forwards its size through --aeterni-icon-render-size
-   (the same channel Menu and Button use), so a host template's Icon follows the
-   tier without this component reaching into Icon's own stylesheet. */
-.aeterni-nav-menu--icon-small {
-    --aeterni-nav-menu-icon-size: var(--aeterni-icon-size-sm);
-}
-
-.aeterni-nav-menu--icon-large {
-    --aeterni-nav-menu-icon-size: var(--aeterni-icon-size-lg);
-}
-
-/* Description line tiers: 10px / 11px (default) / 12px. */
-.aeterni-nav-menu--description-small {
-    --aeterni-nav-menu-description-size: calc(var(--aeterni-font-size-xs) - 2px);
-}
-
-.aeterni-nav-menu--description-large {
-    --aeterni-nav-menu-description-size: var(--aeterni-font-size-xs);
 }
 
 /* Child indent tiers: the guide line's margin and the nested list's padding. */
@@ -214,6 +196,9 @@
     cursor: not-allowed;
 }
 
+/* The icon slot forwards its size through --aeterni-icon-render-size (the same
+   channel Menu and Button use), so an Icon in a row template without an explicit
+   size follows the default row slot. */
 .aeterni-nav-menu__icon {
     display: inline-flex;
     flex: 0 0 auto;

@@ -3847,20 +3847,21 @@ check('IconButtonMenu 选择菜单项后关闭并把焦点还给触发器',
         && (iconMenuSelected.feedback ?? '').includes('已选择'),
     JSON.stringify(iconMenuSelected));
 
-// Shape 必须透传到真实触发器：行操作按钮在示例里固定为 Circle。
+// Shape 必须透传到真实触发器：默认圆形不再输出修饰类，行操作按钮在示例里固定为 Square。
 const iconMenuShape = await evaluate(`(() => {
     const trigger = [...document.querySelectorAll('.aeterni-icon-button-menu .aeterni-icon-button')]
         .find(node => node.getAttribute('aria-label') === '行操作');
     if (!trigger) return { error: 'no row trigger' };
     const box = trigger.getBoundingClientRect();
     return {
-        circle: trigger.classList.contains('aeterni-icon-button--circle'),
+        square: trigger.classList.contains('aeterni-icon-button--square'),
+        circle: !trigger.classList.contains('aeterni-icon-button--square'),
         width: Math.round(box.width),
         radius: parseFloat(getComputedStyle(trigger).borderRadius)
     };
 })()`);
-check('IconButtonMenu Shape=Circle 透传到真实触发器',
-    !iconMenuShape.error && iconMenuShape.circle && iconMenuShape.radius >= iconMenuShape.width / 2,
+check('IconButtonMenu Shape=Square 透传到真实触发器',
+    !iconMenuShape.error && iconMenuShape.square && iconMenuShape.radius < iconMenuShape.width / 2,
     JSON.stringify(iconMenuShape));
 
 // 第二段 demo：Flat 菜单。打开后应没有分组开关，箭头键只在条目间移动。
@@ -4168,6 +4169,75 @@ check('IconButton chrome：圆形 danger 色调、紧凑 24px 与 Muted 墨阶',
         && iconButtonChrome.compact?.width === 24
         && iconButtonChrome.muted?.color === tertiaryInk,
     JSON.stringify({ iconButtonChrome, dangerInk, tertiaryInk }));
+
+// 10.44.1：IconButton 悬浮只做原位高亮。指针移到 Soft + Warning 图标按钮上，
+// 盒子不得位移、不得加抬升阴影；图标墨色应向主题主墨混合一档（浅色更深、深色
+// 更亮），并与表面档位同时变化。用真实 pointer hover + getComputedStyle 取证实
+// 渲染，而不是只断言 CSS 字符串。位置比较用文档坐标（top + scrollY）：示例页的
+// 全局 smooth 滚动会在 scrollIntoView 之后继续微调，视口坐标会因此漂移。
+const iconHoverScrolled = await evaluate(`(() => {
+    const card = document.querySelector('#icon-button-basic');
+    const node = [...(card?.querySelectorAll('.aeterni-icon-button') ?? [])]
+        .find(candidate => candidate.classList.contains('aeterni-icon-button--soft')
+            && candidate.classList.contains('aeterni-icon-button--warning'));
+    if (!node) return false;
+    node.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return true;
+})()`);
+await sleep(250);
+const iconHoverBefore = await evaluate(`(() => {
+    const card = document.querySelector('#icon-button-basic');
+    const node = [...(card?.querySelectorAll('.aeterni-icon-button') ?? [])]
+        .find(candidate => candidate.classList.contains('aeterni-icon-button--soft')
+            && candidate.classList.contains('aeterni-icon-button--warning'));
+    if (!node) return { error: 'no warning soft icon button' };
+    const box = node.getBoundingClientRect();
+    const style = getComputedStyle(node);
+    return {
+        x: Math.round(box.left + box.width / 2),
+        y: Math.round(box.top + box.height / 2),
+        documentTop: Math.round((box.top + window.scrollY) * 100) / 100,
+        background: style.backgroundColor,
+        color: style.color
+    };
+})()`);
+if (!iconHoverBefore.error) {
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: iconHoverBefore.x, y: iconHoverBefore.y, button: 'none' });
+    await sleep(250);
+}
+const iconHoverAfter = await evaluate(`(() => {
+    const card = document.querySelector('#icon-button-basic');
+    const node = [...(card?.querySelectorAll('.aeterni-icon-button') ?? [])]
+        .find(candidate => candidate.classList.contains('aeterni-icon-button--soft')
+            && candidate.classList.contains('aeterni-icon-button--warning'));
+    if (!node) return { error: 'no warning soft icon button' };
+    const style = getComputedStyle(node);
+    const box = node.getBoundingClientRect();
+    const probe = document.createElement('span');
+    probe.style.color = 'color-mix(in srgb, var(--aeterni-color-warning-text) 72%, var(--aeterni-text-primary))';
+    document.body.appendChild(probe);
+    const expectedInk = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+        documentTop: Math.round((box.top + window.scrollY) * 100) / 100,
+        background: style.backgroundColor,
+        color: style.color,
+        transform: style.transform,
+        shadow: style.boxShadow,
+        expectedInk
+    };
+})()`);
+check('IconButton 悬浮原位高亮：不位移、不投影，强调墨色向主题主墨步进',
+    iconHoverScrolled
+        && !iconHoverBefore.error && !iconHoverAfter.error
+        && iconHoverAfter.documentTop === iconHoverBefore.documentTop
+        && iconHoverAfter.transform === 'none'
+        && iconHoverAfter.shadow === 'none'
+        && iconHoverAfter.color === iconHoverAfter.expectedInk
+        && iconHoverAfter.color !== iconHoverBefore.color
+        && iconHoverAfter.background !== iconHoverBefore.background,
+    JSON.stringify({ iconHoverBefore, iconHoverAfter }));
+await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
 
 await goto(`${BASE}/components/button`);
 await waitForApp();

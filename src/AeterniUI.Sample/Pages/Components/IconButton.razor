@@ -60,7 +60,7 @@
 
         <DemoCard Id="icon-button-chrome"
                   Title="chrome 预设：形状、墨阶与紧凑尺寸"
-                  Description="标题栏与行尾动作使用 chrome 预设：Shape 换成圆形、Tone 接管表面与墨色、Compact 把盒子收到 24px。Tone 会覆盖 Variant/Intent 的配色，几何、加载、禁用与焦点环都不变。右侧控件即时作用在中间按钮上。"
+                  Description="标题栏与行尾动作使用 chrome 预设：默认圆形、Shape=Square 可切回方角、Tone 接管表面与墨色、Compact 把盒子收到 24px。Tone 会覆盖 Variant/Intent 的配色，几何、加载、禁用与焦点环都不变。右侧控件即时作用在中间按钮上。"
                   Code="@ChromeCode">
             <Preview>
                 <div class="preview-stack">
@@ -132,7 +132,7 @@
     <Notes>
         <span>默认变体是 <code>Ghost + Neutral</code>，可用 <code>Variant</code> / <code>Intent</code> 改成与文字按钮一致的强调层级。</span>
         <span><code>Tone</code> 是 chrome 预设：<code>Muted</code> / <code>DangerTinted</code> 接管表面、描边与墨色，因此覆盖 <code>Variant</code> / <code>Intent</code> 的配色；不传时保持默认的变体与语意色。</span>
-        <span><code>Compact</code> 只把盒子收到 24px、字形收到 14px，并优先于 <code>Size</code>；<code>Shape=Circle</code> 使用全圆角，适合标题栏的圆形动作。</span>
+        <span><code>Compact</code> 只把盒子收到 24px、字形收到 14px，并优先于 <code>Size</code>；默认形状是圆形（全圆角，适合标题栏与工具栏动作），<code>Shape=Square</code> 可切回控件的方角。</span>
         <span>加载态只显示 Spinner 并输出 <code>aria-busy</code>；禁用态使用禁用墨，不整块降低透明度。</span>
     </Notes>
 </ComponentPage>
@@ -179,7 +179,7 @@
     private ButtonIntent _intent = ButtonIntent.Neutral;
     private Size _size = Size.Default;
     private string _ariaLabel = "搜索";
-    private IconButtonShape _chromeShape = IconButtonShape.Square;
+    private IconButtonShape _chromeShape = IconButtonShape.Circle;
     private IconButtonTone _chromeTone = IconButtonTone.Muted;
     private bool _compact = true;
 

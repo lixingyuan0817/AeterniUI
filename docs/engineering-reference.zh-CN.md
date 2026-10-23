@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.44.0`
+文档版本：`10.45.0`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -957,7 +957,7 @@ FormField
 布局能力由 `Surface`、`Card` 与业务自身的布局样式承担。规范中不再把它们
 写成已落地能力，需要的组件应先进入组件计划再实现。
 
-`IconButton` 用于独立的方形图标操作，默认采用 `Ghost + Neutral`，必须提供 `AriaLabel`；`MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，不承担 Toolbar 或 ToggleGroup 语义。
+`IconButton` 用于独立的圆形图标操作，默认采用 `Ghost + Neutral`，必须提供 `AriaLabel`；`MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，不承担 Toolbar 或 ToggleGroup 语义。
 
 其中 `Button` 作为第一份参考实现，重点验证：
 
@@ -966,8 +966,9 @@ FormField
 - `ButtonVariant` 提供 `Solid`、`Outline`、`Soft`、`Ghost`、`Link`。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可以组合，例如 `Danger + Outline`。
 - `Soft` 使用语义柔和底色，`Ghost` 默认透明并在交互时显示表面；二者不复用相同的基础状态。
-- `IconButton.Tone` 的 `Muted` / `DangerTinted` 是 chrome 预设而不是第二套语义色：它们用现有 state/danger 色阶现算透明度（DangerTinted 为 12% / 25% / 20% / 55% / 26% 与 3px 16% 环），并关闭主按钮式的上浮与阴影，因为标题栏电源、行尾「更多」这类动作贴在固定窗口结构上，抬起来反而像可拖拽。`Tone=Default` 时代码路径与旧版完全一致。
-- `Link` 仅通过颜色和下划线表达悬浮、按下反馈，不显示背景色；它适合导航或文本链接语义。
+- 整个 `IconButton` 系列悬浮只做原位高亮：表面换档，透明变体再把图标墨色向主题主墨混合一档（`color-mix` 到 `--aeterni-text-primary`，浅色更深、深色更亮），不位移、也不加抬升阴影。图标动作贴在标题栏、工具栏和行尾这些固定结构上，1px 上浮会让整行抖动，读起来也像可拖拽；`Button` 的 1px 上浮因此只留给带文字的宽动作。
+- `IconButton.Tone` 的 `Muted` / `DangerTinted` 是 chrome 预设而不是第二套语义色：它们用现有 state/danger 色阶现算透明度（DangerTinted 为 12% / 25% / 20% / 55% / 26% 与 3px 16% 环），并沿用上面的原位高亮规则，不需要单独关闭上浮。`Tone=Default` 时仍走原来的 Variant/Intent 配色路径。
+- `Link` 仅通过颜色和下划线表达悬浮、按下反馈，不显示背景色；它适合导航或文本链接语义。这条属于带文字的 `Button`：`IconButton` 的 `Link` 没有下划线可承载提示，悬浮改用与 Ghost 相同的原位柔和表面。
 - `ButtonType` 继续表示原生 HTML `button` 类型（`Button`、`Submit`、`Reset`），不与按钮语义 `ButtonIntent` 混淆。
 - `Size.Default` 映射到默认中等尺寸，按钮圆角由 `--aeterni-radius-button*` Token 提供，当前为 `0.625rem`。
 - `FullWidth` 默认关闭，启用后按钮宽度为父容器的 100%。
@@ -1026,7 +1027,7 @@ FormField
 
 ### NavMenu 密度与行级状态契约
 
-`NavMenu` 的四个档位（`Density` / `IconSize` / `DescriptionSize` / `ChildIndent`）只重设根元素上的组件级 CSS 变量，选择器里不散落尺寸；`Comfortable` 的 38px 最小行高与 3px 纵向留白来自 `--aeterni-control-height-md` / `--aeterni-spacing-1` 的派生计算，而不是新增一套尺寸 Token。`Default` 档逐项保持组件原来的 32px / 0 8px / 6px / 4px / 14px / 16px / secondary 行墨，档位不能顺手改变默认观感。
+`NavMenu` 的 `Density` / `ChildIndent` 两个档位只重设根元素上的组件级 CSS 变量，选择器里不散落尺寸；`Comfortable` 的 38px 最小行高与 3px 纵向留白来自 `--aeterni-control-height-md` / `--aeterni-spacing-1` 的派生计算，而不是新增一套尺寸 Token。`Default` 档逐项保持组件原来的 32px / 0 8px / 6px / 4px / 14px / 16px / secondary 行墨，档位不能顺手改变默认观感。图标与描述的尺寸不做组件档位：它们属于节点内容（`Icon` / `Description`）或 `RowTemplate`，组件只提供默认行的 16px 槽与 11px 描述档；否则同一份内容在自定义模板里还要再对一次组件的尺寸参数。
 
 行级 `hover` / 选中 / 按下画在 `.aeterni-nav-menu__row` 上，而不是行按钮上：`Trailing` 与标签必须共用同一块底、同一支墨，否则行尾动作会看起来像挂错层级的独立控件。按钮保持透明，只承载原生 Tab/键盘激活和 `focus-visible` 环；行容器的 `is-selected` / `is-disabled` 是状态事实源，`:has(> .aeterni-nav-menu__button:active)` 只用来把按下态同步到行盒。
 

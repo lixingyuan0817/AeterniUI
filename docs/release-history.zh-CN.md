@@ -1,10 +1,39 @@
 # AeterniUI 发布历史
 
-文档版本：`10.44.0`
+文档版本：`10.45.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.45.0 `NavMenu` 移除 `IconSize` / `DescriptionSize`，`IconButton` 默认圆形
+
+`NavMenu` 在 10.43.0 增加了图标槽与描述字号的组件档位，但这两项本来就由节点内容决定：图标是 `NavMenuNode.Icon` 的 `RenderFragment`，描述是纯文本，模板行更是完全由宿主绘制。继续把它们做成 `NavMenu` 参数，会让默认行、节点内容与 `RowTemplate` 出现三套尺寸来源，模板里还得再对一次组件的档位；因此本版删除这两个参数及只服务它们的枚举，图标与描述的大小改由内容/模板自己控制。
+
+同一批把 `IconButton` 的默认轮廓改为圆形：图标动作主要出现在标题栏、工具栏和行尾，圆形是这一类的默认 chrome；方角保留为显式选项。
+
+- [x] 删除 `IconSize`（`NavMenuIconSize`）与 `DescriptionSize`（`NavMenuTextSize`）参数、参数校验、根 class 档位与 `aeterni-nav-menu--icon-*` / `--description-*` 规则；`Density`、`ChildIndent` 保持不变。
+- [x] 默认行继续使用 16px 图标槽与 11px 描述档（原 `Default` 档观感不变）；图标槽仍通过 `--aeterni-icon-render-size` 把尺寸传给内容里未显式指定尺寸的 `Icon`，需要其它大小时在 `Icon` / `Description` 内容或 `RowTemplate` 内指定。
+- [x] `IconButton.Shape` 默认由 `Square` 改为 `Circle`：圆形写进基础规则（`--aeterni-radius-full`），默认不输出修饰类；`Square` 输出 `aeterni-icon-button--square` 并回到 `--aeterni-radius-button`。大小档不再重复声明圆角，避免把默认圆形覆盖回方角。
+- [x] `IconButtonMenu.Shape` 默认同步为 `Circle`，与内部触发器一致；示例的固定「行操作」触发器改为 `Square` 继续验证透传，浏览器断言同步改成检查 `--square` 与较小的实测圆角。
+- [x] 示例页移除图标尺寸/描述字号控件与对应状态，保留密度与子级缩进控件，并在「说明与边界」写明图标/描述尺寸由内容控制；IconButton 的 chrome 示例改为「默认圆形，Shape=Square 切回方角」。
+- [x] 契约检查删除两个档位的默认值/class/非法枚举断言，改为断言 `NavMenu` 不再暴露 `IconSize` / `DescriptionSize` 属性、CSS 不再残留 icon/description 修饰类；IconButton 断言改为「默认无形状修饰类 + 基础规则全圆角 + Square 输出 `--square`」；`api-since` 移除两条记录，`api-descriptions` 与 API 表（61 页 / 776 → 774 行）、搜索索引重新生成。
+- [x] 文档：`delivered-features` §54 与 `engineering-reference` 的 NavMenu 契约改为「内容控制图标/描述尺寸」，并注明 10.45.0 的移除；IconButton 与 IconButtonMenu 的 Shape 说明改为圆形默认。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误 0 警告；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **194/194 PASS**（含 NavMenu 页面与 IconButtonMenu Shape=Square 透传）；另用发布站定向断言实测默认按钮 `radius=9999` 且无形状修饰类、输入框步进按钮仍为 `0px` 方角；`check-css-comments.mjs`（84 文件）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh` 与两个生成物 `--check`（61 页 / 774 行、544 条 / 68 页）通过。
+- 按「移除公开 API 与默认行为变更」的破坏性变更口径（§4.9，第二位递增）从 `10.44.0` 升到 `10.45.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。上一批 `IconButton` 悬浮修正随本批一并推送，未单独打 tag。
+
+## 10.44.1 `IconButton` 系列悬浮改为原位高亮
+
+本批与 `10.45.0` 同批推送，未单独打 tag/发布 NuGet 包。
+
+`IconButton` 的悬浮反馈沿用了带文字 `Button` 的 1px 上浮与 `--aeterni-shadow-sm`。图标动作多用在标题栏、工具栏和行尾，抬起会带动整行视觉抖动，也容易被误读成可拖拽；10.43.0 的 chrome 预设只能逐条关闭位移与阴影来绕开它。本版把「原位高亮」提升为整个系列的规则，并让图标墨色步进承担反馈。
+
+- [x] 基础悬浮/按下只换表面，删除 `transform: translateY(-1px)`、`--aeterni-shadow-sm` 与 transform 过渡；禁用态的位移复位、`Tone=Muted` / `Tone=DangerTinted` 的位移与阴影复位一并删除（danger 的 3px 16% 环保留，按下仍会清除）。
+- [x] 透明变体（Outline/Soft/Ghost/Link）新增 `--aeterni-icon-button-hover-foreground`：以共享 `--aeterni-button-color-hover` 为起点，向 `--aeterni-text-primary` 按 72/28 混合，浅色更深、深色更亮；中性档本身已是主墨，混合结果不变，反馈由表面档位承担。`Link` 图标没有文字下划线可承载提示，悬浮/按下改用与 Ghost 相同的原位柔和表面。
+- [x] 契约检查从「Tone 需自行复位上浮」改为文件级断言：IconButton CSS 不得出现 `transform` 与 `--aeterni-shadow-sm`，基础 hover 不得加阴影，透明变体必须消费派生 hover 墨色；真实浏览器新增一条 hover 断言（指针悬停 Soft + Warning，比较位移、`transform`、阴影、墨色与表面档位），**194/194 PASS**。
+- [x] 文档：`delivered-features` 与 `engineering-reference` 写明系列规则、与 `Button` 1px 上浮的分工，以及 IconButton `Link` 的差异。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误 0 警告；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **194/194 PASS**；`check-css-comments.mjs`（84 文件）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh` 与两个生成物 `--check`（61 页 / 776 行、544 条 / 68 页）保持通过。
+- 按「修复与优化递增第三位」（§4.9）从 `10.44.0` 升到 `10.44.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。本批未单独发版，`10.45.0` 的版本头与 NuGet 包同时包含这两批改动。
 
 ## 10.44.0 `IconButtonMenu` 支持 `Shape`
 

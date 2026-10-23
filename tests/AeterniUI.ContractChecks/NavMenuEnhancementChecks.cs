@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 /// <summary>
-/// Contract checks for the 10.43.0 NavMenu enhancements (density tiers, row-level
-/// state paint, child indent, description/icon size tiers).
+/// Contract checks for the NavMenu enhancements (density tiers, row-level state
+/// paint, child indent). Icon and description sizes are content concerns and must
+/// not come back as NavMenu parameters.
 /// </summary>
 internal static class NavMenuEnhancementChecks
 {
@@ -61,13 +62,19 @@ internal static class NavMenuEnhancementChecks
         }
 
         // Defaults are the compatibility promise: an existing host that does not set
-        // the new options keeps the pre-tier markup and look unchanged.
+        // the options keeps the pre-tier markup and look unchanged.
         var defaults = new NavMenu();
         Require(defaults.Density == NavMenuDensity.Default
-            && defaults.IconSize == NavMenuIconSize.Default
-            && defaults.DescriptionSize == NavMenuTextSize.Default
             && defaults.ChildIndent == NavMenuChildIndent.Default,
-            "NavMenu Density/IconSize/DescriptionSize/ChildIndent must default to their Default tiers.");
+            "NavMenu Density/ChildIndent must default to their Default tiers.");
+
+        // Icon and description sizes belong to the node content / RowTemplate. Keeping
+        // them as NavMenu parameters would give the component a second size system
+        // that the caller's own icon and description markup cannot see.
+        Require(typeof(NavMenu).GetProperty("IconSize") is null
+            && typeof(NavMenu).GetProperty("DescriptionSize") is null,
+            "NavMenu must leave icon and description sizes to the content; "
+            + "IconSize and DescriptionSize are not component parameters.");
 
         var html = await RenderAsync(new Dictionary<string, object?>
         {
@@ -92,7 +99,7 @@ internal static class NavMenuEnhancementChecks
 
         // Default tiers emit no modifier class at all (AGENTS §4.2).
         Require(!root.Contains("aeterni-nav-menu--", StringComparison.Ordinal),
-            "NavMenu default tiers must not emit density/icon/description/indent modifier classes.");
+            "NavMenu default tiers must not emit density/indent modifier classes.");
 
         // Row-level state: is-selected / is-disabled must land on the row container so
         // the Trailing region shares the paint with the label.
@@ -130,13 +137,9 @@ internal static class NavMenuEnhancementChecks
                 $"NavMenu Density={density} must render the {expectedClass} root class.");
         }
 
-        // Icon / description / child indent tiers carry their own root modifier class.
+        // Child indent tiers carry their own root modifier class.
         foreach (var (parameter, value, expectedClass) in new (string Parameter, object Value, string Class)[]
         {
-            (nameof(NavMenu.IconSize), NavMenuIconSize.Small, "aeterni-nav-menu--icon-small"),
-            (nameof(NavMenu.IconSize), NavMenuIconSize.Large, "aeterni-nav-menu--icon-large"),
-            (nameof(NavMenu.DescriptionSize), NavMenuTextSize.Small, "aeterni-nav-menu--description-small"),
-            (nameof(NavMenu.DescriptionSize), NavMenuTextSize.Large, "aeterni-nav-menu--description-large"),
             (nameof(NavMenu.ChildIndent), NavMenuChildIndent.Compact, "aeterni-nav-menu--indent-compact"),
             (nameof(NavMenu.ChildIndent), NavMenuChildIndent.Spacious, "aeterni-nav-menu--indent-spacious")
         })
@@ -204,13 +207,14 @@ internal static class NavMenuEnhancementChecks
             && compactRule.Contains("--aeterni-text-secondary", StringComparison.Ordinal),
             "NavMenu Compact density must use the 28px control height, 12px label and secondary ink.");
 
-        Require(Rule(css, ".aeterni-nav-menu--icon-small").Contains("--aeterni-icon-size-sm", StringComparison.Ordinal)
-            && Rule(css, ".aeterni-nav-menu--icon-large").Contains("--aeterni-icon-size-lg", StringComparison.Ordinal)
-            && Rule(css, ".aeterni-nav-menu--description-small").Contains("--aeterni-font-size-xs) - 2px", StringComparison.Ordinal)
-            && Rule(css, ".aeterni-nav-menu--description-large").Contains("--aeterni-font-size-xs)", StringComparison.Ordinal)
-            && Rule(css, ".aeterni-nav-menu--indent-compact").Contains("--aeterni-spacing-3", StringComparison.Ordinal)
+        Require(Rule(css, ".aeterni-nav-menu--indent-compact").Contains("--aeterni-spacing-3", StringComparison.Ordinal)
             && Rule(css, ".aeterni-nav-menu--indent-spacious").Contains("--aeterni-spacing-5", StringComparison.Ordinal),
-            "NavMenu icon/description/indent modifiers must declare their component-level variables.");
+            "NavMenu indent modifiers must declare their component-level variables.");
+
+        // The removed size tiers must not leave orphan classes or rules behind.
+        Require(!css.Contains("aeterni-nav-menu--icon-", StringComparison.Ordinal)
+            && !css.Contains("aeterni-nav-menu--description-", StringComparison.Ordinal),
+            "NavMenu must not keep icon/description size modifier classes after the properties were removed.");
 
         var rowHover = Rule(css, ".aeterni-nav-menu__row:hover");
         Require(rowHover.Contains("--aeterni-state-background-hover", StringComparison.Ordinal),
@@ -237,13 +241,11 @@ internal static class NavMenuEnhancementChecks
             && !css.Contains(".aeterni-nav-menu__button.is-selected", StringComparison.Ordinal),
             "NavMenu must not paint hover/selected on the inner button again.");
 
-        // Parameter validation: every new option rejects undefined enum values with
-        // the parameter name and the actual value.
+        // Parameter validation: every remaining option rejects undefined enum values
+        // with the parameter name and the actual value.
         foreach (var (parameter, value) in new (string Parameter, object Value)[]
         {
             (nameof(NavMenu.Density), (NavMenuDensity)99),
-            (nameof(NavMenu.IconSize), (NavMenuIconSize)99),
-            (nameof(NavMenu.DescriptionSize), (NavMenuTextSize)99),
             (nameof(NavMenu.ChildIndent), (NavMenuChildIndent)99)
         })
         {

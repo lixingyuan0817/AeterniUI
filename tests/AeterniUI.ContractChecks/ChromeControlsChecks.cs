@@ -77,10 +77,10 @@ internal static class ChromeControlsChecks
         // Defaults are the documented simplest usage: the chrome additions stay
         // silent so existing consumers render exactly as before.
         var iconButtonDefaults = new IconButtonComponent();
-        Require(iconButtonDefaults.Shape == IconButtonShape.Square
+        Require(iconButtonDefaults.Shape == IconButtonShape.Circle
             && iconButtonDefaults.Tone == IconButtonTone.Default
             && !iconButtonDefaults.Compact,
-            "IconButton must default to Shape=Square, Tone=Default and Compact=false.");
+            "IconButton must default to Shape=Circle, Tone=Default and Compact=false.");
 
         var buttonDefaults = new ButtonComponent();
         Require(buttonDefaults.ContentAlignment == ButtonContentAlignment.Center,
@@ -97,22 +97,25 @@ internal static class ChromeControlsChecks
         });
         Require(defaultIconButton.Contains("aeterni-icon-button--ghost", StringComparison.Ordinal)
             && defaultIconButton.Contains("aeterni-icon-button--neutral", StringComparison.Ordinal)
-            && !defaultIconButton.Contains("--circle", StringComparison.Ordinal)
+            && !defaultIconButton.Contains("aeterni-icon-button--square", StringComparison.Ordinal)
+            && !defaultIconButton.Contains("aeterni-icon-button--circle", StringComparison.Ordinal)
             && !defaultIconButton.Contains("--tone-", StringComparison.Ordinal)
             && !defaultIconButton.Contains("is-compact", StringComparison.Ordinal),
-            "An IconButton without the chrome options must keep its Ghost + Neutral default and emit no chrome class.");
+            "The default IconButton must be the round Ghost + Neutral chrome and emit no shape modifier.");
+        Require(Regex.IsMatch(iconButtonCss, @"\.aeterni-icon-button\s*\{[^}]*border-radius: var\(--aeterni-radius-full\)"),
+            "The round default must live in the base rule so it needs no modifier class.");
 
         // --- IconButton.Shape ------------------------------------------------
-        var circle = await RenderAsync<IconButtonComponent>(new Dictionary<string, object?>
+        var square = await RenderAsync<IconButtonComponent>(new Dictionary<string, object?>
         {
             [nameof(IconButtonComponent.AriaLabel)] = "Window menu",
-            [nameof(IconButtonComponent.Shape)] = IconButtonShape.Circle,
+            [nameof(IconButtonComponent.Shape)] = IconButtonShape.Square,
             [nameof(IconButtonComponent.Icon)] = glyph
         });
-        Require(circle.Contains("aeterni-icon-button--circle", StringComparison.Ordinal),
-            "IconButton.Shape=Circle must emit the circle modifier.");
-        Require(Regex.IsMatch(iconButtonCss, @"\.aeterni-icon-button\.aeterni-icon-button--circle\s*\{[^}]*border-radius: var\(--aeterni-radius-full\)"),
-            "The circle modifier must consume --aeterni-radius-full instead of a literal radius.");
+        Require(square.Contains("aeterni-icon-button--square", StringComparison.Ordinal),
+            "IconButton.Shape=Square must emit the square modifier.");
+        Require(Regex.IsMatch(iconButtonCss, @"\.aeterni-icon-button\.aeterni-icon-button--square\s*\{[^}]*border-radius: var\(--aeterni-radius-button\)"),
+            "The square modifier must consume --aeterni-radius-button instead of a literal radius.");
 
         // --- IconButton.Tone=Muted ------------------------------------------
         var muted = await RenderAsync<IconButtonComponent>(new Dictionary<string, object?>
@@ -143,17 +146,32 @@ internal static class ChromeControlsChecks
             && iconButtonCss.Contains("--aeterni-state-background-active", StringComparison.Ordinal),
             "The muted tone must consume the shared state surface tokens.");
 
-        // Muted chrome must not lift or shadow like a filled button: both
-        // interactive tone rules reset the transform/box-shadow the base rules set.
-        var mutedHover = Regex.Match(iconButtonCss,
-            @"\.aeterni-icon-button\.aeterni-icon-button--tone-muted:hover:not\(:disabled\)\s*\{([^}]*)\}").Groups[1].Value;
-        var mutedActive = Regex.Match(iconButtonCss,
-            @"\.aeterni-icon-button\.aeterni-icon-button--tone-muted:active:not\(:disabled\)\s*\{([^}]*)\}").Groups[1].Value;
-        Require(mutedHover.Contains("box-shadow: none", StringComparison.Ordinal)
-            && mutedHover.Contains("transform: none", StringComparison.Ordinal)
-            && mutedActive.Contains("box-shadow: none", StringComparison.Ordinal)
-            && mutedActive.Contains("transform: none", StringComparison.Ordinal),
-            "The muted tone must stay in place without the filled variants' lift and shadow.");
+        // The whole series answers hover in place: no lift and no elevation
+        // shadow, while the glyph ink carries the highlight. The old base rules
+        // translated -1px and painted --aeterni-shadow-sm, which forced every
+        // chrome tone to reset both; the file-level assertions stop either from
+        // creeping back through a single variant.
+        Require(!iconButtonCss.Contains("transform", StringComparison.Ordinal),
+            "IconButton hover must stay in place; the component CSS may not declare a transform.");
+        Require(!iconButtonCss.Contains("--aeterni-shadow-sm", StringComparison.Ordinal),
+            "IconButton hover must not paint the shared elevation shadow.");
+        var baseHover = Regex.Match(iconButtonCss,
+            @"\.aeterni-icon-button:hover:not\(:disabled\)\s*\{([^}]*)\}").Groups[1].Value;
+        Require(baseHover.Length > 0
+            && !baseHover.Contains("box-shadow", StringComparison.Ordinal),
+            "The filled IconButton hover may only step its surface, not add depth.");
+
+        // Hover feedback is an ink step: the transparent variants mix the intent
+        // ink toward the theme primary ink, which deepens it on the light theme
+        // and brightens it on the dark one. Neutral already sits at primary ink,
+        // so the in-place surface step carries the feedback there.
+        Require(Regex.IsMatch(iconButtonCss,
+                @"--aeterni-icon-button-hover-foreground:\s*color-mix\(in srgb, var\(--aeterni-button-color-hover\) 72%, var\(--aeterni-text-primary\)\)"),
+            "Transparent IconButton variants must derive their hover ink from the intent ink and the theme ink.");
+        var transparentHover = Regex.Match(iconButtonCss,
+            @"\.aeterni-icon-button--outline:hover:not\(:disabled\),[^{]*\.aeterni-icon-button--link:hover:not\(:disabled\)\s*\{([^}]*)\}").Groups[1].Value;
+        Require(transparentHover.Contains("color: var(--aeterni-icon-button-hover-foreground)", StringComparison.Ordinal),
+            "Transparent IconButton hover must paint the derived hover ink instead of moving the box.");
 
         // --- IconButton.Tone=DangerTinted ------------------------------------
         var dangerTinted = await RenderAsync<IconButtonComponent>(new Dictionary<string, object?>
@@ -353,7 +371,7 @@ internal static class ChromeControlsChecks
         // --- every new class has a consumer ---------------------------------
         var emittedClasses = new (string Class, string Css, string Source)[]
         {
-            ("aeterni-icon-button--circle", iconButtonCss, "IconButton.Shape=Circle"),
+            ("aeterni-icon-button--square", iconButtonCss, "IconButton.Shape=Square"),
             ("aeterni-icon-button--tone-muted", iconButtonCss, "IconButton.Tone=Muted"),
             ("aeterni-icon-button--tone-danger-tinted", iconButtonCss, "IconButton.Tone=DangerTinted"),
             ("is-compact", iconButtonCss, "IconButton.Compact"),

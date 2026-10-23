@@ -1,6 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.44.0`
+文档版本：`10.45.0`
 
 文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
 
@@ -126,9 +126,10 @@
 - `AriaLabel`、`OnClick`。
 - `ContentAlignment`（`ButtonContentAlignment`：`Center` 默认 / `Start`）只调整内容行：`Start` 让图标与文字从左侧起排，常用于 `FullWidth` 的「新会话」式动作；按钮自身宽度/对齐契约不变。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
-- `IconButton` 提供独立的方形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Shape`、`Tone`、`Compact`、`Loading`、`Disabled` 和 `OnClick`。`Loading` 期间控件对交互禁用（输出原生 `disabled`、`aria-disabled` 与 `aria-busy`），但加载字形不继承禁用灰：它消费 `--aeterni-icon-button-loading-foreground`（实心档取变体前景色、Outline/Soft/Ghost/Link 取变体本体色），因此忙碌指示在浅色与深色下都保持可读。
-- `Shape`（`IconButtonShape`：`Square` 默认 / `Circle`）控制轮廓，`Circle` 使用 `--aeterni-radius-full`；`Compact`（默认 false）是 chrome 紧凑档：24px 盒（`calc(control-height-sm - spacing-1)`）与 14px 字形，优先于 `Size`，只改几何，不动焦点环、加载尺寸与 ButtonGroup 分隔变量。
-- `Tone`（`IconButtonTone`：`Default` 默认 / `Muted` / `DangerTinted`）是标题栏与行尾动作的 chrome 预设，**覆盖** `Variant`/`Intent` 的配色：`Muted` 透明底 + `--aeterni-text-tertiary` 墨，hover 走 `--aeterni-state-background-hover` + 次级墨、active 走 active 档；`DangerTinted` 用 `--aeterni-color-danger-default` 现算 12%/20%/26% 底与 25%/55% 描边、danger 文字墨，hover 另加 3px 16% 环。两种 preset 都关闭上浮与阴影；`Tone=Default` 时渲染与旧版逐字节一致。
+- `IconButton` 提供独立的圆形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Shape`、`Tone`、`Compact`、`Loading`、`Disabled` 和 `OnClick`。`Loading` 期间控件对交互禁用（输出原生 `disabled`、`aria-disabled` 与 `aria-busy`），但加载字形不继承禁用灰：它消费 `--aeterni-icon-button-loading-foreground`（实心档取变体前景色、Outline/Soft/Ghost/Link 取变体本体色），因此忙碌指示在浅色与深色下都保持可读。
+- `Shape`（`IconButtonShape`：`Circle` 默认 / `Square`）控制轮廓：默认圆形由基础规则使用 `--aeterni-radius-full`，不输出修饰类；`Square` 输出 `aeterni-icon-button--square` 并回到控件圆角 `--aeterni-radius-button`。`Compact`（默认 false）是 chrome 紧凑档：24px 盒（`calc(control-height-sm - spacing-1)`）与 14px 字形，优先于 `Size`，只改几何，不动形状、焦点环、加载尺寸与 ButtonGroup 分隔变量。
+- `IconButton` 系列悬浮只做原位高亮：表面换档，透明变体（Outline/Soft/Ghost/Link）再把图标墨色向主题主墨混合一档（浅色更深、深色更亮，消费 `--aeterni-icon-button-hover-foreground`），不位移、也不加抬升阴影；中性档本身已是主墨，反馈由表面档位承担。`Button` 的 1px 上浮只保留给带文字的按钮，图标动作不借用这套位移。
+- `Tone`（`IconButtonTone`：`Default` 默认 / `Muted` / `DangerTinted`）是标题栏与行尾动作的 chrome 预设，**覆盖** `Variant`/`Intent` 的配色：`Muted` 透明底 + `--aeterni-text-tertiary` 墨，hover 走 `--aeterni-state-background-hover` + 次级墨、active 走 active 档；`DangerTinted` 用 `--aeterni-color-danger-default` 现算 12%/20%/26% 底与 25%/55% 描边、danger 文字墨，hover 另加 3px 16% 环。两种 preset 沿用系列的原位高亮规则；`Tone=Default` 时仍走原来的 Variant/Intent 配色路径。
 - `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Label`、`Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`AriaLabel`、`OnItemSelected`、`Loading` 和 `FullWidth`（默认 `Variant=Outline`、`Intent=Neutral`、`Size=Default`、`Placement=BottomStart`；普通 `Button` 默认值不变）；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
 - MenuButton 的弹出内容使用 Menu，不使用 List；PopupHost 仅定位、无 padding。仅其 Popover 外围 padding 从 12px 收至 spacing-1（4px），Menu 行内横向 padding 从 12px 收至 control-padding-x-sm（8px），保留 Menu 的 spacing-2（8px）子项缩进表达折叠层级；参照现有 List 的 4px 外围与 8px 行内留白，Menu 根不重复加外围 padding，List 本身不变。折叠或无可见子项的分组不保留标题后的 gap，避免末组产生额外底部留白；Popover 上下各 4px。菜单行高仍为 32px，普通内容 Popover 和独立 Menu 保持原留白。SplitButton 复用此紧凑菜单。菜单型弹层的默认最小宽度为 `--aeterni-overlay-min-width-xs`（10rem），需要更宽/定宽时用 `Popover.MinWidth` / `Width`，不用改 token。
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
@@ -1752,7 +1753,8 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 - `Trailing`：行按钮的**兄弟区域**，可放独立的动作菜单，不产生按钮嵌套。
 - `AriaLabel`：导航地标的可访问名称，缺省取 `AeterniUITextOptions.NavMenuLabel`。
 - `Density`（`NavMenuDensity`：`Default` 默认 / `Compact` / `Comfortable`）统一调整行高、行内边距、圆角、列表 gap 与行字号；`Default` 保持 32px / 0 8px / 6px / 4px / 14px 的原观感，`Comfortable` 对齐工作台侧栏（最小行高 38px / 3px 8px / 8px / 2px / 13px 与 primary 行墨）。根 class 为 `aeterni-nav-menu--density-compact|comfortable`。
-- `IconSize`（`NavMenuIconSize`：`Small` 14px / `Default` 16px / `Large` 20px）、`DescriptionSize`（`NavMenuTextSize`：`Small` 10px / `Default` 11px / `Large` 12px）、`ChildIndent`（`NavMenuChildIndent`：`Compact` 12/4、`Default` 16/8、`Spacious` 20/12）分别调整图标槽、描述字号与子级缩进。
+- `ChildIndent`（`NavMenuChildIndent`：`Compact` 12/4、`Default` 16/8、`Spacious` 20/12）调整子级缩进（引导线外边距 / 嵌套列表内边距）。
+- 图标与描述的尺寸属于内容而不是 `NavMenu` 参数：默认行使用 16px 图标槽与 11px 描述档，需要其它大小时在节点的 `Icon` / `Description` 内容或 `RowTemplate` 里自行指定。`IconSize` / `DescriptionSize` 两个参数与 `NavMenuIconSize` / `NavMenuTextSize` 枚举已于 10.45.0 移除。
 
 ### 行为与无障碍
 
@@ -1795,7 +1797,7 @@ private static readonly NavMenuNode[] Items =
 
 `IconButtonMenu` 把图标触发器、浮层与菜单合成一个组件，等价于 `IconButton` + `PopupHost` + `Popover` + `Menu` 的手工组合：
 
-- `Icon`、`Items`、`AriaLabel` 为必填；`Variant`（默认 `Ghost`）、`Intent`（默认 `Neutral`）、`Size`（默认 `Default`）、`Shape`（`IconButtonShape`：`Square` 默认 / `Circle`）、`Placement`（默认 `BottomEnd`）、`Flat`、`Open` / `OpenChanged`、`OnItemSelected`、`Loading`，并继承 `Disabled`。`Shape` 直接透传给内部 `IconButton`，只改触发器轮廓（圆形使用 `--aeterni-radius-full`），菜单、焦点环与键盘行为不变。
+- `Icon`、`Items`、`AriaLabel` 为必填；`Variant`（默认 `Ghost`）、`Intent`（默认 `Neutral`）、`Size`（默认 `Default`）、`Shape`（`IconButtonShape`：`Circle` 默认 / `Square`）、`Placement`（默认 `BottomEnd`）、`Flat`、`Open` / `OpenChanged`、`OnItemSelected`、`Loading`，并继承 `Disabled`。`Shape` 直接透传给内部 `IconButton`，只改触发器轮廓（默认圆形使用 `--aeterni-radius-full`，`Square` 使用 `--aeterni-radius-button`），菜单、焦点环与键盘行为不变。
 - 触发器输出 `aria-haspopup="menu"`、`aria-expanded` 字符串与指向真实菜单根 id 的 `aria-controls`；`AriaLabel` 同时命名触发器与菜单。
 - 受控语义与 `MenuButton` 相同：绑定 `OpenChanged` 后由宿主决定开关，未绑定时内部维护；选择菜单项先触发 `OnItemSelected`，随后关闭菜单。
 - `Flat` 直接转发 `Menu.Flat`；弹出层沿用 `MenuButton` 的紧凑留白变量（`--aeterni-popover-content-padding` 与 `--aeterni-menu-item-padding`）。
@@ -1805,7 +1807,7 @@ private static readonly NavMenuNode[] Items =
 
 - 触发器没有可见文字，`AriaLabel` 空白在参数设置阶段抛 `ArgumentException`；`Variant` / `Intent` / `Size` / `Placement` 非法值抛带实际值的 `ArgumentOutOfRangeException`。
 - 不提供文字标签、主按钮 + 菜单并列（用 `SplitButton`）或菜单内嵌交互内容；长菜单放进带 `max-height` 的滚动容器。
-- `Loading` 只锁住触发器并拦住打开；图标按钮是方形动作，因此没有 `FullWidth`。示例：`/components/icon-button-menu`。
+- `Loading` 只锁住触发器并拦住打开；图标按钮是圆形动作，因此没有 `FullWidth`。示例：`/components/icon-button-menu`。
 
 ## 56. 当前边界
 

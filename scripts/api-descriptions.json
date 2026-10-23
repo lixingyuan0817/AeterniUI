@@ -256,7 +256,7 @@
       "Icon": "图标内容；二选一，ChildContent 是兼容的默认内容插槽。",
       "ChildContent": "图标内容；二选一，ChildContent 是兼容的默认内容插槽。",
       "OnClick": "按钮被点击时触发。",
-      "Shape": "轮廓形状：Square 方形、Circle 圆形。",
+      "Shape": "轮廓形状：Circle 圆形（默认）、Square 方形。",
       "Tone": "chrome 语义色调预设：Default、Muted、DangerTinted；Tone 覆盖 Variant/Intent 的配色。",
       "Compact": "紧凑 chrome 尺寸：24px 盒与 14px 字形，优先于 Size。"
     },
@@ -702,7 +702,7 @@
       "OpenChanged": "打开状态变化时触发，支持 @bind-Open。",
       "OnItemSelected": "菜单项被选择时触发；随后菜单关闭。",
       "Loading": "触发器忙碌状态；忙碌时不能打开菜单。",
-      "Shape": "触发器轮廓：Square 方形、Circle 圆形；只改轮廓，不影响菜单与焦点行为。"
+      "Shape": "触发器轮廓：Circle 圆形（默认）、Square 方形；只改轮廓，不影响菜单与焦点行为。"
     },
     "form-dialog": {
       "Open": "受控打开状态；为 true 时把 ChildContent 交给 DialogProvider 打开。",

@@ -22,7 +22,7 @@
     <Demos>
         <DemoCard Id="icon-button-menu-basic"
                   Title="基础用法"
-                  Description="点击图标打开菜单，Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。右侧控件即时作用在第一个按钮上，第二个按钮演示 Shape=Circle。"
+                  Description="点击图标打开菜单，Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。右侧控件即时作用在第一个按钮上，第二个按钮演示 Shape=Square。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-stack">
@@ -40,7 +40,7 @@
                         <IconButtonMenu Icon="@RowMoreIcon"
                                         Variant="ButtonVariant.Outline"
                                         Size="Size.Small"
-                                        Shape="IconButtonShape.Circle"
+                                        Shape="IconButtonShape.Square"
                                         AriaLabel="行操作"
                                         Items="@MenuItems"
                                         OnItemSelected="HandleSelectedAsync" />
@@ -136,7 +136,7 @@
     <Notes>
         <span>组合复用现有的 <code>IconButton</code>、<code>PopupHost</code>、<code>Popover</code> 与 <code>Menu</code>：Escape、外部点击、方向键导航、视口翻转与关闭后的焦点回归都沿用它们的行为。</span>
         <span><code>Flat</code> 直接传给 <code>Menu.Flat</code>；弹出层的紧凑留白与 <code>MenuButton</code> 保持一致。</span>
-        <span><code>Shape</code> 与 <code>IconButton.Shape</code> 同义：默认方形，<code>Circle</code> 用于标题栏等圆形 chrome 动作；它只改轮廓，不影响菜单与焦点行为。</span>
+        <span><code>Shape</code> 与 <code>IconButton.Shape</code> 同义：默认圆形（与 <code>IconButton</code> 一致），<code>Square</code> 可切回控件的方角；它只改轮廓，不影响菜单与焦点行为。</span>
         <span><code>Loading</code> 只让触发器忙碌，<code>Disabled</code> 才锁住整体；两者都会在根容器输出 <code>aria-disabled</code>。</span>
     </Notes>
 </ComponentPage>
@@ -197,7 +197,7 @@
     private ButtonVariant _variant = ButtonVariant.Ghost;
     private ButtonIntent _intent = ButtonIntent.Neutral;
     private Size _size = Size.Default;
-    private IconButtonShape _shape = IconButtonShape.Square;
+    private IconButtonShape _shape = IconButtonShape.Circle;
     private PopupPlacement _placement = PopupPlacement.BottomEnd;
 
     private void ToggleMenu() => _menuOpen = !_menuOpen;

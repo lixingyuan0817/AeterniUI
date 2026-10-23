@@ -194,17 +194,17 @@ internal static class IconButtonMenuChecks
             && trigger.Contains("aria-expanded=\"false\"", StringComparison.Ordinal),
             "IconButtonMenu trigger must announce the menu popup and its collapsed state.");
 
-        var circle = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var square = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Id)] = "contract-icon-menu-circle",
+            [nameof(IconButtonMenu.Id)] = "contract-icon-menu-square",
             [nameof(IconButtonMenu.Icon)] = icon,
             [nameof(IconButtonMenu.Items)] = Groups,
             [nameof(IconButtonMenu.AriaLabel)] = "More actions",
-            [nameof(IconButtonMenu.Shape)] = IconButtonShape.Circle
+            [nameof(IconButtonMenu.Shape)] = IconButtonShape.Square
         });
-        var circleTrigger = Regex.Match(circle, "<button\\b[^>]*id=\"contract-icon-menu-circle-trigger\"[^>]*>").Value;
-        Require(circleTrigger.Contains("aeterni-icon-button--circle", StringComparison.Ordinal),
-            "IconButtonMenu must forward Shape=Circle to the real trigger button.");
+        var squareTrigger = Regex.Match(square, "<button\\b[^>]*id=\"contract-icon-menu-square-trigger\"[^>]*>").Value;
+        Require(squareTrigger.Contains("aeterni-icon-button--square", StringComparison.Ordinal),
+            "IconButtonMenu must forward Shape=Square to the real trigger button.");
 
         var controlledId = Regex.Match(trigger, "aria-controls=\"([^\"]+)\"").Groups[1].Value;
         Require(!string.IsNullOrEmpty(controlledId) && Regex.IsMatch(html, $"<nav[^>]*id=\"{Regex.Escape(controlledId)}\""),
@@ -266,7 +266,7 @@ internal static class IconButtonMenuChecks
         Require(defaults.Variant == ButtonVariant.Ghost
             && defaults.Intent == ButtonIntent.Neutral
             && defaults.Size == Size.Default
-            && defaults.Shape == IconButtonShape.Square
+            && defaults.Shape == IconButtonShape.Circle
             && defaults.Placement == PopupPlacement.BottomEnd
             && !defaults.Flat
             && !defaults.Loading

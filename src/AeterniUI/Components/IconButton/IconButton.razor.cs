@@ -22,12 +22,12 @@ public partial class IconButton : AeterniComponent
     public Size Size { get; set; } = Size.Default;
 
     /// <summary>
-    /// Corner shape of the chrome. The default square shape keeps the shared button
-    /// radius; <see cref="IconButtonShape.Circle" /> paints the full-radius circle
-    /// used by title-bar window actions.
+    /// Corner shape of the chrome. The default <see cref="IconButtonShape.Circle" />
+    /// is the round icon action used by toolbars and title bars;
+    /// <see cref="IconButtonShape.Square" /> opts back into the shared button radius.
     /// </summary>
     [Parameter]
-    public IconButtonShape Shape { get; set; } = IconButtonShape.Square;
+    public IconButtonShape Shape { get; set; } = IconButtonShape.Circle;
 
     /// <summary>
     /// Chrome preset applied on top of <see cref="Variant" /> and
@@ -143,7 +143,7 @@ public partial class IconButton : AeterniComponent
         .Add($"aeterni-icon-button--{VariantClass}")
         .Add(IntentClass)
         .Add(SizeClass)
-        .Add("aeterni-icon-button--circle", Shape == IconButtonShape.Circle)
+        .Add("aeterni-icon-button--square", Shape == IconButtonShape.Square)
         .Add(ToneClass)
         .Add("is-compact", Compact)
         .Add("is-loading", Loading);

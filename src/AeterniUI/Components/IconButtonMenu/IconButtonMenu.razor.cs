@@ -39,12 +39,12 @@ public partial class IconButtonMenu : AeterniComponent
     public Size Size { get; set; } = Size.Default;
 
     /// <summary>
-    /// Trigger outline: <see cref="IconButtonShape.Square" /> (default) or
-    /// <see cref="IconButtonShape.Circle" /> for window-chrome style controls.
+    /// Trigger outline: <see cref="IconButtonShape.Circle" /> (default, matching
+    /// <c>IconButton</c>) or <see cref="IconButtonShape.Square" /> for square chrome.
     /// Forwarded to the inner <c>IconButton</c>.
     /// </summary>
     [Parameter]
-    public IconButtonShape Shape { get; set; } = IconButtonShape.Square;
+    public IconButtonShape Shape { get; set; } = IconButtonShape.Circle;
 
     [Parameter]
     public PopupPlacement Placement { get; set; } = PopupPlacement.BottomEnd;

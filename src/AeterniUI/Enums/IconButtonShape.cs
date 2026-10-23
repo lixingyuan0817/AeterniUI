@@ -5,9 +5,9 @@ namespace AeterniUI.Enums;
 /// </summary>
 public enum IconButtonShape
 {
-    /// <summary>Square chrome with the shared button radius; the default.</summary>
+    /// <summary>Square chrome with the shared button radius; opt-in alternative to the round default.</summary>
     Square,
 
-    /// <summary>Circular chrome using the full radius token, e.g. a title-bar window action.</summary>
+    /// <summary>Circular chrome using the full radius token; the default for toolbars and title bars.</summary>
     Circle
 }

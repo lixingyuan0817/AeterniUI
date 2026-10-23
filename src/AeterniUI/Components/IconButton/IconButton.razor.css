@@ -22,24 +22,27 @@
     min-width: var(--aeterni-icon-button-size);
     padding: 0;
     border: var(--aeterni-border-width) solid transparent;
-    border-radius: var(--aeterni-radius-button);
+    /* The default icon action is round; Square opts back into the shared control
+       radius. The base rule carries the default so no modifier class is emitted
+       for it. */
+    border-radius: var(--aeterni-radius-full);
     background: var(--aeterni-button-background);
     color: var(--aeterni-button-foreground);
     cursor: pointer;
-    transition: var(--aeterni-transition-button), var(--aeterni-transition-transform);
+    /* An icon action answers hover in place: the surface and the glyph ink step,
+       the box never moves. A 1px lift belongs to a wide text button that can
+       afford the travel; on a toolbar or title-bar glyph it reads as a drag
+       affordance and makes the surrounding row shimmer. */
+    transition: var(--aeterni-transition-button);
 }
 
 .aeterni-icon-button:hover:not(:disabled) {
     background: var(--aeterni-button-background-hover);
     color: var(--aeterni-button-foreground);
-    box-shadow: var(--aeterni-shadow-sm);
-    transform: translateY(-1px);
 }
 
 .aeterni-icon-button:active:not(:disabled) {
     background: var(--aeterni-button-background-active);
-    box-shadow: none;
-    transform: translateY(0);
 }
 
 .aeterni-icon-button:focus-visible {
@@ -49,7 +52,6 @@
 
 .aeterni-icon-button:disabled {
     cursor: not-allowed;
-    transform: none;
 }
 
 .aeterni-icon-button__icon,
@@ -83,20 +85,19 @@
 .aeterni-icon-button--sm {
     --aeterni-icon-button-size: var(--aeterni-control-height-sm);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
-    border-radius: var(--aeterni-radius-button);
 }
 
 .aeterni-icon-button--lg {
     --aeterni-icon-button-size: var(--aeterni-control-height-lg);
     --aeterni-icon-button-icon-size: var(--aeterni-icon-size-lg);
-    border-radius: var(--aeterni-radius-button);
 }
 
 /* Shape ----------------------------------------------------------------------
-   Shape only repaints the corner. The compound selector outranks the size tiers,
-   which also declare a radius, so a Circle stays round at every size. */
-.aeterni-icon-button.aeterni-icon-button--circle {
-    border-radius: var(--aeterni-radius-full);
+   Only the opt-in Square repaints the corner; the round default lives in the base
+   rule. The compound selector outranks the size tiers, so Square keeps the shared
+   button radius at every size and in every chrome preset. */
+.aeterni-icon-button.aeterni-icon-button--square {
+    border-radius: var(--aeterni-radius-button);
 }
 
 /* Compact chrome tier --------------------------------------------------------
@@ -115,6 +116,12 @@
 .aeterni-icon-button--ghost,
 .aeterni-icon-button--link {
     --aeterni-icon-button-loading-foreground: var(--aeterni-button-color);
+    /* Hover is an ink step, not a move. The intent's shared color-hover slot is
+       the starting ink; mixing it toward the theme's primary ink deepens it on
+       the light theme and brightens it on the dark one, so the glyph sharpens in
+       both. Neutral already sits at primary ink, so the mix is a no-op there and
+       the in-place surface step carries the feedback. */
+    --aeterni-icon-button-hover-foreground: color-mix(in srgb, var(--aeterni-button-color-hover) 72%, var(--aeterni-text-primary));
 
     background: transparent;
     color: var(--aeterni-button-color);
@@ -124,11 +131,15 @@
     border-color: var(--aeterni-button-color);
 }
 
+/* Link is included even though a text Link carries its affordance in the
+   underline: an icon has no underline, so the in-place surface is the only
+   shared hover signal left. */
 .aeterni-icon-button--outline:hover:not(:disabled),
 .aeterni-icon-button--soft:hover:not(:disabled),
-.aeterni-icon-button--ghost:hover:not(:disabled) {
+.aeterni-icon-button--ghost:hover:not(:disabled),
+.aeterni-icon-button--link:hover:not(:disabled) {
     background: var(--aeterni-button-soft);
-    color: var(--aeterni-button-color-hover);
+    color: var(--aeterni-icon-button-hover-foreground);
 }
 
 /* A soft surface is already tinted, so its hover has to step to the deeper soft
@@ -143,7 +154,8 @@
 
 .aeterni-icon-button--outline:active:not(:disabled),
 .aeterni-icon-button--soft:active:not(:disabled),
-.aeterni-icon-button--ghost:active:not(:disabled) {
+.aeterni-icon-button--ghost:active:not(:disabled),
+.aeterni-icon-button--link:active:not(:disabled) {
     background: var(--aeterni-button-soft-active);
 }
 
@@ -151,13 +163,7 @@
     border-color: transparent;
 }
 
-.aeterni-icon-button--link:hover:not(:disabled) {
-    background: transparent;
-    color: var(--aeterni-button-color-hover);
-}
-
 .aeterni-icon-button--link:active:not(:disabled) {
-    background: transparent;
     color: var(--aeterni-button-color-active);
 }
 
@@ -227,15 +233,10 @@
 .aeterni-icon-button.aeterni-icon-button--tone-muted:hover:not(:disabled) {
     background: var(--aeterni-state-background-hover);
     color: var(--aeterni-text-secondary);
-    /* Chrome stays put: no lift and no shadow, unlike the filled variants. */
-    box-shadow: none;
-    transform: none;
 }
 
 .aeterni-icon-button.aeterni-icon-button--tone-muted:active:not(:disabled) {
     background: var(--aeterni-state-background-active);
-    box-shadow: none;
-    transform: none;
 }
 
 /* The danger tint is computed from the one semantic danger colour instead of
@@ -254,13 +255,11 @@
     color: var(--aeterni-color-danger-text);
     /* A soft danger halo instead of the shared elevation shadow. */
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--aeterni-color-danger-default) 16%, transparent);
-    transform: none;
 }
 
 .aeterni-icon-button.aeterni-icon-button--tone-danger-tinted:active:not(:disabled) {
     background: color-mix(in srgb, var(--aeterni-color-danger-default) 26%, transparent);
     box-shadow: none;
-    transform: none;
 }
 
 .aeterni-icon-button:disabled:not(.is-loading) {

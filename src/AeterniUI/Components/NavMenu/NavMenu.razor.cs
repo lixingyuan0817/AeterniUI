@@ -92,24 +92,14 @@ public partial class NavMenu : AeterniComponent
     public NavMenuDensity Density { get; set; } = NavMenuDensity.Default;
 
     /// <summary>
-    /// 图标槽尺寸，默认 <see cref="NavMenuIconSize.Default"/>（16px，<c>--aeterni-icon-size-md</c>）；
-    /// <see cref="NavMenuIconSize.Small"/> 为 14px，<see cref="NavMenuIconSize.Large"/> 为 20px。
-    /// 槽位通过 <c>--aeterni-icon-render-size</c> 把尺寸传给行模板里未显式指定尺寸的 <c>Icon</c>。
-    /// </summary>
-    [Parameter]
-    public NavMenuIconSize IconSize { get; set; } = NavMenuIconSize.Default;
-
-    /// <summary>
-    /// 描述文字字号，默认 <see cref="NavMenuTextSize.Default"/>（11px，保持原有观感）；
-    /// <see cref="NavMenuTextSize.Small"/> 为 10px，<see cref="NavMenuTextSize.Large"/> 为 12px。
-    /// </summary>
-    [Parameter]
-    public NavMenuTextSize DescriptionSize { get; set; } = NavMenuTextSize.Default;
-
-    /// <summary>
     /// 子级缩进，默认 <see cref="NavMenuChildIndent.Default"/>（引导线左侧 16px、内容 8px）；
     /// <see cref="NavMenuChildIndent.Compact"/> 为 12px / 4px，<see cref="NavMenuChildIndent.Spacious"/> 为 20px / 12px。
     /// </summary>
+    /// <remarks>
+    /// 图标与描述的尺寸不是 NavMenu 参数：默认行沿用 16px 图标槽与 11px 描述档，
+    /// 需要其它大小时在节点的 <c>Icon</c> / <c>Description</c> 内容或 <c>RowTemplate</c>
+    /// 里自行指定，避免组件再维护一套与内容重复的尺寸档位。
+    /// </remarks>
     [Parameter]
     public NavMenuChildIndent ChildIndent { get; set; } = NavMenuChildIndent.Default;
 
@@ -158,20 +148,6 @@ public partial class NavMenu : AeterniComponent
             _ => null
         });
 
-        builder.Add(IconSize switch
-        {
-            NavMenuIconSize.Small => "aeterni-nav-menu--icon-small",
-            NavMenuIconSize.Large => "aeterni-nav-menu--icon-large",
-            _ => null
-        });
-
-        builder.Add(DescriptionSize switch
-        {
-            NavMenuTextSize.Small => "aeterni-nav-menu--description-small",
-            NavMenuTextSize.Large => "aeterni-nav-menu--description-large",
-            _ => null
-        });
-
         builder.Add(ChildIndent switch
         {
             NavMenuChildIndent.Compact => "aeterni-nav-menu--indent-compact",
@@ -189,16 +165,6 @@ public partial class NavMenu : AeterniComponent
         if (!Enum.IsDefined(Density))
         {
             throw new ArgumentOutOfRangeException(nameof(Density), Density, "Unknown nav menu density.");
-        }
-
-        if (!Enum.IsDefined(IconSize))
-        {
-            throw new ArgumentOutOfRangeException(nameof(IconSize), IconSize, "Unknown nav menu icon size.");
-        }
-
-        if (!Enum.IsDefined(DescriptionSize))
-        {
-            throw new ArgumentOutOfRangeException(nameof(DescriptionSize), DescriptionSize, "Unknown nav menu description size.");
         }
 
         if (!Enum.IsDefined(ChildIndent))
