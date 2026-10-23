@@ -1,10 +1,45 @@
 # AeterniUI 发布历史
 
-文档版本：`10.41.1`
+文档版本：`10.43.0`
 
 文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
 
 本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+
+## 10.43.0 NavMenu 密度与行级状态、IconButton chrome 预设、Menu/Popover/Dialog 补全
+
+本批包含 10.42.0 的 `IconButtonMenu` / `FormDialog`，并继续给现有组件补上工作台侧栏与窗口 chrome 直接需要的能力，目标是删掉宿主里的 `::deep` 与内联 token 覆盖。参考实现与验收依据是 `/Users/lixingyuan/GithubProjects/AeterniWorkbench` 的 `WorkbenchSidebar`、`TitleBar`、`ProjectActionsMenu`。
+
+- [x] `NavMenu`：新增 `Density`（`Default` / `Compact` / `Comfortable`）、`IconSize`（16/14/20px）、`DescriptionSize`（11/10/12px）与 `ChildIndent`（16·8 / 12·4 / 20·12），全部通过根 class 上的组件级 CSS 变量消费；`Default` 逐项保持原观感，`Comfortable` 精确对齐工作台侧栏（38px 最小行高、3px 纵向留白、8px 圆角、2px 行距、13px 字号、primary 行墨）。
+- [x] `NavMenu` 行级状态：hover、选中与按下从行按钮移到 `.aeterni-nav-menu__row`，行容器持有 `is-selected` / `is-disabled`，Trailing 与名称共享同一块背景与同一支墨；按钮透明，只保留原生 Tab/键盘激活与 `focus-visible` 环。选中继续使用 `--aeterni-state-background-selected` / `-color-selected` / `-background-checked`，hover 使用 `--aeterni-state-background-hover`，按下用 `:has(...:active)` 同步到行盒。
+- [x] `IconButton`：新增 `Shape`（`Square` / `Circle`，后者使用 `--aeterni-radius-full`）、`Tone`（chrome 预设 `Muted` / `DangerTinted`，覆盖 Variant/Intent 配色并关闭上浮/阴影；danger tint 用现有 danger 色阶现算 12%/20%/26% 底、25%/55% 描边与 3px 16% 环）与 `Compact`（24px 盒 / 14px 字形，优先于 `Size`，只改几何）。`Tone=Default`、`Shape=Square`、`Compact=false` 渲染逐字节保持原状。
+- [x] `Button.ContentAlignment`（`Center` 默认 / `Start`）：只重排 `.aeterni-button__content`，`Start` 让图标与文字从左侧起排并填满内容行，用于 `FullWidth` 的「新会话」式动作；按钮宽度/对齐契约不变。
+- [x] `Icon.Tone`（`Default` / `Muted` / `Tertiary`）：补中性墨阶，`Color` 继续只表达语义色；两者同时设置时 `Tone` 生效。没有把 `Muted` / `Tertiary` 塞进共享 `Color` 枚举，避免 Badge/Tag/Avatar/Progress/Spinner 五个消费者无声接受未实现的取值。
+- [x] `Popover.MinWidth` / `Width`：写入根内联 `--aeterni-popover-min-width` / `--aeterni-popover-width`，surface 消费且不覆盖宿主其他 `Style`；新增同族 token `--aeterni-overlay-min-width-xs: 10rem`，`MenuButton` / `IconButtonMenu` 的菜单型弹层默认切到它。`Menu.IconSize`（`Small` 16 / `Default` 20 / `Large` 24）同时调整分组与条目图标槽，chevron 保持自身 16px 档。
+- [x] `DialogOptions.AutofocusFirstField`（默认 false）：任意自定义 Dialog 可打开即聚焦弹窗内首个字段，无字段回退原首个可聚焦元素；`FormDialogOptions` 构造器默认 true，`DialogProvider` 对普通 Dialog 仅在 true 时输出标记，JS 按标记聚焦。`FormDialog` 的忙碌/校验保持 10.42.0 的专属实现，普通 Dialog 不造假参数。
+- [x] `List`：把选中态复用配方（`--aeterni-state-background-selected` + `--aeterni-text-primary` + `--aeterni-font-weight-medium`，hover 排除选中/禁用，附属内容用 `currentColor`）写入交付功能，供工作台工具行直接引用而不是仿写。
+- [x] 示例与生成物：NavMenu 增加 4 个档位 Controls 与「整行状态覆盖 Trailing」demo；IconButton 增加 chrome 预设 demo；Button/Icon 各增加内容对齐与墨阶 demo；Menu/Popup 在现有 demo 内补 IconSize、MinWidth/Width 控件；Feedback 增加 `AutofocusFirstField` 自定义 Dialog。API 表（61 页 / 775 行）与搜索索引（544 条 / 68 页）重跑，`api-descriptions` / `api-extra-rows` / `api-since` 同步（新成员 10.43.0）。
+- [x] 测试：契约检查扩到 **47 组**（新增 `NavMenuEnhancementChecks`、`ChromeControlsChecks`、`MenuDialogChecks`）；`node --test tests/*.test.mjs` **131 项**；`tests/browser/verify.mjs` 新增 7 条真实浏览器断言（NavMenu 密度与行级选中、hover 含 Trailing、IconButton 圆形 danger 色调与 24px 紧凑、Button 内容左对齐、Icon 墨阶、Popover MinWidth/Width 落位、普通 Dialog 首字段聚焦），**191/191 PASS**。
+- [x] 测试基建：`tests/browser/serve.mjs` 对每个请求做错误隔离（Node 24 下浏览器中止导航产生的写错误此前会变成未捕获 rejection 并杀掉静态服务器，导致套件在长跑中途挂起）；真实浏览器断言继续用 `Page.bringToFront` 保证被测标签页不是 `hidden`。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误，仅环境 NU1900 警告）；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（84 文件）、`check-scrollbars.mjs`（16 容器 / 14 组件表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（61 页 / 775 行）、`generate-search-index.mjs --check`（544 条 / 68 页）、token 文件组件选择器检查与真实浏览器 **191/191 PASS** 通过。本机无外网，`generate-fontawesome-icons.mjs --check` 因拉取图标清单超时未完成；本批未改图标清单或 Font Awesome 适配包。
+- 按「功能新增递增第二位」（§4.9）从 `10.42.0` 升到 `10.43.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
+
+## 10.42.0 `IconButtonMenu`、`Menu.Flat` 与 `FormDialog` 表单弹窗约定
+
+本批与 10.43.0 同批推送，未单独打 tag/发布 NuGet 包；v10.43.0 的包同时包含本批改动。
+
+本批交付两个 P0 交互补全组件：`IconButtonMenu`（图标按钮 + 触发表层 + `Menu` 一体）与 `FormDialog`（`FormDialogOptions` + `IDialogService.ShowForm/ShowFormAsync` + 声明式宿主），并把状态点 `StatusDot` 只登记为 [`component-plan`](component-plan.zh-CN.md) 的 P2 候选，未实现。两者都复用既有 `PopupHost` / `Popover` / `Menu` / `DialogProvider` 与 `aeterni_floating.js`，没有新增第二套模态或键盘实现。
+
+- [x] `Components/IconButtonMenu/`（`.razor` / `.razor.cs` / `.razor.css`）：`Icon`、`Items`、`AriaLabel` 必填；`Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Default）、`Placement`（默认 BottomEnd）、`Flat`、受控/非受控 `Open` / `OpenChanged`、`OnItemSelected`、`Loading`。触发器输出 `aria-haspopup="menu"`、`aria-expanded` 与指向真实菜单根 id 的 `aria-controls`；AriaLabel 空白、`Items`/`Icon` 为 null、四个枚举非法值在参数设置阶段分别抛 `ArgumentException` / `ArgumentNullException` / `ArgumentOutOfRangeException`。
+- [x] `Menu.Flat`：扁平模式按分组顺序渲染一份无分组标题的列表，不输出 group toggle、collapse 与 `aria-expanded`；条目保留链接/按钮变体、`aria-current`、图标、说明与禁用语义；方向键/Home/End 只在可见非禁用条目间移动，左右键不再展开折叠。`Flat=false` 的渲染与键盘分支保持不变。
+- [x] 表单弹窗：`FormDialogSubmitResult`（`Success` / `Fail`）、`FormDialogOptions : DialogOptions`（`SubmitText`、`CancelText`、`OnSubmit`、`OnCancel`、`AutofocusFirstField`、`SubmitOnEnter`、`ValidationMessage`）、`IDialogService.ShowForm/ShowFormAsync`，以及不渲染 DOM 的声明式 `FormDialog` 宿主（受控 `Open` / `OpenChanged`，处理关闭中重开与 Dispose）。表单 kind 复用 `DialogProvider`：footer 由 Provider 生成（主按钮 Loading、次按钮与关闭按钮禁用、`aria-busy`），提交失败写入 `role="alert"` 校验区，忙碌期间忽略 Escape/遮罩/重复提交；成功以 `DialogResult.Confirm(Data)` 关闭。
+- [x] 焦点与 Enter 约定：打开时聚焦表单首个字段（无字段回退原首个可聚焦元素）；`SubmitOnEnter` 只在单行字段触发，textarea/select/按钮/链接/contenteditable、输入法组合与 Shift/Ctrl/Meta/Alt 组合键不触发。由 `DialogProvider.razor.js` 统一处理，组件与宿主不再各拼一套。
+- [x] 文案表新增 `FormDialogSubmitLabel`（Save）、`FormDialogCancelLabel`（Cancel）并纳入归一逻辑；`check-doc-drift` 的 98 个文案键覆盖通过。
+- [x] 示例与生成物：新增 `/components/icon-button-menu`（4 段 demo：基础 + Controls、Flat/分组、受控打开、禁用/加载）与 `/components/form-dialog`（声明式校验/忙碌/成功 + 服务 API 两段 demo）；目录条目、API 表（61 页 / 762 行）与搜索索引（540 条 / 68 页）重跑，`api-descriptions` / `api-extra-rows` / `api-since` 同步（新成员标记 10.42.0）。
+- [x] 测试：契约检查扩到 **44 组**（新增 `IconButtonMenuChecks`、`FormDialogChecks`：Flat 语义、根属性转发、AriaLabel/枚举/null 校验、表单标记/文案回退/忙碌/校验/成功 Data）；`node --test tests/*.test.mjs` **131 项**；`tests/browser/verify.mjs` 新增 7 条真实浏览器断言（IconButtonMenu 打开关联与选择后关闭回归、Flat 无分组且方向键只走条目、FormDialog 首字段聚焦、Enter 忙碌 + Escape 忽略 + 成功后关闭回归、失败校验），最终 **183/183 PASS**。
+- [x] 验证过程中修掉两处会让真实浏览器门禁失真的问题：共享 `waitForExit` 在「动画已在观察前结束」时可能拿到永不结算的 `Animation.finished`，导致浮层永久停在 `is-closing`——改为按实测 `delay + duration` 兜底并在已结束时立即完成（`delivered-features` §26 与 `engineering-reference` §6 同步）；浏览器夹具在每次导航后 `Page.bringToFront`，避免 Chrome 首次运行的 `chrome://settings/help` 页把被测标签页挤成 `hidden` 后焦点/动画断言静默失真；Segmented 轨道高度断言改为亚像素容差（44 实测 43.9999）。
+- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误，仅环境 NU1900 警告）；契约检查 44 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（84 文件）、`check-scrollbars.mjs`（16 容器 / 14 组件表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（61 页 / 762 行）、`generate-search-index.mjs --check`（540 条 / 68 页）、token 文件组件选择器检查与真实浏览器 **183/183 PASS** 通过。本机无外网，`generate-fontawesome-icons.mjs --check` 因拉取图标清单超时未完成；本批未改动图标清单或 Font Awesome 适配包，因此没有相关生成物变化。
+- 按「功能新增递增第二位」（§4.9）从 `10.41.1` 升到 `10.42.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.41.1 修复：`NavMenu` 折叠的分组保留子内容高度，分组之间留下大空隙
 

@@ -92,6 +92,11 @@ await CheckSegmentedShapeAsync();
 await CheckSegmentedKeyboardAsync();
 await TransferChecks.RunAsync(renderer, failures);
 await AnchorChecks.RunAsync(renderer, failures);
+await IconButtonMenuChecks.RunAsync(renderer, failures);
+await FormDialogChecks.RunAsync(renderer, failures);
+await NavMenuEnhancementChecks.RunAsync(renderer, failures);
+await ChromeControlsChecks.RunAsync(renderer, failures);
+await MenuDialogChecks.RunAsync(renderer, failures);
 CheckTimeMapReuse();
 
 if (failures.Count > 0)
@@ -104,7 +109,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (42 groups).");
+Console.WriteLine("Component contract checks passed (47 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the

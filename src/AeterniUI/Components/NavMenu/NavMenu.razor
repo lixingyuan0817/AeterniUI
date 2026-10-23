@@ -23,7 +23,10 @@
             var nodeExpanded = isGroup && IsOpen(node.Id);
             <li class="aeterni-nav-menu__node @(nodeSelected ? "is-selected" : null) @(nodeExpanded ? "is-open" : null)"
                 data-depth="@depth">
-                <div class="aeterni-nav-menu__row">
+                @* Row-level state: hover, selected and pressed paint the row box so the
+                   Trailing region is highlighted with the label instead of splitting the
+                   row into a lit name and a dim action. *@
+                <div class="aeterni-nav-menu__row @(nodeSelected ? "is-selected" : null) @(nodeDisabled ? "is-disabled" : null)">
                     @if (isGroup)
                     {
                         <button type="button"

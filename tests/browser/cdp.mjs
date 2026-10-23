@@ -37,6 +37,13 @@ export async function connect(cdpUrl = process.env.AETERNI_CDP_URL ?? 'http://12
         listeners.get(method).add(handler);
     });
 
+    // Headless Chrome can open its own first-run tab (chrome://settings/help) next
+    // to the page under test. That tab takes activation, leaving the app tab
+    // `visibilityState: "hidden"`: timers get clamped, focus() is refused and
+    // pointer/key assertions silently measure nothing. Bring the driven tab to the
+    // front once and after every navigation so the suite tests a visible page.
+    send('Page.bringToFront').catch(() => {});
+
     return { send, once, close: () => socket.close() };
 }
 
@@ -53,6 +60,10 @@ export function makeHelpers({ send, once }) {
         const loaded = once('Page.loadEventFired');
         await send('Page.navigate', { url });
         await loaded;
+        // Activate the tab again: a first-run Chrome tab can steal activation at
+        // any point, and a hidden tab silently fails focus/animation checks.
+        await send('Page.bringToFront').catch(() => {});
+        await new Promise(resolve => setTimeout(resolve, 50));
     }
 
     // Blazor WASM boots asynchronously; wait until the sample has rendered.

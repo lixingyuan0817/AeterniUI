@@ -1,4 +1,5 @@
 using AeterniUI.Attributes;
+using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -76,6 +77,25 @@ public partial class Menu : AeterniComponent
     [Parameter]
     public string? AriaLabel { get; set; }
 
+    /// <summary>
+    /// Renders one ungrouped list: group headers, disclosure toggles and collapse
+    /// regions are not emitted, so the entries render in group order without any
+    /// <c>aria-expanded</c> state. Entries keep their link/button variant, selection
+    /// marker, icon and description; the arrow keys then move between the flat
+    /// entries only, and the horizontal keys have nothing to expand or collapse.
+    /// </summary>
+    [Parameter]
+    public bool Flat { get; set; }
+
+    /// <summary>
+    /// Size of the icon slot shared by group toggles and entries. <see cref="MenuIconSize.Default" />
+    /// (20px) is the existing rhythm, <see cref="MenuIconSize.Small" /> (16px) suits compact
+    /// flyouts and <see cref="MenuIconSize.Large" /> (24px) suits large navigation surfaces.
+    /// The disclosure chevron keeps its own small size. Undefined values are rejected.
+    /// </summary>
+    [Parameter]
+    public MenuIconSize IconSize { get; set; } = MenuIconSize.Default;
+
     [Parameter]
     public EventCallback<string> SelectedIdChanged { get; set; }
 
@@ -95,7 +115,15 @@ public partial class Menu : AeterniComponent
 
     private bool IsControlled => OpenKeys is not null;
 
-    protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-menu");
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-menu")
+        // Flat is a state, not a separate component: the CSS consumer drops the
+        // group-to-group gap to the compact single-unit row gap.
+        .Add("is-flat", Flat)
+        // Only the non-default tiers emit a modifier; the base rule already carries
+        // the default (existing) icon slot size.
+        .Add("aeterni-menu--icon-small", IconSize == MenuIconSize.Small)
+        .Add("aeterni-menu--icon-large", IconSize == MenuIconSize.Large);
 
     protected override void OnParametersSet()
     {
@@ -103,6 +131,11 @@ public partial class Menu : AeterniComponent
         // REV-156: an explicitly null list used to surface as an internal NRE instead of
         // an argument exception naming the parameter.
         ArgumentNullException.ThrowIfNull(Items);
+
+        if (!Enum.IsDefined(IconSize))
+        {
+            throw new ArgumentOutOfRangeException(nameof(IconSize), IconSize, "Unknown menu icon size.");
+        }
 
 
         if (!IsControlled)
@@ -243,7 +276,7 @@ public partial class Menu : AeterniComponent
         }
 
         var current = nodes.IndexOf((_focusedGroupIndex, _focusedItemIndex));
-        if (current < 0 && _focusedGroupIndex >= 0)
+        if (current < 0 && !Flat && _focusedGroupIndex >= 0)
         {
             // Focus sat inside a group that was just collapsed: fall back to that
             // group's toggle instead of jumping to the first node.
@@ -270,6 +303,13 @@ public partial class Menu : AeterniComponent
 
             case "ArrowRight":
             case "ArrowLeft":
+                // A flat list has no disclosure state, so the horizontal keys must
+                // not silently expand a group that is not rendered.
+                if (Flat)
+                {
+                    break;
+                }
+
                 if (await IsExpandKeyAsync(args.Key))
                 {
                     await ExpandFocusedGroupAsync();
@@ -303,6 +343,31 @@ public partial class Menu : AeterniComponent
     private List<(int GroupIndex, int ItemIndex)> BuildVisibleNodes()
     {
         var nodes = new List<(int GroupIndex, int ItemIndex)>();
+
+        if (Flat)
+        {
+            // Flat mode renders every visible entry directly and no group toggle,
+            // so only the entries are reachable with the arrow keys.
+            for (var groupIndex = 0; groupIndex < Items.Count; groupIndex++)
+            {
+                var group = Items[groupIndex];
+                if (!group.Visible)
+                {
+                    continue;
+                }
+
+                for (var itemIndex = 0; itemIndex < group.Items.Count; itemIndex++)
+                {
+                    var item = group.Items[itemIndex];
+                    if (item.Visible && !IsItemDisabled(group, item))
+                    {
+                        nodes.Add((groupIndex, itemIndex));
+                    }
+                }
+            }
+
+            return nodes;
+        }
 
         for (var groupIndex = 0; groupIndex < Items.Count; groupIndex++)
         {
@@ -351,7 +416,7 @@ public partial class Menu : AeterniComponent
 
     private async Task ExpandFocusedGroupAsync()
     {
-        if (_focusedItemIndex != NoItem || _focusedGroupIndex < 0 || _focusedGroupIndex >= Items.Count)
+        if (Flat || _focusedItemIndex != NoItem || _focusedGroupIndex < 0 || _focusedGroupIndex >= Items.Count)
         {
             return;
         }
@@ -367,7 +432,7 @@ public partial class Menu : AeterniComponent
 
     private async Task CollapseFocusedGroupAsync(List<(int GroupIndex, int ItemIndex)> nodes)
     {
-        if (_focusedGroupIndex < 0 || _focusedGroupIndex >= Items.Count)
+        if (Flat || _focusedGroupIndex < 0 || _focusedGroupIndex >= Items.Count)
         {
             return;
         }

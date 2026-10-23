@@ -18,6 +18,7 @@ public static class ShowcaseApiReference
             {
                 new("AriaLabel", "string?", "", "无障碍名称。", "属性", ""),
                 new("ChildContent", "RenderFragment?", "", "按钮文本或自定义内容。", "属性", ""),
+                new("ContentAlignment", "ButtonContentAlignment", "", "内容行的水平排布：Center 居中、Start 左对齐（图标与文字从左侧起排）。", "属性", "10.43.0"),
                 new("EndIcon", "RenderFragment?", "", "按钮右侧图标。", "属性", ""),
                 new("FullWidth", "bool", "", "是否占满父容器。", "属性", ""),
                 new("Icon", "RenderFragment?", "", "兼容旧 API 的起始图标。", "属性", ""),
@@ -33,11 +34,14 @@ public static class ShowcaseApiReference
             {
                 new("AriaLabel", "string", "", "图标动作的无障碍名称。", "属性", ""),
                 new("ChildContent", "RenderFragment?", "", "图标内容；二选一，ChildContent 是兼容的默认内容插槽。", "属性", ""),
+                new("Compact", "bool", "", "紧凑 chrome 尺寸：24px 盒与 14px 字形，优先于 Size。", "属性", "10.43.0"),
                 new("Icon", "RenderFragment?", "", "图标内容；二选一，ChildContent 是兼容的默认内容插槽。", "属性", ""),
                 new("Intent", "ButtonIntent", "", "按钮语义类型。", "属性", ""),
                 new("Loading", "bool", "", "是否显示加载状态。", "属性", ""),
                 new("OnClick", "EventCallback<MouseEventArgs>", "", "按钮被点击时触发。", "事件回调", ""),
+                new("Shape", "IconButtonShape", "", "轮廓形状：Square 方形、Circle 圆形。", "属性", "10.43.0"),
                 new("Size", "Size", "", "正方形尺寸档位。", "属性", ""),
+                new("Tone", "IconButtonTone", "", "chrome 语义色调预设：Default、Muted、DangerTinted；Tone 覆盖 Variant/Intent 的配色。", "属性", "10.43.0"),
                 new("Type", "ButtonType", "", "原生 button 类型。", "属性", ""),
                 new("Variant", "ButtonVariant", "", "按钮视觉变体。", "属性", ""),
             },
@@ -55,6 +59,21 @@ public static class ShowcaseApiReference
                 new("Placement", "PopupPlacement", "", "菜单弹出方向。", "属性", ""),
                 new("Size", "Size", "", "触发按钮尺寸。", "属性", ""),
                 new("Variant", "ButtonVariant", "", "触发按钮视觉变体。", "属性", ""),
+            },
+            ["icon-button-menu"] = new ShowcaseApiMember[]
+            {
+                new("AriaLabel", "string", "", "触发器与菜单的无障碍名称；空白值在参数设置阶段拒绝。", "属性", "10.42.0"),
+                new("Flat", "bool", "", "摊平为一份无分组标题、无 aria-expanded 的列表。", "属性", "10.42.0"),
+                new("Icon", "RenderFragment?", "", "触发器图标；图标按钮没有可见文字，所以必须同时给出 AriaLabel。", "属性", "10.42.0"),
+                new("Intent", "ButtonIntent", "", "触发器语义类型，默认 Neutral。", "属性", "10.42.0"),
+                new("Items", "IReadOnlyList<MenuGroup>", "", "下拉菜单的分组与菜单项。", "属性", "10.42.0"),
+                new("Loading", "bool", "", "触发器忙碌状态；忙碌时不能打开菜单。", "属性", "10.42.0"),
+                new("OnItemSelected", "EventCallback<MenuItem>", "", "菜单项被选择时触发；随后菜单关闭。", "事件回调", "10.42.0"),
+                new("Open", "bool", "", "可选受控打开状态；未绑定 OpenChanged 时由组件内部维护。", "属性", "10.42.0"),
+                new("OpenChanged", "EventCallback<bool>", "", "打开状态变化时触发，支持 @bind-Open。", "事件回调", "10.42.0"),
+                new("Placement", "PopupPlacement", "", "菜单弹出方向，默认 BottomEnd。", "属性", "10.42.0"),
+                new("Size", "Size", "", "触发器尺寸。", "属性", "10.42.0"),
+                new("Variant", "ButtonVariant", "", "触发器视觉变体，默认 Ghost。", "属性", "10.42.0"),
             },
             ["split-button"] = new ShowcaseApiMember[]
             {
@@ -189,6 +208,7 @@ public static class ShowcaseApiReference
                 new("Definition", "IconDefinition", "", "必填的 SVG 图标定义。", "属性", ""),
                 new("Size", "Size", "", "图标尺寸。", "属性", ""),
                 new("Title", "string?", "", "SVG title 文本。", "属性", ""),
+                new("Tone", "IconTone", "", "墨阶：Default 继承 currentColor、Muted 次要墨、Tertiary 三级墨；语义色仍由 Color 表达。", "属性", "10.43.0"),
             },
             ["tag"] = new ShowcaseApiMember[]
             {
@@ -761,6 +781,8 @@ public static class ShowcaseApiReference
             {
                 new("Accordion", "bool", "", "同一时间只展开一个分组。", "属性", ""),
                 new("AriaLabel", "string?", "", "导航区域的可访问名称。", "属性", ""),
+                new("Flat", "bool", "", "扁平模式：不渲染分组标题与折叠开关，按分组顺序输出一份列表。", "属性", "10.42.0"),
+                new("IconSize", "MenuIconSize", "", "菜单图标槽尺寸：Small 16px、Default 20px、Large 24px。", "属性", "10.43.0"),
                 new("Items", "IReadOnlyList<MenuGroup>", "", "分组与菜单项。", "属性", ""),
                 new("OnGroupToggled", "EventCallback<MenuGroup>", "", "分组折叠或展开后触发。", "事件回调", ""),
                 new("OnItemSelected", "EventCallback<MenuItem>", "", "激活非禁用菜单项时触发（链接项也会导航）。", "事件回调", ""),
@@ -773,6 +795,10 @@ public static class ShowcaseApiReference
             {
                 new("Accordion", "bool", "", "每个层级最多展开一个导航组。", "属性", "10.41.0"),
                 new("AriaLabel", "string?", "", "导航地标的可访问名称；未提供时使用组件库文案表。", "属性", "10.41.0"),
+                new("ChildIndent", "NavMenuChildIndent", "", "子级缩进档位：Compact 12/4、Default 16/8、Spacious 20/12（引导线外边距 / 内边距）。", "属性", "10.43.0"),
+                new("Density", "NavMenuDensity", "", "行密度档位：Compact / Default / Comfortable，统一调整行高、内边距、圆角、行距与字号。", "属性", "10.43.0"),
+                new("DescriptionSize", "NavMenuTextSize", "", "描述文字字号档位：Small 10px、Default 11px、Large 12px。", "属性", "10.43.0"),
+                new("IconSize", "NavMenuIconSize", "", "图标槽尺寸档位：Small 14px、Default 16px、Large 20px。", "属性", "10.43.0"),
                 new("Items", "IReadOnlyList<NavMenuNode>", "", "Root nodes; Children nests to any depth.", "属性", "10.41.0"),
                 new("OnGroupToggled", "EventCallback<NavMenuNode>", "", "导航组展开/折叠后触发。", "事件回调", "10.41.0"),
                 new("OnItemSelected", "EventCallback<NavMenuNode>", "", "叶子节点被点击选中后触发，带回节点本身。", "事件回调", "10.41.0"),
@@ -834,6 +860,7 @@ public static class ShowcaseApiReference
                 new("CloseOnOutsideClick", "bool", "", "点击浮层外部（Modal 时为遮罩）是否请求关闭。", "属性", ""),
                 new("CloseOnScroll", "bool", "", "页面或祖先滚动时请求关闭；浮层内部滚动被忽略。", "属性", ""),
                 new("Header", "RenderFragment?", "", "浮层标题区域。", "属性", ""),
+                new("MinWidth", "string?", "", "浮层最小宽度（CSS 长度或 var(...)）；缺省使用共享的 12rem 档，菜单型弹层默认 10rem。", "属性", "10.43.0"),
                 new("Modal", "bool", "", "模态层：遮罩、aria-modal、焦点陷阱、背景滚动锁。", "属性", ""),
                 new("Open", "bool", "", "是否显示浮层（受控）。", "属性", ""),
                 new("OpenChanged", "EventCallback<bool>", "", "Escape / 点击外部 / 遮罩请求关闭时触发，支持 @bind-Open。", "事件回调", ""),
@@ -841,6 +868,7 @@ public static class ShowcaseApiReference
                 new("Popover.ChildContent", "RenderFragment?", "", "浮层主体内容。", "属性", ""),
                 new("PopupHost.ChildContent", "RenderFragment?", "", "浮层主体内容。", "属性", ""),
                 new("RestoreFocusOnClose", "bool", "", "关闭后将焦点恢复到打开前的触发元素。", "属性", ""),
+                new("Width", "string?", "", "浮层固定宽度（CSS 长度或 var(...)）；缺省由内容自然宽度决定。", "属性", "10.43.0"),
             },
             ["tooltip"] = new ShowcaseApiMember[]
             {
@@ -871,6 +899,22 @@ public static class ShowcaseApiReference
                 new("ToastOptions.Title / Severity / Icon", "string? / Severity / RenderFragment?", "", "Toast 标题、语义色和自定义图标。", "属性", ""),
                 new("AlertOptions.OnClosedAsync", "Func<Task>?", "", "Alert 关闭后回调。", "事件回调", ""),
                 new("ToastOptions.OnClosedAsync", "Func<Task>?", "", "Toast 关闭后回调。", "事件回调", ""),
+                new("DialogOptions.AutofocusFirstField", "bool", "false", "打开时聚焦弹窗内第一个表单字段（input/select/textarea/contenteditable）；没有字段时回退到首个可聚焦元素。默认 false，FormDialogOptions 默认 true。", "属性", "10.43.0"),
+            },
+            ["form-dialog"] = new ShowcaseApiMember[]
+            {
+                new("AutofocusFirstField", "bool", "", "打开时聚焦表单里第一个字段；没有字段时回退到首个可聚焦元素。", "属性", "10.42.0"),
+                new("CancelText", "string?", "", "次按钮文案；留空回退到文案表 FormDialogCancelLabel。", "属性", "10.42.0"),
+                new("ChildContent", "RenderFragment?", "", "表单内容，由 DialogProvider 渲染在弹窗 body 中。", "属性", "10.42.0"),
+                new("CloseOnEscape", "bool", "", "Escape 是否请求关闭；提交忙碌期间一律忽略。", "属性", "10.42.0"),
+                new("OnCancel", "Func<Task>?", "", "次按钮关闭前运行；抛异常时弹窗保持打开。", "属性", "10.42.0"),
+                new("OnSubmit", "Func<Task<FormDialogSubmitResult>>?", "", "主按钮回调：Success 关闭、Fail 保持打开并显示消息；运行期间由服务维护忙碌态。", "属性", "10.42.0"),
+                new("Open", "bool", "", "受控打开状态；为 true 时把 ChildContent 交给 DialogProvider 打开。", "属性", "10.42.0"),
+                new("OpenChanged", "EventCallback<bool>", "", "弹窗结束（提交成功、取消、关闭按钮、Escape、遮罩）时回写 false，支持 @bind-Open。", "事件回调", "10.42.0"),
+                new("SubmitOnEnter", "bool", "", "单行字段里按 Enter 触发提交；textarea/select/按钮/链接与组合键不触发。", "属性", "10.42.0"),
+                new("SubmitText", "string?", "", "主按钮文案；留空回退到文案表 FormDialogSubmitLabel。", "属性", "10.42.0"),
+                new("Title", "string?", "", "弹窗标题；同时作为对话框的无障碍名称。", "属性", "10.42.0"),
+                new("FormDialogOptions.ValidationMessage", "string?", "", "上一次失败提交的消息；服务在下次提交开始时清空，宿主通常不设置。", "属性", ""),
             },
             ["drawer"] = new ShowcaseApiMember[]
             {
@@ -906,6 +950,11 @@ public static class ShowcaseApiReference
     public static IReadOnlyDictionary<string, IReadOnlyList<ShowcaseApiMember>> Contracts { get; } =
         new Dictionary<string, IReadOnlyList<ShowcaseApiMember>>(StringComparer.Ordinal)
         {
+            ["icon-button-menu"] = new ShowcaseApiMember[]
+            {
+                new("MenuGroup", "record", "", "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。", "接口", ""),
+                new("MenuItem", "record", "", "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。", "接口", ""),
+            },
             ["input-number"] = new ShowcaseApiMember[]
             {
                 new("InputNumber", "role=spinbutton", "", "步进逻辑在 C#，JS 只拦截被处理按键的默认行为。", "接口", ""),
@@ -955,6 +1004,13 @@ public static class ShowcaseApiReference
             {
                 new("DialogProvider", "组件", "", "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。", "接口", ""),
                 new("IDialogService", "服务接口", "", "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。", "接口", ""),
+            },
+            ["form-dialog"] = new ShowcaseApiMember[]
+            {
+                new("FormDialogOptions", "class : DialogOptions", "", "SubmitText、CancelText、OnSubmit、OnCancel、AutofocusFirstField、SubmitOnEnter、ValidationMessage，并继承 Title、Severity、CloseOnEscape 等；表单弹窗的底部动作由 Provider 生成，不使用 DialogOptions.Footer。", "接口", ""),
+                new("FormDialogSubmitResult", "class", "", "Succeeded / Message / Data；Success(object?) 成功关闭并回传 Data，Fail(string) 保持打开并显示 Message，空消息在构造时拒绝。", "接口", ""),
+                new("IDialogService.ShowForm", "DialogReference", "", "打开表单弹窗并返回句柄；内容为 RenderFragment，选项缺省使用 FormDialogOptions 默认值。", "接口", ""),
+                new("IDialogService.ShowFormAsync", "Task<DialogResult>", "", "打开表单弹窗并等待结果：提交成功为 Confirmed（Data 携带 OnSubmit 的结果），取消为 Cancelled，其他关闭路径为 Dismiss。", "接口", ""),
             },
             ["theme"] = new ShowcaseApiMember[]
             {

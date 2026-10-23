@@ -20,11 +20,15 @@
     <Demos>
         <DemoCard Id="nav-menu-basic"
                   Title="两级导航"
-                  Description="项目行只展开/折叠，会话行才进入选中态；默认行渲染图标、标题与说明。"
+                  Description="项目行只展开/折叠，会话行才进入选中态；默认行渲染图标、标题与说明。右侧控件即时作用在第一段导航上。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-nav-menu">
                     <NavMenu Items="_items"
+                             Density="@_density"
+                             IconSize="@_iconSize"
+                             DescriptionSize="@_descriptionSize"
+                             ChildIndent="@_childIndent"
                              SelectedId="@_selectedId"
                              SelectedIdChanged="HandleSelected"
                              OpenKeys="@_openKeys"
@@ -33,6 +37,26 @@
                 </div>
                 <span class="preview-feedback" role="status">当前节点：@(_selectedId ?? "未选择")</span>
             </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>密度</span>
+                        <ShowcaseSelect TValue="NavMenuDensity" Id="nav-menu-density" AriaLabel="密度" Options="@(Enum.GetValues<NavMenuDensity>())" @bind-Value="_density" />
+                    </div>
+                    <div class="control-field">
+                        <span>图标</span>
+                        <ShowcaseSelect TValue="NavMenuIconSize" Id="nav-menu-icon-size" AriaLabel="图标尺寸" Options="@(Enum.GetValues<NavMenuIconSize>())" @bind-Value="_iconSize" />
+                    </div>
+                    <div class="control-field">
+                        <span>描述字号</span>
+                        <ShowcaseSelect TValue="NavMenuTextSize" Id="nav-menu-description-size" AriaLabel="描述字号" Options="@(Enum.GetValues<NavMenuTextSize>())" @bind-Value="_descriptionSize" />
+                    </div>
+                    <div class="control-field">
+                        <span>子级缩进</span>
+                        <ShowcaseSelect TValue="NavMenuChildIndent" Id="nav-menu-child-indent" AriaLabel="子级缩进" Options="@(Enum.GetValues<NavMenuChildIndent>())" @bind-Value="_childIndent" />
+                    </div>
+                </div>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="nav-menu-rows"
@@ -52,10 +76,31 @@
                 <span class="preview-feedback" role="status">@_actionNote</span>
             </Preview>
         </DemoCard>
+
+        <DemoCard Id="nav-menu-row-state"
+                  Title="整行状态覆盖 Trailing"
+                  Description="hover、选中与按下都画在行容器上，Trailing 与名称共用同一块背景和墨色：鼠标移到右侧「⋯」上时整行仍然高亮，不再出现“名字亮、图标暗”的割裂。这段用 Comfortable 密度展示工作台侧栏的行高与行墨。"
+                  Code="@RowStateCode">
+            <Preview>
+                <div class="preview-nav-menu preview-nav-menu--wide">
+                    <NavMenu Items="_trailingItems"
+                             SelectedId="@_trailingSelectedId"
+                             SelectedIdChanged="HandleTrailingSelected"
+                             OpenKeys="@_trailingOpenKeys"
+                             OpenKeysChanged="HandleTrailingOpenKeysChanged"
+                             OnItemSelected="HandleNodeSelected"
+                             Density="NavMenuDensity.Comfortable"
+                             AriaLabel="整行状态的导航预览" />
+                </div>
+                <span class="preview-feedback" role="status">@_actionNote</span>
+            </Preview>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>可展开节点是导航组：点击、<code>Enter</code> 与 <code>Space</code> 只切换展开/折叠，不写 <code>SelectedId</code>，也不触发 <code>SelectedIdChanged</code> / <code>OnItemSelected</code>。</span>
         <span><code>RowTemplate</code> 渲染在行按钮内部，用来画整行内容；动作按钮放在 <code>Trailing</code>（按钮的兄弟位置），避免嵌套按钮。</span>
+        <span>行级状态（hover / 选中 / 按下）画在行容器上而不是按钮上，<code>Trailing</code> 属于同一行，所以背景、墨色与选中线会覆盖到右侧动作。</span>
+        <span>密度、图标尺寸、描述字号与子级缩进都由根 class 上的组件级变量驱动；<code>Density</code> 默认档与旧版观感一致，<code>Comfortable</code> 对齐工作台侧栏的 38px 行高。</span>
         <span>层级不限于两级：任意深度的 <code>Children</code> 都会按同样的展开模型渲染；<code>Accordion</code> 让每个层级最多展开一个分组。</span>
     </Notes>
 </ComponentPage>
@@ -86,9 +131,26 @@
         };
         """;
 
+    private const string RowStateCode = """
+        <NavMenu Items="Items"
+                 SelectedId="@selectedId"
+                 SelectedIdChanged="OnSelected"
+                 Density="NavMenuDensity.Comfortable">
+            @* 行容器持有 hover/选中/按下状态，Trailing 与名称共享同一块背景。 *@
+        </NavMenu>
+        """;
+
     private string? _selectedId = "workbench-rust";
     private string _actionNote = "在分组右侧选择操作；分组行不进入选中态。";
     private System.Collections.Generic.List<string> _openKeys = ["workbench", "aeterni-ui"];
+
+    private NavMenuDensity _density = NavMenuDensity.Default;
+    private NavMenuIconSize _iconSize = NavMenuIconSize.Default;
+    private NavMenuTextSize _descriptionSize = NavMenuTextSize.Default;
+    private NavMenuChildIndent _childIndent = NavMenuChildIndent.Default;
+
+    private string? _trailingSelectedId = "workspace-shell";
+    private System.Collections.Generic.List<string> _trailingOpenKeys = ["workspace"];
 
     private IReadOnlyList<NavMenuNode> _items =>
     [
@@ -128,6 +190,18 @@
             Trailing: Actions("AeterniScheduler"))
     ];
 
+    private IReadOnlyList<NavMenuNode> _trailingItems =>
+    [
+        new("workspace", "AeterniWorkbench",
+            [
+                new("workspace-shell", "桌面壳与窗口", Description: "Trailing 跟随整行状态"),
+                new("workspace-ui", "组件库与主题", Description: "hover 覆盖右侧动作")
+            ],
+            RowTemplate: ProjectRow("AeterniWorkbench", 2),
+            Trailing: Actions("AeterniWorkbench")),
+        new("archive", "归档项目", RowTemplate: ProjectRow("归档项目", 0), Trailing: Actions("归档项目"))
+    ];
+
     private static RenderFragment FolderIcon() => @<Icon Definition="@AeterniIcons.EmptyBox" Size="Size.Small" />;
 
     private static RenderFragment<NavMenuRowContext> ProjectRow(string label, int sessions) => context => @<span class="preview-nav-menu__project">
@@ -149,6 +223,10 @@
     private void HandleSelected(string id) => _selectedId = id;
 
     private void HandleOpenKeysChanged(IReadOnlyList<string> keys) => _openKeys = [.. keys];
+
+    private void HandleTrailingSelected(string id) => _trailingSelectedId = id;
+
+    private void HandleTrailingOpenKeysChanged(IReadOnlyList<string> keys) => _trailingOpenKeys = [.. keys];
 
     private void HandleNodeSelected(NavMenuNode node) => _actionNote = $"选中会话：{node.Label}";
 

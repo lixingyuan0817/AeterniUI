@@ -173,6 +173,102 @@ public sealed class DialogService : IDialogService, IDisposable
     public Task<DialogResult> ShowAsync(RenderFragment content, DialogOptions? options = null) =>
         Show(content, options).Result;
 
+    public DialogReference ShowForm(RenderFragment content, FormDialogOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        var entry = new DialogEntry(
+            CreateId("dialog"),
+            content,
+            message: null,
+            DialogContentKind.Form,
+            options ?? new FormDialogOptions(),
+            TimeSpan.Zero);
+
+        var reference = new DialogReference(entry.Id, result => CloseDialogAsync(entry.Id, result));
+        entry.Reference = reference;
+
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            _dialogs.Add(entry);
+        }
+
+        NotifyChanged();
+        return reference;
+    }
+
+    public Task<DialogResult> ShowFormAsync(RenderFragment content, FormDialogOptions? options = null) =>
+        ShowForm(content, options).Result;
+
+    /// <summary>
+    /// Drives one form submission: marks the entry busy, runs
+    /// <see cref="FormDialogOptions.OnSubmit" /> and either closes with the returned
+    /// data or keeps the dialog open with the validation message. The busy flag is
+    /// reset in <c>finally</c> so a throwing handler cannot leave the dialog locked;
+    /// the exception itself keeps propagating.
+    /// </summary>
+    internal async Task SubmitFormAsync(DialogEntry entry)
+    {
+        if (entry.Kind != DialogContentKind.Form
+            || entry.Options is not FormDialogOptions options
+            || entry.IsSubmitting
+            || entry.IsClosing)
+        {
+            return;
+        }
+
+        entry.IsSubmitting = true;
+        options.ValidationMessage = null;
+        NotifyChanged();
+
+        try
+        {
+            var result = options.OnSubmit is null
+                ? FormDialogSubmitResult.Success()
+                : await options.OnSubmit();
+            // A handler that returns null would otherwise NRE and leave the dialog
+            // open with no explanation; treat it like "nothing to validate".
+            result ??= FormDialogSubmitResult.Success();
+
+            if (result.Succeeded)
+            {
+                await CloseDialogAsync(entry.Id, DialogResult.Confirm(result.Data), suppressCallbackErrors: true);
+                return;
+            }
+
+            options.ValidationMessage = result.Message;
+        }
+        finally
+        {
+            entry.IsSubmitting = false;
+            NotifyChanged();
+        }
+    }
+
+    /// <summary>
+    /// Runs the form's cancel callback and closes with
+    /// <see cref="DialogResult.Cancel" />. Ignored while a submission is in flight,
+    /// which is what keeps a busy form from being dismissed from under its handler.
+    /// </summary>
+    internal async Task CancelFormAsync(DialogEntry entry)
+    {
+        if (entry.Kind != DialogContentKind.Form
+            || entry.Options is not FormDialogOptions options
+            || entry.IsSubmitting
+            || entry.IsClosing)
+        {
+            return;
+        }
+
+        if (options.OnCancel is not null)
+        {
+            await options.OnCancel();
+        }
+
+        await CloseDialogAsync(entry.Id, DialogResult.Cancel());
+    }
+
     public Task<DialogResult> AlertAsync(string message, AlertOptions? options = null) =>
         AlertAsyncCore(message, position: null, options);
 
@@ -660,7 +756,8 @@ internal enum DialogContentKind
 {
     Custom,
     Alert,
-    Confirm
+    Confirm,
+    Form
 }
 
 internal sealed class DialogEntry(
@@ -689,6 +786,13 @@ internal sealed class DialogEntry(
     public TimeSpan Duration { get; } = duration;
 
     public bool IsClosing { get; private set; }
+
+    /// <summary>
+    /// Whether a form submission is running. The flag lives on the entry rather than
+    /// on the options so the provider can render the busy chrome without the host
+    /// tracking a second state machine.
+    /// </summary>
+    public bool IsSubmitting { get; internal set; }
 
     public CancellationTokenSource CancellationTokenSource { get; } = new();
 

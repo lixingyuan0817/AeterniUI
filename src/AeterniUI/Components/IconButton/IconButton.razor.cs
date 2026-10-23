@@ -21,6 +21,41 @@ public partial class IconButton : AeterniComponent
     [Parameter]
     public Size Size { get; set; } = Size.Default;
 
+    /// <summary>
+    /// Corner shape of the chrome. The default square shape keeps the shared button
+    /// radius; <see cref="IconButtonShape.Circle" /> paints the full-radius circle
+    /// used by title-bar window actions.
+    /// </summary>
+    [Parameter]
+    public IconButtonShape Shape { get; set; } = IconButtonShape.Square;
+
+    /// <summary>
+    /// Chrome preset applied on top of <see cref="Variant" /> and
+    /// <see cref="Intent" />, for title-bar and row-end actions.
+    /// </summary>
+    /// <remarks>
+    /// A tone owns the surface, border and ink, so it overrides the
+    /// <see cref="Variant" /> / <see cref="Intent" /> colours; geometry, loading,
+    /// disabled states and the focus ring are unaffected. The default value keeps
+    /// the normal variant/intent pipeline byte for byte.
+    /// </remarks>
+    [Parameter]
+    public IconButtonTone Tone { get; set; } = IconButtonTone.Default;
+
+    /// <summary>
+    /// Renders the compact chrome tier: a 24px box with a 14px glyph, for title
+    /// bars and dense row-end actions.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Compact" /> takes precedence over <see cref="Size" /> when both are
+    /// set (the compact box and glyph sizes win whichever size tier is requested).
+    /// Only the box and glyph geometry change: padding, focus ring, loading glyph
+    /// sizing and the connected ButtonGroup divider variables keep their normal
+    /// rules.
+    /// </remarks>
+    [Parameter]
+    public bool Compact { get; set; }
+
     [Parameter]
     public ButtonType Type { get; set; } = ButtonType.Button;
 
@@ -62,6 +97,16 @@ public partial class IconButton : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown icon button size.");
         }
 
+        if (!Enum.IsDefined(Shape))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Shape), Shape, "Unknown icon button shape.");
+        }
+
+        if (!Enum.IsDefined(Tone))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Tone), Tone, "Unknown icon button tone.");
+        }
+
         // An undefined value would otherwise be rendered verbatim as `type="99"`,
         // and HTML resolves an invalid type to `submit`.
         if (!Enum.IsDefined(Type))
@@ -98,6 +143,9 @@ public partial class IconButton : AeterniComponent
         .Add($"aeterni-icon-button--{VariantClass}")
         .Add(IntentClass)
         .Add(SizeClass)
+        .Add("aeterni-icon-button--circle", Shape == IconButtonShape.Circle)
+        .Add(ToneClass)
+        .Add("is-compact", Compact)
         .Add("is-loading", Loading);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -140,4 +188,14 @@ public partial class IconButton : AeterniComponent
     };
 
     private string? SizeClass => ComponentClass.ForSize("aeterni-icon-button", Size);
+
+    // Chrome preset classes stay out of the intent namespace: `--danger` already
+    // belongs to ButtonIntent.Danger, so a tinted danger tone has to be spelled
+    // differently or the two colour pipelines would collide.
+    private string? ToneClass => Tone switch
+    {
+        IconButtonTone.Muted => "aeterni-icon-button--tone-muted",
+        IconButtonTone.DangerTinted => "aeterni-icon-button--tone-danger-tinted",
+        _ => null
+    };
 }

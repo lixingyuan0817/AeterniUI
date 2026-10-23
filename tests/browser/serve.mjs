@@ -29,25 +29,49 @@ const TYPES = {
     '.map': 'application/json; charset=utf-8'
 };
 
-createServer(async (request, response) => {
+// A browser that aborts a navigation while a response is in flight raises EPIPE /
+// write-after-end on the response. In Node 24 that rejection became an unhandled
+// rejection that killed the server mid-suite, leaving verify.mjs waiting on a dead
+// endpoint. Every failure is now contained per request instead of taking the
+// process down.
+const server = createServer((request, response) => {
+    request.on('error', () => {});
+    response.on('error', () => {});
+
     const url = new URL(request.url, 'http://localhost');
     let path = join(root, normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, ''));
-    try {
-        const info = await stat(path).catch(() => null);
-        if (!info || info.isDirectory()) {
-            path = join(path, 'index.html');
-        }
-        const body = await readFile(path);
-        response.writeHead(200, { 'Content-Type': TYPES[extname(path)] ?? 'application/octet-stream' });
+
+    const send = (status, type, body) => {
+        if (response.writableEnded || response.destroyed) return;
+        response.writeHead(status, { 'Content-Type': type });
         response.end(body);
-    } catch {
-        // SPA fallback: extensionless deep links get the app shell.
+    };
+
+    const fallback = async () => {
         try {
-            const body = await readFile(join(root, 'index.html'));
-            response.writeHead(200, { 'Content-Type': TYPES['.html'] });
-            response.end(body);
+            send(200, TYPES['.html'], await readFile(join(root, 'index.html')));
         } catch {
-            response.writeHead(404).end('not found');
+            send(404, 'text/plain; charset=utf-8', 'not found');
         }
-    }
-}).listen(port, '127.0.0.1', () => console.log(`serving ${root} on http://127.0.0.1:${port}`));
+    };
+
+    (async () => {
+        try {
+            const info = await stat(path).catch(() => null);
+            if (!info || info.isDirectory()) {
+                path = join(path, 'index.html');
+            }
+            send(200, TYPES[extname(path)] ?? 'application/octet-stream', await readFile(path));
+        } catch {
+            // SPA fallback: extensionless deep links get the app shell.
+            await fallback();
+        }
+    })().catch(fallback);
+});
+
+server.on('clientError', (error, socket) => {
+    if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+    else socket.destroy();
+});
+
+server.listen(port, '127.0.0.1', () => console.log(`serving ${root} on http://127.0.0.1:${port}`));

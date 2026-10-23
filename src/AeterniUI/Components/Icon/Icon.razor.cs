@@ -15,6 +15,18 @@ public partial class Icon : AeterniComponent
     [Parameter]
     public Color Color { get; set; } = Color.Default;
 
+    /// <summary>
+    /// Ink tier of the icon.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Color" /> carries semantic colour and <see cref="Tone" /> carries
+    /// the neutral ink ladder: a semantic colour stays semantic, a tone moves the
+    /// glyph down the text ink scale (secondary / tertiary). The default value
+    /// keeps <c>currentColor</c> so the icon follows its surrounding ink.
+    /// </remarks>
+    [Parameter]
+    public IconTone Tone { get; set; } = IconTone.Default;
+
     [Parameter]
     public string? AriaLabel { get; set; }
 
@@ -34,6 +46,11 @@ public partial class Icon : AeterniComponent
         {
             throw new ArgumentOutOfRangeException(nameof(Color), Color, "Unknown icon color.");
         }
+
+        if (!Enum.IsDefined(Tone))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Tone), Tone, "Unknown icon tone.");
+        }
     }
 
     protected override ClassBuilder BuildClass()
@@ -41,7 +58,8 @@ public partial class Icon : AeterniComponent
         return base.BuildClass()
             .Add("aeterni-icon")
             .Add(SizeClass)
-            .Add(ColorClass);
+            .Add(ColorClass)
+            .Add(ToneClass);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
@@ -84,4 +102,14 @@ public partial class Icon : AeterniComponent
     // option→class mapping instead of a second colour switch. The stylesheet only
     // implements the six named colours.
     private string? ColorClass => ComponentClass.ForColor("aeterni-icon", Color);
+
+    // Tone is the ink ladder next to the semantic Colour axis. Both are
+    // single-class modifiers, so the stylesheet declares the tone rules after the
+    // colour rules and a tone wins when a caller sets both.
+    private string? ToneClass => Tone switch
+    {
+        IconTone.Muted => "aeterni-icon--tone-muted",
+        IconTone.Tertiary => "aeterni-icon--tone-tertiary",
+        _ => null
+    };
 }

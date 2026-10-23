@@ -1,21 +1,99 @@
 /* Sidebar navigation menu: disclosure groups plus selectable leaves. Rows are
-   host templates, so this sheet only owns the shell (row layout, states, focus,
-   and the guides under an open group). The group header has no built-in chevron. */
+   host templates, so this sheet owns the shell only (row layout, state paint,
+   focus and the guides under an open group). The group header has no built-in
+   chevron.
+
+   Every metric is declared once on the root as a component-level variable and
+   consumed below; density / icon / description / indent tiers only retune those
+   variables on a modifier class. Hover, selected and pressed paint the row box,
+   Trailing included, while the inner link or button stays transparent and only
+   carries the focus ring. */
 
 .aeterni-nav-menu {
+    /* Defaults reproduce the pre-tier look exactly: 32px row, vertical 0 /
+       horizontal 8px row padding, 6px radius, 4px list gap, 14px label, 16px icon
+       slot, secondary row ink and 11px description. */
+    --aeterni-nav-menu-gap: var(--aeterni-spacing-1);
+    --aeterni-nav-menu-row-height: var(--aeterni-row-height-compact);
+    --aeterni-nav-menu-row-padding-block: 0;
+    --aeterni-nav-menu-row-padding-inline: var(--aeterni-spacing-2);
+    --aeterni-nav-menu-row-radius: var(--aeterni-radius-md);
+    --aeterni-nav-menu-row-color: var(--aeterni-text-secondary);
+    --aeterni-nav-menu-font-size: var(--aeterni-font-size-sm);
+    --aeterni-nav-menu-icon-size: var(--aeterni-icon-size-md);
+    --aeterni-nav-menu-description-size: calc(var(--aeterni-font-size-xs) - 1px);
+    --aeterni-nav-menu-child-margin: var(--aeterni-spacing-4);
+    --aeterni-nav-menu-child-padding: var(--aeterni-spacing-2);
+
     display: grid;
     align-content: start;
-    gap: var(--aeterni-spacing-1);
+    gap: var(--aeterni-nav-menu-gap);
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+}
+
+/* Comfortable density mirrors the workbench sidebar: a 38px row box
+   (36px control height plus 1px borders on each side), 3px block padding, 8px
+   radius, 2px list gap, 13px label and primary row ink. */
+.aeterni-nav-menu--density-comfortable {
+    --aeterni-nav-menu-gap: calc(var(--aeterni-spacing-1) / 2);
+    --aeterni-nav-menu-row-height: calc(var(--aeterni-control-height-md) + var(--aeterni-border-width) * 2);
+    --aeterni-nav-menu-row-padding-block: calc(var(--aeterni-spacing-1) - 1px);
+    --aeterni-nav-menu-row-padding-inline: var(--aeterni-spacing-2);
+    --aeterni-nav-menu-row-radius: var(--aeterni-radius-lg);
+    --aeterni-nav-menu-row-color: var(--aeterni-text-primary);
+    --aeterni-nav-menu-font-size: calc(var(--aeterni-font-size-sm) - 1px);
+}
+
+/* Compact density keeps the same geometry as the default tier but tightens the
+   row to the 28px control height and drops the label to 12px. */
+.aeterni-nav-menu--density-compact {
+    --aeterni-nav-menu-gap: var(--aeterni-spacing-1);
+    --aeterni-nav-menu-row-height: var(--aeterni-control-height-sm);
+    --aeterni-nav-menu-row-padding-block: 0;
+    --aeterni-nav-menu-row-padding-inline: var(--aeterni-spacing-2);
+    --aeterni-nav-menu-row-radius: var(--aeterni-radius-md);
+    --aeterni-nav-menu-row-color: var(--aeterni-text-secondary);
+    --aeterni-nav-menu-font-size: var(--aeterni-font-size-xs);
+}
+
+/* Icon slot tiers. The slot forwards its size through --aeterni-icon-render-size
+   (the same channel Menu and Button use), so a host template's Icon follows the
+   tier without this component reaching into Icon's own stylesheet. */
+.aeterni-nav-menu--icon-small {
+    --aeterni-nav-menu-icon-size: var(--aeterni-icon-size-sm);
+}
+
+.aeterni-nav-menu--icon-large {
+    --aeterni-nav-menu-icon-size: var(--aeterni-icon-size-lg);
+}
+
+/* Description line tiers: 10px / 11px (default) / 12px. */
+.aeterni-nav-menu--description-small {
+    --aeterni-nav-menu-description-size: calc(var(--aeterni-font-size-xs) - 2px);
+}
+
+.aeterni-nav-menu--description-large {
+    --aeterni-nav-menu-description-size: var(--aeterni-font-size-xs);
+}
+
+/* Child indent tiers: the guide line's margin and the nested list's padding. */
+.aeterni-nav-menu--indent-compact {
+    --aeterni-nav-menu-child-margin: var(--aeterni-spacing-3);
+    --aeterni-nav-menu-child-padding: var(--aeterni-spacing-1);
+}
+
+.aeterni-nav-menu--indent-spacious {
+    --aeterni-nav-menu-child-margin: var(--aeterni-spacing-5);
+    --aeterni-nav-menu-child-padding: var(--aeterni-spacing-3);
 }
 
 .aeterni-nav-menu__list,
 .aeterni-nav-menu__children {
     display: flex;
     flex-direction: column;
-    gap: var(--aeterni-spacing-1);
+    gap: var(--aeterni-nav-menu-gap);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -34,8 +112,8 @@
 /* Children hang off a guide line that starts under the group row. The margin
    lines the line up with the group toggle's icon edge instead of the row box. */
 .aeterni-nav-menu__children {
-    margin-inline-start: var(--aeterni-spacing-4);
-    padding-inline-start: var(--aeterni-spacing-2);
+    margin-inline-start: var(--aeterni-nav-menu-child-margin);
+    padding-inline-start: var(--aeterni-nav-menu-child-padding);
     border-inline-start: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
 }
 
@@ -43,56 +121,76 @@
     min-width: 0;
 }
 
+/* The row is the interactive box: its padding, radius and ink include the
+   Trailing region, so a row cannot split into a bright name and a dim action. */
 .aeterni-nav-menu__row {
     display: flex;
     align-items: center;
     gap: var(--aeterni-spacing-1);
     min-width: 0;
-    border-radius: var(--aeterni-radius-md);
+    min-height: var(--aeterni-nav-menu-row-height);
+    box-sizing: border-box;
+    padding: var(--aeterni-nav-menu-row-padding-block) var(--aeterni-nav-menu-row-padding-inline);
+    border-radius: var(--aeterni-nav-menu-row-radius);
+    color: var(--aeterni-nav-menu-row-color);
 }
 
-/* Toggles and links share one row shape; the host template decides the content. */
-.aeterni-nav-menu__button {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: var(--aeterni-spacing-2);
-    min-width: 0;
-    min-height: var(--aeterni-row-height-compact);
-    padding: 0 var(--aeterni-spacing-2);
-    border: var(--aeterni-border-width) solid transparent;
-    border-radius: var(--aeterni-radius-md);
-    background: transparent;
-    color: var(--aeterni-text-secondary);
-    font: inherit;
-    font-size: var(--aeterni-font-size-sm);
-    line-height: var(--aeterni-line-height-tight);
-    text-align: start;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.aeterni-nav-menu__button:hover:not(:disabled) {
+/* Hover excludes the already selected row (its own rule keeps the selected fill)
+   and disabled rows (they must not respond to the pointer at all). */
+.aeterni-nav-menu__row:hover:not(.is-disabled):not(.is-selected) {
     background: var(--aeterni-state-background-hover);
     color: var(--aeterni-text-primary);
 }
 
 /* Selected leaves use the same state tokens as Menu, so navigation and action
-   menus read as one system. */
-.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button {
-    border-color: var(--aeterni-state-background-checked);
+   menus read as one system. The rail is row-level and therefore spans Trailing. */
+.aeterni-nav-menu__row.is-selected {
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
     box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
 }
 
-.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button:hover:not(:disabled) {
+.aeterni-nav-menu__row.is-selected:hover:not(.is-disabled) {
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
 }
 
-.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row > .aeterni-nav-menu__button:active:not(:disabled) {
+/* Pressed state stays on the row as well. :has observes the real pointer state of
+   the inner element, so the row does not need its own handlers. */
+.aeterni-nav-menu__row:has(> .aeterni-nav-menu__button:active:not(:disabled)) {
     background: var(--aeterni-state-background-active);
+}
+
+.aeterni-nav-menu__row.is-selected:has(> .aeterni-nav-menu__button:active:not(:disabled)) {
+    background: var(--aeterni-state-background-active);
+}
+
+.aeterni-nav-menu__row.is-disabled {
+    color: var(--aeterni-state-color-disabled);
+}
+
+/* Toggles and links share one row shape, but the row paints every state: this
+   element is transparent and only carries layout, type and the focus ring. The
+   row radius is repeated here so the focus ring keeps the rounded row shape. The
+   stretch makes the ring cover the row's content box, not just the text. */
+.aeterni-nav-menu__button {
+    display: flex;
+    flex: 1 1 auto;
+    align-self: stretch;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--aeterni-nav-menu-row-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: var(--aeterni-nav-menu-font-size);
+    line-height: var(--aeterni-line-height-tight);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .aeterni-nav-menu__button:focus-visible {
@@ -102,7 +200,6 @@
 
 .aeterni-nav-menu__button:disabled {
     cursor: not-allowed;
-    color: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-nav-menu__icon {
@@ -110,9 +207,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: var(--aeterni-icon-size-md);
-    height: var(--aeterni-icon-size-md);
+    width: var(--aeterni-nav-menu-icon-size);
+    height: var(--aeterni-nav-menu-icon-size);
     color: var(--aeterni-text-tertiary);
+    --aeterni-icon-render-size: 100%;
 }
 
 .aeterni-nav-menu__copy {
@@ -132,15 +230,18 @@
 
 .aeterni-nav-menu__description {
     color: var(--aeterni-text-secondary);
-    font-size: calc(var(--aeterni-font-size-xs) - 1px);
+    font-size: var(--aeterni-nav-menu-description-size);
     line-height: var(--aeterni-line-height-normal);
 }
 
+/* Trailing stays inside the row so its hit area and the row's state paint are the
+   same box; it inherits the row ink, which lets currentColor glyphs follow the
+   hover/selected state instead of keeping their own fixed colour. */
 .aeterni-nav-menu__trailing {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    padding-inline-end: var(--aeterni-spacing-1);
+    color: inherit;
 }
 
 /* Same collapse recipe as Menu: a zero-height grid track that still keeps the

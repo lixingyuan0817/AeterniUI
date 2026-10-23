@@ -45,3 +45,13 @@
 .aeterni-icon--info {
     color: var(--aeterni-color-info-text);
 }
+
+/* Ink ladder. Color carries semantic colour, Tone carries the neutral ink tier;
+   the tone rules come last so a tone wins when a caller sets both axes. */
+.aeterni-icon--tone-muted {
+    color: var(--aeterni-text-secondary);
+}
+
+.aeterni-icon--tone-tertiary {
+    color: var(--aeterni-text-tertiary);
+}

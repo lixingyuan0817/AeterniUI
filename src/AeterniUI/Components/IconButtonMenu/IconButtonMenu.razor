@@ -1,0 +1,30 @@
+@inherits AeterniComponent
+
+<div @ref="RootElement" @attributes="BuildAttributes()">
+    <PopupHost>
+        <IconButton Id="@($"{ElementId}-trigger")"
+                    Variant="@Variant"
+                    Intent="@Intent"
+                    Size="@Size"
+                    Loading="@Loading"
+                    Disabled="@Disabled"
+                    AriaLabel="@AriaLabel"
+                    Icon="@Icon"
+                    AdditionalAttributes="@TriggerAttributes"
+                    OnClick="ToggleAsync" />
+
+        <Popover MinWidth="var(--aeterni-overlay-min-width-xs)"
+                 Style="--aeterni-popover-content-padding: var(--aeterni-spacing-1); --aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm);"
+                 Open="@EffectiveOpen"
+                 OpenChanged="@HandleOpenChangedAsync"
+                 Placement="@Placement"
+                 RestoreFocusOnClose="true"
+                 AriaLabel="@AriaLabel">
+            <Menu Id="@MenuId"
+                  Items="@Items"
+                  Flat="@Flat"
+                  AriaLabel="@AriaLabel"
+                  OnItemSelected="@HandleItemSelectedAsync" />
+        </Popover>
+    </PopupHost>
+</div>

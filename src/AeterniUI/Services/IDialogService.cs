@@ -20,6 +20,20 @@ public interface IDialogService
 
     Task<DialogResult> ShowAsync(RenderFragment content, DialogOptions? options = null);
 
+    /// <summary>
+    /// Opens a modal form dialog: the provider renders the form body plus a footer
+    /// with a cancel and a submit action, drives the busy state around
+    /// <see cref="FormDialogOptions.OnSubmit" /> and shows its validation message.
+    /// </summary>
+    DialogReference ShowForm(RenderFragment content, FormDialogOptions? options = null);
+
+    /// <summary>
+    /// Opens a form dialog and returns its completion: confirmed with
+    /// <see cref="DialogResult.Confirm(object?)" /> on a successful submission,
+    /// cancelled when the cancel action was used, dismissed for every other close.
+    /// </summary>
+    Task<DialogResult> ShowFormAsync(RenderFragment content, FormDialogOptions? options = null);
+
     Task<DialogResult> AlertAsync(string message, AlertOptions? options = null);
 
     Task<DialogResult> AlertAsync(string message, ToastPosition position, AlertOptions? options = null);

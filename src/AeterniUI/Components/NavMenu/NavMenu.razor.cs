@@ -1,4 +1,5 @@
 using AeterniUI.Attributes;
+using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -81,6 +82,37 @@ public partial class NavMenu : AeterniComponent
     [Parameter]
     public bool Accordion { get; set; }
 
+    /// <summary>
+    /// 行密度，默认 <see cref="NavMenuDensity.Default"/>：32px 行高、纵向 0 / 横向 8px 行内边距、
+    /// 6px 行圆角、4px 列表间距、14px 字号与 <c>--aeterni-text-secondary</c> 行墨，与旧版观感逐项一致。
+    /// <see cref="NavMenuDensity.Comfortable"/> 对齐工作台侧栏：38px 行高、3px 纵向内边距、13px 字号与
+    /// <c>--aeterni-text-primary</c> 行墨；<see cref="NavMenuDensity.Compact"/> 用 28px 行高与 12px 字号。
+    /// </summary>
+    [Parameter]
+    public NavMenuDensity Density { get; set; } = NavMenuDensity.Default;
+
+    /// <summary>
+    /// 图标槽尺寸，默认 <see cref="NavMenuIconSize.Default"/>（16px，<c>--aeterni-icon-size-md</c>）；
+    /// <see cref="NavMenuIconSize.Small"/> 为 14px，<see cref="NavMenuIconSize.Large"/> 为 20px。
+    /// 槽位通过 <c>--aeterni-icon-render-size</c> 把尺寸传给行模板里未显式指定尺寸的 <c>Icon</c>。
+    /// </summary>
+    [Parameter]
+    public NavMenuIconSize IconSize { get; set; } = NavMenuIconSize.Default;
+
+    /// <summary>
+    /// 描述文字字号，默认 <see cref="NavMenuTextSize.Default"/>（11px，保持原有观感）；
+    /// <see cref="NavMenuTextSize.Small"/> 为 10px，<see cref="NavMenuTextSize.Large"/> 为 12px。
+    /// </summary>
+    [Parameter]
+    public NavMenuTextSize DescriptionSize { get; set; } = NavMenuTextSize.Default;
+
+    /// <summary>
+    /// 子级缩进，默认 <see cref="NavMenuChildIndent.Default"/>（引导线左侧 16px、内容 8px）；
+    /// <see cref="NavMenuChildIndent.Compact"/> 为 12px / 4px，<see cref="NavMenuChildIndent.Spacious"/> 为 20px / 12px。
+    /// </summary>
+    [Parameter]
+    public NavMenuChildIndent ChildIndent { get; set; } = NavMenuChildIndent.Default;
+
     /// <summary>导航地标的可访问名称；未提供时使用组件库文案表。</summary>
     [Parameter]
     public string? AriaLabel { get; set; }
@@ -113,11 +145,66 @@ public partial class NavMenu : AeterniComponent
     private string EffectiveAriaLabel =>
         string.IsNullOrWhiteSpace(AriaLabel) ? UiText.NavMenuLabel : AriaLabel.Trim();
 
-    protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-nav-menu");
+    protected override ClassBuilder BuildClass()
+    {
+        // The default tier of every option emits no modifier: the base sheet already
+        // describes the pre-tier look, so only an actual departure adds a class.
+        var builder = base.BuildClass().Add("aeterni-nav-menu");
+
+        builder.Add(Density switch
+        {
+            NavMenuDensity.Compact => "aeterni-nav-menu--density-compact",
+            NavMenuDensity.Comfortable => "aeterni-nav-menu--density-comfortable",
+            _ => null
+        });
+
+        builder.Add(IconSize switch
+        {
+            NavMenuIconSize.Small => "aeterni-nav-menu--icon-small",
+            NavMenuIconSize.Large => "aeterni-nav-menu--icon-large",
+            _ => null
+        });
+
+        builder.Add(DescriptionSize switch
+        {
+            NavMenuTextSize.Small => "aeterni-nav-menu--description-small",
+            NavMenuTextSize.Large => "aeterni-nav-menu--description-large",
+            _ => null
+        });
+
+        builder.Add(ChildIndent switch
+        {
+            NavMenuChildIndent.Compact => "aeterni-nav-menu--indent-compact",
+            NavMenuChildIndent.Spacious => "aeterni-nav-menu--indent-spacious",
+            _ => null
+        });
+
+        return builder;
+    }
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+
+        if (!Enum.IsDefined(Density))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Density), Density, "Unknown nav menu density.");
+        }
+
+        if (!Enum.IsDefined(IconSize))
+        {
+            throw new ArgumentOutOfRangeException(nameof(IconSize), IconSize, "Unknown nav menu icon size.");
+        }
+
+        if (!Enum.IsDefined(DescriptionSize))
+        {
+            throw new ArgumentOutOfRangeException(nameof(DescriptionSize), DescriptionSize, "Unknown nav menu description size.");
+        }
+
+        if (!Enum.IsDefined(ChildIndent))
+        {
+            throw new ArgumentOutOfRangeException(nameof(ChildIndent), ChildIndent, "Unknown nav menu child indent.");
+        }
 
         ArgumentNullException.ThrowIfNull(Items);
 

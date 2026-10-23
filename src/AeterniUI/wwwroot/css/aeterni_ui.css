@@ -219,6 +219,9 @@
     --aeterni-overlay-height-md: 720px;
     --aeterni-overlay-max-height: 320px;
     --aeterni-overlay-min-width-sm: 12rem;
+    /* Narrow flyout minimum: an icon/action menu is one column of short labels and
+       does not need the popover/dialog minimum. */
+    --aeterni-overlay-min-width-xs: 10rem;
     --aeterni-overlay-max-width-sm: 32rem;
     --aeterni-overlay-max-width-xs: 20rem;
     --aeterni-width-input-xs: 160px;

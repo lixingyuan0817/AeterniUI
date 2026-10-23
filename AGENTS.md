@@ -1,6 +1,6 @@
 # AeterniUI Agent 指南
 
-文档版本：`10.41.1`
+文档版本：`10.43.0`
 
 ## 1. 前言
 
@@ -75,7 +75,7 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 图标 | 核心 `Icon` / `AeterniIcons` + Font Awesome 适配包 |
 | 前端工具 | 不使用 bundler；Node 只运行静态检查、行为回归和生成脚本 |
 
-版本由根目录 `Directory.Build.props` 单一维护，当前为 `10.41.1`。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
+版本由根目录 `Directory.Build.props` 单一维护，当前为 `10.43.0`。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
 
 ### 3.2 解决方案项目
 
@@ -145,7 +145,7 @@ Components/<Component>/
 - `src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs`：`AddAeterniUI()` 注册入口。
 - `src/AeterniUI/Services/AeterniUIOptions.cs`：全局配置、默认品牌与文案表入口。
 - `src/AeterniUI/Services/Impl/ThemeService.cs`：主题模式、实际主题与品牌状态。
-- `src/AeterniUI/Services/Impl/DialogService.cs`：Dialog、Confirm、Alert 和 Toast 状态。
+- `src/AeterniUI/Services/Impl/DialogService.cs`：Dialog、Confirm、FormDialog、Alert 和 Toast 状态。
 - `src/AeterniUI/Services/Impl/JsModuleManager.cs`：组件 JS module 的加载与释放。
 - `src/AeterniUI/wwwroot/css/aeterni_ui.css`：Token、主题变量和必要主题别名；禁止组件选择器。
 - `src/AeterniUI/wwwroot/js/aeterni_floating.js`：浮层定位、焦点陷阱、滚动锁和退出通知。

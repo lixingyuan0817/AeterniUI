@@ -84,6 +84,26 @@ public partial class Popover : AeterniComponent
     [Parameter]
     public bool RestoreFocusOnClose { get; set; }
 
+    /// <summary>
+    /// Minimum width of the layer, e.g. <c>"20rem"</c> or
+    /// <c>"var(--aeterni-overlay-min-width-xs)"</c>. The value is written to the
+    /// root <c>style</c> as <c>--aeterni-popover-min-width</c> and consumed by the
+    /// surface, so a menu flyout can be narrower than the default popover while the
+    /// host's other inline declarations stay untouched. Null keeps the default
+    /// <c>--aeterni-overlay-min-width-sm</c>; a blank value is rejected.
+    /// </summary>
+    [Parameter]
+    public string? MinWidth { get; set; }
+
+    /// <summary>
+    /// Explicit width of the layer, e.g. <c>"24rem"</c>. The value is written to
+    /// the root <c>style</c> as <c>--aeterni-popover-width</c>; the surface falls
+    /// back to <c>auto</c> (its natural content width) when the parameter is unset.
+    /// A blank value is rejected.
+    /// </summary>
+    [Parameter]
+    public string? Width { get; set; }
+
     [Parameter]
     public RenderFragment? Header { get; set; }
 
@@ -126,6 +146,28 @@ public partial class Popover : AeterniComponent
         .Add("is-modal", Modal)
         .Add("is-closing", _closing);
 
+    /// <summary>
+    /// Starts from the consumer's <see cref="AeterniComponent.Style" /> and appends
+    /// the two width channels as custom properties, so the caller keeps every other
+    /// inline declaration and the surface reads only its own variable.
+    /// </summary>
+    protected override StyleBuilder BuildStyle()
+    {
+        var style = base.BuildStyle();
+
+        if (!string.IsNullOrWhiteSpace(MinWidth))
+        {
+            style.Add($"--aeterni-popover-min-width: {MinWidth!.Trim()}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Width))
+        {
+            style.Add($"--aeterni-popover-width: {Width!.Trim()}");
+        }
+
+        return style;
+    }
+
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
         var attributes = new Dictionary<string, object>(
@@ -167,6 +209,19 @@ public partial class Popover : AeterniComponent
         if (!Enum.IsDefined(Placement))
         {
             throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown popover placement.");
+        }
+
+        // The width channels are CSS length/value expressions. A blank one would
+        // render `--aeterni-popover-min-width: ;`, which invalidates the declaration
+        // and silently falls back to the default — name the parameter instead.
+        if (MinWidth is not null && string.IsNullOrWhiteSpace(MinWidth))
+        {
+            throw new ArgumentException("A popover minimum width cannot be blank.", nameof(MinWidth));
+        }
+
+        if (Width is not null && string.IsNullOrWhiteSpace(Width))
+        {
+            throw new ArgumentException("A popover width cannot be blank.", nameof(Width));
         }
     }
 

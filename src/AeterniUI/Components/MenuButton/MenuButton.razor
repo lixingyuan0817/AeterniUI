@@ -15,7 +15,8 @@
             @Label
         </Button>
 
-        <Popover Style="--aeterni-popover-content-padding: var(--aeterni-spacing-1); --aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm);"
+        <Popover MinWidth="var(--aeterni-overlay-min-width-xs)"
+                 Style="--aeterni-popover-content-padding: var(--aeterni-spacing-1); --aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm);"
                  Open="@EffectiveOpen"
                  OpenChanged="@HandleOpenChangedAsync"
                  Placement="@Placement"

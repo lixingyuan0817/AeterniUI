@@ -117,6 +117,24 @@
             </Controls>
         </DemoCard>
 
+        <DemoCard Id="button-content-alignment"
+                  Title="行内内容对齐"
+                  Description="ContentAlignment=Start 让图标与文字从左侧起排并填满内容行，用于侧栏「新会话」这类整行动作。它只改变内容行的排布，按钮宽度仍由 FullWidth 决定，按钮自身的对齐契约不变。"
+                  Code="@AlignmentCode">
+            <Preview>
+                <div class="preview-stack" style="max-width: 16rem;">
+                    <Button ContentAlignment="ButtonContentAlignment.Start"
+                            FullWidth
+                            StartIcon="@CheckIcon"
+                            OnClick="MarkInteraction">新会话</Button>
+                    <Button ContentAlignment="ButtonContentAlignment.Start"
+                            FullWidth
+                            Variant="ButtonVariant.Outline"
+                            OnClick="MarkInteraction">导入项目</Button>
+                </div>
+            </Preview>
+        </DemoCard>
+
         <DemoCard Id="button-form"
                   Title="表单提交"
                   Description="需要提交表单时显式给 Type=Submit；默认的 Button 类型不会触发提交，避免误提交。"
@@ -161,6 +179,12 @@
     private const string StateCode = """
         <Button Variant="ButtonVariant.Solid" Size="Size.Large" StartIcon="CheckIcon" FullWidth>
             保存更改
+        </Button>
+        """;
+
+    private const string AlignmentCode = """
+        <Button ContentAlignment="ButtonContentAlignment.Start" FullWidth StartIcon="CheckIcon">
+            新会话
         </Button>
         """;
 

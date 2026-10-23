@@ -335,6 +335,18 @@
     border-top: var(--aeterni-border-width) solid var(--aeterni-separator);
 }
 
+/* Form dialogs -------------------------------------------------------------- */
+
+/* The failed-submission message sits at the top of the form body so it is the
+   first thing read after the attempt; being a role="alert" it is announced even
+   though focus stays in the field that has to be corrected. */
+.aeterni-dialog-provider__validation {
+    margin: 0 0 var(--aeterni-spacing-2);
+    color: var(--aeterni-color-danger-text);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
+}
+
 /* Closing states ------------------------------------------------------------ */
 
 /* Pins a finished shake to a settled panel. Removing the shake class otherwise

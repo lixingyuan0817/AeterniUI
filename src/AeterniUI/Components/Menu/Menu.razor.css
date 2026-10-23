@@ -4,12 +4,25 @@
    collapsed list should be. */
 .aeterni-menu {
     --aeterni-menu-row-height: var(--aeterni-row-height-compact);
+    /* Shared icon slot for group toggles and entries. The modifier classes below
+       re-point it, so both the box and the rendered glyph move together (the icon
+       fills its box through --aeterni-icon-render-size: 100%). */
+    --aeterni-menu-icon-size: var(--aeterni-icon-size-lg);
 
     display: grid;
     align-content: start;
     gap: var(--aeterni-spacing-2);
     width: 100%;
     box-sizing: border-box;
+}
+
+/* Only non-default tiers need a modifier: the base rule above is the 20px default. */
+.aeterni-menu.aeterni-menu--icon-small {
+    --aeterni-menu-icon-size: var(--aeterni-icon-size-md);
+}
+
+.aeterni-menu.aeterni-menu--icon-large {
+    --aeterni-menu-icon-size: var(--aeterni-icon-size-xl);
 }
 
 .aeterni-menu__list {
@@ -25,6 +38,12 @@
     display: grid;
     align-content: start;
     gap: 0;
+}
+
+/* Flat mode is one ungrouped list: the top-level spacing-2 separates disclosure
+   groups, while flattened rows only need the compact single-unit row gap. */
+.aeterni-menu.is-flat .aeterni-menu__list {
+    gap: var(--aeterni-spacing-1);
 }
 
 /* A zero-height collapse still occupies a grid track; keep its gap out of
@@ -107,14 +126,16 @@
 
 /* The icon inherits its size from this box; setting the variable here reaches
    the shared Icon component, whose own stylesheet cannot be targeted from this
-   component's scope. */
+   component's scope. The slot size is the --aeterni-menu-icon-size channel, so
+   Menu.IconSize moves the box and the glyph together; the chevron below keeps
+   its own small size. */
 .aeterni-menu__icon {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: var(--aeterni-icon-size-lg);
-    height: var(--aeterni-icon-size-lg);
+    width: var(--aeterni-menu-icon-size);
+    height: var(--aeterni-menu-icon-size);
     --aeterni-icon-render-size: 100%;
 }
 

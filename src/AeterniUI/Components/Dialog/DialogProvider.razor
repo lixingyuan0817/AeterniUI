@@ -62,6 +62,7 @@
                              data-aeterni-dialog-id="@dialog.Id"
                              role="dialog"
                              aria-modal="true"
+                             aria-busy="@(IsFormDialog(dialog) ? (dialog.IsSubmitting ? "true" : "false") : null)"
                              tabindex="-1"
                              aria-label="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? UiText.DialogLabel : null)"
                              aria-labelledby="@(string.IsNullOrWhiteSpace(dialog.Options.Title) ? null : titleId)"
@@ -87,6 +88,7 @@
                                     <Button Variant="ButtonVariant.Ghost"
                                             Intent="ButtonIntent.Neutral"
                                             Size="Size.Small"
+                                            Disabled="@(IsFormDialog(dialog) && dialog.IsSubmitting)"
                                             AriaLabel="@UiText.DialogCloseLabel"
                                             OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Dismiss()))">
                                         <span class="aeterni-dialog-provider__close-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
@@ -95,13 +97,31 @@
                             </header>
                         }
 
-                        <div class="aeterni-dialog-provider__body">
+                        @* Any dialog can ask for first-field focus through the inherited
+                           DialogOptions.AutofocusFirstField. The form kind always states the
+                           marker (true or false) because its options default to true; a
+                           custom dialog only emits it when it actually opted in, so an
+                           ordinary content dialog keeps no extra attribute. *@
+                        <div class="aeterni-dialog-provider__body"
+                             data-aeterni-form-dialog="@(IsFormDialog(dialog) ? "true" : null)"
+                             data-aeterni-submit-on-enter="@(IsFormDialog(dialog) ? (FormOptions(dialog).SubmitOnEnter ? "true" : "false") : null)"
+                             data-aeterni-autofocus="@(IsFormDialog(dialog)
+                                 ? (FormOptions(dialog).AutofocusFirstField ? "true" : "false")
+                                 : (dialog.Options.AutofocusFirstField ? "true" : null))">
                             @if (dialog.Message is not null)
                             {
                                 <p>@dialog.Message</p>
                             }
                             else
                             {
+                                @if (IsFormDialog(dialog) && !string.IsNullOrWhiteSpace(FormOptions(dialog).ValidationMessage))
+                                {
+                                    @* The service writes the failed submission's message here and
+                                       clears it when the next submission starts. role="alert"
+                                       announces the failure without moving focus away from the
+                                       field the user has to correct. *@
+                                    <p class="aeterni-dialog-provider__validation" role="alert">@FormOptions(dialog).ValidationMessage</p>
+                                }
                                 @dialog.Content
                             }
                         </div>
@@ -126,6 +146,26 @@
                                 <Button Intent="@dialog.Options.Severity.ToButtonIntent()"
                                         OnClick="@(args => CloseDialogAsync(dialog, DialogResult.Confirm()))">
                                     @(string.IsNullOrWhiteSpace(confirmOptions.ConfirmText) ? UiText.ConfirmAcceptLabel : confirmOptions.ConfirmText)
+                                </Button>
+                            </footer>
+                        }
+                        else if (dialog.Kind == DialogContentKind.Form && dialog.Options is FormDialogOptions formOptions)
+                        {
+                            @* The form footer is generated from the options instead of
+                               DialogOptions.Footer: the busy chrome has to reach both
+                               actions, and a host-supplied footer could not disable
+                               itself while OnSubmit runs. *@
+                            <footer class="aeterni-dialog-provider__footer">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Intent="ButtonIntent.Neutral"
+                                        Disabled="@dialog.IsSubmitting"
+                                        OnClick="@(args => CancelFormAsync(dialog))">
+                                    @(string.IsNullOrWhiteSpace(formOptions.CancelText) ? UiText.FormDialogCancelLabel : formOptions.CancelText)
+                                </Button>
+                                <Button Loading="@dialog.IsSubmitting"
+                                        data-aeterni-form-dialog-submit="true"
+                                        OnClick="@(args => SubmitFormAsync(dialog))">
+                                    @(string.IsNullOrWhiteSpace(formOptions.SubmitText) ? UiText.FormDialogSubmitLabel : formOptions.SubmitText)
                                 </Button>
                             </footer>
                         }

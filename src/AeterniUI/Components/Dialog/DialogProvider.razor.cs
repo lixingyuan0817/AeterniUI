@@ -105,7 +105,14 @@ public partial class DialogProvider : AeterniComponent
         }
 
         var dialog = DialogService.GetTopDialog() ?? DialogService.GetTopAlert();
-        if (dialog?.Options.CloseOnEscape == true)
+        if (dialog is null || dialog.IsSubmitting)
+        {
+            // A busy form must not be dismissed from under its submission handler:
+            // the handler would keep running against a disposed entry.
+            return;
+        }
+
+        if (dialog.Options.CloseOnEscape)
         {
             await dialog.Reference.CloseAsync(DialogResult.Dismiss());
         }
@@ -113,6 +120,11 @@ public partial class DialogProvider : AeterniComponent
 
     private async Task HandleOverlayClickAsync(DialogEntry dialog)
     {
+        if (dialog.IsSubmitting)
+        {
+            return;
+        }
+
         if (dialog.Options.CloseOnOverlayClick)
         {
             await dialog.Reference.CloseAsync(DialogResult.Dismiss());
@@ -157,6 +169,19 @@ public partial class DialogProvider : AeterniComponent
 
     private Task CloseDialogAsync(DialogEntry dialog, DialogResult result) =>
         dialog.Reference.CloseAsync(result);
+
+    /// <summary>Whether the entry renders the provider-owned form chrome.</summary>
+    private static bool IsFormDialog(DialogEntry dialog) => dialog.Kind == DialogContentKind.Form;
+
+    /// <summary>
+    /// The form options of a form entry. Only called behind <see cref="IsFormDialog" />,
+    /// because every form entry is created with a <see cref="FormDialogOptions" />.
+    /// </summary>
+    private static FormDialogOptions FormOptions(DialogEntry dialog) => (FormDialogOptions)dialog.Options;
+
+    private Task SubmitFormAsync(DialogEntry dialog) => DialogService.SubmitFormAsync(dialog);
+
+    private Task CancelFormAsync(DialogEntry dialog) => DialogService.CancelFormAsync(dialog);
 
     private static string PositionClass(ToastPosition position) => position switch
     {

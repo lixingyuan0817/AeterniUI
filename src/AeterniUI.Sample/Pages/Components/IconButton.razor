@@ -58,6 +58,47 @@
             </Controls>
         </DemoCard>
 
+        <DemoCard Id="icon-button-chrome"
+                  Title="chrome 预设：形状、墨阶与紧凑尺寸"
+                  Description="标题栏与行尾动作使用 chrome 预设：Shape 换成圆形、Tone 接管表面与墨色、Compact 把盒子收到 24px。Tone 会覆盖 Variant/Intent 的配色，几何、加载、禁用与焦点环都不变。右侧控件即时作用在中间按钮上。"
+                  Code="@ChromeCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-action-row">
+                        <IconButton Shape="IconButtonShape.Circle"
+                                    Tone="IconButtonTone.DangerTinted"
+                                    Icon="@XmarkIcon"
+                                    AriaLabel="关闭窗口"
+                                    OnClick="MarkInteraction" />
+                        <IconButton Shape="@_chromeShape"
+                                    Tone="@_chromeTone"
+                                    Compact="@_compact"
+                                    Icon="@EllipsisIcon"
+                                    AriaLabel="更多操作"
+                                    OnClick="MarkInteraction" />
+                        <IconButton Tone="IconButtonTone.Muted"
+                                    Icon="@InfoIcon"
+                                    AriaLabel="静默提示"
+                                    OnClick="MarkInteraction" />
+                    </div>
+                    <span class="preview-feedback" role="status">@_interactionNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-grid">
+                    <div class="control-field">
+                        <span>Shape</span>
+                        <ShowcaseSelect TValue="IconButtonShape" Id="icon-button-shape" AriaLabel="Shape" Options="@(Enum.GetValues<IconButtonShape>())" @bind-Value="_chromeShape" />
+                    </div>
+                    <div class="control-field">
+                        <span>Tone</span>
+                        <ShowcaseSelect TValue="IconButtonTone" Id="icon-button-tone" AriaLabel="Tone" Options="@(Enum.GetValues<IconButtonTone>())" @bind-Value="_chromeTone" />
+                    </div>
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_compact">紧凑尺寸（24px）</Checkbox>
+            </Controls>
+        </DemoCard>
+
         <DemoCard Id="icon-button-states"
                   Title="尺寸、加载与禁用"
                   Description="三档尺寸与文字按钮共用 Token；加载时只保留忙碌指示并输出 aria-busy，禁用态不进入 Tab 序列。"
@@ -90,6 +131,8 @@
     </Demos>
     <Notes>
         <span>默认变体是 <code>Ghost + Neutral</code>，可用 <code>Variant</code> / <code>Intent</code> 改成与文字按钮一致的强调层级。</span>
+        <span><code>Tone</code> 是 chrome 预设：<code>Muted</code> / <code>DangerTinted</code> 接管表面、描边与墨色，因此覆盖 <code>Variant</code> / <code>Intent</code> 的配色；不传时保持默认的变体与语意色。</span>
+        <span><code>Compact</code> 只把盒子收到 24px、字形收到 14px，并优先于 <code>Size</code>；<code>Shape=Circle</code> 使用全圆角，适合标题栏的圆形动作。</span>
         <span>加载态只显示 Spinner 并输出 <code>aria-busy</code>；禁用态使用禁用墨，不整块降低透明度。</span>
     </Notes>
 </ComponentPage>
@@ -105,6 +148,12 @@
     private const string BasicCode = """
         <IconButton Icon="SearchIcon" AriaLabel="搜索" OnClick="HandleSearch" />
         <IconButton Variant="ButtonVariant.Outline" Icon="SettingsIcon" AriaLabel="设置" />
+        """;
+
+    private const string ChromeCode = """
+        <IconButton Shape="IconButtonShape.Circle" Tone="IconButtonTone.DangerTinted"
+                    Icon="XmarkIcon" AriaLabel="关闭窗口" />
+        <IconButton Tone="IconButtonTone.Muted" Compact Icon="EllipsisIcon" AriaLabel="更多操作" />
         """;
 
     private const string StateCode = """
@@ -124,11 +173,15 @@
     private RenderFragment InfoIcon => @<Icon Definition="@AeterniIcons.Info" />;
     private RenderFragment CheckIcon => @<Icon Definition="@AeterniIcons.Check" />;
     private RenderFragment XmarkIcon => @<Icon Definition="@AeterniIcons.Xmark" />;
+    private RenderFragment EllipsisIcon => @<Icon Definition="@FontAwesomeIcons.Solid.EllipsisVertical" />;
 
     private ButtonVariant _variant = ButtonVariant.Ghost;
     private ButtonIntent _intent = ButtonIntent.Neutral;
     private Size _size = Size.Default;
     private string _ariaLabel = "搜索";
+    private IconButtonShape _chromeShape = IconButtonShape.Square;
+    private IconButtonTone _chromeTone = IconButtonTone.Muted;
+    private bool _compact = true;
 
     private void HandleSubmit() => MarkInteraction(new MouseEventArgs());
 }

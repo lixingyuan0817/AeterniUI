@@ -37,7 +37,7 @@ export function init(_reference, key) {
         progressRoot: null
     };
 
-    instance.keydownHandler = event => handleTabKey(event, instance);
+    instance.keydownHandler = event => handleDialogKey(event, instance);
     document.addEventListener('keydown', instance.keydownHandler);
     instances.set(key, instance);
 }
@@ -71,7 +71,74 @@ export function sync(key, root, activeDialogId, hasModal) {
 }
 
 function focusDialog(dialog) {
-    focusFirst(dialog);
+    // A dialog can ask for first-field focus through DialogOptions.AutofocusFirstField,
+    // which the provider writes to its body as a marker. The form kind defaults to
+    // true; a custom dialog opts in. The fields are what the dialog is for, so they
+    // receive focus instead of the chrome. A dialog without a field (or with autofocus
+    // turned off) falls back to the existing first-focusable behaviour.
+    const autofocusBody = dialog.querySelector('[data-aeterni-autofocus="true"]');
+    if (autofocusBody) {
+        const field = autofocusBody.querySelector(FORM_FIELD_SELECTOR);
+        if (field) {
+            field.focus();
+            return field;
+        }
+    }
+
+    return focusFirst(dialog);
+}
+
+// Enter on a single-line field submits the form; textareas, selects, buttons and
+// links keep their native Enter behaviour.
+const FORM_FIELD_SELECTOR =
+    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"]';
+
+function handleDialogKey(event, instance) {
+    if (!instance.activeDialog) {
+        return;
+    }
+
+    if (event.key === 'Tab') {
+        handleTabKey(event, instance);
+        return;
+    }
+
+    if (event.key === 'Enter') {
+        handleFormEnter(event, instance);
+    }
+}
+
+function handleFormEnter(event, instance) {
+    // Shift+Enter is a newline; modifier chords and an active IME composition are
+    // not a submit gesture either.
+    if (event.defaultPrevented
+        || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey
+        || event.isComposing || event.keyCode === 229) {
+        return;
+    }
+
+    const dialog = document.querySelector(`[data-aeterni-dialog-id="${instance.activeDialog}"]`);
+    const formBody = dialog?.querySelector('[data-aeterni-form-dialog="true"]');
+    if (!formBody || formBody.getAttribute('data-aeterni-submit-on-enter') !== 'true') {
+        return;
+    }
+
+    const target = event.target;
+    if (!target || typeof target.closest !== 'function' || !formBody.contains(target)) {
+        return;
+    }
+
+    if (target.closest('textarea, select, button, a, [contenteditable="true"], [contenteditable=""]')) {
+        return;
+    }
+
+    const submit = dialog.querySelector('[data-aeterni-form-dialog-submit]');
+    if (!submit || submit.disabled || submit.getAttribute('aria-disabled') === 'true') {
+        return;
+    }
+
+    event.preventDefault();
+    submit.click();
 }
 
 function handleTabKey(event, instance) {

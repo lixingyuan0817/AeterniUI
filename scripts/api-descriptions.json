@@ -66,7 +66,8 @@
       "AriaLabel": "无障碍名称。",
       "Loading": "加载状态。",
       "FullWidth": "是否占满父容器。",
-      "OnClick": "按钮被点击时触发。"
+      "OnClick": "按钮被点击时触发。",
+      "ContentAlignment": "内容行的水平排布：Center 居中、Start 左对齐（图标与文字从左侧起排）。"
     },
     "button-group": {
       "ChildContent": "按钮组内容。",
@@ -242,7 +243,8 @@
       "Size": "图标尺寸。",
       "Color": "语义颜色。",
       "AriaLabel": "提供后作为可访问图标；未提供时 aria-hidden。",
-      "Title": "SVG title 文本。"
+      "Title": "SVG title 文本。",
+      "Tone": "墨阶：Default 继承 currentColor、Muted 次要墨、Tertiary 三级墨；语义色仍由 Color 表达。"
     },
     "icon-button": {
       "Variant": "按钮视觉变体。",
@@ -253,7 +255,10 @@
       "Loading": "是否显示加载状态。",
       "Icon": "图标内容；二选一，ChildContent 是兼容的默认内容插槽。",
       "ChildContent": "图标内容；二选一，ChildContent 是兼容的默认内容插槽。",
-      "OnClick": "按钮被点击时触发。"
+      "OnClick": "按钮被点击时触发。",
+      "Shape": "轮廓形状：Square 方形、Circle 圆形。",
+      "Tone": "chrome 语义色调预设：Default、Muted、DangerTinted；Tone 覆盖 Variant/Intent 的配色。",
+      "Compact": "紧凑 chrome 尺寸：24px 盒与 14px 字形，优先于 Size。"
     },
     "input": {
       "Value": "当前输入值。",
@@ -335,7 +340,9 @@
       "SelectedIdChanged": "选中项变化时触发，支持 @bind-SelectedId。",
       "OnItemSelected": "激活非禁用菜单项时触发（链接项也会导航）。",
       "OpenKeysChanged": "展开状态变化时触发；传入 OpenKeys 后由消费者接管状态。",
-      "OnGroupToggled": "分组折叠或展开后触发。"
+      "OnGroupToggled": "分组折叠或展开后触发。",
+      "Flat": "扁平模式：不渲染分组标题与折叠开关，按分组顺序输出一份列表。",
+      "IconSize": "菜单图标槽尺寸：Small 16px、Default 20px、Large 24px。"
     },
     "menu-button": {
       "Label": "触发按钮文本。",
@@ -399,7 +406,9 @@
       "CloseOnScroll": "页面或祖先滚动时请求关闭；浮层内部滚动被忽略。",
       "RestoreFocusOnClose": "关闭后将焦点恢复到打开前的触发元素。",
       "Header": "浮层标题区域。",
-      "AriaLabel": "浮层无障碍名称。"
+      "AriaLabel": "浮层无障碍名称。",
+      "MinWidth": "浮层最小宽度（CSS 长度或 var(...)）；缺省使用共享的 12rem 档，菜单型弹层默认 10rem。",
+      "Width": "浮层固定宽度（CSS 长度或 var(...)）；缺省由内容自然宽度决定。"
     },
     "progress": {
       "Value": "确定进度时的当前值；为 null 且 Indeterminate 为 false 时按 0 处理。",
@@ -679,6 +688,39 @@
       "EmptyContent": "空集合时的自定义内容。",
       "AriaLabel": "列表的无障碍名称。",
       "OnItemSelected": "项目被选中后触发。"
+    },
+    "icon-button-menu": {
+      "Icon": "触发器图标；图标按钮没有可见文字，所以必须同时给出 AriaLabel。",
+      "Items": "下拉菜单的分组与菜单项。",
+      "AriaLabel": "触发器与菜单的无障碍名称；空白值在参数设置阶段拒绝。",
+      "Variant": "触发器视觉变体，默认 Ghost。",
+      "Intent": "触发器语义类型，默认 Neutral。",
+      "Size": "触发器尺寸。",
+      "Placement": "菜单弹出方向，默认 BottomEnd。",
+      "Flat": "摊平为一份无分组标题、无 aria-expanded 的列表。",
+      "Open": "可选受控打开状态；未绑定 OpenChanged 时由组件内部维护。",
+      "OpenChanged": "打开状态变化时触发，支持 @bind-Open。",
+      "OnItemSelected": "菜单项被选择时触发；随后菜单关闭。",
+      "Loading": "触发器忙碌状态；忙碌时不能打开菜单。"
+    },
+    "form-dialog": {
+      "Open": "受控打开状态；为 true 时把 ChildContent 交给 DialogProvider 打开。",
+      "OpenChanged": "弹窗结束（提交成功、取消、关闭按钮、Escape、遮罩）时回写 false，支持 @bind-Open。",
+      "Title": "弹窗标题；同时作为对话框的无障碍名称。",
+      "SubmitText": "主按钮文案；留空回退到文案表 FormDialogSubmitLabel。",
+      "CancelText": "次按钮文案；留空回退到文案表 FormDialogCancelLabel。",
+      "OnSubmit": "主按钮回调：Success 关闭、Fail 保持打开并显示消息；运行期间由服务维护忙碌态。",
+      "OnCancel": "次按钮关闭前运行；抛异常时弹窗保持打开。",
+      "AutofocusFirstField": "打开时聚焦表单里第一个字段；没有字段时回退到首个可聚焦元素。",
+      "SubmitOnEnter": "单行字段里按 Enter 触发提交；textarea/select/按钮/链接与组合键不触发。",
+      "CloseOnEscape": "Escape 是否请求关闭；提交忙碌期间一律忽略。",
+      "ChildContent": "表单内容，由 DialogProvider 渲染在弹窗 body 中。"
+    },
+    "nav-menu": {
+      "Density": "行密度档位：Compact / Default / Comfortable，统一调整行高、内边距、圆角、行距与字号。",
+      "IconSize": "图标槽尺寸档位：Small 14px、Default 16px、Large 20px。",
+      "DescriptionSize": "描述文字字号档位：Small 10px、Default 11px、Large 12px。",
+      "ChildIndent": "子级缩进档位：Compact 12/4、Default 16/8、Spacious 20/12（引导线外边距 / 内边距）。"
     }
   }
 }

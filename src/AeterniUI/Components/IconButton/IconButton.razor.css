@@ -92,6 +92,24 @@
     border-radius: var(--aeterni-radius-button);
 }
 
+/* Shape ----------------------------------------------------------------------
+   Shape only repaints the corner. The compound selector outranks the size tiers,
+   which also declare a radius, so a Circle stays round at every size. */
+.aeterni-icon-button.aeterni-icon-button--circle {
+    border-radius: var(--aeterni-radius-full);
+}
+
+/* Compact chrome tier --------------------------------------------------------
+   24px box and a 14px glyph, for title bars and dense row-end actions. It
+   overrides the Size tier (24px is the small control height minus one spacing
+   step) but deliberately touches nothing else: padding, the focus ring, the
+   loading glyph sizing and the connected ButtonGroup divider variables keep
+   their normal rules. */
+.aeterni-icon-button.is-compact {
+    --aeterni-icon-button-size: calc(var(--aeterni-control-height-sm) - var(--aeterni-spacing-1));
+    --aeterni-icon-button-icon-size: var(--aeterni-icon-size-sm);
+}
+
 .aeterni-icon-button--outline,
 .aeterni-icon-button--soft,
 .aeterni-icon-button--ghost,
@@ -189,6 +207,60 @@
     --aeterni-button-foreground: var(--aeterni-button-intent-danger-foreground);
     --aeterni-button-soft: var(--aeterni-button-intent-danger-soft);
     --aeterni-button-soft-active: var(--aeterni-button-intent-danger-soft-active);
+}
+
+/* Tone presets ---------------------------------------------------------------
+   A tone is the chrome recipe, not an emphasis level: it owns the surface,
+   border and ink that Variant/Intent would otherwise paint, so it is declared
+   after the variant and intent blocks and uses a compound selector to outrank
+   their hover/active rules. Geometry, the focus ring and the disabled paint are
+   untouched, so state precedence stays
+   disabled > loading > tone/variant > focus-visible > hover > base. */
+.aeterni-icon-button.aeterni-icon-button--tone-muted {
+    --aeterni-icon-button-loading-foreground: var(--aeterni-text-tertiary);
+
+    border-color: transparent;
+    background: transparent;
+    color: var(--aeterni-text-tertiary);
+}
+
+.aeterni-icon-button.aeterni-icon-button--tone-muted:hover:not(:disabled) {
+    background: var(--aeterni-state-background-hover);
+    color: var(--aeterni-text-secondary);
+    /* Chrome stays put: no lift and no shadow, unlike the filled variants. */
+    box-shadow: none;
+    transform: none;
+}
+
+.aeterni-icon-button.aeterni-icon-button--tone-muted:active:not(:disabled) {
+    background: var(--aeterni-state-background-active);
+    box-shadow: none;
+    transform: none;
+}
+
+/* The danger tint is computed from the one semantic danger colour instead of
+   adding a second palette of tint tokens. */
+.aeterni-icon-button.aeterni-icon-button--tone-danger-tinted {
+    --aeterni-icon-button-loading-foreground: var(--aeterni-color-danger-text);
+
+    border-color: color-mix(in srgb, var(--aeterni-color-danger-default) 25%, transparent);
+    background: color-mix(in srgb, var(--aeterni-color-danger-default) 12%, transparent);
+    color: var(--aeterni-color-danger-text);
+}
+
+.aeterni-icon-button.aeterni-icon-button--tone-danger-tinted:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--aeterni-color-danger-default) 55%, transparent);
+    background: color-mix(in srgb, var(--aeterni-color-danger-default) 20%, transparent);
+    color: var(--aeterni-color-danger-text);
+    /* A soft danger halo instead of the shared elevation shadow. */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--aeterni-color-danger-default) 16%, transparent);
+    transform: none;
+}
+
+.aeterni-icon-button.aeterni-icon-button--tone-danger-tinted:active:not(:disabled) {
+    background: color-mix(in srgb, var(--aeterni-color-danger-default) 26%, transparent);
+    box-shadow: none;
+    transform: none;
 }
 
 .aeterni-icon-button:disabled:not(.is-loading) {

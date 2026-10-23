@@ -1232,9 +1232,15 @@ check('Segmented 三档内缩统一为 3px，滑块与选项圆角跟该档轨�
 // 32px —— 它不再等于 --aeterni-control-height-sm，所以这条把三档高度一起钉住。
 // 滑块与轨道共用同一个圆角，因此角上留白会比四边宽（三档同为 +1.66px）：这是"形状一致"的
 // 代价，四边相等本身量不出它，只有沿角平分线单独量一次才看得见。
+// Heights are read back from getBoundingClientRect, so a 44px track can measure
+// 43.99993896484375 on a fractional device scale. Compare with a subpixel
+// tolerance instead of string equality; the tier contract is still pinned.
+const tierHeights = sizeTiers.map(tier => tier.trackHeight);
+const trackHeightMatches = tierHeights.length === 3
+    && tierHeights.every((height, index) => Math.abs(height - [32, 36, 44][index]) <= 0.5);
 check('Segmented 三档轨道高度为 32 / 36 / 44，留白四边等宽且不缩破 24px 热区',
-    sizeTiers.map(tier => tier.trackHeight).join('/') === '32/36/44'
-    && rounded.trackHeight === Number.parseFloat(rounded.controlHeight)
+    trackHeightMatches
+    && Math.abs(rounded.trackHeight - Number.parseFloat(rounded.controlHeight)) <= 0.5
     && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
     && Math.abs(rounded.pillInlineGap - rounded.pillBlockGap) <= 0.5
     && rounded.pillInlineGap > 1
@@ -3785,6 +3791,458 @@ check('NavMenu RowTemplate 接管整行、Trailing 在按钮之外',
         && templatedRows.trailing >= 1
         && templatedRows.nestedButtons === 0,
     JSON.stringify(templatedRows));
+
+
+// ------------------------------------------------- 10.42.0 checks
+// IconButtonMenu 与 Menu.Flat：真实浏览器里验证触发器关联、选择后关闭与焦点回归，
+// 以及扁平模式没有分组开关、方向键只在条目间移动。
+await goto(`${BASE}/components/icon-button-menu`);
+await waitForApp();
+
+const iconMenuOpen = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const root = document.querySelector('.aeterni-icon-button-menu');
+    const trigger = root?.querySelector('.aeterni-icon-button');
+    if (!trigger) return { error: 'no icon menu trigger' };
+    // A real pointer press focuses the trigger first; a programmatic click does not,
+    // and Popover only restores focus it actually took.
+    trigger.focus();
+    trigger.click();
+    await wait(200);
+    const nav = root.querySelector('nav.aeterni-menu');
+    return {
+        expanded: trigger.getAttribute('aria-expanded'),
+        haspopup: trigger.getAttribute('aria-haspopup'),
+        controls: trigger.getAttribute('aria-controls'),
+        menuId: nav?.id ?? null,
+        groups: nav?.querySelectorAll('.aeterni-menu__group-toggle').length ?? -1,
+        items: nav?.querySelectorAll('.aeterni-menu__item').length ?? -1
+    };
+})()`);
+check('IconButtonMenu 触发器 aria-expanded/aria-controls 关联真实菜单',
+    !iconMenuOpen.error && iconMenuOpen.expanded === 'true'
+        && iconMenuOpen.haspopup === 'menu'
+        && iconMenuOpen.controls === iconMenuOpen.menuId
+        && iconMenuOpen.groups >= 1 && iconMenuOpen.items >= 1,
+    JSON.stringify(iconMenuOpen));
+
+const iconMenuSelected = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const root = document.querySelector('.aeterni-icon-button-menu');
+    const trigger = root?.querySelector('.aeterni-icon-button');
+    const item = root?.querySelector('nav.aeterni-menu .aeterni-menu__item');
+    if (!trigger || !item) return { error: 'menu item missing' };
+    item.focus();
+    item.click();
+    await wait(300);
+    return {
+        expanded: trigger.getAttribute('aria-expanded'),
+        focusBack: document.activeElement === trigger,
+        feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null
+    };
+})()`);
+check('IconButtonMenu 选择菜单项后关闭并把焦点还给触发器',
+    !iconMenuSelected.error && iconMenuSelected.expanded === 'false'
+        && iconMenuSelected.focusBack
+        && (iconMenuSelected.feedback ?? '').includes('已选择'),
+    JSON.stringify(iconMenuSelected));
+
+// 第二段 demo：Flat 菜单。打开后应没有分组开关，箭头键只在条目间移动。
+const flatMenuOpened = await evaluate(`(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const root = [...document.querySelectorAll('.aeterni-icon-button-menu')]
+        .find(node => node.querySelector('.aeterni-icon-button')?.getAttribute('aria-label') === '更多操作（扁平）');
+    const trigger = root?.querySelector('.aeterni-icon-button');
+    if (!trigger) return { error: 'no flat menu trigger' };
+    trigger.focus();
+    trigger.click();
+    await wait(200);
+    const nav = root.querySelector('nav.aeterni-menu');
+    const items = [...(nav?.querySelectorAll('.aeterni-menu__item') ?? [])];
+    items[0]?.focus();
+    return {
+        isFlat: nav?.classList.contains('is-flat') ?? false,
+        groups: nav?.querySelectorAll('.aeterni-menu__group-toggle').length ?? -1,
+        expanded: nav?.querySelectorAll('[aria-expanded]').length ?? -1,
+        items: items.length,
+        first: document.activeElement?.textContent?.trim() ?? null
+    };
+})()`);
+check('Menu.Flat 摊平为无分组标题列表，且没有 aria-expanded',
+    !flatMenuOpened.error && flatMenuOpened.isFlat
+        && flatMenuOpened.groups === 0 && flatMenuOpened.expanded === 0
+        && flatMenuOpened.items === 4
+        && (flatMenuOpened.first ?? '').startsWith('编辑'),
+    JSON.stringify(flatMenuOpened));
+
+await key('ArrowDown', 'ArrowDown', 40);
+await sleep(150);
+const flatMenuNext = await evaluate(`document.activeElement?.textContent?.trim() ?? null`);
+await key('ArrowRight', 'ArrowRight', 39);
+await sleep(150);
+const flatMenuAfterRight = await evaluate(`document.activeElement?.textContent?.trim() ?? null`);
+check('Menu.Flat 方向键在条目间移动，左右键不再展开分组',
+    (flatMenuNext ?? '').startsWith('复制') && flatMenuAfterRight === flatMenuNext,
+    JSON.stringify({ afterDown: flatMenuNext, afterRight: flatMenuAfterRight }));
+
+// FormDialog：首字段聚焦、Enter 提交与忙碌态、失败校验、成功关闭与焦点回归。
+await goto(`${BASE}/components/form-dialog`);
+await waitForApp();
+
+const openRenameDialog = () => evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(node => node.textContent.trim() === '重命名项目');
+    if (!button) return { error: 'no rename trigger' };
+    button.focus();
+    button.click();
+    return true;
+})()`);
+
+await openRenameDialog();
+await sleep(350);
+const formDialogOpened = await evaluate(`(() => {
+    const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+    const body = dialog?.querySelector('[data-aeterni-form-dialog="true"]');
+    const submit = dialog?.querySelector('[data-aeterni-form-dialog-submit]');
+    return {
+        hasDialog: !!dialog,
+        hasBody: !!body,
+        autofocus: body?.getAttribute('data-aeterni-autofocus') ?? null,
+        submitOnEnter: body?.getAttribute('data-aeterni-submit-on-enter') ?? null,
+        activeTag: document.activeElement?.tagName ?? null,
+        activeInsideBody: !!body && body.contains(document.activeElement),
+        busy: dialog?.getAttribute('aria-busy') ?? null,
+        submitText: submit?.textContent?.trim() ?? null
+    };
+})()`);
+check('FormDialog 打开时聚焦首个字段并渲染表单标记',
+    formDialogOpened.hasDialog && formDialogOpened.hasBody
+        && formDialogOpened.autofocus === 'true' && formDialogOpened.submitOnEnter === 'true'
+        && formDialogOpened.activeTag === 'INPUT' && formDialogOpened.activeInsideBody
+        && formDialogOpened.busy === 'false' && formDialogOpened.submitText === '保存',
+    JSON.stringify(formDialogOpened));
+
+// Enter 提交：600ms 的异步保存期间应进入忙碌态；此时 Escape 被忽略。
+await key('Enter', 'Enter', 13);
+const formDialogBusy = await (async () => {
+    const deadline = Date.now() + 2000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+            const submit = dialog?.querySelector('[data-aeterni-form-dialog-submit]');
+            const cancel = [...(dialog?.querySelectorAll('.aeterni-dialog-provider__footer button') ?? [])][0];
+            return {
+                busy: dialog?.getAttribute('aria-busy') ?? null,
+                loading: submit?.classList.contains('is-loading') ?? false,
+                cancelDisabled: cancel?.disabled ?? null
+            };
+        })()`);
+        if (state.busy === 'true') break;
+        await sleep(40);
+    }
+    return state;
+})();
+await key('Escape', 'Escape', 27);
+const formDialogSaved = await (async () => {
+    const deadline = Date.now() + 10000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+            return {
+                gone: !dialog,
+                feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+                focusText: document.activeElement?.textContent?.trim() ?? null
+            };
+        })()`);
+        if (state.gone) break;
+        await sleep(100);
+    }
+    return state;
+})();
+check('FormDialog 提交期间忙碌且 Escape 被忽略，成功后关闭并回归触发器焦点',
+    formDialogBusy.busy === 'true' && formDialogBusy.loading === true && formDialogBusy.cancelDisabled === true
+        && formDialogSaved.gone
+        && (formDialogSaved.feedback ?? '').includes('保存成功')
+        && (formDialogSaved.focusText ?? '').includes('重命名项目'),
+    JSON.stringify({ formDialogBusy, formDialogSaved }));
+
+// 失败路径：清空字段后 Enter，弹窗保持打开并渲染 role="alert" 校验消息。
+await openRenameDialog();
+await sleep(350);
+const formulary = await evaluate(`(async () => {
+    const body = document.querySelector('[data-aeterni-form-dialog="true"]');
+    const input = body?.querySelector('input');
+    if (!input) return { error: 'no form field' };
+    input.focus();
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    return { tag: document.activeElement?.tagName ?? null };
+})()`);
+await sleep(200);
+await key('Enter', 'Enter', 13);
+const formDialogInvalid = await (async () => {
+    const deadline = Date.now() + 10000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+            const alert = dialog?.querySelector('[role="alert"]');
+            const submit = dialog?.querySelector('[data-aeterni-form-dialog-submit]');
+            return {
+                stillOpen: !!dialog,
+                busy: dialog?.getAttribute('aria-busy') ?? null,
+                message: alert?.textContent?.trim() ?? null,
+                loading: submit?.classList.contains('is-loading') ?? false
+            };
+        })()`);
+        if (state.message) break;
+        await sleep(100);
+    }
+    return state;
+})();
+check('FormDialog 提交失败保持打开并渲染 role="alert" 校验消息',
+    formulary.tag === 'INPUT' && formDialogInvalid.stillOpen
+        && formDialogInvalid.busy === 'false' && formDialogInvalid.loading === false
+        && (formDialogInvalid.message ?? '').includes('不能为空'),
+    JSON.stringify({ formulary, formDialogInvalid }));
+
+
+// ------------------------------------------------- 10.43.0 checks
+// NavMenu 密度/行级状态/Trailing，IconButton chrome 预设，Button 内容对齐，
+// Icon 墨阶，Popover 宽度参数与 Dialog 首字段聚焦。
+const probeColor = variable => evaluate(`(() => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(${variable})';
+    document.body.appendChild(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+})()`);
+
+await goto(`${BASE}/components/nav-menu`);
+await waitForApp();
+
+const denseNav = await evaluate(`(() => {
+    const card = document.querySelector('#nav-menu-row-state');
+    const menu = card?.querySelector('.aeterni-nav-menu');
+    const selectedRow = menu?.querySelector('.aeterni-nav-menu__node.is-selected > .aeterni-nav-menu__row');
+    const selectedButton = selectedRow?.querySelector('.aeterni-nav-menu__button');
+    return {
+        className: menu?.className ?? null,
+        rowHeight: selectedRow ? Math.round(selectedRow.getBoundingClientRect().height) : null,
+        radius: selectedRow ? getComputedStyle(selectedRow).borderRadius : null,
+        fontSize: selectedButton ? getComputedStyle(selectedButton).fontSize : null,
+        background: selectedRow ? getComputedStyle(selectedRow).backgroundColor : null,
+        color: selectedRow ? getComputedStyle(selectedRow).color : null,
+        selected: selectedRow?.classList.contains('is-selected') ?? false,
+        descriptionFont: (() => {
+            const description = menu?.querySelector('.aeterni-nav-menu__description');
+            return description ? getComputedStyle(description).fontSize : null;
+        })()
+    };
+})()`);
+const selectedInk = await probeColor('--aeterni-state-color-selected');
+check('NavMenu Comfortable 密度与行级选中状态',
+    !denseNav.error && (denseNav.className ?? '').includes('aeterni-nav-menu--density-comfortable')
+        && denseNav.rowHeight >= 38 && denseNav.rowHeight <= 44
+        && denseNav.radius === '8px' && denseNav.fontSize === '13px'
+        && denseNav.selected
+        && denseNav.background !== 'rgba(0, 0, 0, 0)'
+        && denseNav.color === selectedInk
+        && denseNav.descriptionFont === '11px',
+    JSON.stringify({ denseNav, selectedInk }));
+
+// hover 必须画在整行上：把指针移到分组行右侧的 Trailing 上，行容器的背景应变成 state-hover。
+const hoverScrolled = await evaluate(`(() => {
+    const card = document.querySelector('#nav-menu-row-state');
+    const menu = card?.querySelector('.aeterni-nav-menu');
+    const rows = [...(menu?.querySelectorAll('.aeterni-nav-menu__row') ?? [])];
+    const row = rows.find(candidate => candidate.querySelector('.aeterni-nav-menu__trailing'));
+    if (!row) return false;
+    // The sample globally sets scroll-behavior: smooth; "instant" is required or the
+    // measured viewport coordinates are still the pre-scroll ones.
+    row.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return true;
+})()`);
+await sleep(150);
+const hoverTarget = await evaluate(`(() => {
+    const card = document.querySelector('#nav-menu-row-state');
+    const menu = card?.querySelector('.aeterni-nav-menu');
+    const rows = [...(menu?.querySelectorAll('.aeterni-nav-menu__row') ?? [])];
+    const row = rows.find(candidate => candidate.querySelector('.aeterni-nav-menu__trailing'));
+    const trailing = row?.querySelector('.aeterni-nav-menu__trailing');
+    if (!row || !trailing) return { error: 'no trailing row' };
+    const rowBox = row.getBoundingClientRect();
+    const box = trailing.getBoundingClientRect();
+    return {
+        x: Math.round(box.left + box.width / 2),
+        y: Math.round(box.top + box.height / 2),
+        viewportHeight: window.innerHeight,
+        trailingInside: box.left >= rowBox.left - 1 && box.right <= rowBox.right + 1,
+        before: getComputedStyle(row).backgroundColor
+    };
+})()`);
+if (!hoverTarget.error) {
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: hoverTarget.x, y: hoverTarget.y, button: 'none' });
+    await sleep(150);
+}
+const hoverBackground = await evaluate(`(() => {
+    const card = document.querySelector('#nav-menu-row-state');
+    const menu = card?.querySelector('.aeterni-nav-menu');
+    const row = [...(menu?.querySelectorAll('.aeterni-nav-menu__row') ?? [])]
+        .find(candidate => candidate.querySelector('.aeterni-nav-menu__trailing'));
+    return row ? getComputedStyle(row).backgroundColor : null;
+})()`);
+const hoverToken = await probeColor('--aeterni-state-background-hover');
+check('NavMenu hover 覆盖整行（含 Trailing）并消费 state Token',
+    hoverScrolled && !hoverTarget.error && hoverTarget.trailingInside
+        && hoverTarget.y > 0 && hoverTarget.y < hoverTarget.viewportHeight
+        && hoverBackground === hoverToken && hoverBackground !== hoverTarget.before,
+    JSON.stringify({ hoverScrolled, hoverTarget, hoverBackground, hoverToken }));
+
+await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
+
+await goto(`${BASE}/components/icon-button`);
+await waitForApp();
+const iconButtonChrome = await evaluate(`(() => {
+    const card = document.querySelector('#icon-button-chrome');
+    const buttons = [...(card?.querySelectorAll('.aeterni-icon-button') ?? [])];
+    const read = node => {
+        const style = getComputedStyle(node);
+        const box = node.getBoundingClientRect();
+        return { width: Math.round(box.width), radius: parseFloat(style.borderRadius), background: style.backgroundColor, color: style.color };
+    };
+    return {
+        count: buttons.length,
+        danger: buttons[0] ? read(buttons[0]) : null,
+        compact: buttons[1] ? read(buttons[1]) : null,
+        muted: buttons[2] ? read(buttons[2]) : null
+    };
+})()`);
+const dangerInk = await probeColor('--aeterni-color-danger-text');
+const secondaryInk = await probeColor('--aeterni-text-secondary');
+const tertiaryInk = await probeColor('--aeterni-text-tertiary');
+check('IconButton chrome：圆形 danger 色调、紧凑 24px 与 Muted 墨阶',
+    iconButtonChrome.count >= 3
+        && iconButtonChrome.danger?.radius >= 18
+        && iconButtonChrome.danger?.background !== 'rgba(0, 0, 0, 0)'
+        && iconButtonChrome.danger?.color === dangerInk
+        && iconButtonChrome.compact?.width === 24
+        && iconButtonChrome.muted?.color === tertiaryInk,
+    JSON.stringify({ iconButtonChrome, dangerInk, tertiaryInk }));
+
+await goto(`${BASE}/components/button`);
+await waitForApp();
+const buttonAlignment = await evaluate(`(() => {
+    const card = document.querySelector('#button-content-alignment');
+    const content = card?.querySelector('.aeterni-button__content');
+    const button = content?.closest('.aeterni-button');
+    return {
+        exists: !!content,
+        justify: content ? getComputedStyle(content).justifyContent : null,
+        contentWidth: content ? Math.round(content.getBoundingClientRect().width) : null,
+        buttonWidth: button ? Math.round(button.getBoundingClientRect().width) : null
+    };
+})()`);
+check('Button ContentAlignment=Start 让内容行左对齐并填满按钮',
+    buttonAlignment.exists && buttonAlignment.justify === 'flex-start'
+        && buttonAlignment.buttonWidth - buttonAlignment.contentWidth <= 30,
+    JSON.stringify(buttonAlignment));
+
+await goto(`${BASE}/components/icon`);
+await waitForApp();
+const iconTones = await evaluate(`(() => {
+    const icons = [...(document.querySelector('#icon-tones')?.querySelectorAll('.aeterni-icon') ?? [])];
+    return icons.map(node => ({ tone: [...node.classList].find(name => name.startsWith('aeterni-icon--tone')) ?? null, color: getComputedStyle(node).color }));
+})()`);
+check('Icon Tone 用二级/三级墨而 Color 语义色不变',
+    iconTones.length >= 3
+        && iconTones[0].tone === null && iconTones[1].tone === 'aeterni-icon--tone-muted'
+        && iconTones[1].color === secondaryInk
+        && iconTones[2].tone === 'aeterni-icon--tone-tertiary' && iconTones[2].color === tertiaryInk,
+    JSON.stringify({ iconTones, secondaryInk, tertiaryInk }));
+
+await goto(`${BASE}/components/popup`);
+await waitForApp();
+const popoverWidths = await (async () => {
+    const toggle = label => evaluate(`(() => {
+        const box = [...document.querySelectorAll('label')].find(node => node.textContent.includes(${JSON.stringify(label)}));
+        const input = box?.querySelector('input');
+        if (!input) return false;
+        input.click();
+        return true;
+    })()`);
+    const openOptions = () => evaluate(`(() => {
+        const button = [...document.querySelectorAll('button')].find(node => node.textContent.includes('可调浮层'));
+        if (!button) return false;
+        button.click();
+        return true;
+    })()`);
+    const readSurface = () => evaluate(`(() => {
+        const layer = [...document.querySelectorAll('.aeterni-popover')]
+            .find(node => node.getAttribute('aria-label') === '可调浮层');
+        const surface = layer?.querySelector('.aeterni-popover__surface');
+        if (!surface) return { error: 'missing surface' };
+        return {
+            minWidth: getComputedStyle(surface).minWidth,
+            width: getComputedStyle(surface).width,
+            inlineMin: layer.style.getPropertyValue('--aeterni-popover-min-width').trim()
+        };
+    })()`);
+    await toggle('窄最小宽度');
+    await openOptions();
+    await sleep(250);
+    const narrow = await readSurface();
+    await key('Escape', 'Escape', 27);
+    await sleep(250);
+    await toggle('窄最小宽度');
+    await toggle('固定宽度');
+    await openOptions();
+    await sleep(300);
+    const fixed = await readSurface();
+    await key('Escape', 'Escape', 27);
+    return { narrow, fixed };
+})();
+check('Popover MinWidth / Width 落到 CSS 变量并实际生效',
+    !popoverWidths.narrow.error && !popoverWidths.fixed.error
+        && popoverWidths.narrow.minWidth === '160px'
+        && popoverWidths.narrow.inlineMin === 'var(--aeterni-overlay-min-width-xs)'
+        && Math.abs(popoverWidths.fixed.width.replace('px', '') - 384) <= 1,
+    JSON.stringify(popoverWidths));
+
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(node => node.textContent.includes('自定义 Dialog（聚焦首字段）'));
+    button?.click();
+})()`);
+const autofocusDialog = await (async () => {
+    const deadline = Date.now() + 6000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+            const body = dialog?.querySelector('[data-aeterni-autofocus="true"]');
+            const input = body?.querySelector('input');
+            return {
+                dialog: !!dialog,
+                marker: !!body,
+                fieldFocused: !!input && document.activeElement === input,
+                activeTag: document.activeElement?.tagName ?? null
+            };
+        })()`);
+        if (state.dialog && state.fieldFocused) break;
+        await sleep(80);
+    }
+    return state;
+})();
+check('普通自定义 Dialog 的 AutofocusFirstField 打开即聚焦首个字段',
+    autofocusDialog.dialog && autofocusDialog.marker && autofocusDialog.fieldFocused,
+    JSON.stringify(autofocusDialog));
+await key('Escape', 'Escape', 27);
+await sleep(400);
 
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);

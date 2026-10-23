@@ -540,6 +540,14 @@
         "kind": "事件回调"
       },
       {
+        "name": "DialogOptions.AutofocusFirstField",
+        "type": "bool",
+        "description": "打开时聚焦弹窗内第一个表单字段（input/select/textarea/contenteditable）；没有字段时回退到首个可聚焦元素。默认 false，FormDialogOptions 默认 true。",
+        "default": "false",
+        "kind": "属性",
+        "since": "10.43.0"
+      },
+      {
         "name": "DialogProvider",
         "type": "组件",
         "description": "应用根部放置一次，负责渲染 Dialog、Alert 和 Toast。",
@@ -552,6 +560,59 @@
         "description": "业务代码使用的 Show、ConfirmAsync、AlertAsync 和 ShowToast API。",
         "default": "",
         "kind": "接口"
+      }
+    ],
+    "icon-button-menu": [
+      {
+        "name": "MenuGroup",
+        "type": "record",
+        "description": "Key、Label、Items、Icon、InitiallyOpen、Disabled、Visible。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "MenuItem",
+        "type": "record",
+        "description": "Id、Label、Description、Icon、Disabled、Href、Target、Visible；设置 Href 后渲染真实的 <a>。",
+        "default": "",
+        "kind": "接口"
+      }
+    ],
+    "form-dialog": [
+      {
+        "name": "FormDialogOptions",
+        "type": "class : DialogOptions",
+        "description": "SubmitText、CancelText、OnSubmit、OnCancel、AutofocusFirstField、SubmitOnEnter、ValidationMessage，并继承 Title、Severity、CloseOnEscape 等；表单弹窗的底部动作由 Provider 生成，不使用 DialogOptions.Footer。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "FormDialogSubmitResult",
+        "type": "class",
+        "description": "Succeeded / Message / Data；Success(object?) 成功关闭并回传 Data，Fail(string) 保持打开并显示 Message，空消息在构造时拒绝。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "IDialogService.ShowForm",
+        "type": "DialogReference",
+        "description": "打开表单弹窗并返回句柄；内容为 RenderFragment，选项缺省使用 FormDialogOptions 默认值。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "IDialogService.ShowFormAsync",
+        "type": "Task<DialogResult>",
+        "description": "打开表单弹窗并等待结果：提交成功为 Confirmed（Data 携带 OnSubmit 的结果），取消为 Cancelled，其他关闭路径为 Dismiss。",
+        "default": "",
+        "kind": "接口"
+      },
+      {
+        "name": "FormDialogOptions.ValidationMessage",
+        "type": "string?",
+        "description": "上一次失败提交的消息；服务在下次提交开始时清空，宿主通常不设置。",
+        "default": "",
+        "kind": "属性"
       }
     ]
   }

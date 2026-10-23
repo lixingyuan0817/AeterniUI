@@ -19,13 +19,14 @@
     <Demos>
         <DemoCard Id="feedback-dialog"
                   Title="Dialog 与 Confirm 流程"
-                  Description="ConfirmAsync 等待用户决定并返回 bool；需要自定义内容与底部操作时改用 Show(内容, 选项) 的 RenderFragment 重载。"
+                  Description="ConfirmAsync 等待用户决定并返回 bool；需要自定义内容与底部操作时改用 Show(内容, 选项) 的 RenderFragment 重载，AutofocusFirstField 还能让普通 Dialog 打开即聚焦首个表单字段。"
                   Code="@DialogCode">
             <Preview>
                 <div class="preview-stack preview-feedback-actions">
                     <p class="preview-overlay-demo__hint">Confirm 复用 Dialog 的模态容器：遮罩、焦点陷阱与焦点回归都相同，只是内容换成了消息加两个动作。</p>
                     <div class="preview-action-row">
                         <Button Variant="ButtonVariant.Outline" Intent="@FeedbackIntent" OnClick="ShowPreviewConfirm">Confirm</Button>
+                        <Button Variant="ButtonVariant.Soft" OnClick="ShowAutofocusDialog">自定义 Dialog（聚焦首字段）</Button>
                     </div>
                     <span class="preview-feedback" role="status">@_feedbackNote</span>
                 </div>
@@ -78,6 +79,7 @@
         <span>Alert 与 Toast 共用同一个位置容器，不会互相遮挡；两者默认自动关闭，四边进度边框显示剩余时间，Toast 同时显示的数量上限是 <code>AeterniUIOptions.MaxToastCount</code>。</span>
         <span><code>ConfirmAsync</code> 返回 <code>Task&lt;bool&gt;</code>（取消为 <code>false</code>），<code>AlertAsync</code> 返回 <code>DialogResult</code>；Alert 不抢焦点，<code>CloseOnEscape</code> 只在焦点位于通知内部时生效。</span>
         <span>默认文案全部来自 <code>AeterniUIOptions.Text</code>，实例上的 <code>ConfirmText</code> / <code>CancelText</code> / <code>CloseText</code> 留空即回退；<code>DialogProvider</code> 在应用根部只放一次。</span>
+        <span><code>DialogOptions.AutofocusFirstField</code> 默认关闭；置为 <code>true</code> 后普通 Dialog 打开即聚焦内容里的首个字段，没有字段时回退到原来的首个可聚焦元素。</span>
     </Notes>
 </ComponentPage>
 
@@ -110,6 +112,14 @@
         // 内容需要自定义布局与底部操作时走 RenderFragment 重载
         var dialog = Dialogs.Show(EditorContent, new DialogOptions { Title = "编辑", Footer = FooterContent });
         await dialog.Result;
+
+        // 普通自定义 Dialog 也可以让打开时聚焦首个表单字段（默认关闭）
+        var rename = Dialogs.Show(RenameContent, new DialogOptions
+        {
+            Title = "重命名项目",
+            AutofocusFirstField = true
+        });
+        await rename.Result;
         """;
 
     private const string ToastCode = """
@@ -185,6 +195,29 @@
             new ConfirmOptions { Title = "Confirm 预览", Severity = _feedbackSeverity });
         _feedbackNote = confirmed ? "Confirm 返回 true。" : "Confirm 返回 false。";
     }
+
+    private async Task ShowAutofocusDialog(MouseEventArgs _)
+    {
+        var dialog = DialogService.Show(AutofocusDialogContent, new DialogOptions
+        {
+            Title = "重命名项目",
+            AutofocusFirstField = true,
+            CloseOnOverlayClick = true
+        });
+        await dialog.Result;
+        _feedbackNote = "自定义 Dialog 已关闭。";
+    }
+
+    private string _autofocusDraft = "AeterniUI";
+
+    /// <summary>
+    /// Body of the custom dialog. It deliberately has no autofocus attribute of its
+    /// own: the provider owns the focus move through <c>DialogOptions.AutofocusFirstField</c>.
+    /// </summary>
+    private RenderFragment AutofocusDialogContent => @<div class="preview-stack">
+        <p>打开后焦点直接落在下面的输入框，不需要先按 Tab 越过标题栏的关闭按钮。</p>
+        <Input @bind-Value="_autofocusDraft" AriaLabel="项目名称" Placeholder="项目名称" />
+    </div>;
 
     private void ShowPreviewToast(MouseEventArgs _)
     {

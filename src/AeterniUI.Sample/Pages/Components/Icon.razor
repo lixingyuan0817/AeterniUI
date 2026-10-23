@@ -52,6 +52,26 @@
             </Preview>
         </DemoCard>
 
+        <DemoCard Id="icon-tones"
+                  Title="墨阶"
+                  Description="Tone 只管墨阶：Muted 用二级墨、Tertiary 用三级墨，适合侧栏与工具栏里跟随整行状态的图标；Color 管语义色，两者是两个维度。不传 Tone 时保持 currentColor，由父级决定墨色。"
+                  Code="@ToneCode">
+            <Preview>
+                <div class="preview-stack">
+                    <div class="preview-state-row">
+                        <Icon Definition="@AeterniIcons.Info" Size="Size.Large" />
+                        <Icon Definition="@AeterniIcons.Info" Size="Size.Large" Tone="IconTone.Muted" />
+                        <Icon Definition="@AeterniIcons.Info" Size="Size.Large" Tone="IconTone.Tertiary" />
+                    </div>
+                    <div class="preview-state-row">
+                        <span class="preview-value">默认 / currentColor</span>
+                        <span class="preview-value">Muted</span>
+                        <span class="preview-value">Tertiary</span>
+                    </div>
+                </div>
+            </Preview>
+        </DemoCard>
+
         <DemoCard Id="icon-accessible"
                   Title="无障碍名称与标题"
                   Description="AriaLabel 把图标变成带名称的图形，Title 额外输出 SVG 标题；右侧控件即时生效。"
@@ -85,6 +105,7 @@
         <span>没有 <code>AriaLabel</code> 时输出 <code>aria-hidden="true"</code>，交给父级表达含义；提供后改为 <code>role="img"</code> 加名称。</span>
         <span><code>Title</code> 输出为 SVG 的 <code>title</code>，只在悬停时可见，不能替代 <code>AriaLabel</code> 承担无障碍命名。</span>
         <span><code>Definition</code> 必填且只接受 <code>IconDefinition</code>：核心库自带 <code>AeterniIcons</code>，Font Awesome 等外部图标要通过适配包换成本地定义。</span>
+        <span><code>Color</code> 管语义色（品牌、成功、危险……），<code>Tone</code> 管中性墨阶（Muted / Tertiary）；两者可同时设置，墨阶决定最终的墨色层级。</span>
     </Notes>
 </ComponentPage>
 
@@ -103,6 +124,11 @@
 
     private const string ColorCode = """
         <Icon Definition="AeterniIcons.Star" Color="Color.Warning" Size="Size.Large" />
+        """;
+
+    private const string ToneCode = """
+        <Icon Definition="AeterniIcons.Info" Tone="IconTone.Muted" />
+        <Icon Definition="AeterniIcons.Info" Tone="IconTone.Tertiary" />
         """;
 
     private const string AccessibleCode = """

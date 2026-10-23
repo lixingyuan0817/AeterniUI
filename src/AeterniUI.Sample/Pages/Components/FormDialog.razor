@@ -1,0 +1,197 @@
+@page "/components/form-dialog"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+@using AeterniUI.Components.FormDialog
+@using AeterniUI.Enums
+
+<PageTitle>Aeterni UI · FormDialog</PageTitle>
+
+<ComponentPage AnchorId="form-dialog"
+               Category="通知组件"
+               Title="FormDialog"
+               ComponentName="FormDialog"
+               Description="在 DialogProvider 的模态容器里填写并提交表单：底部动作、忙碌态与校验区域由 Provider 生成，FormDialog 只是声明式宿主。"
+               Related="@FormDialogRelated">
+    <WhenToUse>
+        <p>用户需要先填写再提交，且保存是异步的、可能被后端拒绝时使用：遮罩、焦点陷阱、滚动锁与退出动画全部复用 <code>DialogProvider</code>，不要另做一套模态。</p>
+        <p>只需要确认一个决定用 <code>ConfirmAsync</code>，只读告知用 <code>Toast</code> / <code>Alert</code>；表单内容多到一屏放不下时改用 <code>Drawer</code> 或独立页面。</p>
+    </WhenToUse>
+    <Demos>
+        <DemoCard Id="form-dialog-declarative"
+                  Title="声明式表单弹窗"
+                  Description="FormDialog 没有可见根元素，只负责按 Open 打开弹窗；提交返回 Fail 时保留弹窗并显示校验消息，期间按钮进入忙碌态、取消与关闭被禁用。留空名称即可看到失败路径。"
+                  Code="@DeclarativeCode">
+            <Preview>
+                <div class="preview-stack preview-feedback-actions">
+                    <div class="preview-action-row">
+                        <Button OnClick="OpenRename">重命名项目</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">当前名称：@_projectName；@_renameNote</span>
+                    <FormDialog @bind-Open="_renameOpen"
+                                Title="重命名项目"
+                                SubmitText="保存"
+                                CancelText="取消"
+                                OnSubmit="SubmitRenameAsync"
+                                OnCancel="HandleRenameCancel">
+                        <div class="preview-form-control">
+                            <FormField Label="项目名称" Description="留空提交会失败，用来演示校验消息与忙碌态。">
+                                <Input @bind-Value="_renameDraft" Placeholder="项目名称" />
+                            </FormField>
+                        </div>
+                    </FormDialog>
+                </div>
+            </Preview>
+        </DemoCard>
+
+        <DemoCard Id="form-dialog-service"
+                  Title="服务 API：ShowFormAsync"
+                  Description="内容与选项都从宿主传进去：ShowFormAsync 返回 DialogResult，提交成功时 Data 携带提交结果。适合由代码流程而不是页面状态驱动弹窗的场景。"
+                  Code="@ServiceCode">
+            <Preview>
+                <div class="preview-stack preview-feedback-actions">
+                    <div class="preview-action-row">
+                        <Button Variant="ButtonVariant.Outline" OnClick="OpenServiceForm">创建项目</Button>
+                    </div>
+                    <span class="preview-feedback" role="status">@_serviceNote</span>
+                </div>
+            </Preview>
+        </DemoCard>
+    </Demos>
+    <Notes>
+        <span>打开时 Provider 聚焦弹窗里的第一个字段（<code>AutofocusFirstField</code>，默认 <code>true</code>）；表单里没有字段时回退到原来的首个可聚焦元素。</span>
+        <span><code>SubmitOnEnter</code>（默认 <code>true</code>）只在单行字段里把 Enter 转成提交：<code>textarea</code>、<code>select</code>、按钮、链接与输入法组合中按 Enter 不提交，Shift/Ctrl/Meta/Alt 组合键也不触发。</span>
+        <span>提交期间提交按钮显示 <code>Loading</code>，取消与关闭按钮禁用，对话框输出 <code>aria-busy="true"</code>，Escape、遮罩点击和重复提交都会被忽略；<code>OnSubmit</code> 抛出的异常会在复位忙碌态后继续抛出。</span>
+        <span>提交失败的消息渲染在带 <code>role="alert"</code> 的校验区域里，下一次提交开始时清空；底部动作由 <code>SubmitText</code>/<code>CancelText</code> 生成，留空回退到 <code>AeterniUIOptions.Text</code> 的文案表。</span>
+    </Notes>
+</ComponentPage>
+
+@code {
+    private static readonly ShowcaseRelatedLink[] FormDialogRelated =
+    [
+        new("Dialog / Confirm / Alert / Toast", "/components/feedback"),
+        new("Drawer", "/components/drawer"),
+        new("Input", "/components/input"),
+        new("FormField", "/components/form-field")
+    ];
+
+    private const string DeclarativeCode = """
+        <FormDialog @bind-Open="RenameOpen"
+                    Title="重命名项目"
+                    SubmitText="保存"
+                    CancelText="取消"
+                    OnSubmit="SubmitRenameAsync">
+            <FormField Label="项目名称" Description="留空提交会失败。">
+                <Input @bind-Value="RenameDraft" />
+            </FormField>
+        </FormDialog>
+
+        private async Task<FormDialogSubmitResult> SubmitRenameAsync()
+        {
+            await Task.Delay(600);
+            if (string.IsNullOrWhiteSpace(RenameDraft))
+            {
+                return FormDialogSubmitResult.Fail("项目名称不能为空。");
+            }
+
+            ProjectName = RenameDraft.Trim();
+            return FormDialogSubmitResult.Success(ProjectName);
+        }
+        """;
+
+    private const string ServiceCode = """
+        [Inject] private IDialogService Dialogs { get; set; } = default!;
+
+        private async Task CreateAsync()
+        {
+            var result = await Dialogs.ShowFormAsync(FormContent, new FormDialogOptions
+            {
+                Title = "创建项目",
+                SubmitText = "创建",
+                CancelText = "返回",
+                OnSubmit = SubmitAsync
+            });
+
+            // 提交成功时 Data 就是 OnSubmit 返回的结果
+            if (result.Confirmed)
+            {
+                Note = $"已创建：{result.Data}";
+            }
+        }
+        """;
+
+    private string _projectName = "AeterniUI";
+    private string _renameDraft = "AeterniUI";
+    private string _renameNote = "尚未修改。";
+    private bool _renameOpen;
+
+    private string _serviceName = "新项目";
+    private string _serviceNote = "点击按钮打开服务 API 表单。";
+
+    private void OpenRename(MouseEventArgs _)
+    {
+        _renameDraft = _projectName;
+        _renameNote = "弹窗已打开，留空名称可看到失败路径。";
+        _renameOpen = true;
+    }
+
+    private async Task<FormDialogSubmitResult> SubmitRenameAsync()
+    {
+        // Simulates a save round-trip so the busy chrome (loading button, disabled
+        // cancel/close, ignored Escape) is observable in the sample.
+        await Task.Delay(600);
+
+        // OnSubmit 是普通委托（需要返回值），不经过 EventCallback 的宿主重渲染；
+        // 页面上的反馈文案要自己刷新，否则弹窗关掉了而说明还停在旧状态。
+        if (string.IsNullOrWhiteSpace(_renameDraft))
+        {
+            _renameNote = "提交失败：名称为空，弹窗保持打开。";
+            await InvokeAsync(StateHasChanged);
+            return FormDialogSubmitResult.Fail("项目名称不能为空。");
+        }
+
+        _projectName = _renameDraft.Trim();
+        _renameNote = "保存成功，弹窗已关闭。";
+        await InvokeAsync(StateHasChanged);
+        return FormDialogSubmitResult.Success(_projectName);
+    }
+
+    private Task HandleRenameCancel()
+    {
+        _renameNote = "已取消，名称未改变。";
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment ServiceFormContent => @<div class="preview-form-control">
+        <FormField Label="项目名称" Description="提交会模拟 600ms 的异步保存。">
+            <Input @bind-Value="_serviceName" Placeholder="项目名称" />
+        </FormField>
+    </div>;
+
+    private async Task OpenServiceForm(MouseEventArgs _)
+    {
+        _serviceNote = "填写名称后点击「创建」；留空可看到校验消息。";
+        var result = await DialogService.ShowFormAsync(ServiceFormContent, new FormDialogOptions
+        {
+            Title = "通过服务创建项目",
+            SubmitText = "创建",
+            CancelText = "返回",
+            OnSubmit = SubmitServiceFormAsync
+        });
+
+        _serviceNote = result.Confirmed
+            ? $"已创建：{result.Data}"
+            : result.Cancelled ? "已取消创建。" : "弹窗被关闭。";
+    }
+
+    private async Task<FormDialogSubmitResult> SubmitServiceFormAsync()
+    {
+        await Task.Delay(600);
+
+        if (string.IsNullOrWhiteSpace(_serviceName))
+        {
+            return FormDialogSubmitResult.Fail("项目名称不能为空。");
+        }
+
+        return FormDialogSubmitResult.Success(_serviceName.Trim());
+    }
+}

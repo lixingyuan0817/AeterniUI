@@ -105,7 +105,7 @@
 
         <DemoCard Id="popup-options"
                   Title="方位与关闭策略"
-                  Description="Placement 给出四个起始方位，越界时自动翻转；四个关闭开关与焦点恢复都能单独切换。"
+                  Description="Placement 给出四个起始方位，越界时自动翻转；MinWidth / Width 控制浮层宽度，四个关闭开关与焦点恢复都能单独切换。"
                   Code="@OptionCode">
             <Preview>
                 <div class="preview-overlay-demo">
@@ -120,6 +120,8 @@
                         <Popover Open="@_optionsOpen"
                                  OpenChanged="HandleOptionsOpenChanged"
                                  Placement="@_placement"
+                                 MinWidth="@OptionsMinWidth"
+                                 Width="@OptionsWidth"
                                  Modal="_optionsModal"
                                  CloseOnEscape="_optionsCloseOnEscape"
                                  CloseOnOutsideClick="_optionsCloseOnOutsideClick"
@@ -148,6 +150,8 @@
                     <ShowcaseSelect TValue="PopupPlacement" Id="popover-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
                 </div>
                 <Checkbox Size="Size.Small" @bind-Value="_optionsModal">Modal</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_optionsNarrow">窄最小宽度（10rem 档）</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_optionsFixedWidth">固定宽度（24rem）</Checkbox>
                 <Checkbox Size="Size.Small" @bind-Value="_optionsCloseOnEscape">CloseOnEscape</Checkbox>
                 <Checkbox Size="Size.Small" @bind-Value="_optionsCloseOnOutsideClick">CloseOnOutsideClick</Checkbox>
                 <Checkbox Size="Size.Small" @bind-Value="_optionsCloseOnScroll">CloseOnScroll</Checkbox>
@@ -159,6 +163,7 @@
         <span>浮层定位在 <code>PopupHost</code>（<code>position: relative</code>）内：空间不足时翻到另一侧并把内容贴回视口，<code>Placement</code> 只决定起始方位。</span>
         <span><code>Escape</code>、点击外部、<code>Modal</code> 遮罩与页面滚动都只通过 <code>OpenChanged</code> 请求关闭，配合 <code>@@bind-Open</code> 使用。</span>
         <span><code>Modal</code> 额外提供遮罩、<code>aria-modal</code>、焦点陷阱与背景滚动锁；非模态形态只输出 <code>region</code> 语义，不抢焦点也不锁滚动。</span>
+        <span><code>MinWidth</code> / <code>Width</code> 接受任意 CSS 长度，写进根 <code>style</code> 的 <code>--aeterni-popover-min-width</code> / <code>--aeterni-popover-width</code>，和宿主自己的 <code>Style</code> 声明互不覆盖；菜单型弹层默认使用更窄的 <code>--aeterni-overlay-min-width-xs</code>。</span>
     </Notes>
 </ComponentPage>
 
@@ -198,6 +203,8 @@
         <Popover Open="IsOpen"
                  OpenChanged="HandleOpenChanged"
                  Placement="PopupPlacement.TopEnd"
+                 MinWidth="var(--aeterni-overlay-min-width-xs)"
+                 Width="24rem"
                  CloseOnEscape="CloseOnEscape"
                  CloseOnOutsideClick="CloseOnOutsideClick"
                  CloseOnScroll="CloseOnScroll"
@@ -215,11 +222,19 @@
     private bool _optionsOpen;
     private PopupPlacement _placement = PopupPlacement.BottomStart;
     private bool _optionsModal;
+    private bool _optionsNarrow;
+    private bool _optionsFixedWidth;
     private bool _optionsCloseOnEscape = true;
     private bool _optionsCloseOnOutsideClick = true;
     private bool _optionsCloseOnScroll;
     private bool _optionsRestoreFocus = true;
     private string _optionsNote = "浮层当前为关闭状态，切换右侧属性后再打开查看。";
+
+    // Width parameters are CSS length values; null keeps the popover defaults so the
+    // demo can show both the stock and the overridden width without fake markup.
+    private string? OptionsMinWidth => _optionsNarrow ? "var(--aeterni-overlay-min-width-xs)" : null;
+
+    private string? OptionsWidth => _optionsFixedWidth ? "24rem" : null;
 
     private void HandleBasicOpenChanged(bool open)
     {

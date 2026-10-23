@@ -296,6 +296,12 @@ public sealed class AeterniUITextOptions
     /// <summary>Label of the cancel action in a confirmation dialog.</summary>
     public string ConfirmCancelLabel { get; set; } = "Cancel";
 
+    /// <summary>Label of the primary submit action in a form dialog.</summary>
+    public string FormDialogSubmitLabel { get; set; } = "Save";
+
+    /// <summary>Label of the secondary cancel action in a form dialog.</summary>
+    public string FormDialogCancelLabel { get; set; } = "Cancel";
+
     /// <summary>Fallback name of a <c>Drawer</c> without a title.</summary>
     public string DrawerLabel { get; set; } = "Panel";
 
@@ -408,6 +414,8 @@ public sealed class AeterniUITextOptions
         DescriptionsEmptyValueLabel = Or(DescriptionsEmptyValueLabel, defaults.DescriptionsEmptyValueLabel);
         ConfirmAcceptLabel = Or(ConfirmAcceptLabel, defaults.ConfirmAcceptLabel);
         ConfirmCancelLabel = Or(ConfirmCancelLabel, defaults.ConfirmCancelLabel);
+        FormDialogSubmitLabel = Or(FormDialogSubmitLabel, defaults.FormDialogSubmitLabel);
+        FormDialogCancelLabel = Or(FormDialogCancelLabel, defaults.FormDialogCancelLabel);
         DrawerLabel = Or(DrawerLabel, defaults.DrawerLabel);
         DrawerCloseLabel = Or(DrawerCloseLabel, defaults.DrawerCloseLabel);
         InputNumberIncrementLabel = Or(InputNumberIncrementLabel, defaults.InputNumberIncrementLabel);

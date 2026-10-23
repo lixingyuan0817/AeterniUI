@@ -125,6 +125,15 @@
     transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-in-out);
 }
 
+/* Start alignment only re-lays the content row: the icon and label start at the
+   leading edge and the row takes the button's available width. The button's own
+   alignment and width contract are unchanged — FullWidth still decides the
+   width. */
+.aeterni-button.aeterni-button--content-start .aeterni-button__content {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+}
+
 /* Loading -------------------------------------------------------------------
    One treatment for every variant: the leading icon is replaced by an inline
    Spinner while the label stays readable, and the Spinner takes the button's own

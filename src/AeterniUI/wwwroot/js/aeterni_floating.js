@@ -21,15 +21,57 @@ const SIDE_OPPOSITE = { top: 'bottom', bottom: 'top', start: 'end', end: 'start'
 
 /** Wait for the actual CSS exit animations, including theme/reduced-motion overrides.
  * Returns a cancellation function; reopening/disposal must cancel stale completion.
- * Only chrome elements are passed, never arbitrary animated child content. */
+ * Only chrome elements are passed, never arbitrary animated child content.
+ *
+ * `Animation.finished` is not reliable when the animation already reached its end
+ * before the promise is observed: the short 80ms popover exit can finish during
+ * the Blazor interop round-trip, and some engines then never settle the promise,
+ * which left the layer stuck in `is-closing` forever. A measured fallback timer
+ * plus an immediate check for animations that are already finished keeps the
+ * close path working in every case (this is the JS-failure fallback the component
+ * rules require). */
 export function waitForExit(elements, complete) {
     let cancelled = false;
+    let completed = false;
+    let timer = null;
+
     const animations = elements.filter(Boolean).flatMap(element => element.getAnimations?.() ?? [])
         .filter(animation => /-(exit|fade-out)(-|$)/.test(animation.animationName ?? ''));
-    Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
-        if (!cancelled) complete();
-    });
-    return () => { cancelled = true; };
+
+    const completeOnce = () => {
+        if (completed || cancelled) return;
+        completed = true;
+        if (timer !== null) clearTimeout(timer);
+        complete();
+    };
+
+    if (animations.length === 0) {
+        queueMicrotask(completeOnce);
+        return () => { cancelled = true; if (timer !== null) clearTimeout(timer); };
+    }
+
+    // Longest measured exit timing: the fallback must outlive the animation even
+    // when `finished` stays pending, but not by a fixed hand-tuned delay.
+    const longest = Math.max(...animations.map(animation => {
+        const timing = animation.effect?.getTiming?.();
+        const duration = Number(timing?.duration) || 0;
+        const delay = Number(timing?.delay) || 0;
+        const endDelay = Number(timing?.endDelay) || 0;
+        return Math.max(0, delay + duration + endDelay);
+    }));
+    timer = setTimeout(completeOnce, longest + 80);
+
+    for (const animation of animations) {
+        if (animation.playState === 'finished') {
+            completeOnce();
+            break;
+        }
+        // A rejected promise (cancelled animation) also settles the wait: the
+        // chrome is going away either way.
+        animation.finished.then(completeOnce, completeOnce);
+    }
+
+    return () => { cancelled = true; if (timer !== null) clearTimeout(timer); };
 }
 
 /** The opposite side of a placement's main axis (`bottom-start` -> `top-start`). */

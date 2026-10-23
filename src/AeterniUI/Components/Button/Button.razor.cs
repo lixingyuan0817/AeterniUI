@@ -22,6 +22,18 @@ public partial class Button : AeterniComponent
     [Parameter]
     public Size Size { get; set; } = Size.Default;
 
+    /// <summary>
+    /// Horizontal placement of the content row inside the button.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ButtonContentAlignment.Start" /> only re-lays
+    /// <c>.aeterni-button__content</c> (icon and label start at the leading edge and
+    /// fill the row). The button's own alignment and width contract are unchanged:
+    /// <see cref="FullWidth" /> is still what makes the control fill its container.
+    /// </remarks>
+    [Parameter]
+    public ButtonContentAlignment ContentAlignment { get; set; } = ButtonContentAlignment.Center;
+
     [Parameter]
     public ButtonType Type { get; set; } = ButtonType.Button;
 
@@ -73,6 +85,11 @@ public partial class Button : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown button size.");
         }
 
+        if (!Enum.IsDefined(ContentAlignment))
+        {
+            throw new ArgumentOutOfRangeException(nameof(ContentAlignment), ContentAlignment, "Unknown button content alignment.");
+        }
+
         // An undefined value would otherwise be rendered verbatim as `type="99"`,
         // and HTML resolves an invalid type to `submit` — the button would then
         // submit its surrounding form. Fail loudly instead.
@@ -94,7 +111,8 @@ public partial class Button : AeterniComponent
             .Add("is-icon-only", IsIconOnly)
             .Add("is-loading", Loading)
             .Add("is-disabled", IsEffectivelyDisabled)
-            .Add("is-full-width", FullWidth);
+            .Add("is-full-width", FullWidth)
+            .Add("aeterni-button--content-start", ContentAlignment == ButtonContentAlignment.Start);
     }
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()

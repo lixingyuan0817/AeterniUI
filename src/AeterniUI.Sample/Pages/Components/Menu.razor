@@ -55,7 +55,7 @@
 
         <DemoCard Id="menu-options"
                   Title="展开状态与可调属性"
-                  Description="手风琴、受控展开键、链接项、禁用分组与隐藏项都能单独切换；右侧控件即时生效。"
+                  Description="手风琴、受控展开键、图标档位、链接项、禁用分组与隐藏项都能单独切换；右侧控件即时生效。"
                   Code="@OptionCode">
             <Preview>
                 <div class="preview-menu-demo">
@@ -65,6 +65,7 @@
                               SelectedIdChanged="HandleSelectedId"
                               OnItemSelected="HandleItemSelected"
                               Accordion="_menuAccordion"
+                              IconSize="_menuIconSize"
                               OpenKeys="@(_menuControlled ? _openKeys : null)"
                               OpenKeysChanged="HandleOpenKeysChanged"
                               OnGroupToggled="HandleGroupToggled"
@@ -74,6 +75,10 @@
                 </div>
             </Preview>
             <Controls>
+                <div class="control-field">
+                    <span>IconSize</span>
+                    <ShowcaseSelect TValue="MenuIconSize" Id="menu-icon-size" AriaLabel="IconSize" Options="@(Enum.GetValues<MenuIconSize>())" @bind-Value="_menuIconSize" />
+                </div>
                 <Checkbox Size="Size.Small" @bind-Value="_menuAccordion">Accordion</Checkbox>
                 <Checkbox Size="Size.Small" @bind-Value="_menuControlled">受控 OpenKeys</Checkbox>
                 <Checkbox Size="Size.Small" @bind-Value="_menuHref">菜单项使用 Href</Checkbox>
@@ -85,6 +90,7 @@
     <Notes>
         <span>键盘按导航模式工作：<code>Tab</code> 走原生顺序，<code>↑</code>/<code>↓</code> 在可达节点间循环，<code>Home</code>/<code>End</code> 到首尾，<code>←</code>/<code>→</code> 折叠或展开当前分组（RTL 自动互换），禁用项不参与移动。</span>
         <span>选中态与展开态是两份状态：<code>SelectedId</code> 决定 <code>aria-current</code> 与选中样式；传入 <code>OpenKeys</code> 后由消费者接管展开状态，传 <code>null</code> 则组件自行维护。</span>
+        <span><code>IconSize</code> 同时改变分组图标与条目图标的槽位（<code>Small</code> 16px / <code>Default</code> 20px / <code>Large</code> 24px），展开箭头保持自己的小尺寸；紧凑的菜单弹层用 <code>Small</code> 即可，不必再从宿主覆盖图标变量。</span>
     </Notes>
 </ComponentPage>
 
@@ -115,6 +121,7 @@
     private const string OptionCode = """
         <Menu Items="Groups"
               Accordion
+              IconSize="MenuIconSize.Small"
               OpenKeys="OpenKeys"
               OpenKeysChanged="HandleOpenKeysChanged"
               OnGroupToggled="HandleGroupToggled" />
@@ -150,6 +157,7 @@
     private string? _linkSelectedId = "install";
 
     private bool _menuAccordion = true;
+    private MenuIconSize _menuIconSize = MenuIconSize.Default;
     private bool _menuHref = true;
     private bool _menuControlled;
     private bool _menuDisabledGroup;

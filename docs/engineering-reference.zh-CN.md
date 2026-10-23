@@ -1,6 +1,6 @@
 # AeterniUI 工程设计参考
 
-文档版本：`10.41.1`
+文档版本：`10.43.0`
 
 文档状态：工程原理、特殊配方、实现范式与验证案例参考
 
@@ -568,6 +568,7 @@ transition: var(--aeterni-transition-button);
 - 状态切换用短档：`Segmented` 的选中滑块 200ms（normal 档），不要用 `slower + fast` 的 600ms 长轨——它是示例站里最高频的微交互。
 - 主题与品牌切换只过渡颜色承载属性（`color` / `background-color` / `border-color` / `outline-color` / `box-shadow` / `fill` / `stroke`），300ms；不要把 `transform` / `opacity` 纳入切换，否则整页都会被卷进合成层，读起来像“页面在动”。
 - 浮层退场约为进场的 60–75%，并用加速曲线：Popover 80/100ms、Dialog 与 Notice 150/200ms、Drawer 210/300ms。
+- 退场等待只认实际运行的动画，并带按实测 `delay + duration` 计算的兜底：短动画可能在 Blazor interop 抵达前就已结束，而 `Animation.finished` 在部分引擎上不会再结算；没有兜底会把浮层永久留在 `is-closing`（10.42.0 修正共享 `waitForExit`）。
 - 进场按浮层体量分三级，同类控件不得各写一套：小浮层（Popover、ComboBox/Cascader 弹层）100ms `ease-out`；通知类（Notice/Toast）200ms `ease-emphasized`；面板类里 Dialog 200ms `ease-out`、Drawer 300ms `ease-emphasized`。Dialog 面板必须与遮罩同帧进入（200ms，关键帧与 150ms 退场互逆），不得只让遮罩淡入；Drawer 遮罩与面板共用 300ms 进场、210ms 退场，关闭过程中页面必须始终处于暗场。遮罩拒绝关闭时的抖动是独立提示动画：每次点击都重新触发一次；抖完保持 `is-settled`（该态声明 `animation: none`），不得落回进场关键帧从 `opacity: 0` 重播，否则会被读成页面刷新；`prefers-reduced-motion: reduce` 下抖动直接省略。
 - 滑块与进度条的数值长度只用 `transform: scaleX()/scaleY()` 表达，不用 `width` / `inline-size` 过渡（每帧布局会被读成掉帧）；RTL 下填充起点随方向镜像。`ease-emphasized` 曲线下可感知行程约为时长的 2/3（Segmented 200ms 实测约 130ms），调参时以感知时长而非名义时长为锚点。
 - 必须兼容 `prefers-reduced-motion: reduce`。
@@ -817,6 +818,13 @@ Toast 的全局默认位置由 `IDialogService.DefaultToastPosition` 提供（�
 
 Dialog、Alert 和 Toast 的消息内容应保持纯文本安全输出；需要复杂结构时使用 `Show(RenderFragment, DialogOptions)`，并避免在交互式 Dialog 内嵌套另一个模态入口。
 
+表单弹窗（10.42.0）把「标题 + 表单内容 + 主/次动作」的约定收进 Provider，`FormDialog` 组件只是声明式宿主。焦点与 Enter 由 Provider 的同一个 JS 模块统一处理，而不是让每个宿主自己拼一套：
+
+- 打开时优先聚焦表单体里的首个字段（`input` / `select` / `textarea` / `contenteditable`），找不到才回退到既有的首个可聚焦元素；否则模态会先把焦点落在标题栏关闭按钮上，用户要先多按一次 Tab。
+- Enter 只在单行字段里转成提交：`textarea`、`select`、按钮、链接、`contenteditable`、输入法组合与 Shift/Ctrl/Meta/Alt 组合键保持各自语义。判定依据是事件目标而不是按键本身，因为同一个 Enter 在不同字段上的含义不同。
+- 忙碌状态机归 Provider（`aria-busy`、主按钮 `Loading`、取消/关闭禁用、Escape/遮罩/重复提交忽略），宿主不再维护第二份状态；`OnSubmit` 抛异常时先复位忙碌态再继续抛出。
+- 表单 footer 由 Provider 生成（`SubmitText` / `CancelText` 回退文案表），因为忙碌态必须同时到达主、次两个动作；`FormDialogOptions.Footer` 因此不参与表单弹窗。
+
 ## 10. 示例项目规范
 
 示例项目不是营销页面，而是组件库的可运行契约展示。每个组件示例应尽量覆盖：
@@ -958,6 +966,7 @@ FormField
 - `ButtonVariant` 提供 `Solid`、`Outline`、`Soft`、`Ghost`、`Link`。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可以组合，例如 `Danger + Outline`。
 - `Soft` 使用语义柔和底色，`Ghost` 默认透明并在交互时显示表面；二者不复用相同的基础状态。
+- `IconButton.Tone` 的 `Muted` / `DangerTinted` 是 chrome 预设而不是第二套语义色：它们用现有 state/danger 色阶现算透明度（DangerTinted 为 12% / 25% / 20% / 55% / 26% 与 3px 16% 环），并关闭主按钮式的上浮与阴影，因为标题栏电源、行尾「更多」这类动作贴在固定窗口结构上，抬起来反而像可拖拽。`Tone=Default` 时代码路径与旧版完全一致。
 - `Link` 仅通过颜色和下划线表达悬浮、按下反馈，不显示背景色；它适合导航或文本链接语义。
 - `ButtonType` 继续表示原生 HTML `button` 类型（`Button`、`Submit`、`Reset`），不与按钮语义 `ButtonIntent` 混淆。
 - `Size.Default` 映射到默认中等尺寸，按钮圆角由 `--aeterni-radius-button*` Token 提供，当前为 `0.625rem`。
@@ -1014,6 +1023,12 @@ FormField
 ### Toolbar 动作容器契约
 
 `Toolbar` 是无背景、无边框的动作布局，横向/纵向仅接纳 Button、IconButton 与 MenuButton。`ToolbarGroup` 提供必填名称的 `role="group"`，不增加 Tab 停留点。整条工具栏共享一个 roving tabindex；所属轴方向键循环、Home/End 首尾、横向 RTL 反转，非所属轴与 Enter/Space 留给按钮/菜单。菜单弹层与嵌套工具栏不属于外层候选。Disabled 使用 inert 阻止后代交互；隐藏、禁用、加载项跳过。业务状态留在宿主，JS 仅负责浏览器焦点和监听器释放；不提前建立通用焦点抽象。
+
+### NavMenu 密度与行级状态契约
+
+`NavMenu` 的四个档位（`Density` / `IconSize` / `DescriptionSize` / `ChildIndent`）只重设根元素上的组件级 CSS 变量，选择器里不散落尺寸；`Comfortable` 的 38px 最小行高与 3px 纵向留白来自 `--aeterni-control-height-md` / `--aeterni-spacing-1` 的派生计算，而不是新增一套尺寸 Token。`Default` 档逐项保持组件原来的 32px / 0 8px / 6px / 4px / 14px / 16px / secondary 行墨，档位不能顺手改变默认观感。
+
+行级 `hover` / 选中 / 按下画在 `.aeterni-nav-menu__row` 上，而不是行按钮上：`Trailing` 与标签必须共用同一块底、同一支墨，否则行尾动作会看起来像挂错层级的独立控件。按钮保持透明，只承载原生 Tab/键盘激活和 `focus-visible` 环；行容器的 `is-selected` / `is-disabled` 是状态事实源，`:has(> .aeterni-nav-menu__button:active)` 只用来把按下态同步到行盒。
 
 ### FlashCard 媒体卡契约
 

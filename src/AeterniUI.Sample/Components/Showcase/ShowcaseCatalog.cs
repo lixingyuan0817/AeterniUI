@@ -54,6 +54,7 @@ public static class ShowcaseCatalog
             new("button", "Button", "动作按钮"),
             new("icon-button", "IconButton", "图标按钮"),
             new("menu-button", "MenuButton", "菜单按钮"),
+            new("icon-button-menu", "IconButtonMenu", "图标菜单按钮"),
             new("split-button", "SplitButton", "分裂按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
             new("toolbar", "Toolbar", "单停留点动作工具栏"),
@@ -116,6 +117,7 @@ public static class ShowcaseCatalog
             new("popup", "PopupHost / Popover", "PopupHost 与 Popover 浮层组合"),
             new("tooltip", "Tooltip", "辅助提示"),
             new("feedback", "Dialog / Confirm / Alert / Toast", "DialogProvider 反馈与通知服务"),
+            new("form-dialog", "FormDialog", "表单弹窗与提交约定"),
             new("drawer", "Drawer", "边缘滑出面板")
         ]),
         new("主题组件", FontAwesomeIcons.Solid.WandMagicSparkles, [
