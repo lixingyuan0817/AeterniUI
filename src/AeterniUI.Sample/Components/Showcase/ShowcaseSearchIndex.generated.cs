@@ -15,6 +15,8 @@ public static class ShowcaseSearchIndex
     /// <summary>页面与页内段的扁平索引，顺序即目录顺序（每页先页面本身，再页内各段）。</summary>
     public static IReadOnlyList<ShowcaseSearchEntry> Entries { get; } =
     [
+        new("overview", "总览", "开始", "overview", "总览"),
+
         new("install", "安装", "开始", "install", "安装"),
         new("install", "安装", "开始", "install-when-title", "何时使用"),
         new("install", "安装", "开始", "install-related-title", "相关组件"),
@@ -272,6 +274,7 @@ public static class ShowcaseSearchIndex
         new("radio", "Radio / RadioGroup", "表单组件", "radio-group-layout", "方向、尺寸与禁用项"),
         new("radio", "Radio / RadioGroup", "表单组件", "radio-standalone", "独立 Radio"),
         new("radio", "Radio / RadioGroup", "表单组件", "radio-group-form", "在 FormField 中使用"),
+        new("radio", "Radio / RadioGroup", "表单组件", "radio-standalone-form", "独立 Radio 与 EditForm"),
         new("radio", "Radio / RadioGroup", "表单组件", "radio-api-title", "参数与事件"),
         new("radio", "Radio / RadioGroup", "表单组件", "radio-related-title", "相关组件"),
         new("radio", "Radio / RadioGroup", "表单组件", "radio-notes-title", "说明与边界"),

@@ -50,6 +50,60 @@ public partial class NoticeCard : AeterniComponent
     [Parameter]
     public EventCallback CloseRequested { get; set; }
 
+    /// <summary>
+    /// Whether the auto-dismiss countdown is currently paused. Set by the provider from
+    /// the service entry; the class pauses the drain animation in step with the timer.
+    /// </summary>
+    [Parameter]
+    public bool Paused { get; set; }
+
+    /// <summary>
+    /// Reports pointer/focus pause changes to the provider, which pauses or resumes the
+    /// service-side countdown. Defaults to no-op for a card rendered outside the provider.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> PauseChanged { get; set; }
+
+    private bool _pointerInside;
+    private bool _focusInside;
+    private bool _pauseReported;
+
+    private void HandlePointerEnter()
+    {
+        _pointerInside = true;
+        SyncPauseState();
+    }
+
+    private void HandlePointerLeave()
+    {
+        _pointerInside = false;
+        SyncPauseState();
+    }
+
+    private void HandleFocusEnter()
+    {
+        _focusInside = true;
+        SyncPauseState();
+    }
+
+    private void HandleFocusLeave()
+    {
+        _focusInside = false;
+        SyncPauseState();
+    }
+
+    private void SyncPauseState()
+    {
+        var paused = _pointerInside || _focusInside;
+        if (paused == _pauseReported)
+        {
+            return;
+        }
+
+        _pauseReported = paused;
+        _ = PauseChanged.InvokeAsync(paused);
+    }
+
     private string Role => IsAlert ? "alert" : "status";
 
     private string Live => IsAlert || Severity == Severity.Danger ? "assertive" : "polite";
@@ -78,6 +132,7 @@ public partial class NoticeCard : AeterniComponent
             // Color.Primary, whose `--primary` modifier shares the base accent rule.
             .Add(ComponentClass.ForColor(CardKindClass, Severity.ToColor()))
             .Add("is-no-blur", NoBlur)
+            .Add("is-paused", Paused)
             .Add("is-closing", IsClosing);
     }
 

@@ -45,6 +45,7 @@ public static class ShowcaseCatalog
     public static IReadOnlyList<ShowcaseNavGroup> Groups { get; } =
     [
         new("开始", FontAwesomeIcons.Solid.Plug, [
+            new("overview", "总览", "全部组件与分类索引") { IsComponent = false },
             new("install", "安装", "安装与初始化") { IsComponent = false }
         ]),
         new("设计基础", FontAwesomeIcons.Solid.Paintbrush, [

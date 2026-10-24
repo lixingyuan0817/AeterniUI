@@ -460,15 +460,20 @@ public sealed class DialogService : IDialogService, IDisposable
         // duration, so the timer never re-renders the provider while it runs —
         // it only closes the alert once the time has elapsed. This keeps the
         // ring smooth and prevents stacking re-renders when several notices
-        // are visible at once.
-        var stopwatch = Stopwatch.StartNew();
+        // are visible at once. The timer's own clock pauses on hover/focus, so
+        // reading does not race the dismissal (WCAG 2.2.1).
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
 
         try
         {
             while (await timer.WaitForNextTickAsync(entry.CancellationTokenSource.Token))
             {
-                if (duration - stopwatch.Elapsed <= TimeSpan.Zero)
+                if (entry.Timer.IsPaused)
+                {
+                    continue;
+                }
+
+                if (duration - entry.Timer.Elapsed <= TimeSpan.Zero)
                 {
                     await CloseDialogAsync(entry.Id, DialogResult.Dismiss(), suppressCallbackErrors: true);
                     return;
@@ -482,14 +487,18 @@ public sealed class DialogService : IDialogService, IDisposable
 
     private async Task RunToastTimerAsync(ToastEntry entry, TimeSpan duration)
     {
-        var stopwatch = Stopwatch.StartNew();
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
 
         try
         {
             while (await timer.WaitForNextTickAsync(entry.CancellationTokenSource.Token))
             {
-                if (duration - stopwatch.Elapsed <= TimeSpan.Zero)
+                if (entry.Timer.IsPaused)
+                {
+                    continue;
+                }
+
+                if (duration - entry.Timer.Elapsed <= TimeSpan.Zero)
                 {
                     await CloseToastAsync(entry.Id, suppressCallbackErrors: true);
                     return;
@@ -644,6 +653,51 @@ public sealed class DialogService : IDialogService, IDisposable
         NotifyChanged();
     }
 
+    /// <summary>
+    /// Pauses or resumes a toast's auto-dismiss countdown. Unknown or closing entries
+    /// are ignored; the provider re-renders only on an actual state change.
+    /// </summary>
+    internal void SetToastPaused(string id, bool paused)
+    {
+        var changed = false;
+        lock (_sync)
+        {
+            var toast = _toasts.FirstOrDefault(item => item.Id == id);
+            if (toast is null || toast.IsClosing)
+            {
+                return;
+            }
+
+            changed = paused ? toast.Timer.Pause() : toast.Timer.Resume();
+        }
+
+        if (changed)
+        {
+            NotifyChanged();
+        }
+    }
+
+    /// <summary>Pauses or resumes an alert's auto-dismiss countdown.</summary>
+    internal void SetAlertPaused(string id, bool paused)
+    {
+        var changed = false;
+        lock (_sync)
+        {
+            var alert = _alerts.FirstOrDefault(item => item.Id == id);
+            if (alert is null || alert.IsClosing)
+            {
+                return;
+            }
+
+            changed = paused ? alert.Timer.Pause() : alert.Timer.Resume();
+        }
+
+        if (changed)
+        {
+            NotifyChanged();
+        }
+    }
+
     private void CompleteRemovedToasts(IEnumerable<ToastEntry>? entries)
     {
         if (entries is null)
@@ -760,6 +814,45 @@ internal enum DialogContentKind
     Form
 }
 
+/// <summary>
+/// A pause-aware countdown used by alerts and toasts. The clock keeps running while
+/// paused but the paused span is subtracted from <see cref="Elapsed" />, so resuming
+/// continues from the remaining time instead of restarting the whole duration.
+/// </summary>
+internal sealed class NoticeTimer
+{
+    private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+    private TimeSpan _pausedTotal;
+    private TimeSpan? _pausedAt;
+
+    public bool IsPaused => _pausedAt is not null;
+
+    public TimeSpan Elapsed => (_pausedAt ?? _stopwatch.Elapsed) - _pausedTotal;
+
+    public bool Pause()
+    {
+        if (_pausedAt is not null)
+        {
+            return false;
+        }
+
+        _pausedAt = _stopwatch.Elapsed;
+        return true;
+    }
+
+    public bool Resume()
+    {
+        if (_pausedAt is not { } pausedAt)
+        {
+            return false;
+        }
+
+        _pausedTotal += _stopwatch.Elapsed - pausedAt;
+        _pausedAt = null;
+        return true;
+    }
+}
+
 internal sealed class DialogEntry(
     string id,
     RenderFragment? content,
@@ -786,6 +879,14 @@ internal sealed class DialogEntry(
     public TimeSpan Duration { get; } = duration;
 
     public bool IsClosing { get; private set; }
+
+    /// <summary>
+    /// Pausable countdown shared with the notice card: hover or keyboard focus holds
+    /// the dismissal timer (and the CSS drain ring through the card's is-paused class).
+    /// </summary>
+    public NoticeTimer Timer { get; } = new();
+
+    public bool IsPaused => Timer.IsPaused;
 
     /// <summary>
     /// Whether a form submission is running. The flag lives on the entry rather than
@@ -835,6 +936,14 @@ internal sealed class ToastEntry(
     public TimeSpan Duration { get; } = duration;
 
     public bool IsClosing { get; private set; }
+
+    /// <summary>
+    /// Pausable countdown shared with the notice card: hover or keyboard focus holds
+    /// the dismissal timer (and the CSS drain ring through the card's is-paused class).
+    /// </summary>
+    public NoticeTimer Timer { get; } = new();
+
+    public bool IsPaused => Timer.IsPaused;
 
     /// <summary>
     /// Completed by the provider once the chrome's exit animation has actually

@@ -183,6 +183,14 @@ public partial class DialogProvider : AeterniComponent
 
     private Task CancelFormAsync(DialogEntry dialog) => DialogService.CancelFormAsync(dialog);
 
+    /// <summary>
+    /// Countdown pause relays. The notice card owns hover/focus state; the service owns
+    /// the timer and the progress ring's paused class rendered through this provider.
+    /// </summary>
+    private void SetToastPaused(string id, bool paused) => DialogService.SetToastPaused(id, paused);
+
+    private void SetAlertPaused(string id, bool paused) => DialogService.SetAlertPaused(id, paused);
+
     private static string PositionClass(ToastPosition position) => position switch
     {
         ToastPosition.TopStart => "top-start",

@@ -1,10 +1,42 @@
 # AeterniUI 发布历史
 
-文档版本：`10.45.0`
+文档状态：历史版本、已完成阶段、修复批次和发布验证归档；版本以 `Directory.Build.props` 为准。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。本文件内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
 
-文档状态：历史版本、已完成阶段、修复批次和发布验证归档。当前未完成计划见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，活动审阅任务见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)。
+验证口径：除条目内单独记录的失败项、环境例外与计数差异外，每批均在发布时通过 [`AGENTS.md`](../AGENTS.md) §4.8 的全部门禁（构建、契约、Node 回归、CSS/对比度/文档、生成物 `--check` 与真实浏览器检查）。本节不逐批复制门禁清单与通过计数。
 
-本文件保留重构前路线图中的历史记录，内容用于追溯决定，不再作为当前计划或现行 API 的事实源。
+历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
+
+## 10.46.0 第十二轮审阅修复：API 默认值、示例信息架构与交互状态
+
+本批来自一次全库 UI/UX、组件 API、示例站与文档/脚本的独立审核（5 位评审者 + 主审，真实渲染与源码双取证）。修复范围按审核计划的 P0/P1 与高价值 P2 执行，没有删除任何已交付组件；新增 `DateRangePicker.FullWidth`、修正若干公共行为，按 §4.9 第二位递增。
+
+### 可被宿主观察到的修复
+
+- **API 表默认值**：`generate-api-reference.mjs` 此前在属性体 `{}` 内找初始值，自动属性写在 `}` 之后的 `= 99;` 全部丢失；774 行 API 里只有 33 行（全部来自手写编辑文件）带默认值。生成器改为按 C# 结构读取声明后的初始化表达式，重新生成后 775 行、Badge `Max=99`、Skeleton `Lines=1`、VirtualList `Height="320px"` 等恢复；`--check` 之外新增“生成的 API 表保留默认值”与“示例页组件属性名契约”两条测试。
+- **模态表面层级**：Dialog、模态 Drawer 与示例站搜索面板改为不透明 `--aeterni-bg-surface`。玻璃填充落在压暗遮罩上会采样被压暗的页面，浅色主题下面板呈中灰、面板内白色字段比面板更亮；遮罩仍保留模糊与压暗，深度由 `--aeterni-shadow-modal` 承担。非模态 Drawer 保留磨砂。
+- **通知计时可暂停**：Alert/Toast 的自动关闭计时改为可暂停时钟；指针悬停或键盘焦点进入卡片时计时与进度环同步暂停，离开后从剩余时间继续（WCAG 2.2.1）。
+- **焦点与状态**：`Popover.RestoreFocusOnClose` 默认改为 `true`（模态浮层关闭归还焦点，非模态仍有外部点击/Tab 守卫）；`DateCalendar` 的月份箭头与日格补品牌 `:focus-visible`（选中日用反色）；`Tag` 与 `Pagination` 的 `Disabled` 真正生效（根元素 `aria-disabled` + 按钮禁用 + 状态 Token 视觉）；`Splitter` 交互态改引用存在的 `--aeterni-color-brand-default`。
+- **表单与尺寸一致性**：独立 `Radio` 接入级联 `EditContext`（`ValueExpression`、`NotifyFieldChanged`、校验消息参与 invalid；`Value`+`ValueChanged` 兼容语义保留）；`DateRangePicker` 补 `FullWidth`；`Segmented` Small 档回到 28px（选项 20px + 伪元素 24px 热区），禁用且选中时与 Checkbox/Radio 一样中性化；`ToggleGroup` 禁用选中中性化，并与 Segmented 统一描边与控件圆角。
+
+### 示例站
+
+- `<html lang="zh-CN">`；移动端搜索按钮补可访问名称；搜索空查询显示引导而不是“没有匹配”。
+- 侧栏筛选在筛选态受控展开全部命中分组，消除“看起来零结果”；移动端目录展开时定位当前项、路由变化后收起。
+- 新增 `/components/overview` 组件总览，首页“全部 N 个组件页”、页头/页脚“组件”、404 入口均落到总览；首页组件墙内容区整块可点，计数口径改为“组件页”。
+- API 表名称列不再逐字符断词、表头吸顶、窄屏保留列标签；正文行长/tertiary 误用、FormField 预览居中、页头阴影 Token、skip link、404 标题与入口、触控热区、`prefers-reduced-motion` 下的平滑滚动一并修正。
+- FlashCard 示例移除有版权风险的动漫角色图，换为自绘抽象 SVG；删除 `magician.jpg`。
+
+### 文档与脚本精简
+
+- 版本只保留在 `Directory.Build.props`：删除 6 份文档的版本头与 AGENTS/README 版本字面量，`check-docs.sh` 移除对应校验，13 个维护点收敛为 1。
+- `release-history` 删除 v0.1–v0.4 计划期正文（约 506 行），换成 16 行阶段归档表；47 行“验证”流水账（19,948 字符）压到 24 行例外记录（1,929 字符）；>300 字符巨段 117→73 行。
+- `component-plan` 删除已交付的 §4（占全文 61%）与陈旧计数；`engineering-reference` 1,043→383 行（规则条文回归 AGENTS，只保留推导/反例/测量）；`delivered-features` Token 章与机制复述压缩；README 只留消费者视角；`review-plan` 压缩并登记本轮未修项。文档合计 4,926→3,741 行（−24%）、581,897→467,252 B（−19.7%）。
+- 脚本：`check-css-comments.mjs` 与 `check-scrollbars.mjs` 合并为 `scripts/check-css.mjs`（一次遍历、两条规则独立报告，可 `--only` 单跑），删除重复的 `collectCss` / `SKIP_DIRS`；`check-docs.sh` 114→67 行，删掉版本头、组件目录抽查与三章 grep 等已被构建/CI/生成物覆盖的检查；目录解析收进 `scripts/lib/showcase-catalog.mjs`，三个消费方（两个生成器与示例测试）共用一份正则与 Pascal 推导，改目录格式不再需要同步三处。
+
+### 验证
+
+- `dotnet build aeterni_ui.slnx` 0 错误（仅 NuGet 漏洞数据源的 NU1900 环境警告，无代码警告）；契约检查 47 组通过；`node --test tests/*.test.mjs` 133 项通过；`tests/sample-docs.test.mjs` 10 项通过；`check-contrast` 315 门禁通过；`check-css`（85 文件；16 个滚动容器）、`check-docs.sh`、`check-doc-drift`、`generate-api-reference --check`（61 页/775 行）、`generate-search-index --check`（546 条/69 页）、Font Awesome 343 图标 `--check` 全部通过。
+- 真实浏览器检查 194/194 通过：补充“模态面板不透明”“Toast 悬停暂停后继续关闭”两条断言，同步搜索面板由“自身带模糊”改为“不透明表面”，并把 Segmented 高度断言从 32/36/44 改到 28/36/44（Small 用伪元素保住 24px 命中盒）；Cascader 用例对 WASM 事件处理器就绪增加重试，消除既有的首点竞态。
 
 ## 10.45.0 `NavMenu` 移除 `IconSize` / `DescriptionSize`，`IconButton` 默认圆形
 
@@ -19,7 +51,6 @@
 - [x] 示例页移除图标尺寸/描述字号控件与对应状态，保留密度与子级缩进控件，并在「说明与边界」写明图标/描述尺寸由内容控制；IconButton 的 chrome 示例改为「默认圆形，Shape=Square 切回方角」。
 - [x] 契约检查删除两个档位的默认值/class/非法枚举断言，改为断言 `NavMenu` 不再暴露 `IconSize` / `DescriptionSize` 属性、CSS 不再残留 icon/description 修饰类；IconButton 断言改为「默认无形状修饰类 + 基础规则全圆角 + Square 输出 `--square`」；`api-since` 移除两条记录，`api-descriptions` 与 API 表（61 页 / 776 → 774 行）、搜索索引重新生成。
 - [x] 文档：`delivered-features` §54 与 `engineering-reference` 的 NavMenu 契约改为「内容控制图标/描述尺寸」，并注明 10.45.0 的移除；IconButton 与 IconButtonMenu 的 Shape 说明改为圆形默认。
-- 验证：`dotnet build aeterni_ui.slnx` 0 错误 0 警告；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **194/194 PASS**（含 NavMenu 页面与 IconButtonMenu Shape=Square 透传）；另用发布站定向断言实测默认按钮 `radius=9999` 且无形状修饰类、输入框步进按钮仍为 `0px` 方角；`check-css-comments.mjs`（84 文件）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh` 与两个生成物 `--check`（61 页 / 774 行、544 条 / 68 页）通过。
 - 按「移除公开 API 与默认行为变更」的破坏性变更口径（§4.9，第二位递增）从 `10.44.0` 升到 `10.45.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。上一批 `IconButton` 悬浮修正随本批一并推送，未单独打 tag。
 
 ## 10.44.1 `IconButton` 系列悬浮改为原位高亮
@@ -32,7 +63,6 @@
 - [x] 透明变体（Outline/Soft/Ghost/Link）新增 `--aeterni-icon-button-hover-foreground`：以共享 `--aeterni-button-color-hover` 为起点，向 `--aeterni-text-primary` 按 72/28 混合，浅色更深、深色更亮；中性档本身已是主墨，混合结果不变，反馈由表面档位承担。`Link` 图标没有文字下划线可承载提示，悬浮/按下改用与 Ghost 相同的原位柔和表面。
 - [x] 契约检查从「Tone 需自行复位上浮」改为文件级断言：IconButton CSS 不得出现 `transform` 与 `--aeterni-shadow-sm`，基础 hover 不得加阴影，透明变体必须消费派生 hover 墨色；真实浏览器新增一条 hover 断言（指针悬停 Soft + Warning，比较位移、`transform`、阴影、墨色与表面档位），**194/194 PASS**。
 - [x] 文档：`delivered-features` 与 `engineering-reference` 写明系列规则、与 `Button` 1px 上浮的分工，以及 IconButton `Link` 的差异。
-- 验证：`dotnet build aeterni_ui.slnx` 0 错误 0 警告；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **194/194 PASS**；`check-css-comments.mjs`（84 文件）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh` 与两个生成物 `--check`（61 页 / 776 行、544 条 / 68 页）保持通过。
 - 按「修复与优化递增第三位」（§4.9）从 `10.44.0` 升到 `10.44.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。本批未单独发版，`10.45.0` 的版本头与 NuGet 包同时包含这两批改动。
 
 ## 10.44.0 `IconButtonMenu` 支持 `Shape`
@@ -42,7 +72,6 @@
 - [x] `IconButtonMenu` 新增 `Shape`（`IconButtonShape`：`Square` 默认 / `Circle`），直接传给内部 `IconButton`；非法值在参数设置阶段抛 `ArgumentOutOfRangeException`，`Tone` / `Compact` 等其余触发器参数保持原状。
 - [x] 示例页基础用法增加 Shape 控件，并把第二个触发器固定为 `Circle` 展示轮廓；契约检查增加 Shape 默认值、非法枚举与 `aeterni-icon-button--circle` 透传断言；浏览器断言新增「Shape=Circle 落到真实触发器」（**193/193 PASS**）。
 - [x] 文档：`delivered-features` §55 补充 Shape 的参数/边界说明；API 表（61 页 / 776 行）与 `api-since` 同步。
-- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **193/193 PASS**；文档/CSS/对比度/生成物门禁通过。
 - 按「功能新增递增第二位」（§4.9）从 `10.43.1` 升到 `10.44.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.43.1 修复：NavMenu 分组行与首个子项之间没有行距
@@ -51,7 +80,6 @@
 
 - [x] `.aeterni-nav-menu__node` 改为 `display: grid; align-content: start`，`.is-open` 时使用 `gap: var(--aeterni-nav-menu-gap)`：展开分组在行与子列表之间保留与同级行一致的行距（Default/Compact 4px、Comfortable 2px），已折叠分组不保留空轨道；子级缩进与引导线不受影响。
 - [x] 契约检查新增 `.aeterni-nav-menu__node.is-open` 的 gap 配方断言（防止以后又把间距画回按钮层级）；浏览器断言新增「分组行与首个子项保留行距且等于列表 gap」（**192/192 PASS**）。
-- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；真实浏览器 **192/192 PASS**；`check-css-comments.mjs`、`check-scrollbars.mjs`、`check-contrast.mjs`、`check-doc-drift.mjs`、`bash scripts/check-docs.sh` 与两个生成物 `--check` 保持通过。
 - 按「修复与优化递增第三位」（§4.9）从 `10.43.0` 升到 `10.43.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.43.0 NavMenu 密度与行级状态、IconButton chrome 预设、Menu/Popover/Dialog 补全
@@ -69,7 +97,7 @@
 - [x] 示例与生成物：NavMenu 增加 4 个档位 Controls 与「整行状态覆盖 Trailing」demo；IconButton 增加 chrome 预设 demo；Button/Icon 各增加内容对齐与墨阶 demo；Menu/Popup 在现有 demo 内补 IconSize、MinWidth/Width 控件；Feedback 增加 `AutofocusFirstField` 自定义 Dialog。API 表（61 页 / 775 行）与搜索索引（544 条 / 68 页）重跑，`api-descriptions` / `api-extra-rows` / `api-since` 同步（新成员 10.43.0）。
 - [x] 测试：契约检查扩到 **47 组**（新增 `NavMenuEnhancementChecks`、`ChromeControlsChecks`、`MenuDialogChecks`）；`node --test tests/*.test.mjs` **131 项**；`tests/browser/verify.mjs` 新增 7 条真实浏览器断言（NavMenu 密度与行级选中、hover 含 Trailing、IconButton 圆形 danger 色调与 24px 紧凑、Button 内容左对齐、Icon 墨阶、Popover MinWidth/Width 落位、普通 Dialog 首字段聚焦），**191/191 PASS**。
 - [x] 测试基建：`tests/browser/serve.mjs` 对每个请求做错误隔离（Node 24 下浏览器中止导航产生的写错误此前会变成未捕获 rejection 并杀掉静态服务器，导致套件在长跑中途挂起）；真实浏览器断言继续用 `Page.bringToFront` 保证被测标签页不是 `hidden`。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误，仅环境 NU1900 警告）；契约检查 47 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（84 文件）、`check-scrollbars.mjs`（16 容器 / 14 组件表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（61 页 / 775 行）、`generate-search-index.mjs --check`（544 条 / 68 页）、token 文件组件选择器检查与真实浏览器 **191/191 PASS** 通过。本机无外网，`generate-fontawesome-icons.mjs --check` 因拉取图标清单超时未完成；本批未改图标清单或 Font Awesome 适配包。
+- 验证：例外：本机 `NU1900` 为沙箱拒绝写 NuGet 漏洞缓存；本机无外网，`generate-fontawesome-icons.mjs --check` 拉取图标清单超时未完成（本批未改图标清单）。
 - 按「功能新增递增第二位」（§4.9）从 `10.42.0` 升到 `10.43.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.42.0 `IconButtonMenu`、`Menu.Flat` 与 `FormDialog` 表单弹窗约定
@@ -78,15 +106,17 @@
 
 本批交付两个 P0 交互补全组件：`IconButtonMenu`（图标按钮 + 触发表层 + `Menu` 一体）与 `FormDialog`（`FormDialogOptions` + `IDialogService.ShowForm/ShowFormAsync` + 声明式宿主），并把状态点 `StatusDot` 只登记为 [`component-plan`](component-plan.zh-CN.md) 的 P2 候选，未实现。两者都复用既有 `PopupHost` / `Popover` / `Menu` / `DialogProvider` 与 `aeterni_floating.js`，没有新增第二套模态或键盘实现。
 
-- [x] `Components/IconButtonMenu/`（`.razor` / `.razor.cs` / `.razor.css`）：`Icon`、`Items`、`AriaLabel` 必填；`Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Default）、`Placement`（默认 BottomEnd）、`Flat`、受控/非受控 `Open` / `OpenChanged`、`OnItemSelected`、`Loading`。触发器输出 `aria-haspopup="menu"`、`aria-expanded` 与指向真实菜单根 id 的 `aria-controls`；AriaLabel 空白、`Items`/`Icon` 为 null、四个枚举非法值在参数设置阶段分别抛 `ArgumentException` / `ArgumentNullException` / `ArgumentOutOfRangeException`。
+- [x] `Components/IconButtonMenu/`（`.razor` / `.razor.cs` / `.razor.css`）：`Icon`、`Items`、`AriaLabel` 必填；`Variant`（默认 Ghost）、`Intent`（默认 Neutral）、`Size`（默认 Default）、`Placement`（默认 BottomEnd）、`Flat`、受控/非受控 `Open` / `OpenChanged`、`OnItemSelected`、`Loading`。
+  - 触发器输出 `aria-haspopup="menu"`、`aria-expanded` 与指向真实菜单根 id 的 `aria-controls`；AriaLabel 空白、`Items`/`Icon` 为 null、四个枚举非法值在参数设置阶段分别抛 `ArgumentException` / `ArgumentNullException` / `ArgumentOutOfRangeException`。
 - [x] `Menu.Flat`：扁平模式按分组顺序渲染一份无分组标题的列表，不输出 group toggle、collapse 与 `aria-expanded`；条目保留链接/按钮变体、`aria-current`、图标、说明与禁用语义；方向键/Home/End 只在可见非禁用条目间移动，左右键不再展开折叠。`Flat=false` 的渲染与键盘分支保持不变。
-- [x] 表单弹窗：`FormDialogSubmitResult`（`Success` / `Fail`）、`FormDialogOptions : DialogOptions`（`SubmitText`、`CancelText`、`OnSubmit`、`OnCancel`、`AutofocusFirstField`、`SubmitOnEnter`、`ValidationMessage`）、`IDialogService.ShowForm/ShowFormAsync`，以及不渲染 DOM 的声明式 `FormDialog` 宿主（受控 `Open` / `OpenChanged`，处理关闭中重开与 Dispose）。表单 kind 复用 `DialogProvider`：footer 由 Provider 生成（主按钮 Loading、次按钮与关闭按钮禁用、`aria-busy`），提交失败写入 `role="alert"` 校验区，忙碌期间忽略 Escape/遮罩/重复提交；成功以 `DialogResult.Confirm(Data)` 关闭。
+- [x] 表单弹窗：`FormDialogSubmitResult`（`Success` / `Fail`）、`FormDialogOptions : DialogOptions`（`SubmitText`、`CancelText`、`OnSubmit`、`OnCancel`、`AutofocusFirstField`、`SubmitOnEnter`、`ValidationMessage`）、`IDialogService.ShowForm/ShowFormAsync`，以及不渲染 DOM 的声明式 `FormDialog` 宿主（受控 `Open` / `OpenChanged`，处理关闭中重开与 Dispose）。
+  - 表单 kind 复用 `DialogProvider`：footer 由 Provider 生成（主按钮 Loading、次按钮与关闭按钮禁用、`aria-busy`），提交失败写入 `role="alert"` 校验区，忙碌期间忽略 Escape/遮罩/重复提交；成功以 `DialogResult.Confirm(Data)` 关闭。
 - [x] 焦点与 Enter 约定：打开时聚焦表单首个字段（无字段回退原首个可聚焦元素）；`SubmitOnEnter` 只在单行字段触发，textarea/select/按钮/链接/contenteditable、输入法组合与 Shift/Ctrl/Meta/Alt 组合键不触发。由 `DialogProvider.razor.js` 统一处理，组件与宿主不再各拼一套。
 - [x] 文案表新增 `FormDialogSubmitLabel`（Save）、`FormDialogCancelLabel`（Cancel）并纳入归一逻辑；`check-doc-drift` 的 98 个文案键覆盖通过。
 - [x] 示例与生成物：新增 `/components/icon-button-menu`（4 段 demo：基础 + Controls、Flat/分组、受控打开、禁用/加载）与 `/components/form-dialog`（声明式校验/忙碌/成功 + 服务 API 两段 demo）；目录条目、API 表（61 页 / 762 行）与搜索索引（540 条 / 68 页）重跑，`api-descriptions` / `api-extra-rows` / `api-since` 同步（新成员标记 10.42.0）。
 - [x] 测试：契约检查扩到 **44 组**（新增 `IconButtonMenuChecks`、`FormDialogChecks`：Flat 语义、根属性转发、AriaLabel/枚举/null 校验、表单标记/文案回退/忙碌/校验/成功 Data）；`node --test tests/*.test.mjs` **131 项**；`tests/browser/verify.mjs` 新增 7 条真实浏览器断言（IconButtonMenu 打开关联与选择后关闭回归、Flat 无分组且方向键只走条目、FormDialog 首字段聚焦、Enter 忙碌 + Escape 忽略 + 成功后关闭回归、失败校验），最终 **183/183 PASS**。
 - [x] 验证过程中修掉两处会让真实浏览器门禁失真的问题：共享 `waitForExit` 在「动画已在观察前结束」时可能拿到永不结算的 `Animation.finished`，导致浮层永久停在 `is-closing`——改为按实测 `delay + duration` 兜底并在已结束时立即完成（`delivered-features` §26 与 `engineering-reference` §6 同步）；浏览器夹具在每次导航后 `Page.bringToFront`，避免 Chrome 首次运行的 `chrome://settings/help` 页把被测标签页挤成 `hidden` 后焦点/动画断言静默失真；Segmented 轨道高度断言改为亚像素容差（44 实测 43.9999）。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误，仅环境 NU1900 警告）；契约检查 44 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（84 文件）、`check-scrollbars.mjs`（16 容器 / 14 组件表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（98 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（61 页 / 762 行）、`generate-search-index.mjs --check`（540 条 / 68 页）、token 文件组件选择器检查与真实浏览器 **183/183 PASS** 通过。本机无外网，`generate-fontawesome-icons.mjs --check` 因拉取图标清单超时未完成；本批未改动图标清单或 Font Awesome 适配包，因此没有相关生成物变化。
+- 验证：例外：本机 `NU1900` 为沙箱拒绝写 NuGet 漏洞缓存；本机无外网，`generate-fontawesome-icons.mjs --check` 拉取图标清单超时未完成（本批未改图标清单）。
 - 按「功能新增递增第二位」（§4.9）从 `10.41.1` 升到 `10.42.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.41.1 修复：`NavMenu` 折叠的分组保留子内容高度，分组之间留下大空隙
@@ -95,7 +125,6 @@ PR #34（`fix/nav-menu-collapse`）以 squash 合入 main（`7438efd`）。`NavM
 
 - [x] `.aeterni-nav-menu__children` 补 `min-height: 0` + `overflow: hidden`；`.aeterni-nav-menu__collapse` 补 `align-content: start`，与 `Menu` 的折叠配方逐条对齐。
 - [x] 回归断言：`tests/browser/verify.mjs` 的 NavMenu 断言新增「折叠后子内容让出高度」——折叠后 collapse 高度为 0、分组高度与菜单高度各至少减少 40px；本机发布站实测折叠前 112 / 264 / 80px → 折叠后 32 / 184 / 0px，分组间距保持 4px 不变。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 731 行）、`generate-search-index.mjs --check`（524 条 / 66 页）通过。PR #34 的 CI `browser` 作业 **177/177 PASS**，新增「NavMenu 折叠后子内容让出高度」断言实测 `{"collapseHeight":0,"groupHeight":[112,32],"menuHeight":[264,184]}`。
 - 按「修复与优化递增第三位」（§4.9）从 `10.41.0` 升到 `10.41.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.41.0 `NavMenu` 侧边导航菜单（替换 `NavTree`，破坏性变更）
@@ -106,10 +135,10 @@ PR #33（`feat/nav-menu`）以 squash 合入 main（`710c59a`）。用 `NavMenu`
 - [x] 分组与选中：带可见子节点的行是导航组，只有 `aria-expanded` / `aria-controls` 与展开/折叠，不输出 `aria-current`、不写 `SelectedId`、不触发选中回调；叶子行才可选中（`aria-current="page"` + 与 `Menu` 同一组 state token 的选中样式）。`SelectedId` 指向分组时被忽略。
 - [x] 任意深度与模板：`Children` 递归渲染，每层左侧引导线表达层级；`RowTemplate`（`RenderFragment<NavMenuRowContext>`）接管整行内容，上下文提供 `Node` / `Depth` / `IsExpanded` / `IsSelected` / `IsDisabled`，按钮的可访问名称始终取 `Label`；`Trailing` 在行按钮之外，可放独立动作菜单，不产生嵌套按钮。
 - [x] 键盘与语义：根是 `<nav aria-label>`，列表 `role="list"`；沿用 `Menu` 的模型（自然 Tab 顺序 + 方向键在可见行间移动、`→`/`←` 按书写方向展开/折叠并进入/回到父级、`Home`/`End` 首尾、`Enter`/`Space` 原生激活）；方向键只在行按钮上抑制滚动，trailing 动作保留自己的键盘行为；JS 只做焦点、滚动抑制与书写方向。
-- [x] 破坏性移除：删除 `Components/NavTree/`（`NavTree`、`NavTreeNode`）、示例页 `/components/nav-tree`、目录条目 `nav-tree`、`tests/nav-tree.test.mjs`、`delivered-features` §54 的 NavTree 章节与 `scripts/api-since.json` 的 `NavTree.*` 记录；文本键 `NavTreeLabel` 更名为 `NavMenuLabel`；示例辅助组件 `NavTreeActionMenu` 更名为 `NavMenuActionMenu`。迁移口径：`/components/nav-tree` → `/components/nav-menu`，`OnNodeSelected` 拆成 `OnItemSelected`（叶子）与 `OnGroupToggled`（分组），分组行只更新 `OpenKeys`。
+- [x] 破坏性移除：删除 `Components/NavTree/`（`NavTree`、`NavTreeNode`）、示例页 `/components/nav-tree`、目录条目 `nav-tree`、`tests/nav-tree.test.mjs`、`delivered-features` §54 的 NavTree 章节与 `scripts/api-since.json` 的 `NavTree.*` 记录；文本键 `NavTreeLabel` 更名为 `NavMenuLabel`；示例辅助组件 `NavTreeActionMenu` 更名为 `NavMenuActionMenu`。
+  - 迁移口径：`/components/nav-tree` → `/components/nav-menu`，`OnNodeSelected` 拆成 `OnItemSelected`（叶子）与 `OnGroupToggled`（分组），分组行只更新 `OpenKeys`。
 - [x] 示例与生成物：`/components/nav-menu` 覆盖默认行与「整行模板 + 右侧操作」两段 demo；API 表（59 页 / 731 行）与搜索索引（524 条 / 66 页）重跑；`scripts/api-since.json` 补 9 个 `NavMenu.*` 成员（`10.41.0`），示例 API 表的「自哪个版本」列显示该版本。
 - [x] 回归：契约检查仍为 42 组，NavMenu 覆盖导航地标、展开/控制、叶子 `aria-current`、分组不选中、链接 target guard、`Accordion` 单开、`RowTemplate` 深度、`Trailing` 兄弟位置与 Id 校验；`tests/nav-menu.test.mjs` 守键盘模块的行级滚动抑制、trailing 放行、焦点与 RTL；`tests/browser/verify.mjs` 新增 4 条真实浏览器断言（分组只展开、引导线、叶子选中、模板行与 Trailing）。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 131 项；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 731 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器：PR #33 的 CI `browser` 作业 **176/176 PASS**，四条 NavMenu 断言全部通过（分组展开 true→false 且无 `aria-current`/选中、引导线 1px、叶子选中 `NavMenu 组件` 且 feedback `当前节点：nav-menu`、模板行 3 个项目名 / 3 个 Trailing / 0 个嵌套按钮）；本机 Chrome 156 单独复跑结果一致。
 - 按「功能新增递增第二位」（§4.9）从 `10.40.2` 升到 `10.41.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.40.2 修复：Splitter 持久化恢复循环、NavTree 选中态与辅助说明
@@ -119,7 +148,7 @@ PR #30（`fix/splitter-navtree-polish`）以 squash 合入 main（`f4ec37d`）�
 - [x] **Splitter 持久化恢复循环**：带 `PersistKey` 且 localStorage 已有宽度时，`attach` 期间恢复回调会触发 `OnSizeRestoredAsync` → `StateHasChanged`；此前 `_attached` 在 `await` 之后才置真，重渲染判定为"未挂载"又调一次 `attach`、再触发恢复，形成 JS/.NET 微任务无限循环（Workbench 的 Tauri WebView 上 99.7% CPU、界面可渲染但不可点击；无痕环境没有已存宽度，因此不触发）。现在在 await 前先标记 attached，恢复回调触发的重渲染走 `sync`；`attach` 抛错时 catch 还原标记以保留重试。同一源码实测 CPU 从 99.7% 降到约 3%，拖动/折叠/点击恢复。
 - [x] **NavTree 选中态与辅助说明**：选中行改用与 `Menu` 相同的 `--aeterni-state-*` token（选中背景、品牌文字、左侧强调线），并补 hover/active 不覆盖选中态的规则；辅助说明字号减小 1px、使用 `--aeterni-text-secondary` 与 `line-height: normal`，标题与说明间距 1px → 2px。
 - [x] **文档**：`delivered-features` 的 Splitter 章节补上恢复回调与 attached 标记的因果，NavTree 章节把"使用共享语义 token"收敛到与 `Menu` 同组的具体口径。
-- 验证：PR #30 的 CI `build` 作业通过；本机 `dotnet build aeterni_ui.slnx` 0 错误、契约检查 42 组、`node --test tests/*.test.mjs` 131 项、`bash scripts/check-docs.sh`、`node scripts/check-css-comments.mjs`、`node scripts/check-doc-drift.mjs` 通过；本发版提交只改版本头与 release-history，门禁复跑通过。
+- 验证：差异：本发版提交只改版本记录与 `release-history`，门禁复跑通过。
 - 按「修复与优化递增第三位」（§4.9）从 `10.40.1` 升到 `10.40.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.40.1 修复：锁滚动预留的滚动条槽没被压暗（CI 浏览器作业的两条几何断言）
@@ -137,7 +166,7 @@ PR #30（`fix/splitter-navtree-polish`）以 squash 合入 main（`f4ec37d`）�
 - [x] 绘制：固定层画不进槽位，只有根元素的画布底色能铺到那里。锁定时把「遮罩色叠在页面底色上」的合成色写到根元素行内 `background-color`（读 `--aeterni-overlay` 与页面底色现算，解锁还原宿主原值）；页面底色透明时跳过，避免把画布变暗透到内容后面形成二次压暗。
 - [x] 回归断言：`tests/browser/verify.mjs` 新增「锁滚动预留的滚动条槽被覆盖层接住（几何外扩 + 画布着色）」——经典滚动条下要求 `scrollbar-gutter: stable`、变量 > 0、遮罩右边界与 `innerWidth` 差 ≤1、容器 `inset-inline-end` 为负、根元素底色的亮度比页面底色低 20 以上；覆盖式滚动条下变量为空，自然跳过。`tests/scroll-lock.test.mjs` 从 5 项扩到 8 项（画布合成色、透明底不染、宿主行内值还原）。
 - [x] 文档：`engineering-reference` 的共享浮层章节写明「覆盖层外扩 + 画布着色」两部分及原因（固定层被裁在布局视口内、透明底不染）；`delivered-features` 的 Dialog/Drawer 行为段补上「槽位被画成与遮罩相同的压暗色」；并更正 10.38.4 条目里把这两条失败归因为本机环境的记录。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` **131 项**通过；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 729 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器（本机 Chrome 156 + `--disable-features=OverlayScrollbar`，1440×900）：修复前 scrim 宽 1429、面板中心 714.5、右侧 11px 为 `RGB(247,247,247)`；修复后 scrim 宽 1440、面板中心 720、槽位与遮罩同为 `RGB(143,143,143)`，`--aeterni-scroll-lock-gutter` 为 `11px`、根元素底色 `rgb(143,143,143)`、页面底色 `rgb(247,247,247)`；Dialog 遮罩与 Drawer 根层同样测到 1440 宽。
+- 验证：修复后实测：scrim 1440 / 面板中心 720，槽位与遮罩同为 `RGB(143,143,143)`（本机 Chrome 156 + `--disable-features=OverlayScrollbar`）。
 - 按「修复与优化递增第三位」（§4.9）从 `10.40.0` 升到 `10.40.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.40.0 `NavTree` 导航树与 trailing 操作区（新组件交付）
@@ -151,7 +180,7 @@ PR #29（`feat/nav-tree`）以 squash 合入 main（`6ba6173`）后落地的发�
 - [x] 示例与生成物：`/components/nav-tree`（两级导航 + trailing 动作菜单）并登记进 `ShowcaseCatalog`（导航条目 59）；API 表（59 页 / 729 行）与搜索索引（524 条 / 66 页）生成物重跑；`scripts/api-since.json` 补 7 个 `NavTree.*` 成员（`10.40.0`），示例 API 表的「自哪个版本」列显示该版本。
 - [x] 测试：`tests/nav-tree.test.mjs` 覆盖方向键滚动抑制、trailing 不拦截、焦点与释放；契约检查扩到 **42 组**，`node --test tests/*.test.mjs` 共 **123 项**。
 - [x] 文档与版本：`delivered-features` §54（NavTree 章节由 PR 提供）、`component-plan` §2 / §3 登记与 §4 计数、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例同步。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误）；契约检查 42 组；`node --test tests/*.test.mjs` 123 项通过；`check-css-comments.mjs`（83 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（96 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（59 页 / 729 行）、`generate-search-index.mjs --check`（524 条 / 66 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过；PR #29 的 CI `build` 作业通过，浏览器作业沿用 10.38.4 起的既有环境项（Dialog 居中、遮罩铺满视口两条视口几何断言）。
+- 验证：例外：浏览器作业沿用 10.38.4 起的既有环境项 —— Dialog 居中、遮罩铺满视口两条视口几何断言。
 - 按「功能新增递增第二位」（§4.9）从 `10.39.0` 升到 `10.40.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.39.0 `Splitter` 可拖动分栏（新组件交付）
@@ -168,7 +197,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 示例与生成物：`/components/splitter` 覆盖水平、垂直与禁用三态并登记进 `ShowcaseCatalog`（导航条目 58）；API 表（58 页 / 722 行）与搜索索引（517 条 / 65 页）生成物重跑；`scripts/api-since.json` 补 9 个 `Splitter.*` 成员（`10.39.0`），示例 API 表的「自哪个版本」列显示该版本。
 - [x] 文档：`delivered-features` §53 补 RTL、命中区、禁用与实现边界（固定像素轨道在窄容器下的表现、无 JS 时不响应拖动与键盘）；`component-plan` §2 / §3 登记交付并更新 §4 的页面与索引计数；`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例同步。
 - [x] 回归：`tests/splitter.test.mjs` 从 4 项扩到 10 项（合法 0 尺寸、按键 `preventDefault` 边界、拖动中 `dispose`、禁用 no-op、存储 clamp、RTL 镜像）；`tests/browser/verify.mjs` 新增 5 条 Splitter 断言（分隔条语义与命中区、键盘步进、真实指针拖动与宿主回显、禁用态、RTL 接缝与方向键）。
-- 验证：`dotnet build aeterni_ui.slnx` 成功（0 错误；本机 6 条 `NU1900` 为沙箱拒绝写 NuGet 漏洞缓存，与代码无关）；契约检查 **41 组**；`node --test tests/*.test.mjs` **122 项**通过；`check-css-comments.mjs`（80 文件）、`check-scrollbars.mjs`（16 容器 / 14 表）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`（95 文案键）、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`（58 页 / 722 行）、`generate-search-index.mjs --check`（517 条 / 65 页）、`generate-fontawesome-icons.mjs --check`（343 图标）与 token 文件组件选择器检查通过。真实浏览器：本机 Chrome 156 上单独运行 Splitter 断言 **5/5 PASS**（命中区 24px、键盘 280→288→320→200→600、指针拖动 200→260 且宿主读数同步、禁用态 `cursor: not-allowed` 且值不变、RTL 接缝 260 与 `→` 反向）；`tests/browser/run.sh` 全量套件在本机运行到 upload 页后卡住（与本次改动无关的既有环境项，10.38.2 起记录），CI 浏览器作业在 PR #28 上的失败项仍是 10.38.4 基线上同样的两条视口几何断言（Dialog 居中、遮罩铺满视口，1440 与 1430 的滚动条差），`build` 作业在 PR 与 main 上均通过。
+- 验证：例外：本机 6 条 `NU1900` 为沙箱拒绝写 NuGet 漏洞缓存；`tests/browser/run.sh` 全量在本机运行到 upload 页后卡住（既有环境项，10.38.2 起记录）；CI 浏览器作业在 PR #28 上的失败项仍是 10.38.4 基线的两条视口几何断言。
 - 按「功能新增递增第二位」（§4.9）从 `10.38.4` 升到 `10.39.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例、`scripts/api-since.json`。
 
 ## 10.38.4 交互修补：滚动锁视口稳定、Confirm 抖动反馈与 InputNumber 连体步进
@@ -176,10 +205,11 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 针对 10.38.3 批次落地后的本地验收反馈落地的修复批次；不新增公共 API，不改 Token 色板、玻璃配方与组件对外语义。
 
 - [x] **滚动锁视口稳定**：`aeterni_floating.js` 的 `lockScroll` 不再用 `body { padding-right }` 模拟滚动条宽度。页面确实可滚动且浏览器支持时，在根元素保留 `scrollbar-gutter: stable`，开、关浮层前后视口宽度不变，fixed 页头与流内页脚始终对齐；不支持时退回原来的 padding 方案，解锁时 `overflow`、`padding-right`、`scrollbar-gutter` 一并还原。此前 fixed 页头按含滚动条的视口宽度解析、正文按扣除滚动条的宽度解析，Confirm 一开一关页头就会横向跳一下。
-- [x] **Confirm 抖动不再像刷新**：每次点击外围都会重新抖一下；C# 端在抖动结束后再摘掉 `is-shaking` 并补 `is-settled`，下一次点击先清 `is-settled` 再挂 `is-shaking`，CSS 把 `.is-settled { animation: none }` 放在 `is-shaking` 之前，面板不会落回 `animation: enter` 从 `opacity: 0` 重播；抖动关键帧改为 0 / 15% / 35% / 55% / 75% 的 `-6px / 5px / -4px / 2px` 衰减，时长仍取 `--aeterni-duration-slow`。JS 的 `waitForShake` 改为在 500ms 内用 `requestAnimationFrame` 轮询到抖动动画再等它结束，并遵守 `prefers-reduced-motion`。
+- [x] **Confirm 抖动不再像刷新**：每次点击外围都会重新抖一下；C# 端在抖动结束后再摘掉 `is-shaking` 并补 `is-settled`，下一次点击先清 `is-settled` 再挂 `is-shaking`，CSS 把 `.is-settled { animation: none }` 放在 `is-shaking` 之前，面板不会落回 `animation: enter` 从 `opacity: 0` 重播；抖动关键帧改为 0 / 15% / 35% / 55% / 75% 的 `-6px / 5px / -4px / 2px` 衰减，时长仍取 `--aeterni-duration-slow`。
+  - JS 的 `waitForShake` 改为在 500ms 内用 `requestAnimationFrame` 轮询到抖动动画再等它结束，并遵守 `prefers-reduced-motion`。
 - [x] **InputNumber 连体步进**：外层字段 `overflow: hidden`，方角步进按钮的悬停 / 按下底色被字段圆角裁掉；分隔线改用字段自身描边（`--aeterni-button-group-divider: var(--aeterni-control-border)`），不再因 `IconButton` 缺少 `--aeterni-button-divider-*` 让 `border-inline-start-color` 在计算值阶段失效并回落到 `currentColor` 的深色墨线。`IconButton` 同步补上 45% / 32% 两档分隔线 Token，供其他透明按钮组复用。
 - [x] **回归断言**：`tests/browser/verify.mjs` 新增「锁滚动不再让固定页头与正文左锚线错位」「锁滚动用 scrollbar-gutter 而不是 body padding」「点击 Confirm 外围每次都只抖一下、不重播进场」「InputNumber 分隔线复用字段描边」「方角步进底色被圆角裁切」五项。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 166 项中通过 162 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（Dialog 居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/number-fix/`（InputNumber 浅色 / 悬停 / 深色及 2× 局部）、`.design-audit/shots/three-issues/`（Confirm 抖动中与抖动后）。（10.40.1 复核更正：其中 Dialog 居中、遮罩铺满视口两条并非本机环境项，而是 `scrollbar-gutter` 预留槽未被固定覆盖层覆盖的系统性缺陷，见 10.40.1。）
+- 验证：例外：本机 Edge 不支持 CDP `setDeviceMetricsOverride`，视口退化为 360×489，4 条几何断言失真；其中 Dialog 居中、遮罩铺满视口两条后由 10.40.1 复核为 `scrollbar-gutter` 系统性缺陷。
 - 按「修复与优化递增第三位」将版本从 `10.38.2` 直接升到 `10.38.4`（`10.38.3` 批次没有单独提交与发布，两批改动同批提交）：`Directory.Build.props`、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.3 设计审核修复：浮层动效、状态墨阶与表单测量（未单独发布，随 10.38.4 一并发布）
@@ -193,7 +223,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **示例宿主**：页头字标与当前导航项改用 `--aeterni-color-brand-text`，绿色 / 橙色品牌下不再落到 4.42:1 的品牌填充色；首页统计直接渲染终值（57 / 9 / 2 / 3），示例画布控制条标注「可调参数」；Upload 拖放区与状态文案中文化，Button / MenuButton 画布控件标签与勾选项中文化（日期与时间控件的中文文案已在更早批次落地，不重复计入本批）；Descriptions 默认变体去掉逐项行线（行线归 bordered 变体），示例换成业务文案；Colors 页验收表校正聚焦环口径并新增无效态聚焦环、语意族文字、语意实心承字与语意墨在柔和底四组（验收表从 5 行扩到 9 行）；Drawer 页删除与正文重复的实现说明。
 - [x] **回归断言**：`tests/browser/verify.mjs` 新增 Dialog 进场与退场同步、Drawer 遮罩与面板同步、Slider / Progress 的 transform、FormField 行高、Upload 中文文案、Descriptions 分隔线、页头品牌墨、首页统计终值等检查；`run.sh` 以 1440×900 启动窗口。
 - [x] **复核收尾**：`aeterni_ui.css` 的「冷中性」注释改为「墨阶名称、不是文字冷偏」，Colors 页同步该口径并校正验收表覆盖范围；`verify.mjs` 的 P7 连续轨道断言改为按轨道比例 `pressAt` 后读取提交值（轮询到 75% 落定），不再依赖单次拖拽时序。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`（16 个滚动容器）、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`check-docs.sh`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。`tests/browser/run.sh` 161 项中通过 157 项，4 项为本机 Edge 不支持 CDP `setDeviceMetricsOverride`、实际视口退化为 360×489 后的几何断言（搜索面板居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定），与本次改动无关，沿用 10.38.2 的环境记录。视觉证据（本机临时目录，未入库）：`.design-audit/shots/fix5/`（浅色 / 深色 Dialog、Drawer 打开态、Slider / Progress / Upload / Descriptions / Colors）。
+- 验证：例外：本机 Edge 不支持 CDP `setDeviceMetricsOverride`，4 条几何断言失真（搜索面板居中、遮罩铺满视口、设置浮层与无锚点 Popover 锚定）。
 - 按「修复与优化递增第三位」从 `10.38.2` 升到 `10.38.3`（该版本没有单独提交与 tag，改动随 10.38.4 一并发布）：`Directory.Build.props`、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.2 组件库本体审核修复：Descriptions 对齐、圆角口径与 Link 语义
@@ -206,7 +236,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **控件描边对比度口径**：确认 `--aeterni-border*` / `--aeterni-control-border` 是低强度 hairline（浅色对白面约 1.2–1.5:1），为显式例外而非漏检；修正 `check-contrast.mjs` 的 `GRAPHIC_FLOOR` 注释与 `engineering-reference` §5.4 中“边框逐组测量”的表述，并写入例外说明。本轮不把基础描边加黑，避免全库视觉回归；需要更强边界的宿主应新增 `--aeterni-control-border-strong` 一类 Token 另评。
 - [x] **Small Segmented 混排约束**：在 `delivered-features` 补“不与 28px Button/Input 同排混用”的使用约束；32px 的几何取舍本身不变。
 - [x] **回归断言**：`tests/browser/verify.mjs` 新增 Descriptions“所有 value 的标签列偏移一致（spread ≤ 1px）”检查。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`bash scripts/check-docs.sh`、`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`、`check-contrast.mjs`（315 项）、`check-doc-drift.mjs`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。视觉证据：Descriptions 修复前后对比、Button 变体板的 Link 下划线（`.design-audit/shots/fix4/`）。`tests/browser/run.sh` 因本机 Chrome CDP `setDeviceMetricsOverride` 环境项仍未跑通（与本次改动无关）。
+- 验证：例外：`tests/browser/run.sh` 因本机 Chrome CDP `setDeviceMetricsOverride` 环境项未跑通。
 - 按「修复与优化递增第三位」从 `10.38.1` 升到 `10.38.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.38.1 示例站精修、动效校准与大屏口径修正
@@ -220,7 +250,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 侧栏：新增 `wwwroot/js/sample-nav.js`，路由变化后把当前菜单项滚入侧栏可视范围（DatePicker 等深条目不再停在折叠线以下）；脚本缺失时静默降级。
 - [x] 动效：`Segmented` 选中滑块 600 → 200ms（normal 档）；主题/品牌切换 600 → 300ms，且只过渡颜色承载属性（color / background-color / border-color / outline-color / box-shadow / fill / stroke），不再把 transform / opacity 计入整页切换；`ThemeProvider` 的过渡类清理时长改读 slow 档（320ms 上限）；Popover 退场 80ms（进场 100ms）、Dialog 与 Notice 退场 150ms（进场 200ms）、Drawer 退场 210ms（进场 300ms），退场统一用加速曲线。
 - [x] 文档：`engineering-reference` §6.4 增补状态切换、主题切换与浮层退出的时长规则；`delivered-features` 更新主题过渡与 Alert 退场时长；`AGENTS.md`、五份版本头文档、README tag 示例与 `Directory.Build.props` 同步 10.38.1。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 40 组；`node --test tests/*.test.mjs` 112 项；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（78 文件）、`check-scrollbars.mjs`、`check-contrast.mjs`（315 项）、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过。视觉证据：桌面 Button / DatePicker / Colors / Screen、移动端首页与 Button、Drawer 打开态、深色主题。`tests/browser/run.sh` 发布后跑到 CDP `setDeviceMetricsOverride` 时因本机 Chrome 版本报 `Target does not support metrics override` 中断（与本次改动无关，中断前已有多条断言 PASS）；该套件在本机历史记录中同样存在环境项。
+- 验证：例外：`tests/browser/run.sh` 在本机 Chrome 上因 `Target does not support metrics override` 中断（中断前多条断言 PASS）。
 
 ## 10.38.0 `Anchor` 页内锚点导航（优先级 9 第 2 项交付）
 
@@ -233,7 +263,8 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] `dispose` 释放 observer、click 与 scroll 监听；重复 attach 幂等；无 `IntersectionObserver` 的环境退化为滚动计算。文案 `AnchorLabel` 接入 `AeterniUITextOptions` 与 `FillEmptyFrom`。
 - [x] 示例页 `/components/anchor`（文档滚动、内部滚动容器、`Offset` + `UpdateLocation` + `Smooth` 三组 demo）并登记进 `ShowcaseCatalog`；API 表与搜索索引生成物重跑。
 - [x] 第一版明确不做：嵌套子级、affix（吸附布局）、路由跳转、自动生成目录内容。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **40 组**（新增 `AnchorChecks`：`nav`/`ol`/`a` 形状、`aria-label` 缺省值、`href` 与目标 id 一一对应、初始无当前项、`OnActiveSectionChangedAsync` 回传后 `aria-current` 唯一且落在对应链接、未知 id 清空、Items 四类参数校验、`JsModule` 与 `[JSInvokable]`、无 CJK 与无泄漏花括号）；`node --test tests/*.test.mjs` **112 项**通过（新增 `anchor.test.mjs` 8 项：observer/监听建立与释放、幂等 attach、滚动推导与去重、容器滚动 + 片段替换、reduced-motion、原生点击降级、无 IntersectionObserver 环境）；`node tests/sample-docs.test.mjs` 8/8；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（新增文案键）、`check-css-comments.mjs`、`check-contrast.mjs`、`check-scrollbars.mjs`、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过；`tests/browser/run.sh` 本机复跑 **144/150**，两个新组件页的 5 条断言全部 PASS（容器内真实滚动后当前项跟随；真实点击后片段更新且 `history.length`/`pushState`/`hashchange` 均为 0、scroller 与 window 标记未被重建）；其余 6 条失败集中在与本次改动无关的既有几何断言（Segmented 的 Home/End 滚动量、Upload 目录点击落点、设置浮层与 Popover 几何、卡片内边距），它们随本机无头浏览器视口尺寸（500×450 / 750×438 两次运行结果不同）而变，仓库在 10.36.0 记录里已注明浏览器全量回归存在环境项；CI 的 build 工作流会按固定环境复跑。按「功能新增递增第二位」（§4.9）从 `10.37.0` 升到 `10.38.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+- 验证：例外：`tests/browser/run.sh` 本机复跑 144/150，6 条失败均为既有几何断言（Segmented Home/End 滚动量、Upload 点击落点、设置浮层与 Popover 几何、卡片内边距），随本机无头视口（500×450 / 750×438）变化；CI 按固定环境复跑。
+- 按「功能新增递增第二位」（§4.9）从 `10.37.0` 升到 `10.38.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.37.0 `Transfer` 双列表迁移（优先级 9 第 1 项交付）
 
@@ -247,7 +278,8 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 文案 `TransferLabel` / `TransferSourceTitle` / `TransferTargetTitle` / `TransferSearchPlaceholder` / `TransferEmptyText` / `TransferMoveSelectedLabel` / `TransferRemoveSelectedLabel` / `TransferMoveAllLabel` / `TransferRemoveAllLabel` 接入文案表与 `FillEmptyFrom`。
 - [x] 示例页 `/components/transfer`（基础用法、搜索与批量迁移、禁用项与表单状态、选项模板四组 demo）并登记进 `ShowcaseCatalog`；API 表与搜索索引生成物重跑。
 - [x] 第一版明确不做：虚拟化、拖拽排序、逐列全选复选框、异步搜索、服务端查询。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **40 组**（新增 `TransferChecks`：角色层级与两个 listbox、`aria-multiselectable`、`aria-selected` 字符串、列标题、三档尺寸与非法 `Size`、null 参数、`SelectedValues` 子集剔除回调、键盘勾选→迁移→回调链路、搜索过滤后的可见行、FormField 级联）；`node --test tests/*.test.mjs` 112 项通过（新增 `transfer.test.mjs` 5 项：监听器绑定与释放、键位转发边界、活动项滚入视口、幂等）；`node tests/sample-docs.test.mjs` 8/8；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`check-scrollbars.mjs`（新增两处列容器）、`generate-api-reference.mjs --check`（57 页 / 713 行）、`generate-search-index.mjs --check`（509 条 / 64 页）通过；`tests/browser/run.sh` 本机复跑中该页 3 条断言全部 PASS（真实指针勾选源列首行→点迁移按钮→目标列 2→3 项且 `已授权 3 / 6 项` 回显；搜索输入 6→1；真实 `Space` 后 `aria-selected="true"`）；同一轮全量回归的 6 条失败均为与本次改动无关的既有几何/时序断言，原因见 10.38.0 条目。按「功能新增递增第二位」（§4.9）从 `10.36.0` 升到 `10.37.0`（随后由 Anchor 批升到 `10.38.0`）：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+- 验证：例外：同一轮全量回归的 6 条失败均为既有几何/时序断言，原因见 10.38.0。
+- 按「功能新增递增第二位」（§4.9）从 `10.36.0` 升到 `10.37.0`（随后由 Anchor 批升到 `10.38.0`）：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.36.0 日期组件农历叠加：`ShowLunar`
 
@@ -260,7 +292,8 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 明确不做：节气、干支、生肖、黄历宜忌、历法切换、时区换算；节气需要太阳黄经计算，与本批的日期显示目标无关。
 - [x] 示例页 `/components/date-picker` 新增「农历叠加」demo（单日与范围两种选择器），API 表与搜索索引生成物重跑。
 - [x] 修复生成器同名成员 `since` 查找：`scripts/generate-api-reference.mjs` 在页面内出现多个同名参数时按 `api-since.json` 约定的「声明类型.成员名」再查一次，避免拼成 `DatePicker.DatePicker.ShowLunar` 而永远为空。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **38 组**（新增 `CheckCalendarLunarAsync`：2026-10-10 九月初一、2026-10-19 九月初十、2025-07-25 闰六月初一、默认关闭、1901-01 与 2101-02 越界无农历行、三个选择器转发、两行布局 CSS）；`node --test tests/*.test.mjs` **99 项**通过；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（新文案键）、`check-css-comments.mjs`、`check-contrast.mjs`、`generate-api-reference --check`（55 页 / 687 行）、`generate-search-index --check`（492 条 / 62 页）通过。真实渲染（无头 Chrome + 独立 CDP 脚本，定向）：`/components/date-picker` 的「农历叠加」demo 打开后 42 个日格均输出 `.aeterni-date-calendar__lunar`，`flex-direction: column`、日格高 30.66px（默认单行日历仍 28px / row），无障碍名为「2026年10月19日星期一, 农历 九月初十」、闰月首日为「农历 闰六月初一」，未开启 ShowLunar 的日历副行数为 0，点击 12 日后触发器值为 `2026-10-12`；`tests/browser/verify.mjs` 本批未新增断言，全量回归在本机停在 `/components/upload`（既有环境项，与本批无关）。按「功能新增递增第二位」（§4.9）从 `10.35.0` 升到 `10.36.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+- 验证：例外：`tests/browser/verify.mjs` 全量在本机停在 `/components/upload`（既有环境项）。
+- 按「功能新增递增第二位」（§4.9）从 `10.35.0` 升到 `10.36.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.35.0 Cascader：层级单选组件（优先级 9 第 1 项交付）
 
@@ -275,7 +308,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 文案表新增 `CascaderLabel` / `CascaderPlaceholder` / `CascaderColumnLabel` / `CascaderEmptyText` / `CascaderPathSeparator` 并接入 `FillEmptyFrom`。
 - [x] 示例页 `/components/cascader`（基础用法、受控值与路径文案、尺寸与状态、选项模板与空列）并登记进 `ShowcaseCatalog`；示例 API 表与搜索索引生成物重跑。
 - [x] 第一版明确不做：异步加载子节点、搜索过滤、多选路径、自由输入、虚拟化、逐节点禁用。
-- 验证：`dotnet build aeterni_ui.slnx` 0 错误；契约检查 **37 组**（新增 `CheckCascaderAsync`：根属性、组合框/分组/选项角色层级、`aria-selected` 的 `"true"/"false"`、尺寸枚举校验，以及「打开→`→` 两级→`Enter` 确认叶子→关闭→路径文案」的键盘链路）；`node --test tests/*.test.mjs` **99 项**（新增 `cascader.test.mjs` 4 项：监听器绑定/幂等/释放、只接管自己拥有的键、行列两级滚入视口、已可见时不动滚动）；`check-scrollbars.mjs`（新增面板与列两处滚动容器及其成对声明）、`check-css-comments.mjs`、`check-contrast.mjs`、`check-doc-drift.mjs`、`bash scripts/check-docs.sh`、`generate-api-reference --check`（55 页 / 684 行）、`generate-search-index --check`（491 条 / 62 页）、`node --check` 全部通过。真实渲染（无头 Chrome + 独立 CDP 脚本）：关闭态 `aria-expanded="false"` 且无 `aria-activedescendant`；打开后 `aria-controls` 指向的面板 `role="listbox"`、**无嵌套 listbox**、1 个分组 3 个选项；`→` 两次依次到 2 列与 3 列（选项 5 与 7）；`Enter` 确认后关闭、触发器文案为 `浙江省 / 杭州市 / 西湖区`。`tests/browser/verify.mjs` 新增同源三段断言，全量由 CI 复跑。按「功能新增递增第二位」（§4.9）从 `10.34.5` 升到 `10.35.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、五份版本头文档、README tag 示例。
+- 按「功能新增递增第二位」（§4.9）从 `10.34.5` 升到 `10.35.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、五份版本头文档、README tag 示例。
 
 ## 10.34.5 焦点环统一与调轻：2px 细环、品牌浅档、全库一套画法
 
@@ -286,7 +319,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **画法统一**：4 个日期/时间选择器（`DatePicker`、`DateRangePicker`、`DateTimePicker`、`TimePicker`）原本用 `outline: none` + `box-shadow: 0 0 0 …` 贴边画环，与其余组件「`outline` + `outline-offset`」的画法不一致；统一改为标准画法。内收环的两套公式（`calc(-1 * var(--aeterni-focus-width))` 与 `calc(var(--aeterni-focus-offset) * -1)`）也收敛为前者。最终是 25 个外扩环 + 7 个内收环（菜单、标签栏、分段控件等为避免被滚动容器裁切），两套语义清晰。
 - [x] **不移除焦点环**：AGENTS.md §4.4 第 5 条要求 `focus-visible` 必须有清晰焦点环；焦点环是键盘用户唯一的焦点位置指示（WCAG 2.4.7）。组件全部走 `:focus-visible`，鼠标点击本就不画环。
 - [x] `tests/browser/verify.mjs` 中断言 `--aeterni-focus-width === '3px'` 的那条同步改为 `2px`。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 36 组；`node --test tests/*.test.mjs` 95 项；`check-contrast.mjs`（315 gates）、`check-css-comments.mjs`、`bash scripts/check-docs.sh` 通过。真实渲染（无头 Chrome，真实 Tab 聚焦后读计算样式）：日期选择器与按钮同为 `outline-width: 2px` / `outline-offset: 1px` / `outline-style: solid` / `outline-color: color(srgb 0.537 0.437 0.890)`、`box-shadow: none`。按「修复与优化递增第三位」从 `10.34.4` 升到 `10.34.5`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+- 按「修复与优化递增第三位」从 `10.34.4` 升到 `10.34.5`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.34.4 第十一轮审阅收口：Segmented 选中态焦点环、Soft 接缝、模态滚动条与焦点归还
 
@@ -297,7 +330,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **P1 `Dialog` 模态容器无滚动条声明**：`.aeterni-dialog-provider__dialog` 的 `overflow: hidden auto` 补 `scrollbar-width`/`scrollbar-color` + `::-webkit-scrollbar` 三件；`check-scrollbars.mjs` 正则补双值简写匹配，容器数 12→13。
 - [x] **P1 模态 `Popover` 焦点归还双重且忽略 `RestoreFocusOnClose`**：`createFocusTrap` 改传 `restoreFocus: false`，由 `deactivate` 里受 `restoreFocusOnClose` 门控且带守卫的 microtask 独占归还；`Modal` 与 `RestoreFocusOnClose` 文档注释同步。
 - [x] **P2/P3 卫生包**：`Upload` 根 div 去掉冗余 `aria-disabled`（`SplitButton` 同类）；`SplitButton.Placement`/`MenuButton.Placement` 补 `Enum.IsDefined`、`Items` 补 `ThrowIfNull`；`Popover` 非模态默认不再输出无名 `region` 地标（仅在提供 `AriaLabel` 时输出）；`ButtonGroup` 删死属性 `data-orientation`；`NoticeCard` 的 `2px` 间距改 `calc(var(--aeterni-border-width) * 2)`。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` 95 项；`check-scrollbars.mjs`（13 容器）、`check-css-comments.mjs`、`check-contrast.mjs`（315 gates，`text-inverse` on brand 4.52:1）、`check-doc-drift.mjs`、`bash scripts/check-docs.sh` 通过。按「修复与优化递增第三位」从 `10.34.3` 升到 `10.34.4`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
+- 按「修复与优化递增第三位」从 `10.34.3` 升到 `10.34.4`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、五份版本头文档、README tag 示例。
 
 ## 10.34.3 连体接缝收敛到一档：SplitButton 的透明档从 20% 提到 45%
 
@@ -308,7 +341,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **实测结果**：透明档接缝 alpha 0.156 → 0.351，与宿主背景对比浅色 **2.44:1**、深色 **3.65:1**；实心档仍是 32%（`0.249725`）不变；SplitButton 在 Outline 下外框与接缝的落差从 5 倍收到 2.2 倍，与 ButtonGroup 的 1.7 倍同量级。
 - [x] 文档：`engineering-reference` 的 ButtonGroup 那条原本写"分隔线由 ButtonGroup 管理，不修改 Button 核心样式"，与实现不符（接缝几何一直住在 Button 的隔离样式里——父组件的隔离样式到不了子组件根元素），改为写明归属与共享档位；`delivered-features` 的 SplitButton 与 ButtonGroup 两处同步档位名与实测对比度。
 - [x] 记录一条未采纳的方案：曾考虑改用不透明的 `--aeterni-separator`（浅色 1.7:1 / 深色 1.5:1），但它会在实心按钮上造出与 32% 前景色缝语义不同的第二条线，且对比度反而低于 45% 档，因此不用。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 gates）、`check-doc-drift.mjs`（78 文案键）、`bash scripts/check-docs.sh` 通过（本机用 Git Bash 运行，`system32\bash.exe` 的旧 bash 不支持 `set -o pipefail`）。真实渲染（无头 Chrome 读计算样式）：SplitButton 透明档 `color(srgb 0 0 0 / 0.351176)`、实心档 `color(srgb 0 0 0 / 0.249725)` 不变；ButtonGroup 无覆盖时为 `color(srgb 1 1 1 / 0.32)` 与 `color(srgb 0.4 0.27451 0.733333 / 0.45)`，在祖先设 `--aeterni-button-group-divider: rgb(255, 0, 0)` 后两档都变红，而 SplitButton 不受该变量影响。`tests/browser/verify.mjs` 新增一条断言（SplitButton 与 ButtonGroup 共用同一档连体缝，透明档接缝 alpha 落在 0.30～0.40），形态先用独立 CDP 脚本实测通过，全量由 CI 复跑。按"修复与优化递增第三位"（§4.9）从 `10.34.2` 升到 `10.34.3`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
 
 ## 示例工程批次 7：版本入口与反馈闭环（版本号未递增）
 
@@ -318,17 +350,16 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **版本入口**：页头品牌名右侧新增版本徽标 `v10.34.3`，从示例程序集的 informational version 读取（SourceLink 追加的 `+commit` 在展示时去掉），指向 GitHub 发布列表。
 - [x] **反馈闭环**：`ComponentPage` 正文末尾新增 `ShowcaseFeedback`——「有用/无用」点后回一条 Toast（静态站点没有后端，不伪造「已记录」），「提交 Issue」（按当前页标题与路由预填）与「贡献者」通往仓库。
 - [x] **断言**：`tests/sample-docs.test.mjs` 新增骨架断言（版本入口与反馈闭环）；`tests/browser/verify.mjs` 新增浏览器断言覆盖版本徽标文本与发布链接、点「有用」弹 Toast 且 issue/贡献者出口存在。预览矩阵下线后，其三条断言与「设置浮层三分组」检查一并移除，分组断言回到两个。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --test tests/*.test.mjs` 94 项通过；`check-css-comments.mjs`、`bash scripts/check-docs.sh`、`generate-api-reference.mjs --check`、`generate-search-index.mjs --check` 通过。批次 7 的浏览器断言先用独立 CDP 脚本实测通过，全量由 CI 复跑。
 
 ## 10.34.2 滚动条统一：滑轨透明、十二个可滚动容器一套写法
 
 示例站的搜索面板报“滚动条的白色背景太显眼”：那个容器自己用 `scrollbar-gutter: stable` 预留了滑轨槽，却没有消费 `--aeterni-scrollbar-*`，于是走浏览器默认外观——约 15px 宽的实色滑轨常驻在玻璃面板上。顺带查出库内的滚动条**本来就不统一**：十二个可滚动容器里，三个写了完整的两套声明，五个只有标准属性（Safari 与旧 Chromium 会回落默认外观），四个什么都没写。
 
-- [x] **十二个容器收敛到一套写法**：`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、通知堆栈统一为「块内 `scrollbar-width: thin` + `scrollbar-color`；块外 `::-webkit-scrollbar`（按滚动主轴只写 `width` 或 `height`）、`-thumb`、`-track` 三条」。`TimeOptionList` 是刻意的例外：它要隐藏滚动条，写法统一为 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`——原本只有 webkit 那一半，Firefox 上仍会画出滚动条。
+- [x] **十二个容器收敛到一套写法**：`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、通知堆栈统一为「块内 `scrollbar-width: thin` + `scrollbar-color`；块外 `::-webkit-scrollbar`（按滚动主轴只写 `width` 或 `height`）、`-thumb`、`-track` 三条」。
+  - `TimeOptionList` 是刻意的例外：它要隐藏滚动条，写法统一为 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`——原本只有 webkit 那一半，Firefox 上仍会画出滚动条。
 - [x] **`scrollbar-width` 不继承**（实测才发现，第一版按“两者都可继承”写，结果只改到根滚动条）：只有 `scrollbar-color` 是继承属性。所以“宿主写一处、全站跟随”只对颜色成立，宽度必须对滚动元素本身声明——示例站 `showcase.css` 因此写成 `:root { scrollbar-color: … }` + `* { scrollbar-width: thin }` 两条，并把这条差异写进了 Token 注释与 `engineering-reference` §5.8。
 - [x] **门禁**：新增 `scripts/check-scrollbars.mjs`（CI 的 build job 内，紧跟 CSS 注释检查）。它扫描库内所有 `.razor.css`，逐个检查带 `overflow: auto|scroll` 的规则块是否声明了 `scrollbar-width`、可见型是否同时具备 `scrollbar-color` 与 `::-webkit-scrollbar`（隐藏型则要求 `display: none`），并断言 Token 文件的滑轨仍是透明、示例站仍保留宿主级声明。**负向验证**：临时改坏 `List` 的 `::-webkit-scrollbar` 选择器 → 门禁精确报出“缺少 ::-webkit-scrollbar 规则，Safari 与旧 Chromium 会回落到默认滚动条”。
 - [x] 文档：`delivered-features` 的滚动条 Token 条目改写为“十二个容器 + 两类声明成对 + 宿主怎么写”；`engineering-reference` 新增 §5.8（三个 Token、两类声明、继承差异、隐藏型写法、门禁）；`AGENTS.md` §4.8 门禁清单加一行。按“修复与优化递增第三位”（§4.9）从 `10.34.1` 升到 `10.34.2`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与当前版本、六份版本头文档、README tag 示例。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node scripts/check-scrollbars.mjs` 通过（12 个容器 / 12 份组件表）；`check-css-comments.mjs`、`check-contrast.mjs`、`check-docs.sh`、`check-doc-drift.mjs` 通过。真实渲染（无头 Chromium 读计算样式）：示例站根元素、搜索面板结果区、`VirtualList` 视口、`Drawer` 主体、`Timeline` 横向轨道五处都拿到 `scrollbar-color: rgba(0, 0, 0, 0.18) rgba(0, 0, 0, 0)`（滑轨 alpha 为 0）与 `scrollbar-width: thin`，`::-webkit-scrollbar-track` 背景同为 `rgba(0, 0, 0, 0)`。
 
 ## 示例工程：玻璃与模糊对比页下线（版本号未递增）
 
@@ -356,18 +387,19 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
   - **大数据列表**（`/components/data-list`）：800 条日志上的检索、多选与批量动作条；选择由宿主保存、靠 `ItemKeySelector` 跨筛选保持，动作条按"有没有选中"出现。机测 **7/7**，含「800 条只渲染 26 行」这条虚拟化证据。
 - [x] **示例宿主补齐中文文案**：库的默认文案是英文、由宿主本地化，而示例站此前只覆盖了 `TimePicker` 的 5 项，于是同一页里会同时出现「取消」和 `Cancel`。`Program.cs` 把确认与浮层的可见文案（`ConfirmAcceptLabel` / `ConfirmCancelLabel` / `DialogCloseLabel` / `AlertCloseLabel` / `ToastCloseLabel` / `DrawerLabel` / `DrawerCloseLabel`）一并对到中文。
 - [x] **新增整站渲染体检**（`tests/browser/verify.mjs` 最后一条断言）：把页面源码里声明的 `DemoCard` 与真实渲染出的 `.component-demo` 逐页比对，并收集控制台里的框架级异常（`crit:` / `Unhandled` / `FieldIdentifier` 之类）。这一类缺陷编译期完全看不见，症状都是“页面静静地少一段”：`Avatar` 的「图片与回退」消失了很久、`InputNumber` 的这一段整页中断，而段数是目录、右栏 TOC 与搜索索引共同的事实源。体检先在本机用独立脚本跑通（**62/62** 页面段数一致、无未处理异常），全量由 CI 复核。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 36 组；`node --test tests/*.test.mjs` **94 项**（`sample-docs` 7 项）；`node scripts/generate-search-index.mjs --check`（486 条 / 62 页）；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。真实渲染：五个组合用法页分别 **9 / 8 / 8 / 6 / 7** 全通过（独立 CDP 脚本跑真实交互）；`/components/avatar` 修复后 3 段、`/components/input-number` 4 段；整站体检 **62/62**。`verify.mjs` 全量仍受本机 `Emulation.setDeviceMetricsOverride` 限制（既有环境项），由 CI 复核。
+- 验证：例外：`verify.mjs` 全量受本机 `Emulation.setDeviceMetricsOverride` 限制，由 CI 复核。
 
 ## 示例工程内容补齐（批次 5，版本号未递增）
 
 批次 5 把“组件页有骨架、三个非组件页没有”补成 **57 页同一套页面模板**：安装、设计基础与对比实验三页改用 `ComponentPage`，组件页补齐 `<Controls>`，门禁因此可以断言“每个页面都有可复制代码块、写了三段固定段”。
 
-- [x] **三个非组件页并入页面模板**：`Install`、`Colors`、`GlassLab` 从“直接渲染进布局壳 + 自带 eyebrow / h1 / 编辑链接 / 整页卡片”改为 `ComponentPage` 骨架，三页因此同时得到「何时使用」「相关组件」「说明与边界」、右栏目录与搜索索引里的段条目（段锚点由骨架生成，不会漂移）。它们自己的整页卡片边框（`.showcase-install`、`.showcase-colors`）随之删掉，外层卡片改由骨架的 `.component-preview` 承担——留着会卡片套卡片；`GlassLab` 的 `.glass-lab` 保留为变量宿主，`--glass-lab-*` 与 `data-backdrop` / `data-ink` 仍挂在同一个元素上（隔离样式的 `b-*` scope 实测仍在，22 个实验格照旧渲染）。
+- [x] **三个非组件页并入页面模板**：`Install`、`Colors`、`GlassLab` 从“直接渲染进布局壳 + 自带 eyebrow / h1 / 编辑链接 / 整页卡片”改为 `ComponentPage` 骨架，三页因此同时得到「何时使用」「相关组件」「说明与边界」、右栏目录与搜索索引里的段条目（段锚点由骨架生成，不会漂移）。
+  - 它们自己的整页卡片边框（`.showcase-install`、`.showcase-colors`）随之删掉，外层卡片改由骨架的 `.component-preview` 承担——留着会卡片套卡片；`GlassLab` 的 `.glass-lab` 保留为变量宿主，`--glass-lab-*` 与 `data-backdrop` / `data-ink` 仍挂在同一个元素上（隔离样式的 `b-*` scope 实测仍在，22 个实验格照旧渲染）。
 - [x] **可复制代码块**：`Install` 的四步从手写 `<pre><code>` 换成共享的 `ShowcaseCode`（复制按钮因此可用），`Colors` 补「在应用里消费」两段（消费 Token 的 CSS、换品牌色层的 C#），`GlassLab` 补「把结论搬回页面」两段（`Surface` 的 `Glass` 变体、宿主背景层）。三页都写明各自只读、候选值住在本页隔离样式里的边界。顺手把 `showcase-install__note` 改名 `showcase-page-note`（它早就是跨页的页级说明类，名字里带 `install` 只会误导），并删掉失去消费者的 `.showcase-install__lead` 与 `.showcase-page-eyebrow`。
 - [x] **5 页补齐 `<Controls>`**：`IconButton`（AriaLabel / Variant / Intent / Size）、`Label`（标签文字与目标控件禁用）、`MenuButton`（Label / Variant / Size / Placement）、`SplitButton`（Label / Variant / Intent / Size）、`VirtualList`（Height / ItemSize / SelectionMode）。控件都作用在预览里的真实实例上，卡片说明同步写明“右侧控件即时作用在……”，54 个卡片化页面至此每页都有 02 段。
 - [x] **门禁加固**（`tests/sample-docs.test.mjs`）：新增「每个页面都有可复制代码块，且写了三段固定段」（逐页断言 `<WhenToUse>` / `Related="` / `<Notes>`）与「非组件页与组件页共用同一骨架」（骨架锚点等于目录 id、`ShowcaseCode` 锚点唯一且至少两段）；原「每段 demo 都有自己的标题与代码」收窄到组件页，「片段用到了本页记录的组件」从“每段都要点名”放宽为“整页至少一处”——一页可能同时给形态片段与小节片段，逐段要求会逼出注水注释。浏览器检查新增三条真实渲染断言（安装页的骨架与四个代码块、设计基础与实验台两页的骨架与两段片段）。
 - [x] 文档同步：`component-plan` §4 的目标结构表按实际取值改写（`<Controls>` 54/54、代码块 57/57、三段固定段 57/57、搜索索引 451 条 / 57 页），批次 5 标为已交付。`Feedback` 页“无组件类型的页也要有 API 区”那条既有断言不受影响：三页在 API 生成物里没有条目，`ComponentPage.HasApi` 为假，因此不渲染 API 段。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --test tests/*.test.mjs` **93 项**通过；`node scripts/generate-search-index.mjs --check`（451 条 / 57 页）；`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`（78 文案键）、`node scripts/check-css-comments.mjs`（73 文件）、`node --check tests/browser/verify.mjs` 通过。浏览器侧：新增三条断言的形态已用独立 CDP 脚本逐页实测（**11/11**：骨架三段、代码块数、无横向溢出、`.glass-lab` 变量宿主与 22 个实验格、`upload` 页作对照），而 `verify.mjs` 全量在这台机器上仍跑不到该段落——第 1356 行的 `Emulation.setDeviceMetricsOverride` 报 `Target does not support metrics override`，与 `10.34.0` / `10.34.1` 记录的是同一条既有环境项，由 CI 复核。
+- 验证：例外：`verify.mjs` 全量在本机报 `Target does not support metrics override`（同 10.34.0/10.34.1 记录），由 CI 复核。
 ## 示例工程页头搜索改为居中弹出的模态面板（版本号未递增）
 
 - [x] **入口换成"像输入框的按钮"**：`ShowcaseSearchBox` 不再是库内 `Input` 的宿主，改成一个原生 `button`（`aria-haspopup="dialog"` + `aria-expanded` + `aria-keyshortcuts`），字段外观直接取库内控件 token（`--aeterni-control-*`、`--aeterni-focus-*`、`--aeterni-radius-input`），右侧键位提示按平台写成 ⌘K / Ctrl K。读屏名字来自可见文案，因此不用 `aria-label` 覆盖它（避开"可见标签不在可访问名字里"）。
@@ -376,8 +408,10 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **输入框按 id 交给 JS，不传元素引用**：父组件的 `OnAfterRenderAsync` 先于子组件执行，面板第一次挂载时 `Input` 的 `ElementChanged` 还没回填，元素引用那一趟必然是空的——第一版正是因此在打开后没把焦点放进输入框，Escape 与 Tab 的断言随后连锁失败。只传面板元素，输入框由 JS 用 `document.getElementById`（公开的 `InputId`）解析。
 - [x] **面板渲染在页头玻璃卡片之外**：卡片的 `backdrop-filter` 会成为最近的 backdrop root，卡内浮层的模糊只能采样卡片内部那张透明背景——与 10.33.0 里 `Popover.Anchor` 要解决的是同一件事，只是这次连"锚定"都不需要。
 - [x] 断言改写：原来的"就地下拉"一组换成居中面板的开合与几何——触发器的 dialog 契约、关着时面板不在 DOM 且无遮罩无滚动锁、点触发器后 dialog 语义 + 遮罩 + 滚动锁 + 输入框自动聚焦、面板中心与视口中心重合、面板与页面根之间没有别的 backdrop root、遮罩铺满视口、面板层级高于页头、Escape / Ctrl+K / 点遮罩三条关闭路径都把焦点还给触发器、Tab 五次仍留在面板内、Enter 落地后面板与输入框离场且滚动锁释放、关闭后页面重新可滚。REV-118 的注释同步（页头不再有 combobox，改成入口按钮）。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`node --check`（`sample-search.js` 与 `verify.mjs`）、`check-css-comments.mjs`（73 文件）、`check-doc-drift.mjs`（78 文案键）通过；`tests/browser/verify.mjs` 在本机无头 Chrome 上实跑，搜索相关断言全部通过（129 行输出里唯一的 FAIL 是既有的 `P7 PageDown steps ten increments without scrolling the page`，见下）。实测：触发器提示 `Ctrl K`、输入"时间"得到 3 条命中、面板 `640×271` 在 `1440×900` 里居中、Escape 后 `open:false / focused:true`。
-- 本机环境项（非本次改动）：`generate-api-reference --check` 报"仓库 CRLF / 生成器 LF"（逐行内容一致，与 10.34.0 记录的是同一件事）；`generate-search-index.mjs --check` 因目录条目指向尚不存在的页面文件（`PatternDrawer.razor`）抛 `ENOENT`；`node --test tests/*.test.mjs` 有 1 项「目录里的每个条目都有页面文件」失败；`bash scripts/check-docs.sh` 在本机 WSL 下因工作区文件是 CRLF 而提前退出（`grep -E '^## [0-9]+\. Checkbox$'` 匹配不到带 `\r` 的行尾）。`P7` 那一条：Slider 的同类断言通过，InputNumber 的 JS 抑制在探针里 `defaultPrevented:true`，失败只出现在 CDP 真实按键路径上，与本轮改动无关（本次未触碰 InputNumber）。以上均由 CI 复核。
+- 验证：例外：`verify.mjs` 唯一 FAIL 是既有的 `P7 PageDown steps...`，与本批无关。
+- 本机环境项（非本次改动）：`generate-api-reference --check` 报"仓库 CRLF / 生成器 LF"（逐行内容一致，与 10.34.0 记录的是同一件事）；`generate-search-index.mjs --check` 因目录条目指向尚不存在的页面文件（`PatternDrawer.razor`）抛 `ENOENT`；`node --test tests/*.test.mjs` 有 1 项「目录里的每个条目都有页面文件」失败；`bash scripts/check-docs.sh` 在本机 WSL 下因工作区文件是 CRLF 而提前退出（`grep -E '^## [0-9]+\. Checkbox$'` 匹配不到带 `\r` 的行尾）。
+  - `P7` 那一条：Slider 的同类断言通过，InputNumber 的 JS 抑制在探针里 `defaultPrevented:true`，失败只出现在 CDP 真实按键路径上，与本轮改动无关（本次未触碰 InputNumber）。
+  - 以上均由 CI 复核。
 
 ## 10.34.1 Segmented 的圆角与内缩改成「形状一致 + 三档统一」
 
@@ -387,7 +421,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **内缩三档统一 3px**：`--aeterni-segmented-padding` 不再由圆角反推，改为 `calc(var(--aeterni-spacing-1) - var(--aeterni-border-width))`；`--sm` / `--lg` 都不再重复声明它。边框到滑块之间的间距从此不随 `Size` 变。
 - [x] **连带的高度后果（用户知情后选择"统一 3px"）**：`轨道高 = 2(描边) + 2×3 + 24` 对小号是 32px，比 `--aeterni-control-height-sm`（28px）高 4px——它统一内缩后的可用高度只剩 20px，被 24px 热区顶了起来；默认档与大号不受影响（仍是 36 / 44px）。要让它回到 28px 只能把内缩压到 1px 以下，与"三档统一"不可兼得。`delivered-features` 的 `Size` 一条与 `engineering-reference` 的内边距预算段已按此改写。
 - [x] **代价写进文档**：滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上比四边宽 1.66px（三档同值）。`engineering-reference` 现在把"同心 vs 同形"两条路线与各自代价摆在一起，并保留上一条教训——内缩不能由圆角反推：`Pill` 档会把被减项重指成 `9999px`，算出 `-9994px` 的内缩，`padding` 落到 0、滑块同时被 `inset` 撑到两万像素高。
-- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **36 组**（形状组断言改为：滑块与选项取轨道自己的圆角、内缩是由间距刻度给出的三档统一值且不得读取胶囊档会重指的变量、`--sm` / `--lg` 不得重复声明内缩、胶囊档把选项推出半高裁切）；`check-css-comments.mjs`（73 文件）、`check-docs.sh` 的各项断言通过。浏览器断言改为**「三档内缩统一为 3px，滑块与选项圆角跟该档轨道圆角一致」**（实测内缩 `3/3/3`、圆角 `4/6/8`、四边留白三档同为 4px）与**「三档轨道高度为 32 / 36 / 44，留白四边等宽且不缩破 24px 热区」**（实测 `32/36/44`，角上留白三档同为 4.66px）；`Pill` 那条继续通过（内缩仍是 3px、滑块半径 14px 即半高）。按"修复与优化递增第三位"（§4.9）从 `10.34.0` 升到 `10.34.1`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、六份版本头文档、README tag 示例。
 
 ## 10.34.0 Segmented 的 Home/End、圆角几何与禁用项热区光标
 
@@ -395,31 +428,41 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 
 - [x] **`Home`/`End` 在 C# 里补齐**：`HandleKeyDownAsync` 用 `FirstEnabledIndex()` / `LastEnabledIndex()` 跳到首/尾**可用**项（禁用项不参与，与方向键一致），选中仍走既有的 `SelectAsync` 路径，再用 `ElementReference.FocusAsync(preventScroll: true)` 把真实 DOM 焦点一起带过去——程序化 focus 一个 radio 不会选中它，而方向键是从**聚焦**项而不是选中项出发的，两者必须同步。
 - [x] **新增 `Segmented.razor.js`（`Interactive = false`）**：只做一件 C# 做不到的事——`Home`/`End` 的默认动作发生在 DOM 事件里，而 Blazor 的合成处理器跑在它之后，纯 C# 版本会一边改选中、一边让页面跳到底。模块在 root 上挂一个 `keydown` 监听，只对 target 是可用 radio 且无修饰键的 `Home`/`End` 调用 `preventDefault()`；**不碰方向键**，否则原生 radio 的焦点 + 选中导航就没了。不需要 DotNet 回调，所以不参与 interactive init，`sync` 自建实例（`Checkbox` 是同一模式的先例）。
-- [x] **默认档滑块的圆角（几何缺陷）**：`--aeterni-segmented-inner-radius` 原本是 `max(0px, 轨道圆角 − 描边 − 内缩)`，而默认档固定内缩 5px，`6 − 1 − 5 = 0` 被下限截成直角——圆角轨道里嵌着一个方角滑块（实测 `sliderRadiusUsed: 0`，而 Small / Large 两档恰好是 2px，三档并不一致）。修法是把同心等式**反过来解**：滑块与选项的半径先定为共享的一档（`--aeterni-radius-xs`，2px，三档相同），内缩再由 `档位轨道圆角 − 描边 − 滑块半径` 推导，三档因此得 1 / 3 / 5px，描边、滑块与选项三条弧重新同心（角上留白 == 四边留白）。**默认档内缩 5px → 3px 是这条推导的必然结果**，副作用是它的滑块与选项从 24px 变高到 28px（仍在 24px 热区之上，轨道高度保持 36px 不变）。`Pill` 档额外把滑块半径交回 `--aeterni-radius-full`、由半高裁切收成同心胶囊；**内缩公式只读圆角档的那两个变量**（`--aeterni-segmented-radius-rounded` 与 `--aeterni-radius-xs`），不读胶囊档会重指的 `--aeterni-segmented-radius` / `--aeterni-segmented-inner-radius`——第一版实现正是读了后者，`6 − 1 − 9999 = -9994px` 让 `padding` 计算为 0，同一串值又把滑块的 `inset` 撑成两万像素高（实测 `sliderH: 20022`、`gapInline: -9993`），所以两档的滑块宽度、位移与选中位置仍然完全一致这条现在是钉住的。
-- [x] **禁用选项的热区光标**：`cursor: not-allowed` 原本只写给 `.aeterni-segmented__input:disabled + .aeterni-segmented__label`（内层文字），真正被鼠标命中的 `.aeterni-segmented__option` 仍从基础规则带 `cursor: pointer`——实测禁用项 `optionCursor:"pointer"` / `innerLabelCursor:"not-allowed"`，即"文字上是禁用、热区上是手型"。补 `.aeterni-segmented__option.is-disabled { cursor: not-allowed; }`，与 `Radio` 的 `.aeterni-radio:has(... :disabled)`、`ToggleGroup` 的 `__item:disabled` 同一约定；整组禁用时每个选项也带 `is-disabled`，所以这一条同时覆盖两种情况。
+- [x] **默认档滑块的圆角（几何缺陷）**：`--aeterni-segmented-inner-radius` 原本是 `max(0px, 轨道圆角 − 描边 − 内缩)`，而默认档固定内缩 5px，`6 − 1 − 5 = 0` 被下限截成直角——圆角轨道里嵌着一个方角滑块（实测 `sliderRadiusUsed: 0`，而 Small / Large 两档恰好是 2px，三档并不一致）。
+  - 修法是把同心等式**反过来解**：滑块与选项的半径先定为共享的一档（`--aeterni-radius-xs`，2px，三档相同），内缩再由 `档位轨道圆角 − 描边 − 滑块半径` 推导，三档因此得 1 / 3 / 5px，描边、滑块与选项三条弧重新同心（角上留白 == 四边留白）。
+  - **默认档内缩 5px → 3px 是这条推导的必然结果**，副作用是它的滑块与选项从 24px 变高到 28px（仍在 24px 热区之上，轨道高度保持 36px 不变）。
+  - `Pill` 档额外把滑块半径交回 `--aeterni-radius-full`、由半高裁切收成同心胶囊；**内缩公式只读圆角档的那两个变量**（`--aeterni-segmented-radius-rounded` 与 `--aeterni-radius-xs`），不读胶囊档会重指的 `--aeterni-segmented-radius` / `--aeterni-segmented-inner-radius`——第一版实现正是读了后者，`6 − 1 − 9999 = -9994px` 让 `padding` 计算为 0，同一串值又把滑块的 `inset` 撑成两万像素高（实测 `sliderH: 20022`、`gapInline: -9993`），所以两档的滑块宽度、位移与选中位置仍然完全一致这条现在是钉住的。
+- [x] **禁用选项的热区光标**：`cursor: not-allowed` 原本只写给 `.aeterni-segmented__input:disabled + .aeterni-segmented__label`（内层文字），真正被鼠标命中的 `.aeterni-segmented__option` 仍从基础规则带 `cursor: pointer`——实测禁用项 `optionCursor:"pointer"` / `innerLabelCursor:"not-allowed"`，即"文字上是禁用、热区上是手型"。
+  - 补 `.aeterni-segmented__option.is-disabled { cursor: not-allowed; }`，与 `Radio` 的 `.aeterni-radio:has(... :disabled)`、`ToggleGroup` 的 `__item:disabled` 同一约定；整组禁用时每个选项也带 `is-disabled`，所以这一条同时覆盖两种情况。
 - [x] **形状示例改成并排对比**：示例的「形状档位」卡片改为「圆角与胶囊」，上下两排同屏——上排跟随 `Shape` 切换、下排固定是"另一档"，所以任何时刻都能对比两档；`Shape` 的代码片段也改成两档并排。`generate-search-index` 随之重生成（只有一个段标题变更）。
 - [x] 文档与示例跟进：`delivered-features` §32 把"组件没有键盘 JS"改为"方向键仍完全归浏览器、组件只补 `Home`/`End` 并交出一个最小模块拦默认动作"，并重写内缩/圆角两条（改为"半径先定、内缩推导"）；`engineering-reference` §5.5 的两段（内边距预算、同心圆角）同步新公式，并记下"内缩不能手写"的教训与"四边留白量不出这类缺陷"的量化方法。按"功能新增递增第二位"（§4.9）从 `10.33.0` 升到 `10.34.0`：`Directory.Build.props` 四处、`AGENTS.md` 版本头与项目索引、六份版本头文档、README tag 示例。
-- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **36 组**（新增 `CheckSegmentedKeyboardAsync`：模块声明与 `sync`/`dispose` 导出、模块只接管 Home/End、Home/End 经 `SelectAsync` + `preventScroll` 焦点、禁用项光标规则；形状组另加：滑块与选项共用半径、内缩由同心公式推导、尺寸档位不得重复声明内缩、胶囊档交回半高裁切）；`check-css-comments.mjs`（73 文件）、`check-doc-drift.mjs`（78 文案键）、`check-docs.sh` 的全部断言、`node --check`（新模块与 `verify.mjs`）、`generate-search-index --check`（442 条 / 57 页）通过。**负向验证**：临时把 `is-disabled` 的 `cursor` 改回 `pointer`、并往模块的键集合里加 `'ArrowRight'` → 契约检查精确报出 `The Segmented module may only own Home/End…` 与 `A disabled Segmented option must show the disabled cursor on the label…` 两条；再把内缩公式改回引用 `--aeterni-segmented-inner-radius`（胶囊档会重指它）→ 报出 `The inset must be derived from the tier radius, the hairline and the shared tile radius - never from a variable the capsule repoints…`。浏览器侧（Segmented 共 9 条，全部通过）：形状组断言改为 `sliderRadiusUsed === 2` 并新增**「三档的滑块与选项圆角统一为 2px，内缩按档位轨道圆角推导」**（实测三档 padding `1/3/5`、滑块与选项圆角都是 `2px`、角上留白 == 内缩即 `1/3/5`）；Pill 断言加了一条内缩检查（实测 `padding 3 / sliderH 28 / 滑块半径 14`，即半高，不再是负值事故里的 `0 / 20022 / 9999`）；原来那条「形状只作用于设置了 `Shape` 的那一组」按并排示例重写为**「形状只作用于自己那一组，切换后两组仍是相反档位」**——旧断言拿"切换前"读到的对照读数去比，而并排布局下切换前那组正是胶囊档（`OtherShape`），这条会必然失败，属于示例语义变化必须同步测试的实例；另新增两条 Home/End 断言，实测通过（`before`/`home`/`end` 的 `scrollY` 都是 2182，选中分别是"2 分 / 1 分 / 5 分"，焦点与焦点环一并跟随）——这条只有真实引擎里按 Home/End 才有意义，**第一次跑出的是假失败**：示例的滚动是平滑动画（实测约 700ms 才停），基准值取在动画中途（读到 950、实际落点 1927），断言已改为等滚动稳定后再取值。
-- [x] 两个已知环境项，非本次改动：`generate-api-reference --check` 在本机报"仓库 CRLF / 生成器 LF"，但两个生成物**逐行内容一致**（`git diff` 为空，`git ls-files --eol` 为 `i/lf w/crlf`），是 Windows checkout 的行尾；本机整套 `verify.mjs` 也跑不完——第 1356 行的 `Emulation.setDeviceMetricsOverride` 报 `Target does not support metrics override`，失败点落在本次未触及的段落，`Homepage uses Timeline`（`pageOverflow:392`）与 `REV-146 Search hover`（`:hover` 未命中）两条既有的环境失败同样复现。均由 CI 复核。
+- [x] 两个已知环境项，非本次改动：`generate-api-reference --check` 在本机报"仓库 CRLF / 生成器 LF"，但两个生成物**逐行内容一致**（`git diff` 为空，`git ls-files --eol` 为 `i/lf w/crlf`），是 Windows checkout 的行尾；本机整套 `verify.mjs` 也跑不完——第 1356 行的 `Emulation.setDeviceMetricsOverride` 报 `Target does not support metrics override`，失败点落在本次未触及的段落，`Homepage uses Timeline`（`pageOverflow:392`）与 `REV-146 Search hover`（`:hover` 未命中）两条既有的环境失败同样复现。
+  - 均由 CI 复核。
 
 ## 10.33.0 Popover 锚点解耦与 Segmented 形状档位
 
 两个公共 API 新增合成一次递增（`10.32.0` → `10.33.0`）：`Popover.Anchor` 与 `Segmented.Shape`，两者都在 `scripts/api-since.json` 里登记为 10.33.0，`Directory.Build.props` 四处齐动，`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
 
-- [x] **`Popover.Anchor`（`ElementReference?`）**：把"锚点元素"与"渲染位置"解耦——设了锚点就按它定位、翻转与贴边，浮层可以渲染到别处；"点击外部"判定也把锚点算作层内（否则点触发器会被判成外部先关一次、click 又打开，双触发）。不设锚点时行为与之前逐字节相同（契约检查里有一条断言比较设与不设锚点的渲染标记）。实现走新的模块方法 `setAnchor(instanceId, element)` 而不是加长 `setOpen(...)` 的参数表：锚点变化时可以只重排、不动开合状态机，模块内按元素去重所以重渲染不会反复重排；元素脱离文档时回退宿主；锚定模式用 `position: fixed` 并在落位前实测固定定位包含块的原点，因此祖先带 `transform`/`filter`/`backdrop-filter` 时也不会偏。监听器与 Observer 照旧在实例级 `dispose(instanceId)` 释放。
+- [x] **`Popover.Anchor`（`ElementReference?`）**：把"锚点元素"与"渲染位置"解耦——设了锚点就按它定位、翻转与贴边，浮层可以渲染到别处；"点击外部"判定也把锚点算作层内（否则点触发器会被判成外部先关一次、click 又打开，双触发）。
+  - 不设锚点时行为与之前逐字节相同（契约检查里有一条断言比较设与不设锚点的渲染标记）。
+  - 实现走新的模块方法 `setAnchor(instanceId, element)` 而不是加长 `setOpen(...)` 的参数表：锚点变化时可以只重排、不动开合状态机，模块内按元素去重所以重渲染不会反复重排；元素脱离文档时回退宿主；锚定模式用 `position: fixed` 并在落位前实测固定定位包含块的原点，因此祖先带 `transform`/`filter`/`backdrop-filter` 时也不会偏。
+  - 监听器与 Observer 照旧在实例级 `dispose(instanceId)` 释放。
 - [x] **`Segmented.Shape`（`SegmentedShape { Pill, Rounded }`）**：默认 `Rounded`，按"默认档不输出修饰类"的约定不带类名；`Pill` 输出 `aeterni-segmented--pill`。两种形态只重指三处共用的 `--aeterni-segmented-radius`（圆角档跟尺寸走：`--sm` 4px / 默认 6px / `--lg` 8px；胶囊档为 `--aeterni-radius-full`），**不动** `--aeterni-segmented-count/index`，所以选中指示块的宽度与位移不受形状影响。`OnParametersSet` 里做 `Enum.IsDefined` 校验，并在契约检查的非法枚举表里登记。
 - [x] 连带效果（用户知情后选择"默认圆角"）：库内 `ThemeSwitch` 是 `Segmented` 的专用用法，默认外观随之从胶囊变为圆角，`delivered-features` 里相应表述已改为与渲染一致（"选中指示块"），并注明形状只改圆角。
 - [x] **页头两个下拉的背景模糊**：根因是它们渲染在页头玻璃 `Surface` 内部，而该 Surface 自带 `backdrop-filter`、成为最近的 backdrop root，浮层自身的 `backdrop-filter` 只能采样那张透明卡片 → 面板看起来完全没有模糊。量化指纹是"去掉面板自身模糊前后像素完全一致"（`blurDelta: 0`），而旧套件只用平均色、**模糊保留平均色**，所以这个缺陷对既有断言不可见。修法即上面新增的 `Anchor`：两个浮层改由 `PopupHost` 渲染在页头之外、按触发器元素固定定位，示例顺带去掉为让开裁剪而加的 `Surface Style="overflow: visible"`。
-- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；契约检查 **35 组**（新增 `Segmented` 形状组，锚点契约并入既有浮层组）；`node scripts/generate-api-reference.mjs --check`（54 页 / 667 行）、`node scripts/generate-search-index.mjs --check`（442 条 / 57 页）、`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`（78 文案键）、`node scripts/check-css-comments.mjs`（73 文件）、`node scripts/check-contrast.mjs`（315 门）、`node --test tests/*.test.mjs`（**91 项**，含新增 `tests/popover-anchor.test.mjs` 6 项）通过；`tests/browser/verify.mjs` 在 Windows 侧 Chrome 上实跑 **114/114**（新增 16 项：锚点/模糊/对齐/滚动跟随/零破坏、形状两档与几何不变、页内目录三条），由 CI 复核。形状档位与锚点能力都做了**负向验证**：临时删掉 `--pill` 类与 CSS 规则 → 契约检查精确报 `The non-default pill shape must name itself in the class list.`；临时恢复旧的宿主嵌套 → 浏览器断言报 `anchored:false, position:"absolute"` 与 `blurDelta:0`。
 
 ## Segmented 描边与滑块留白，示例预览/代码切换改用 Segmented（版本号未递增）
 
 - [x] **`Segmented` 轨道描边**：从 `--aeterni-border` 换成 `--aeterni-border-strong`（仍是 1px `--aeterni-border-width`）。分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，同时不引出一层填充；禁用档与无效档照旧换描边色。
-- [x] **滑块留白**：`--aeterni-segmented-padding` 从 `--aeterni-spacing-1`（4px）改为 `--aeterni-spacing-1` + `--aeterni-border-width`（5px），Small 档仍是 1px。这一个值同时喂给轨道内边距、滑块内缩与滑块行程，所以滑块仍逐像素落在选项列上（浏览器断言 `sliderWidth === optionWidth`、`offset ≤ 0.5` 保持通过）。**5px 是上限而不是随手取的值**：默认档可用高度只有 `36 - 2(border) - 2(padding)`，选项的 `min-height` 是 24px 热区，5px 时两者恰好相等（实测轨道仍 36px、选项 24px、滑块四边留白 6px）；取 6px 会把轨道顶到 **38px**，与同档 Input / Button 相差 2px——这条权衡写进了 `engineering-reference` §5.5，并由新的浏览器断言钉住（高度档位、热区下限、滑块四边留白相等）。Small 档若跟随 5px 同样会涨到 38px，因此按档位单独保留 1px。
+- [x] **滑块留白**：`--aeterni-segmented-padding` 从 `--aeterni-spacing-1`（4px）改为 `--aeterni-spacing-1` + `--aeterni-border-width`（5px），Small 档仍是 1px。
+  - 这一个值同时喂给轨道内边距、滑块内缩与滑块行程，所以滑块仍逐像素落在选项列上（浏览器断言 `sliderWidth === optionWidth`、`offset ≤ 0.5` 保持通过）。
+  - **5px 是上限而不是随手取的值**：默认档可用高度只有 `36 - 2(border) - 2(padding)`，选项的 `min-height` 是 24px 热区，5px 时两者恰好相等（实测轨道仍 36px、选项 24px、滑块四边留白 6px）；取 6px 会把轨道顶到 **38px**，与同档 Input / Button 相差 2px——这条权衡写进了 `engineering-reference` §5.5，并由新的浏览器断言钉住（高度档位、热区下限、滑块四边留白相等）。
+  - Small 档若跟随 5px 同样会涨到 38px，因此按档位单独保留 1px。
 - [x] **示例 demo 卡的预览/代码切换改用库内 `Segmented`**：删掉手写的 `role="tablist"` + 两个按钮 + `role="tabpanel"` 与 `HandleTabKeyDown`，换成 `Segmented<TValue="bool">`（`Items = [false, true]`、`TextSelector` 给"预览 / 代码"、`Size.Small`、`AriaLabel="{标题}视图"`）。单选语义、方向键与"整组一个 Tab 停留点"因此由浏览器对原生 radio 提供，示例不再自维护 tab 键盘模型；代码面板的折叠仍是真正不渲染（`hidden`），没有代码的卡片不渲染分段控件（一个选项的开关不叫开关）。
 - [x] **结果列表行距**：页头搜索的命中列表加 `gap: var(--aeterni-spacing-1)`（与库内 `List` 同档）。每行自带圆角背景，贴在一起时活动项的底色与邻行连成一片，读者分不出是两行还是一个色块；这属于"示例自绘列表绕开了库内 List 的既有外观"，不是新设计。
-- [x] 测试与门禁跟进：`.component-demo__tab` 断言改为按分段控件定位（点第二个选项开代码）、代码面板改按 `.component-demo__panel--code` 数 `hidden`；`showcase.css` 里随之失去消费者的 `.component-demo__tab*` 规则全部删除。新增两条真实渲染断言：**「分段控件切到「代码」后面板真的换过来」**（原生 radio 的 `change` → Blazor 重渲染这条路径静态检查看不见，实测 `codeHidden:false / previewHidden:true / checked:"代码"`）与**「搜索结果行之间留出 List 同档的间隙」**（实测 `gap:4px`，未修版本实测 `gap:0px`，构成负向对照）；Segmented 组另加**「默认档保持控件高度档位，且滑块四边留白相等」**（实测 `track=36/36px option=24/24px inline=6 block=6`）。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 35 组通过；`check-css-comments.mjs`（73 文件）、`check-doc-drift.mjs`（78 文案键）、`check-contrast.mjs`（315 门）、`generate-api-reference --check`（54 页 / 667 行）、`generate-search-index --check`（442 条 / 57 页）、`bash scripts/check-docs.sh`、`node --check`（改动的 `.razor.js` 与 `verify.mjs`）通过。`tests/browser/verify.mjs` 在真实 Chrome 上实跑 **116/117**（新增 3 条），唯一失败项是既有的「浮层的模糊作用在背后的页面内容」（`blurredSharpness: 0`）——它在**未改动的 HEAD 基线上同样失败**（基线实跑 113/114），是这台机器上 `--disable-gpu` 无头环境的 `backdrop-filter` 限制，不是本次改动的回归；几何与列表间隙另有独立实测（见上两条的实测值）。
+- [x] 测试与门禁跟进：`.component-demo__tab` 断言改为按分段控件定位（点第二个选项开代码）、代码面板改按 `.component-demo__panel--code` 数 `hidden`；`showcase.css` 里随之失去消费者的 `.component-demo__tab*` 规则全部删除。
+  - 新增两条真实渲染断言：**「分段控件切到「代码」后面板真的换过来」**（原生 radio 的 `change` → Blazor 重渲染这条路径静态检查看不见，实测 `codeHidden:false / previewHidden:true / checked:"代码"`）与**「搜索结果行之间留出 List 同档的间隙」**（实测 `gap:4px`，未修版本实测 `gap:0px`，构成负向对照）；Segmented 组另加**「默认档保持控件高度档位，且滑块四边留白相等」**（实测 `track=36/36px option=24/24px inline=6 block=6`）。
+- 验证：例外：`verify.mjs` 116/117，唯一失败项「浮层的模糊作用在背后页面内容」(`blurredSharpness: 0`) 在未改动 HEAD 基线同样失败（`--disable-gpu` 无头环境的 `backdrop-filter` 限制）。
 
 ## 示例工程页内目录的两个报障修复（版本号未递增）
 
@@ -427,16 +470,19 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] **滚到页面底部时「相关组件」「说明与边界」不被选中**：滚动高亮的观察带是视口顶部三成（`rootMargin: '0px 0px -70% 0px'`），页尾的段永远进不了这条带；原断言当时是**绕开**了这一点（改用页中段，并在注释里写明"拿它断言等于在测浏览器能不能把页尾滚到顶部"），但绕开不等于读者不该在页尾看到正确高亮。`sample-docs.js` 现在在"滚动到底"这个状态上单独判定：到底时把最后一段判为当前段（页面一屏放得下时不适用）。
 - [x] 浏览器检查：目录断言的 `deadLinks` 跟随新地址形态取值；`waitForCurrentSection` 按段 id 比较；新增三条断言——目录链接必须落在本页片段、**真实点击**目录链接后仍留在 `/components/upload` 且目标段滚进视口、滚到页面底部时最后一段（`upload-notes-title`）成为当前段并带 `aria-current`。
 
-
-
-- [x] 新增 `scripts/generate-search-index.mjs`：解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `ShowcaseSearchIndex.generated.cs`（441 条 = 57 个页面条目 + 54 个组件页上真实存在的段）。段锚点与 `ComponentPage` / `DemoCard` 渲染出来的 id 逐字一致（`-when-title`、demo 卡片 `Id`、`-api-title`、`-related-title`、`-notes-title`），只登记页面上真的存在的段——没有 `<WhenToUse>` 就没有「何时使用」，「参数与事件」读的是 API 生成物（因此生成顺序是 API → 索引）。生成物提交进仓库，CI 的 build job 新增 `Search index is up to date`（`--check`），`AGENTS.md` §4.8 门禁清单与 §2 必读路由同步。
+- [x] 新增 `scripts/generate-search-index.mjs`：解析 `Pages/Components/*.razor`，产出页头搜索框的数据源 `ShowcaseSearchIndex.generated.cs`（441 条 = 57 个页面条目 + 54 个组件页上真实存在的段）。
+  - 段锚点与 `ComponentPage` / `DemoCard` 渲染出来的 id 逐字一致（`-when-title`、demo 卡片 `Id`、`-api-title`、`-related-title`、`-notes-title`），只登记页面上真的存在的段——没有 `<WhenToUse>` 就没有「何时使用」，「参数与事件」读的是 API 生成物（因此生成顺序是 API → 索引）。
+  - 生成物提交进仓库，CI 的 build job 新增 `Search index is up to date`（`--check`），`AGENTS.md` §4.8 门禁清单与 §2 必读路由同步。
 - [x] 新增数据形状 `ShowcaseSearchEntry`（PageId / PageTitle / Category / SectionId / SectionTitle + `Href`）与目录侧的路由规则 `ShowcaseCatalog.RouteFor`（安装页挂 `/components`），侧栏导航与搜索结果因此共用同一份地址来源。
 - [x] 页头改为「常驻搜索框 + 设置入口」：`ShowcaseSearchBox`（库内 `Input` + 搜索图标 + `PopupHost`/`Popover` 就地下拉）与 `ShowcaseSettings`（库内 `Button` 触发器 + 浮层里的 `ThemeBrandSwitch` / `ThemeSwitch`，各带可见标签）。原先并排挂在页头的两个分段开关移进设置浮层，`app.css` 里只为它存在的 `.header-theme-switch` 随之删除；`Surface` 默认 `overflow: hidden` 会剪掉整块下拉，因此页头用公开的 `Style` 参数让开这次裁剪（未覆写任何组件规则）。
 - [x] 交互与无障碍照库内 ComboBox / Autocomplete 的模型：输入框 `role="combobox"` + `aria-expanded` + `aria-controls` + `aria-activedescendant`，结果容器 `role="listbox"`、每条 `role="option"` + `aria-selected`；方向键循环、Home/End 到首尾、Enter 打开、Escape 与点击外部关闭且保留输入内容；空查询不展开下拉，无命中时给明确文案。命中后清空输入并跳到 `/components/{页}#{段}`。
 - [x] 跨页跳转的滚动由示例自己补：框架只在同文档（路径与查询串都不变）时滚动 hash，从别的页面跳过来只 `history.pushState`。`wwwroot/js/sample-search.js` 负责"等目标段渲染出来再滚"（并返回成败），同时承担导航键默认动作的抑制与活动项滚动——与 `Autocomplete.razor.js` 同一做法，另有 `.component-demo` 等段的 `scroll-margin-top` 让落点停在固定页头下方。
-- [x] 浏览器检查新增 15 项：搜索框常驻且声明 combobox 契约、空查询不展开下拉、输入关键词后命中减少（`组件` 416 条 → `时间` 3 条）且包含 Timeline / DateTimePicker 两页、无命中时给出明确文案、ArrowDown 移动活动项、Enter 后 `location.pathname + location.hash` 为 `/components/timeline#timeline-horizontal` 且该 id 的元素真实存在并进入视口、命中后收起并清空、Escape 与真实指针点击外部关闭但保留输入、设置浮层的 `aria-expanded` / 两个开关 / 关闭后焦点归还触发器。**既有断言调整一处**：REV-118 的 `tabUntil` 起点与诊断查询锚定到 `#theme` 范围内——页头新增的搜索框是文档里第一个 `combobox`，不限定的诊断会量到那个没有焦点的输入框（实测 `outline-style=none`），断言测的不再是它声称的被重新指向的消费者。
-- [x] 修掉卡片化重构留下的缺口：`Feedback` 页的三张手写表（`FeedbackParameters` / `FeedbackEvents` / `FeedbackContracts`）在页面改成卡片结构后失去了消费者——没有人把它们传给 `ComponentPage`，而该页没有对应组件目录、生成器又对空成员直接跳过，于是**页面上整个 API 区消失了**，门禁还把这页当例外放过。修法是让生成器支持"纯额外行"的页（成员为空但编辑文件里有行时照样产出条目），把这 21 行收进 `scripts/api-extra-rows.json`，删掉页面里的死数组，并把 `feedback` 从 `tests/sample-docs.test.mjs` 的例外集合里移除。生成物因此变为 **54 页 / 665 行**（原 53 页 / 644 行），搜索索引也随之多出 `feedback-api-title`（该页从此有「参数与事件」段）。浏览器检查新增一条真实渲染断言，守的不只是这一页，而是"例外一出现，缺口就没人看得见"这一类问题。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`node scripts/generate-search-index.mjs --check`（441 条 / 57 页）、`node scripts/generate-api-reference.mjs --check`（54 页 / 665 行）、`bash scripts/check-docs.sh`、`node scripts/check-doc-drift.mjs`、`node scripts/check-css-comments.mjs`、`node --test tests/*.test.mjs`（85 项）通过；`tests/browser/verify.mjs` 95/95 通过（含 15 项新增断言），随后补入反馈页 API 区的渲染断言，由 CI 复核。
+- [x] 浏览器检查新增 15 项：搜索框常驻且声明 combobox 契约、空查询不展开下拉、输入关键词后命中减少（`组件` 416 条 → `时间` 3 条）且包含 Timeline / DateTimePicker 两页、无命中时给出明确文案、ArrowDown 移动活动项、Enter 后 `location.pathname + location.hash` 为 `/components/timeline#timeline-horizontal` 且该 id 的元素真实存在并进入视口、命中后收起并清空、Escape 与真实指针点击外部关闭但保留输入、设置浮层的 `aria-expanded` / 两个开关 / 关闭后焦点归还触发器。
+  - **既有断言调整一处**：REV-118 的 `tabUntil` 起点与诊断查询锚定到 `#theme` 范围内——页头新增的搜索框是文档里第一个 `combobox`，不限定的诊断会量到那个没有焦点的输入框（实测 `outline-style=none`），断言测的不再是它声称的被重新指向的消费者。
+- [x] 修掉卡片化重构留下的缺口：`Feedback` 页的三张手写表（`FeedbackParameters` / `FeedbackEvents` / `FeedbackContracts`）在页面改成卡片结构后失去了消费者——没有人把它们传给 `ComponentPage`，而该页没有对应组件目录、生成器又对空成员直接跳过，于是**页面上整个 API 区消失了**，门禁还把这页当例外放过。
+  - 修法是让生成器支持"纯额外行"的页（成员为空但编辑文件里有行时照样产出条目），把这 21 行收进 `scripts/api-extra-rows.json`，删掉页面里的死数组，并把 `feedback` 从 `tests/sample-docs.test.mjs` 的例外集合里移除。
+  - 生成物因此变为 **54 页 / 665 行**（原 53 页 / 644 行），搜索索引也随之多出 `feedback-api-title`（该页从此有「参数与事件」段）。
+  - 浏览器检查新增一条真实渲染断言，守的不只是这一页，而是"例外一出现，缺口就没人看得见"这一类问题。
 
 ## 示例工程文档模板调整（批次 3 续，版本号未递增）
 
@@ -445,7 +491,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] demo 卡的预览与代码改成 tab：预览默认显示，代码默认折叠（panel 带 `hidden`，真正不渲染，不是用样式藏起来），一组 tab 只有一个 Tab 停留点，方向键与 Home/End 在两个 tab 间切换，焦点随选中项走。
 - [x] 卡片内边距统一到 `.showcase-layout` 上的 `--showcase-card-padding`（`clamp(16px, 3vw, 28px)`）：页头、demo 卡、API 段、说明段共用一处，任一段单独写 padding 都会让卡片与侧栏错开；API 表在窄屏改为横向滚动；1000px 以下侧栏叠到内容之上，避免两栏把内容压成窄字。
 - [x] 断言跟进：检索块不再断言计数而是断言"计数已移除"；编辑链接改在卡片内断言；代码相关的断言先点开"代码"tab，并新增「代码默认折叠在 tab 后面」（三个页面抽查）。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（73 文件）、`generate-api-reference --check`（53 页 / 644 行）、`node --test`（85 项）通过；`sample-publish.sh Release` 成功。
 
 ## 示例工程 demo 卡片化（批次 3 起步，版本号未递增）
 
@@ -457,7 +502,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
   - 编译坑逐条记下：`InputNumber` 与框架同名类型冲突必须写全名并显式 `TValue`，`TValue=decimal` 时数值字面量要写 `@(0.5m)`，绑定字段需可空；示例导入了库的 `List` 与 `System.Collections.Generic.List<T>` 撞名；属性文本里的 `@bind-Value` 要转义。
 - [x] 门禁与断言跟进：`tests/sample-docs.test.mjs` 新增「卡片化页面至少两段 demo、锚点唯一、每段都有标题与代码」与「每段代码都声明了、且片段用到了本页记录过的组件」（多组件页面按生成物与额外行的类型前缀判定，`Radio` 与 `RadioGroup` 同页不误报）；浏览器检查新增「组件页按 demo 卡片组织」「带何时使用、相关组件与生成式 API 表」，并对表单组的四个页面做跨页抽查，代码片段断言从单一 id 改为按 `-code` 后缀匹配。拖放断言改为限定到具体卡片，并先等 JS 模块接上监听（一页多个实例时的时序）。
 - [x] 顺手修正示例工程的两处编译坑：属性文本里的 `@bind-Value` 需要转义；示例导入了库的 `List`，与 `System.Collections.Generic.List<T>` 撞名需写全限定。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`node --test tests/*.test.mjs`（85 项）通过。
 
 ## 示例工程 API 表改为源码生成（批次 2，版本号未递增）
 
@@ -468,7 +512,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] `ComponentPreview` 在页面未提供手写表时读取生成物，按 `属性 / 事件回调 / 接口 / 服务` 分组渲染；字段缺失时按空处理，避免手写编辑文件的形状问题变成崩溃。
 - [x] 门禁改写：`tests/sample-docs.test.mjs` 第二项由「页面表覆盖组件参数」改为「每个有组件的条目都出现在生成物里」+「页面不再手写表」，覆盖范围与例外都在门禁里显式声明。
 - [x] 文档同步：`AGENTS.md` 的必读路由新增「示例工程内容、API 表或生成脚本」一行，门禁清单新增 `--check`；`component-plan` §4 按市面组件文档（三条栏 + 五段式 + 生成式 API 表）重写目标结构与批次。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`node scripts/generate-api-reference.mjs --check` 通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`node --test tests/*.test.mjs`（84 项）通过。
 
 ## 示例工程内容与信息架构（批次 1，版本号未递增）
 
@@ -479,7 +522,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 新增内容门禁 `tests/sample-docs.test.mjs`（3 项）：目录条目 ↔ 页面文件与路由一致；页面参数/事件表覆盖组件全部公共 `[Parameter]`（排除非稳定内部部件 `DateCalendar`/`TimeOptionList`，支持汇总行通配）；提供代码块的页面必须定义 `UsageCode` 且片段用到该组件。已反向验证：删掉 `Upload` 的一行登记即失败并点名。
 - [x] 浏览器检查新增「文档壳」5 项：检索与计数、编辑链接指向本页文件且 `target="_blank"`、前后邻居（`upload` 的前后为 `multi-select`/`combobox`）、代码块渲染、复制按钮点击后回报结果；另加侧栏检索过滤断言。
 - [x] 试点页：`Input`（补 `Notes` 与用法片段）、`MultiSelect`（补 3 行登记与用法片段）、`Upload`（补 1 行登记与用法片段）。其余页面的代码块与缺失段落登记为批次 2。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组；`check-docs.sh`、`check-doc-drift.mjs`（78 文案键）、`check-css-comments.mjs`（74 文件）、`node --test tests/*.test.mjs`（84 项）通过。
 
 ## 10.32.0 Upload 组件（优先级 9 第 1 项）
 
@@ -494,7 +536,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 组件计划：优先级 9 排序中的第 1 项 `Upload` 已交付并从计划移除，排序表与现有能力对照同步；后台数据录入场景的下一候选为 `Cascader`。
 - [x] 顺带收口计划文档漂移：`review-plan` 头部已声明第十轮收口、正文却仍留「待修复」表与 `批次 27 ⏳（待开始）`，`component-plan` 仍把优先级 10 登记为「未开始」；两文件统一为「收口即归档」，并在 `check-docs.sh` 增加两条状态一致性断言（反向注入残留时以退出码 1 拒绝）。
 - [x] 发布：在 `main` 上打注解 tag `v10.32.0` 触发 `Publish NuGet packages`，Validate release tag → Release 构建 → Pack → NuGet Trusted Publishing（OIDC），`AeterniUI.10.32.0.nupkg` 与 `AeterniUI.Icons.FontAwesome.10.32.0.nupkg` 均被 nuget.org 接收（`Created`，非 `--skip-duplicate` 跳过），44s 全绿。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 34 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、token 文件组件选择器检查通过；`node --test tests/*.test.mjs` 81 项通过。CI 上 build job 同批全绿，browser job 首次运行 58/59（唯一失败项即上面这条清空竞态），修复后复验 59/59 通过，其中 6 项为真实的 `DataTransfer` 拖放端到端断言。
+- 验证：例外：CI browser job 首次 58/59（清空竞态），修复后 59/59。
 
 ## 10.30.1 Descriptions 示例列数切换修复
 
@@ -518,16 +560,15 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 版本号 `10.31.0` → `10.31.1`（示例与演示口径调整，公共 API 无变化，按仓库约定递增第三位）；`AGENTS.md` 版本头与项目索引、五份带版本头文档、README 发布示例同步。
 - [x] 浏览器检查新增 11 项「示例演示覆盖」断言（每个演示页面按选择器计数），并含「打开范围选择器后出现 ≥3 个预设」一项；这些断言随 10.31.1 的 browser job 一起验证。
 - [x] 发布：注解 tag `v10.31.1` 触发 `Publish NuGet packages`，Validate release tag → Release 构建 → Pack → NuGet Trusted Publishing（OIDC）→ 发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`，40s 全绿。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs`、`node --test`（73 项）通过；浏览器检查 52/52；CI build / browser / Publish 三个工作流绿。
 - 至此第十轮 31 条全部收口（批次 23～27 分别归档在上方对应小节）。
 
 ## 10.31.0 第十轮审阅修复（REV-133～REV-157 与 REV-160～REV-162）
 
-- [x] 版本号在 `Directory.Build.props` 单一来源递增 `10.30.1` → `10.31.0`（`Version` / `AssemblyVersion` / `FileVersion` / `InformationalVersion` 四处齐动）。按仓库约定「功能新增递增第二位」：本批新增公共文案表键 `DescriptionsEmptyValueLabel`、`ConfirmAcceptLabel`、`ConfirmCancelLabel`，并把 `AlertOptions.CloseText` / `ConfirmOptions.ConfirmText` / `CancelText` 改为可空 + 回退，属可观察的公共面变化；`AGENTS.md` 的文档版本头与项目索引、四份带版本头文档、README 的发布示例（`v10.31.0`）同步。
+- [x] 版本号在 `Directory.Build.props` 单一来源递增 `10.30.1` → `10.31.0`（`Version` / `AssemblyVersion` / `FileVersion` / `InformationalVersion` 四处齐动）。
+  - 按仓库约定「功能新增递增第二位」：本批新增公共文案表键 `DescriptionsEmptyValueLabel`、`ConfirmAcceptLabel`、`ConfirmCancelLabel`，并把 `AlertOptions.CloseText` / `ConfirmOptions.ConfirmText` / `CancelText` 改为可空 + 回退，属可观察的公共面变化；`AGENTS.md` 的文档版本头与项目索引、四份带版本头文档、README 的发布示例（`v10.31.0`）同步。
 - [x] 修复批次：23（REV-133～139 P1：Radio 独立绑定、InputNumber 步进与夹取、MultiSelect 字段关联、Descriptions 文案、IconButton 加载墨、Badge RTL）、24（REV-140～143：Holo 混色定调、OnChange/CloseText 契约、断言可移植性）、25（REV-146～148、153～155：指针反馈、JS 元素引用、退场时序、JSException 降级、月份保持、描述 id 合并）、26（REV-144/145、149～152、156/157：文档与注释对账、宿主别名收敛、令牌纪律、死类死关键帧、校验收口、IconButton 文件职责）、27 卫生包（REV-160）与 REV-158/161/162 的文档与性能项。逐项证据见上方各批次小节。
 - [x] 门禁本身的三处缺陷同步修复：`verify.mjs` 失败不再返回 0（此前 browser job 把失败当成功）、主题切换检查的就绪门槛（WASM 冷启动竞态）、`check-docs.sh` 纳入 `AGENTS.md` 版本头校验。
 - [x] 契约门禁新增四个批次函数（`CheckReviewBatch23Async`～`CheckReviewBatch26Async`，共 60 余条断言，逐项做过反向验证）与四个 JS 模块单测（REV-163：Checkbox、DialogProvider、Menu、ThemeProvider）；浏览器检查新增 REV-140/146/148 五项。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`（68 文案键 / 1 退役成员 / 0 待修）、`check-css-comments.mjs`（74 文件）、`check-contrast.mjs`（315 项）、`node --test`（73 项）全部通过；CI 的 build 与 browser 两个 job 绿。
 - [x] 发布：在 `main` 上打注解 tag `v10.31.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 `Directory.Build.props` 版本，再经 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`；全流程绿（41s）。
 - 已知边界：第十轮仅剩 REV-159（示例缺口包）；`DatePicker` 族的 RTL 方向键映射、`.aeterni-dark` 手写入口、`AlertOptions.CloseOnEscape` 的可达范围已按 REV-162 逐项登记在交付文档中。
 
@@ -535,7 +576,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 
 - [x] REV-160（可执行项全部落地）：`VirtualList` 删除恒等死分支（`_activeIndex < 0 && _rows.Count > 0` 置 -1）；7 处裸 `_ = InvokeAsync(StateHasChanged)` 统一走基类的 `RequestStateHasChanged()`（含禁用/销毁守卫）；`Pagination` 的 `prefers-reduced-motion` 块只保留 `transition: none`，不再重复基类的盒模型声明。
 - [x] REV-160（复核后判定无需改动，逐条留证）：`Radio` 的禁用态两组选择器分别覆盖原生 `disabled` 与分组 `is-disabled`，两条规则各有消费者；`Theme` 示例没有死字段（`_feedbackNote` 属 Feedback 示例且被渲染）；`Pagination` 已无「缩放过渡」表述；`ComboBox._visibleItems` 是每次参数设置重建的索引副本，去掉会让每帧重算可见项，收益为负。`TimeOptionList` 传给 JS 的 `ActiveOptionId`／`shouldAlign` 虽在模块内未读取，但它们是模块的**位置参数约定**（浏览器回归按位置传参），删除属破坏性接口变更且不改变行为，故保留并在此记录原因。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`node --test` 67 项通过；文档门禁通过。第十轮剩余 REV-158、REV-159、REV-161～REV-163 共 5 条。
 
 ## 第十轮审阅修复批次 26（P2，版本号未递增）
 
@@ -548,7 +588,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] REV-156：`Menu`／`Segmented` 的 `Items` 补 `ArgumentNullException.ThrowIfNull`；`ConfirmOptions.ConfirmText`／`CancelText` 改为可空并回退新增的 `AeterniUITextOptions.ConfirmAcceptLabel`／`ConfirmCancelLabel`，与 `AlertOptions.CloseText` 同一约定。
 - [x] REV-157：`IconButton` 的 `BuildClass`／`BuildAttributes`／点击处理迁入 `IconButton.razor.cs`；玻璃接管名单复查后交付文档与工程参考均为四角色（`--aeterni-state-color-muted` 早已退出），无需再改。
 - [x] 契约门禁新增 `CheckReviewBatch26Async`：宿主别名清零、Rating 无效规则、Tag 图标机制与变体类、三处同角色令牌、死类与死关键帧、PopupHost 钩子成文、`Menu`／`Segmented` 的 null 校验、确认按钮文案回退与显式优先、IconButton 文件职责、玻璃名单为四角色。断言在修复前实测为红（别名残留、DateTimePicker placeholder、RadioGroup `--horizontal`、slide-in 关键帧四项），修复后转绿。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过。第十轮仅剩 REV-158～REV-163 共 6 条（批次 27）。
 
 ## 第十轮审阅修复批次 25（P2，版本号未递增）
 
@@ -559,7 +598,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] REV-154：日期族的可见月份只在绑定值真正变化时重置（`DatePicker`／`DateRangePicker`／`DateTimePicker`），父级重渲染不再把用户翻到的月份拉回。
 - [x] REV-155：`MultiSelect` 触发器的 `aria-describedby` 改为合并宿主值与 `FormField` 描述 id，字段不再顶掉宿主值。
 - [x] 契约门禁新增 `CheckReviewBatch25Async`（混色/边框 CSS、元素引用来源、JS 失败降级计时、月份保持、描述 id 合并），并逐项做反向验证：回退修复即红（含 `DatePicker` 回退后月份被拉回 2026-01-01 的实测读数）。浏览器检查新增三项：`Search` 分组悬浮边框（真实指针 + `:hover` 命中）、Toast 退场 ≥250ms（实测约 300ms）、reduced-motion 退场 ≤250ms。`ComboBox` 选中项悬浮由契约层的 CSS 断言覆盖：弹层由 `PopupHost` 放置，坐标探针在该环境里无法稳定命中选项（`elementFromPoint` 落到页面容器），而 CDP `CSS.forcePseudoState` 在此无效果，因此不把不可靠的坐标断言留在门禁里。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过；浏览器检查在 CI 的 browser job 上验证新增四项。批次 25 已从审阅计划移除，第十轮剩余 REV-144、REV-145、REV-149～REV-163 共 14 条。
 
 ## 仓库维护记录：发布 tag 与提交署名清理（版本号未递增）
 
@@ -575,7 +613,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] REV-143：`ContractChecks` 的 Timeline 可视时间断言先对期望值做 `HtmlEncoder.Default.Encode`——ICU 72+ 的 U+202F 会被渲染成 `&#x202F;`，未编码的期望值只在旧 ICU 的 CI 上侥幸通过。同批的 Alert 断言也遵循同一规则。
 - [x] 门禁收尾：`CloseText` 不再是退役成员，`scripts/check-doc-drift.mjs` 删除该条目（现为 66 个文案键、1 条退役成员、0 条待修复）。
 - [x] 浏览器门禁顺带修两处：① `verify.mjs` 在打印 `RESULT: FAIL` 后仍以 0 退出，`run.sh` 与 CI 的 browser job 因此把失败当成功——现在失败会置非零退出码，browser job 才真正成为门禁；② REV-121 的主题切换检查存在冷启动竞态（`waitForApp` 只证明标记渲染完成，首次点击可能早于 WASM 交互运行时挂载，被静默丢弃）：先等待 `ThemeProvider` 通过交互运行时写出的 `<html data-theme>` 作为就绪门槛（最多 60 秒），再以「观察到过渡类之前重试同一选项」兜底（未处理的点击不会改变主题，因此重试安全）；失败信息里保留环境诊断，便于后续定位。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过；浏览器检查在 CI 的 browser job 上验证新增的 REV-140 两项断言（混色角色与层面覆盖；浅色 `#DCDCDC` 差分 32.4/255、深色 `#1F1F1F` 差分 19.0/255）。批次 24 已从审阅计划移除，第十轮剩余 REV-144～REV-163 共 20 条。
 
 ## Agent 指南审计、图标门禁接入与图标脚本大小写修复（版本号未递增）
 
@@ -584,7 +621,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] CI 接入 `node scripts/generate-fontawesome-icons.mjs --check`：此前 `AGENTS.md` 已把它列为门禁，但没有任何工作流执行；新增 Node 22 与 `/tmp/aeterni-fontawesome-*` 包缓存。
 - [x] 修复图标生成脚本的模块名大小写缺陷：原实现拼出 `faalignCenter.js`，而 Font Awesome 包内是 `faAlignCenter.js`；生成时所在的大小写不敏感文件系统掩盖了差异，Linux 上 343 个图标在门禁里全部解析失败。改用既有的 `toPascalCase` 拼接，缓存路径改为脚本实际使用的 `/tmp`。
 - [x] 第十轮批次 23～27 的执行计划评审写入审阅计划（前置决策 D1～D3、逐批改动面与验收判据、每批必过门禁、版本定档口径）；D1（独立 `Radio` 值绑定）已定调并随批次 23 落地。该执行计划评审随第十轮收口从审阅计划移除，D1～D3 的结论以本文档对应批次记录为准。
-- 验证：PR #27 的 build 工作流全绿，图标步骤输出 `FontAwesomeIcons.cs is up to date (343 icons)`；`bash scripts/check-docs.sh`、`check-doc-drift.mjs`（66 文案键）、`check-css-comments.mjs`（73 文件）、`check-contrast.mjs`（315 项）通过。
 
 ## 第十轮审阅修复批次 23（P1，版本号未递增）
 
@@ -595,7 +631,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] REV-138：`IconButton` 的禁用规则排除加载态并新增 `--aeterni-icon-button-loading-foreground` 角色，忙碌字形保留变体墨色。
 - [x] REV-139：`Badge` 补 `:dir(rtl)` 反向位移，RTL 下角标回到镜像角外侧；同步该处 CSS 注释与交付文档 §31 措辞。
 - [x] 契约门禁新增 `CheckReviewBatch23Async`（Radio 独立/分组、多选触发器 `for`、Descriptions 文案表覆写、IconButton 加载角色、无界步进的饱和与越界夹取），并逐项做反向验证：回退修复即红，其中 `InputNumber` 的旧路径直接抛 `OverflowException`。
-- 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；组件契约检查 33 组通过；`check-docs.sh`、`check-doc-drift.mjs`、`check-css-comments.mjs`、`check-contrast.mjs` 通过。批次 23 已从审阅计划移除，第十轮剩余 REV-140～REV-163 共 24 条。
 
 ## 10.30.0 Descriptions 与 Timeline 溢出修复
 
@@ -632,7 +667,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 根元素使用原生 `<ol>`，事件使用 `<li>`；有时间戳时输出机器可读 `<time datetime>`，标记与连接线保持装饰语义，无按钮、额外 role 或 Tab 停留点。
 - [x] `ItemTemplate` 只替换标题与说明区域，时间、标记和纵向节奏仍由组件维护；隐藏项不参与 DOM 与连接线。
 - [x] 新增 `/components/timeline` 可交互示例、目录入口、第 32 组渲染契约、当前功能文档与项目索引；组件只消费既有 Token，不引入 JS 或新全局 Token。
-- [x] 验证：解决方案构建 0 警告 0 错误、32 组渲染契约、67 项 Node 回归、CSS 注释和文档门禁通过；纯展示组件未改变焦点、键盘、动画或层叠模型，因此不新增浏览器行为检查。
 
 ## 10.27.0 Slider 无级调节
 
@@ -640,7 +674,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] `Step=null` 改为无级模式：指针不吸附；显式正数继续让指针和键盘吸附到以 `Min` 为起点的网格。
 - [x] 无级模式保留完整键盘模型：方向键移动量程的 1%，PageUp/PageDown 移动 10%，Home/End 仍到边界；整数类型受自身可表示精度限制。
 - [x] 示例、当前功能文档、项目索引与 Slider 的 C#/JS 契约测试同步更新。
-- [x] 验证：解决方案构建 0 警告 0 错误、31 组渲染契约、67 项 Node 回归、Slider 与浏览器脚本语法、CSS 注释、文档门禁及 23 项真实浏览器行为检查通过。
 
 ## 10.26.0 表单族数值输入（优先级 7）
 
@@ -650,7 +683,6 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 按键默认行为收口：两个组件各新增一个只做 keydown 拦截的模块（`Rating.razor.js` 先例），PageUp/PageDown 在步进时不再同时滚动页面；C# 与 JS 的按键集合由契约检查交叉锁定。边界随之修正：`InputNumber`「不需要 JS」改为「唯一 JS 是键位默认行为拦截」。
 - [x] **命名事实与决定**：.NET 8+ 的 `Microsoft.AspNetCore.Components.Forms` 自带同名 `InputNumber<TValue>`，实测无论 `@using` 顺序（页面级、`_Imports` 前后）`<InputNumber>` 都解析到框架类型，只有完全限定标签能命中本组件。决定保留路线图原名，示例与文档一律使用完全限定标签，限制写进当时的功能清单实现边界。
 - [x] 示例新增 `/components/input-number` 与 `/components/slider` 并注册导航；`tests/input-number.test.mjs`、`tests/slider.test.mjs` 与第 30、31 组渲染契约覆盖按键拦截、指针吸附、RTL/竖向几何、边界校验与资源释放。
-- [x] 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误、31 组渲染契约、`node --check`、`node --test`（66 项）、CSS 注释、品牌对比度与文档门禁通过；`tests/browser/run.sh` 复核焦点环画在滑块上、拖拽落值、PageUp/PageDown 步进不滚页。
 - 本批由路线图优先级 7 直接转化，两者都只消费现有 Token，未新增全局 Token。
 
 ## List 长列表尺寸修复
@@ -766,14 +798,11 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 新增 `/components/breadcrumb` 可操作示例、组件渲染契约和导航模块索引；不内置路由、自动折叠或异步导航。
 - [x] 版本属性统一为 10.15.0；同步当前功能、设计规范、项目索引、README 发布 tag 示例，并通过构建、文档、CSS 检查。
 
-本文档记录当前阶段的组件任务、实现边界和验收规则，并随组件交付同步更新状态。
-
 ## 宿主范围收敛（已完成）
 
 - [x] 组件库仅面向 Blazor Server 与 Blazor WebAssembly；删除桌面示例工程、窗口背景与启动恢复脚本及专用样式。
 - [x] 主题模块仅使用浏览器 API，移除原生窗口主题同步及专用 JS 互操作参数；保留系统主题监听、明暗/品牌切换与本地持久化。
 - [x] 更新包描述与标签、示例介绍、中文文档及开发门禁；保留浏览器交互示例和 GitHub Pages 静态发布流程。
-- [x] 验证：解决方案构建 0 警告、0 错误；主题 JS 语法、30 项现有 Node 回归与文档一致性检查通过；已删除宿主的源码、配置和文档引用无残留。
 - 本批已收敛宿主支持范围，C# 组件参数与事件不变；包版本沿用当前发布批次，不再保留独立宿主发布状态。
 
 ## 10.14.3 全组件质量修复
@@ -782,7 +811,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] P2：允许 ComboBox 展示 EmptyContent；修复 DateCalendar 在 `DateOnly.MinValue/MaxValue` 边界溢出；Tooltip 每次参数更新重新绑定；Tabs 动态注销与隐藏过滤；Accordion 禁用项不再保持展开布局；修正 Popup 示例参数。
 - [x] P3：Drawer/Popover 增加退出过渡并等待实际 CSS 动画，适配 reduced-motion、快速重开和释放；不改变 Dialog/Notice。TimePicker 映射按 Min/Max 限定候选范围，并按实例复用无自定义委托、参数未变的映射。
 - 构建与静态门禁：Debug / Release 解决方案构建均 0 警告/0 错误，15 组组件契约、30 项 Node 回归、组件/共享浮层 JS 语法、57 个 CSS 文件注释、99 项品牌对比度与文档一致性检查通过。
-- 验证：15 组组件契约覆盖字段状态、隐藏/动态标签、日期极值、受控关闭与陈旧退场完成、时间映射复用和完整枚举等价性；Node 行为回归已接入 CI。独立无头 Edge 的 27 项重点交互（含窄屏深色模态关闭策略/快速重开）及 41 页 × 1440px 浅色/390px 深色共 82 个基础场景通过，未发现页面异常或横向溢出。浏览器验证退场资源释放与 reduced-motion；真实读屏和触控设备验收仍不在本次自动化覆盖范围。
+- 验证：例外：真实读屏与触控设备验收不在自动化覆盖范围。
 - 发布范围包含下述 10.14.2 List 修复批次；统一使用 `v10.14.3` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包，不单独发布 10.14.2，也不另建 GitHub Release。
 
 ## 10.14.2 List 键盘修复（合入 10.14.3）
@@ -791,13 +820,13 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 新增单一 List JS module，按当前可见 DOM 顺序导航，覆盖 keyed 重排；隐藏或禁用项不参与选择，隐藏活动项时清理引用。补齐 List/ListItem 的 hidden 隔离样式。
 - [x] 只拦截容器自身已处理的导航/选择键，阻止默认页面滚动；保留 Tab、组合快捷键、输入法和后代控件行为，串行处理快速按键并释放监听。
 - [x] 补充 C# 渲染契约、Node 键盘回归及可操作的重排/隐藏示例；其他组件仅进行审核，不在本批修复。
-- 验证：Debug 解决方案构建 0 警告/0 错误、11 组组件契约、2 项 List Node 回归、JS 语法、57 个 CSS 文件注释及文档门禁通过；独立无头 Edge 验证重复 Home 不清空、Space 不滚页、keyed 重排后 Home 按画面次序选择，以及隐藏活动项后清理活动引用并跳过导航。本批次合入 10.14.3 统一发布。
+- 验证：差异：本批合入 10.14.3 统一发布（未单独发版）。
 
 ## 10.14.1 List 选中样式修复
 
 - [x] 普通行与 CardMode 共用选中、悬停与活动项样式；Card 内层透明并继承文字色，移除卡片模式外围留白及独有活动项描边，选中底色覆盖整个卡片且禁用文字保持一致。
 - [x] 示例页增加保留选择的 CardMode 切换，覆盖声明式单选/多选与 Items 数据模式；不更改选择和键盘业务逻辑。
-- 验证：Debug / Release 解决方案构建均为 0 警告/0 错误、11 组渲染契约、57 个 CSS 文件注释检查与文档一致性检查通过；两个 10.14.1 NuGet 包完成本地打包验证。浏览器视觉复核尚未执行。
+- 验证：例外：浏览器视觉复核尚未执行。
 - 使用 `v10.14.1` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包；不另建 GitHub Release。
 
 ## 10.14.0 List 泛型功能发布
@@ -805,7 +834,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] List<TItem> / ListItem<TItem>、Items 自动推断、ItemTemplate、CardMode/CardTemplate；Card 外壳统一渲染，无模板只回退文本。
 - [x] 声明式显式 TItem，保留 object 选择 API；修正集合名称冲突、动态注册 Value、禁用继承、活动项和移除数据的选择清理。
 - [x] 交互字符串/模型/卡片/动态示例与泛型迁移说明；`Directory.Build.props` 四个版本属性统一为 10.14.0（程序集/文件版本为 10.14.0.0），同步中文文档、索引和 README，保留 10.13.0 历史发布记录。
-- [x] 发布前验证：Debug / Release solution build 均为 0 警告、0 错误；11 组契约覆盖模板、Card 回退、声明式、键盘、动态数据和禁用；21 项 Node 回归、11 个组件 JS 语法、57 个 CSS 注释检查、99 项品牌对比度、343 个图标一致性、Token-only CSS 与文档门禁通过；两个 10.14.0 NuGet 包完成本地打包验证。
+- 验证：差异：两个 10.14.0 NuGet 包完成本地打包验证；浏览器视觉/辅助技术实机验收未执行（见下条）。
 - 使用 `v10.14.0` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包；不另建 GitHub Release。
 - 尚无浏览器视觉/辅助技术实机验收；本次发布不扩大上述验收边界。
 
@@ -814,7 +843,7 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 - [x] 将已实现的 ToggleGroup / ToggleGroupItem 与 SplitButton 纳入本次功能发布；v0.6 当时累计完成 3/5，Breadcrumb 在后续 10.15.0 批次交付。
 - [x] 纳入字段尺寸一致性收口、ToggleGroup 连体分段外观、SplitButton 紧凑默认外观、Toolbar 间距与 MenuButton 专属菜单留白优化，以及菜单 ID 关联和非模态关闭焦点回归修复。
 - [x] `Directory.Build.props` 四个版本属性统一为 10.13.0（程序集/文件版本为 10.13.0.0），同步功能清单、设计规范、路线图、审阅待办、项目索引与 README 发布 tag 示例；使用 `v10.13.0` 触发现有 NuGet Trusted Publishing 工作流，发布核心包与 Font Awesome 图标包。
-- [x] 发布前验证：Debug / Release solution build 均为 0 警告、0 错误；10 组组件契约、21 项 Node 回归、11 个组件 JS 语法、57 个 CSS 注释检查、99 项品牌对比度、343 个图标一致性、Token-only CSS 与文档门禁通过；两个 10.13.0 NuGet 包均完成本地打包验证。
+- 验证：差异：两个 10.13.0 NuGet 包均完成本地打包验证。
 - 本次只整理已实现能力并更新发布元数据，不改动 List 功能或扩大组件实现边界；已有人工浏览器验收限制仍保留。
 
 ## 10.12.2 修复与优化
@@ -833,511 +862,156 @@ PR #28（`feat/splitter-component`）以 squash 合入 main（`1065b3b`）后落
 
 - 已实施全库温和紧凑化：共享控件 28/36/44px、内联 padding 8/12/16px、紧凑行 32px，Surface/Card 与弹层留白同步收紧；正文、颜色、spacing 原始阶梯与焦点环不变，交互目标至少 24px。规则见设计规范与当前功能清单。
 - 保留 10.12.0 Toolbar 与交互工作区；v0.6 仍只完成 Toolbar，其余四组件未实施。
-- 验证：solution build 0 警告/0 错误，7 组渲染契约、10 项 Node 回归（含 20/28/32/36/44px 时间轮测量）、55 个 CSS 注释检查、99 项对比度与文档门禁通过。当前工作区无可用浏览器自动化依赖；已安装的 Playwright CLI 也未找到可运行的 Playwright 项目，未完成浏览器视觉验收。
-
-## 文档边界
-
-- `docs/delivered-features.zh-CN.md` 是当前已实现公共 API 和行为的唯一功能事实源；组件参数和行为以源码为准。
-- 本文档中的 v0.1 组件小节只保留目标、验收重点、任务状态和实现差异，不重复当前 API。
-- 当前 API 与行为以 `delivered-features.zh-CN.md` 和源码为准；历史计划只有在解释实现差异时才保留。
-- 尚未完成的阶段是 TODO/规划，不得在功能文档或项目索引中写成已实现能力。
-
-## v0.1 交付总览
-
-- [x] 记录组件路线图和验收规则
-- [x] 1. `FormField` + `Label`
-- [x] 2. `Checkbox`
-- [x] 3. `Switch`
-- [x] 4. `Tag`
-- [x] 5. `List` + `ListItem`
-- [x] 6. `Rating`
-- [x] 7. `ComboBox`
-
-完成某一项后，只勾选对应条目，并在本文档的任务记录中填写构建结果；不要提前勾选依赖它的任务。
-
-## 实施顺序和依赖
-
-```text
-Input
-  |
-  +--> FormField + Label
-          |
-          +--> Checkbox
-          +--> Switch
-          +--> Tag
-          +--> List + ListItem
-                  |
-                  +--> Rating
-                  +--> ComboBox
-```
-
-- `Input` 已完成，是后续表单控件的低层单行输入。
-- `FormField` 负责标签、描述和错误信息的布局与语义关联；它不替代 `Input`，也不复制输入值逻辑。
-- `ComboBox` 放在最后，复用 `Input` 的输入语义和 `List` 的选项/键盘行为。
-- 每个任务完成后都要先运行 `dotnet build aeterni_ui.slnx`，构建通过后才进入下一项。
-- 每个公共 API 任务都要同步更新 `docs/delivered-features.zh-CN.md` 和 `src/AeterniUI.Sample` 示例。
-
-## 已完成任务记录
-
-以下任务的当前 API 和行为只维护在 [`delivered-features.zh-CN.md`](delivered-features.zh-CN.md)；本节只保留目标、验收重点和实现差异。
-
-### 1. FormField + Label
-
-状态：已完成
-
-目标：统一标签、描述、错误信息和控件插槽。
-
-验收重点：标签关联、验证消息优先级、窄屏布局、禁用/无效语义，以及与 `Input` 的组合。
-
-当前实现：以 `delivered-features.zh-CN.md` 和源码为准。
-
-### 2. Checkbox
-
-状态：已完成
-
-目标：提供原生复选框语义和稳定的布尔值绑定。
-
-验收重点：原生 checkbox 语义、Indeterminate 显示、鼠标和键盘操作、禁用状态、EditContext 校验。
-
-实现差异：`Indeterminate` 仅作为显示状态；当前不提供独立的三态值模型。
-
-### 3. Switch
-
-状态：已完成
-
-目标：提供即时设置使用的二态开关，不复用 Checkbox 的视觉实现。
-
-验收重点：原生 checkbox 基础、`role="switch"`、`aria-checked`、禁用行为、reduced-motion 和窄屏稳定性。
-
-### 4. Tag
-
-状态：已完成
-
-目标：提供分类、状态和筛选条件使用的紧凑标签。
-
-验收重点：尺寸和变体、语意色、图标布局、可关闭行为、关闭按钮无障碍名称和 reduced-motion。
-
-实现决策：关闭动作继续复用 Button 图标能力；独立图标操作使用新增的 `IconButton`，菜单触发操作使用 `MenuButton`。
-
-### 5. List + ListItem
-
-状态：已完成
-
-目标：提供静态列表及单选/多选能力，不承担虚拟化和远程数据加载。
-
-验收重点：listbox 语义、鼠标与键盘选择、禁用项、单选/多选绑定、长文本布局。
-
-实现差异：当前选项使用原生 button；容器通过 `aria-activedescendant` 统一键盘导航，不额外实现拖拽、虚拟化、分组或异步数据源。
-
-### 6. Rating
-
-状态：已完成
-
-目标：提供整数评分输入和只读展示。
-
-验收重点：范围校验、radiogroup/radio 语义、方向键、Home/End、只读和清除行为。
-
-实现差异：当前只支持整数评分，不实现半星。
-
-### 7. ComboBox
-
-状态：已完成
-
-目标：提供下拉选择、键盘导航和选项选择。
-
-验收重点：combobox 语义、打开/关闭行为、方向键、Enter、Escape、外部点击和滚动关闭。
-
-实现差异：当前是纯下拉选择，不支持自由输入筛选、`ReadOnly`、`Clearable`、远程搜索、虚拟化或多选。详细 API 见 `delivered-features.zh-CN.md`。
-
-## 每项任务的固定交付物
-
-1. 组件目录中的 `.razor`、`.razor.cs`、`.razor.css`，仅在确有浏览器行为时添加 `.razor.js`。
-2. 必要的公开枚举或模型，参数按组件规范排列并校验枚举/数值边界。
-3. 示例页面中的可操作示例，覆盖默认、禁用、聚焦、无效和关键交互状态。
-4. `docs/delivered-features.zh-CN.md` 的已完成功能记录。
-5. 静态检查后运行 `dotnet build aeterni_ui.slnx`；构建失败时先修复，再更新 TODO 状态。
-
-## 任务记录
-
-| 任务 | 状态 | 构建 | 备注 |
-| --- | --- | --- | --- |
-| 路线图文档 | 已完成 | 未涉及 | 仅记录计划，未修改组件代码 |
-| FormField + Label | 已完成 | 通过 | 已随 `dotnet build aeterni_ui.slnx` 验证 |
-| Checkbox | 已完成 | 通过 | 原生 `<input type="checkbox">` + 最小 JS 处理 indeterminate；已在示例与文档同步 |
-| Switch | 已完成 | 通过 | 原生 checkbox + `role="switch"`，无 JS；示例与文档已同步 |
-| Tag | 已完成 | 通过 | 三种变体 + 语意色 + 尺寸 + 可关闭（复用 Button 图标能力） |
-| List + ListItem | 已完成 | 通过 | `listbox` 容器、原生 button 选项与 `aria-selected`、单选/多选、方向键与空格回车选择；示例与文档已同步 |
-| Rating | 已完成 | 通过 | 整数评分、radiogroup 语义、方向键与 Home/End、AllowClear/ReadOnly |
-| ComboBox | 已完成 | 通过 | 交付为纯下拉选择（点击弹出、无输入搜索，方向键/Enter/Esc/外部点击/滚动关闭）；弹层已迁移到共享 PopupHost + Popover，原计划中的输入筛选不适用 |
-
-## 第二阶段（v0.2）计划
-
-状态：已完成。版本首位与目标 .NET 主版本对齐（当前固定为 `10`）；功能新增递增第二位（例如 `10.0.0` → `10.1.0`），问题修复与优化递增第三位（例如 `10.0.0` → `10.0.1`）。v0.1 已覆盖表单、选择与反馈基础组件，v0.2 补齐了高频基础控件与浮层能力。
-
-### TODO 总览
-
-- [x] 8. `Textarea`
-- [x] 9. `Radio` + `RadioGroup`
-- [x] 10. `Progress`（Linear）
-- [x] 11. `Tooltip`（四方位 + 翻转/贴边）
-- [x] 12. `PopupHost` + `Popover`（定位、翻转/贴边、遮罩、焦点陷阱、外部点击）
-- [x] 13. `Tabs`（原条目中的 `Drawer`、`Empty`、`Divider` 已移入第三阶段）
-
-### 依赖顺序
-
-```text
-Input/Input 样式族
-  +--> Textarea
-  +--> Radio + RadioGroup      （radiogroup 语义，类似 List 的键盘约定）
-  |      |
-  |      +--> Progress          （纯展示，可被 Loading/上传复用）
-  |
-  +--> PopupHost               （全局挂载层 + 锚定/翻转/点击外部/滚动关闭的通用能力）
-          |
-          +--> Tooltip
-          +--> Popover
-          +--> ComboBox 弹层迁移（已替换内置 fixed 定位）
-  |
-  +--> Tabs                    （roving tabindex + 焦点控制，复用 List/Menu 的键盘约定）
-```
-
-### 8. Textarea
-
-状态：已完成
-
-目标：提供复用 `Input` 语义和校验约定的多行文本控件。
-
-依赖：`Input`、`FormField`。
-
-验收重点：Value 绑定、Rows/Resize、只读/禁用/无效状态、窄屏换行、`aria-invalid` 和 EditContext 校验。
-
-暂不包含：富文本编辑、自动高度和异步校验。
-
-交付：`Textarea` 已加入组件库、示例画廊和当前功能文档。
-
-### 9. Radio + RadioGroup
-
-状态：已完成
-
-目标：提供单选项及其分组语义。
-
-依赖：`FormField`、现有 List 的键盘交互约定。
-
-验收重点：原生 radio 语义、`radiogroup`、方向键导航、Tab 单点进出组、禁用状态和表单校验。
-
-暂不包含：远程选项、虚拟化和多选行为。
-
-交付：已加入组件库、示例画廊和当前功能文档。
-
-### 10. Progress
-
-状态：已完成
-
-目标：提供线性进度展示，并复用统一语意色和尺寸 Token。
-
-依赖：现有 Token 和 Button Loading 的视觉约定。
-
-验收重点：Value/Max、Indeterminate、progressbar ARIA、动画和 reduced-motion。
-
-暂不包含：环形渲染、上传任务管理、远程数据源和业务状态管理。
-
-交付：已加入组件库和当前功能文档。
-
-### 11. Tooltip
-
-状态：已完成（四方位 + 翻转/贴边）
-
-目标：提供不阻塞页面的 hover/focus-visible 辅助说明。
-
-依赖：`PopupHost`、共享浮层模块。
-
-验收重点：hover/focus-visible 提示、`TooltipPlacement` 四方位、空间不足时翻转与交叉轴贴边、tooltip 语义、`aria-describedby` 关联、reduced-motion。
-
-暂不包含：Escape、点击外部关闭、复杂交互内容和模态行为。
-
-交付：组件库、当前功能文档、示例页均已同步；翻转/贴边改为复用 `wwwroot/js/aeterni_floating.js`。
-
-### 12. PopupHost + Popover
-
-状态：已完成（定位、翻转/贴边、遮罩、焦点陷阱、外部点击、背景滚动锁全部落地）
-
-目标：提供浮层挂载容器、锚定浮层与完整的模态/非模态行为。
-
-依赖：共享浮层模块 `wwwroot/js/aeterni_floating.js`（定位/翻转、焦点陷阱、滚动锁）。
-
-验收重点：`PopupPlacement` 四个方位；空间不足时翻转并贴回视口；Escape / 外部指针 / 遮罩通过 `OpenChanged` 请求关闭（`Open` 由使用方持有）；`:focus-visible` 焦点环不被裁切；`Modal` 提供遮罩、`aria-modal`、Tab 循环、关闭后焦点回归与背景滚动锁；`prefers-reduced-motion` 下关闭入场动画。
-
-暂不包含：多浮层堆叠、嵌套模态和脱离宿主布局上下文的视口级 fixed 定位。
-
-基础验收重点：多实例挂载、Open/hidden 状态、Popover 的模态/非模态语义。
-
-后续影响：Tooltip、MenuButton、DatePicker 和 ComboBox 统一复用共享浮层能力；ComboBox 额外启用页面滚动关闭。
-
-交付：已加入组件库和当前功能文档。
-
-### 13. Tabs
-
-状态：已完成
-
-目标：补充标签页导航基础组件。
-
-交付：`Tabs` + `Tab`，与 `List`/`RadioGroup` 同为可组合组件：`Tab` 注册自己并渲染自己的面板，`Tabs` 负责渲染标签栏与整套 ARIA 关联。选择由 `Value`/`ValueChanged` 控制（支持 `@bind-Value`），`AriaLabel` 缺省取 `AeterniUITextOptions.TabsLabel`。
-
-验收重点（均已通过渲染验证）：
-
-- `tablist`/`tab`/`tabpanel` 三件套；按钮 id 与面板 id 由注册顺序派生（`{ElementId}-tab-{i}` / `-panel-{i}`），`aria-controls` 与 `aria-labelledby` 成对且不依赖使用方提供 id。
-- roving tabindex：整条标签栏只有一个 Tab 停留点；选中项被禁用时停留点回退到首个可用项。
-- 自动激活：`ArrowLeft`/`ArrowRight`（RTL 下自动互换）与 `Home`/`End` 在可用标签间循环并同时改变选中项，焦点随后移回标签栏（由 `Tabs.razor.js` 完成唯一的浏览器行为）。
-- 禁用标签不可点、不可选中、不进入方向键循环。
-- 窄屏横向滚动：标签栏不换行、不压缩，改用细滚动条横向滚动，焦点环不会被裁切。
-- `Value` 未匹配任何标签（包括初始 `null`）时默认把首个可用标签当作选中项渲染，但不会自改 `Value`。
-
-暂不包含：垂直标签、复杂导航路由、数据加载、懒加载面板内容与页面业务状态。
-
-说明：本条目原包含的 `Drawer`、`Empty`、`Divider` 已移入第三阶段（v0.3）计划。
-
-说明：本条目原包含的 `Drawer`、`Empty`、`Divider` 已移入第三阶段（v0.3）计划，见下文第 15、16、21 项。
-
-### 14. Menu
-
-状态：已完成
-
-目标：提供可分组折叠的菜单基础组件，支持手风琴模式、选中项、图标、描述和禁用状态。
-
-交付：已加入组件库，并用于示例组件页面的侧边栏导航。
-
-### 第二阶段固定交付物与验收
-
-沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/delivered-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
-
-### 第二阶段任务记录
-
-| 任务 | 状态 | 构建 | 备注 |
-| --- | --- | --- | --- |
-| v0.2 计划 | 已完成 | 通过 | 高频基础控件与浮层能力已交付 |
-| Textarea | 已完成 | 通过 | 原生 `<textarea>`、标准绑定、Rows/Resize、表单校验和无障碍状态；示例已同步 |
-| Radio / RadioGroup | 已完成 | 通过 | 原生 radio/fieldset 语义、泛型绑定、禁用/必填/无效状态；示例已同步 |
-| Progress | 已完成 | 通过 | 线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion |
-| PopupHost / Popover | 已完成 | 通过 | 定位（`PopupPlacement` 四方位）、视口翻转与交叉轴贴边、Escape/外部指针/遮罩关闭（通过 `OpenChanged`）、模态遮罩与 `aria-modal`、Tab 焦点陷阱、背景滚动锁与焦点回归 |
-| Tooltip | 已完成 | 通过 | 四方位 hover/focus-visible 提示、`aria-describedby` 关联、翻转与贴边改为复用共享浮层模块 |
-| Tabs | 已完成 | 通过 | `tablist`/`tab`/`tabpanel` 三件套与按注册顺序派生的成对 id、roving tabindex（含选中项被禁用时回退到首个可用项）、自动激活模型 + 方向键/Home/End（RTL 自动互换）、禁用标签、窄屏横向滚动与细滚动条、`Value` 未匹配任何标签时默认显示首个可用项 |
-| Menu | 已完成 | 通过 | 分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏并新增示例专区；键盘模型、`aria-expanded`/`aria-controls`、折叠可见性、`Href` 链接项、受控 `OpenKeys`、分组级禁用/可见性、`ul`/`li` 语义、RTL 方向键与方向键滚动抑制已补齐 |
-| 文档与代码一致性审计 | 已完成 | 通过 | 修正 delivered-features 标题编号（§21 重复）并补 Label、DialogProvider 章节；补齐 List/Menu/Rating 参数与枚举类型名；示例页补 Progress、Tooltip、Popover 参数表与 Radio 无障碍参数；清理规范中的陈旧组件名（Select→ComboBox、Stack/Flex、Toolbar/ToggleGroup）；把 check-docs.sh 写入 根目录入口与当时的开发规范 |
-| 组件审阅修复批次 1（P0） | 已完成 | 通过 | Switch 关闭态滑块改用 `--aeterni-state-background-thumb`；Button 加载遮罩按变体取值、实心语意色改用 `--aeterni-color-on-semantic`；Alert 与 Toast 合并到同一位置容器 |
-| 组件审阅修复批次 2（P1） | 已完成 | 通过 | Input/Textarea 焦点环；FormField 标签关联（ComboBox/Rating/RadioGroup 补 `aria-labelledby`）；List 选项改 `role="option"` 并移除选项焦点；Rating roving tabindex 与唯一 checked；ComboBox 选项非聚焦化；Radio 状态补齐与 Size 档位；Tooltip `aria-describedby` 与四方位翻转偏移；Tag 关闭热区 24×24；Popup 死 CSS 清理并在文档中明确基础版边界 |
-| 组件审阅修复批次 3（P2） | 已完成 | 通过 | 补齐浮层/紧凑表面度量 Token 并把组件裸像素收敛到 Token；删除死类、死 CSS 与死标记；统一圆角阶梯与类名映射（`ComponentClass`）；文案集中到 `AeterniUIOptions.Text`；CSS 与参数声明格式统一；滚动条改为细样式；主题系统偏好兜底与预渲染脚本；字体栈标注为可选依赖 |
-| 组件审阅修复批次 4（P3） | 已完成 | 通过 | Tooltip 支持四个方位；RadioGroup 增加 `Orientation` 与垂直布局；通知数量上限写入文档；Rating 自定义图标与内置星形同尺寸；对话框打开时补偿滚动条宽度；Button 禁用态变量与 ButtonGroup 分隔线对齐注释 |
-| 色彩体系优化（v10.3） | 已完成 | 通过 | 品牌色按 OKLCH 重建（紫罗兰 `#795AD9`／深色 `#9985ED`）：峰值 chroma 0.237→0.186、色相漂移 7.8°→1.7°、明度阶梯拉直；语意色沿用 Apple 系统色，色阶以 500 档为锚点重建（浅端统一 L 0.976、深端 L 0.30），消除 `Info` 的 400→500 断层与色相漂移；中性文字从紫灰改为冷中性并换掉紫调阴影墨色；新增 `-text` 强调文字形态 Token（修掉亮色档当文字只有 2.2:1 的老问题）；实心控件字色改为「按填充明度分两层、三态不换字」，删掉 `--aeterni-color-on-semantic-strong`；Tag 改浅底深字（2.5~3.5:1 → 5.0~6.9:1）；全系统 44 项对比度校验通过 |
-| 图标库完善 | 已完成 | 通过 | 新增核心 `AeterniIcons`（组件内字形全部改为图标渲染）；Font Awesome 适配包升级到 7.3.1 精选 343 个图标并提供 `Categories`/`TryGet`；新增生成脚本和 `/icons` 图标浏览页 |
-| 全组件色彩与结构复核（v10.4） | 已完成 | 通过 | 把「填充档不当 ink 用」的规则落实到全部组件：Icon 命名色、Alert/Toast 徽标与弹窗头部图标、FormField 反馈文字、Menu 选中项、Progress 填充/轨道、Rating 星形共六处换上文字形态或按色相染色（最低组合从 1.78:1 提到 3.15:1，ink 类从 1.91:1 提到 3.65:1）；浅色三级文字锚到最暗中性面；中性填充按钮 hover 方向改为两个主题一致；拆出通知卡片的填充/ink 双 accent 角色，消除 `Severity.Default` 死类。结构侧：`NoticeCard`/`ListItem` 重新接入基类属性契约并合并重复标记，静态 `Card`/展示型 `List` 不再注册 DOM 事件，`Progress` 去掉 inline `width` 与 `!important`，`Tag`/`Icon`/`Radio` 的第二套映射收敛到 `ComponentClass`，图标尺寸统一走 `--aeterni-icon-render-size`，六个组件补 `@ref`，`ThemeSwitch` 选项改单一模板，五处布尔型 ARIA 状态改为字符串输出；示例新增 `/components/colors` 验收页 |
-| 样式体系一致性（v10.4） | 已完成 | 通过 | 中性容器表面去除彩偏移：浅色四个容器背景改为完全无色（v10.3 的 +2~+4 蓝紫偏移在大面积上会被读成品牌色底，且磨砂层的 `saturate()` 会放大它），深色统一 +3，规则写入 AGENTS.md、规范与提交清单（容器背景只能是黑/白/灰/毛玻璃）；Menu 禁用态由整行 `opacity` 改为 `--aeterni-state-color-disabled`；组件内间距收敛到 `--aeterni-spacing-*`（gap/padding/margin 降为宿主别名）；新增 `--aeterni-transition-control` 消除字段控件三处重复的过渡声明；`--aeterni-opacity-muted` 与 `--aeterni-radius-badge` 获得真实消费者，交互态别名 `bg-hover/-active` 补语义注释；浮层半径层级与 `surface-soft`/`bg-secondary` 分工写入规范 |
-| 文字色阶与观感清理（v10.4） | 已完成 | 通过 | 文字改为「单一墨色 + 不透明度阶梯」（Apple label 模型）：浅色 `rgba(0,0,0,.78/.62/.56/.52/.36)`、深色 `rgba(255,255,255,.86/.56/.48/.40/.28)`，主色从 17:1 降到 11.7:1（不再发硬），二级/三级不再只差 1.16:1，且文字会随所在表面自动调和；`tertiary` 降为图标/装饰级，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项与示例页元信息改用 `secondary`/`muted`；Tag 标签文字改用 accent 的 text 形态（85% + 15% 正文墨）而不是「亮填充档 52% + 近黑 48%」，绿/黄 chip 不再浑浊（4.95~7.15:1）；新增不透明的 `--aeterni-separator` 作为卡片/对话框头尾分界（1.71:1 / 1.53:1，原 7% alpha 像污渍）；`--aeterni-color-on-semantic` 从蓝黑 `#0B0F19` 改为无色 `#141414` |
-| Size 档位补齐（Switch / ComboBox / Rating） | 已完成 | 通过 | 三个控件补 `Size`（`Small`/`Default`/`Large`）：ComboBox 触发器与选项共用一套档位 Token（Small 28px，与 `Input Size="Small"` 等高）；Switch 轨道由旋钮尺寸推导（跑道 = 旋钮×2 + 内边距×2 + 边框×2，滑块行程恰好一个旋钮宽，默认档与旧值一致，Small 34×20 / Large 46×26）；Rating Small 16px 星形、热区至少 24px、Large 24px + 12px |
-| 示例页拆分（v10.5） | 已完成 | 通过 | 把原来的单页 + `switch` 拆成「一个组件一个页面」：`Pages/Components/` 下 25 个页面各自带 `@page`/`@layout`/`PageTitle` 与自己的 `@code` 状态，路由 `/components/{id}` 可直接分享；新增 `Layout/ComponentsLayout.razor`（侧栏 + 路由高亮，内嵌 MainLayout）与 `Components/Showcase/ShowcasePageBase.cs`（仅保留跨页共享的注入服务、交互提示与主题订阅）；作用域 CSS 无法跨页，展示样式迁到示例全局表 `wwwroot/css/showcase.css`；安装页改为垂直单列步骤（每步独占整行代码块）；规范 §10 与项目索引同步为「一个组件一个页面」 |
-| 表面归属定案（v10.5） | 已完成 | 通过 | 把「组件是否自带表面」写成规范 §5.3 两行表格（自带表面 vs 内容控件，判断依据是“能不能单独构成一块界面”）并进提交清单；`delivered-features` 的 Menu/Tabs 实现边界各补一条；示例预览把 Menu/Tabs 放进 `Surface` 宿主容器（原来它们在网格画布上裸奔，看起来像漏了背景）。结论是 Menu/Tabs 按内容控件保持透明，`List` 保持自带表面 |
-| 共享浮层能力（v10.4） | 已完成 | 通过 | 新增 `wwwroot/js/aeterni_floating.js`：视口贴合计算（`fitsSide`/`oppositeSide`/`clampCenteredShift`/`clampAlignedShift`）、`createFocusTrap`、引用计数的 `lockScroll`；Tooltip 改为复用，DialogProvider 改用共享滚动锁与可聚焦元素列表（Tab/Escape 仍由对话框堆栈自己持有，因为只有最顶层应响应） |
-| 多品牌色相层与切换 | 已完成 | 通过 | ① 交互态着色不再写字面量紫色，改由 `color-mix()` 从色阶推导；② 品牌色阶从裸 `:root` 拆成独立可覆盖的色相层（`:root, [data-aeterni-brand="purple"]`）；③ 新增第二套板 `[data-aeterni-brand="green"]`（500 档 `#2B7B33`）。两套板在浅色／深色／系统深色下逐条通过对比度门禁（绿色最紧 margin 1.151，紫罗兰 1.091，均达标；绿色锚点随后在「绿色板提亮重锚」一行重定），512 个 Token × 4 场景中紫罗兰与改造前**数值等价**（最大通道误差 0.0001，为 float32 量化），绿色场景 **0 处残留紫色**且语义停靠档自动跟随（浅色 500/600/700、深色 400/300/200）。配方侧新增两条硬规则进规范 §5.4：chroma 剖面必须用绝对值（相对色域比例跨色相不可迁移）、500 档明度按该色相的对比度行为枚举扫描定档。④ 切换链路打通：新建 `ThemeBrand` 枚举（不复用 Button 的 `Color` 语意色枚举，避免与语意色取值空间混淆）；`ThemeService` 增加 `Brand` 与 `SetBrand()`（`Enum.IsDefined` 校验，非法值抛 `ArgumentOutOfRangeException`，同值不触发）以及 `SetPurple()`／`SetGreen()`，并新增独立的 `BrandChanged` 事件——品牌与明暗正交，复用 `ThemeChanged` 会连带重新解析系统偏好；`AeterniUIOptions.DefaultBrand` 决定首访默认品牌并在 `AddAeterniUI` 里做枚举校验；`ThemeProvider` 首渲染恢复已存品牌、事件里应用并持久化到新键 `aeterni.theme.brand`，JS 侧新增 `applyBrand()`／`getStoredBrand()`／`persistBrand()` 并把 `applyTheme` 与 `applyBrand` 的过渡逻辑抽成共享的 `beginTransition`／`endTransition`；示例宿主 `index.html` 预渲染脚本同步读品牌键并写 `data-aeterni-brand`，示例 `/components/theme` 增加品牌切换控件。浏览器端到端 22 项断言全部通过：冷启动默认紫罗兰、经真实控件切到绿色后属性落在 `<html>`、语义别名整体换色（含深色停靠档）、写入 `localStorage`、**刷新首帧即为绿色**（属性变更轨迹 `[null,"green"]`，全程未出现 `purple`）、明暗切换不干扰品牌、非法存储值回落默认且色彩仍可解析、清空存储回到默认、切换复用 `aeterni-theme-transitioning` 过渡并在 620ms 后清理。⑤ 示例宿主 4 处直接消费原始色阶（`.preview-icon-wrap`、`.component-preview__eyebrow`、`.component-preview__api-row code`、`.doc-intro__eyebrow`）改为语义别名 `--aeterni-color-brand-text`，原先写死 `--aeterni-brand-500/600` 既不会跟随品牌也不会跟随明暗。⑥ 新增 `ThemeBrandSwitch` 组件（与 `ThemeSwitch` 同构的 `Segmented` 专用用法，订阅 `BrandChanged` 同步选中态）与对应文案 `ThemeBrandSwitchLabel`／`ThemeBrandPurpleLabel`／`ThemeBrandGreenLabel`，并放进示例宿主顶栏与明暗开关并列，任意页面都能直接看到整站换色。**待做**：品牌色块预览型选项（会要求每个色相层再声明一份「别人的颜色」Token，等于把第二套色阶写进 CSS，暂不做） |
-| 品牌色板对比度门禁脚本化 | 已完成 | 通过 | 新增 `scripts/check-contrast.mjs`，把此前「靠人工校对」的对比度门禁变成构建期拦截（此前该项挂在多品牌行的待做里）。脚本不读注释而是重放真实级联：自带极简 CSS 扫描器切出规则（含 `@media (prefers-color-scheme: dark)` 的系统深色块，其选择器是 `:root:not([data-theme])…`，需要单独识别才能覆盖），按「品牌 × 浅色／深色／系统深色」三种 `<html>` 属性状态合并同特异性声明（文件顺序即优先级），再跟随 `var()` 链解析出实际颜色（`#hex`／`rgb()`／`rgba()`，遇无法解析的值或环状引用直接报错而不是静默跳过），半透明前景先与背景合成再测——因此 78% 墨色这类 Token 也按用户真实看到的像素计算。门禁集合 11 组／状态：实心填充承字（default／hover／active）、品牌文字（surface／tertiary／page）、链接（surface／page）按 4.5:1，边框／图标与焦点环按 3:1，当前 **2 色相层 × 3 状态 × 11 组 = 66 项全部通过**。另加两条结构性检查：色相层必须声明完整且仅为 50~900 十档；**余量低于 1.1× 的色相层必须在自己上方的注释块里写出该对比度**（`4.91:1` 这样的定值字符串），把规范 §5.4 新加的「显式记账」规则变成可执行约束——否则改色阶的人可以悄悄把预算花光。为此紫罗兰注释补记 4.91:1（margin 1.091，原本未记录）。已做反向验证：把绿色 500 提到 `#35A052`（3.33:1）与 `#228A40`（4.40:1）时脚本以 2 条错误失败，只提到 `#1C863B`（4.64:1，过线但花掉余量）时仅记账规则失败，把色相层改名成 `teal` 时无需改脚本即自动纳入检查。已接入 `.github/workflows/build.yml`，并同步 当时的入口、开发规范、项目索引与设计规范 §5.4 |
-| 绿色板提亮重锚 | 已完成 | 通过 | 绿色色阶整体重锚到外部参考绿 `#1F883D`：色相 145° → 148.2°，500 档 L 0.517 → 0.552、C 0.132 → 0.145，整条阶梯按同一 ΔL 节奏平移 +0.035，chroma 仍按绝对值剖面（50:0.081 … 900:0.522）缩放，浅端升到 L 0.957、深端升到 L 0.301，比旧板更贴近规范里「浅端 ~0.976 / 深端 0.30」的统一端点。观感上浅色主题的填充、hover、链接、选中态都明显更亮更饱和，深色主题 300/400 停靠档亮度同步上抬。**代价记账**：500 承白字 5.27:1 → 4.52:1，余量 1.004×，成为全库最紧的一条对比度门禁——仍满足 4.5:1，但任何进一步提亮或提高 chroma 都会击穿它；若要恢复余量，把 500 退回 L 0.545（`#1C863B`，4.65:1）或 L 0.540（`#19843A`，4.75:1）即可，其余档位随 ΔL 平移。**验证**：重锚后按「品牌（紫／绿）× 浅色／深色」重跑 8 条对比度门禁共 32 项全部通过，深色侧最紧为绿色 `text-link` 承深色页面 5.95:1（余量 1.323，比旧板更宽松——深色停靠档整体上抬反而放宽了明度约束），浅色侧最紧仍是绿色 500 承白字 4.52:1；浏览器端到端 11 项断言按新色值更新后全通过（浅色 `default`/`hover` = `rgb(31, 136, 61)` / `rgb(5, 113, 44)`，深色 `text` = `rgb(144, 195, 151)`），并逐像素核验渲染结果与 Token 一致（示例页 4 处品牌实心填充采样主色 `#1F883D` 占 81.7%）。规范 §5.4 新增「余量低于 1.1× 的锚点必须显式记账」一条。 |
-
-| 焦橙第三套品牌色相层 | 已完成 | 通过 | 在紫色与绿色之后新增 `[data-aeterni-brand="orange"]`，配方与前两套逐档一致（同一组相对 ΔL、同一 chroma 剖面、同一浅端色相漂移），500 档锚定焦橙 `#C2410C`（L 0.5534、C 0.1739、色相 38.40°）。**为什么不是鲜橙**：`#E8590C` / `#EA580C` 这类亮橙承白字只有 3.58:1 / 3.56:1，低于 4.5:1，要做实心填充就得改成 `warning` 那种近黑前景，第三套板会脱离「白字填充」这条家族约定；焦橙承白字 5.18:1（余量 1.151×），三套板同一停靠档可直接互换。**代价记账**：与语意 `danger` 红的 OKLab ΔE 只有 12.1，是全库最紧的一对品牌／语意间距（`warning` 22.4，`success` 34.8，`info` 37.3）；橙红在近明度下本就是邻居，正常色觉下仍清晰可分，但后续任何把 500 档往暖端推的改动都会继续压缩这段距离。**接线**：`ThemeBrand` 新增 `Orange`、`ThemeService` 新增 `SetOrange()`、`ThemeProvider` 的存储恢复 switch 新增 `"orange"`、文案表新增 `ThemeBrandOrangeLabel`、`ThemeBrandSwitch` 的 `Brands` 数组由两项扩到三项（指示块行程由选项数量推导，组件无需其他改动）、示例 `/components/theme` 的 `BrandText` 同步。JS 与预渲染脚本无需改动：`applyBrand()` 原样透传属性值，未识别值匹配不到任何色相层而回落 `:root` 的紫罗兰。**验证**：`scripts/check-contrast.mjs` 自动发现新色相层，从「2 色相层 × 3 状态 × 11 组」扩到 **3 色相层 × 3 状态 × 11 组 = 99 项全部通过**，最紧一条仍是绿色 500 承白字 4.52:1（margin 1.004）；`dotnet build aeterni_ui.slnx` 0 警告 0 错误。 |
-
-| 交互态品牌色阶复原与全组件状态色审计 | 已完成 | 通过 | ① **复原**：`--aeterni-state-background-hover/-active/-selected`、`--aeterni-state-border-hover/-active`、`--aeterni-state-color-*` 与 `--aeterni-button-intent-default-soft` 全部回到从 `--aeterni-brand-*` 推导（`color-mix()` 取档），撤销上一版「选择态中性化」——中性墨让表单控件与选中态读起来发死，品牌按钮的 soft 变体还会退成灰色；容器与页面背景仍严格保持无彩色。② **新增两档**：`--aeterni-state-background-checked-hover` / `-active`（浅色 500→600→700、深色 400→300→200），填满的勾选块在指针下整块沿色阶换档，墨仍用 `--aeterni-text-inverse`。③ **审计并修复 8 类**：Checkbox/Radio/Switch 的 checked hover 曾出现「边框换档、填充不动」与「填充换档、圆点/圆环不动」两种劈裂；三者的无效态悬浮会被 `--aeterni-state-border-hover` 覆写而丢掉危险色，Switch 的无效 + 选中还被拆成危险边框裹品牌填充；Pagination/Tabs/Menu/ListItem/ComboBox/DateCalendar 的 `:hover`（0,2,0）与 `.is-selected`／`.is-current`（同为 0,2,0）特异性相同，写在后面就把选中提示整块压掉；`IconButton` 生成的是 `aeterni-button--*` 而不是 CSS 里定义的 `aeterni-icon-button--*`，四种非 default intent 的形状与状态样式从未命中，且缺 `--aeterni-button-color-active`；`DatePicker.razor.css` 复制了一整份日历规则（101 → 42 行，删掉的 61 行与 `DateCalendar.razor.css` 逐条重复且已是后者子集）。④ **验证**：`dotnet build aeterni_ui.slnx` 0 警告 0 错误、`check-contrast.mjs` 99 项通过（最紧仍是绿色 500 承白字 4.52:1）、`check-css-comments.mjs` 48 文件通过、`check-docs.sh` 通过；用 headless Chrome（CDP `forcePseudoState` + 真鼠标 `mouseMoved`，读 computed style）在「紫/绿/橙 × 浅色/深色」下逐控件复验修复前后的每一档色值；48 张截图逐像素分色相统计显示每个品牌的功能页**跨品牌彩色像素 0.00%**（唯一例外是展示全部语义色的 `/components/colors`），彩色像素占比 0.8~2.2%，即三套色相层完全隔离且状态反馈仍在。**复核结论**：现有 DatePicker、DateRangePicker 与 MenuButton 均由自身根元素规则负责宿主布局，仓库中已无 `__host` 选择器；PopupHost 只负责定位容器，不再重复承载这些组件的外观规则 |
-| v10.8.0 发布（多品牌色相层） | 已完成 | 通过 | 版本号在 `Directory.Build.props` 单一来源递增 `10.7.1` → `10.8.0`（`Version`／`AssemblyVersion`／`FileVersion`／`InformationalVersion` 四处齐动），四份门禁文档的「文档版本」与 项目索引 的「当前版本」同步，`review-plan` 一并跟进，README 的发布示例改为 `v10.8.0`；`bash scripts/check-docs.sh`（版本格式 `^10\.[0-9]+\.[0-9]+ + 四文档一致性）与 `dotnet build aeterni_ui.slnx` 通过；在 main 上打注解 tag `v10.8.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 props 版本，再用 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`。按仓库约定「功能新增递增次版本号」，本批（多品牌色相层与全组件状态色审计）为 minor
-| 示例页与首屏加载器重做 | 已完成 | 通过 | ① 「色彩与语义」页（`/components/colors`）从「摆组件」改为不引用任何组件的 Token 展台：色族色卡（每族三档色阶）、文字墨阶、字体与字号、中性容器表面、圆角阶梯、阴影层级、间距节奏与对比度验收组合；颜色全部消费 `--aeterni-*`，样式里零 hex/rgb 字面量，因此换主题与换品牌色相层都不需要改这一页。② 顺带修掉一个静态缺陷：`.component-preview__eyebrow` 的规则写在 `ComponentPreview.razor.css` 的作用域里（选择器带 `b-*` 属性），其它页面引用该类名永远不会命中，改用 `showcase.css` 的全局 `.showcase-page-eyebrow`，`Install` 页同步修正。③ 首屏加载器删掉 MVC 样板留下的灰色/蓝色 SVG 进度环与 `100%` 文案（`stroke:#e0e0e0` / `#1b6ec2` 是示例静态表里最后一处硬编码颜色），改为复刻 `Spinner` 规格的 `.sample-boot` 光环：走组件公开的 `--aeterni-spinner-size` 扩展点、3px 描边、右侧缺口、`--aeterni-duration-slower × 1.4` 线性周期、`opacity .92`，颜色取 `--aeterni-color-brand-text`，文案继续读运行时的 `--blazor-load-percentage-text`；`prefers-reduced-motion` 下由 Token 层清零时长并显式停转。④ 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`check-docs.sh`、`check-css-comments.mjs`（48 文件）、`check-contrast.mjs`（99 项，最紧仍为绿色 500 承白字 4.52:1）全部通过；headless Chrome 在限速首屏下读到光环 48px / 3px 描边 / 右侧缺口透明 / 动画运行，浅色 `rgb(102,70,187)` 与深色 `rgb(183,173,247)` 自动换档，`prefers-reduced-motion: reduce` 下 `animation: none`，挂载后加载器标记消失，684px 窄屏无横向溢出。**取舍**：加载器不可能真的实例化 `Spinner`（首屏没有组件树，组件的隔离样式也尚未加载），是刻意的视觉复刻，`app.css` 的注释写明了双向同步要求；色族按「每族一张卡、卡内三档」而不是参考图的「每档一张卡」排布 |
-| 玻璃配方落地（三轴解耦） | 已完成 | 通过 | 起因：iOS 27 桌面的背景模糊观感评估（只要模糊，不要液态玻璃的折射／高光边框）。分析结论是模糊半径本身够用（`--aeterni-blur-lg` 的 24px），短板在「填充 82% 把糊过的背景又盖回去」与「缺少可采样的背景内容」。落地方案拆成三根互不耦合的轴：**①填充**——Token 层新增三个玻璃角色别名 `--aeterni-bg-glass`（= `--aeterni-bg-elevated`，浅深同为 `.82`）、`--aeterni-blur-glass`（= `blur-md` 16px/135%）、`--aeterni-blur-scrim`（= `blur-sm` 8px/120%），填充刻意停在 `.82` 而不是提案里的 `.60`：更淡会把标准次要墨拽到 4.5:1 以下，等于逼全库说明文字换墨。**随后补上决策 A**：`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`，只声明一次所以浅深两主题同余量）接在 `Card`／`Surface` 的磨砂态上，补掉深色「次要 · 标准墨」在 `.82` 上只有 4.35:1 的缺口，实测升到 7.52:1（浅）/ 7.01:1（深）；接管的是次要墨的四个角色名（`--aeterni-text-secondary`／`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted`），因为别名在主题块里就完成了 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上；`--blur-none` 与不透明表面不接管，其余六个磨砂消费者（Dialog／Drawer／Popover／Tooltip／NoticeCard）当时暂未接管，已在「浮层接管玻璃墨」一行补齐。**②半径**——新增公共枚举 `SurfaceBlur`（`Default`／`None`／`Small`／`Medium`／`Large`），`Card` 与 `Surface` 各加 `Blur` 参数；`Default` 沿用既有约定不输出修饰类（宿主可用全局 CSS 调默认档），`None` 在 Glass 变体上同时退回 `--aeterni-bg-solid`——只摘掉 `backdrop-filter` 会留一块 82% 的半透明色斑，比不透明更糟。**③边框**——`.aeterni-card--glass`／`.aeterni-surface--glass` 里硬编码的 `border-color` 删除，玻璃边框改由既有的 `is-bordered` + `--aeterni-border-default` 决定，`Bordered="false"` 从此生效（此前追不上）。九处磨砂消费者（Dialog 面板与遮罩、Drawer、Popover 含遮罩、Tooltip、NoticeCard、Card／Surface 的 Glass 变体）改为引用新别名；`NoticeCard` 经 `--aeterni-notice-fill` 间接层换基（背景是 `color-mix(accent 9%, …)`，够不着 `background` 关键字），`is-no-blur` 重设该别名切实心。降级集中一处：文件尾两块 `@media (prefers-reduced-transparency: reduce)` 与 `@supports not (…)` 把 `--aeterni-bg-glass` 退 `--aeterni-bg-solid`、两支模糊退 `none`（遮罩保留压暗），因此 `Popover`／`Tooltip` 原有的组件级降级块可删——这是本轮唯一的删除。示例项目：`Surface`／`Card` 演示页加 `Blur` 控制项与 `.preview-glass-scene` 玻璃场景（背景层是与面板同级的兄弟节点，`aria-hidden`；`Surface` 的 `_surfaceBordered` 由 `true` 改 `false` 以对齐文档记载的默认值），新增只读对比页 `/components/glass`（`GlassLab` + `GlassContrast` + `GlassPalette`）。验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`check-docs.sh`、`check-css-comments.mjs`（49 文件）、`check-contrast.mjs`（99 项，最紧仍为绿色 500 承白字 4.52:1）、token-only grep（无 `.aeterni-*` 选择器）全部通过；headless Chrome 实测：`Blur=Large` 落到 `blur(24px) saturate(1.5)`、`Blur=None` 在 Glass 上退 `rgb(255,255,255)`、`Bordered=false` 后边框 `rgba(0,0,0,0)`、`--aeterni-bg-glass` 浅色 `rgba(255,255,255,.82)` / 深色 `rgba(26,26,29,.82)`、`prefers-reduced-transparency: reduce` 下 token 退 `#FFFFFF` / `none`（Dialog 遮罩保留 42% 压暗）。**遗留**：`check-contrast.mjs` 的 `contrast()` 忽略背景 alpha，半透明 token 当背景会假通过，未修。版本号未递增，留给发布批次统一走 minor。**后续**：②半径这条轴已被「模糊轴撤销」一行删除，理由是该轴与①填充争夺同一个 `background` |
-| 模糊轴撤销（回归 Glass 变体） | 已完成 | 通过 | 起因：`Blur` 与 `Variant` 冲突——`Card.razor.css`／`Surface.razor.css` 里的 `.aeterni-*-blur-small/medium/large` 各自重写 `background`，而这三条规则声明在 `--subtle`／`--elevated` 之后，所以任何非 `Default` 档位都静默压过 `Variant`：`Variant` 参数看上去失效，两个参数争夺同一个属性，且失败是无声的（`Elevated + Blur=Large` 得到的是玻璃填充）。删除 `Enums/SurfaceBlur.cs`、`Card`／`Surface` 的 `Blur` 参数与 `BlurClass` 映射、四组 `--blur-*` 修饰类（含 `--glass.--blur-none` 的实心回退），模糊回归 `Glass` 变体本身（`--aeterni-bg-glass` + `--aeterni-blur-glass`）；ink 规则从 `.aeterni-card--glass:not(.aeterni-card--blur-none), .aeterni-card--blur-small, …` 收成 `.aeterni-card--glass`，`--blur-none` 不再存在所以排除项一并去掉。**为什么不保留轴**：实心状态已由 `Default`／`Subtle`／`Elevated` 表达，「玻璃填充 + 不模糊」等于 `Elevated`，该轴没有带来变体表达不了的能力；而 `Blur=None` 与 `Variant=Default` 是同一个结果的两条路径，保留只会让参数面继续撒谎。示例页 `Card`／`Surface` 的 `Blur` 控制项与参数表行同步删除，`GlassLab` 页四处「模糊档位交给 `SurfaceBlur`」改为「模糊固定由 Glass 变体承担」；`docs/delivered-features` 的「模糊与实心」小节重写并记下为什么不要再引入正交模糊轴，`engineering-reference` 的同项改成硬规则。验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；四门禁通过；headless Chrome 实测 `Card` 与 `Surface` 页面四种 `Variant` 各自呈现自身填充（此前四种变体中心像素相同、只有 `Glass` 会显示，根因是示例页预览框的层叠，已在另一行修掉）。版本号未递增 |
-| 浮层接管玻璃墨 | 已完成 | 通过 | 起因：磨砂配方统一之后，五类浮层（Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert／Toast 卡片）仍在用标准次要墨 `--aeterni-text-secondary`（0.56 倍），深色主题在 82% 填充上只有约 4.35:1，低于 4.5:1 文字底线——只有 `Card`／`Surface` 的 `Glass` 变体切到了 `--aeterni-text-on-glass-secondary`，于是同一块玻璃上出现两种墨。给这五处各加一段与 `Card.razor.css` 同构的四角色重设（`--aeterni-text-secondary`／`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted`），四个必须一起改：别名在主题块里就完成了 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在旧墨上。两类刻意排除：Dialog／Drawer／Popover 的**遮罩**不承字，换成玻璃墨只会把压暗加深；通知卡片的 `is-no-blur` 是实心回退，保持标准墨。填充与模糊未动，所以这是一次纯墨替换，没有新增 token、没有新档位。验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；四门禁通过；headless Chrome 实测浅／深两主题下 Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert／Toast 卡片与 `Card`／`Surface` 的 `Glass` 变体解析出同一支 `--aeterni-text-secondary`（浅 `color(srgb 0 0 0 / 0.725765)`、深 `color(srgb 1 1 1 / 0.798706)`），`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted` 三者同值；`is-no-blur` 与 Dialog／Drawer／Popover 三类遮罩仍为 `rgba(0, 0, 0, .62)`／`rgba(255, 255, 255, .56)`。版本号未递增 |
-| 玻璃三轴对照矩阵（模糊／饱和度／遮罩） | 已完成 | 通过 | 起因：上一轮只读审计里，「模糊半径没有梯度」「`saturate` 让玻璃带色偏」「遮罩带 8px 模糊」三条都只是静态判断，没有实测依据。做法：把 `/components/glass` 从六节扩到八节——04「模糊半径」由空壳变成真布景（8／16／24／32px 四档），新增 05「饱和度」（100／120／135／150%）与 06「遮罩」（none／8／16px）两行，遮罩那一行用「整块视口 + 浮在中间的面板」的装置。三行一律只改一根轴：04 的填充停在库现值 `.82`、`saturate` 钉 `135%`；05 的填充同上、模糊钉 16px；06 的三格压暗值（`--aeterni-overlay`）完全相同。结论（1440×1000、DPR 2 的无头 Chromium 逐像素实测）：**①模糊半径在 `.82` 的填充上几乎不可测**——壁纸／细网格／12px 正文上从 8px 直接跳到 32px 只有约 4% 的像素变化（噪声底约 2%，全部落在文字抗锯齿），只有「App 图标墙」分得出，面板内部梯度 0.249／0.064／0.061／0.057，即 8→16 一次降掉四分之三、16 以上只剩 5% 与 7%，所以上轮审计「给大面板补 24px」降级为可拍板的取舍而非缺口，`--aeterni-blur-lg` 继续 0 处使用；**②`saturate` 是可测的真轴**——壁纸上面板区域彩度均值 5.46／6.50／7.26／8.06，135% 比 100% 把透出的彩度抬高 33%、150% 抬高 48%，而在无彩色背景（细网格／12px 正文）上是逐像素相同的空操作，这就是「让玻璃带色偏」的量化依据；**③遮罩 8px 已经够**——面板外那片区域的梯度 1.29 → 0.19 → 0.18，16px 只再降 3%，观感上没有收益，收益只在每帧一次的更大核卷积。本行只改示例页与文档，库侧零改动；读数方法（亮度权重、2/255 计数阈值、噪声底）写在 08 节与 `GlassLab.razor.css` 的注释里。**本条读数随后被下一行「磨砂填充降档与玻璃墨阶梯」推翻重测**——旧读数全部基于 `.82` 的填充，填充降到 `.68`／`.72` 之后口径与数字都变了：①**模糊半径由死转活**，面板内残余细节（亮度标准差）`0.0508／0.0323／0.0184／0.0139`，8→16 降 37%、16→24 降 43%、24→32 降 24%，相邻档位的逐像素差异 92%／85%／39%，所以 24px 不再是缺口，而是四步里收益最大的一档；原「其余三档背景分不出四格」的定性结论不变（壁纸档 8→32 只降 25%、单步变化像素 < 1%，细网格档 8px 起残余已在 0.001 量级，12px 正文档过了 16px 就不再变）；②**饱和度读数改写**为彩度均值 `13.14／15.73／17.73／19.69`（仍严格正比于 100／120／135／150%，即 135% 抬高 35%、150% 抬高 50%），无彩色背景上是逐像素相同空操作的结论不变；③**遮罩梯度改写**为 `0.0026／0.00033／0.00026`（8px 一次抹掉 87% 的高频，16px 只再多抹 21%，绝对值只剩 0.00007），结论「8px 已经够、再往上只买到更大的卷积核」不变；④04／05 的读数改为取「截图时把文字遮住」之后的面板区域统计（残余细节用亮度标准差、彩度用 max − min(R,G,B)），因为旧口径的噪声底就落在文字抗锯齿上 |
-| 磨砂填充降档与玻璃墨阶梯（on-glass tertiary） | 已完成 | 通过 | 起因：上一轮把「填充不能低于 82%」归因于三级墨的图形门槛，但那条约束只是因为玻璃表面仍在继承标准墨阶梯——该改的是墨，不是填充。做法：①把 `--aeterni-bg-glass` 从 `--aeterni-bg-elevated` 解耦成独立 token，三个主题块各自声明（浅 `.68`／深 `.72`／系统深 `.72`），因为「升起的表面」与「磨砂表面」答的不是同一道题：前者只要求落在页面上，后者要按最坏背景（纯黑／纯白）保证墨可读，共用一个值正是填充偏厚、糊不进背景的原因；②新增 `--aeterni-text-on-glass-tertiary`（`color-mix(in srgb, var(--aeterni-text) 67%, transparent)`），把三级墨也纳入 on-glass 阶梯——三级墨在玻璃上只承图标与装饰（Dialog／Drawer／NoticeCard 的关闭按钮、日期日历的 `.is-outside`），所以按 3:1 图形门槛定档；③七处磨砂内容表面（`Card`／`Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、NoticeCard）各补一条 `--aeterni-text-tertiary`，并同步注释里「深色 4.35:1」这类旧读数；④删除三个编码被否决方向（液态玻璃高光边）的孤儿 token：`--aeterni-backdrop-saturate`、`--aeterni-glass-border-alpha`、`--aeterni-glass-highlight`，全库 0 引用；⑤两个降级块（`prefers-reduced-transparency: reduce` 与 `@supports not (backdrop-filter)`）把两支玻璃专用墨退回标准墨——墨的存在理由是顶住透出来的背景，填充一旦是实心表面就没有背景要顶；⑥修 `Bordered="false"` 的玻璃卡 hover 浮出边框：hover 规则 4 个类压过 `.is-bordered` 的 2 个类，把改边框那一条拆到 `.is-interactive.is-bordered` 上，位移与阴影仍对所有变体生效。实测口径（填充合成后的底色，最坏背景，1.1× 会计余量）：深色 `.82` → 标准次要墨 4.35:1 FAIL、标准三级墨 3.02:1 thin，`.72` → 3.41 FAIL／2.51 FAIL，接管 on-glass 后 5.11／3.51；浅色 `.82` → 5.33／3.86，`.68` → 4.51／3.43，接管后 5.94／3.46。下限由最紧的那支墨决定，两个主题不同：浅色是三级墨（1.15×）、深色是次要墨（1.14×），所以 `.68` 与 `.72` 分别是两个主题的边界值，再淡一档就掉出余量。**本条推翻的旧结论**：上一轮「填充已被三级墨钉死在 82% 以上」不成立——那是标准墨的约束。**未覆盖面（如实记录）**：品牌链接墨不在 on-glass 覆盖内，也不在任何门禁里，它本来就撑不住磨砂——深色最坏背景 `.82` 已是 3.25:1 FAIL、`.72` 掉到 2.27:1，浅色 `.82` 4.36:1 FAIL、`.68` 2.98:1；降填充把「链接可读的背景窗口」进一步收窄（浅色填充要求底色亮于 18/255 → 103/255，深色要求暗于 134/255 → 95/255），这是既有缺口而非本轮引入，已写进组件设计指南的硬规则。验证：`dotnet build aeterni_ui.slnx`、`check-docs.sh`、`check-css-comments.mjs`、`check-contrast.mjs`（99 项）、token-only grep 全过；headless Chrome 逐像素核对七处磨砂表面的墨与两个降级块。示例项目：`GlassLab` 对照页同步新填充（`GlassPalette` 的 `.68`／`.72`）、新增第五支读数「三级 · on-glass」、04／05／06 三节按新填充重测并把基于 `.82` 的旧数字全部替换（口径也改为「截图时把文字遮住」之后的面板区域统计），其中模糊半径轴由死转活、24px 从缺口变成收益最大的一档（更正见上一行）。文档同步三处：`delivered-features` 的玻璃角色别名条目（含十处消费者与填充下限的归因）与「模糊与实心」小节、`engineering-reference` 的玻璃硬规则（含新增的品牌墨警示：品牌墨浅色最坏 2.98:1／深色 2.27:1，不在门禁覆盖内）与提交检查清单新增一条「新增磨砂表面须一次接管五个角色名」、`release-history` 本行。项目索引 无需改动：本轮没有新增或移动项目、目录、入口文件、宿主、构建脚本或开发命令。版本号未递增 |
-| v10.9.0 发布（磨砂配方解耦与填充降档） | 已完成 | 通过 | 版本号在 `Directory.Build.props` 单一来源递增 `10.8.0` → `10.9.0` （`Version`／`AssemblyVersion`／`FileVersion`／`InformationalVersion` 四处齐动）， 四份门禁文档的「文档版本」与 项目索引 的「当前版本」同步， `review-plan` 一并跟进，README 的发布示例改为 `v10.9.0`； `bash scripts/check-docs.sh`（版本格式 `^10\.[0-9]+\.[0-9]+$` 与四文档一致性）与 `dotnet build aeterni_ui.slnx` 通过； 在 main 上打注解 tag `v10.9.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 props 版本， 再用 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`。 按仓库约定「功能新增递增次版本号」，本批（玻璃配方三轴解耦、on-glass 墨阶梯与磨砂填充降档）为 minor： 相对已发布的 `10.8.0` 无破坏性公共 API 变更——被撤销的 `Blur` 轴是同一批内引入、从未出现在任何已发布版本里，故不递增主版本号 |
-
-| v10.10.0 / v0.5 日期与时间输入 | 已完成 | 通过 | 新增 `TimePicker`、`DateTimePicker`、`TimeFormat` 与 `DateRangePreset`；`DateRangePicker` 补充宿主定义快捷范围和 1～3 个月视图；示例、文案、功能事实源和项目索引同步。版本单一来源由 `10.9.0` 递增为 `10.10.0`。验证：`dotnet build aeterni_ui.slnx --no-restore` 0 警告/0 错误，`check-docs.sh`、`check-css-comments.mjs`（52 个 CSS 文件）、`check-contrast.mjs`（99 项）与 Font Awesome 生成一致性检查全部通过 |
-| v10.10.1 / v0.5.1 质量收口 | 已完成 | 通过 | 完成 REV-64～REV-73、REV-75～REV-76：恢复 DatePicker/MenuButton 根契约，补齐 Accordion、DateCalendar、TimeOptionList 焦点与 ARIA，统一日期字段状态、Segmented 选中态、文案与尺寸 Token，扩充示例，并新增 `AeterniUI.ContractChecks` CI 门禁。按项目版本约定，本批属于现有能力修复与优化，版本单一来源由 `10.10.0` 递增为 `10.10.1`；首位继续与 .NET 10 对齐。验证：`dotnet build aeterni_ui.slnx` 0 警告/0 错误，6 组渲染契约检查、全部 `.razor.js` 语法、文档、52 个 CSS 文件注释、99 项品牌对比度、Font Awesome 343 图标一致性和 Token-only 检查全部通过；无头 Chrome 复核 1440px 浅色/深色与 390px 窄屏布局。 |
-| DateTimePicker 组合弹层布局修复 | 已完成 | 静态与契约门禁验证，视觉待复核 | 弹层按双栏内容定宽并受视口约束，时间列最小宽度与实际滚轮一致；操作行使用自然高度，空状态居中且保留滚轮占位，避免按钮拉高及溢出。按用户确认保留现有提交行为，不给 DatePicker / DateRangePicker 新增确认模式。 |
-| 单值选择器宽度统一与示例合成优化 | 已完成 | 契约检查覆盖，模糊效果待宿主实测 | DatePicker、TimePicker、DateTimePicker 统一 160px 最小宽度与 FullWidth 行为，DateTimePicker 示例新增交互开关；示例容器入场动画不再保留 forwards 状态，避免 opacity 动画残留合成层干扰后代毛玻璃采样，不修改模糊强度与透明度。 |
-| 日期与时间选择器布局调整 | 已完成 | 契约检查覆盖 | DateRangePicker 弹层按内容定宽并限制在视口内，修正多月内容溢出导致的左右留白不一致；TimePicker 默认最小宽度使用 160px Token；DatePicker 新增 FullWidth，示例提供交互开关，根布局类纳入契约检查。 |
-| TimePicker 滚动流畅性修复 | 已完成 | 自动化回归覆盖 | 时/分/秒滚轮改为停稳后回调草稿，取消逐项强制停止；相同选中值的重渲染不再重新居中，联动列继续同步。新增 `tests/time-wheel.test.mjs` 覆盖连续滚动、回调去重、重渲染、联动及释放；继续修复反向输入与旧吸附动画争抢滚动位置：移除 CSS 强制吸附，输入时取消旧 JS 动画，并通过 ResizeObserver 在隐藏弹层展开时重新居中；回归覆盖隐藏展开与反向中断。实际设备惯性手感仍需人工验证。 |
-| v10.11.0 / TimePicker 时分秒滚轮 | 已完成 | 通过 | `TimePicker` / `DateTimePicker` 默认步长由 30 分钟调整为 1 秒，默认显示策略改为 24 小时制和 `HH:mm:ss`；保留 `Step` / `TimeStep` 的 `TimeSpan` API，并支持 1 秒到小于一天的整秒步长。内部选择面从全天扁平列表改为类似系统计时器的时/分/秒三列滚轮，具有五行视窗、顶部中文单位、无圆角且无左右边框的固定中心选择带、平滑吸附、上下渐隐和近大远小反馈，并提供取消/确定按钮与不污染绑定值的草稿状态；1 秒步长最多渲染 24 + 60 + 60 个当前列选项而不是 86,400 个时间点。触发器默认按时间文本与图标紧凑显示，新增 `FullWidth` 作为显式铺满入口；DateRangePicker 示例移除“最近/未来 7 天、30 天”业务预设，仅保留直接范围选择，通用 `Presets` API 仍由宿主按业务需要提供。左右键切列，上下键/Home/End 改值，Enter/Space 确认。按版本规范属于同一批功能扩展，版本保持 `10.11.0`。验证：解决方案构建 0 警告/0 错误，6 组组件契约、全部 JS/CSS/文档/对比度/图标门禁通过；无头 Chrome 实测三列中心与选择带中心完全重合，`00:00:00`、`23:59:59` 均可滚动选中，取消不回写、确定后关闭并更新触发器。 |
-
-## 第三阶段（v0.3）计划
-
-状态：已完成（7/7）。第三阶段在 v0.2 的基础上补齐纯展示类基础组件、通用分段控件和侧边面板，并为浮层类组件沉淀共享的定位与焦点能力。
-
-进度：15 `Divider`、16 `Empty`、17 `Spinner`、18 `Skeleton`、19 `Badge` 已在 v10.6 交付；20 `Segmented`（含 `ThemeSwitch` 重构）与 21 `Drawer` 在 v10.7 交付。
-
-版本规则沿用第二阶段：首位跟随目标 .NET 主版本，功能新增递增第二位，问题修复与优化递增第三位；破坏性公共 API 变更应优先避免或提供兼容迁移。
-
-### TODO 总览
-
-- [x] 15. `Divider`
-- [x] 16. `Empty`
-- [x] 17. `Spinner`
-- [x] 18. `Skeleton`
-- [x] 19. `Badge`
-- [x] 20. `Segmented`
-- [x] 21. `Drawer`
-
-### 依赖顺序
-
-```text
-Token 和现有基础组件
-  +--> Divider / Skeleton / Badge     （纯展示，无额外依赖）
-  +--> Spinner                        （沿用 Button Loading 的视觉约定）
-  +--> Empty                          （Icon + Button + Surface）
-  +--> Segmented                      （Radio 的单选语义；落地后反向重构 ThemeSwitch）
-  +--> FocusTrap + 背景滚动锁抽取       （与 v0.2 第 12 项的 Popup 增强共用）
-          |
-          +--> Drawer
-```
-
-### 15. Divider
-
-状态：已完成
-
-目标：提供水平与垂直分隔线，支持中缝文字或图标。
-
-依赖：Token 层（`--aeterni-border`、间距和字号 Token）。
-
-验收重点：`role="separator"` 与 `aria-orientation`；垂直形态在 flex 容器内自适应高度；中缝内容与线宽对齐；纯 CSS 无 JS。
-
-暂不包含：渐变装饰线、可拖拽的 splitter。
-
-交付：`Orientation` + 可选中缝内容；两种形态共用同一份标记（有内容时两段线各保留最小长度），带值 ARIA 输出字符串，无 JS。示例页 `/components/divider`。
-
-### 16. Empty
-
-状态：已完成
-
-目标：提供空状态占位，支持图标、标题、描述与操作区。
-
-依赖：`Icon`、`Button`、`Surface`；需要新增“空/无数据”核心字形（`AeterniIcons` 目前只有 7 个字形）。
-
-验收重点：默认图标可被 `Icon` 参数或自定义插画替换；`Description` 与操作区插槽；尺寸档位；文本居中与窄屏换行；`ChildContent` 为空时不渲染空壳；无 JS。
-
-暂不包含：数据加载逻辑、插图资源包、动画插画。
-
-交付：新增核心字形 `AeterniIcons.EmptyBox`（字形数 7 → 8）；`Size` 三档同时管插画与字号；组件不绘制表面（在 `Card`/`Surface` 宿主里演示）；`Title`/`Description` 空值分别回落到文案表与不渲染；`ChildContent` 为 `null` 时不渲染操作区容器。示例页 `/components/empty`。
-
-### 17. Spinner
-
-状态：已完成
-
-目标：提供独立加载指示器，供内容区、对话框和页面级加载复用。
-
-依赖：现有 Button spinner 的视觉与 keyframes，落地时应先把该视觉抽成共享实现，再让 `Button.Loading` 引用，避免两份动画。
-
-验收重点：尺寸与语义色档位；可访问名称（`role="status"` 或 `aria-label`）；`prefers-reduced-motion` 降级；与 Button Loading 视觉一致。
-
-暂不包含：进度百分比（使用 `Progress`）和遮罩层布局。
-
-交付：环形定义集中到 `Spinner.razor.css`，删掉 `Button.razor.css` 里的第二份 ring/keyframes；Button 改为渲染 `Spinner`，只通过 `--aeterni-spinner-size` 保留自己 14/16/20px 的档位（加载态尺寸未变）；`role="status"` + 文案表可覆盖的可访问名称；命名色取文字形态，`Default` 继承文字色。示例页 `/components/spinner`。
-
-### 18. Skeleton
-
-状态：已完成
-
-目标：提供内容加载占位（文本行、矩形、圆形及常见组合）。
-
-依赖：Token 层（表面色、圆角和动效 Token）。
-
-验收重点：形状与尺寸参数；微光动画在 `prefers-reduced-motion` 下退化为静态；占位内容对读屏不可见（`aria-hidden`），容器按需标记 `aria-busy`；无 JS。
-
-暂不包含：与具体组件绑定的骨架模板和延迟加载策略。
-
-交付：`SkeletonVariant`（`Text`/`Rectangle`/`Circle`）+ `Lines`/`Width`/`Height`；宽高走 `--aeterni-skeleton-*` 自定义属性；文本块末行按 80% 收尾，圆形宽度跟随显式高度；微光取 `--aeterni-surface-soft` 轨道 + 8% 正文墨高光，reduced-motion 下退化为静态色块。示例页 `/components/skeleton`。
-
-### 19. Badge
-
-状态：已完成
-
-目标：提供数字或圆点角标，附着在图标、头像或按钮上。
-
-依赖：`Tag` 的语义色与 soft/outline 思路。
-
-验收重点：数字上限显示（如 `99+`）、圆点模式、相对父级定位、语义色、最大宽度与溢出处理；数字需要有可访问名称。
-
-暂不包含：独立堆叠布局和消息计数业务逻辑。
-
-交付：`Count`/`Max`/`Dot`/`Color`/`AriaLabel`；逻辑 `inset-*` 定位并按自身尺寸位移对准角点（RTL 自动镜像）；最小 16px 胶囊、最大宽度 40px 并做省略；圆点把可访问名称作为视觉隐藏文本输出（`AeterniUITextOptions.BadgeLabel`）；填充/墨色两角色与参数边界校验（负数、`Max < 1`）。示例页 `/components/badge`。
-
-### 20. Segmented
-
-状态：已完成
-
-目标：提供通用分段控件（互斥选项切换），并把 `ThemeSwitch` 重构为它的专用用法。
-
-依赖：`Radio`/`RadioGroup` 的单选语义与现有 `ThemeSwitch` 的滑块动画。
-
-验收重点：`radiogroup` 语义与 roving tabindex；滑块指示器与选项数量无关（不得像 `ThemeSwitch` 那样硬编码三列和 `translate3d(200%)`）；尺寸档位；单项禁用与整体禁用；方向键；RTL 方向。
-
-暂不包含：多选分段、可编辑标签和路由集成。
-
-说明：公共名为 `Segmented`。落地后 `ThemeSwitch` 应改为基于该组件，并同步解决英文硬编码文案问题（见当时的审阅记录 REV-18）。
-
-交付：`Segmented<TValue>` 基于原生 radio（`Items` / `TextSelector` / `ItemTemplate` / `DisabledSelector`）；单选语义、`aria-checked`、roving tabindex、方向键与 RTL 方向交给浏览器，因此组件没有键盘 JS；滑块宽度为「一列」、位移为「index 列」，来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，2/3/5 项共用同一份几何；尺寸走控件高度阶梯（28/36/44px）；`ThemeSwitch` 重构为它的专用用法（文案仍取自文案表，不再有硬编码英文）。示例页 `/components/segmented`。
-
-顺带修复：`Radio` 的选项原来只监听 `onclick`，方向键改变原生选中态时不会上报到 C#（受控值会停在旧值）；改为监听原生 `change` 后方向键与鼠标走同一条上报路径。
-
-### 21. Drawer
-
-状态：已完成
-
-目标：提供从视口边缘滑出的面板，支持非模态和模态两种形态。
-
-依赖：必须先抽取 `Dialog` 中已有的焦点陷阱与背景滚动锁能力（见当时的审阅记录 REV-13、REV-28），避免 `Drawer`、`Popup`、`Dialog` 各维护一份实现。
-
-验收重点：四个方向（start/end/top/bottom）；模态形态使用 `role="dialog"` + `aria-modal` + 焦点陷阱 + 背景滚动锁 + 关闭后焦点回归；非模态形态不抢焦点；Escape 与外部点击（可配置）；`prefers-reduced-motion` 下关闭滑入动效；窄屏宽度自适应。
-
-暂不包含：多抽屉堆叠、可拖拽调整宽度和路由集成。
-
-交付：`DrawerPlacement` 四方位（Start/End 用逻辑内联边，RTL 自动镜像）；模态形态复用共享模块的 `createFocusTrap` / `lockScroll`（遮罩、`aria-modal`、焦点回归、滚动条补偿）；非模态形态不渲染遮罩、不锁滚动也不抢焦点，并在面板外指针与 Escape 时请求关闭；关闭统一经 `OpenChanged`；三段式内容（Title / body / Footer）与内置关闭按钮；`--aeterni-drawer-size` 控制尺寸、窄屏收到 100%；入场动画按方位用 `transform`，reduced-motion 下停止（修正了方位规则因特异性高于媒体查询而未能被覆盖的问题）。示例页 `/components/drawer`。
-
-### 第三阶段前置能力
-
-以下能力不产出新组件，但会阻塞或影响第三阶段质量，需在同批次内完成：
-
-| 能力 | 影响的任务 |
-| --- | --- |
-| ~~FocusTrap + 背景滚动锁抽取~~（v10.4 已完成：`wwwroot/js/aeterni_floating.js` 提供 `createFocusTrap` / `lockScroll`） | 21 `Drawer`，并回填 v0.2 第 12 项的 Popup 增强（已回填） |
-| ~~浮层定位能力（锚定/flip/shift/外部点击）~~（v10.4 已完成：`fitsSide` / `oppositeSide` / `clampCenteredShift` / `clampAlignedShift`） | 21 `Drawer` 的遮罩、v0.2 的 Tooltip 复用（已迁移）与 ComboBox 弹层迁移（已完成） |
-| ~~语义枚举收敛（`Color`/`Severity`）~~（v10.5 已完成：`ComponentClass.ForColor` / `ToColor` 是唯一映射；v10.6 的 `Spinner` 与 `Badge` 直接复用它） | 19 `Badge`、17 `Spinner` 等新增带色组件（已解决） |
-| ~~文案本地化入口~~（v10.6 已完成：`Spinner`/`Badge`/`Empty` 的可访问名称与空状态标题全部走 `AeterniUITextOptions`；v10.7 的 `Segmented` / `Drawer` 也沿用同一入口） | 20 `Segmented`（含 `ThemeSwitch` 重构，已解决） |
-| ~~核心图标字形补充~~（v10.6 已完成：新增 `AeterniIcons.EmptyBox`） | 16 `Empty`（已解决）及后续新增组件 |
-| ~~示例页拆分~~（v10.5 已完成：一个组件一个页面） | 第三阶段每个组件都需要可交互演示（已具备） |
-
-## 第三阶段固定交付物与验收
-
-沿用第一阶段固定交付物；每个公共 API 任务完成时同步 `docs/delivered-features.zh-CN.md`、示例页与本文档 TODO/任务记录，并在 `dotnet build aeterni_ui.slnx` 通过后勾选。
-
-### 第三阶段任务记录
-
-| 任务 | 状态 | 构建 | 备注 |
-| --- | --- | --- | --- |
-| v0.3 计划 | 已完成 | 未涉及 | 仅记录计划，未修改组件代码；7/7 已完成 |
-| Divider | 已完成 | 通过 | `role="separator"` + 显式 `aria-orientation`、中缝内容、垂直形态贴合 flex 高度；示例已同步 |
-| Empty | 已完成 | 通过 | 新增 `AeterniIcons.EmptyBox`；`Size` 三档、自定义插画、描述与操作区插槽、无表面宿主用法；示例已同步 |
-| Spinner | 已完成 | 通过 | 环形视觉抽成共享实现并让 Button Loading 复用（删除第二份 keyframes），尺寸/语义色档位与 `role="status"`；示例已同步 |
-| Skeleton | 已完成 | 通过 | Text/Rectangle/Circle + Lines/Width/Height、末行 80%、`aria-hidden`、reduced-motion 静态降级；示例已同步 |
-| Badge | 已完成 | 通过 | 数字上限、圆点模式、逻辑定位（RTL 镜像）、最大宽度与溢出处理、可访问名称；示例已同步 |
-| Segmented | 已完成 | 通过 | 原生 radio 单选语义（`aria-checked` / roving tabindex / 方向键 / RTL 由浏览器提供）、数量无关的滑块几何、尺寸档位、单项与整体禁用、FormField 接入；`ThemeSwitch` 已重构为它的专用用法；顺带修复 radio 方向键不上报的问题 |
-| Drawer | 已完成 | 通过 | 四方位与 RTL 镜像、模态/非模态两态（遮罩、`aria-modal`、焦点陷阱、滚动锁、焦点回归 vs. 不抢焦点/不锁滚动）、`OpenChanged` 受控关闭、三段式内容、窄屏 100% 宽度、reduced-motion 停止动画 |
-| Accordion / Pagination / Avatar | 已完成 | 通过 | 折叠面板平滑高度动画、分页省略号与当前页过渡、图片/姓名缩写头像；示例与当前功能文档已同步 |
-
-## 第四阶段（v0.4）计划
-
-状态：基础交付已完成。该阶段已交付基于 `DateOnly` 的单日与日期范围选择，并复用 PopupHost / Popover、FormField 与现有 Token。
-
-### 22. DatePicker / DateRangePicker
-
-状态：已完成
-
-目标：提供单日和日期范围选择控件。
-
-当前已交付：`DateOnly?` 绑定、月份切换、日期边界、禁用日期、Popover 日历弹层、Size、基础 ARIA 语义、键盘导航、范围 hover 预览、FormField / EditContext 校验、必填/无效状态和关闭后焦点回归；日期格式化已支持 `Format` 与当前 Culture。v0.5 在此基础上补充了快捷范围和 1～3 个月视图。
-
-后续边界：虚拟化、自定义日历系统和复杂本地化历法仍不在当前范围。`DateCalendar` 仅作为 DatePicker / DateRangePicker / DateTimePicker 的内部渲染部件，不属于稳定公共 API。
-
-### 第四阶段固定交付物与验收
-
-沿用既有固定交付物；完成后同步 `delivered-features.zh-CN.md`、示例页、项目索引和本文档任务记录，并运行构建、文档、CSS 与 JavaScript 检查。
+- 验证：例外：当前工作区无可用浏览器自动化依赖（Playwright 亦无可用项目），未完成浏览器视觉验收。
+
+## 阶段路线图归档（v0.1–v0.4）
+
+计划期逐项写下的目标、验收重点与任务勾选已随阶段完成而收口，不再保留在现行文档中；现行 API 见 [`delivered-features.zh-CN.md`](delivered-features.zh-CN.md)，未完成能力见 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)。以下只保留阶段结论与发布归属：
+
+| 阶段 | 版本/tag | 交付组件 | 关键决策 | 是否单独发版 |
+| --- | --- | --- | --- | --- |
+| 第一阶段落地范围 | 未单独发布 | Button、ButtonGroup、Surface、Input、FormField | 以 Button 作为第一份参考实现验证 Intent/Variant/Size 与 Token 用法；`Stack`/`Flex` 曾列入但从未实现，布局由 `Surface`/`Card`/宿主样式承担 | 随当时发布批次 |
+| v0.1 表单与选择基础 | `10.14.0` 前后逐步交付 | FormField、Label、Checkbox、Switch、Tag、List、Rating、ComboBox | 先统一字段语义（FormField/Label），再叠选择控件；ComboBox 最终交付为纯下拉选择，输入筛选未实现 | 随各自版本发布 |
+| v0.2 基础控件与浮层 | `10.15.0`–`10.22.x` | Textarea、Radio/RadioGroup、Progress、Tooltip、PopupHost/Popover、Tabs、Menu | 浮层能力收敛到共享 `aeterni_floating.js`（定位/翻转、焦点陷阱、滚动锁），后续组件不再各写一套 | 随各自版本发布 |
+| v0.3 展示与分段控件 | v10.6/v10.7 提前交付 | Divider、Empty、Spinner、Skeleton、Badge、Segmented、Drawer | `Segmented` 重构 `ThemeSwitch`；焦点陷阱与滚动锁先抽取再给 Drawer 复用 | 随 v10.6 / v10.7 发布 |
+| v0.4 日期与时间 | `10.10.0` 起 | DatePicker、DateRangePicker、TimePicker、DateTimePicker | 基于 `DateOnly`，复用 Popover/FormField；`DateCalendar` 仅内部部件、非稳定 API | 随 v10.10 系列发布 |
+| 宿主范围收敛 | 版本号未递增 | 移除桌面示例宿主，仅保留 Blazor Server / WebAssembly | 主题模块只用浏览器 API，保留系统主题监听与本地持久化 | 随当时发布批次 |
+| 优先级 9 新组件 | `10.32.0`–`10.41.0` | Upload、Cascader、Transfer、Anchor、Splitter、NavMenu | 后台数据录入优先；NavMenu 替换 NavTree（破坏性）；组件计划只保留未交付候选 | 随各自版本发布（10.41.0 为破坏性 minor） |
+
+阶段内逐项验收证据（契约断言、浏览器检查、图标/对比度门禁）保留在对应版本条目与提交历史中，不在此重复。
+
+### 早期交付与审计记录（v0.2–v10.11，已完成）
+
+早期版本的逐项记录是色彩体系、图标适配、玻璃配方与日期时间组件的唯一历史来源，保留如下（原表格已改为条目以便 diff）。
+
+- **v0.2 计划**：高频基础控件与浮层能力已交付
+- **Textarea**：原生 `<textarea>`、标准绑定、Rows/Resize、表单校验和无障碍状态；示例已同步
+- **Radio / RadioGroup**：原生 radio/fieldset 语义、泛型绑定、禁用/必填/无效状态；示例已同步
+- **Progress**：线性 progressbar、确定/不确定状态、语意色、尺寸和 reduced-motion
+- **PopupHost / Popover**：定位（`PopupPlacement` 四方位）、视口翻转与交叉轴贴边、Escape/外部指针/遮罩关闭（通过 `OpenChanged`）、模态遮罩与 `aria-modal`、Tab 焦点陷阱、背景滚动锁与焦点回归
+- **Tooltip**：四方位 hover/focus-visible 提示、`aria-describedby` 关联、翻转与贴边改为复用共享浮层模块
+- **Tabs**：`tablist`/`tab`/`tabpanel` 三件套与按注册顺序派生的成对 id、roving tabindex（含选中项被禁用时回退到首个可用项）、自动激活模型 + 方向键/Home/End（RTL 自动互换）、禁用标签、窄屏横向滚动与细滚动条、`Value` 未匹配任何标签时默认显示首个可用项
+- **Menu**：分组折叠、Accordion、选中项、图标/描述/禁用项；已接入组件示例侧边栏并新增示例专区；键盘模型、`aria-expanded`/`aria-controls`、折叠可见性、`Href` 链接项、受控 `OpenKeys`、分组级禁用/可见性、`ul`/`li` 语义、RTL 方向键与方向键滚动抑制已补齐
+- **文档与代码一致性审计**：修正 delivered-features 标题编号（§21 重复）并补 Label、DialogProvider 章节；补齐 List/Menu/Rating 参数与枚举类型名；示例页补 Progress、Tooltip、Popover 参数表与 Radio 无障碍参数；清理规范中的陈旧组件名（Select→ComboBox、Stack/Flex、Toolbar/ToggleGroup）；把 check-docs.sh 写入 根目录入口与当时的开发规范
+- **组件审阅修复批次 1（P0）**：Switch 关闭态滑块改用 `--aeterni-state-background-thumb`；Button 加载遮罩按变体取值、实心语意色改用 `--aeterni-color-on-semantic`；Alert 与 Toast 合并到同一位置容器
+- **组件审阅修复批次 2（P1）**：Input/Textarea 焦点环；FormField 标签关联（ComboBox/Rating/RadioGroup 补 `aria-labelledby`）；List 选项改 `role="option"` 并移除选项焦点；Rating roving tabindex 与唯一 checked；ComboBox 选项非聚焦化；Radio 状态补齐与 Size 档位；Tooltip `aria-describedby` 与四方位翻转偏移；Tag 关闭热区 24×24；Popup 死 CSS 清理并在文档中明确基础版边界
+- **组件审阅修复批次 3（P2）**：补齐浮层/紧凑表面度量 Token 并把组件裸像素收敛到 Token；删除死类、死 CSS 与死标记；统一圆角阶梯与类名映射（`ComponentClass`）；文案集中到 `AeterniUIOptions.Text`；CSS 与参数声明格式统一；滚动条改为细样式；主题系统偏好兜底与预渲染脚本；字体栈标注为可选依赖
+- **组件审阅修复批次 4（P3）**：Tooltip 支持四个方位；RadioGroup 增加 `Orientation` 与垂直布局；通知数量上限写入文档；Rating 自定义图标与内置星形同尺寸；对话框打开时补偿滚动条宽度；Button 禁用态变量与 ButtonGroup 分隔线对齐注释
+- **色彩体系优化（v10.3）**：品牌色按 OKLCH 重建（紫罗兰 `#795AD9`／深色 `#9985ED`）：峰值 chroma 0.237→0.186、色相漂移 7.8°→1.7°、明度阶梯拉直；语意色沿用 Apple 系统色，色阶以 500 档为锚点重建（浅端统一 L 0.976、深端 L 0.30），消除 `Info` 的 400→500 断层与色相漂移；中性文字从紫灰改为冷中性并换掉紫调阴影墨色；新增 `-text` 强调文字形态 Token（修掉亮色档当文字只有 2.2:1 的老问题）；实心控件字色改为「按填充明度分两层、三态不换字」，删掉 `--aeterni-color-on-semantic-strong`；Tag 改浅底深字（2.5~3.5:1 → 5.0~6.9:1）；全系统 44 项对比度校验通过
+- **图标库完善**：新增核心 `AeterniIcons`（组件内字形全部改为图标渲染）；Font Awesome 适配包升级到 7.3.1 精选 343 个图标并提供 `Categories`/`TryGet`；新增生成脚本和 `/icons` 图标浏览页
+- **全组件色彩与结构复核（v10.4）**：把「填充档不当 ink 用」的规则落实到全部组件：Icon 命名色、Alert/Toast 徽标与弹窗头部图标、FormField 反馈文字、Menu 选中项、Progress 填充/轨道、Rating 星形共六处换上文字形态或按色相染色（最低组合从 1.78:1 提到 3.15:1，ink 类从 1.91:1 提到 3.65:1）；浅色三级文字锚到最暗中性面；中性填充按钮 hover 方向改为两个主题一致；拆出通知卡片的填充/ink 双 accent 角色，消除 `Severity.Default` 死类。
+  - 结构侧：`NoticeCard`/`ListItem` 重新接入基类属性契约并合并重复标记，静态 `Card`/展示型 `List` 不再注册 DOM 事件，`Progress` 去掉 inline `width` 与 `!important`，`Tag`/`Icon`/`Radio` 的第二套映射收敛到 `ComponentClass`，图标尺寸统一走 `--aeterni-icon-render-size`，六个组件补 `@ref`，`ThemeSwitch` 选项改单一模板，五处布尔型 ARIA 状态改为字符串输出；示例新增 `/components/colors` 验收页
+- **样式体系一致性（v10.4）**：中性容器表面去除彩偏移：浅色四个容器背景改为完全无色（v10.3 的 +2~+4 蓝紫偏移在大面积上会被读成品牌色底，且磨砂层的 `saturate()` 会放大它），深色统一 +3，规则写入 AGENTS.md、规范与提交清单（容器背景只能是黑/白/灰/毛玻璃）；Menu 禁用态由整行 `opacity` 改为 `--aeterni-state-color-disabled`；组件内间距收敛到 `--aeterni-spacing-*`（gap/padding/margin 降为宿主别名）；新增 `--aeterni-transition-control` 消除字段控件三处重复的过渡声明；`--aeterni-opacity-muted` 与 `--aeterni-radius-badge` 获得真实消费者，交互态别名 `bg-hover/-active` 补语义注释；浮层半径层级与 `surface-soft`/`bg-secondary` 分工写入规范
+- **文字色阶与观感清理（v10.4）**：文字改为「单一墨色 + 不透明度阶梯」（Apple label 模型）：浅色 `rgba(0,0,0,.78/.62/.56/.52/.36)`、深色 `rgba(255,255,255,.86/.56/.48/.40/.28)`，主色从 17:1 降到 11.7:1（不再发硬），二级/三级不再只差 1.16:1，且文字会随所在表面自动调和；`tertiary` 降为图标/装饰级，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项与示例页元信息改用 `secondary`/`muted`；Tag 标签文字改用 accent 的 text 形态（85% + 15% 正文墨）而不是「亮填充档 52% + 近黑 48%」，绿/黄 chip 不再浑浊（4.95~7.15:1）；新增不透明的 `--aeterni-separator` 作为卡片/对话框头尾分界（1.71:1 / 1.53:1，原 7% alpha 像污渍）；`--aeterni-color-on-semantic` 从蓝黑 `#0B0F19` 改为无色 `#141414`
+- **Size 档位补齐（Switch / ComboBox / Rating）**：三个控件补 `Size`（`Small`/`Default`/`Large`）：ComboBox 触发器与选项共用一套档位 Token（Small 28px，与 `Input Size="Small"` 等高）；Switch 轨道由旋钮尺寸推导（跑道 = 旋钮×2 + 内边距×2 + 边框×2，滑块行程恰好一个旋钮宽，默认档与旧值一致，Small 34×20 / Large 46×26）；Rating Small 16px 星形、热区至少 24px、Large 24px + 12px
+- **示例页拆分（v10.5）**：把原来的单页 + `switch` 拆成「一个组件一个页面」：`Pages/Components/` 下 25 个页面各自带 `@page`/`@layout`/`PageTitle` 与自己的 `@code` 状态，路由 `/components/{id}` 可直接分享；新增 `Layout/ComponentsLayout.razor`（侧栏 + 路由高亮，内嵌 MainLayout）与 `Components/Showcase/ShowcasePageBase.cs`（仅保留跨页共享的注入服务、交互提示与主题订阅）；作用域 CSS 无法跨页，展示样式迁到示例全局表 `wwwroot/css/showcase.css`；安装页改为垂直单列步骤（每步独占整行代码块）；规范 §10 与项目索引同步为「一个组件一个页面」
+- **表面归属定案（v10.5）**：把「组件是否自带表面」写成规范 §5.3 两行表格（自带表面 vs 内容控件，判断依据是“能不能单独构成一块界面”）并进提交清单；`delivered-features` 的 Menu/Tabs 实现边界各补一条；示例预览把 Menu/Tabs 放进 `Surface` 宿主容器（原来它们在网格画布上裸奔，看起来像漏了背景）。
+  - 结论是 Menu/Tabs 按内容控件保持透明，`List` 保持自带表面
+- **共享浮层能力（v10.4）**：新增 `wwwroot/js/aeterni_floating.js`：视口贴合计算（`fitsSide`/`oppositeSide`/`clampCenteredShift`/`clampAlignedShift`）、`createFocusTrap`、引用计数的 `lockScroll`；Tooltip 改为复用，DialogProvider 改用共享滚动锁与可聚焦元素列表（Tab/Escape 仍由对话框堆栈自己持有，因为只有最顶层应响应）
+- **多品牌色相层与切换**：① 交互态着色不再写字面量紫色，改由 `color-mix()` 从色阶推导；② 品牌色阶从裸 `:root` 拆成独立可覆盖的色相层（`:root, [data-aeterni-brand="purple"]`）；③ 新增第二套板 `[data-aeterni-brand="green"]`（500 档 `#2B7B33`）。
+  - 两套板在浅色／深色／系统深色下逐条通过对比度门禁（绿色最紧 margin 1.151，紫罗兰 1.091，均达标；绿色锚点随后在「绿色板提亮重锚」一行重定），512 个 Token × 4 场景中紫罗兰与改造前**数值等价**（最大通道误差 0.0001，为 float32 量化），绿色场景 **0 处残留紫色**且语义停靠档自动跟随（浅色 500/600/700、深色 400/300/200）。
+  - 配方侧新增两条硬规则进规范 §5.4：chroma 剖面必须用绝对值（相对色域比例跨色相不可迁移）、500 档明度按该色相的对比度行为枚举扫描定档。
+  - ④ 切换链路打通：新建 `ThemeBrand` 枚举（不复用 Button 的 `Color` 语意色枚举，避免与语意色取值空间混淆）；`ThemeService` 增加 `Brand` 与 `SetBrand()`（`Enum.IsDefined` 校验，非法值抛 `ArgumentOutOfRangeException`，同值不触发）以及 `SetPurple()`／`SetGreen()`，并新增独立的 `BrandChanged` 事件——品牌与明暗正交，复用 `ThemeChanged` 会连带重新解析系统偏好；`AeterniUIOptions.DefaultBrand` 决定首访默认品牌并在 `AddAeterniUI` 里做枚举校验；`ThemeProvider` 首渲染恢复已存品牌、事件里应用并持久化到新键 `aeterni.theme.brand`，JS 侧新增 `applyBrand()`／`getStoredBrand()`／`persistBrand()` 并把 `applyTheme` 与 `applyBrand` 的过渡逻辑抽成共享的 `beginTransition`／`endTransition`；示例宿主 `index.html` 预渲染脚本同步读品牌键并写 `data-aeterni-brand`，示例 `/components/theme` 增加品牌切换控件。
+  - 浏览器端到端 22 项断言全部通过：冷启动默认紫罗兰、经真实控件切到绿色后属性落在 `<html>`、语义别名整体换色（含深色停靠档）、写入 `localStorage`、**刷新首帧即为绿色**（属性变更轨迹 `[null,"green"]`，全程未出现 `purple`）、明暗切换不干扰品牌、非法存储值回落默认且色彩仍可解析、清空存储回到默认、切换复用 `aeterni-theme-transitioning` 过渡并在 620ms 后清理。
+  - ⑤ 示例宿主 4 处直接消费原始色阶（`.preview-icon-wrap`、`.component-preview__eyebrow`、`.component-preview__api-row code`、`.doc-intro__eyebrow`）改为语义别名 `--aeterni-color-brand-text`，原先写死 `--aeterni-brand-500/600` 既不会跟随品牌也不会跟随明暗。
+  - ⑥ 新增 `ThemeBrandSwitch` 组件（与 `ThemeSwitch` 同构的 `Segmented` 专用用法，订阅 `BrandChanged` 同步选中态）与对应文案 `ThemeBrandSwitchLabel`／`ThemeBrandPurpleLabel`／`ThemeBrandGreenLabel`，并放进示例宿主顶栏与明暗开关并列，任意页面都能直接看到整站换色。
+  - **待做**：品牌色块预览型选项（会要求每个色相层再声明一份「别人的颜色」Token，等于把第二套色阶写进 CSS，暂不做）
+- **品牌色板对比度门禁脚本化**：新增 `scripts/check-contrast.mjs`，把此前「靠人工校对」的对比度门禁变成构建期拦截（此前该项挂在多品牌行的待做里）。
+  - 脚本不读注释而是重放真实级联：自带极简 CSS 扫描器切出规则（含 `@media (prefers-color-scheme: dark)` 的系统深色块，其选择器是 `:root:not([data-theme])…`，需要单独识别才能覆盖），按「品牌 × 浅色／深色／系统深色」三种 `<html>` 属性状态合并同特异性声明（文件顺序即优先级），再跟随 `var()` 链解析出实际颜色（`#hex`／`rgb()`／`rgba()`，遇无法解析的值或环状引用直接报错而不是静默跳过），半透明前景先与背景合成再测——因此 78% 墨色这类 Token 也按用户真实看到的像素计算。
+  - 门禁集合 11 组／状态：实心填充承字（default／hover／active）、品牌文字（surface／tertiary／page）、链接（surface／page）按 4.5:1，边框／图标与焦点环按 3:1，当前 **2 色相层 × 3 状态 × 11 组 = 66 项全部通过**。
+  - 另加两条结构性检查：色相层必须声明完整且仅为 50~900 十档；**余量低于 1.1× 的色相层必须在自己上方的注释块里写出该对比度**（`4.91:1` 这样的定值字符串），把规范 §5.4 新加的「显式记账」规则变成可执行约束——否则改色阶的人可以悄悄把预算花光。
+  - 为此紫罗兰注释补记 4.91:1（margin 1.091，原本未记录）。
+  - 已做反向验证：把绿色 500 提到 `#35A052`（3.33:1）与 `#228A40`（4.40:1）时脚本以 2 条错误失败，只提到 `#1C863B`（4.64:1，过线但花掉余量）时仅记账规则失败，把色相层改名成 `teal` 时无需改脚本即自动纳入检查。
+  - 已接入 `.github/workflows/build.yml`，并同步 当时的入口、开发规范、项目索引与设计规范 §5.4
+- **绿色板提亮重锚**：绿色色阶整体重锚到外部参考绿 `#1F883D`：色相 145° → 148.2°，500 档 L 0.517 → 0.552、C 0.132 → 0.145，整条阶梯按同一 ΔL 节奏平移 +0.035，chroma 仍按绝对值剖面（50:0.081 … 900:0.522）缩放，浅端升到 L 0.957、深端升到 L 0.301，比旧板更贴近规范里「浅端 ~0.976 / 深端 0.30」的统一端点。
+  - 观感上浅色主题的填充、hover、链接、选中态都明显更亮更饱和，深色主题 300/400 停靠档亮度同步上抬。
+  - **代价记账**：500 承白字 5.27:1 → 4.52:1，余量 1.004×，成为全库最紧的一条对比度门禁——仍满足 4.5:1，但任何进一步提亮或提高 chroma 都会击穿它；若要恢复余量，把 500 退回 L 0.545（`#1C863B`，4.65:1）或 L 0.540（`#19843A`，4.75:1）即可，其余档位随 ΔL 平移。
+  - **验证**：重锚后按「品牌（紫／绿）× 浅色／深色」重跑 8 条对比度门禁共 32 项全部通过，深色侧最紧为绿色 `text-link` 承深色页面 5.95:1（余量 1.323，比旧板更宽松——深色停靠档整体上抬反而放宽了明度约束），浅色侧最紧仍是绿色 500 承白字 4.52:1；浏览器端到端 11 项断言按新色值更新后全通过（浅色 `default`/`hover` = `rgb(31, 136, 61)` / `rgb(5, 113, 44)`，深色 `text` = `rgb(144, 195, 151)`），并逐像素核验渲染结果与 Token 一致（示例页 4 处品牌实心填充采样主色 `#1F883D` 占 81.7%）。
+  - 规范 §5.4 新增「余量低于 1.1× 的锚点必须显式记账」一条。
+- **焦橙第三套品牌色相层**：在紫色与绿色之后新增 `[data-aeterni-brand="orange"]`，配方与前两套逐档一致（同一组相对 ΔL、同一 chroma 剖面、同一浅端色相漂移），500 档锚定焦橙 `#C2410C`（L 0.5534、C 0.1739、色相 38.40°）。
+  - **为什么不是鲜橙**：`#E8590C` / `#EA580C` 这类亮橙承白字只有 3.58:1 / 3.56:1，低于 4.5:1，要做实心填充就得改成 `warning` 那种近黑前景，第三套板会脱离「白字填充」这条家族约定；焦橙承白字 5.18:1（余量 1.151×），三套板同一停靠档可直接互换。
+  - **代价记账**：与语意 `danger` 红的 OKLab ΔE 只有 12.1，是全库最紧的一对品牌／语意间距（`warning` 22.4，`success` 34.8，`info` 37.3）；橙红在近明度下本就是邻居，正常色觉下仍清晰可分，但后续任何把 500 档往暖端推的改动都会继续压缩这段距离。
+  - **接线**：`ThemeBrand` 新增 `Orange`、`ThemeService` 新增 `SetOrange()`、`ThemeProvider` 的存储恢复 switch 新增 `"orange"`、文案表新增 `ThemeBrandOrangeLabel`、`ThemeBrandSwitch` 的 `Brands` 数组由两项扩到三项（指示块行程由选项数量推导，组件无需其他改动）、示例 `/components/theme` 的 `BrandText` 同步。
+  - JS 与预渲染脚本无需改动：`applyBrand()` 原样透传属性值，未识别值匹配不到任何色相层而回落 `:root` 的紫罗兰。
+  - **验证**：`scripts/check-contrast.mjs` 自动发现新色相层，从「2 色相层 × 3 状态 × 11 组」扩到 **3 色相层 × 3 状态 × 11 组 = 99 项全部通过**，最紧一条仍是绿色 500 承白字 4.52:1（margin 1.004）；`dotnet build aeterni_ui.slnx` 0 警告 0 错误。
+- **交互态品牌色阶复原与全组件状态色审计**：① **复原**：`--aeterni-state-background-hover/-active/-selected`、`--aeterni-state-border-hover/-active`、`--aeterni-state-color-*` 与 `--aeterni-button-intent-default-soft` 全部回到从 `--aeterni-brand-*` 推导（`color-mix()` 取档），撤销上一版「选择态中性化」——中性墨让表单控件与选中态读起来发死，品牌按钮的 soft 变体还会退成灰色；容器与页面背景仍严格保持无彩色。
+  - ② **新增两档**：`--aeterni-state-background-checked-hover` / `-active`（浅色 500→600→700、深色 400→300→200），填满的勾选块在指针下整块沿色阶换档，墨仍用 `--aeterni-text-inverse`。
+  - ③ **审计并修复 8 类**：Checkbox/Radio/Switch 的 checked hover 曾出现「边框换档、填充不动」与「填充换档、圆点/圆环不动」两种劈裂；三者的无效态悬浮会被 `--aeterni-state-border-hover` 覆写而丢掉危险色，Switch 的无效 + 选中还被拆成危险边框裹品牌填充；Pagination/Tabs/Menu/ListItem/ComboBox/DateCalendar 的 `:hover`（0,2,0）与 `.is-selected`／`.is-current`（同为 0,2,0）特异性相同，写在后面就把选中提示整块压掉；`IconButton` 生成的是 `aeterni-button--*` 而不是 CSS 里定义的 `aeterni-icon-button--*`，四种非 default intent 的形状与状态样式从未命中，且缺 `--aeterni-button-color-active`；`DatePicker.razor.css` 复制了一整份日历规则（101 → 42 行，删掉的 61 行与 `DateCalendar.razor.css` 逐条重复且已是后者子集）。
+  - ④ **验证**：`dotnet build aeterni_ui.slnx` 0 警告 0 错误、`check-contrast.mjs` 99 项通过（最紧仍是绿色 500 承白字 4.52:1）、`check-css-comments.mjs` 48 文件通过、`check-docs.sh` 通过；用 headless Chrome（CDP `forcePseudoState` + 真鼠标 `mouseMoved`，读 computed style）在「紫/绿/橙 × 浅色/深色」下逐控件复验修复前后的每一档色值；48 张截图逐像素分色相统计显示每个品牌的功能页**跨品牌彩色像素 0.00%**（唯一例外是展示全部语义色的 `/components/colors`），彩色像素占比 0.8~2.2%，即三套色相层完全隔离且状态反馈仍在。
+  - **复核结论**：现有 DatePicker、DateRangePicker 与 MenuButton 均由自身根元素规则负责宿主布局，仓库中已无 `__host` 选择器；PopupHost 只负责定位容器，不再重复承载这些组件的外观规则
+- **示例页与首屏加载器重做**：① 「色彩与语义」页（`/components/colors`）从「摆组件」改为不引用任何组件的 Token 展台：色族色卡（每族三档色阶）、文字墨阶、字体与字号、中性容器表面、圆角阶梯、阴影层级、间距节奏与对比度验收组合；颜色全部消费 `--aeterni-*`，样式里零 hex/rgb 字面量，因此换主题与换品牌色相层都不需要改这一页。
+  - ② 顺带修掉一个静态缺陷：`.component-preview__eyebrow` 的规则写在 `ComponentPreview.razor.css` 的作用域里（选择器带 `b-*` 属性），其它页面引用该类名永远不会命中，改用 `showcase.css` 的全局 `.showcase-page-eyebrow`，`Install` 页同步修正。
+  - ③ 首屏加载器删掉 MVC 样板留下的灰色/蓝色 SVG 进度环与 `100%` 文案（`stroke:#e0e0e0` / `#1b6ec2` 是示例静态表里最后一处硬编码颜色），改为复刻 `Spinner` 规格的 `.sample-boot` 光环：走组件公开的 `--aeterni-spinner-size` 扩展点、3px 描边、右侧缺口、`--aeterni-duration-slower × 1.4` 线性周期、`opacity .92`，颜色取 `--aeterni-color-brand-text`，文案继续读运行时的 `--blazor-load-percentage-text`；`prefers-reduced-motion` 下由 Token 层清零时长并显式停转。
+  - ④ 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`check-docs.sh`、`check-css-comments.mjs`（48 文件）、`check-contrast.mjs`（99 项，最紧仍为绿色 500 承白字 4.52:1）全部通过；headless Chrome 在限速首屏下读到光环 48px / 3px 描边 / 右侧缺口透明 / 动画运行，浅色 `rgb(102,70,187)` 与深色 `rgb(183,173,247)` 自动换档，`prefers-reduced-motion: reduce` 下 `animation: none`，挂载后加载器标记消失，684px 窄屏无横向溢出。
+  - **取舍**：加载器不可能真的实例化 `Spinner`（首屏没有组件树，组件的隔离样式也尚未加载），是刻意的视觉复刻，`app.css` 的注释写明了双向同步要求；色族按「每族一张卡、卡内三档」而不是参考图的「每档一张卡」排布
+- **玻璃配方落地（三轴解耦）**：起因：iOS 27 桌面的背景模糊观感评估（只要模糊，不要液态玻璃的折射／高光边框）。
+  - 分析结论是模糊半径本身够用（`--aeterni-blur-lg` 的 24px），短板在「填充 82% 把糊过的背景又盖回去」与「缺少可采样的背景内容」。
+  - 落地方案拆成三根互不耦合的轴：**①填充**——Token 层新增三个玻璃角色别名 `--aeterni-bg-glass`（= `--aeterni-bg-elevated`，浅深同为 `.82`）、`--aeterni-blur-glass`（= `blur-md` 16px/135%）、`--aeterni-blur-scrim`（= `blur-sm` 8px/120%），填充刻意停在 `.82` 而不是提案里的 `.60`：更淡会把标准次要墨拽到 4.5:1 以下，等于逼全库说明文字换墨。
+  - **随后补上决策 A**：`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`，只声明一次所以浅深两主题同余量）接在 `Card`／`Surface` 的磨砂态上，补掉深色「次要 · 标准墨」在 `.82` 上只有 4.35:1 的缺口，实测升到 7.52:1（浅）/ 7.01:1（深）；接管的是次要墨的四个角色名（`--aeterni-text-secondary`／`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted`），因为别名在主题块里就完成了 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在标准墨上；`--blur-none` 与不透明表面不接管，其余六个磨砂消费者（Dialog／Drawer／Popover／Tooltip／NoticeCard）当时暂未接管，已在「浮层接管玻璃墨」一行补齐。
+  - **②半径**——新增公共枚举 `SurfaceBlur`（`Default`／`None`／`Small`／`Medium`／`Large`），`Card` 与 `Surface` 各加 `Blur` 参数；`Default` 沿用既有约定不输出修饰类（宿主可用全局 CSS 调默认档），`None` 在 Glass 变体上同时退回 `--aeterni-bg-solid`——只摘掉 `backdrop-filter` 会留一块 82% 的半透明色斑，比不透明更糟。
+  - **③边框**——`.aeterni-card--glass`／`.aeterni-surface--glass` 里硬编码的 `border-color` 删除，玻璃边框改由既有的 `is-bordered` + `--aeterni-border-default` 决定，`Bordered="false"` 从此生效（此前追不上）。
+  - 九处磨砂消费者（Dialog 面板与遮罩、Drawer、Popover 含遮罩、Tooltip、NoticeCard、Card／Surface 的 Glass 变体）改为引用新别名；`NoticeCard` 经 `--aeterni-notice-fill` 间接层换基（背景是 `color-mix(accent 9%, …)`，够不着 `background` 关键字），`is-no-blur` 重设该别名切实心。
+  - 降级集中一处：文件尾两块 `@media (prefers-reduced-transparency: reduce)` 与 `@supports not (…)` 把 `--aeterni-bg-glass` 退 `--aeterni-bg-solid`、两支模糊退 `none`（遮罩保留压暗），因此 `Popover`／`Tooltip` 原有的组件级降级块可删——这是本轮唯一的删除。
+  - 示例项目：`Surface`／`Card` 演示页加 `Blur` 控制项与 `.preview-glass-scene` 玻璃场景（背景层是与面板同级的兄弟节点，`aria-hidden`；`Surface` 的 `_surfaceBordered` 由 `true` 改 `false` 以对齐文档记载的默认值），新增只读对比页 `/components/glass`（`GlassLab` + `GlassContrast` + `GlassPalette`）。
+  - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；`check-docs.sh`、`check-css-comments.mjs`（49 文件）、`check-contrast.mjs`（99 项，最紧仍为绿色 500 承白字 4.52:1）、token-only grep（无 `.aeterni-*` 选择器）全部通过；headless Chrome 实测：`Blur=Large` 落到 `blur(24px) saturate(1.5)`、`Blur=None` 在 Glass 上退 `rgb(255,255,255)`、`Bordered=false` 后边框 `rgba(0,0,0,0)`、`--aeterni-bg-glass` 浅色 `rgba(255,255,255,.82)` / 深色 `rgba(26,26,29,.82)`、`prefers-reduced-transparency: reduce` 下 token 退 `#FFFFFF` / `none`（Dialog 遮罩保留 42% 压暗）。
+  - **遗留**：`check-contrast.mjs` 的 `contrast()` 忽略背景 alpha，半透明 token 当背景会假通过，未修。
+  - 版本号未递增，留给发布批次统一走 minor。
+  - **后续**：②半径这条轴已被「模糊轴撤销」一行删除，理由是该轴与①填充争夺同一个 `background`
+- **模糊轴撤销（回归 Glass 变体）**：起因：`Blur` 与 `Variant` 冲突——`Card.razor.css`／`Surface.razor.css` 里的 `.aeterni-*-blur-small/medium/large` 各自重写 `background`，而这三条规则声明在 `--subtle`／`--elevated` 之后，所以任何非 `Default` 档位都静默压过 `Variant`：`Variant` 参数看上去失效，两个参数争夺同一个属性，且失败是无声的（`Elevated + Blur=Large` 得到的是玻璃填充）。
+  - 删除 `Enums/SurfaceBlur.cs`、`Card`／`Surface` 的 `Blur` 参数与 `BlurClass` 映射、四组 `--blur-*` 修饰类（含 `--glass.--blur-none` 的实心回退），模糊回归 `Glass` 变体本身（`--aeterni-bg-glass` + `--aeterni-blur-glass`）；ink 规则从 `.aeterni-card--glass:not(.aeterni-card--blur-none), .aeterni-card--blur-small, …` 收成 `.aeterni-card--glass`，`--blur-none` 不再存在所以排除项一并去掉。
+  - **为什么不保留轴**：实心状态已由 `Default`／`Subtle`／`Elevated` 表达，「玻璃填充 + 不模糊」等于 `Elevated`，该轴没有带来变体表达不了的能力；而 `Blur=None` 与 `Variant=Default` 是同一个结果的两条路径，保留只会让参数面继续撒谎。
+  - 示例页 `Card`／`Surface` 的 `Blur` 控制项与参数表行同步删除，`GlassLab` 页四处「模糊档位交给 `SurfaceBlur`」改为「模糊固定由 Glass 变体承担」；`docs/delivered-features` 的「模糊与实心」小节重写并记下为什么不要再引入正交模糊轴，`engineering-reference` 的同项改成硬规则。
+  - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；四门禁通过；headless Chrome 实测 `Card` 与 `Surface` 页面四种 `Variant` 各自呈现自身填充（此前四种变体中心像素相同、只有 `Glass` 会显示，根因是示例页预览框的层叠，已在另一行修掉）。
+  - 版本号未递增
+- **浮层接管玻璃墨**：起因：磨砂配方统一之后，五类浮层（Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert／Toast 卡片）仍在用标准次要墨 `--aeterni-text-secondary`（0.56 倍），深色主题在 82% 填充上只有约 4.35:1，低于 4.5:1 文字底线——只有 `Card`／`Surface` 的 `Glass` 变体切到了 `--aeterni-text-on-glass-secondary`，于是同一块玻璃上出现两种墨。
+  - 给这五处各加一段与 `Card.razor.css` 同构的四角色重设（`--aeterni-text-secondary`／`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted`），四个必须一起改：别名在主题块里就完成了 `var()` 替换，只改基名会留下用 `--aeterni-text-muted` 写的说明文字仍在旧墨上。
+  - 两类刻意排除：Dialog／Drawer／Popover 的**遮罩**不承字，换成玻璃墨只会把压暗加深；通知卡片的 `is-no-blur` 是实心回退，保持标准墨。
+  - 填充与模糊未动，所以这是一次纯墨替换，没有新增 token、没有新档位。
+  - 验证：`dotnet build aeterni_ui.slnx` 0 警告 0 错误；四门禁通过；headless Chrome 实测浅／深两主题下 Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert／Toast 卡片与 `Card`／`Surface` 的 `Glass` 变体解析出同一支 `--aeterni-text-secondary`（浅 `color(srgb 0 0 0 / 0.725765)`、深 `color(srgb 1 1 1 / 0.798706)`），`--aeterni-text-muted`／`--aeterni-state-color-readonly`／`--aeterni-state-color-muted` 三者同值；`is-no-blur` 与 Dialog／Drawer／Popover 三类遮罩仍为 `rgba(0, 0, 0, .62)`／`rgba(255, 255, 255, .56)`。
+  - 版本号未递增
+- **玻璃三轴对照矩阵（模糊／饱和度／遮罩）**：起因：上一轮只读审计里，「模糊半径没有梯度」「`saturate` 让玻璃带色偏」「遮罩带 8px 模糊」三条都只是静态判断，没有实测依据。
+  - 做法：把 `/components/glass` 从六节扩到八节——04「模糊半径」由空壳变成真布景（8／16／24／32px 四档），新增 05「饱和度」（100／120／135／150%）与 06「遮罩」（none／8／16px）两行，遮罩那一行用「整块视口 + 浮在中间的面板」的装置。
+  - 三行一律只改一根轴：04 的填充停在库现值 `.82`、`saturate` 钉 `135%`；05 的填充同上、模糊钉 16px；06 的三格压暗值（`--aeterni-overlay`）完全相同。
+  - 结论（1440×1000、DPR 2 的无头 Chromium 逐像素实测）：**①模糊半径在 `.82` 的填充上几乎不可测**——壁纸／细网格／12px 正文上从 8px 直接跳到 32px 只有约 4% 的像素变化（噪声底约 2%，全部落在文字抗锯齿），只有「App 图标墙」分得出，面板内部梯度 0.249／0.064／0.061／0.057，即 8→16 一次降掉四分之三、16 以上只剩 5% 与 7%，所以上轮审计「给大面板补 24px」降级为可拍板的取舍而非缺口，`--aeterni-blur-lg` 继续 0 处使用；**②`saturate` 是可测的真轴**——壁纸上面板区域彩度均值 5.46／6.50／7.26／8.06，135% 比 100% 把透出的彩度抬高 33%、150% 抬高 48%，而在无彩色背景（细网格／12px 正文）上是逐像素相同的空操作，这就是「让玻璃带色偏」的量化依据；**③遮罩 8px 已经够**——面板外那片区域的梯度 1.29 → 0.19 → 0.18，16px 只再降 3%，观感上没有收益，收益只在每帧一次的更大核卷积。
+  - 本行只改示例页与文档，库侧零改动；读数方法（亮度权重、2/255 计数阈值、噪声底）写在 08 节与 `GlassLab.razor.css` 的注释里。
+  - **本条读数随后被下一行「磨砂填充降档与玻璃墨阶梯」推翻重测**——旧读数全部基于 `.82` 的填充，填充降到 `.68`／`.72` 之后口径与数字都变了：①**模糊半径由死转活**，面板内残余细节（亮度标准差）`0.0508／0.0323／0.0184／0.0139`，8→16 降 37%、16→24 降 43%、24→32 降 24%，相邻档位的逐像素差异 92%／85%／39%，所以 24px 不再是缺口，而是四步里收益最大的一档；原「其余三档背景分不出四格」的定性结论不变（壁纸档 8→32 只降 25%、单步变化像素 < 1%，细网格档 8px 起残余已在 0.001 量级，12px 正文档过了 16px 就不再变）
+    - ②**饱和度读数改写**为彩度均值 `13.14／15.73／17.73／19.69`（仍严格正比于 100／120／135／150%，即 135% 抬高 35%、150% 抬高 50%），无彩色背景上是逐像素相同空操作的结论不变
+    - ③**遮罩梯度改写**为 `0.0026／0.00033／0.00026`（8px 一次抹掉 87% 的高频，16px 只再多抹 21%，绝对值只剩 0.00007），结论「8px 已经够、再往上只买到更大的卷积核」不变
+    - ④04／05 的读数改为取「截图时把文字遮住」之后的面板区域统计（残余细节用亮度标准差、彩度用 max − min(R,G,B)），因为旧口径的噪声底就落在文字抗锯齿上
+- **磨砂填充降档与玻璃墨阶梯（on-glass tertiary）**：起因：上一轮把「填充不能低于 82%」归因于三级墨的图形门槛，但那条约束只是因为玻璃表面仍在继承标准墨阶梯——该改的是墨，不是填充。
+  - 做法：①把 `--aeterni-bg-glass` 从 `--aeterni-bg-elevated` 解耦成独立 token，三个主题块各自声明（浅 `.68`／深 `.72`／系统深 `.72`），因为「升起的表面」与「磨砂表面」答的不是同一道题：前者只要求落在页面上，后者要按最坏背景（纯黑／纯白）保证墨可读，共用一个值正是填充偏厚、糊不进背景的原因
+    - ②新增 `--aeterni-text-on-glass-tertiary`（`color-mix(in srgb, var(--aeterni-text) 67%, transparent)`），把三级墨也纳入 on-glass 阶梯——三级墨在玻璃上只承图标与装饰（Dialog／Drawer／NoticeCard 的关闭按钮、日期日历的 `.is-outside`），所以按 3:1 图形门槛定档
+    - ③七处磨砂内容表面（`Card`／`Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、NoticeCard）各补一条 `--aeterni-text-tertiary`，并同步注释里「深色 4.35:1」这类旧读数
+    - ④删除三个编码被否决方向（液态玻璃高光边）的孤儿 token：`--aeterni-backdrop-saturate`、`--aeterni-glass-border-alpha`、`--aeterni-glass-highlight`，全库 0 引用
+    - ⑤两个降级块（`prefers-reduced-transparency: reduce` 与 `@supports not (backdrop-filter)`）把两支玻璃专用墨退回标准墨——墨的存在理由是顶住透出来的背景，填充一旦是实心表面就没有背景要顶
+    - ⑥修 `Bordered="false"` 的玻璃卡 hover 浮出边框：hover 规则 4 个类压过 `.is-bordered` 的 2 个类，把改边框那一条拆到 `.is-interactive.is-bordered` 上，位移与阴影仍对所有变体生效。
+  - 实测口径（填充合成后的底色，最坏背景，1.1× 会计余量）：深色 `.82` → 标准次要墨 4.35:1 FAIL、标准三级墨 3.02:1 thin，`.72` → 3.41 FAIL／2.51 FAIL，接管 on-glass 后 5.11／3.51；浅色 `.82` → 5.33／3.86，`.68` → 4.51／3.43，接管后 5.94／3.46。
+  - 下限由最紧的那支墨决定，两个主题不同：浅色是三级墨（1.15×）、深色是次要墨（1.14×），所以 `.68` 与 `.72` 分别是两个主题的边界值，再淡一档就掉出余量。
+  - **本条推翻的旧结论**：上一轮「填充已被三级墨钉死在 82% 以上」不成立——那是标准墨的约束。
+  - **未覆盖面（如实记录）**：品牌链接墨不在 on-glass 覆盖内，也不在任何门禁里，它本来就撑不住磨砂——深色最坏背景 `.82` 已是 3.25:1 FAIL、`.72` 掉到 2.27:1，浅色 `.82` 4.36:1 FAIL、`.68` 2.98:1；降填充把「链接可读的背景窗口」进一步收窄（浅色填充要求底色亮于 18/255 → 103/255，深色要求暗于 134/255 → 95/255），这是既有缺口而非本轮引入，已写进组件设计指南的硬规则。
+  - 验证：`dotnet build aeterni_ui.slnx`、`check-docs.sh`、`check-css-comments.mjs`、`check-contrast.mjs`（99 项）、token-only grep 全过；headless Chrome 逐像素核对七处磨砂表面的墨与两个降级块。
+  - 示例项目：`GlassLab` 对照页同步新填充（`GlassPalette` 的 `.68`／`.72`）、新增第五支读数「三级 · on-glass」、04／05／06 三节按新填充重测并把基于 `.82` 的旧数字全部替换（口径也改为「截图时把文字遮住」之后的面板区域统计），其中模糊半径轴由死转活、24px 从缺口变成收益最大的一档（更正见上一行）。
+  - 文档同步三处：`delivered-features` 的玻璃角色别名条目（含十处消费者与填充下限的归因）与「模糊与实心」小节、`engineering-reference` 的玻璃硬规则（含新增的品牌墨警示：品牌墨浅色最坏 2.98:1／深色 2.27:1，不在门禁覆盖内）与提交检查清单新增一条「新增磨砂表面须一次接管五个角色名」、`release-history` 本行。
+  - 项目索引 无需改动：本轮没有新增或移动项目、目录、入口文件、宿主、构建脚本或开发命令。
+  - 版本号未递增
+- **v10.9.0 发布（磨砂配方解耦与填充降档）**：版本号在 `Directory.Build.props` 单一来源递增 `10.8.0` → `10.9.0` （`Version`／`AssemblyVersion`／`FileVersion`／`InformationalVersion` 四处齐动）， 四份门禁文档的「文档版本」与 项目索引 的「当前版本」同步， `review-plan` 一并跟进，README 的发布示例改为 `v10.9.0`； `bash scripts/check-docs.sh`（版本格式 `^10\.[0-9]+\.[0-9]+$` 与四文档一致性）与 `dotnet build aeterni_ui.slnx` 通过； 在 main 上打注解 tag `v10.9.0` 触发 `Publish NuGet packages`，工作流先由「Validate release tag」比对 tag 与 props 版本， 再用 NuGet Trusted Publishing（OIDC）发布 `AeterniUI` 与 `AeterniUI.Icons.FontAwesome`。
+  - 按仓库约定「功能新增递增次版本号」，本批（玻璃配方三轴解耦、on-glass 墨阶梯与磨砂填充降档）为 minor： 相对已发布的 `10.8.0` 无破坏性公共 API 变更——被撤销的 `Blur` 轴是同一批内引入、从未出现在任何已发布版本里，故不递增主版本号
+- **v10.10.0 / v0.5 日期与时间输入**：新增 `TimePicker`、`DateTimePicker`、`TimeFormat` 与 `DateRangePreset`；`DateRangePicker` 补充宿主定义快捷范围和 1～3 个月视图；示例、文案、功能事实源和项目索引同步。
+  - 版本单一来源由 `10.9.0` 递增为 `10.10.0`。
+  - 验证：`dotnet build aeterni_ui.slnx --no-restore` 0 警告/0 错误，`check-docs.sh`、`check-css-comments.mjs`（52 个 CSS 文件）、`check-contrast.mjs`（99 项）与 Font Awesome 生成一致性检查全部通过
+- **v10.10.1 / v0.5.1 质量收口**：完成 REV-64～REV-73、REV-75～REV-76：恢复 DatePicker/MenuButton 根契约，补齐 Accordion、DateCalendar、TimeOptionList 焦点与 ARIA，统一日期字段状态、Segmented 选中态、文案与尺寸 Token，扩充示例，并新增 `AeterniUI.ContractChecks` CI 门禁。
+  - 按项目版本约定，本批属于现有能力修复与优化，版本单一来源由 `10.10.0` 递增为 `10.10.1`；首位继续与 .NET 10 对齐。
+  - 验证：`dotnet build aeterni_ui.slnx` 0 警告/0 错误，6 组渲染契约检查、全部 `.razor.js` 语法、文档、52 个 CSS 文件注释、99 项品牌对比度、Font Awesome 343 图标一致性和 Token-only 检查全部通过；无头 Chrome 复核 1440px 浅色/深色与 390px 窄屏布局。
+- **DateTimePicker 组合弹层布局修复**（已完成／静态与契约门禁验证，视觉待复核）：弹层按双栏内容定宽并受视口约束，时间列最小宽度与实际滚轮一致；操作行使用自然高度，空状态居中且保留滚轮占位，避免按钮拉高及溢出。
+  - 按用户确认保留现有提交行为，不给 DatePicker / DateRangePicker 新增确认模式。
+- **单值选择器宽度统一与示例合成优化**（已完成／契约检查覆盖，模糊效果待宿主实测）：DatePicker、TimePicker、DateTimePicker 统一 160px 最小宽度与 FullWidth 行为，DateTimePicker 示例新增交互开关；示例容器入场动画不再保留 forwards 状态，避免 opacity 动画残留合成层干扰后代毛玻璃采样，不修改模糊强度与透明度。
+- **日期与时间选择器布局调整**（已完成／契约检查覆盖）：DateRangePicker 弹层按内容定宽并限制在视口内，修正多月内容溢出导致的左右留白不一致；TimePicker 默认最小宽度使用 160px Token；DatePicker 新增 FullWidth，示例提供交互开关，根布局类纳入契约检查。
+- **TimePicker 滚动流畅性修复**（已完成／自动化回归覆盖）：时/分/秒滚轮改为停稳后回调草稿，取消逐项强制停止；相同选中值的重渲染不再重新居中，联动列继续同步。
+  - 新增 `tests/time-wheel.test.mjs` 覆盖连续滚动、回调去重、重渲染、联动及释放；继续修复反向输入与旧吸附动画争抢滚动位置：移除 CSS 强制吸附，输入时取消旧 JS 动画，并通过 ResizeObserver 在隐藏弹层展开时重新居中；回归覆盖隐藏展开与反向中断。
+  - 实际设备惯性手感仍需人工验证。
+- **v10.11.0 / TimePicker 时分秒滚轮**：`TimePicker` / `DateTimePicker` 默认步长由 30 分钟调整为 1 秒，默认显示策略改为 24 小时制和 `HH:mm:ss`；保留 `Step` / `TimeStep` 的 `TimeSpan` API，并支持 1 秒到小于一天的整秒步长。
+  - 内部选择面从全天扁平列表改为类似系统计时器的时/分/秒三列滚轮，具有五行视窗、顶部中文单位、无圆角且无左右边框的固定中心选择带、平滑吸附、上下渐隐和近大远小反馈，并提供取消/确定按钮与不污染绑定值的草稿状态；1 秒步长最多渲染 24 + 60 + 60 个当前列选项而不是 86,400 个时间点。
+  - 触发器默认按时间文本与图标紧凑显示，新增 `FullWidth` 作为显式铺满入口；DateRangePicker 示例移除“最近/未来 7 天、30 天”业务预设，仅保留直接范围选择，通用 `Presets` API 仍由宿主按业务需要提供。
+  - 左右键切列，上下键/Home/End 改值，Enter/Space 确认。
+  - 按版本规范属于同一批功能扩展，版本保持 `10.11.0`。
+  - 验证：解决方案构建 0 警告/0 错误，6 组组件契约、全部 JS/CSS/文档/对比度/图标门禁通过；无头 Chrome 实测三列中心与选择带中心完全重合，`00:00:00`、`23:59:59` 均可滚动选中，取消不回写、确定后关闭并更新触发器。

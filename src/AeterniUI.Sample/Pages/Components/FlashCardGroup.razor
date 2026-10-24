@@ -130,14 +130,14 @@
 
     private const string DeckCode = """
         <FlashCardGroup AriaLabel="魔法卡牌堆" HoverExpand="true" CardWidth="220" ExpandedSpacing="72">
-            <FlashCard ImageSrc="images/flash-card/magician.jpg" ImageAlt="火焰法阵卡面" Title="火焰法阵" />
-            <FlashCard ImageSrc="images/flash-card/magician.jpg" ImageAlt="月影咒语卡面" Title="月影咒语" Sheen="FlashCardSheen.Shine" />
+            <FlashCard ImageSrc="images/flash-card/card-art.svg" ImageAlt="抽象渐变卡面" Title="火焰法阵" />
+            <FlashCard ImageSrc="images/flash-card/card-art.svg" ImageAlt="抽象渐变卡面" Title="月影咒语" Sheen="FlashCardSheen.Shine" />
         </FlashCardGroup>
         """;
 
     private const string ExpandedCode = """
         <FlashCardGroup Expanded="true" HoverExpand="false" CardWidth="180" ExpandedSpacing="48">
-            <FlashCard ImageSrc="images/flash-card/magician.jpg" ImageAlt="星尘秘术卡面" Title="星尘秘术" />
+            <FlashCard ImageSrc="images/flash-card/card-art.svg" ImageAlt="抽象渐变卡面" Title="星尘秘术" />
         </FlashCardGroup>
         """;
 
@@ -150,7 +150,7 @@
             @foreach (var card in Cards)
             {
                 <FlashCard @key="card.Id"
-                           ImageSrc="images/flash-card/magician.jpg"
+                           ImageSrc="images/flash-card/card-art.svg"
                            ImageAlt="@card.Alt"
                            Title="@card.Title"
                            Description="@card.Description"
@@ -159,7 +159,7 @@
         </FlashCardGroup>
         """;
 
-    private const string CoverImage = "images/flash-card/magician.jpg";
+    private const string CoverImage = "images/flash-card/card-art.svg";
 
     private bool _hoverExpand = true;
     private bool _expanded;
@@ -174,18 +174,18 @@
 
     private static readonly IReadOnlyList<DeckCard> DeckCards =
     [
-        new("fire", "火焰法阵", "稀有 · 火焰", "火焰法阵卡面", FlashCardSheen.Holo),
-        new("moon", "月影咒语", "史诗 · 月影", "月影咒语卡面", FlashCardSheen.Shine),
-        new("storm", "风暴召唤", "传说 · 风暴", "风暴召唤卡面", FlashCardSheen.Holo),
-        new("star", "星尘秘术", "稀有 · 星尘", "星尘秘术卡面", FlashCardSheen.Shine),
-        new("unknown", "未知奖励", "普通 · 未鉴定", "未知奖励卡面", FlashCardSheen.Holo)
+        new("fire", "火焰法阵", "稀有 · 火焰", "抽象渐变卡面", FlashCardSheen.Holo),
+        new("moon", "月影咒语", "史诗 · 月影", "抽象渐变卡面", FlashCardSheen.Shine),
+        new("storm", "风暴召唤", "传说 · 风暴", "抽象渐变卡面", FlashCardSheen.Holo),
+        new("star", "星尘秘术", "稀有 · 星尘", "抽象渐变卡面", FlashCardSheen.Shine),
+        new("unknown", "未知奖励", "普通 · 未鉴定", "抽象渐变卡面", FlashCardSheen.Holo)
     ];
 
     private static readonly IReadOnlyList<DeckCard> CompactCards =
     [
-        new("fire", "火焰法阵", "稀有 · 火焰", "火焰法阵卡面", FlashCardSheen.Holo),
-        new("moon", "月影咒语", "史诗 · 月影", "月影咒语卡面", FlashCardSheen.Shine),
-        new("storm", "风暴召唤", "传说 · 风暴", "风暴召唤卡面", FlashCardSheen.None)
+        new("fire", "火焰法阵", "稀有 · 火焰", "抽象渐变卡面", FlashCardSheen.Holo),
+        new("moon", "月影咒语", "史诗 · 月影", "抽象渐变卡面", FlashCardSheen.Shine),
+        new("storm", "风暴召唤", "传说 · 风暴", "抽象渐变卡面", FlashCardSheen.None)
     ];
 
     private IReadOnlyList<DeckCard> Cards

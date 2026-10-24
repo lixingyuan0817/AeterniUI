@@ -1,7 +1,5 @@
 # AeterniUI Agent 指南
 
-文档版本：`10.45.0`
-
 ## 1. 前言
 
 AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库。本文件是 Agent 执行任务的首要入口，定义任务分类、定位与阅读顺序、工作边界和开发约束；项目索引与组件现状、后续计划、审阅任务及历史记录按需维护在本文档和 `docs/` 中。
@@ -42,7 +40,7 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 修改色板、玻璃配方、复杂焦点模型或特殊组件机制 | 先读本文件；再读 [`docs/engineering-reference.zh-CN.md`](docs/engineering-reference.zh-CN.md) 的对应章节 |
 | 修改版本、整理发布或追溯历史决定 | 先读本文件；再读 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
 | 修改图标清单、生成脚本或 Font Awesome 适配包 | 先读本文件；再读 [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) 的图标章节；生成物只由脚本改写，改后运行 `node scripts/generate-fontawesome-icons.mjs --check` |
-| 修改示例工程内容、API 表、搜索索引或生成脚本 | 先读本文件；再读 [`docs/component-plan.zh-CN.md`](docs/component-plan.zh-CN.md) 的示例工程章节；示例 API 表由 `scripts/generate-api-reference.mjs` 生成（说明与额外行在 `scripts/api-*.json`），页头搜索入口的索引由 `scripts/generate-search-index.mjs` 生成（依赖前者的生成物），改后分别运行 `node scripts/generate-api-reference.mjs --check` 与 `node scripts/generate-search-index.mjs --check` |
+| 修改示例工程内容、API 表、搜索索引或生成脚本 | 先读本文件；再读 [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) 的示例工程能力与 §4.8 生成物门禁；示例 API 表由 `scripts/generate-api-reference.mjs` 生成（说明与额外行在 `scripts/api-*.json`），页头搜索入口的索引由 `scripts/generate-search-index.mjs` 生成（依赖前者的生成物），改后分别运行 `node scripts/generate-api-reference.mjs --check` 与 `node scripts/generate-search-index.mjs --check` |
 | 修改 CI、工作流或发布流程 | 先读本文件；再读 `.github/workflows/` 中的三个工作流与 [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) 对应版本记录 |
 
 代理阅读原则：
@@ -75,7 +73,7 @@ AeterniUI 是面向 Blazor Server 与 Blazor WebAssembly 的 .NET 10 组件库�
 | 图标 | 核心 `Icon` / `AeterniIcons` + Font Awesome 适配包 |
 | 前端工具 | 不使用 bundler；Node 只运行静态检查、行为回归和生成脚本 |
 
-版本由根目录 `Directory.Build.props` 单一维护，当前为 `10.45.0`。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
+版本由根目录 `Directory.Build.props` 单一维护；文档与 README 不复制版本字面量，需要时以该文件为准。第一位固定与目标 .NET 主版本一致；新增功能递增第二位，修复与优化递增第三位。
 
 ### 3.2 解决方案项目
 
@@ -140,6 +138,8 @@ Components/<Component>/
 
 ### 3.4 核心入口
 
+目录结构见 §3.3，本节只说明入口文件职责。
+
 - `src/AeterniUI/Components/AeterniComponent.cs`：所有组件的公共基类。
 - `src/AeterniUI/Components/ComponentClass.cs`：尺寸、颜色、Severity 与通用修饰类的唯一映射。
 - `src/AeterniUI/Services/AeterniServiceCollectionExtensions.cs`：`AddAeterniUI()` 注册入口。
@@ -161,17 +161,10 @@ Components/<Component>/
 dotnet restore aeterni_ui.slnx
 dotnet build aeterni_ui.slnx
 dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http
-dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
-bash scripts/check-docs.sh
-node scripts/check-css-comments.mjs
-node scripts/check-contrast.mjs
-node scripts/check-doc-drift.mjs
-node --check <改动的>.razor.js
-node --test tests/*.test.mjs
-tests/browser/run.sh
-node scripts/generate-fontawesome-icons.mjs --check
 ./scripts/sample-publish.sh Release
 ```
+
+按改动类型要跑的检查、回归与生成物门禁统一列在 §4.8，不在本节重复。
 
 示例默认地址在当前启动配置中通常为 `http://localhost:5178`，但若 `launch-profile`、端口或宿主配置变更，应以实际配置为准；不要把固定端口当作未变更事实。静态站点由 `sample-publish.sh` 生成到 `dist/`，不得手工修改。
 
@@ -202,6 +195,7 @@ node scripts/generate-fontawesome-icons.mjs --check
 ### 4.3 公共 API
 
 - 参数使用 PascalCase 和稳定领域术语：`Disabled`、`Visible`、`Size`、`Variant`、`Color`、`ChildContent`、`Value` / `ValueChanged` / `ValueExpression`。
+- 参数按「继承 → 必需 → 状态 → 外观 → 内容 → 事件 → 可访问性」的顺序排列；继承的公共参数不重复声明。
 - 有限稳定选项使用枚举；所有公开枚举在参数设置阶段校验非法值。
 - 事件使用 `EventCallback` / `EventCallback<T>`，处理方法返回 `Task`，禁止 `async void`。
 - 默认值必须让最简单用法可运行；不提供两个表达相同含义的参数。
@@ -251,7 +245,7 @@ node scripts/generate-fontawesome-icons.mjs --check
 - 现行 API 只写入 `delivered-features`；未完成任务只写入 `component-plan`；缺陷只写入 `review-plan`；结束的记录写入 `release-history`。
 - 新增、删除、移动项目、目录、入口、宿主、脚本或命令时，同步本文件的项目索引。
 - 设计原因和测量方法可以写入 `engineering-reference`，但不得在那里建立与本文件冲突的第二套规范。
-- 对文档的写入必须遵守“单一事实源”规则：同一事实不能同时在交付功能、组件计划、审阅计划和发布历史中重复描述为相互冲突的状态。新增或修订文档时，先确认应归类到哪个事实源，再同步其版本头、状态和链接。
+- 对文档的写入必须遵守“单一事实源”规则：同一事实不能同时在交付功能、组件计划、审阅计划和发布历史中重复描述为相互冲突的状态。新增或修订文档时，先确认应归类到哪个事实源，再同步其状态和链接。
 - 文档改动必须同步对应的示例、README 和 `scripts/check-doc-drift.mjs` 相关门禁；若某项能从源码直接推断，则不得仅靠历史摘要叙述承诺。
 - 任何“已修复/已发布/已实现”的表述，必须有对应源码、示例或验证结果支撑；没有证据的记录必须保留为“计划”或“待验证”。
 
@@ -266,8 +260,8 @@ dotnet build aeterni_ui.slnx                    # 所有代码改动
 dotnet run --project tests/AeterniUI.ContractChecks/AeterniUI.ContractChecks.csproj --no-build
                                                    # 根属性、ARIA、焦点或公开变体
 bash scripts/check-docs.sh                     # 文档、结构、入口或命令、计划状态一致性
-node scripts/check-css-comments.mjs            # 任意 CSS
-node scripts/check-scrollbars.mjs              # 可滚动容器的滚动条声明（新增/改动 overflow 容器时）
+node scripts/check-css.mjs                     # 任意 CSS：注释提前闭合 + 可滚动容器的滚动条声明
+                                               # （可加 --only=comments / --only=scrollbars 单独运行）
 grep -E '^\.aeterni-' src/AeterniUI/wwwroot/css/aeterni_ui.css | grep -v '^\.aeterni-dark'
                                                # token 文件不得含组件选择器（无输出即通过）
 node scripts/check-contrast.mjs                # 色阶、品牌或对比度相关 Token
@@ -285,5 +279,5 @@ node scripts/generate-search-index.mjs --check     # 页面改名、增删段（
 
 - 第一位固定为当前 .NET 主版本 `10`；不得把它当作普通 SemVer 主版本递增。
 - 功能新增递增第二位；修复与优化递增第三位；内部重构按是否改变公共行为判断。
-- 修改版本时同步 `AGENTS.md` 的文档版本头、项目索引中的「当前版本」、其余带文档版本头的文档、README tag 示例和 `release-history`，随后运行 `bash scripts/check-docs.sh`。
+- 版本只在 `Directory.Build.props` 维护；改版本时同步 `release-history` 记录与 README 发布说明（tag 示例用 `<version>` 占位），随后运行 `bash scripts/check-docs.sh`。
 - 提交前使用 `git diff --name-status` 核对职责文档、示例、测试和生成目录边界。

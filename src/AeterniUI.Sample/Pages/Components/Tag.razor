@@ -1,4 +1,4 @@
-﻿@page "/components/tag"
+@page "/components/tag"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -38,16 +38,16 @@
                   Code="@IconCode">
             <Preview>
                 <div class="preview-state-row">
-                    <Tag Color="Color.Success" StartIcon="@IconStart" AriaLabel="已完成构建">已通过</Tag>
-                    <Tag Color="Color.Info" EndIcon="@IconEnd" AriaLabel="含跳转">查看详情</Tag>
-                    <Tag Color="Color.Neutral" StartIcon="@IconStart" EndIcon="@IconEnd" AriaLabel="两端图标">双向</Tag>
+                    <Tag Color="Color.Success" StartIcon="@IconStart">已通过</Tag>
+                    <Tag Color="Color.Info" EndIcon="@IconEnd">查看详情</Tag>
+                    <Tag Color="Color.Neutral" StartIcon="@IconStart" EndIcon="@IconEnd">双向</Tag>
                 </div>
             </Preview>
         </DemoCard>
 
         <DemoCard Id="tag-dismissible"
                   Title="尺寸与关闭动作"
-                  Description="Size 有三档；Dismissible 打开后多出一个关闭按钮，点击后由 OnDismiss 通知宿主。右侧控件即时生效。"
+                  Description="Size 有三档；Dismissible 打开后多出一个关闭按钮，点击后由 OnDismiss 通知宿主；Disabled 同时禁用标签与关闭动作。右侧控件即时生效。"
                   Code="@DismissCode">
             <Preview>
                 @if (_tagRemoved)
@@ -63,6 +63,7 @@
                          Variant="@_tagVariant"
                          Size="@_tagSize"
                          Dismissible="@_tagDismissible"
+                         Disabled="@_tagDisabled"
                          DismissLabel="移除预览标签"
                          OnDismiss="DismissTag">
                         @_tagText
@@ -89,13 +90,14 @@
                     </div>
                 </div>
                 <Checkbox Size="Size.Small" @bind-Value="_tagDismissible">Dismissible</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_tagDisabled">Disabled</Checkbox>
             </Controls>
         </DemoCard>
     </Demos>
     <Notes>
         <span>渲染为内联 <code>span</code>，不生成交互角色：标签正文本身不可点，唯一可聚焦的元素是 <code>Dismissible</code> 打开后的关闭按钮。</span>
         <span>关闭按钮的默认名称取自 <code>DismissLabel</code>，缺省用 <code>AeterniUITextOptions.TagDismissLabel</code>；同一屏里有多个可关闭标签时应逐个给出可区分的名称。</span>
-        <span>两端图标包在 <code>aria-hidden</code> 容器里：图标是装饰，标签的含义必须由可见文字（或 <code>AriaLabel</code>）表达。</span>
+        <span>两端图标包在 <code>aria-hidden</code> 容器里：图标是装饰，标签的含义必须由可见文字表达（Tag 没有 <code>AriaLabel</code> 参数，额外属性不会被当作可访问名称消费）。</span>
     </Notes>
 </ComponentPage>
 
@@ -115,7 +117,7 @@
 
     private const string IconCode = """
         <Tag Color="Color.Success" StartIcon="CheckIcon">已通过</Tag>
-        <Tag Color="Color.Info" EndIcon="ChevronIcon" AriaLabel="含跳转">查看详情</Tag>
+        <Tag Color="Color.Info" EndIcon="ChevronIcon">查看详情</Tag>
         """;
 
     private const string DismissCode = """
@@ -137,6 +139,8 @@
     private Size _tagSize = Size.Medium;
 
     private bool _tagDismissible = true;
+
+    private bool _tagDisabled;
 
     private bool _tagRemoved;
 

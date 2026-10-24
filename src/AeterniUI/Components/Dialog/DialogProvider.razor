@@ -27,6 +27,8 @@
                             NoBlur="@(alert.Options is AlertOptions { Blur: false })"
                             IsClosing="@alert.IsClosing"
                             Duration="@alert.Duration"
+                            Paused="@alert.IsPaused"
+                            PauseChanged="@((bool paused) => SetAlertPaused(alert.Id, paused))"
                             CloseLabel="@((alert.Options as AlertOptions)?.CloseText)"
                             CloseRequested="@(() => CloseDialogAsync(alert, DialogResult.Dismiss()))" />
             }
@@ -44,6 +46,8 @@
                             NoBlur="@(!toast.Options.Blur)"
                             IsClosing="@toast.IsClosing"
                             Duration="@toast.Duration"
+                            Paused="@toast.IsPaused"
+                            PauseChanged="@((bool paused) => SetToastPaused(toast.Id, paused))"
                             CloseLabel="@UiText.ToastCloseLabel"
                             CloseRequested="@(() => toast.Reference.CloseAsync())" />
             }

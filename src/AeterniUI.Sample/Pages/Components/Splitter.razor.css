@@ -28,5 +28,6 @@
 }
 
 .preview-splitter-pane span {
-    color: var(--aeterni-text-tertiary);
+    /* 窗格里的说明句是正文，不是注脚：tertiary 在深色主题下低于 4.5:1。 */
+    color: var(--aeterni-text-secondary);
 }

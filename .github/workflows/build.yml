@@ -59,12 +59,9 @@ jobs:
       - name: Browser behavior unit checks
         run: node --test tests/*.test.mjs
 
-      - name: CSS comment check
-        run: node scripts/check-css-comments.mjs
-
-      # 滚动条在视觉上只有一个、实现上分散在十几份隔离样式里；漏一处就是一条常驻的默认滑轨。
-      - name: Scrollbar coverage check
-        run: node scripts/check-scrollbars.mjs
+      # 注释提前闭合与滚动条覆盖共用一次遍历；两条规则仍是独立门禁，失败信息分别报告。
+      - name: CSS structure checks
+        run: node scripts/check-css.mjs
 
       - name: Brand palette contrast check
         run: node scripts/check-contrast.mjs

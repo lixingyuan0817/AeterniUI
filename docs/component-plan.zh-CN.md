@@ -1,8 +1,6 @@
 # AeterniUI 组件计划
 
-文档版本：`10.45.0`
-
-文档状态：当前活动计划；只记录尚未交付的组件、能力、依赖、决策门和验收条件。
+文档状态：当前活动计划；只记录尚未交付的组件、能力、依赖、决策门和验收条件。版本以 `Directory.Build.props` 为准。
 
 已经实现的公共能力见 [`delivered-features.zh-CN.md`](delivered-features.zh-CN.md)，已发现的质量问题见 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)，已经结束的阶段和版本见 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
@@ -19,7 +17,7 @@
 
 | 优先级 | 计划 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；`Upload`（10.32.0）、`Cascader`（10.35.0）、`Transfer`（10.37.0）、`Anchor`（10.38.0）、布局类 `Splitter`（10.39.0）与导航菜单 `NavMenu`（10.41.0，替换已删除的 `NavTree`）已交付，剩余候选见 §3 |
+| 9 | 新组件候选与排序 | 进行中 | 定调为后台数据录入优先；已交付组件与验收证据见 [`release-history.zh-CN.md`](release-history.zh-CN.md)，剩余候选见 §3 |
 
 当前唯一活动计划是优先级 9。上一轮质量收口（第十轮审阅）已全部收口并归档，不在本文件保留条目；新一轮审阅发现只登记在 [`review-plan.zh-CN.md`](review-plan.zh-CN.md)，其阶段状态以该文件为准。质量收口包含用户可见功能、无障碍、文档漂移、Token 纪律与示例缺口，启动时必须单独成批，不与新组件开发混合。
 
@@ -29,9 +27,9 @@
 
 现有能力对照（`src/AeterniUI/Components/` 与 [`delivered-features.zh-CN.md`](delivered-features.zh-CN.md)）：
 
-- 平铺的单值与多值录入已由 `Input`、`InputNumber`、`Slider`、`Search`、`ComboBox`、`MultiSelect`、`Autocomplete` 覆盖；大列表渲染可复用 `VirtualList`。
-- 浮层、焦点与键盘行为可复用 `aeterni_floating.js` 与既有 roving focus，不为候选新增第二套交互模型。
-- 文件选择与拖放已由 `Upload` 交付（10.32.0），层级数据由 `Cascader` 交付（10.35.0），双列表迁移由 `Transfer` 交付（10.37.0），页内锚点导航由 `Anchor` 交付（10.38.0）；四者的决策门结论与验收证据归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。10.39.0 另交付布局类 `Splitter`（两面板可拖动分栏），不属于本节的录入优先级候选，验收证据同样归档在 `release-history`。
+- 平铺的单值与多值录入、大列表渲染与表单字段已由 `delivered-features` 中的现有组件覆盖；组合关系以源码与交付功能为准，本文件不重复清单。
+- 浮层、焦点与键盘行为复用 `aeterni_floating.js` 与既有 roving focus，不为候选新增第二套交互模型。
+- 已交付的候选（`Upload`、`Cascader`、`Transfer`、`Anchor`、`Splitter`、`NavMenu` 等）不在本文件保留记录，决策门结论与验收证据归档在 [`release-history.zh-CN.md`](release-history.zh-CN.md)。
 
 | 顺序 | 候选 | 与现有能力的边界 | 进入实现前必须明确 |
 | --- | --- | --- | --- |
@@ -47,69 +45,9 @@
 | `Result` | 与 Empty、Alert、Card 的职责边界 |
 | `StatusDot`（P2 可选） | 语义色状态点（运行/等待/完成/空闲）：与 `Badge` 的 `Dot` 边界、`AriaLabel` 与纯装饰时的可访问性约定、可用的状态色档位 |
 
-排序规则：不以实现成本低作为排序依据；先确认现有组件能否组合完成目标；每项通过 §6 的五道决策门后才进入实现。
+排序规则：不以实现成本低作为排序依据；先确认现有组件能否组合完成目标；每项通过 §5 的五道决策门后才进入实现。
 
-## 4. 示例工程内容与信息架构（已交付）
-
-示例工程是本库的可运行契约，也是读者第一次接触全部公共 API 的地方。此前的形态是「每页一段实时演示 + 手写参数表」：视觉可用，内容不成体系——参数表会漂移（实测 8 页与组件公共参数不一致），多数页面不给用法代码，没有组合场景，也缺少文档站应有的检索与前后导航。
-
-本节按市面组件文档（Ant Design、Element Plus、Vuetify、MUI、shadcn/ui）收敛后的共识设计：**三条栏的信息架构 + 五段式的页面模板 + 由源码生成的 API 表**。三家的表面风格不同，但这三件事是一致的，也是我们真正缺的部分。
-
-### 目标结构
-
-| 区域 / 段 | 内容 | 现状 |
-| --- | --- | --- |
-| 顶栏 | 品牌、文档/资源入口、版本入口、全局搜索与外观设置 | 已交付（全局搜索为居中弹出的模态面板，外观设置浮层含品牌与主题，版本入口为指向发布列表的版本徽标） |
-| 左栏 | 分组导航 + 检索与匹配计数，随路由高亮 | 已交付 |
-| 右栏 | 页内 TOC，随滚动高亮，锚点可分享 | 已交付 |
-| 页头 | 当前条目、「在 GitHub 编辑」 | 已交付 |
-| 01 外观预览 / 02 调整属性 | 实时渲染与属性控件 | 已交付（66 个卡片化页面，其中 60 页每页至少一段 `<Controls>`；`Colors`、`Install` 讲规格与步骤，没有带可调属性的实例） |
-| 03 示例代码 | 可复制的 Razor 片段 | 已交付（每个页面都有可复制代码块：卡片化页面每段一间，非组件页是步骤与配方片段） |
-| 04 参数、事件与接口 | **由源码生成的公共 API 表**，含「自 x.y.z」列 | 已交付（61 个页面 / 776 行） |
-| 05 说明与边界 | 无障碍、状态与职责边界 | 已交付（每个页面都有内容） |
-| 页脚 | 目录顺序的上一页/下一页 | 已交付 |
-| 「何时使用」与「相关组件」 | 决定读者是否该用它、下一步看谁 | 已交付（非组件页也改用同一骨架，段锚点与搜索结果因此走同一套机制） |
-| 反馈闭环 | 贡献者、有用/无用反馈、issue 直达 | 已交付（每个组件页正文末尾：有用/无用 + 提交 Issue + 贡献者） |
-
-### API 表：生成而不是手写
-
-- `scripts/generate-api-reference.mjs` 解析组件源码的 `[Parameter]` 声明与 XML 文档注释，产出 `src/AeterniUI.Sample/Components/Showcase/ShowcaseApiReference.generated.cs`；生成物提交进仓库，CI 用 `--check` 拒绝过期产物（与 `generate-fontawesome-icons.mjs` 同一约定）。
-- 编辑内容与生成物分离：说明文字在 `scripts/api-descriptions.json`，生成器推不出来的行（模型、服务与 `Value / StartDate / EndDate` 这类汇总写法）在 `scripts/api-extra-rows.json`；「自哪个版本」在 `scripts/api-since.json`，只登记 `release-history` 明确记录过的新增成员，不猜测。
-- 基类参数（`Id`、`Disabled` 等 8 项）是一份共享清单，由渲染端并入，不随 59 个页面重复生成。
-- 没有对应组件目录的页也能有生成式 API 表：`Feedback` 记录的是 `IDialogService` 与各个选项类型，行全部来自 `api-extra-rows.json`，生成器在成员为空时照样为它产出条目。**页面上没有手写表，也没有被门禁放过的例外。**
-- 门禁：`tests/sample-docs.test.mjs` 断言「每个有组件的条目都出现在生成物里」与「页面不再手写表」；`--check` 断言生成物与源码一致；浏览器断言另有一条真实渲染检查（反馈页的 API 区确实渲染出服务与选项行）。
-
-### 搜索索引：生成而不是手写
-
-- `scripts/generate-search-index.mjs` 解析 `Pages/Components/*.razor`，产出页头搜索入口的数据源 `src/AeterniUI.Sample/Components/Showcase/ShowcaseSearchIndex.generated.cs`（当前 544 条，覆盖 68 个页面条目与各页上真实存在的段）。生成物提交进仓库，CI 用 `--check` 拒绝过期产物。
-- 条目形状是 `ShowcaseSearchEntry(PageId, PageTitle, Category, SectionId, SectionTitle)`，段锚点就是页面里真实存在的 id：页码来源是目录条目本身（安装页用它的落地 id），页内段是 `-when-title` / demo 卡片的 `Id` / `-api-title` / `-related-title` / `-notes-title`，与 `ComponentPage`、`DemoCard` 渲染出来的 id 逐字一致，因此搜索结果不会指向不存在的锚点。
-- 只登记页面上真的存在的段：没有 `<WhenToUse>` 的页面不会有「何时使用」，「参数与事件」读的是 API 生成物（所以 `Feedback` 页在这一项修好之后也有了该段）。生成顺序因此是 `generate-api-reference.mjs` → `generate-search-index.mjs`。
-- 门禁：`node scripts/generate-search-index.mjs --check`（CI 的 build job 内，排在 API reference 之后）。
-
-### 搜索入口：居中弹出的模态面板
-
-- 页头放的是"像输入框的按钮"（`ShowcaseSearchBox`）：字段外观直接取库内控件 token，右侧键位提示按平台写成 ⌘K / Ctrl K；真正的输入框在面板里。
-- 面板（`ShowcaseSearchLayer`）只在打开时进入 DOM，固定定位在视口中央，`role="dialog"` + `aria-modal="true"`。点遮罩、Escape 与关闭按钮都收起它，关闭后焦点回到触发器；**从命中项跳走时不还焦点**，留给刚滚到的目标段。
-- 滚动锁与 Tab 焦点陷阱复用库内 `wwwroot/js/aeterni_floating.js`（组件浮层用的同一份），示例不另造一套；全局 Ctrl/Cmd+K 开关由 `wwwroot/js/sample-search.js` 注册在 document 上——键盘事件只有挂在文档上，才能在任何焦点位置都拦得住。
-- 面板必须渲染在页头那张玻璃卡片之外：卡片的 `backdrop-filter` 会成为最近的 backdrop root，卡内浮层的模糊只能采样卡片内部那张透明背景。
-- 门禁：`tests/browser/verify.mjs` 覆盖开合三条路径（触发器、Escape、Ctrl+K 与遮罩）、居中几何、滚动锁的加与释放、Tab 焦点陷阱与焦点回归，以及"面板与页面根之间没有别的 backdrop root"。
-
-### 批次
-
-| 批次 | 范围 | 验收 |
-| --- | --- | --- |
-| 1（已交付） | 文档壳（检索、页头、页脚、说明段）、内容门禁、参数表对账 | 门禁全绿；`Input`、`MultiSelect`、`Upload` 走完新结构 |
-| 2（已交付） | **API 表改为源码生成**：生成器、编辑源文件、53 页迁移、CI `--check`、门禁改写 | 53 页 / 596 行由生成物渲染；页面零手写表；`--check` 在 CI 生效 |
-| 3（已交付） | demo 卡片化：一页多段 demo（基础用法、受控、状态、键盘），每段带锚点与自己的代码；页面骨架改为 `ComponentPage`（标题区 → 何时使用 → demo 卡片 → API → 相关组件 → 说明与边界） | 54/57 页已卡片化（共 168 段代码、54 页有「何时使用」、49 页有 `<Controls>`）；其余三页 `Colors`、`GlassLab`、`Install` 是非 demo 页，只共用「在 GitHub 编辑」入口。门禁与浏览器断言已覆盖卡片形状（含跨页抽查） |
-| 4（已交付） | 页内 TOC（`IntersectionObserver` scroll spy，实例级 dispose）+ 页头常驻搜索框（就地下拉，索引 = 目录条目 + 页内真实存在的段，由生成脚本产出） | 两种入口都有键盘路径与浏览器断言；搜索索引有 `--check` 门禁 |
-| 5（已交付） | 内容补齐：三个非组件页并入页面模板（`ComponentPage` 骨架 + 「何时使用 / 相关组件 / 说明与边界」+ 可复制代码块，`Install` 的手写 `<pre><code>` 换成 `ShowcaseCode`）、5 个页面补齐 `<Controls>`、其余页面的 `UsageCode` 与缺失的 `Notes` | 57/57 页都有可复制代码块与三段固定段；54 个卡片化页面都有 `<Controls>`；`sample-docs` 门禁新增「每个页面都有可复制代码块、写了三段固定段」与「非组件页与组件页共用同一骨架」两条断言 |
-| 6（已交付） | 组合用法页：表单校验链、筛选工具栏、设置抽屉、通知与长任务、大数据列表。目录新增「组合用法」分组（`IsComponent = false`，路由沿用 `/components/<id>`） | 5 页全部交付（每页 3 段 demo + 可复制代码 + 相关组件 + 说明与边界）；`tests/browser/verify.mjs` 的「组合用法页」一组覆盖 5 页的关键交互，并新增一条整站体检（逐页比对源码声明的 demo 段与真实渲染数） |
-| 7（已交付） | 版本入口与反馈闭环（首页改造已先行落地：提交时间线整块下线，换成 Hero 读数 + 常用组件墙 + GSAP 入场与悬停动效）；原计划的「状态与无障碍矩阵」（RTL / reduced-motion / 窄屏示例级开关）经评估后已下线，原因见 `release-history` | 每项都有可操作路径与断言：`sample-docs` 断言骨架存在，浏览器断言覆盖版本徽标与反馈闭环（有用弹 Toast + issue/贡献者出口） |
-| 8（已交付，先于 5–7 落地；批次 4 的搜索入口改版） | 页头搜索换成触发器 + Ctrl/Cmd+K，结果进居中弹出的模态面板（滚动锁与焦点陷阱复用共享浮层模块，示例不再自维护下拉） | 面板居中、三条关闭路径与焦点回归、滚动锁的加与释放都有浏览器断言；搜索索引生成物不变 |
-
-不做的事：内置在线沙箱（Blazor 生态没有 Ant/Element 那类 Playground 对应物，用「复制到示例工程」替代）；从 CDN 引第三方语法高亮（示例工程可以不引，库本身不能引）。
-
-## 5. 已评估并暂缓
+## 4. 已评估并暂缓
 
 | 组件 | 结论 | 原因 |
 | --- | --- | --- |
@@ -118,7 +56,7 @@
 
 暂缓不等于计划中；在完成范围决策前，不得在交付功能或项目索引中列为现有能力。与 §3 中「顺延」的候选不同，此处组件已完成一次范围评估并给出否定结论，不是仅排序靠后。
 
-## 6. 实现决策门
+## 5. 实现决策门
 
 | 决策门 | 通过标准 |
 | --- | --- |
@@ -128,18 +66,11 @@
 | 浮层/JS | 已确认是否复用共享能力；只有必要的浏览器行为才增加 `.razor.js` |
 | 示例/验收 | Light、Dark、System、窄屏、键盘和 reduced-motion 有可操作验收路径 |
 
-## 7. 固定交付物
+## 6. 固定交付物
 
-每个公共组件或能力必须同时交付：
+每个公共组件或能力交付时，按 [`AGENTS.md`](../AGENTS.md) §4.7/§4.8 的流程与门禁、以及 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §12 的提交检查清单执行；本文件不再复制清单。完成后从本文件移除该计划，并写入 `release-history`。
 
-1. 组件源码、必要的公开枚举或模型，以及边界校验。
-2. 独立可操作示例页，覆盖主要参数、状态和键盘行为。
-3. `delivered-features` 的现行 API 与行为记录。
-4. 必要的渲染契约、Node 行为回归或真实浏览器断言。
-5. `release-history` 的版本交付记录，并从本文件移除已经完成的计划。
-6. 按 `AGENTS.md` 改动类型执行的全部门禁结果。
-
-## 8. 状态维护
+## 7. 状态维护
 
 - 本文件不保存已完成版本的长篇实现过程；任务交付后移入发布历史。
 - 审阅发现不复制到本文件；缺陷条目与批次证据只留在审阅计划，本文件不镜像其状态。

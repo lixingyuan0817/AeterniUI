@@ -1,4 +1,4 @@
-﻿@page "/components/flash-card"
+@page "/components/flash-card"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -48,12 +48,12 @@
                 <div class="preview-flash-card-grid">
                     <FlashCard ImageSrc="@CoverImage"
                                ImageAlt="@CoverAlt"
-                               Title="魔法师"
+                               Title="星门"
                                Description="点击或按 Enter 翻到背面。"
                                AspectRatio="0.78"
                                IsFlipped="@_flipDemoFlipped"
                                IsFlippedChanged="OnFlipDemoChanged"
-                               AriaLabel="魔法师闪卡">
+                               AriaLabel="星门闪卡">
                         <Back>
                             <span class="preview-flash-card-back">
                                 <span class="preview-flash-card-back__label">背面</span>
@@ -74,7 +74,7 @@
                 <div class="preview-flash-card-grid">
                     <FlashCard ImageSrc="@CoverImage"
                                ImageAlt="@CoverAlt"
-                               Title="魔法师"
+                               Title="星门"
                                Description="指针移到卡面上观察闪光与 3D 跟随，点击或按 Enter 翻到背面。"
                                AspectRatio="1"
                                Sheen="@_sheen"
@@ -86,7 +86,7 @@
                                FlipTrigger="@_flipTrigger"
                                IsFlipped="@_flipped"
                                IsFlippedChanged="OnFlipChanged"
-                               AriaLabel="魔法师闪卡">
+                               AriaLabel="星门闪卡">
                         <Back>
                             <span class="preview-flash-card-back">
                                 <span class="preview-flash-card-back__label">背面</span>
@@ -149,16 +149,16 @@
     ];
 
     private const string ImageCode = """
-        <FlashCard ImageSrc="images/flash-card/magician.jpg"
-                   ImageAlt="蓝衣魔法师与金色法阵的卡面插画"
+        <FlashCard ImageSrc="images/flash-card/card-art.svg"
+                   ImageAlt="蓝紫渐变与几何线条的抽象卡面"
                    AspectRatio="0.78"
                    Sheen="FlashCardSheen.Shine" />
         """;
 
     private const string FlipCode = """
-        <FlashCard ImageSrc="images/flash-card/magician.jpg"
+        <FlashCard ImageSrc="images/flash-card/card-art.svg"
                    ImageAlt="卡面插画"
-                   Title="魔法师"
+                   Title="星门"
                    Description="点击或按 Enter 翻到背面"
                    IsFlipped="IsFlipped"
                    IsFlippedChanged="HandleFlipChanged">
@@ -169,7 +169,7 @@
         """;
 
     private const string TuningCode = """
-        <FlashCard ImageSrc="images/flash-card/magician.jpg"
+        <FlashCard ImageSrc="images/flash-card/card-art.svg"
                    ImageAlt="卡面插画"
                    Sheen="FlashCardSheen.Holo"
                    SheenIntensity="0.6"
@@ -180,13 +180,13 @@
         """;
 
     /// <summary>
-    /// Sample cover shipped with the sample site (800×800 JPEG under
-    /// wwwroot/images/flash-card). The path stays relative so the GitHub Pages
-    /// base href keeps resolving it from a sub-path deployment.
+    /// Sample cover shipped with the sample site (self-drawn 800×800 SVG under
+    /// wwwroot/images/flash-card, no third-party artwork). The path stays relative so the
+    /// GitHub Pages base href keeps resolving it from a sub-path deployment.
     /// </summary>
-    private const string CoverImage = "images/flash-card/magician.jpg";
+    private const string CoverImage = "images/flash-card/card-art.svg";
 
-    private const string CoverAlt = "蓝衣魔法师与金色法阵的卡面插画";
+    private const string CoverAlt = "蓝紫渐变与几何线条的抽象卡面";
 
     private bool _flipped;
     private bool _flipDemoFlipped;

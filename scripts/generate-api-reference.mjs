@@ -16,12 +16,12 @@
 //
 // 用法：node scripts/generate-api-reference.mjs [--check]
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
+import { catalogIds, pascal, read } from './lib/showcase-catalog.mjs';
 
 const LIBRARY = 'src/AeterniUI';
 const SAMPLE = 'src/AeterniUI.Sample';
-const CATALOG = `${SAMPLE}/Components/Showcase/ShowcaseCatalog.cs`;
 const OUTPUT = `${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`;
 
 // 内部渲染部件：delivered-features §24/§37 明确它们保留 Razor 类型只为内部组合，已标记
@@ -51,17 +51,6 @@ const SINCE_FILE = 'scripts/api-since.json';
 // 一次性抽出来，之后只在这两个文件里维护 —— 页面本身不再手写任何 API 行。
 const DESCRIPTIONS_FILE = 'scripts/api-descriptions.json';
 const EXTRA_ROWS_FILE = 'scripts/api-extra-rows.json';
-
-const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
-
-function pascal(parts) {
-    return parts.split('-').map(part => part[0].toUpperCase() + part.slice(1)).join('');
-}
-
-function catalogIds() {
-    const source = read(CATALOG);
-    return [...source.matchAll(/new\("([a-z0-9-]+)",/g)].map(match => match[1]);
-}
 
 // 组件目录名只从一次目录列举里查，不用 existsSync：后者在大小写不敏感的文件系统上会
 // 解析出实际上不存在（大小写不符）的目录，于是同一份源码在 Windows 与 Linux 上生成出
@@ -101,17 +90,131 @@ function cleanDocComment(block) {
         .trim();
 }
 
+/// 跳过空白。参数声明可能跨行，读属性体与初始化表达式前都要先跳过换行。
+function skipTrivia(source, start) {
+    let cursor = start;
+    while (cursor < source.length && /\s/.test(source[cursor])) cursor += 1;
+    return cursor;
+}
+
+/// 跳过字符串字面量，返回结束引号之后的位置。默认值里只有简单字面量会进 API 表，但扫描
+/// 属性体与初始化表达式时仍要跨过 `"…;…"`，否则字符串里的分号会被当成声明结束。
+function skipStringLiteral(source, start) {
+    // C# 11 原始字符串 `"""…"""`：以相同数量的引号结束，内部不转义。
+    const quotes = /^"+/.exec(source.slice(start, start + 16))?.[0] ?? '"';
+    if (quotes.length >= 3) {
+        const closing = source.indexOf(quotes, start + quotes.length);
+        return closing < 0 ? source.length : closing + quotes.length;
+    }
+
+    let cursor = start + 1;
+    while (cursor < source.length) {
+        if (source[cursor] === '\\') { cursor += 2; continue; }
+        if (source[cursor] === '"') return cursor + 1;
+        cursor += 1;
+    }
+
+    return cursor;
+}
+
+/// 跳转义字符串 `@"…"`（内部 `""` 表示一个引号），`quoteIndex` 指向开引号。
+function skipVerbatimString(source, quoteIndex) {
+    let cursor = quoteIndex + 1;
+    while (cursor < source.length) {
+        if (source[cursor] === '"') {
+            if (source[cursor + 1] === '"') { cursor += 2; continue; }
+            return cursor + 1;
+        }
+        cursor += 1;
+    }
+
+    return cursor;
+}
+
+/// 跳过字符字面量 `'…'`：`'}'` 与 `'\''` 里的花括号、引号不参与结构配对。
+function skipCharLiteral(source, start) {
+    let cursor = start + 1;
+    while (cursor < source.length) {
+        if (source[cursor] === '\\') { cursor += 2; continue; }
+        if (source[cursor] === "'") return cursor + 1;
+        cursor += 1;
+    }
+
+    return cursor;
+}
+
+/// 从 `{` 开始按嵌套层级找到属性体结束的 `}`，返回右花括号之后的位置。
+function skipPropertyBody(source, start) {
+    let cursor = start;
+    let depth = 0;
+    while (cursor < source.length) {
+        const character = source[cursor];
+        if (character === '"') { cursor = skipStringLiteral(source, cursor); continue; }
+        if (character === '@' && source[cursor + 1] === '"') { cursor = skipVerbatimString(source, cursor + 1); continue; }
+        if (character === "'") { cursor = skipCharLiteral(source, cursor); continue; }
+        if (character === '{') depth += 1;
+        else if (character === '}') {
+            depth -= 1;
+            if (depth === 0) return cursor + 1;
+        }
+        cursor += 1;
+    }
+
+    return cursor;
+}
+
+/// 从 `=` 之后开始找初始化表达式结束的 `;`：括号/方括号/花括号与字符串都配对跳过，
+/// 因此 `new(…) { … }`、`Array.Empty<int>()`、多行表达式都不会提前截断。
+function endOfExpression(source, start) {
+    let cursor = start;
+    let depth = 0;
+    while (cursor < source.length) {
+        const character = source[cursor];
+        if (character === '"') { cursor = skipStringLiteral(source, cursor); continue; }
+        if (character === '@' && source[cursor + 1] === '"') { cursor = skipVerbatimString(source, cursor + 1); continue; }
+        if (character === "'") { cursor = skipCharLiteral(source, cursor); continue; }
+        if (character === '(' || character === '[' || character === '{') depth += 1;
+        else if (character === ')' || character === ']' || character === '}') depth -= 1;
+        else if (character === ';' && depth === 0) return cursor;
+        cursor += 1;
+    }
+
+    return cursor;
+}
+
+/// 读出参数名之后的可选初始化表达式（`{ get; set; } = 99;` 里的 `99`）。
+/// 表达式属性（`{ get => …; }`）没有初始化值，返回空串；复杂表达式原样返回，由
+/// `simpleDefault` 决定是否展示。
+function readInitializer(source, start) {
+    let cursor = skipTrivia(source, start);
+
+    if (source[cursor] === '{') {
+        cursor = skipTrivia(source, skipPropertyBody(source, cursor));
+    } else if (source[cursor] === '=' && source[cursor + 1] === '>') {
+        return '';
+    }
+
+    if (source[cursor] !== '=' || source[cursor + 1] === '>') return '';
+
+    return source.slice(cursor + 1, endOfExpression(source, cursor + 1)).trim();
+}
+
 /// 参数声明：`[Parameter]`（可带 CapturingUnmatchedValues）后跟属性声明。说明取该成员上方
 /// 最近的 XML 文档注释——没有注释就是空说明，生成器不会替作者编。
+///
+/// 默认值不能用 `\{([^}]*)\}` 抓属性体来取：自动属性的初始值在右花括号**之后**
+/// （`{ get; set; } = 99;`），属性体里根本没有 `=`；而表达式属性（`{ get => ...; }`）
+/// 又没有初始化值。因此这里只匹配到参数名，再按 C# 结构继续读“可选的 `= 初始化表达式;`”，
+/// 花括号、括号与字符串都按配对扫描，多行声明与 `new() { … }` 这类表达式不会越界。
 function parseMembers(declaringType, source) {
     const members = [];
-    const pattern = /((?:\s*\/\/\/[^\n]*\n)*)\s*\[Parameter[^\]]*\]\s*public\s+([\w<>?,\[\]\.\s]+?)\s+(\w+)\s*\{([^}]*)\}/g;
+    const pattern = /((?:\s*\/\/\/[^\n]*\n)*)\s*\[Parameter[^\]]*\]\s*public\s+([\w<>?,\[\]\.\s]+?)\s+(\w+)\s*(?=[{=])/g;
 
     for (const match of source.matchAll(pattern)) {
-        const [, doc, type, name, body] = match;
+        const [, doc, type, name] = match;
         if (BASE_PARAMETERS.has(name)) continue;
 
-        const initializer = /=\s*([^;]+);/.exec(body)?.[1]?.trim() ?? '';
+        const initializer = readInitializer(source, match.index + match[0].length);
         members.push({
             name,
             declaringType,

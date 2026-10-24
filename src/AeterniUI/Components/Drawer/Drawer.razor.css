@@ -59,6 +59,16 @@
     box-shadow: var(--aeterni-shadow-modal);
 }
 
+/* A modal drawer sits on the dimmed scrim, so the glass fill would sample the scrim:
+   in the light theme the panel turned grey and the white fields inside it read as
+   brighter than the panel. The modal form uses the opaque elevated surface; a
+   non-modal drawer stays on the page and keeps the frosted fill. */
+.aeterni-drawer.is-modal .aeterni-drawer__panel {
+    background: var(--aeterni-bg-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
 /* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
    72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
    for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries

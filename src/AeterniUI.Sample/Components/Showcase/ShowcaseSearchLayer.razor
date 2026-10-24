@@ -1,8 +1,9 @@
 @namespace AeterniUI.Sample.Components.Showcase
 @using AeterniUI.Enums
 
-@* 居中搜索面板：渲染在页头玻璃卡片之外——面板自己的 `backdrop-filter` 才能采样整页而不是
-   卡片内部那张透明背景。遮罩与面板是兄弟，点遮罩即关闭，面板自己不需要再挡事件。
+@* 居中搜索面板：渲染在页头玻璃卡片之外。面板自己是一个不透明的内容表面（与 Dialog/Drawer
+   同一档 `--aeterni-bg-surface`），不叠玻璃、不写 `backdrop-filter`，因此不会出现「灰玻璃面板
+   里套白输入框」的层级反转。遮罩与面板是兄弟，点遮罩即关闭，面板自己不需要再挡事件。
 
    面板在打开时才进入 DOM：`role="dialog"` + `aria-modal` 表达模态语义，`tabindex="-1"` 给焦点
    陷阱一个兜底落点；滚动锁与 Tab 循环由库内 `aeterni_floating.js` 提供（见 `ShowcaseSearchModel`
@@ -42,10 +43,14 @@
                         StartIcon="@CloseIcon" />
             </div>
 
-            @* 结果容器始终存在（面板打开期间）：`aria-controls` 指向的 id 不能随结果出现或消失；
-               没有命中时用容器内的文案说明，而不是把列表整个拿掉。 *@
+            @* 结果容器始终存在（面板打开期间）：`aria-controls` 指向的 id 不能随结果出现或消失。
+               查询为空时给引导而不是"没有匹配"——初始态不是空结果，读者还没开始搜。 *@
             <div id="@ShowcaseSearchModel.ListboxId" class="showcase-search-modal__list" role="listbox" aria-label="搜索结果">
-                @if (Model.Matches.Count == 0)
+                @if (string.IsNullOrWhiteSpace(Model.Query))
+                {
+                    <p class="showcase-search-modal__prompt">输入组件名、分类或段落，例如「日期」「校验」「表单」。</p>
+                }
+                else if (Model.Matches.Count == 0)
                 {
                     <p class="showcase-search-modal__empty">没有匹配的组件或段落。试试“选择”“日期”或“表单”。</p>
                 }

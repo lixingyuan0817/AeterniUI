@@ -5,14 +5,16 @@
    卡内浮层自己的模糊就只能采样卡片内部那张透明的背景，看起来完全没有模糊。两半共享
    `ShowcaseSearchModel`。
 
-   触发器保持原生 `button`：它只做一件事（打开面板），键盘用 Enter/Space，读屏名字来自可见
-   文本本身，因此不需要 `aria-label` 去覆盖它。`aria-expanded` 表达面板的开合，
+   触发器保持原生 `button`：它只做一件事（打开面板），键盘用 Enter/Space。可见文本在
+   窄屏被收起（≤700px 只留图标），所以另给 `aria-label`——`display:none` 掉的文本不会再
+   贡献可访问名称，不补这一条就只剩一个无名按钮。`aria-expanded` 表达面板的开合，
    `aria-keyshortcuts` 声明在这里也生效的全局快捷键。 *@
 <div class="sample-header__search">
     <button type="button"
             id="showcase-search-trigger"
             class="showcase-search-trigger"
             @ref="_trigger"
+            aria-label="搜索组件或段落"
             aria-haspopup="dialog"
             aria-expanded="@(Model.Open ? "true" : "false")"
             aria-keyshortcuts="Control+K Meta+K"
@@ -22,7 +24,7 @@
         </span>
         <span class="showcase-search-trigger__label">搜索组件或段落…</span>
         @* 键位提示按平台改写（⌘K / Ctrl K），由 JS 在挂上全局快捷键时写入；
-           它只是给鼠标用户的提示，读屏名字不靠它。 *@
+           它只是给鼠标用户的提示，读屏名字由按钮自己的 aria-label 提供。 *@
         <kbd class="showcase-search-trigger__kbd" @ref="_kbd" aria-hidden="true">Ctrl K</kbd>
     </button>
 </div>

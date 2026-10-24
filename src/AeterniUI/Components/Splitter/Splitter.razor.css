@@ -68,7 +68,7 @@
 .aeterni-splitter__handle:not([aria-disabled="true"]):focus-visible::after,
 .aeterni-splitter__handle.is-dragging::after {
     width: calc(var(--aeterni-border-width-thin) * 2);
-    background: var(--aeterni-color-brand);
+    background: var(--aeterni-color-brand-default);
 }
 
 .aeterni-splitter--vertical .aeterni-splitter__handle:not([aria-disabled="true"]):hover::after,

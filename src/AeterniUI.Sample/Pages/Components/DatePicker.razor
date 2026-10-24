@@ -28,10 +28,14 @@
                                      Presets="@RangePresets"
                                      PresetsAriaLabel="快捷范围"
                                      VisibleMonths="2"
+                                     FullWidth="@_rangeFullWidth"
                                      AriaLabel="选择日期范围" />
                     <span class="preview-feedback" role="status">范围：@RangeText</span>
                 </div>
             </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_rangeFullWidth">FullWidth</Checkbox>
+            </Controls>
         </DemoCard>
 
         <DemoCard Id="date-picker-single"
@@ -173,6 +177,8 @@
     private DateOnly? _endDate;
     private Size _size = Size.Default;
     private bool _fullWidth;
+
+    private bool _rangeFullWidth;
     private bool _disabled;
     private bool _invalid;
     private bool _showLunar = true;

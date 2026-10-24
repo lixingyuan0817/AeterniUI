@@ -1173,6 +1173,9 @@ const segmentedShape = () => evaluate(`(() => {
             // 一旦调过头，选项就会跌破 24px 热区并把默认档顶到 38px。
             trackHeight: trackBox.height,
             optionHeight: optionBox.height,
+            // Small 档的可见选项只有 20px，24px 热区由选项自己的透明伪元素补出来；
+            // 断言量命中盒（可见盒与伪元素高度取大者），不再要求可见盒本身 ≥24px。
+            hitHeight: Math.max(optionBox.height, Number.parseFloat(getComputedStyle(option, '::after').height) || 0),
             pillInlineGap: sliderBox.left - trackBox.left,
             pillBlockGap: sliderBox.top - trackBox.top,
             selected: root.querySelector('.aeterni-segmented__option.is-selected .aeterni-segmented__label')
@@ -1227,9 +1230,9 @@ check('Segmented 三档内缩统一为 3px，滑块与选项圆角跟该档轨�
         padding: tier.padding, gap: tier.pillInlineGap
     })))}`);
 
-// 轨道高度 = 2*描边 + 2*内缩 + 选项高度，而选项有 24px 热区下限。统一 3px 内缩之后，默认档
-// （36 - 8 = 28）与大号（44 - 8 = 36）仍在热区之上，小号只剩 28 - 8 = 20px，于是被热区顶到
-// 32px —— 它不再等于 --aeterni-control-height-sm，所以这条把三档高度一起钉住。
+// 轨道高度 = 2*描边 + 2*内缩 + 可见选项高度。统一 3px 内缩下，Small 的可见选项为 20px，
+// 轨道因此回到 --aeterni-control-height-sm（28px）；20px 不足 24px 指针目标，由选项的透明
+// 伪元素补到 24px。这条同时钉住三档轨道高度与每档的命中盒（可见盒与伪元素取大者）。
 // 滑块与轨道共用同一个圆角，因此角上留白会比四边宽（三档同为 +1.66px）：这是"形状一致"的
 // 代价，四边相等本身量不出它，只有沿角平分线单独量一次才看得见。
 // Heights are read back from getBoundingClientRect, so a 44px track can measure
@@ -1237,17 +1240,18 @@ check('Segmented 三档内缩统一为 3px，滑块与选项圆角跟该档轨�
 // tolerance instead of string equality; the tier contract is still pinned.
 const tierHeights = sizeTiers.map(tier => tier.trackHeight);
 const trackHeightMatches = tierHeights.length === 3
-    && tierHeights.every((height, index) => Math.abs(height - [32, 36, 44][index]) <= 0.5);
-check('Segmented 三档轨道高度为 32 / 36 / 44，留白四边等宽且不缩破 24px 热区',
+    && tierHeights.every((height, index) => Math.abs(height - [28, 36, 44][index]) <= 0.5);
+check('Segmented 三档轨道高度回到 28 / 36 / 44，Small 用伪元素保住 24px 命中盒',
     trackHeightMatches
     && Math.abs(rounded.trackHeight - Number.parseFloat(rounded.controlHeight)) <= 0.5
-    && rounded.optionHeight >= Number.parseFloat(rounded.touchTargetMin)
+    && rounded.hitHeight >= Number.parseFloat(rounded.touchTargetMin)
+    && sizeTiers.every(tier => tier.hitHeight >= Number.parseFloat(tier.touchTargetMin))
     && Math.abs(rounded.pillInlineGap - rounded.pillBlockGap) <= 0.5
     && rounded.pillInlineGap > 1
     && sizeTiers.every(tier => tier.cornerGap > tier.padding)
     && new Set(sizeTiers.map(tier => tier.cornerGap)).size === 1,
     `track=${sizeTiers.map(tier => tier.trackHeight).join('/')} (default=${rounded.trackHeight}/${rounded.controlHeight}) `
-    + `option=${rounded.optionHeight}/${rounded.touchTargetMin} inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap} `
+    + `hit=${sizeTiers.map(tier => tier.hitHeight).join('/')} inline=${rounded.pillInlineGap} block=${rounded.pillBlockGap} `
     + `corner=${sizeTiers.map(tier => tier.cornerGap).join('/')} padding=${rounded.padding}`);
 
 // 通过页面上的 Shape 控件切到 Pill（真实 ComboBox 交互，不是给类名赋值）。触发器按
@@ -1965,47 +1969,34 @@ check('Escape 关闭设置浮层并让 aria-expanded 回到 false',
 check('关闭后焦点归还设置触发器', settingsClosed.focused, JSON.stringify(settingsClosed));
 
 // ------------------------------------------------- 搜索面板在页头玻璃卡片之外
-// 面板必须渲染在页头那张玻璃卡片之外：卡片的 `backdrop-filter` 会成为最近的 backdrop root，
-// 卡内浮层的模糊就只能采样卡片内部那张透明背景。断言顺序是"先根因、后现象"：先证明面板与页面
-// 根之间没有别的 backdrop root（否则采样范围根本不是整页），再看面板表面确实带着模糊，最后量
-// 几何（居中、铺满视口的遮罩、压在页头之上）。
+// 面板必须渲染在页头那张玻璃卡片之外：页头卡片自己的 `backdrop-filter` 会成为最近的 backdrop
+// root，层内任何玻璃表面都只能采样卡片内部那张透明背景。面板现在是模态层的不透明内容表面
+// （和 Dialog/Drawer 同一档），因此断言“不透明 + 无 backdrop-filter”，几何在下面单独量。
 await goto(`${BASE}/components/upload`);
 await waitForApp();
 await clickElement(TRIGGER);
-const anchored = await waitForSearchState(state => state.open && state.focused);
+await waitForSearchState(state => state.open && state.focused);
 await typeQuery('时间');
 await waitForSearchState(state => state.open && state.optionCount === 3);
 
-// 遍历面板表面到页面根之间的祖先：任何一个带 `backdrop-filter` 的祖先都会成为最近的
-// backdrop root，面板就只能采样那一块。面板表面自己带模糊，所以从它的父元素开始走。
 const blurChain = await evaluate(`(() => {
     const surface = document.querySelector('${SEARCH_PANEL}');
     const page = document.querySelector('.sample-page');
     if (!surface || !page) return { error: 'no panel or page root' };
-    const chain = [];
-    for (let node = surface.parentElement; node && node !== page.parentElement; node = node.parentElement) {
-        const style = getComputedStyle(node);
-        // 类名会随排序变化，取最能定位的一段：组件根类或元素名。
-        const label = (node.getAttribute('class') || node.tagName).split(/\\s+/).slice(0, 2).join('.');
-        chain.push({ label, backdrop: style.backdropFilter, transform: style.transform });
-        if (node === page) break;
-    }
+    const style = getComputedStyle(surface);
     return {
-        chain,
-        own: getComputedStyle(surface).backdropFilter,
-        roots: chain.filter(entry => entry.backdrop && entry.backdrop !== 'none').map(entry => entry.label)
+        own: style.backdropFilter,
+        ownBackground: style.backgroundColor
     };
 })()`);
-check('搜索面板与页面根之间没有别的 backdrop root（模糊采样的是整页）',
-    !blurChain.error && anchored.open && blurChain.roots.length === 0,
+check('搜索面板使用不透明表面，不再叠玻璃或采样遮罩',
+    !blurChain.error
+        && blurChain.own === 'none'
+        && /^rgb\(\d+, \d+, \d+\)$/.test(blurChain.ownBackground ?? ''),
     JSON.stringify(blurChain));
-check('搜索面板表面自身带模糊', !blurChain.error && /blur\(/.test(blurChain.own ?? ''),
-    JSON.stringify({ own: blurChain.own }));
 
-// 这里不再做"模糊确实作用在背后页面内容上"的像素锐度对比：那段采样当初是为了证明卡内浮层的
-// 背投是空的（面板在卡片盒之外，backdrop root 却是那张卡片）。现在面板与页面根之间已经没有别的
-// backdrop root，而采样区里同时还有模态遮罩自己的 scrim 模糊，锐度差无法再单独归因于面板这一层
-// ——与其留一条归因不明的断言，不如把"祖先链干净 + 面板自身带模糊"两条留在上面。
+// 采样区里同时还有模态遮罩自己的 scrim 模糊，锐度差无法再单独归因于面板这一层，
+// 因此不再保留那条归因不明的像素锐度断言。
 
 // 几何：固定定位、铺满视口的遮罩、面板压在页头那张玻璃卡片之上（面板渲染在卡片之外，也必须
 // 盖住它，否则页头会浮在遮罩上）。
@@ -2861,9 +2852,14 @@ const cascader = await evaluate(`(async () => {
     };
 
     const closed = stats();
-    trigger.click();
-    await new Promise(r => setTimeout(r, 200));
-    const opened = stats();
+    // waitForApp 只证明标记已渲染；WASM 的事件处理器可能还差一拍。点击一次没反应时重试，
+    // 直到 aria-expanded 真的翻成 true，避免把“尚未交互”误判成组件缺陷。
+    let opened = stats();
+    for (let attempt = 0; attempt < 20 && opened.expanded !== 'true'; attempt++) {
+        trigger.click();
+        await new Promise(r => setTimeout(r, 100));
+        opened = stats();
+    }
 
     await press('ArrowRight');
     const secondLevel = stats();
@@ -4349,6 +4345,90 @@ check('普通自定义 Dialog 的 AutofocusFirstField 打开即聚焦首个字�
     JSON.stringify(autofocusDialog));
 await key('Escape', 'Escape', 27);
 await sleep(400);
+
+// ---------------------------------------------------------------- 10.46.0 review batch
+// Modal panels are opaque: a frosted fill sampled the dimmed scrim and turned the
+// panel grey in the light theme, so the white fields inside read brighter than the
+// panel. Assert both the fill (no alpha) and the removed backdrop-filter.
+await goto(`${BASE}/components/feedback`);
+await waitForApp();
+const modalSurface = await (async () => {
+    const deadline = Date.now() + 6000;
+    let state = null;
+    while (Date.now() < deadline) {
+        state = await evaluate(`(() => {
+            const dialog = document.querySelector('.aeterni-dialog-provider__dialog');
+            if (!dialog) {
+                const trigger = [...document.querySelectorAll('button')]
+                    .find(button => button.textContent.trim() === 'Confirm');
+                trigger?.click();
+                return { dialog: false };
+            }
+            const style = getComputedStyle(dialog);
+            return {
+                dialog: true,
+                background: style.backgroundColor,
+                backdrop: style.backdropFilter || style.webkitBackdropFilter
+            };
+        })()`);
+        if (state.dialog) break;
+        await sleep(120);
+    }
+    return state;
+})();
+check('模态面板使用不透明表面，浅色下不再被遮罩染灰',
+    !!modalSurface?.dialog
+        && /^rgb\(\d+, \d+, \d+\)$/.test(modalSurface.background)
+        && modalSurface.backdrop === 'none',
+    JSON.stringify(modalSurface));
+await key('Escape', 'Escape', 27);
+await sleep(500);
+
+// Toast pause (WCAG 2.2.1): a pointer resting on the card must hold the countdown.
+// The default toast lives 5s, so surviving 6s of hover is the observable proof;
+// moving the pointer away must then let the dismissal continue.
+const toastPause = await (async () => {
+    const deadline = Date.now() + 8000;
+    let ready = false;
+    while (Date.now() < deadline) {
+        ready = await evaluate(`(() => {
+            if (document.querySelector('.aeterni-dialog-provider__toast')) return true;
+            const trigger = [...document.querySelectorAll('button')]
+                .find(button => /^Toast$/.test(button.textContent.trim()));
+            trigger?.click();
+            return false;
+        })()`);
+        if (ready) break;
+        await sleep(120);
+    }
+    if (!ready) return { error: 'toast never appeared' };
+
+    const center = await evaluate(`(() => {
+        const toast = document.querySelector('.aeterni-dialog-provider__toast');
+        const rect = toast.getBoundingClientRect();
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    })()`);
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: center.x, y: center.y, button: 'none' });
+    await sleep(300);
+    const pausedClass = await evaluate(
+        `!!document.querySelector('.aeterni-dialog-provider__toast.is-paused')`);
+    await sleep(6000);
+    const survived = await evaluate(`!!document.querySelector('.aeterni-dialog-provider__toast')`);
+
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5, button: 'none' });
+    const resumeDeadline = Date.now() + 7000;
+    let removed = false;
+    while (Date.now() < resumeDeadline) {
+        removed = await evaluate(`!document.querySelector('.aeterni-dialog-provider__toast')`);
+        if (removed) break;
+        await sleep(150);
+    }
+
+    return { pausedClass, survived, removed };
+})();
+check('Toast 悬停暂停倒计时，移开后继续自动关闭',
+    !toastPause.error && toastPause.pausedClass && toastPause.survived && toastPause.removed,
+    JSON.stringify(toastPause));
 
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} checks passed`);
 const failed = results.some(r => !r.ok);

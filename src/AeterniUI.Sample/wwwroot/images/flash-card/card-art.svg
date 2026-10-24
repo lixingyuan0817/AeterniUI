@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img" aria-labelledby="card-art-title card-art-desc">
+  <title id="card-art-title">抽象卡面插画</title>
+  <desc id="card-art-desc">深蓝紫渐变上叠着同心圆环、几何碎片与斜向光泽的抽象图案，不含任何文字或人物。</desc>
+  <defs>
+    <linearGradient id="art-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d1647"/>
+      <stop offset="0.48" stop-color="#341a63"/>
+      <stop offset="1" stop-color="#0b1226"/>
+    </linearGradient>
+    <radialGradient id="art-glow-violet" cx="0.62" cy="0.3" r="0.62">
+      <stop offset="0" stop-color="#8c6cff" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="#8c6cff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#8c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="art-glow-cyan" cx="0.18" cy="0.82" r="0.55">
+      <stop offset="0" stop-color="#3fd8e8" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#3fd8e8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="art-ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4c96b" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#8b7bff" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#59e4ff" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="art-shard-a" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd88a" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#7a4bd6" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="art-shard-b" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6df0ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#2a2a7a" stop-opacity="0.65"/>
+    </linearGradient>
+    <linearGradient id="art-sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="art-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#art-bg)"/>
+  <rect width="800" height="800" fill="url(#art-glow-violet)"/>
+  <rect width="800" height="800" fill="url(#art-glow-cyan)"/>
+
+  <g opacity="0.55" filter="url(#art-soft)">
+    <circle cx="430" cy="360" r="250" fill="none" stroke="url(#art-ring)" stroke-width="26"/>
+  </g>
+
+  <g fill="none" stroke="url(#art-ring)">
+    <circle cx="430" cy="360" r="258" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="430" cy="360" r="206" stroke-width="1.4" opacity="0.55"/>
+    <circle cx="430" cy="360" r="158" stroke-width="1" opacity="0.4"/>
+    <circle cx="430" cy="360" r="96" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <g opacity="0.85">
+    <path d="M430 74 A286 286 0 0 1 700 250" fill="none" stroke="#ffd98c" stroke-width="7" stroke-linecap="round"/>
+    <path d="M162 492 A286 286 0 0 0 396 654" fill="none" stroke="#6df0ff" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <g>
+    <polygon points="430,168 596,330 430,484 264,330" fill="url(#art-shard-a)" opacity="0.24"/>
+    <polygon points="430,210 548,330 430,424 312,330" fill="url(#art-shard-b)" opacity="0.32"/>
+    <polygon points="430,262 486,330 430,386 374,330" fill="#0e1230" opacity="0.55"/>
+    <polygon points="430,286 460,330 430,360 400,330" fill="#ffe3a3" opacity="0.85"/>
+  </g>
+
+  <g opacity="0.7">
+    <path d="M152 620 L276 496 L338 558 L214 682 Z" fill="url(#art-shard-b)" opacity="0.5"/>
+    <path d="M566 122 L648 42 L718 112 L636 192 Z" fill="url(#art-shard-a)" opacity="0.4"/>
+    <path d="M558 640 L690 570 L742 650 L610 720 Z" fill="#6d5bff" opacity="0.28"/>
+  </g>
+
+  <g fill="#ffe6ad">
+    <circle cx="214" cy="238" r="3.6" opacity="0.9"/>
+    <circle cx="622" cy="286" r="2.6" opacity="0.7"/>
+    <circle cx="332" cy="150" r="2.2" opacity="0.6"/>
+    <circle cx="676" cy="458" r="3" opacity="0.8"/>
+    <circle cx="268" cy="566" r="2.4" opacity="0.65"/>
+    <circle cx="520" cy="612" r="3.4" opacity="0.8"/>
+    <circle cx="154" cy="410" r="2" opacity="0.55"/>
+    <circle cx="586" cy="538" r="2" opacity="0.5"/>
+  </g>
+
+  <path d="M-80 700 L420 120 L560 120 L60 700 Z" fill="url(#art-sheen)" opacity="0.6"/>
+
+  <rect x="18" y="18" width="764" height="764" rx="36" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="2"/>
+  <rect x="34" y="34" width="732" height="732" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+</svg>

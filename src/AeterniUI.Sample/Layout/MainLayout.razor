@@ -1,10 +1,16 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using AeterniUI.Enums
+@inject NavigationManager NavigationManager
 
 <ThemeProvider />
 <DialogProvider />
 
 <div class="sample-page">
+    @* 跳转链接：键盘用户第一次 Tab 就能越过固定页头直达正文。默认移出视口，
+       只有获得焦点时才落回左上角（样式见 MainLayout.razor.css）。 *@
+    <a class="sample-skip-link" href="#main-content">跳到主内容</a>
+
     @* 页面底只有中性暗角：彩色光斑会把整页底色染成有彩灰，和「容器与页面背景
        只能是无彩色或统一玻璃配方」的规则冲突，也让规格页里列出的中性表面无法复现。 *@
     <div class="sample-page__ambient" aria-hidden="true"></div>
@@ -36,10 +42,15 @@
                         <Icon Definition="@FontAwesomeIcons.Solid.House" />
                         <span>首页</span>
                     </NavLink>
-                    <NavLink class="app-nav__link" href="/components">
+                    @* 「组件」按整段前缀高亮：文档页都挂在 /components/* 下，而入口指向总览页。
+                        NavLink 的 Prefix 匹配只认 "/components/overview" 这一段，所以这里按
+                       当前路径前缀自己算 active 与 aria-current。 *@
+                    <a class="app-nav__link @(IsComponentsActive ? "active" : null)"
+                       href="/components/overview"
+                       aria-current="@(IsComponentsActive ? "page" : null)">
                         <Icon Definition="@FontAwesomeIcons.Solid.Cubes" />
                         <span>组件</span>
-                    </NavLink>
+                    </a>
                     <NavLink class="app-nav__link" href="/icons">
                         <Icon Definition="@FontAwesomeIcons.Solid.Star" />
                         <span>图标</span>
@@ -65,7 +76,7 @@
 
     @* 内容区包一层：页脚用 margin-top:auto 落在视口底部，短页面（404）不会
        把页脚吊在半空；长页面上这层只是占满剩余高度，不改变内部布局。 *@
-    <div class="sample-page__content">
+    <div class="sample-page__content" id="main-content" tabindex="-1">
         @Body
     </div>
 
@@ -74,7 +85,7 @@
     <footer class="sample-footer">
         <p class="sample-footer__brand">AeterniUI <span>v@(ShowcaseCatalog.Version)</span></p>
         <nav class="sample-footer__links" aria-label="页脚导航">
-            <a href="/components">组件</a>
+            <a href="/components/overview">组件</a>
             <a href="/icons">图标</a>
             <a href="@ShowcaseCatalog.ReleasesUrl" target="_blank" rel="noopener noreferrer">发布记录</a>
             <a href="@ShowcaseCatalog.IssuesUrl" target="_blank" rel="noopener noreferrer">问题反馈</a>
@@ -83,3 +94,23 @@
         <p class="sample-footer__note">MIT License · 面向 .NET 10 的 Blazor 组件库</p>
     </footer>
 </div>
+
+@code {
+    /// <summary>
+    /// 文档页都挂在 <c>/components</c> 下，页头「组件」入口指向总览页，但高亮要覆盖整段前缀。
+    /// </summary>
+    private bool IsComponentsActive
+    {
+        get
+        {
+            var path = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            return path.StartsWith("components", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    protected override void OnInitialized() => NavigationManager.LocationChanged += HandleLocationChanged;
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => NavigationManager.LocationChanged -= HandleLocationChanged;
+}

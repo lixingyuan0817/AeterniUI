@@ -1,0 +1,198 @@
+/*
+   组件总览（/components/overview）：目录数据的可浏览版本。
+   容器、排版与间距全部取自库内 Token；页面自身没有第二套颜色或字号。
+*/
+
+.overview {
+    overflow: hidden;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-xl);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-sm);
+}
+
+.overview__header {
+    padding: 30px var(--showcase-card-padding) 22px;
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.overview__eyebrow {
+    margin: 0;
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.overview h1 {
+    margin: 8px 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: clamp(30px, 2.6vw, 36px);
+    font-weight: var(--aeterni-font-weight-semibold);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+}
+
+.overview__lede {
+    max-width: 62ch;
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-md);
+    line-height: var(--aeterni-line-height-relaxed);
+    text-wrap: pretty;
+}
+
+.overview__meta {
+    margin: var(--aeterni-spacing-3) 0 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.overview__jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-2);
+    padding: var(--aeterni-spacing-4) var(--showcase-card-padding);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+}
+
+.overview__jump a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 11px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-full);
+    color: var(--aeterni-color-brand-text);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.overview__jump a:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.overview__jump a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.overview__group {
+    padding: var(--showcase-card-block) var(--showcase-card-padding);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+    /* 分组锚点与默认段锚点同一落点：固定页头不会压住刚跳到的分组标题。 */
+    scroll-margin-top: var(--sample-content-top);
+}
+
+.overview__group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--aeterni-spacing-2);
+    margin-bottom: var(--aeterni-spacing-3);
+}
+
+.overview__group-icon {
+    display: grid;
+    place-items: center;
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-sm);
+}
+
+.overview__group-head h2 {
+    margin: 0;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 20px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
+}
+
+.overview__group-count {
+    margin-inline-start: auto;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.overview__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: var(--aeterni-spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.overview__item {
+    display: grid;
+    gap: 3px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-secondary);
+    text-decoration: none;
+}
+
+.overview__item:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.overview__item:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.overview__item-label {
+    color: var(--aeterni-text-primary);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
+.overview__item-summary {
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
+    text-wrap: pretty;
+}
+
+.overview__source {
+    padding: var(--showcase-card-block) var(--showcase-card-padding);
+}
+
+.overview__source h2 {
+    margin: 0 0 10px;
+    color: var(--aeterni-text-primary);
+    font-family: var(--aeterni-font-family-display);
+    font-size: 20px;
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: -.01em;
+}
+
+.overview__source p {
+    max-width: 68ch;
+    margin: 0 0 var(--aeterni-spacing-3);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-md);
+    line-height: 1.75;
+    text-wrap: pretty;
+}
+
+@media (max-width: 640px) {
+    .overview__header,
+    .overview__jump,
+    .overview__group,
+    .overview__source {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .overview__list {
+        grid-template-columns: 1fr;
+    }
+}

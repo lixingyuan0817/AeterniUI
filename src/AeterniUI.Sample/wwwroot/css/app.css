@@ -172,6 +172,12 @@ h1:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    /* 视口级平滑滚动是站点的动效：减少动态效果时换成即时跳转，段锚点与目录点击
+       因此不会播放一段滚动动画。卡片/面板自己的过渡由各自的媒体查询收敛。 */
+    html {
+        scroll-behavior: auto;
+    }
+
     /* The ring stays visible as a static busy indicator. */
     .sample-boot__ring {
         animation: none;

@@ -173,6 +173,11 @@ export function detachShortcut() {
     shortcut = null;
 }
 
+// 页面全局是 `scroll-behavior: smooth`；系统要求减少动态效果时，段锚点跳转必须直接落位，
+// 不能把读者拖进一段几百毫秒的滚动动画。滚动行为在调用点显式给出，不依赖 CSS 是否被覆盖。
+const scrollBehavior = () =>
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+
 // 等目标段出现再滚：跨页导航刚落地时目标页还没渲染出该段，直接滚会滚到一个还不存在的元素。
 // 超时返回 false，调用方据此知道这次没落上（不静默假装成功）。
 export function scrollToAnchor(anchor, timeoutMs = 3000) {
@@ -181,7 +186,7 @@ export function scrollToAnchor(anchor, timeoutMs = 3000) {
         const attempt = () => {
             const target = document.getElementById(anchor);
             if (target) {
-                target.scrollIntoView({ block: 'start' });
+                target.scrollIntoView({ block: 'start', behavior: scrollBehavior() });
                 resolve(true);
                 return;
             }

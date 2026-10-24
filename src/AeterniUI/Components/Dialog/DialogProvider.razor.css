@@ -61,11 +61,13 @@
     scrollbar-color: var(--aeterni-scrollbar-thumb) var(--aeterni-scrollbar-track);
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
-    background: var(--aeterni-bg-glass);
+    /* A modal panel sits on the dimmed scrim. A translucent frosted fill would sample
+       that scrim and turn the panel grey in the light theme — darker than the white
+       fields inside it, which inverts the elevation. The modal surface is therefore
+       opaque and carries its depth with the scrim and the shadow. */
+    background: var(--aeterni-bg-surface);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-modal);
-    -webkit-backdrop-filter: var(--aeterni-blur-glass);
-    backdrop-filter: var(--aeterni-blur-glass);
     /* 200ms entry, the mirror of the 150ms exit (75%). The panel used to appear at
        full opacity while the backdrop was still fading in, so opening read as a
        flash and only closing carried the scale/translate; the pair below is the
@@ -88,22 +90,6 @@
 .aeterni-dialog-provider__dialog--primary::-webkit-scrollbar-track {
     background: var(--aeterni-scrollbar-track);
 }
-
-/* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
-   72% the dark theme lands on 3.41:1 for the standard secondary ink and 2.51:1
-   for tertiary, under the 4.5:1 text and 3:1 icon floors. Every role that carries
-   that ink is re-pointed, not only `--aeterni-text-secondary`, because the other
-   names alias it inside the theme block. See `Card.razor.css` for the full note. The scrim
-   is deliberately excluded: it carries no text, so the replacement would only
-   darken the dimming. */
-.aeterni-dialog-provider__dialog,
-.aeterni-dialog-provider__dialog--primary {
-    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
-    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
-}
-
 
 .aeterni-dialog-provider__dialog--info {
     --aeterni-dialog-accent: var(--aeterni-color-info-default);

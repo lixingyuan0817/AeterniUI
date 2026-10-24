@@ -3,6 +3,14 @@
     min-width: var(--aeterni-width-input-md);
 }
 
+/* Same layout contract as DatePicker: only the host box stretches, the trigger
+   already fills it, and the popup keeps its own content-driven width. */
+.aeterni-date-range-picker.is-full-width {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
 .aeterni-date-range-picker__panel {
     display: flex;
     gap: var(--aeterni-spacing-3);

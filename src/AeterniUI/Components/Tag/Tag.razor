@@ -17,9 +17,10 @@
     {
         <Button Variant="ButtonVariant.Ghost"
                 Intent="ButtonIntent.Neutral"
+                Disabled="@Disabled"
                 AriaLabel="@EffectiveDismissLabel"
                 Class="aeterni-tag__dismiss"
-                OnClick="@(args => OnDismiss.InvokeAsync())">
+                OnClick="@HandleDismissAsync">
             <span class="aeterni-tag__dismiss-glyph" aria-hidden="true"><Icon Definition="@AeterniIcons.Xmark" /></span>
         </Button>
     }

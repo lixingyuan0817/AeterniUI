@@ -2,6 +2,7 @@
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Aeterni UI · Radio</PageTitle>
 
@@ -91,11 +92,35 @@
                 <Checkbox Size="Size.Small" @bind-Value="_formDisabled">Disabled</Checkbox>
             </Controls>
         </DemoCard>
+
+        <DemoCard Id="radio-standalone-form"
+                  Title="独立 Radio 与 EditForm"
+                  Description="独立 Radio 绑定 ValueExpression 时加入级联 EditContext：checked 按“绑定值等于选项 Value”计算，选择后通知字段变化，校验消息参与无效状态。"
+                  Code="@StandaloneFormCode">
+            <Preview>
+                <EditForm Model="_standaloneForm" OnSubmit="SubmitStandaloneForm">
+                    <div class="preview-stack">
+                        <div class="preview-state-row" role="group" aria-label="许可协议">
+                            <Radio TValue="bool" Value="true" Name="accept-terms"
+                                   ValueExpression="@(() => _standaloneForm.AcceptTerms)"
+                                   ValueChanged="HandleAcceptTermsAsync">接受</Radio>
+                            <Radio TValue="bool" Value="false" Name="accept-terms"
+                                   ValueExpression="@(() => _standaloneForm.AcceptTerms)"
+                                   ValueChanged="HandleAcceptTermsAsync">不接受</Radio>
+                        </div>
+                        <ValidationMessage For="@(() => _standaloneForm.AcceptTerms)" />
+                        <Button Type="ButtonType.Submit" Size="Size.Small">提交</Button>
+                        <span class="preview-feedback" role="status">@_standaloneFormNote</span>
+                    </div>
+                </EditForm>
+            </Preview>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>组是单一 Tab 停留点：Tab 进入组内当前选项，方向键在可选项之间移动并选中，Home/End 跳到首尾。</span>
         <span>禁用选项既不响应方向键也不参与 Tab 序列，视觉上使用禁用墨而不是整体降透明度。</span>
         <span>独立 <code>Radio</code> 支持值绑定，组模式下仍由组的 <code>Value</code> 决定选中项——两者不叠加。</span>
+        <span>独立形态提供 <code>ValueExpression</code> 时会加入级联 <code>EditContext</code>；只有 <code>Value</code> / <code>ValueChanged</code> 时保留兼容的真值语义。</span>
     </Notes>
 </ComponentPage>
 
@@ -129,6 +154,18 @@
         </Radio>
         """;
 
+    private const string StandaloneFormCode = """
+        <EditForm Model="Form" OnSubmit="Submit">
+            <Radio TValue="bool" Value="true"
+                   ValueExpression="@(() => Form.AcceptTerms)"
+                   ValueChanged="HandleAcceptTerms">接受</Radio>
+            <Radio TValue="bool" Value="false"
+                   ValueExpression="@(() => Form.AcceptTerms)"
+                   ValueChanged="HandleAcceptTerms">不接受</Radio>
+            <ValidationMessage For="@(() => Form.AcceptTerms)" />
+        </EditForm>
+        """;
+
     private const string FormCode = """
         <FormField Label="部门" Required>
             <RadioGroup TValue="string" @bind-Value="Department">
@@ -144,6 +181,20 @@
     private Size _size = Size.Default;
 
     private bool _accepted;
+    private readonly StandaloneFormModel _standaloneForm = new();
+    private string? _standaloneFormNote;
+
+    private sealed class StandaloneFormModel
+    {
+        [Range(typeof(bool), "true", "true", ErrorMessage = "需要接受许可协议才能继续。")]
+        public bool AcceptTerms { get; set; }
+    }
+
+    private void HandleAcceptTermsAsync(bool value) => _standaloneForm.AcceptTerms = value;
+
+    private void SubmitStandaloneForm(EditContext context) =>
+        _standaloneFormNote = context.Validate() ? "已提交：接受许可协议。" : "提交被校验拦下。";
+
     private string? _formValue = "开发";
     private bool _formRequired;
     private bool _formInvalid;

@@ -63,6 +63,20 @@
     background: var(--aeterni-state-background-hover);
 }
 
+/* Keyboard focus must stay visible on both the month arrows and the day grid; the
+   buttons previously inherited only the browser's default ring. The selected day is
+   brand-filled, where a brand-coloured ring would disappear, so it repaints the ring
+   to the inverse ink — the same treatment Segmented applies to its selected pill. */
+.aeterni-date-calendar__nav:focus-visible,
+.aeterni-date-calendar__day:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+.aeterni-date-calendar__day.is-selected:focus-visible {
+    outline-color: var(--aeterni-text-inverse);
+}
+
 .aeterni-date-calendar__day.is-outside {
     color: var(--aeterni-text-tertiary);
 }

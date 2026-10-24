@@ -22,8 +22,11 @@
     min-inline-size: var(--aeterni-touch-target-min);
     min-block-size: var(--aeterni-control-height-md);
     padding: 0 var(--aeterni-control-padding-x-md);
-    border: var(--aeterni-border-width) solid var(--aeterni-border);
-    border-radius: var(--aeterni-radius-button);
+    /* Same control read as Segmented: the strong hairline separates the joined
+       block from its shell, and the control radius of the tier gives the outer
+       corners the same shape as the other controls. */
+    border: var(--aeterni-border-width) solid var(--aeterni-border-strong);
+    border-radius: var(--aeterni-radius-control-md);
     background: transparent;
     color: var(--aeterni-text-primary);
     font-family: inherit;
@@ -106,10 +109,14 @@
     color: var(--aeterni-state-color-disabled);
 }
 
+/* Disabled + selected is parked, matching Checkbox/Radio/Segmented: the brand fill
+   and inverse ink are replaced by the disabled surface/border/ink instead of showing
+   a live-looking selection. The native attribute covers both a disabled item and a
+   whole-group Disabled. */
 .aeterni-toggle-group__item.is-selected:disabled {
-    border-color: var(--aeterni-state-background-checked);
-    background: var(--aeterni-state-background-checked);
-    color: var(--aeterni-text-inverse);
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+    color: var(--aeterni-state-color-disabled);
 }
 
 .aeterni-toggle-group:focus-visible,
@@ -121,12 +128,14 @@
 .aeterni-toggle-group--sm .aeterni-toggle-group__item {
     min-block-size: var(--aeterni-control-height-sm);
     padding-inline: var(--aeterni-control-padding-x-sm);
+    border-radius: var(--aeterni-radius-control-sm);
     font-size: var(--aeterni-font-size-xs);
 }
 
 .aeterni-toggle-group--lg .aeterni-toggle-group__item {
     min-block-size: var(--aeterni-control-height-lg);
     padding-inline: var(--aeterni-control-padding-x-lg);
+    border-radius: var(--aeterni-radius-control-lg);
     font-size: var(--aeterni-font-size-base);
 }
 

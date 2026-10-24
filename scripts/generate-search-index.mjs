@@ -16,11 +16,11 @@
 //
 // 用法：node scripts/generate-search-index.mjs [--check]
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, existsSync } from 'node:fs';
+import { catalogEntries, pascal, read } from './lib/showcase-catalog.mjs';
 
 const SAMPLE = 'src/AeterniUI.Sample';
 const PAGES = `${SAMPLE}/Pages/Components`;
-const CATALOG = `${SAMPLE}/Components/Showcase/ShowcaseCatalog.cs`;
 const API_REFERENCE = `${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`;
 const OUTPUT = `${SAMPLE}/Components/Showcase/ShowcaseSearchIndex.generated.cs`;
 
@@ -32,34 +32,6 @@ const FIXED_SECTIONS = {
     related: { suffix: '-related-title', title: '相关组件' },
     notes: { suffix: '-notes-title', title: '说明与边界' }
 };
-
-const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
-
-const pascal = id => id.split('-').map(part => part[0].toUpperCase() + part.slice(1)).join('');
-
-/// 目录条目：顺序、页面文件与分组名（= 页面上的 Category）的唯一事实源。
-function catalogEntries() {
-    const source = read(CATALOG);
-    const entries = [];
-
-    for (const group of source.matchAll(/new\("([^"]+)",\s*FontAwesomeIcons\.Solid\.\w+,\s*\[([\s\S]*?)\]\)/g)) {
-        for (const item of group[2].matchAll(/new\("([a-z0-9-]+)",\s*"([^"]+)",\s*"([^"]+)"\)(\s*\{[^}]*\})?/g)) {
-            const overrides = item[4] ?? '';
-            entries.push({
-                id: item[1],
-                title: item[2],
-                category: group[1],
-                page: /Page\s*=\s*"([^"]+)"/.exec(overrides)?.[1] ?? pascal(item[1])
-            });
-        }
-    }
-
-    if (entries.length < 50) {
-        throw new Error(`只从目录里解析到 ${entries.length} 个条目，解析逻辑可能已失效`);
-    }
-
-    return entries;
-}
 
 /// 页面 id → 已有生成式 API 表。页面上的「参数与事件」段正是按这份键集渲染的。
 function pagesWithApi() {

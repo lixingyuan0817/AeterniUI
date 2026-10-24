@@ -312,6 +312,8 @@
 }
 
 .doc-showcase__meta {
+    /* 「看示例」的伪元素要铺满这块内容区，所以这里必须是它的定位祖先。 */
+    position: relative;
     display: grid;
     align-content: start;
     gap: 4px;
@@ -338,6 +340,15 @@
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
     text-decoration: none;
+}
+
+/* 整块内容区可点：预览区里有真实可交互控件，不能把整张卡套进 <a>，于是让「看示例」的
+   伪元素铺满标题、说明与链接所在的 meta 区（stretched link）。预览区不参与命中，
+   移动端的命中高度也自然覆盖整块内容区。 */
+.doc-showcase__link::after {
+    position: absolute;
+    inset: 0;
+    content: "";
 }
 
 .doc-showcase__link:hover {

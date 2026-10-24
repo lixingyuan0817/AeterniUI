@@ -1,8 +1,6 @@
 # AeterniUI 交付功能
 
-文档版本：`10.45.0`
-
-文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。
+文档状态：当前交付清单；本文档是已实现公共 API 和行为的唯一文档事实源。版本以 `Directory.Build.props` 为准。
 
 本文档用于记录当前组件库已经落地的能力，作为示例项目、后续组件开发和 API 设计的基线。未列出的功能不应被视为已经稳定提供。
 
@@ -28,7 +26,7 @@
 - 全库共享控件高度 Small / Default / Large 为 28 / 36 / 44px（原 32 / 40 / 48px）；对应内联 padding 为 8 / 12 / 16px（原 12 / 16 / 20px）。Button、Input、ComboBox、日期时间字段及 IconButton 由现有高度别名派生，不新增 Density 参数。
 - 保留原始 spacing scale、正文大小/行高、颜色、圆角与焦点环。现有 padding-lg / xl / 2xl 别名改停靠 spacing-3 / 5 / 6（12 / 20 / 24px）；Surface/Card 的 None / Small / Medium / Large / ExtraLarge 留白为 0 / 8 / 12 / 20 / 24px。
 - 紧凑导航行 Token 从 36 收至 32px，Menu、Tabs、时间滚轮共用；List 保留内容自适应行高。弹层、Drawer、Dialog、通知同步收紧留白，日期单元格仍至少 28px。
-- 可点击图标与选择控件热区至少 24px：`Segmented` 三档统一 3px 内边距，选项因此始终留在 24px 之上（Small 档的轨道被热区撑到 32px，而不是控件档位的 28px），`Rating` Small 不随字形缩至 20px。多行列表和表面内容继续使用自适应高度；不通过缩小正文换取密度。
+- 可点击图标与选择控件热区至少 24px：`Segmented` 三档统一 3px 内边距；Small 档的可见选项为 20px（轨道回到 28px），由选项的透明伪元素把命中盒补到 24px，`Rating` Small 不随字形缩至 20px。多行列表和表面内容继续使用自适应高度；不通过缩小正文换取密度。
 - 时间滚轮的窗口、占位与行高同源，JS 使用真实 offsetHeight / offsetTop 和 ResizeObserver 测量，不假设旧行高；RTL、主题/品牌与 reduced-motion 原有行为不变。
 
 ## 1. 宿主支持
@@ -55,62 +53,37 @@
 
 ## 3. Token 和主题
 
-- 提供品牌色、语意色、背景色、文字色、边框色、阴影、圆角、间距、字号和动效 Token。
-- 提供 Light 和 Dark 两套主题 Token。
-- 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 状态别名；组件无需直接选择色阶。
-- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`。其中 `selected` 是淡染的选中底面，`checked` 是实心勾选块（取品牌填充档，其上的墨取 `--aeterni-text-inverse`），并配套 `--aeterni-state-background-checked-hover` / `-active` 两档：已勾选的控件在指针下整块沿品牌色阶换档，而不是被淡染洗浅。
-- 提供常用状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted` 和 `inverse`，用于表单反馈、只读内容和反色内容的一致表达。
-- 提供通用控件组合角色：`--aeterni-control-background`、`--aeterni-control-border`、`--aeterni-control-foreground` 及其 `disabled` / `readonly` / `hover` / `focus` / `invalid` / `placeholder` 分支，方便组件直接消费完整的控件状态组合。焦点环统一使用 `--aeterni-focus-color` 与 `--aeterni-focus-width` / `--aeterni-focus-offset`。
-- 色板按 OKLCH 重建：每个色族一条明度阶梯、固定色相（仅浅档做少量 Abney 补偿漂移）、chroma 在中档收敛成峰值，因此不再出现「阶梯忽大忽小」「同一色族色相漂移 8°」这类问题。
-- 品牌色是紫罗兰色系（浅色主题 `--aeterni-brand-500` = `#795AD9`，深色主题取 `--aeterni-brand-400` = `#9985ED`），峰值 chroma 从 0.237 降到 0.186、色相漂移从 7.8° 收到 1.7°，去掉了原来的荧光感。
-- 品牌色阶是一个独立色相层，与明暗层正交：默认紫罗兰色板声明在 `:root` 上，显式 `[data-aeterni-brand="purple"]` 与之逐字节等价；宿主可在库样式表之后声明自己的 `[data-aeterni-brand="…"]` 块重写 `--aeterni-brand-50..900`，色阶一变，品牌填充、强调文字、链接、焦点环以及悬浮/按下/选中状态同时换色，语义别名与组件都不需要改动。该属性必须与 `data-theme` 同元素（`<html>`），因为语义别名在声明元素上解析色阶。
-- 除默认紫罗兰外，色相层已交付第二套绿色板 `[data-aeterni-brand="green"]`：色阶同样按 OKLCH 从 50 到 900 完整重建，500 档锚定外部参考绿 `#1F883D`（L 0.552、C 0.145）——比紫罗兰的 L 0.565 低，因为绿色提高 chroma 会抬高明度、同一明度下承白字只有 4.3:1。该锚点承白字 4.52:1，仍满足 4.5:1 正文要求，但余量只有 1.004×，是品牌色组里最紧的一条门禁；承浅色主题正文与链接的 600/700 档因此压得更低（白字 6.17:1 / 8.09:1）。两套板在浅色、深色与系统深色下都通过全部对比度门禁，语义停靠档（浅色 500/600/700、深色 400/300/200）自动跟随切换。
-- 第三套是焦橙 `[data-aeterni-brand="orange"]`，配方与前两套逐档一致（同一组相对 ΔL、同一 chroma 剖面、同一浅端色相漂移），500 档锚定 `#C2410C`（L 0.553、C 0.174、色相 38.4°）。锚点必须是焦橙而不是鲜橙：`#E8590C` / `#EA580C` 这类亮橙承白字只有 3.58:1 / 3.56:1，低于 4.5:1 正文要求，要做成实心填充就只能改成 `warning` 那种近黑前景，等于让第三套板脱离「白字填充」这条家族约定。焦橙承白字 5.18:1（余量 1.151×），三套板的同一个停靠档因此可以直接互换。代价是与语意 `danger` 红的距离只有 OKLab ΔE 12.1——橙红在近明度下本来就是邻居，这是全库最紧的一对品牌／语意间距，但在正常色觉下仍清晰可分；`warning` 相距 22.4，冷色语意全部超过 34，压力只来自暖端。
-- 品牌色层可由 `ThemeService` 在运行时切换：`Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），`SetBrand` 校验枚举并落为 `<html>` 上的 `data-aeterni-brand`，`SetPurple()` / `SetGreen()` / `SetOrange()` 是对应的便捷方法。品牌与明暗是两个正交维度，切换品牌不会改动 `Mode` 或 `CurrentTheme`，因此品牌变化走独立的 `BrandChanged` 事件，不会重复解析系统偏好。首次访问的默认品牌由 `AeterniUIOptions.DefaultBrand` 决定（默认 `Purple`）。
-- 语意色沿用 Apple 系统色：浅色 500 档为 `#34C759` / `#FF9500` / `#FF3B30` / `#007AFF` / `#8E8E93`，深色默认值为 `#30D158` / `#FF9F0A` / `#FF453A` / `#0A84FF` / `#8E8E93`。色阶以 500 档为锚点按 OKLCH 重建：浅端统一到 L 0.976、深端统一到 L 0.30，中间的 chroma 凹形收敛，因此保住了 Apple 的观感，同时消除了原有的 `Info` 400→500 明度断层（0.111）与色相漂移（254°→265°）。
-- 中性色采用「无色容器 + 单墨色文字」的 Apple label 模型：
-  - **容器表面一律无色**（浅色 `#F7F7F7 / #F0F0F0 / #E8E8E8`，R = G = B；深色统一 +3 冷偏移 `#101013 / #17171A / #202023 / #1A1A1D`）。容器带 +2 以上的彩偏移在大面积上会被读成品牌色底，磨砂层的 `saturate()` 还会放大它。
-  - **文字色阶是一个墨色加不透明度**，而不是一组手调 hex：正文 `rgba(0,0,0,.78)`（11.7:1）、次要 `.62`（6.2:1）、占位 `.56`（4.9:1）、图标级 `.52`（4.3:1，**仅图标与装饰**）、禁用 `.36`（2.5:1，WCAG 豁免）；深色对应白墨 `.86 / .56 / .48 / .40 / .28`。透明的优点是文字会随所在表面（着色 chip、hover 底、毛玻璃）自动调和，而且二级与三级不会“既不同色又只差一点”。
-  - `--aeterni-text-muted` 指向 `secondary`（弱化文字的可用级别）；`--aeterni-text-tertiary` 从“第三种文字”改为“图标/装饰级别”，原先用它做正文的 Menu 分组标题、Menu 描述、ThemeSwitch 未选中项已改用 `secondary`。
-- 实心语意表面的前景 `--aeterni-color-on-semantic`（浅色 `#141414`、深色取反色墨）改为无色：原先的蓝黑 primitive `#0B0F19` 给绿/黄按钮上的文字带了蓝调。
-- 新增 `--aeterni-separator`（不透明，浅色 `#C6C6C6` / 深色 `#3A3A3A`）：卡片头/底与对话框头/底的分界线用它，不再用 7% alpha 的 `--aeterni-border-subtle`（1.17:1，看起来像污渍）。
-- 每个色族额外提供「强调文字/描边形态」的 `--aeterni-color-{brand,success,warning,danger,info,neutral}-text`：浅色主题取深档、深色主题取亮档，这解决了「亮色填充档当文字用只有 2.2:1」的老问题（描边/文字语义色按钮现在 5.0~9.5:1）。
-- 形态选择写成硬规则：填充档只用于实心表面（实心按钮、开关轨道、选中指示、通知卡片的底色/徽标底/进度环），凡是 ink（文字、图标）或需要与浅色轨道/页面区分的实心图形（进度条填充、评分星形）均取文字形态。
-- `--aeterni-state-color-selected` 与 `--aeterni-state-color-checked` 是前景别名，已指向 `--aeterni-color-brand-text`：选中项文字画在自己的选中底上，用填充档只有 4.0~4.4:1。
-- 浅色 `--aeterni-text-tertiary` 是图标/装饰级别（`rgba(0,0,0,.52)`，4.27:1）：该级别既要看清字形（≥ 3:1）又不与正文争抢，ComboBox 箭头、关闭字形、Rating 空星都用它。
-- 实心控件的字色按填充明度分两层：品牌填充走深档配 `--aeterni-text-inverse`，success/warning/danger/info 填充走亮档配 `--aeterni-color-on-semantic`；两类填充的 hover 都保持同一字色（品牌向下取档、语意向白提亮 12%），因此不再需要 `-strong` 这种按状态切换字色的 Token。`Button` 的 `--neutral` 填充则沿「向墨色收敛」方向取 hover/pressed（86% / 76%），使浅色与深色的反馈方向一致。
-- `Icon` 的六个命名色（`Primary`/`Neutral`/`Success`/`Warning`/`Danger`/`Info`）消费 `--aeterni-color-*-text`；`Color.Default` 仍为 `currentColor`。Alert/Toast 卡片同时使用两个 accent 角色：`--aeterni-dialog-accent`（卡片底色、徽标底色、进度环）与 `--aeterni-dialog-accent-ink`（徽标图标、弹窗头部图标）。
-- `FormField` 的必填星号与错误文案、`Menu` 选中项文字同样使用强调文字形态。
-- `Tag` 的标签文字取词族的「强调文字形态」（`--aeterni-tag-ink`）再向正文墨靠 15%，而不是把亮色填充档与近黑对半混：后者会把绿/黄族混成橄榄色、褐色，看起来脏；当前浅色 4.95~7.15:1、深色 7.35~8.78:1，且色相保持饱和。
-- 原始色阶（例如 `--aeterni-brand-500`、`--aeterni-info-600`）继续保留，用于自定义主题或特殊视觉需求。
-- 装饰层 `--aeterni-decor-*` 供不以语义表达的饰面使用（`FlashCard` 的金属光泽与全息衍射各档）。它与品牌无关、不参与对比度契约，通道以空格分隔，使用处写成 `rgb(var(--aeterni-decor-sheen) / 0.42)` 自带强度。
-- 页面层级阶梯为 `sticky` / `modal-backdrop` / `modal` / `popover` / `tooltip` / `toast`，另有供宿主内容使用的 `base`、`raised`、`fixed`；库内不存在独立的 dropdown 档——所有下拉都是锚定浮层，走 `popover`，若置于遮罩之下会反被遮住。组件内部的层叠（扇形卡片、选中分段）不出现在该阶梯上。
-- 提供浮层与紧凑表面度量 Token：`--aeterni-overlay-*`（对话框、下拉列表和浮层的宽高）、`--aeterni-row-height-compact`、`--aeterni-control-size-*` 和 `--aeterni-badge-size-md`。
-- 提供玻璃表面的角色别名（填充是独立档位，模糊跟随既有刻度）：`--aeterni-bg-glass`（浅色 68% / 深色 72%，不再跟随 `--aeterni-bg-elevated`）、`--aeterni-blur-glass`（跟随 `--aeterni-blur-md`）和 `--aeterni-blur-scrim`（跟随 `--aeterni-blur-sm`）。库内十处磨砂消费者（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板与遮罩、Drawer 面板与遮罩、Popover 表面与遮罩、Tooltip、Alert/Toast 卡片）统一引用这三个别名，宿主覆盖一处就能整体调整全库玻璃配方，不必逐个组件改。填充停在 68% / 72% 是实测下限，不是偏好值：这两支墨——`--aeterni-text-on-glass-secondary`（`color-mix(in srgb, var(--aeterni-text) 93%, transparent)`）与 `--aeterni-text-on-glass-tertiary`（同样写法的 67%）——都按「最坏背景」（纯黑／纯白）定档，再淡一档就会吃掉这两支墨的 1.1× 余量——它们是全库最紧的一对，浅色由三级墨绑定（1.15×）、深色由次要墨绑定（1.14×）。两支墨都只声明一次、按主体墨的比例给出，所以浅深两主题余量相同、也不会各自漂移，代码里把角色名接过去就行。全部磨砂内容表面（`Card` / `Surface` 的 `Glass` 变体、Dialog 面板、Drawer 面板、Popover 表面、Tooltip 内容、Alert/Toast 卡片）都用它们接管 `--aeterni-text-secondary`、`--aeterni-text-muted`、`--aeterni-state-color-readonly` 与 `--aeterni-text-tertiary`（`--aeterni-state-color-muted` 全库零读取，已随 REV-122 退出接管名单），补掉标准墨在玻璃填充上的缺口（深色最坏背景：标准次要墨 3.41:1、标准三级墨 2.51:1 → 接管后 5.11:1 / 3.51:1）；不透明表面（含 `is-no-blur` 的通知卡片）与三类遮罩仍用标准墨，遮罩本来就不承字。
-- 玻璃表面在 `prefers-reduced-transparency: reduce` 与「不支持 `backdrop-filter`」两种情况下退到不透明：填充改 `--aeterni-bg-solid`、模糊归 `none`。只摘模糊会留下半透明色斑——既没有模糊解释它，也没有不透明底承字，两种读法都不如实心表面。同一处把两支玻璃专用墨退回标准墨：它们的用途就是扛住透出来的背景，填充已经是实心表面之后就没有背景要扛了。遮罩只摘模糊、保留压暗，因此它仍然把背后的页面压下去。
-- 提供可发现滚动条 Token：`--aeterni-scrollbar-size`（6px）、`--aeterni-scrollbar-thumb`（`--aeterni-border-strong`）、`--aeterni-scrollbar-track`（**透明**）。库内十二个可滚动容器——`Autocomplete`、`ComboBox`、`DateRangePicker` 与 `DateTimePicker` 的面板、`Drawer`、`List`、`MultiSelect`、`Tabs`、`Timeline`、`VirtualList`、`TimeOptionList` 与通知堆栈——统一消费这三个 Token：可见滚动条写 `scrollbar-width: thin` + `scrollbar-color` 与 `::-webkit-scrollbar` 两套声明（后者按滚动主轴只写 `width` 或 `height`），需要隐藏的（`TimeOptionList` 的时／分／秒列）写 `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`。滑轨保持透明，用 `scrollbar-gutter` 预留的槽位因此不会变成常驻的灰／白色竖条。宿主侧只需在根元素写一次 `scrollbar-color`（该属性继承），宽度因不继承而要对元素本身声明；示例站的做法见 `showcase.css`。
-- 提供控件圆角阶梯 `--aeterni-radius-control-sm/md/lg` 与独立的 `--aeterni-radius-button`（单值，三档统一）、`--aeterni-radius-input*`（按档取 4 / 6 / 8px）、`--aeterni-radius-surface`；Input 与 Textarea 同档一致，Button 有意保留自己的形状语言，不与字段共用圆角档。
-- 提供 `--aeterni-transition-control`（背景色 + 边框色 + 文字色 + 阴影）：Input、Textarea 与 ComboBox 触发器共用同一条过渡声明，不再各自重复三个复合变量。
-- 实心语意表面使用专用前景 Token `--aeterni-color-on-semantic`（浅色主题为近黑墨色、深色主题为反色墨色），用于 success/warning/danger/info 实心控件的正文，保证两种主题下对比度 ≥ 4.5:1。
-- 开关类控件的指示块使用 `--aeterni-state-background-thumb`，在浅色与深色轨道上都保持可辨识。
-- 焦点环使用 `--aeterni-focus-color`，无效控件使用 `--aeterni-focus-color-invalid`；`Input` 与 `Textarea` 也消费这两组 Token。两个令牌都是所属色族的**实心色**（品牌 / 危险），不是淡染：焦点环是获得焦点的控件唯一的指示物，对页面与表面都需要达到非正文对比下限，同色淡染在算术上做不到。亮色主题的品牌环取 `brand-500` 与 `brand-400` 的中档（`color-mix`），在保住 3:1 下限的前提下尽量调浅。环宽与偏移统一由 `--aeterni-focus-width` / `--aeterni-focus-offset` 承担（默认 `2px` / `1px`）；`10.35.0` 起全库统一为一套外扩环（`outline` + 偏移）与一套内收环（`outline-offset: calc(-1 * var(--aeterni-focus-width))`，用于菜单、标签栏、分段控件等会被滚动容器裁切的位置）。
-- 字体栈中的 Inter 与 JetBrains Mono 是可选的宿主依赖，库不随包提供 webfont；宿主未提供时回落到系统 UI 字体（等宽回落 Consolas / Courier New）。
-- 无显式主题时，`@media (prefers-color-scheme: dark)` 提供系统偏好兜底，避免深色偏好用户在脚本执行前看到浅色闪烁；一旦存在显式 `data-theme` / `data-aeterni-mode`，该兜底不再生效。
-- 支持系统主题跟随。
-- 主题切换由 `ThemeService` 管理。
-- `ThemeProvider` 为自闭合组件，不需要包裹 Layout 内容。
-- `ThemeProvider` 负责注入主题 JS、监听系统主题变化、同步页面主题。
-- `ThemeProvider` 不渲染 DOM：基类的 `Id`、`Class`、`Style` 和 `Visible` 对它无效，主题只写到 `<html>` 上。
-- 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`），否则深色偏好用户或非默认品牌用户会在 Blazor 启动前看到一帧浅色或紫罗兰；示例 `wwwroot/index.html` 已包含该脚本，可直接复制。该脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 保持一致，脚本读不到 .NET 选项，不一致就表现为一帧闪烁。
-- 首屏加载器与预渲染脚本受同一条约束：这个时刻还没有组件树，组件库的隔离样式（含 `Spinner` 的 `@keyframes`）也尚未生效，所以加载器只能是宿主自己声明的静态标记，不能是组件实例。示例 `wwwroot/index.html` + `css/app.css` 的 `.sample-boot` 即按此实现：光环复刻 `Spinner` 的规格（走 `--aeterni-spinner-size` 扩展点、3px 描边、右侧缺口、`--aeterni-duration-slower × 1.4` 线性周期、`opacity .92`），颜色取 `--aeterni-color-brand-text`，文案读运行时的 `--blazor-load-percentage-text` 并在无值时回落；因此两种主题自动换档、`prefers-reduced-motion` 下自动停转。它是刻意的视觉复刻而非复用，改一侧规格必须同步另一侧。
-- 页面主题通过 `<html data-theme>` 输出；示例保留浏览器预渲染主题脚本与明暗、品牌色切换。
-- `ThemeSwitch` 提供 System、Light、Dark 分段切换，并能在刷新后正确反映当前模式。
-- `ThemeBrandSwitch` 提供 Purple、Green、Orange 品牌分段切换，与 `ThemeSwitch` 是同一套结构：它是 `Segmented` 的专用用法，订阅 `BrandChanged` 在外部改动时同步选中态，尺寸档位与标签（`ThemeBrandSwitchLabel` / `ThemeBrandPurpleLabel` / `ThemeBrandGreenLabel` / `ThemeBrandOrangeLabel`）都取既有约定。
-- 品牌色层通过 `<html data-aeterni-brand>` 输出，与明暗维度同一元素；切换品牌会复用主题切换的过渡动画（`aeterni-theme-transitioning`）。
-- 主题模式与品牌色层分别在 `localStorage` 的 `aeterni.theme.mode` 和 `aeterni.theme.brand` 下持久化，两个键互相独立：清除其中一个不会重置另一个。
-- 主题切换包含过渡动画（300ms，只过渡颜色承载属性），并适配 reduced-motion 场景。
+- 提供品牌色、语意色、背景色、文字色、边框色、阴影、圆角、间距、字号和动效 Token；组件只消费 `--aeterni-*` 语义 Token，不建立第二套颜色体系。
+- 提供 Light 和 Dark 两套主题 Token；无显式主题时 `@media (prefers-color-scheme: dark)` 提供系统偏好兜底，存在显式 `data-theme` / `data-aeterni-mode` 时不再生效。
+- 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 等状态别名；具体档位以 `src/AeterniUI/wwwroot/css/aeterni_ui.css` 为准。
+- 品牌色阶是独立色相层：默认紫罗兰声明在 `:root`，显式 `[data-aeterni-brand="purple"]` 与之等价。已交付紫罗兰（浅色 500 档 `#795AD9`、深色 400 档 `#9985ED`）、绿色 `[data-aeterni-brand="green"]`（500 档 `#1F883D`）、焦橙 `[data-aeterni-brand="orange"]`（500 档 `#C2410C`）。宿主可在库样式表之后声明自己的色相层重写 `--aeterni-brand-50..900`；该属性必须与 `data-theme` 同元素（`<html>`）。
+- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`；`selected` 是淡染选中底面，`checked` 是实心勾选块（品牌填充档 + `--aeterni-text-inverse` 墨），并配套 `--aeterni-state-background-checked-hover` / `-active` 两档。
+- 状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted`、`inverse`；控件组合角色 `--aeterni-control-background` / `-border` / `-foreground` 及 `disabled` / `readonly` / `hover` / `focus` / `invalid` / `placeholder` 分支。
+- 焦点环统一使用 `--aeterni-focus-color`（无效控件 `--aeterni-focus-color-invalid`）与 `--aeterni-focus-width` / `--aeterni-focus-offset`（默认 2px / 1px）；全库统一外扩环与内收环两套画法。
+- 色板推导（OKLCH 阶梯、chroma 剖面、三个色相锚点与对比度余量）见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.4；`node scripts/check-contrast.mjs` 是这些数值的门禁。
+- 语意色每个色族提供三种形态：`--aeterni-color-{role}-default`（实心填充）、`-text`（文字/描边）、`-soft`（柔和底）；实心语意表面前景为 `--aeterni-color-on-semantic`（浅色 `#141414`，深色反色墨）。
+- 中性色：容器表面一律无色（浅色 `#F7F7F7 / #F0F0F0 / #E8E8E8`；深色 `#101013 / #17171A / #202023 / #1A1A1D`）；文字为单一墨色 + 不透明度阶梯（正文 .78/.86、次要 .62/.56、占位 .56/.48、图标级 .52/.40、禁用 .36/.28，浅色/深色）。
+- `--aeterni-text-muted` 指向 `secondary`；`--aeterni-text-tertiary` 仅用于图标与装饰。
+- 强调文字/描边形态：`--aeterni-color-{brand,success,warning,danger,info,neutral}-text`；`--aeterni-separator`（浅色 `#C6C6C6` / 深色 `#3A3A3A`）用于卡片与对话框头尾分界。
+- 实心控件字色按填充明度分两层：品牌填充配 `--aeterni-text-inverse`，success/warning/danger/info 配 `--aeterni-color-on-semantic`；hover/active 保持同一字色。
+- `Icon` 的六个命名色消费 `--aeterni-color-*-text`，`Color.Default` 为 `currentColor`；Alert/Toast 同时使用 `--aeterni-dialog-accent` 与 `--aeterni-dialog-accent-ink`；`FormField` 必填/错误文案与 `Menu` 选中项使用强调文字形态；`Tag` 使用 `--aeterni-tag-ink`。
+- 原始色阶（`--aeterni-brand-500` 等）保留给自定义主题或特殊视觉需求；装饰层 `--aeterni-decor-*` 只服务 `FlashCard` 的金属光泽与全息衍射，不参与对比度契约。
+- 层级阶梯：`sticky` / `modal-backdrop` / `modal` / `popover` / `tooltip` / `toast`，另有 `base`、`raised`、`fixed`；不设独立 dropdown 档，所有下拉都走 `popover`。
+- 浮层与紧凑表面度量 Token：`--aeterni-overlay-*`、`--aeterni-row-height-compact`、`--aeterni-control-size-*`、`--aeterni-badge-size-md`。
+- 玻璃表面角色别名：`--aeterni-bg-glass`（浅色 68% / 深色 72%）、`--aeterni-blur-glass`、`--aeterni-blur-scrim`；库内十处磨砂消费者统一引用，配方与墨阶依据见 engineering-reference §5.4。
+- 玻璃降级：`prefers-reduced-transparency: reduce` 与不支持 `backdrop-filter` 时退到不透明（`--aeterni-bg-solid` + 模糊 `none`），两支 on-glass 墨退回标准墨；遮罩只摘模糊、保留压暗。
+- 可发现滚动条 Token：`--aeterni-scrollbar-size`（6px）、`-thumb`（`--aeterni-border-strong`）、`-track`（透明）；库内十二个可滚动容器统一消费，可见滚动条同时写标准属性与 `::-webkit-scrollbar` 两套声明，隐藏型写 `scrollbar-width: none` + `display: none`。
+- 圆角阶梯：`--aeterni-radius-control-sm/md/lg`、`--aeterni-radius-button`（单值 0.625rem）、`--aeterni-radius-input*`（4/6/8px）、`--aeterni-radius-surface`；Button 有意保留独立形状语言。
+- `--aeterni-transition-control`（背景 + 边框 + 文字 + 阴影）供 Input、Textarea 与 ComboBox 共用；开关类指示块使用 `--aeterni-state-background-thumb`。
+- 字体栈中的 Inter 与 JetBrains Mono 是可选宿主依赖，库不随包提供 webfont。
+- 系统主题跟随由 `ThemeService` 管理；`ThemeProvider` 为自闭合组件、不渲染 DOM，基类 `Id` / `Class` / `Style` / `Visible` 对它无效，主题只写到 `<html>` 上。
+- 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`）；脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 一致。
+- 首屏加载器只能由宿主声明静态标记（此时没有组件树与隔离样式）；示例 `.sample-boot` 是按 `Spinner` 规格的视觉复刻，改一侧必须同步另一侧。
+- 主题通过 `<html data-theme>` 与 `<html data-aeterni-brand>` 输出；持久化键为 `aeterni.theme.mode` 与 `aeterni.theme.brand`，两者互相独立。
+- `ThemeSwitch` 提供 System / Light / Dark 分段切换；`ThemeBrandSwitch` 提供 Purple / Green / Orange，是 `Segmented` 的专用用法并订阅 `BrandChanged`。
+- 主题切换过渡 300ms，只过渡颜色承载属性，并适配 reduced-motion。
+- `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`）；`ThemeService.Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），不属于 `ThemeMode` 的取值空间。
 
-- `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`），表示实际生效的主题。`ThemeService.Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），不属于 `ThemeMode` 的取值空间。
 ## 4. Button
 
 ### 支持能力
@@ -533,7 +506,7 @@ FormField 负责布局和语义关联，不替代内部控件的值绑定或输�
 
 位于 `FormField` 中的独立 `Radio` 会采用字段的输入 ID（点击标签可直接聚焦），`RadioGroup` 则让 fieldset 采用该 ID 并用 `aria-labelledby` 关联字段标签。
 
-独立 `Radio`（不在 `RadioGroup` 内）没有可比较的同组值，其显示由自身绑定的 `Value` 直接驱动：`bool` 取真值，字符串以非空判定，其他类型为非默认值即选中；`false`、空字符串、`null` 与默认值均为未选中。因此在 `Radio<bool>` 上 `@bind-Value` 的初始值、程序化赋值与表单重置都会立即反映到屏幕，`checked` 与根节点的 `is-checked` 同源。分组模式不受影响，仍然只让与分组值相等的选项渲染为选中。
+独立 `Radio`（不在 `RadioGroup` 内）按宿主使用的绑定方式决定显示：提供 `ValueExpression` 时，控件加入级联 `EditContext`，`checked` 表达“绑定值等于本选项 `Value`”，选择时通知字段变化，字段校验消息参与 `Invalid` / `aria-invalid`；只提供 `Value` / `ValueChanged` 时保留兼容语义——`bool` 取真值，字符串以非空判定，其他类型为非默认值即选中，`false`、空字符串、`null` 与默认值均为未选中，使 `@bind-Value` 的初始值、程序化赋值与表单重置仍会立即反映到屏幕。分组模式不受影响，仍然只让与分组值相等的选项渲染为选中；`RadioGroup` 持有字段绑定，子项不重复订阅 `EditContext`。
 
 ### 实现边界
 
@@ -569,6 +542,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`TagVariant`：`Default` / `Soft` / `Outline`）。
 - 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
 - 可关闭 Tag 的关闭按钮带有可访问名称、只触发一次事件，热区通过透明伪元素扩展到 `--aeterni-touch-target-min`（24×24，满足 WCAG 2.5.8）且不改变 Tag 高度。
+- `Disabled` 生效：根 `<span>` 不可承载原生 `disabled`，因此只输出 `aria-disabled="true"` 与 `is-disabled`；可关闭 Tag 的关闭按钮同时禁用，点击/键盘路径不再触发 `OnDismiss`。禁用外观走 `state-*` 禁用档（背景、边框、文字），不做整块透明度。
 - `Size` 档位基于 `--aeterni-height-xs` 上下各取一档（`--sm` 20px、默认 24px、`--lg` 28px），不再使用 10px 字号等低于 Token 下限的裸值。
 
 ### 行为与无障碍
@@ -747,7 +721,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 ### 支持能力
 
-`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Anchor`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`CloseOnScroll`、`RestoreFocusOnClose`、`Header`、`ChildContent` 和 `AriaLabel`。
+`PopupHost` 提供浮层内容挂载容器（`position: relative` 的真实盒子）；`Popover` 支持 `Open` / `OpenChanged`、`Placement`、`Anchor`、`Modal`、`CloseOnEscape`、`CloseOnOutsideClick`、`CloseOnScroll`、`RestoreFocusOnClose`、`Header`、`ChildContent` 和 `AriaLabel`。`RestoreFocusOnClose` 默认 `true`，模态浮层关闭后与 Dialog / Drawer 一样把焦点还给触发器；非模态层的外部点击、Tab 与主动转移焦点有守卫，不会被抢回。
 
 - `Placement`（`PopupPlacement`：`BottomStart` / `BottomEnd` / `TopStart` / `TopEnd`，默认 `BottomStart`）指定起始方位：默认相对 `PopupHost`，设了 `Anchor` 时相对锚点元素。
 - **定位与翻转**：默认浮层在 `PopupHost` 内绝对定位，由 `Popover.razor.js` 在打开、`resize` 与页面滚动时重算：优先使用指定方位，空间不足时翻到对侧（每次重算都从首选方位开始，所以视口变宽后能翻回），再沿交叉轴贴回视口边缘（偏移写入 `--aeterni-popover-shift-x`）。
@@ -881,7 +855,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 ### 品牌色层
 
-品牌与明暗是两个正交维度：明暗决定用色阶的哪几档，品牌决定用哪条色阶。切换品牌可以使用 `ThemeBrandSwitch`，也可以直接调用 `ThemeService`：
+品牌与明暗正交：明暗决定取色阶的哪几档，品牌决定用哪条色阶。切换品牌可以用 `ThemeBrandSwitch`，也可以直接调用 `ThemeService`：
 
 ```razor
 <ThemeBrandSwitch Size="Size.Small" />
@@ -894,7 +868,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 <Button OnClick="@ThemeService.SetPurple">紫罗兰</Button>
 ```
 
-`SetBrand(ThemeBrand)` 会校验枚举值，非法值抛 `ArgumentOutOfRangeException`；同值调用不重复触发事件。品牌变化后 `ThemeProvider` 把 `data-aeterni-brand` 写到 `<html>` 并持久化到 `aeterni.theme.brand`，语义别名随之整体换色，组件层无需任何改动。
+`SetBrand(ThemeBrand)` 校验枚举值，非法值抛 `ArgumentOutOfRangeException`，同值不重复触发事件；品牌变化后 `ThemeProvider` 写 `data-aeterni-brand` 并持久化到 `aeterni.theme.brand`，组件层无需改动。
 
 首次访问的默认品牌来自 `AeterniUIOptions.DefaultBrand`：
 
@@ -931,9 +905,9 @@ builder.Services.AddAeterniUI(options => options.DefaultBrand = ThemeBrand.Green
 Provider 统一负责遮罩、焦点管理、背景滚动锁定和弹层层级，并通过 `IDialogService` 对外提供能力，
 因此应用组件不访问 Provider 内部状态。消息内容按纯文本安全输出。
 
-锁定背景滚动时优先在根元素保留 `scrollbar-gutter: stable`（仅在页面确实可滚动且浏览器支持时），开、关浮层前后视口宽度不变，fixed 页头与流内正文始终对齐；浏览器不支持时退回 `body` 右内边距补偿，解锁时 `overflow`、`padding-right` 与 `scrollbar-gutter` 一并还原。 预留的滚动条槽由全屏覆盖层用 `--aeterni-scroll-lock-gutter` 外扩（Dialog 遮罩、Drawer 根层、Popover 遮罩与示例搜索模态都是消费者），所以居中面板对准窗口中心；槽位本身会被画成与遮罩相同的压暗色（根元素画布着色，固定层画不进槽位），右侧不会留一条未压暗的亮条。覆盖式滚动条引擎上该变量为 `0px`，行为不变。
+锁定背景滚动时优先在根元素保留 `scrollbar-gutter: stable`，不支持时退回 `body` 右内边距补偿；预留槽由全屏覆盖层用 `--aeterni-scroll-lock-gutter` 外扩并用根元素画布着色，右侧不会留下未压暗的亮条（机制与消费者清单见 engineering-reference §8.4）。
 
-Dialog 与 Confirm 的面板进场 200ms、退场 150ms（均为 normal 档的派生值）；遮罩以同一 150ms 淡出并与面板同帧开始，关闭时等待面板实测退场动画结束后再移除节点，遮罩不会提前消失或残留一帧。`prefers-reduced-motion: reduce` 下面板与遮罩都不播放动画。退场等待以弹层实际运行的动画为准：动画在等待注册前就已结束、或浏览器不结算 `Animation.finished` 时，按量得的 delay + duration 兜底完成，不会把条目永久留在 `is-closing`（10.42.0 修正）。
+Dialog 与 Confirm 面板进场 200ms、退场 150ms，遮罩以同一 150ms 淡出并与面板同帧开始；关闭等待实测退场动画结束后再移除节点，动画提前结束或浏览器不结算 `Animation.finished` 时按实测 delay + duration 兜底。`prefers-reduced-motion: reduce` 下不播放动画。
 
 ### 实现边界
 
@@ -970,7 +944,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 
 - 通过 `IDialogService.Show` / `ShowAsync(RenderFragment, DialogOptions?)` 提供 `RenderFragment` 自定义内容。
 - `DialogOptions` 支持 `Title`、`Severity`、`Icon`、`ShowCloseButton`、`CloseOnEscape`、`CloseOnOverlayClick`、`AutofocusFirstField` 和 `Footer`。`AutofocusFirstField`（默认 false）供任意自定义 Dialog 打开时聚焦弹窗内第一个字段（`input`/`select`/`textarea`/`contenteditable`），没有字段时回退到原来的首个可聚焦元素；`FormDialogOptions` 把它默认设为 true。
-- 支持模态遮罩、背景模糊、焦点管理、焦点恢复和背景滚动锁定。
+- 支持模态遮罩（遮罩保持模糊与压暗）、焦点管理、焦点恢复和背景滚动锁定。模态面板本身使用不透明 `--aeterni-bg-surface`：面板落在遮罩上，玻璃填充会采样被压暗的页面而在浅色主题里发灰，使面板内的白色字段比面板更亮、层级反转；深度感由遮罩与 `--aeterni-shadow-modal` 承担。
 - 关闭时支持淡出和缩小动画。
 
 ### Confirm
@@ -982,13 +956,13 @@ DialogService.ShowToast("Completed", new ToastOptions
 
 ### FormDialog
 
-10.42.0：`FormDialog` 为「标题 + 表单内容 + 主/次动作」的弹窗补上统一约定，复用 `DialogProvider` 的遮罩、焦点陷阱、滚动锁定与退出动画，不新增第二套模态实现。
+`FormDialog` 为「标题 + 表单内容 + 主/次动作」的弹窗提供统一约定，复用 `DialogProvider` 的遮罩、焦点陷阱、滚动锁定与退出动画，不新增第二套模态实现。
 
 - 代码路径：`IDialogService.ShowForm(RenderFragment content, FormDialogOptions?)` 返回 `DialogReference`，`ShowFormAsync(...)` 返回 `Task<DialogResult>`；提交成功为 `DialogResult.Confirm(FormDialogSubmitResult.Data)`，取消为 `Cancel`，其余关闭路径为 `Dismiss`。
 - 声明式路径：`<FormDialog @bind-Open="..." Title="..." OnSubmit="...">表单内容</FormDialog>` 是同一能力的无 DOM 宿主，`Open` 为受控参数；打开时把 `ChildContent` 交给 Provider，弹窗由提交、取消、关闭按钮、Escape 或遮罩结束时通过 `OpenChanged(false)` 回写。
 - `FormDialogOptions` 在 `DialogOptions` 基础上新增 `SubmitText`、`CancelText`、`OnSubmit`、`OnCancel`、`SubmitOnEnter` 与 `ValidationMessage`，并继承 `AutofocusFirstField`（构造器默认 true，可显式关闭）；`SubmitText` / `CancelText` 留空回退 `AeterniUITextOptions.FormDialogSubmitLabel` / `FormDialogCancelLabel`（默认 `Save` / `Cancel`）。表单弹窗的底部动作由 Provider 生成，不使用 `DialogOptions.Footer`。
 - 提交由 Provider 驱动：`OnSubmit` 运行期间主按钮进入 `Loading`，次按钮与关闭按钮禁用，对话框输出 `aria-busy="true"`，Escape、遮罩点击与重复提交被忽略；成功时关闭并把 `Data` 交给 `DialogResult.Data`，失败时保持打开、把 `FormDialogSubmitResult.Message` 渲染到 `role="alert"` 的校验区域，并在下次提交开始时清空；回调抛异常时先复位忙碌态再继续抛出。
-- 焦点与键盘：打开时聚焦表单内第一个字段（没有字段时回退到原来的首个可聚焦元素）；`SubmitOnEnter` 为 true 时单行字段中的 Enter 触发主按钮，`textarea`、`select`、按钮、链接、`contenteditable`、输入法组合与 Shift/Ctrl/Meta/Alt 组合键不触发。
+- 焦点与键盘：打开时聚焦表单内第一个字段（没有字段时回退首个可聚焦元素）；`SubmitOnEnter` 为 true 时单行字段的 Enter 触发主按钮，多行字段、选择控件、按钮/链接、输入法组合与修饰键组合不触发。
 - `OnSubmit` 为 null 时主按钮直接以 `DialogResult.Confirm(null)` 关闭，保留「只借表单外观」的用法；表单内容本身仍由宿主提供，组件不请求、不校验业务数据。
 
 ### Alert
@@ -999,7 +973,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 使用 Button 相同的 `Info`、`Success`、`Warning`、`Danger` 语意色映射。
 - 语意背景使用浅色混合，去除左侧语意边框。
 - 采用左侧图标、中间内容、右侧关闭按钮的三段式布局；未传 `Icon` 时按 Severity 使用内置 `AeterniIcons` 严重度图标，关闭按钮只占自身内容宽度并上下居中。
-- 默认自动关闭，四边环绕进度边框显示剩余时间。
+- 默认自动关闭，四边环绕进度边框显示剩余时间。指针悬停或键盘焦点进入卡片时暂停倒计时（进度环同步停在当前位置），离开后从剩余时间继续；这是 WCAG 2.2.1 的时间可调要求。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
 - `CloseOnEscape` 在焦点位于通知内部时生效（键盘用户 Tab 到关闭按钮后按 Escape 即可关闭）；通知是非模态的、不抢焦点，因此指针用户仍以关闭按钮为主，这是刻意的无障碍取舍而不是失效参数。
@@ -1012,7 +986,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 支持全局默认位置、单条通知位置和最大显示数量。
 - 支持图标、标题、手动关闭和复杂 RenderFragment 内容；未传 `Icon` 时按 `Severity` 自动使用内置严重度图标。
 - `ToastOptions` 支持 `Title`、`Severity`、`Icon`、`Position`、`Duration`、`ShowCloseButton`、`Blur` 和 `OnClosedAsync`。
-- 默认自动关闭，四边环绕进度边框显示剩余时间。
+- 默认自动关闭，四边环绕进度边框显示剩余时间；悬停或焦点进入时暂停倒计时，进度环与计时器同步，离开后继续剩余时间。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
 - 根据通知位置向对应屏幕边缘滑出。
@@ -1135,7 +1109,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 `Segmented<TValue>` 提供互斥选项切换（分段控件）：
 
 - `Items`（`IReadOnlyList<TValue>`，每项等宽）、`Value` / `ValueChanged`（支持 `@bind-Value`）、`TextSelector`、`ItemTemplate`、`DisabledSelector`、可选 `AriaLabel`。
-- `Size` 三档的轨道高度是 32 / 36 / 44px：`Default` 与 `Large` 取控件高度档位（`--aeterni-control-height-md/lg`），`Small` 因为 3px 内缩加 24px 热区恰好需要 32px，比 `--aeterni-control-height-sm`（28px）高 4px——这是"三档内缩一致"的直接代价。`Small` 不要与 28px 的 Button / Input 同排混用；需要 28px 控件行时用 `Default` 档，或接受 4px 高差。`FullWidth` 占满父容器，否则宽度跟随内容。
+- `Size` 三档的轨道高度是 28 / 36 / 44px，与同档 Button / Input 对齐：`Default` 与 `Large` 取控件高度档位（`--aeterni-control-height-md/lg`）；`Small` 为 `--aeterni-control-height-sm`（28px = 2×描边 + 2×3px 内缩 + 20px 选项），选项用透明伪元素把垂直热区恢复到 `--aeterni-touch-target-min`（24px），不靠加高轨道换热区。`FullWidth` 占满父容器，否则宽度跟随内容。
 - 轨道外观是一根 1px 的 `--aeterni-border-strong` 描边加 `--aeterni-bg-secondary` 填充：分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，又不引出一层填充。禁用档与无效档照样换描边色。
 - `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。它由 `--aeterni-spacing-1` 减一个描边得到（3px），**三档相同**：边框到滑块之间的间距不随 `Size` 变化。热区与高度约束见 [`engineering-reference`](engineering-reference.zh-CN.md)。
 - 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` 的圆角同源（Button 使用独立的 `--aeterni-radius-button`，不同源）。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
@@ -1149,7 +1123,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 行为与无障碍
 
-根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击、方向键与 `Home`/`End` 都走同一条路径）。`Home`/`End` 跳到首/尾可用项、把真实 DOM 焦点一并移到该 radio，并保持页面滚动位置不变（焦点用 `preventScroll`，按键的默认动作由模块拦截）。禁用项不可点、不进方向键循环、热区光标是 `not-allowed`（作用在整个标签而不是里面的文字），禁用且被选中的项仍保留指示块与反色文字，表示“值已选中但不可更改”。
+根元素输出 `role="radiogroup"`、`aria-orientation="horizontal"` 与可访问名称；选项是原生 radio，选中变化通过原生 `change` 事件上报（鼠标点击、方向键与 `Home`/`End` 都走同一条路径）。`Home`/`End` 跳到首/尾可用项、把真实 DOM 焦点一并移到该 radio，并保持页面滚动位置不变（焦点用 `preventScroll`，按键的默认动作由模块拦截）。禁用项不可点、不进方向键循环、热区光标是 `not-allowed`（作用在整个标签而不是里面的文字）。禁用且被选中的项与 Checkbox / Radio 一致地中性化：滑块填充与描边回到 `state-*` 禁用档、选中文字取禁用墨色，不再用“品牌填充 + 反色字”假装仍可操作；`DisabledSelector` 指向当前值或整组 `Disabled` 走同一规则。
 
 ### 实现边界
 
@@ -1178,7 +1152,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount`、`AriaLabel`、`PreviousLabel`、`NextLabel` 和 `PageLabelFormat`；页码较多时显示省略号，当前页通过颜色突出，不缩放；按钮使用 Small 控件高度、明确的小号字号与单倍行高，等宽数字居中排列。实例文案优先于 `AeterniUITextOptions` 的全局默认值。
+`Pagination` 提供轻量分页导航，支持 `CurrentPage`、`TotalPages`、`CurrentPageChanged`、`SiblingCount`、`AriaLabel`、`PreviousLabel`、`NextLabel` 和 `PageLabelFormat`；`Disabled` 会禁用全部翻页按钮、停止页码变更并在根 `<nav>` 上输出 `aria-disabled` 与 `is-disabled`（nav 无原生 disabled，只输出 ARIA 与禁用视觉）；页码较多时显示省略号，当前页通过颜色突出，不缩放；按钮使用 Small 控件高度、明确的小号字号与单倍行高，等宽数字居中排列。实例文案优先于 `AeterniUITextOptions` 的全局默认值。
 
 ### 行为与无障碍
 
@@ -1337,7 +1311,7 @@ builder.Services.AddAeterniUI(options =>
 
 日期时间字段（`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker`）的 Small / Default / Large 触发器统一消费 `control-padding-x-sm/md/lg`（8 / 12 / 16px），字号与 Input / ComboBox 对齐为 12 / 14 / 16px，保持 `line-height-normal`、原有最小高度及宽度 / FullWidth 行为；不调整日历或时间面板。Segmented 选项的三档水平留白也改用同组 control Token（数值不变），轨道 padding、滑块几何与字号均不变。
 
-`DatePicker.FullWidth` 默认为 `false`，设为 `true` 时触发器铺满父容器，日历弹层仍按内容定宽。`DateRangePicker` 弹层按预设区与多月日历的内容宽度展开，并受视口宽度限制，保留左右一致的表面内边距；极窄视口下内容可横向滚动。
+`DatePicker.FullWidth` 与 `DateRangePicker.FullWidth` 默认为 `false`，设为 `true` 时触发器铺满父容器，日历弹层仍按内容定宽。`DateRangePicker` 弹层按预设区与多月日历的内容宽度展开，并受视口宽度限制，保留左右一致的表面内边距；极窄视口下内容可横向滚动。
 
 ### 支持能力
 
@@ -1353,7 +1327,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 行为与无障碍
 
-日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
+日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；月份箭头与日格都绘制 `:focus-visible` 品牌焦点环，选中日改用反色环，深色主题与品牌色下不会退化成浏览器默认蓝色环；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
 
 ### 组合关系与实现边界
 
@@ -1432,7 +1406,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-默认使用连体分段外观：项间无 gap、横向不自动换行，共享接缝重叠一个 border-width，只有外侧首尾保留圆角；逻辑方向边角兼容 RTL / 纵向，单项保留完整圆角。选中、悬浮与键盘焦点分层，focus-visible 不被邻项遮挡；选中 hover / active 继续整块沿品牌色阶换档。不改 Segmented、普通 Button 或受控选择/键盘模型。
+默认使用连体分段外观：项间无 gap、横向不自动换行，共享接缝重叠一个 border-width，只有外侧首尾保留圆角；描边与圆角与 `Segmented` 同源（`--aeterni-border-strong` / `--aeterni-radius-control-*`，Small / Default / Large 为 4 / 6 / 8px），逻辑方向边角兼容 RTL / 纵向，单项保留完整圆角。选中、悬浮与键盘焦点分层，focus-visible 不被邻项遮挡；选中 hover / active 继续整块沿品牌色阶换档；禁用且选中时与 Checkbox / Radio / Segmented 一致地落回 `state-*` 禁用档，不保留“可操作”的品牌填充。不改 Segmented、普通 Button 或受控选择/键盘模型。
 
 - 命名空间 `AeterniUI.Components.ToggleGroup`：`ToggleGroup` 与不可变记录 `ToggleGroupItem(string Id, string Text, bool Disabled = false)`；Id 按 Ordinal 区分大小写且稳定，Text 是按钮可访问名称，均不可空白，Id 不可重复。
 - 参数：必填 `Items`、非空 `AriaLabel`；`SelectionMode` 默认 Single，仅接受现有枚举 Single / Multiple（None 与非法枚举拒绝）；`SelectedValues`（`IReadOnlyList<string>`，默认空）及 `SelectedValuesChanged`；`Orientation`（默认 Horizontal）、`Size`（默认 Default）和全部基类根属性。枚举、null 列表、重复或未知选中 Id、Single 多值输入均抛出参数异常。

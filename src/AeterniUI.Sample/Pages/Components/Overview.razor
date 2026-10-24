@@ -1,0 +1,80 @@
+@page "/components/overview"
+@layout ComponentsLayout
+@inherits ShowcasePageBase
+
+<PageTitle>Aeterni UI · 组件总览</PageTitle>
+
+@* 组件总览：把 ShowcaseCatalog.Groups 这份唯一事实源铺成索引。它不是组件页，没有
+   demo 与生成式 API 表；链接与摘要都用目录里的字段，因此侧栏排序、搜索索引与
+   这里的条目不会各说各话。 *@
+<article class="overview" id="overview">
+    <header class="overview__header">
+        <p class="overview__eyebrow">开始</p>
+        <h1 tabindex="-1">组件总览</h1>
+        <p class="overview__lede">
+            @ShowcaseCatalog.ComponentCount 个组件页按分类排成一份索引：先看分组，再进具体页面的示例、参数与边界说明。
+        </p>
+        <p class="overview__meta">@ShowcaseCatalog.GroupCount 个分组 · @TotalEntryCount 个条目</p>
+    </header>
+
+    <nav class="overview__jump" aria-label="分组索引">
+        @for (var groupIndex = 0; groupIndex < Groups.Count; groupIndex++)
+        {
+            var groupId = $"overview-group-{groupIndex}";
+            <a href="#@groupId">@Groups[groupIndex].Label</a>
+        }
+    </nav>
+
+    @for (var groupIndex = 0; groupIndex < Groups.Count; groupIndex++)
+    {
+        var group = Groups[groupIndex];
+        var groupId = $"overview-group-{groupIndex}";
+
+        <section class="overview__group" id="@groupId" aria-labelledby="@($"{groupId}-title")">
+            <header class="overview__group-head">
+                <span class="overview__group-icon" aria-hidden="true">
+                    <Icon Definition="@group.Icon" />
+                </span>
+                <h2 id="@($"{groupId}-title")">@group.Label</h2>
+                <span class="overview__group-count">@group.Count 个条目</span>
+            </header>
+            <ul class="overview__list">
+                @foreach (var item in group.Items)
+                {
+                    <li>
+                        <a class="overview__item" href="@ShowcaseCatalog.RouteFor(item.Id)">
+                            <span class="overview__item-label">@item.Label</span>
+                            <span class="overview__item-summary">@item.Summary</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    <section class="overview__source" aria-labelledby="overview-source-title">
+        <h2 id="overview-source-title">这份索引从哪来</h2>
+        <p>
+            页面顺序、分组标题与摘要都来自 <code>ShowcaseCatalog.Groups</code>；侧栏导航、前后页与页头搜索索引读的是同一份数据，
+            因此这里不会出现"目录里有、侧栏里没有"的条目。
+        </p>
+        <ShowcaseCode Id="overview-catalog-code" Code="@CatalogCode" Label="目录数据" />
+    </section>
+</article>
+
+@code {
+    private static readonly IReadOnlyList<ShowcaseNavGroup> Groups = ShowcaseCatalog.Groups;
+
+    private static int TotalEntryCount => Groups.Sum(group => group.Count);
+
+    private const string CatalogCode = """
+        @foreach (var group in ShowcaseCatalog.Groups)
+        {
+            <h2>@group.Label</h2>
+            @foreach (var item in group.Items)
+            {
+                <a href="@ShowcaseCatalog.RouteFor(item.Id)">@item.Label</a>
+            }
+        }
+        """;
+}

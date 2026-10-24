@@ -77,12 +77,13 @@ public partial class Popover : AeterniComponent
 
     /// <summary>
     /// Whether focus returns to the element that opened the layer when it closes.
-    /// Applies to modal and non-modal alike; for a non-modal layer the restore skips
-    /// when it was closed by an outside click or a consumer callback focused another
-    /// control, so it never steals focus from a deliberate move.
+    /// Defaults to <see langword="true" /> so a modal popover returns keyboard focus to
+    /// its trigger like Dialog and Drawer do; a non-modal layer still skips the restore
+    /// when it was closed by an outside click, Tab, or a consumer callback that focused
+    /// another control, so it never steals focus from a deliberate move.
     /// </summary>
     [Parameter]
-    public bool RestoreFocusOnClose { get; set; }
+    public bool RestoreFocusOnClose { get; set; } = true;
 
     /// <summary>
     /// Minimum width of the layer, e.g. <c>"20rem"</c> or

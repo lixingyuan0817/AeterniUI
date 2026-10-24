@@ -11,17 +11,20 @@
 //      断言的是“生成物覆盖了每个有组件的条目”，以及“页面没有退回手写表”。生成物本身是否
 //      与源码一致由 CI 的 `--check` 负责——那需要重新生成，属于独立的一步。
 //   3. 提供代码块的页面必须真的定义了该常量，且片段用到了它宣称记录的组件。
+//   4. 生成物里的默认值与源码一致（自动属性的初始值曾经整批丢失，页面上就会写错行为）。
+//   5. 示例页里的组件标签只能使用该组件真实的 `[Parameter]` 或 HTML 原生属性；Razor 的
+//      `@on*` / `@bind-*` 等指令语法与泛型类型参数（`TItem`）按语法放行。
 //
 // 有意不做的事：不校验参数说明的文字，也不校验示例的视觉结果——那属于浏览器检查。
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { catalogEntries, pascal, read } from '../scripts/lib/showcase-catalog.mjs';
+import { existsSync, readdirSync } from 'node:fs';
+import { basename, join } from 'node:path';
 import { test } from 'node:test';
 
 const SAMPLE = 'src/AeterniUI.Sample';
 const LIBRARY = 'src/AeterniUI';
 const PAGES = `${SAMPLE}/Pages/Components`;
-const CATALOG = `${SAMPLE}/Components/Showcase/ShowcaseCatalog.cs`;
 
 // AeterniComponent 的公共参数由 ShowcaseApi.CommonParameters 统一登记，
 // 页面不必逐条重复。
@@ -38,22 +41,6 @@ const INTERNAL_PARTS = new Set(['DateCalendar', 'TimeOptionList']);
 // 何时使用 → 内容 → API → 相关组件 → 说明与边界），段齐全与"有可复制代码块"同样要求，
 // 只有"每段 demo 都有自己的标题与代码"这条换成"至少一个 ShowcaseCode 代码块"。
 const NON_COMPONENT_PAGES = new Set(['install', 'colors']);
-
-const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
-
-function catalogEntries() {
-    const source = read(CATALOG);
-    const entries = [];
-    const pattern = /new\("([a-z0-9-]+)",\s*"([^"]+)",\s*"([^"]+)"\)(\s*\{[^}]*\})?/g;
-    for (const match of source.matchAll(pattern)) {
-        const overrides = match[4] ?? '';
-        const page = /Page\s*=\s*"([^"]+)"/.exec(overrides)?.[1];
-        entries.push({ id: match[1], label: match[2], page });
-    }
-    return entries;
-}
-
-const pascal = id => id.split('-').map(part => part[0].toUpperCase() + part.slice(1)).join('');
 
 /// 页面骨架的锚点（也是目录条目 id）。没有 `ComponentPage` 骨架的页面返回 null。
 const pageIdOf = source => /AnchorId="([a-z0-9-]+)"/.exec(source)?.[1] ?? null;
@@ -372,4 +359,238 @@ test('批次 7 骨架：版本入口与反馈闭环都存在', () => {
 
     const page = read(`${SAMPLE}/Components/Showcase/ComponentPage.razor`);
     assert.ok(page.includes('<ShowcaseFeedback'), '组件页骨架末尾应带反馈闭环');
+});
+
+/// 递归收集目录下带指定后缀的文件。示例页按目录分层，扫描范围必须包含全部目录，
+/// 不能只列一层后漏掉 `Layout/` 与 `Components/Showcase/`。
+function filesUnder(root, suffix) {
+    const files = [];
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+        const path = join(root, entry.name);
+        if (entry.isDirectory()) files.push(...filesUnder(path, suffix));
+        else if (entry.name.endsWith(suffix)) files.push(path);
+    }
+    return files;
+}
+
+/// 生成物里某页的“成员名 → 默认值”。生成物是 C# 字面量，反斜杠转义的引号要还原后再比较，
+/// 否则 `"320px"` 会写成 `\"320px\"` 而以字符串形式对不上。
+function generatedDefaultValues(generated) {
+    const unescape = text => text.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    const byPage = new Map();
+
+    for (const block of generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\n\s*\},/g)) {
+        const members = new Map();
+        for (const row of block[2].matchAll(/new\("((?:[^"\\]|\\.)*)", "(?:[^"\\]|\\.)*", "((?:[^"\\]|\\.)*)"/g)) {
+            members.set(unescape(row[1]), unescape(row[2]));
+        }
+        byPage.set(block[1], members);
+    }
+
+    return byPage;
+}
+
+// 生成器的默认值来自属性体之后的 `= 初始化表达式;`。只抓 `{ get; set; }` 的话，自动属性的
+// 初始值整批丢失（Badge.Max、Skeleton.Lines、VirtualList.Height 都曾经是空的），页面上的
+// 「超过 99 显示 99+」「单行骨架」「默认 320px 视口」这些说明就会与真实行为悄悄分叉。
+// 默认值字符串一律以生成物里的写法为准（`"320px"` 带引号是 simpleDefault 的既有策略）。
+test('生成的 API 表保留了参数默认值（自动属性的初始化值不可丢失）', () => {
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    const defaults = generatedDefaultValues(generated);
+
+    const expectations = [
+        ['badge', 'Max', '99'],
+        ['skeleton', 'Lines', '1'],
+        ['virtual-list', 'Height', '"320px"']
+    ];
+
+    for (const [page, member, expected] of expectations) {
+        const actual = defaults.get(page)?.get(member);
+        assert.notEqual(actual, undefined, `${page} 页的生成物里没有 ${member}，生成器解析可能已失效`);
+        assert.equal(actual, expected,
+            `${page} 页的 ${member} 默认值应为 ${expected}，生成物里是 ${JSON.stringify(actual)}。` +
+            '先确认 parseMembers 读到了属性体之后的 `= 初始化表达式;`，再运行 node scripts/generate-api-reference.mjs 重新生成。');
+    }
+});
+
+// 与生成器一致的 `[Parameter]` 解析：参数名在类型之后、属性体之前，与初始化值无关。
+function componentParameterContract(source) {
+    const parameters = new Set(BASE_PARAMETERS);
+    for (const match of source.matchAll(/\[Parameter[^\]]*\]\s*public\s+[\w<>?,\[\]\.\s]+?\s+(\w+)\s*(?:\{|=>)/g)) {
+        parameters.add(match[1]);
+    }
+
+    // `<Autocomplete TItem="string">` 的 TItem 是泛型类型参数而不是 [Parameter]，从类声明解析。
+    const genericParameters = new Set();
+    for (const match of source.matchAll(/public\s+(?:sealed\s+)?partial\s+class\s+\w+\s*<([^>]+)>/g)) {
+        for (const part of match[1].split(',')) genericParameters.add(part.trim().replace(/\s.*$/, ''));
+    }
+
+    return { parameters, genericParameters };
+}
+
+/// 库组件名 → 允许的属性。只收 `.razor.cs` 里的组件类型；示例工程自己的 Showcase* 部件
+/// 与 `AeterniIcons` 之类的静态类型不在这个集合里，因此不会被误判。
+function componentContracts() {
+    const contracts = new Map();
+    for (const file of filesUnder(join(LIBRARY, 'Components'), '.razor.cs')) {
+        contracts.set(basename(file, '.razor.cs'), componentParameterContract(read(file)));
+    }
+    return contracts;
+}
+
+// 组件通过 AdditionalAttributes 把未匹配属性透传给根元素，所以 HTML 原生属性是合法的。
+// 这里刻意保持小写精确匹配：大小写不敏感会把 `Color` 误放行成 HTML 的 `color`——而
+// Button 根本没有 Color 参数（已知错误写法 `<Button Color="…">`）。
+const HTML_ATTRIBUTES = new Set(`
+accept accesskey action allow allowfullscreen alt async autocomplete autocapitalize
+autofocus autoplay charset checked cite class cols colspan content contenteditable
+controls crossorigin datetime decoding defer dir dirname disabled download draggable
+enctype enterkeyhint fetchpriority for form formaction formenctype formmethod
+formnovalidate formtarget headers height hidden high href hreflang http-equiv id
+inert inputmode integrity is ismap itemid itemprop itemref itemscope itemtype kind
+label lang list loading loop low max maxlength media method min minlength multiple
+muted name nonce novalidate open optimum part pattern ping placeholder playsinline
+popover poster preload readonly referrerpolicy rel required reversed role rows
+rowspan sandbox scope selected slot span spellcheck src srcdoc srclang srcset start
+step style summary tabindex target title translate type usemap value width wrap
+`.split(/\s+/).filter(Boolean));
+
+// Razor 自身的语法：`Context` 是模板上下文（`<ItemTemplate Context="row">`），
+// `@bind-*` / `@on*` / `@ref` / `@key` / `@attributes` 等以 `@` 开头的属性整类放行。
+const RAZOR_ATTRIBUTES = new Set(['Context']);
+
+/// 只保留 Razor 标记，抹掉 `@code` / `@functions` 块、Razor 注释与 HTML 注释：代码片段是
+/// 原始字符串里的展示文本，不是真实渲染的标签。替换成等长空白并保留换行，行号因此不变。
+function markupOnly(source) {
+    const codeStart = /(^|\n)@(code|functions)\b/.exec(source);
+    const markup = codeStart ? source.slice(0, codeStart.index) : source;
+    const blank = text => text.replace(/[^\n]/g, ' ');
+    return markup
+        .replace(/@\*[\s\S]*?\*@/g, blank)
+        .replace(/<!--[\s\S]*?-->/g, blank);
+}
+
+/// 扫描开标签（引号与 `@(...)` 感知，`For="() => Project.Name"` 里的 `>` 不是标签结束）。
+/// 只返回组件名命中库组件表的标签，HTML 元素与示例工程自有的 Showcase* 部件都跳过。
+function componentTags(source, contracts) {
+    const tags = [];
+    let scannedUntil = 0;
+
+    for (const match of source.matchAll(/<([A-Za-z_][\w.]*)/g)) {
+        const start = match.index;
+        // 属性值里的 `<...>` 是文本而不是嵌套标记：已经扫过的开标签内部不再重复识别。
+        if (start < scannedUntil || !contracts.has(match[1])) continue;
+
+        let cursor = start + match[0].length;
+        let quote = null;
+        let depth = 0;
+
+        for (; cursor < source.length; cursor += 1) {
+            const character = source[cursor];
+            if (depth > 0) {
+                if (character === '(') depth += 1;
+                else if (character === ')') depth -= 1;
+            } else if (quote) {
+                if (character === '@' && source[cursor + 1] === '(') { depth = 1; cursor += 1; }
+                else if (character === quote) quote = null;
+            } else if (character === '"' || character === "'") quote = character;
+            else if (character === '@' && source[cursor + 1] === '(') { depth = 1; cursor += 1; }
+            else if (character === '>') { cursor += 1; break; }
+        }
+
+        tags.push({
+            name: match[1],
+            line: source.slice(0, start).split('\n').length,
+            text: source.slice(start, cursor)
+        });
+        scannedUntil = cursor;
+    }
+    return tags;
+}
+
+/// 开标签里的属性名。值可以是引号字符串（内含 `@(...)` 表达式）或不带引号的单值；
+/// 布尔属性没有 `=` 也算一个属性名。
+function tagAttributeNames(tag) {
+    const names = [];
+    let cursor = /^<[A-Za-z_][\w.]*/.exec(tag)?.[0].length ?? 1;
+
+    while (cursor < tag.length) {
+        while (cursor < tag.length && /\s/.test(tag[cursor])) cursor += 1;
+        if (cursor >= tag.length || tag[cursor] === '>' || tag[cursor] === '/') break;
+
+        const start = cursor;
+        while (cursor < tag.length && /[A-Za-z0-9_:.@-]/.test(tag[cursor])) cursor += 1;
+        if (cursor === start) { cursor += 1; continue; }
+        names.push(tag.slice(start, cursor));
+
+        while (cursor < tag.length && /\s/.test(tag[cursor])) cursor += 1;
+        if (tag[cursor] !== '=') continue;
+
+        cursor += 1;
+        while (cursor < tag.length && /\s/.test(tag[cursor])) cursor += 1;
+        if (tag[cursor] !== '"' && tag[cursor] !== "'") {
+            while (cursor < tag.length && !/[\s>/]/.test(tag[cursor])) cursor += 1;
+            continue;
+        }
+
+        const quote = tag[cursor];
+        cursor += 1;
+        let depth = 0;
+        for (; cursor < tag.length; cursor += 1) {
+            const character = tag[cursor];
+            if (depth > 0) {
+                if (character === '(') depth += 1;
+                else if (character === ')') depth -= 1;
+            } else if (character === '@' && tag[cursor + 1] === '(') depth = 1;
+            else if (character === quote) { cursor += 1; break; }
+        }
+    }
+
+    return names;
+}
+
+function allowedComponentAttribute(contract, attribute) {
+    if (attribute.startsWith('@')) return true;
+    if (/^aria-/.test(attribute) || /^data-/.test(attribute) || /^on[a-z]+$/.test(attribute)) return true;
+    if (HTML_ATTRIBUTES.has(attribute)) return true;
+    if (RAZOR_ATTRIBUTES.has(attribute)) return true;
+    return contract.genericParameters.has(attribute) || contract.parameters.has(attribute);
+}
+
+// 示例页是公共 API 的第一读者。这里从组件源码取每个 `[Parameter]`，再逐个校验示例里的
+// 组件标签：属性名既不是该组件的参数、也不是 HTML 原生/事件/ARIA 属性时失败。它能抓到
+// “页面写着 `AriaLabel` 但组件没有这个参数”“把 `Intent` 写成 `Color`”这类编译期其实
+// 会报错、但人工审查容易漏掉的漂移——报错信息直接给 页面:行 与属性名。
+test('示例页的组件标签只使用该组件的 [Parameter] 或 HTML 原生属性', () => {
+    const contracts = componentContracts();
+    assert.ok(contracts.size > 50, `只解析到 ${contracts.size} 个组件类型，解析逻辑可能已失效`);
+
+    const roots = [
+        join(SAMPLE, 'Pages', 'Components'),
+        join(SAMPLE, 'Components', 'Showcase'),
+        join(SAMPLE, 'Layout')
+    ];
+
+    const violations = [];
+    let tagCount = 0;
+
+    for (const root of roots) {
+        for (const file of filesUnder(root, '.razor')) {
+            const source = markupOnly(read(file));
+            for (const tag of componentTags(source, contracts)) {
+                tagCount += 1;
+                const contract = contracts.get(tag.name);
+                for (const attribute of tagAttributeNames(tag.text)) {
+                    if (!allowedComponentAttribute(contract, attribute)) {
+                        violations.push(`${file}:${tag.line} <${tag.name}> ${attribute}`);
+                    }
+                }
+            }
+        }
+    }
+
+    assert.ok(tagCount > 100, `只扫描到 ${tagCount} 个组件标签，扫描逻辑可能已失效`);
+    assert.deepEqual(violations, [],
+        `这些组件标签用了组件没有声明的属性（页面:行 标签 属性）：${violations.join('; ')}`);
 });

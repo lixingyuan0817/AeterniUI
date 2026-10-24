@@ -27,6 +27,36 @@
     padding-bottom: clamp(24px, 4vh, 40px);
 }
 
+/* 跳转链接：默认移出视口，键盘用户第一次 Tab 时落回左上角；它只做焦点跳转，
+   不参与页面的常驻布局，所以用 fixed 定位。 */
+.sample-skip-link {
+    position: fixed;
+    inset-block-start: var(--sample-header-inset);
+    inset-inline-start: calc((100vw - var(--sample-shell-width)) / 2);
+    z-index: var(--aeterni-z-tooltip);
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-4);
+    border-radius: var(--aeterni-radius-md);
+    background: var(--aeterni-bg-surface);
+    box-shadow: var(--aeterni-shadow-lg);
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-sm);
+    font-weight: var(--aeterni-font-weight-semibold);
+    text-decoration: none;
+    transform: translateY(calc(-100% - var(--sample-header-inset) - 8px));
+    transition: transform var(--aeterni-duration-fast) var(--aeterni-ease-out);
+}
+
+.sample-skip-link:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+    transform: none;
+}
+
+/* 正文区接收跳转焦点，但不需要再画一圈整块容器的焦点环。 */
+.sample-page__content:focus {
+    outline: none;
+}
+
 .sample-footer {
     margin-top: auto;
 }
@@ -70,7 +100,8 @@
         模糊就整块消失了。 */
     border-radius: var(--aeterni-radius-2xl);
     outline: 1px solid var(--aeterni-border-subtle);
-    box-shadow: 0 10px 26px rgba(12, 12, 16, .10);
+    /* 浮起的高度沿用库内阴影阶：宿主不再写一次性 rgba 值。 */
+    box-shadow: var(--aeterni-shadow-lg);
 }
 
 .sample-header__bar {
@@ -241,6 +272,14 @@
         justify-content: flex-start;
         padding-top: 4px;
     }
+
+    /* 导航链接视觉高度仍是 32px（页头第二行不因命中区变高），伪元素把可点区域扩到
+       40px；链接本身已有相对定位，伪元素不会改变布局盒。 */
+    .app-nav ::deep .app-nav__link::before {
+        position: absolute;
+        inset: -4px 0;
+        content: "";
+    }
 }
 
 @media (max-width: 600px) {
@@ -250,5 +289,19 @@
 
     .brand-name {
         font-size: 15px;
+    }
+}
+
+/* 设置触发器是 28px 的小图标按钮：视觉尺寸保持不变，用按钮自己的伪元素把命中区扩到
+   44px（WCAG 2.5.8）。伪元素属于按钮，hover/click 都落到同一个元素上，不改变页头高度。 */
+.sample-header__settings ::deep .aeterni-button::after {
+    position: absolute;
+    inset: -8px;
+    content: "";
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sample-skip-link {
+        transition: none;
     }
 }

@@ -80,6 +80,19 @@
     text-decoration: underline;
 }
 
+/* 搜索出口与两个链接同一行：按钮去掉原生外观，但保留与其他出口相同的焦点环与
+   40px 命中高度。 */
+.not-found__button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+}
+
 .not-found__primary:focus-visible,
 .not-found__link:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);

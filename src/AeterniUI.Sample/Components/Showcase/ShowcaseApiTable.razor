@@ -19,8 +19,10 @@
                     @foreach (var row in group.Rows)
                     {
                         <div class="component-preview__api-row" role="row">
-                            <code role="cell">@row.Name</code>
-                            <span role="cell">
+                            @* data-label 只在 ≤900px 的单列布局里由 CSS 画成微型列标签；桌面表头
+                               仍由上面的 columnheader 行承担，不重复读一遍标签。 *@
+                            <code role="cell" data-label="名称">@row.Name</code>
+                            <span role="cell" data-label="类型 / 默认值">
                                 <code>@row.Type</code>
                                 @if (!string.IsNullOrWhiteSpace(row.DefaultValue))
                                 {
@@ -31,7 +33,7 @@
                                     <small>自 @row.Since</small>
                                 }
                             </span>
-                            <span role="cell">@row.Description</span>
+                            <span role="cell" data-label="说明">@row.Description</span>
                         </div>
                     }
                 </div>

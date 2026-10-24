@@ -36,7 +36,15 @@
             <div class="showcase-nav">
                 @if (FilteredGroups.Count > 0)
                 {
-                    <Menu Items="FilteredGroups" SelectedId="@SelectedId" Accordion AriaLabel="组件导航" />
+                    @* 受控展开：筛选时把命中的分组全部打开。Accordion 的默认行为只保留一个
+                       分组展开，命中项若落在别的分组里，菜单看起来就像"零结果"。查询为空时
+                       传 null 交还给 Menu 内部状态，用户手动折叠/展开照常回写这个集合。 *@
+                    <Menu Items="FilteredGroups"
+                          SelectedId="@SelectedId"
+                          Accordion
+                          OpenKeys="@_openKeys"
+                          OpenKeysChanged="HandleOpenKeysChanged"
+                          AriaLabel="组件导航" />
                 }
                 else
                 {
@@ -89,12 +97,27 @@
     private string _query = string.Empty;
 
     /// <summary>
+    /// 筛选期间的受控展开集合。null 表示交还给 Menu 自己维护（查询为空时的默认状态）。
+    /// </summary>
+    private IReadOnlyList<string>? _openKeys;
+
+    /// <summary>下一次渲染后是否把首个命中滚进侧栏可视区（筛选刚发生时用）。</summary>
+    private bool _revealFirstMatch;
+
+    /// <summary>
     /// 窄屏「组件目录」是否展开。桌面端由 CSS 隐藏开关并强制展开内容，
     /// 因此这个状态只在 <=1000px 时影响画面。
     /// </summary>
     private bool _navOpen;
 
-    private void ToggleNav() => _navOpen = !_navOpen;
+    private void ToggleNav()
+    {
+        _navOpen = !_navOpen;
+        // 展开后的滚动统一由 OnAfterRenderAsync 做：目录从 display:none 变成可见之后，
+        // 元素的布局盒才存在，提前调 RevealSelectedAsync 量到的还是 0×0。
+    }
+
+    private void HandleOpenKeysChanged(IReadOnlyList<string> keys) => _openKeys = keys;
 
     /// <summary>
     /// Sidebar selection follows the route instead of a page parameter, because the
@@ -182,6 +205,19 @@
     private Task HandleQueryChanged(string? value)
     {
         _query = value ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_query))
+        {
+            // 清空查询：把展开状态交还给 Menu 内部状态，读者手动折叠的偏好继续生效。
+            _openKeys = null;
+        }
+        else
+        {
+            // 查询期间受控展开所有命中分组：只展开一个分组会把其余命中藏起来，看起来像零结果。
+            _openKeys = FilteredGroups.Select(group => group.Key).ToArray();
+            _revealFirstMatch = true;
+        }
+
         return Task.CompletedTask;
     }
 
@@ -196,7 +232,16 @@
     /// </summary>
     protected override void OnInitialized() => NavigationManager.LocationChanged += HandleLocationChanged;
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(RevealSelectedAsync);
+    /// <summary>
+    /// 路由变化：窄屏把「组件目录」收回折叠态（它只在 ≤1000px 生效，桌面无影响），
+    /// 当前项滚动交给下一次渲染后的 <see cref="RevealSelectedAsync" />。
+    /// </summary>
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(() =>
+    {
+        _navOpen = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    });
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -213,10 +258,14 @@
             }
         }
 
-        await RevealSelectedAsync();
+        // 每次渲染后都把当前项（或刚筛出的首个命中）滚进可视区：移动端展开目录与
+        // 筛选变换分组展开状态都会走一次渲染，因此这里同时覆盖两条路径。
+        var revealFirst = _revealFirstMatch;
+        _revealFirstMatch = false;
+        await RevealSelectedAsync(revealFirst);
     }
 
-    private async Task RevealSelectedAsync()
+    private async Task RevealSelectedAsync(bool firstMatch = false)
     {
         if (_navModule is null)
         {
@@ -225,7 +274,7 @@
 
         try
         {
-            await _navModule.InvokeVoidAsync("revealSelected");
+            await _navModule.InvokeVoidAsync("revealSelected", firstMatch);
         }
         catch (JSException)
         {

@@ -229,6 +229,13 @@
     to { stroke-dashoffset: 1; }
 }
 
+/* The service pauses the countdown on hover/focus; the ring has to hold the same
+   position or it would keep draining while the card is still on screen. */
+.aeterni-dialog-provider__alert.is-paused .aeterni-progress-ring--accent,
+.aeterni-dialog-provider__toast.is-paused .aeterni-progress-ring--accent {
+    animation-play-state: paused;
+}
+
 /* Closing states ------------------------------------------------------------ */
 
 .aeterni-dialog-provider__alert.is-closing,

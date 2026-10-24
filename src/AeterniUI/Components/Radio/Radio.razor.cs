@@ -13,6 +13,16 @@ public partial class Radio<TValue> : AeterniComponent
     private RadioGroupContext? Group { get; set; }
     [CascadingParameter]
     private FormFieldContext? FormField { get; set; }
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+
+    // Mirrors Checkbox: the standalone shape joins the cascading EditContext so its
+    // ValueExpression is a real field binding instead of a decorative parameter.
+    private readonly EditContextSubscription _validation;
+
+    public Radio() =>
+        _validation = new EditContextSubscription(RequestStateHasChanged);
+
     [Parameter]
     public TValue? Value { get; set; }
     [Parameter]
@@ -47,24 +57,61 @@ public partial class Radio<TValue> : AeterniComponent
     // resolves to the input.
     private string InputId => (Group is null ? FormField?.InputId : null) ?? $"{ElementId}-input";
 
-    // REV-133: grouped radios compare against the group value; a standalone radio
-    // has no peer to compare with, so its own bound value drives the display —
-    // `true` for bool, non-empty for strings, anything but `default` otherwise.
-    // Without this the standalone shape could never render `checked`, so an
-    // initial value, a programmatic assignment and a form reset were all invisible.
+    private FieldIdentifier _fieldIdentifier;
+    private bool _hasFieldIdentifier;
+    private Expression<Func<TValue?>>? _expressionSource;
+    private Func<TValue?>? _expressionAccessor;
+
+    // REV-133: grouped radios compare against the group value. A standalone radio has
+    // no peer to compare with, so the display depends on the shape the host used:
+    //  - with a ValueExpression (the EditForm shape) the option is checked when the
+    //    bound value equals this option's Value, exactly like a grouped radio compares
+    //    against the group value;
+    //  - without one (@bind-Value / Value + ValueChanged) the legacy truthiness rule
+    //    still drives the display — `true` for bool, non-empty for strings, anything
+    //    but `default` otherwise — so an initial value, a programmatic assignment and
+    //    a form reset all stayed visible (REV-133).
     private bool IsChecked => Group?.IsSelected(Value) ?? IsStandaloneChecked();
-    private bool IsStandaloneChecked() => (object?)Value switch
+    private bool IsStandaloneChecked()
     {
-        bool flag => flag,
-        string text => text.Length > 0,
-        null => false,
-        var other => !Equals(other, default(TValue))
-    };
+        if (ValueExpression is not null)
+        {
+            return EqualityComparer<TValue?>.Default.Equals(Value, BoundValue());
+        }
+
+        return (object?)Value switch
+        {
+            bool flag => flag,
+            string text => text.Length > 0,
+            null => false,
+            var other => !Equals(other, default(TValue))
+        };
+    }
+
+    private TValue? BoundValue()
+    {
+        // Compiling on every render would build the same expression tree repeatedly;
+        // the latest instance is cached, and a changed binding rebuilds it once.
+        if (!ReferenceEquals(_expressionSource, ValueExpression))
+        {
+            _expressionSource = ValueExpression;
+            _expressionAccessor = ValueExpression?.Compile();
+        }
+
+        return _expressionAccessor is null ? default : _expressionAccessor();
+    }
     private bool IsDisabled => Disabled || (Group?.Disabled ?? false) || (FormField?.Disabled ?? false);
     private string? EffectiveName => Name ?? Group?.Name;
     private bool EffectiveRequired => Required || (Group?.Required ?? false) || (FormField?.Required ?? false);
     private bool EffectiveInvalid => Invalid || (Group?.Invalid ?? false) || (FormField?.Invalid ?? false);
     private Size EffectiveSize => Size ?? Group?.Size ?? SizeValue.Default;
+
+    // A standalone radio's own ValueExpression contributes validation messages to the
+    // invalid state, matching Checkbox. Grouped radios keep deferring to the group /
+    // FormField state: their child expression is not the field owner.
+    private bool IsInvalid =>
+        EffectiveInvalid ||
+        (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
 
     // The root is a <label>, which cannot carry the native disabled attribute,
     // so SupportsDisabled stays false (matching Card/FlashCard/Card-based roots).
@@ -78,6 +125,7 @@ public partial class Radio<TValue> : AeterniComponent
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        UpdateEditContextSubscription();
 
         if (Size is { } sizeValue && !Enum.IsDefined(sizeValue))
         {
@@ -118,7 +166,7 @@ public partial class Radio<TValue> : AeterniComponent
             attributes["aria-required"] = "true";
         }
 
-        if (EffectiveInvalid)
+        if (IsInvalid)
         {
             attributes["aria-invalid"] = "true";
         }
@@ -148,7 +196,7 @@ public partial class Radio<TValue> : AeterniComponent
         .Add(SizeClass)
         .Add("is-checked", IsChecked)
         .Add("is-disabled", IsDisabled)
-        .Add("is-invalid", EffectiveInvalid);
+        .Add("is-invalid", IsInvalid);
 
     private string SizeClass => EffectiveSize switch
     {
@@ -160,8 +208,35 @@ public partial class Radio<TValue> : AeterniComponent
     private async Task SelectAsync()
     {
         if (IsDisabled) return;
-        if (Group is not null) await Group.SelectAsync(Value);
-        else await ValueChanged.InvokeAsync(Value);
+
+        if (Group is not null)
+        {
+            await Group.SelectAsync(Value);
+            return;
+        }
+
+        await ValueChanged.InvokeAsync(Value);
+        if (_hasFieldIdentifier) _validation.NotifyFieldChanged(_fieldIdentifier);
+    }
+
+    // A grouped radio lets RadioGroup own the bound value, so only the standalone
+    // shape subscribes to a cascading EditContext. This is the same three-step
+    // contract Checkbox uses: attach the context, keep the FieldIdentifier built from
+    // ValueExpression, and detach when the component goes away.
+    private void UpdateEditContextSubscription()
+    {
+        _validation.Attach(Group is null && ValueExpression is not null ? CascadedEditContext : null);
+        _hasFieldIdentifier = Group is null && ValueExpression is not null;
+        if (_hasFieldIdentifier)
+        {
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression!);
+        }
+    }
+
+    protected override ValueTask OnComponentDisposeAsync()
+    {
+        _validation.Detach();
+        return ValueTask.CompletedTask;
     }
 }
 

@@ -16,10 +16,10 @@
     /* One padding value feeds the track, the pill and the pill's travel, and it is the
        same on every size tier: the gap between the outline and the tile must not change
        with Size. It is one spacing step minus a hairline, i.e. 3px.
-       Together with the 24px touch target on the options that invariant inset is also
-       what lifts the small tier - 2(hairline) + 2(3px) + 24 = 32px - so Small no longer
-       lands on --aeterni-control-height-sm (28px). Default and Large are unaffected:
-       their available height (36 - 8 = 28, 44 - 8 = 36) stays above the target. */
+       The small tier is 28px again (2 x hairline + 2 x 3px + 20px option); its 20px
+       option carries an invisible 24px vertical hit area so the pointer target does
+       not shrink with the track. Default and Large are unaffected: their available
+       height (36 - 8 = 28, 44 - 8 = 36) stays above the target. */
     --aeterni-segmented-padding: calc(var(--aeterni-spacing-1) - var(--aeterni-border-width));
     --aeterni-segmented-height: var(--aeterni-control-height-md);
 
@@ -177,11 +177,21 @@
     cursor: not-allowed;
 }
 
-/* A disabled option that is also the current value still sits on the brand pill, so
-   it keeps the inverse ink: the value is selected, it just cannot be moved away
-   from, and grey-on-brand would be unreadable. */
-.aeterni-segmented__option.is-selected .aeterni-segmented__input:disabled + .aeterni-segmented__label {
-    color: var(--aeterni-text-inverse);
+/* A disabled option that is also the current value is parked, so it follows
+   Checkbox/Radio instead of presenting a live-looking brand pill with inverse ink:
+   the slider's fill and outline drop to the disabled tier and the selected label
+   takes the disabled ink. The root :has() variant covers DisabledSelector; the
+   .is-disabled root variant covers a group-level Disabled (which also marks every
+   option is-disabled). */
+.aeterni-segmented:has(.aeterni-segmented__option.is-selected.is-disabled) .aeterni-segmented__slider,
+.aeterni-segmented.is-disabled .aeterni-segmented__slider {
+    border-color: var(--aeterni-state-border-disabled);
+    background: var(--aeterni-state-background-disabled);
+}
+
+.aeterni-segmented__option.is-selected.is-disabled,
+.aeterni-segmented.is-disabled .aeterni-segmented__option.is-selected {
+    color: var(--aeterni-state-color-disabled);
 }
 
 /* Group-level states. */
@@ -202,8 +212,22 @@
 }
 
 .aeterni-segmented--sm .aeterni-segmented__option {
+    /* 28px track = 2 x hairline + 2 x 3px inset + 20px option. */
+    min-height: calc(var(--aeterni-control-height-sm) - (var(--aeterni-segmented-padding) + var(--aeterni-border-width)) * 2);
     padding: 0 var(--aeterni-control-padding-x-sm);
     font-size: var(--aeterni-font-size-xs);
+}
+
+/* The visible tile is only 20px tall, so an invisible pseudo-element restores the
+   24px vertical touch target without growing the track. It belongs to the label, so
+   a pointer landing anywhere in that band still activates the option. */
+.aeterni-segmented--sm .aeterni-segmented__option::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: var(--aeterni-touch-target-min);
+    transform: translateY(-50%);
 }
 
 .aeterni-segmented--lg {

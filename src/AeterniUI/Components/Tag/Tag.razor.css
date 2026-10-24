@@ -6,9 +6,13 @@
        bright fill stop with near-black produced. */
     --aeterni-tag-color: var(--aeterni-color-brand-default);
     --aeterni-tag-ink: var(--aeterni-color-brand-text);
-    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 14%, transparent);
     --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-ink) 85%, var(--aeterni-text-primary));
-    --aeterni-tag-border: transparent;
+    /* The default recipe lives in the base rule instead of a modifier class, so the
+       default variant emits nothing (REV-150). The fill/border pair used to be
+       declared twice in this same rule: an earlier 14%-fill/transparent-border pair
+       was always overridden by the two declarations below, so it was dead code. */
+    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
+    --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
     --aeterni-tag-min-height: var(--aeterni-height-xs);
     --aeterni-tag-padding-inline: var(--aeterni-spacing-2);
     --aeterni-tag-icon-size: var(--aeterni-icon-size-xs);
@@ -22,10 +26,6 @@
     padding: 0 var(--aeterni-tag-padding-inline);
     border: var(--aeterni-border-width) solid var(--aeterni-tag-border);
     border-radius: var(--aeterni-radius-full);
-    /* The default recipe lives in the base rule instead of a modifier class, so the
-       default variant emits nothing (REV-150). */
-    --aeterni-tag-bg: color-mix(in srgb, var(--aeterni-tag-color) 16%, var(--aeterni-bg-surface));
-    --aeterni-tag-border: color-mix(in srgb, var(--aeterni-tag-color) 22%, transparent);
 
     background: var(--aeterni-tag-bg);
     color: var(--aeterni-tag-fg);
@@ -91,6 +91,18 @@
     --aeterni-tag-icon-size: var(--aeterni-icon-size-sm);
 
     font-size: var(--aeterni-font-size-sm);
+}
+
+/* A disabled tag is parked, not promoted: the colour recipe collapses into the
+   disabled surface/border/ink tier instead of dimming the whole chip. The native
+   disabled state lives on the child dismiss Button (a span cannot carry it); the
+   root only announces the state through aria-disabled and this class. */
+.aeterni-tag.is-disabled {
+    --aeterni-tag-bg: var(--aeterni-state-background-disabled);
+    --aeterni-tag-border: var(--aeterni-state-border-disabled);
+    --aeterni-tag-fg: var(--aeterni-state-color-disabled);
+
+    cursor: not-allowed;
 }
 
 .aeterni-tag__icon {

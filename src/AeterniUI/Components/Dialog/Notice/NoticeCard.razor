@@ -2,8 +2,18 @@
 
 @* Card attributes come from BuildAttributes(), so Id/Class/Style/Visible and any
    extra consumer attribute reach the card like every other component. The kind,
-   severity and state classes are built in BuildClass(). *@
-<div @ref="RootElement" @attributes="BuildAttributes()">
+   severity and state classes are built in BuildClass().
+
+   Hover and keyboard focus pause the auto-dismiss countdown (WCAG 2.2.1): the
+   pointer/focus state is owned here, the countdown and the progress ring are
+   owned by the service. `focusin`/`focusout` bubble, so the close button inside
+   the card pauses it too. *@
+<div @ref="RootElement"
+     @attributes="BuildAttributes()"
+     @onmouseenter="HandlePointerEnter"
+     @onmouseleave="HandlePointerLeave"
+     @onfocusin="HandleFocusEnter"
+     @onfocusout="HandleFocusLeave">
     <span class="aeterni-dialog-provider__notice-icon" aria-hidden="true">
         @if (Icon is not null)
         {

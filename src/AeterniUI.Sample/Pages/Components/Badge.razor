@@ -25,7 +25,7 @@
                 <div class="preview-badge-demo">
                     <div class="preview-state-row">
                         <Badge Count="3">
-                            <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" AriaLabel="通知" StartIcon="@NotifyIcon" OnClick="MarkInteraction" />
+                            <Button Variant="ButtonVariant.Outline" Intent="ButtonIntent.Neutral" AriaLabel="通知" StartIcon="@NotifyIcon" OnClick="MarkInteraction" />
                         </Badge>
                         <Badge Dot AriaLabel="有新的构建结果">
                             <Icon Definition="@AeterniIcons.Star" Size="Size.Large" Color="Color.Warning" AriaLabel="收藏" />
@@ -67,7 +67,7 @@
                 <div class="preview-badge-demo">
                     <div class="preview-state-row">
                         <Badge Count="@_badgeCount" Max="@_badgeMax" Color="@_badgeColor" AriaLabel="@_badgeAriaLabel">
-                            <Button Variant="ButtonVariant.Outline" Color="Color.Neutral" AriaLabel="通知" StartIcon="@NotifyIcon" OnClick="MarkInteraction" />
+                            <Button Variant="ButtonVariant.Outline" Intent="ButtonIntent.Neutral" AriaLabel="通知" StartIcon="@NotifyIcon" OnClick="MarkInteraction" />
                         </Badge>
                         <Badge Count="@_badgeCount" Max="@_badgeMax" Color="@_badgeColor">
                             <Surface Class="preview-badge-avatar">AU</Surface>

@@ -414,6 +414,13 @@
     text-align: center;
 }
 
+/* FormField 自带标签与说明：整组居中会让标签、输入与说明错开中线，只有纯单控件
+   的预览（输入、滑块、分页……）才需要居中的展示台效果。 */
+.preview-form-control:has(.aeterni-form-field) {
+    justify-items: stretch;
+    text-align: start;
+}
+
 /* FormField/ComboBox fill the preview row (their layout is width-driven);
    default-width inputs stay centered. */
 .preview-form-control--fill {
@@ -1430,14 +1437,16 @@
 }
 
 .component-preview__api-table {
-    overflow: hidden;
+    /* 表头在长表滚动时 sticky，本层就不能是滚动容器；窄屏的横向滚动在 ≤900px 的
+       媒体查询里打开。 */
+    position: relative;
     border: 1px solid var(--aeterni-border);
     border-radius: var(--aeterni-radius-md);
 }
 
 .component-preview__api-row {
     display: grid;
-    grid-template-columns: minmax(110px, .7fr) minmax(150px, 1fr) minmax(220px, 2fr);
+    grid-template-columns: minmax(170px, .9fr) minmax(150px, 1fr) minmax(220px, 2fr);
     gap: 14px;
     align-items: start;
     padding: 12px 14px;
@@ -1452,11 +1461,27 @@
 }
 
 .component-preview__api-row--header {
+    /* 长表滚动时表头跟随，并在固定页头下方停住：参数名与「类型 / 默认值」的列义
+       不会在滚动中丢掉。sticky 的参照是视口，因为外层不再滚动。 */
+    position: sticky;
+    top: var(--sample-content-top);
+    z-index: 2;
+    border-radius: var(--aeterni-radius-md) var(--aeterni-radius-md) 0 0;
     background: var(--aeterni-bg-secondary);
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
     letter-spacing: .04em;
+}
+
+/* 名称是代码标识符，按词折行会把 AdditionalAttributes 拆成两段；改成 nowrap，
+   窄屏交给容器的横向滚动处理（见 ≤900px 的媒体查询）。 */
+.component-preview__api-row > [role="cell"]:first-child {
+    white-space: nowrap;
+}
+
+.component-preview__api-row > [role="cell"]:first-child code {
+    overflow-wrap: normal;
 }
 
 .component-preview__api-row code,
@@ -1513,7 +1538,9 @@
     height: 18px;
     border-radius: var(--aeterni-radius-round);
     background: var(--aeterni-info);
-    color: var(--aeterni-text-inverse);
+    /* 语意实心上的字用 on-semantic，不用 text-inverse：深色主题里 info 是亮蓝，
+       白字会掉到对比度下限以下。 */
+    color: var(--aeterni-color-on-semantic);
     font-family: var(--aeterni-font-family-mono);
     font-size: 11px;
     font-weight: var(--aeterni-font-weight-bold);
@@ -1532,13 +1559,38 @@
         border-bottom: 1px solid var(--aeterni-border-subtle);
     }
 
-    .component-preview__api-row {
-        grid-template-columns: 1fr;
-        gap: 4px;
+    /* 名称列不折词，窄屏把超出的部分交给容器横向滚动。 */
+    .component-preview__api-table {
+        overflow-x: auto;
     }
 
+    .component-preview__api-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    /* 表头视觉收起，但保留 role=columnheader 供读屏使用（裁到 1px 仍在无障碍树里）；
+       每一行的列义由 data-label 伪元素补成可见的微型标签。 */
     .component-preview__api-row--header {
-        display: none;
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        padding: 0;
+        border: 0;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .component-preview__api-row [role="cell"]::before {
+        display: block;
+        margin-bottom: 2px;
+        content: attr(data-label);
+        color: var(--aeterni-text-secondary);
+        font-family: var(--aeterni-font-family-base);
+        font-size: var(--aeterni-font-size-xs);
+        font-weight: var(--aeterni-font-weight-semibold);
+        letter-spacing: .04em;
     }
 }
 
@@ -1933,10 +1985,8 @@
     margin-bottom: 10px;
 }
 
-/* API 表在窄屏下横向滚动，而不是把卡片撑破。 */
-.component-preview__api-table {
-    overflow-x: auto;
-}
+/* API 表的横向滚动只在 ≤900px 的单列布局里打开（见上面的媒体查询）；桌面保持
+   普通文档流，长表才能让表头相对视口 sticky。 */
 
 /* 窄屏把侧栏收成一份可展开的「组件目录」：桌面隐藏开关并强制展开内容，
    移动端默认折叠，展开状态由 ComponentsLayout 的 aria-expanded 与 .is-open 表达。 */
@@ -1946,7 +1996,8 @@
     justify-content: space-between;
     gap: var(--aeterni-spacing-3);
     width: 100%;
-    min-height: var(--aeterni-touch-target-min);
+    /* 「组件目录」是窄屏进导航的唯一入口，命中区取触控下限而不是 24px。 */
+    min-height: var(--aeterni-touch-target);
     padding: 10px 0;
     border: 0;
     border-radius: 0;
@@ -2032,11 +2083,20 @@
         flex: 0 0 auto;
     }
 
+    /* 图标按钮的可见尺寸保持 34px（页头第一行不被撑高），用按钮自己的伪元素把命中区
+       扩到 40px；伪元素属于按钮，点击与 hover 都落到同一个元素上。 */
     .showcase-search-trigger {
+        position: relative;
         width: 34px;
         min-height: 34px;
         padding: 0;
         justify-content: center;
+    }
+
+    .showcase-search-trigger::after {
+        position: absolute;
+        inset: -3px;
+        content: "";
     }
 
     .showcase-search-trigger__label,
@@ -2117,8 +2177,8 @@
 }
 
 /* 居中搜索面板：遮罩铺满视口、面板居中。两者都是 fixed 定位，所以页面滚动不会把面板带走，
-   滚动锁（库内共享模块提供）只是不让背后跟着滚。面板与 Popover、Dialog 同一套玻璃配方：同一
-   组填充、模糊与墨阶 token，站在一起不像两种材质。 */
+   滚动锁（库内共享模块提供）只是不让背后跟着滚。面板是不透明内容表面（`--aeterni-bg-surface`），
+   与 Dialog/Drawer 同一档，不再叠玻璃——玻璃面板上套白输入框会让层级读反，浅色主题下尤其明显。 */
 .showcase-search-modal {
     position: fixed;
     z-index: var(--aeterni-z-modal);
@@ -2145,14 +2205,6 @@
 }
 
 .showcase-search-modal__panel {
-    /* 玻璃填充承载不了标准墨阶：72% 的浅色背投下，深色主题的 secondary 落到 3.41:1、tertiary
-       落到 2.51:1，低于 4.5:1 正文与 3:1 图标下限。凡是承载该墨阶的角色都重新指一遍（其它名字
-       在主题块里别名指向它），与 Popover、Card、Dialog 同一处理。 */
-    --aeterni-text-secondary: var(--aeterni-text-on-glass-secondary);
-    --aeterni-text-muted: var(--aeterni-text-on-glass-secondary);
-    --aeterni-state-color-readonly: var(--aeterni-text-on-glass-secondary);
-    --aeterni-text-tertiary: var(--aeterni-text-on-glass-tertiary);
-
     position: relative;
     z-index: 1;
     display: flex;
@@ -2163,11 +2215,11 @@
     overflow: hidden;
     border: var(--aeterni-border-width) solid var(--aeterni-border-default);
     border-radius: var(--aeterni-radius-modal);
-    background: var(--aeterni-bg-glass);
+    /* 不透明表面：不写 backdrop-filter，避免浅色下"灰玻璃面板里套白输入框"的层级反转；
+       墨阶回到普通表面 token，不再需要 on-glass 别名。 */
+    background: var(--aeterni-bg-surface);
     color: var(--aeterni-text-primary);
     box-shadow: var(--aeterni-shadow-modal);
-    -webkit-backdrop-filter: var(--aeterni-blur-glass);
-    backdrop-filter: var(--aeterni-blur-glass);
     pointer-events: auto;
     animation: showcase-search-panel-in var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
@@ -2249,8 +2301,18 @@
 }
 
 .showcase-search-modal__option-meta {
-    color: var(--aeterni-text-tertiary);
+    /* 结果页码是正文信息（Timeline · 导航组件），用 secondary 而不是 tertiary。 */
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
+}
+
+/* 查询为空时的引导：这是初始态，不是"没有结果"，所以文案只说明能搜什么。 */
+.showcase-search-modal__prompt {
+    margin: 0;
+    padding: var(--aeterni-spacing-3) var(--aeterni-spacing-3) var(--aeterni-spacing-4);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-sm);
+    line-height: var(--aeterni-line-height-normal);
 }
 
 .showcase-search-modal__empty {
@@ -2266,7 +2328,7 @@
     margin: 0;
     padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
     border-top: 1px solid var(--aeterni-border-subtle);
-    color: var(--aeterni-text-tertiary);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
 }
 
@@ -2276,6 +2338,15 @@
    之外开始——用示例自己的类名做偏移，不去写 `.aeterni-popover` 的全局规则。 */
 .showcase-settings__popover {
     margin-top: var(--aeterni-spacing-3);
+}
+
+/* 窄屏页头折成两行（第二行是主导航）：设置浮层按齿轮锚定，默认间距会压在第二行上。
+   多让出一行导航的高度，并限制最大宽度，浮层就不会盖住导航与页头边缘。 */
+@media (max-width: 700px) {
+    .showcase-settings__popover {
+        max-width: calc(100vw - var(--aeterni-spacing-4) * 2);
+        margin-top: 64px;
+    }
 }
 
 /* 设置浮层：可见标签 + 分段控件，两者说的是同一件事。 */

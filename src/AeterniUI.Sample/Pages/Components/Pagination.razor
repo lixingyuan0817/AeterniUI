@@ -50,7 +50,7 @@
                   Code="@ControlCode">
             <Preview>
                 <div class="preview-form-control">
-                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" AriaLabel="可调分页" />
+                    <Pagination CurrentPage="@_page" TotalPages="15" SiblingCount="1" CurrentPageChanged="OnPageChanged" Disabled="@_disabled" AriaLabel="可调分页" />
                     <span class="preview-feedback" role="status">当前第 @_page 页，共 15 页</span>
                 </div>
             </Preview>
@@ -62,6 +62,7 @@
                     <label for="pagination-page">CurrentPage</label>
                     <input id="pagination-page" type="number" min="1" max="15" @bind="PageInput" />
                 </div>
+                <Checkbox Size="Size.Small" @bind-Value="_disabled">Disabled</Checkbox>
             </Controls>
         </DemoCard>
     </Demos>
@@ -69,6 +70,7 @@
         <span>前后操作使用核心 Chevron 图标；区域名称、页码与前后按钮文案都可通过实例参数或全局文案表本地化，<code>PageLabelFormat</code> 必须保留 <code>{0}</code> 页码占位符。</span>
         <span><code>CurrentPage</code> 必须落在 1 到 <code>TotalPages</code> 之间，<code>SiblingCount</code> 不能为负数：越界值会在参数设置阶段抛出。</span>
         <span>页码窗口固定保留第 1 页与最后一页，中间用省略号折叠；<code>prefers-reduced-motion: reduce</code> 下关闭当前页相关的过渡。</span>
+        <span><code>Disabled</code> 会禁用全部翻页按钮并停止页码变更，根 <code>nav</code> 输出 <code>aria-disabled</code> 与禁用视觉（nav 没有原生 disabled）。</span>
     </Notes>
 </ComponentPage>
 
@@ -111,6 +113,8 @@
         """;
 
     private int _page = 3;
+
+    private bool _disabled;
 
     private int PageInput
     {

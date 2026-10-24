@@ -8,6 +8,13 @@
 .aeterni-pagination button.is-current:hover:not(:disabled) { background: var(--aeterni-state-background-checked-hover); color: var(--aeterni-text-inverse); }
 .aeterni-pagination button.is-current:active:not(:disabled) { background: var(--aeterni-state-background-checked-active); color: var(--aeterni-text-inverse); }
 .aeterni-pagination button:disabled { color: var(--aeterni-text-disabled); cursor: not-allowed; }
+/* A parked pagination neutralises through the disabled tier instead of fading the
+   whole bar: the page buttons keep their transparent surface and take the disabled
+   ink, while the current page drops its brand fill for the disabled surface/border.
+   Without this the aria-disabled/disabled state still looked live. */
+.aeterni-pagination.is-disabled button { background: transparent; color: var(--aeterni-state-color-disabled); cursor: not-allowed; }
+.aeterni-pagination.is-disabled button.is-current { background: var(--aeterni-state-background-disabled); border-color: var(--aeterni-state-border-disabled); color: var(--aeterni-state-color-disabled); }
+.aeterni-pagination.is-disabled .aeterni-pagination__ellipsis { color: var(--aeterni-state-color-disabled); }
 .aeterni-pagination__ellipsis { box-sizing: border-box; font-size: var(--aeterni-font-size-xs); line-height: var(--aeterni-leading-none); display: inline-grid; place-items: center; min-width: var(--aeterni-control-height-sm); height: var(--aeterni-control-height-sm); color: var(--aeterni-text-tertiary); transition: color var(--aeterni-duration-fast) var(--aeterni-ease-in-out); }
 
 @media (prefers-reduced-motion: reduce) {

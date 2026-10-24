@@ -10,16 +10,7 @@ AeterniUI 是一个 Blazor 组件库，面向 Blazor Server 和 Blazor WebAssemb
 项目使用 .NET 10，并面向 `net10.0`。在新计算机上请重新还原 NuGet
 依赖，不要复制旧计算机生成的构建输出。
 
-## 项目组成
-
-- `src/AeterniUI`：核心组件库，包含组件使用的供应商无关内置
-  `AeterniIcons` 图标集。
-- `src/AeterniUI.Icons.FontAwesome`：可选的 Font Awesome Free 7.3.1
-  图标定义，由 `scripts/generate-fontawesome-icons.mjs` 生成。
-- `src/AeterniUI.Sample`：Blazor WebAssembly 示例项目。
-- `AGENTS.md`：Agent 任务执行手册，包含任务分类、阅读路由、项目索引与开发约束。
-- `docs/delivered-features.zh-CN.md`：当前已经交付的公共能力。
-- `docs/component-plan.zh-CN.md`：尚未完成的组件与能力计划。
+项目组成、文档职责与开发约束见 [`AGENTS.md`](AGENTS.md)。
 
 ## 启动浏览器示例
 
@@ -53,19 +44,16 @@ builder.Services.AddAeterniUI();
 
 ## 发布 NuGet 包
 
-推送与 `Directory.Build.props` 版本一致的 tag 后，GitHub Actions 会自动
-发布 NuGet 包。请先在 NuGet.org 为本仓库配置 Trusted Publishing，然后
-修改 `Directory.Build.props` 中的版本并推送对应 tag：
+先在 NuGet.org 为本仓库配置 Trusted Publishing，再修改 `Directory.Build.props`
+中的 `Version` 并推送同名 tag（`<version>` 取自该文件，README 不复制版本字面量）：
 
 ```bash
-git tag v10.45.0
-git push origin v10.45.0
+git tag v<version>
+git push origin v<version>
 ```
 
-发布流程会同时发布：
-
-- `AeterniUI`
-- `AeterniUI.Icons.FontAwesome`
+工作流会校验 tag 与 `Directory.Build.props` 一致，并同时发布 `AeterniUI`
+与 `AeterniUI.Icons.FontAwesome`。
 
 ## 图标
 
@@ -106,22 +94,7 @@ Font Awesome 的版权和许可说明。详情请参阅：
 
 ## 文档
 
-| 主题 | 文档 |
-| --- | --- |
-| Agent 任务执行流程、项目索引与开发约束 | [`AGENTS.md`](AGENTS.md) |
-| 当前交付功能 | [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md) |
-| 当前组件计划 | [`docs/component-plan.zh-CN.md`](docs/component-plan.zh-CN.md) |
-| 当前审阅计划 | [`docs/review-plan.zh-CN.md`](docs/review-plan.zh-CN.md) |
-| 工程原理与特殊实现参考 | [`docs/engineering-reference.zh-CN.md`](docs/engineering-reference.zh-CN.md) |
-| 历史版本与已完成批次 | [`docs/release-history.zh-CN.md`](docs/release-history.zh-CN.md) |
+完整文档索引与开发约束见 [`AGENTS.md`](AGENTS.md)；当前交付的功能与公共 API 见 [`docs/delivered-features.zh-CN.md`](docs/delivered-features.zh-CN.md)。
 
-## 迁移到其他计算机
-
-1. 复制或克隆源代码，排除生成输出和 IDE 元数据。
-2. 安装所需的 .NET SDK。
-3. 执行 `dotnet restore aeterni_ui.slnx`。
-4. 执行 `dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profile http`。
-5. 在请求其他代码 Agent 修改项目之前，先阅读 `AGENTS.md`。
-
-计算机相关的代理设置应放在本机 Shell 或 Agent 配置中，不要提交到仓库。
-配置 HTTPS 代理时，请使用正确命名的 `HTTPS_PROXY` 环境变量。
+计算机相关的代理设置应放在本机 Shell 或 Agent 配置中，不要提交到仓库；
+配置 HTTPS 代理时请使用正确命名的 `HTTPS_PROXY` 环境变量。

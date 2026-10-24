@@ -19,7 +19,28 @@ public partial class Pagination : AeterniComponent
     private string EffectiveNextLabel => string.IsNullOrWhiteSpace(NextLabel) ? UiText.PaginationNextLabel : NextLabel.Trim();
     private string EffectivePageLabelFormat => string.IsNullOrWhiteSpace(PageLabelFormat) ? UiText.PaginationPageLabelFormat : PageLabelFormat.Trim();
 
-    protected override ClassBuilder BuildClass() => base.BuildClass().Add("aeterni-pagination");
+    // A pagination root is a <nav>, not a form control, so it has no native disabled
+    // attribute to rely on. Opting into the base contract installs the aria-disabled
+    // announcement; every button is still disabled individually in Pagination.razor
+    // because aria-disabled alone does not remove the click behaviour.
+    protected override bool SupportsDisabled => true;
+
+    protected override ClassBuilder BuildClass() => base.BuildClass()
+        .Add("aeterni-pagination")
+        .Add("is-disabled", Disabled);
+
+    protected override IReadOnlyDictionary<string, object> BuildAttributes()
+    {
+        var attributes = new Dictionary<string, object>(
+            base.BuildAttributes(),
+            StringComparer.OrdinalIgnoreCase);
+
+        // SupportsDisabled makes the base class emit the state contract, but the
+        // native attribute is invalid on a <nav>; keep only the ARIA counterpart.
+        attributes.Remove("disabled");
+
+        return attributes;
+    }
 
     private IEnumerable<int> VisiblePages
     {
@@ -35,6 +56,9 @@ public partial class Pagination : AeterniComponent
 
     private async Task GoToAsync(int page)
     {
+        // The buttons are disabled as well, but the guard keeps a stale event or a
+        // programmatic call from mutating the page while the control is parked.
+        if (Disabled) return;
         page = Math.Clamp(page, 1, TotalPages);
         if (page == CurrentPage) return;
         await CurrentPageChanged.InvokeAsync(page);
