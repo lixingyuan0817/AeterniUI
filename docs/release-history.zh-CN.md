@@ -6,6 +6,41 @@
 
 历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
 
+## 10.48.0 IconMenuButton 改名、弹层退场位置与交互反馈修复
+
+用户反馈批次。本批包含一次破坏性的组件改名，以及弹层、Splitter、Segmented、图标尺寸和示例筛选的修复；按 §4.9 生效第二位递增。
+
+### 破坏性改名
+
+- `IconButtonMenu` → `IconMenuButton`：组件类、命名空间 `AeterniUI.Components.IconMenuButton`、文件/目录、CSS 根类 `aeterni-icon-menu-button`、示例路由 `/components/icon-menu-button`、API 表页与搜索索引全部改名；测试与契约同步。
+- 不保留 Obsolete 别名：旧标签、旧 `@using`、旧 CSS 类与旧路由需要迁移到新名。历史 release notes 中的旧名保持原样，不重写历史。
+
+### 弹层退场位置
+
+- 修复所有 `Popover` 消费者在“JS 翻转成上方（top-*）打开”后关闭时先跳到下方再消失的问题：关闭重渲染会把 Blazor 渲染的 preferred placement 写回根 class，退场动画因此按 bottom 定位。
+- `Popover.razor.js` 记录 JS 解析后的 placement 与 anchored 坐标；`setOpen(closing)` 在启动退场等待前恢复该快照，并在每次退场同步时再次恢复。打开/关闭、模态/非模态、anchored 路径共用同一实现。
+- 受影响组件：DatePicker、DateRangePicker、DateTimePicker、TimePicker、ComboBox、Cascader、Autocomplete、MultiSelect、MenuButton、IconMenuButton；另含示例设置浮层（Anchor 模式）。
+
+### Splitter
+
+- 有效上限改为 `min(MaxFirstSize, 容器主轴尺寸 - --aeterni-touch-target-min)`：窄容器下第二栏不再被压到 0、分隔条不再被 `overflow: hidden` 裁掉，拖到边界后仍可抓回。
+- `ResizeObserver` 在容器缩小时重新夹取并回写宿主；`aria-valuenow` 反映实际值，`aria-valuemax` 仍报告配置上限。
+- 示例预览框架固定为 `width:100%`：此前画布是 flex 居中容器，框架按内容收缩，第一栏变宽会反向撑大容器，拖动时尺寸反馈来回跳。
+
+### Segmented 与图标
+
+- Segmented 滑块位移放慢到 300ms（`--aeterni-segmented-slider-duration`），颜色/阴影保持 200ms，reduced-motion 立即。
+- 修复非正方形 Font Awesome 图标（如 `ellipsis-vertical` 128×512）在 Button/IconButton/Menu/NavMenu/Tag 的图标槽里被撑大的问题：槽位改用像素 Token 传 `--aeterni-icon-render-size`，不再用 `100%`（百分比高度会让 SVG 按 `auto` 取宽高比）。
+
+### 示例
+
+- Autocomplete 示例改为宿主侧过滤：按输入对 `_components` 做 `Contains(OrdinalIgnoreCase)`，四个 demo 分别绑定各自输入值；组件本身仍不筛选数据，页面文案与代码片段明确“过滤是宿主职责”。
+- 浏览器回归新增：弹层 top 翻转关闭不跳位、Splitter 拖到边界后可抓回、非正方形图标不撑破触发器等断言。
+
+### 验证
+
+- `dotnet build aeterni_ui.slnx` 0 错误；契约检查 47 组通过；`node --test tests/*.test.mjs` 142 项通过；`tests/sample-docs.test.mjs` 14 项通过；`check-theme-parity`（110 tokens）、`check-css`（85 文件/16 容器）、`check-contrast`（315）、`check-docs.sh`、`check-doc-drift`、API `--check`（61 页/806 行）、搜索索引 `--check`（553 条/69 页）通过；真实浏览器检查 200/200 通过（含 IconMenuButton 改名、弹层 top 翻转关闭不跳位、Splitter 边界可抓回、非正方形图标尺寸、Autocomplete 宿主过滤与既有回归）。
+
 ## 10.47.1 语义收口、动效细节与 Token/排版收敛
 
 10.47.0 发版后继续处理审阅计划剩余的 P2/P3。本批以行为修复与内部收敛为主，没有新增公共参数，按 §4.9 第三位递增。

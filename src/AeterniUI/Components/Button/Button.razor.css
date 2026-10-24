@@ -157,7 +157,12 @@
 }
 
 .aeterni-button__icon {
-    --aeterni-icon-render-size: 100%;
+    /* A pixel size, not 100%: the Icon component sizes both axes from this
+       variable, and a percentage height on an inline SVG can resolve to auto, so
+       a non-square viewBox (e.g. 128x512) painted at the slot width and stretched
+       the glyph. An explicit box keeps every glyph inside the square slot and
+       scales the viewBox proportionally (a 1:4 glyph becomes 4x16 there). */
+    --aeterni-icon-render-size: var(--aeterni-icon-size-md);
 
     display: inline-flex;
     flex: 0 0 auto;
@@ -184,6 +189,7 @@
 .aeterni-button--sm .aeterni-button__icon {
     width: var(--aeterni-icon-size-sm);
     height: var(--aeterni-icon-size-sm);
+    --aeterni-icon-render-size: var(--aeterni-icon-size-sm);
 }
 
 .aeterni-button--sm .aeterni-button__loading {
@@ -201,6 +207,7 @@
 .aeterni-button--lg .aeterni-button__icon {
     width: var(--aeterni-icon-size-lg);
     height: var(--aeterni-icon-size-lg);
+    --aeterni-icon-render-size: var(--aeterni-icon-size-lg);
 }
 
 .aeterni-button--lg .aeterni-button__loading {

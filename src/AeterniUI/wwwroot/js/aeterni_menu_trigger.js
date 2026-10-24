@@ -1,7 +1,7 @@
 /*
    AeterniUI — shared keyboard guard for menu trigger buttons.
 
-   `MenuButton` and `IconButtonMenu` open a menu from a real button. The C# side
+   `MenuButton` and `IconMenuButton` open a menu from a real button. The C# side
    owns the open state and the menu's own keyboard model; this module only does
    what C# cannot: cancel the browser's default ArrowDown/ArrowUp page scroll
    before reporting the key, so opening the menu never moves the page.

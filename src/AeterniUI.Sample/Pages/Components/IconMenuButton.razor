@@ -1,33 +1,33 @@
-@page "/components/icon-button-menu"
+@page "/components/icon-menu-button"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
-@using AeterniUI.Components.IconButtonMenu
+@using AeterniUI.Components.IconMenuButton
 @using AeterniUI.Enums
 @using AeterniUI.Icons
 @using AeterniUI.Icons.FontAwesome
 
-<PageTitle>Aeterni UI · IconButtonMenu</PageTitle>
+<PageTitle>Aeterni UI · IconMenuButton</PageTitle>
 
-<ComponentPage AnchorId="icon-button-menu"
+<ComponentPage AnchorId="icon-menu-button"
                Category="基础组件"
-               Title="IconButtonMenu"
-               ComponentName="IconButtonMenu"
+               Title="IconMenuButton"
+               ComponentName="IconMenuButton"
                Description="图标菜单按钮：一个图标动作按钮下挂一份菜单，适合工具栏与列表行尾的「更多」。"
-               Related="@IconButtonMenuRelated">
+               Related="@IconMenuButtonRelated">
     <WhenToUse>
         <p>空间只够放一个图标、但动作后面还要挂若干次要命令时使用：工具栏的「更多」、卡片角与列表行尾的操作菜单。</p>
         <p>触发器需要可见文字时用 <code>MenuButton</code>；纯图标且没有菜单时用 <code>IconButton</code>；主按钮与菜单并列时用 <code>SplitButton</code>。</p>
         <p><code>AriaLabel</code> 是必需项：触发器没有可见文字，读屏只能靠这个名字识别菜单动作。</p>
     </WhenToUse>
     <Demos>
-        <DemoCard Id="icon-button-menu-basic"
+        <DemoCard Id="icon-menu-button-basic"
                   Title="基础用法"
                   Description="点击图标打开菜单，Escape 或外部点击关闭；菜单项由 MenuItem 组成，可以带说明与禁用项。右侧控件即时作用在第一个按钮上，第二个按钮演示 Shape=Square。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-stack">
                     <div class="preview-action-row">
-                        <IconButtonMenu Icon="@MoreIcon"
+                        <IconMenuButton Icon="@MoreIcon"
                                         AriaLabel="@_ariaLabel"
                                         Variant="@_variant"
                                         Intent="@_intent"
@@ -37,7 +37,7 @@
                                         Flat="@_flat"
                                         Items="@MenuItems"
                                         OnItemSelected="HandleSelectedAsync" />
-                        <IconButtonMenu Icon="@RowMoreIcon"
+                        <IconMenuButton Icon="@RowMoreIcon"
                                         Variant="ButtonVariant.Outline"
                                         Size="Size.Small"
                                         Shape="IconButtonShape.Square"
@@ -50,49 +50,49 @@
             </Preview>
             <Controls>
                 <div class="control-field">
-                    <label for="icon-button-menu-label">AriaLabel</label>
-                    <input id="icon-button-menu-label" @bind="_ariaLabel" />
+                    <label for="icon-menu-button-label">AriaLabel</label>
+                    <input id="icon-menu-button-label" @bind="_ariaLabel" />
                 </div>
                 <div class="control-grid">
                     <div class="control-field">
                         <span>Variant</span>
-                        <ShowcaseSelect TValue="ButtonVariant" Id="icon-button-menu-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
+                        <ShowcaseSelect TValue="ButtonVariant" Id="icon-menu-button-variant" AriaLabel="Variant" Options="@(Enum.GetValues<ButtonVariant>())" @bind-Value="_variant" />
                     </div>
                     <div class="control-field">
                         <span>Intent</span>
-                        <ShowcaseSelect TValue="ButtonIntent" Id="icon-button-menu-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
+                        <ShowcaseSelect TValue="ButtonIntent" Id="icon-menu-button-intent" AriaLabel="Intent" Options="@(Enum.GetValues<ButtonIntent>())" @bind-Value="_intent" />
                     </div>
                     <div class="control-field">
                         <span>Size</span>
-                        <ShowcaseSelect TValue="Size" Id="icon-button-menu-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
+                        <ShowcaseSelect TValue="Size" Id="icon-menu-button-size" AriaLabel="Size" Options="@(Enum.GetValues<Size>())" @bind-Value="_size" />
                     </div>
                     <div class="control-field">
                         <span>Shape</span>
-                        <ShowcaseSelect TValue="IconButtonShape" Id="icon-button-menu-shape" AriaLabel="Shape" Options="@(Enum.GetValues<IconButtonShape>())" @bind-Value="_shape" />
+                        <ShowcaseSelect TValue="IconButtonShape" Id="icon-menu-button-shape" AriaLabel="Shape" Options="@(Enum.GetValues<IconButtonShape>())" @bind-Value="_shape" />
                     </div>
                     <div class="control-field">
                         <span>Placement</span>
-                        <ShowcaseSelect TValue="PopupPlacement" Id="icon-button-menu-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                        <ShowcaseSelect TValue="PopupPlacement" Id="icon-menu-button-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
                     </div>
                 </div>
                 <Checkbox Size="Size.Small" @bind-Value="_flat">Flat（摊平为一份列表）</Checkbox>
             </Controls>
         </DemoCard>
 
-        <DemoCard Id="icon-button-menu-flat"
+        <DemoCard Id="icon-menu-button-flat"
                   Title="扁平与分组"
                   Description="Flat 把各分组的条目按顺序摊平成一份无标题列表，不再输出分组开关与 aria-expanded；不开启时保留 Menu 的折叠分组。"
                   Code="@FlatCode">
             <Preview>
                 <div class="preview-action-row">
                     <span>Flat</span>
-                    <IconButtonMenu Icon="@MoreIcon"
+                    <IconMenuButton Icon="@MoreIcon"
                                     AriaLabel="更多操作（扁平）"
                                     Flat
                                     Items="@MenuItems"
                                     OnItemSelected="HandleSelectedAsync" />
                     <span>分组</span>
-                    <IconButtonMenu Icon="@MoreIcon"
+                    <IconMenuButton Icon="@MoreIcon"
                                     AriaLabel="更多操作（分组）"
                                     Items="@MenuItems"
                                     OnItemSelected="HandleSelectedAsync" />
@@ -100,7 +100,7 @@
             </Preview>
         </DemoCard>
 
-        <DemoCard Id="icon-button-menu-controlled"
+        <DemoCard Id="icon-menu-button-controlled"
                   Title="受控打开"
                   Description="绑定 Open/OpenChanged 后开关由宿主决定：示例里的按钮由宿主状态驱动，组件只上报请求。"
                   Code="@ControlledCode">
@@ -108,7 +108,7 @@
                 <div class="preview-stack">
                     <div class="preview-action-row">
                         <Button Variant="ButtonVariant.Outline" OnClick="ToggleMenu">@(_menuOpen ? "关闭菜单" : "打开菜单")</Button>
-                        <IconButtonMenu Icon="@MoreIcon"
+                        <IconMenuButton Icon="@MoreIcon"
                                         AriaLabel="受控菜单"
                                         Open="_menuOpen"
                                         OpenChanged="SetMenuOpen"
@@ -121,14 +121,14 @@
             </Preview>
         </DemoCard>
 
-        <DemoCard Id="icon-button-menu-states"
+        <DemoCard Id="icon-menu-button-states"
                   Title="禁用与加载"
                   Description="Disabled 锁住整个组合；Loading 让触发器忙碌且不可点击，菜单状态由宿主决定。"
                   Code="@StateCode">
             <Preview>
                 <div class="preview-action-row">
-                    <IconButtonMenu Icon="@MoreIcon" AriaLabel="已禁用" Disabled Items="@MenuItems" />
-                    <IconButtonMenu Icon="@MoreIcon" AriaLabel="正在加载" Loading Items="@MenuItems" />
+                    <IconMenuButton Icon="@MoreIcon" AriaLabel="已禁用" Disabled Items="@MenuItems" />
+                    <IconMenuButton Icon="@MoreIcon" AriaLabel="正在加载" Loading Items="@MenuItems" />
                 </div>
             </Preview>
         </DemoCard>
@@ -142,7 +142,7 @@
 </ComponentPage>
 
 @code {
-    private static readonly ShowcaseRelatedLink[] IconButtonMenuRelated =
+    private static readonly ShowcaseRelatedLink[] IconMenuButtonRelated =
     [
         new("MenuButton", "/components/menu-button"),
         new("IconButton", "/components/icon-button"),
@@ -151,19 +151,19 @@
     ];
 
     private const string BasicCode = """
-        <IconButtonMenu Icon="@MoreIcon"
+        <IconMenuButton Icon="@MoreIcon"
                         AriaLabel="更多操作"
                         Items="MenuItems"
                         OnItemSelected="HandleSelected" />
         """;
 
     private const string FlatCode = """
-        <IconButtonMenu Icon="@MoreIcon" AriaLabel="更多操作（扁平）" Flat Items="MenuItems" />
-        <IconButtonMenu Icon="@MoreIcon" AriaLabel="更多操作（分组）" Items="MenuItems" />
+        <IconMenuButton Icon="@MoreIcon" AriaLabel="更多操作（扁平）" Flat Items="MenuItems" />
+        <IconMenuButton Icon="@MoreIcon" AriaLabel="更多操作（分组）" Items="MenuItems" />
         """;
 
     private const string ControlledCode = """
-        <IconButtonMenu Icon="@MoreIcon"
+        <IconMenuButton Icon="@MoreIcon"
                         AriaLabel="受控菜单"
                         Open="MenuOpen"
                         OpenChanged="SetMenuOpen"
@@ -171,8 +171,8 @@
         """;
 
     private const string StateCode = """
-        <IconButtonMenu Icon="@MoreIcon" AriaLabel="已禁用" Disabled Items="MenuItems" />
-        <IconButtonMenu Icon="@MoreIcon" AriaLabel="正在加载" Loading Items="MenuItems" />
+        <IconMenuButton Icon="@MoreIcon" AriaLabel="已禁用" Disabled Items="MenuItems" />
+        <IconMenuButton Icon="@MoreIcon" AriaLabel="正在加载" Loading Items="MenuItems" />
         """;
 
     private RenderFragment MoreIcon => @<Icon Definition="@FontAwesomeIcons.Solid.EllipsisVertical" />;

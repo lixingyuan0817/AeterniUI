@@ -92,7 +92,7 @@ await CheckSegmentedShapeAsync();
 await CheckSegmentedKeyboardAsync();
 await TransferChecks.RunAsync(renderer, failures);
 await AnchorChecks.RunAsync(renderer, failures);
-await IconButtonMenuChecks.RunAsync(renderer, failures);
+await IconMenuButtonChecks.RunAsync(renderer, failures);
 await FormDialogChecks.RunAsync(renderer, failures);
 await NavMenuEnhancementChecks.RunAsync(renderer, failures);
 await ChromeControlsChecks.RunAsync(renderer, failures);
@@ -2720,8 +2720,8 @@ async Task CheckReviewBatch26Async()
     // the default variant must not emit a modifier class.
     var tagCss = await File.ReadAllTextAsync(Path.Combine(components, "Tag", "Tag.razor.css"));
     Require(!tagCss.Contains(".aeterni-tag__icon > svg", StringComparison.Ordinal)
-        && tagCss.Contains("--aeterni-icon-render-size: 100%", StringComparison.Ordinal),
-        "Tag must size the child Icon through the shared token instead of a scoped svg rule.");
+        && tagCss.Contains("--aeterni-icon-render-size: var(--aeterni-tag-icon-size)", StringComparison.Ordinal),
+        "Tag must size the child Icon through the slot's pixel token instead of a scoped svg rule.");
     var defaultTag = await RenderAsync<AeterniUI.Components.Tag.Tag>(new Dictionary<string, object?>
     {
         ["ChildContent"] = (RenderFragment)(builder => builder.AddContent(0, "tag"))

@@ -108,8 +108,10 @@
 .aeterni-tag__icon {
     /* The glyph is rendered by the child Icon component, so its box is sized through
        the shared token: a scoped `> svg` rule can never match a child component's
-       markup (REV-150). */
-    --aeterni-icon-render-size: 100%;
+       markup (REV-150). Use the slot's pixel token rather than 100%: Icon sizes both
+       axes from this variable, and a percentage height on inline SVG can resolve to
+       auto and stretch a non-square viewBox to the slot width. */
+    --aeterni-icon-render-size: var(--aeterni-tag-icon-size);
 
     display: inline-flex;
     flex: 0 0 auto;

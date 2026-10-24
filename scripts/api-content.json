@@ -58,7 +58,7 @@
         "OnItemSelected": "菜单项被选择时触发。"
       }
     },
-    "icon-button-menu": {
+    "icon-menu-button": {
       "descriptions": {
         "Icon": "触发器图标；图标按钮没有可见文字，所以必须同时给出 AriaLabel。",
         "Items": "下拉菜单的分组与菜单项。",
@@ -91,19 +91,19 @@
         }
       ],
       "since": {
-        "IconButtonMenu.Icon": "10.42.0",
-        "IconButtonMenu.Items": "10.42.0",
-        "IconButtonMenu.AriaLabel": "10.42.0",
-        "IconButtonMenu.Variant": "10.42.0",
-        "IconButtonMenu.Intent": "10.42.0",
-        "IconButtonMenu.Size": "10.42.0",
-        "IconButtonMenu.Placement": "10.42.0",
-        "IconButtonMenu.Flat": "10.42.0",
-        "IconButtonMenu.Open": "10.42.0",
-        "IconButtonMenu.OpenChanged": "10.42.0",
-        "IconButtonMenu.OnItemSelected": "10.42.0",
-        "IconButtonMenu.Loading": "10.42.0",
-        "IconButtonMenu.Shape": "10.44.0"
+        "IconMenuButton.Icon": "10.42.0",
+        "IconMenuButton.Items": "10.42.0",
+        "IconMenuButton.AriaLabel": "10.42.0",
+        "IconMenuButton.Variant": "10.42.0",
+        "IconMenuButton.Intent": "10.42.0",
+        "IconMenuButton.Size": "10.42.0",
+        "IconMenuButton.Placement": "10.42.0",
+        "IconMenuButton.Flat": "10.42.0",
+        "IconMenuButton.Open": "10.42.0",
+        "IconMenuButton.OpenChanged": "10.42.0",
+        "IconMenuButton.OnItemSelected": "10.42.0",
+        "IconMenuButton.Loading": "10.42.0",
+        "IconMenuButton.Shape": "10.44.0"
       }
     },
     "split-button": {

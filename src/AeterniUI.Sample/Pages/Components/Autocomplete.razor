@@ -9,22 +9,22 @@
                Category="表单组件"
                Title="Autocomplete"
                ComponentName="Autocomplete&lt;TItem&gt;"
-               Description="带候选列表的单行输入：输入即过滤宿主提供的建议项。"
+               Description="带候选列表的单行输入：候选由宿主按输入过滤后提供，组件只负责键盘、浮层与选中语义。"
                Related="@AutocompleteRelated">
     <WhenToUse>
         <p>用户知道要输入什么、但需要提示时使用：组件名、城市、标签。选项有限且必须择一时用 <code>ComboBox</code>，不需要候选列表的纯检索用 <code>Search</code>。</p>
-        <p>建议项由宿主提供：组件不请求远程数据、不做缓存。</p>
+        <p>建议项由宿主提供：组件不请求远程数据、不做缓存，也不按输入筛选；示例在宿主侧过滤后把结果作为 <code>Items</code> 传入。</p>
     </WhenToUse>
     <Demos>
         <DemoCard Id="autocomplete-basic"
                   Title="基础用法"
-                  Description="Items 是当前建议快照；选中后回调选项本身，输入框内容仍由宿主绑定值决定。"
+                  Description="Items 是宿主按当前输入过滤后的建议快照；选中后回调选项本身，输入框内容仍由宿主绑定值决定。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-form-control preview-form-control--fill">
                     <FormField Label="组件建议" Description="输入“Input”“Button”等关键词试试。">
                         <Autocomplete TItem="string"
-                                      Items="@_components"
+                                      Items="@FilteredComponents"
                                       Value="@_query"
                                       ValueChanged="HandleQueryChanged"
                                       OnItemSelected="HandleItemSelected"
@@ -44,7 +44,7 @@
             <Preview>
                 <div class="preview-form-control preview-form-control--fill">
                     <Autocomplete TItem="string"
-                                  Items="@_components"
+                                  Items="@FilteredComponents"
                                   Value="@_query"
                                   ValueChanged="HandleQueryChanged"
                                   OnItemSelected="HandleItemSelected"
@@ -82,7 +82,7 @@
                     <FormField Label="组件建议" Description="字段状态同时影响输入与候选列表。"
                                Disabled="@_disabled" Invalid="@_invalid">
                         <Autocomplete TItem="string"
-                                      Items="@_components"
+                                      Items="@FilteredStateComponents"
                                       Value="@_stateQuery"
                                       ValueChanged="HandleStateQueryChanged"
                                       TextSelector="@(item => item)"
@@ -105,7 +105,7 @@
             <Preview>
                 <div class="preview-form-control preview-form-control--fill">
                     <Autocomplete TItem="string"
-                                  Items="@_components"
+                                  Items="@FilteredPlacementComponents"
                                   Value="@_placementQuery"
                                   ValueChanged="HandlePlacementQueryChanged"
                                   TextSelector="@(item => item)"
@@ -128,7 +128,7 @@
     </Demos>
     <Notes>
         <span>键盘模型与 <code>ComboBox</code> 一致：方向键移动、Enter 选中、Escape 关闭；输入框保持编辑焦点，活动项通过 <code>aria-activedescendant</code> 表达。</span>
-        <span>组件不做输入过滤：<code>Items</code> 是宿主给的当前快照；异步建议在 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 只把建议区换成忙碌状态，输入与清除仍可用。</span>
+        <span>过滤是宿主职责：组件不按输入筛选 <code>Items</code>；示例在宿主侧用 <code>Contains(..., OrdinalIgnoreCase)</code> 过滤后把结果作为 <code>Items</code> 传入，空输入时传全量。异步建议在 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 只把建议区换成忙碌状态，输入与清除仍可用。</span>
         <span>选择建议不改变绑定值语义：<code>OnItemSelected</code> 报告被选中项，输入框文本仍由 <code>Value</code> 决定。</span>
     </Notes>
 </ComponentPage>
@@ -143,27 +143,35 @@
 
     private const string BasicCode = """
         <Autocomplete TItem="string"
-                      Items="Components"
+                      Items="FilteredComponents"
                       Value="Query"
                       ValueChanged="HandleQueryChanged"
                       TextSelector="@(item => item)"
                       OnItemSelected="HandleSelected" />
+
+        @code {
+            // 过滤是宿主职责：Items 是当前输入下的建议快照，组件不会再筛一遍。
+            private IReadOnlyList<string> FilteredComponents =>
+                string.IsNullOrWhiteSpace(Query)
+                    ? Components
+                    : Components.Where(item => item.Contains(Query, StringComparison.OrdinalIgnoreCase)).ToArray();
+        }
         """;
 
     private const string LoadingCode = """
-        <Autocomplete TItem="string" Items="Components" Value="Query" ValueChanged="OnQueryChanged"
+        <Autocomplete TItem="string" Items="FilteredComponents" Value="Query" ValueChanged="OnQueryChanged"
                       Loading="IsLoading" OpenOnFocus Clearable />
         """;
 
     private const string StateCode = """
         <FormField Label="组件建议" Invalid>
-            <Autocomplete TItem="string" Items="Components" Value="Query" ValueChanged="OnQueryChanged"
+            <Autocomplete TItem="string" Items="FilteredComponents" Value="Query" ValueChanged="OnQueryChanged"
                           TextSelector="@(item => item)" FullWidth />
         </FormField>
         """;
 
     private const string PlacementCode = """
-        <Autocomplete TItem="string" Items="Components" Value="Query" ValueChanged="OnQueryChanged"
+        <Autocomplete TItem="string" Items="FilteredComponents" Value="Query" ValueChanged="OnQueryChanged"
                       TextSelector="@(item => item)"
                       Placement="PopupPlacement.TopStart"
                       ReadOnly="@ReadOnly" />
@@ -174,6 +182,29 @@
         "Input", "InputNumber", "Textarea", "Search", "Autocomplete",
         "ComboBox", "MultiSelect", "Checkbox", "Switch", "Radio"
     ];
+
+    /// <summary>
+    /// 每个 demo 的绑定值各自过滤同一份组件名单：空输入（含纯空白）返回全量，
+    /// 否则按 OrdinalIgnoreCase 做宿主侧过滤。Autocomplete 只渲染传入的快照。
+    /// </summary>
+    private IReadOnlyList<string> FilteredComponents => Filter(_query);
+
+    private IReadOnlyList<string> FilteredStateComponents => Filter(_stateQuery);
+
+    private IReadOnlyList<string> FilteredPlacementComponents => Filter(_placementQuery);
+
+    private static IReadOnlyList<string> Filter(string? query)
+    {
+        var needle = query?.Trim();
+        if (string.IsNullOrEmpty(needle))
+        {
+            return _components;
+        }
+
+        return _components
+            .Where(item => item.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
 
     private string? _query;
     private string _status = "尚未选择建议";

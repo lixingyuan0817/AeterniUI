@@ -1,5 +1,5 @@
 /* The composite is an inline action like IconButton, not a block container. */
-.aeterni-icon-button-menu {
+.aeterni-icon-menu-button {
     display: inline-block;
     min-width: 0;
 }

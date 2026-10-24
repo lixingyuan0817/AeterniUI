@@ -207,7 +207,9 @@
     width: var(--aeterni-nav-menu-icon-size);
     height: var(--aeterni-nav-menu-icon-size);
     color: var(--aeterni-text-tertiary);
-    --aeterni-icon-render-size: 100%;
+    /* Pixel slot size, not 100%: a percentage height on inline SVG can resolve to
+       auto and stretch a non-square viewBox to the slot width. */
+    --aeterni-icon-render-size: var(--aeterni-nav-menu-icon-size);
 }
 
 .aeterni-nav-menu__copy {

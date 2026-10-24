@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using AeterniUI.Components.Dialog;
-using AeterniUI.Components.IconButtonMenu;
+using AeterniUI.Components.IconMenuButton;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.MenuButton;
 using AeterniUI.Components.Popup;
@@ -186,16 +186,16 @@ internal static class MenuDialogChecks
             [nameof(MenuButton.Label)] = "Actions",
             [nameof(MenuButton.Items)] = Groups
         });
-        var iconButtonMenuHtml = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var iconMenuButtonHtml = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "Actions"
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "Actions"
         });
         const string narrowWidth = "--aeterni-popover-min-width: var(--aeterni-overlay-min-width-xs)";
         Require(menuButtonHtml.Contains(narrowWidth, StringComparison.Ordinal)
-            && iconButtonMenuHtml.Contains(narrowWidth, StringComparison.Ordinal),
-            "MenuButton and IconButtonMenu must default their flyout to the narrow --aeterni-overlay-min-width-xs token.");
+            && iconMenuButtonHtml.Contains(narrowWidth, StringComparison.Ordinal),
+            "MenuButton and IconMenuButton must default their flyout to the narrow --aeterni-overlay-min-width-xs token.");
         Require(tokenCss.Contains("--aeterni-overlay-min-width-xs: 10rem", StringComparison.Ordinal),
             "The token file must declare the narrow overlay minimum next to the existing sm token.");
         Require(Regex.IsMatch(tokenCss, @"--aeterni-overlay-min-width-sm:\s*12rem;[^}]*--aeterni-overlay-min-width-xs:\s*10rem;", RegexOptions.Singleline)

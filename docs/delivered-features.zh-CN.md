@@ -17,7 +17,7 @@
 - 若某能力被移除、降级或重构，必须同步删除或更新相关章节，并在 [`release-history.zh-CN.md`](release-history.zh-CN.md) 记录修订；不能在本文件保留已失效的承诺。
 - 所有组件都继承 `AeterniComponent`。`Id`、`Disabled`、`Visible`、`Class`、`Style`、`Element`、`AdditionalAttributes` 和 `ElementChanged` 是基类公共参数；下文只在某个组件实际处理该参数时重复说明。需要 JS 模块的组件把**自己渲染的节点**交给模块，而不是 `RootElement`：宿主传入 `Element` 会把 `RootElement` 换成外部元素，模块的所有权校验随之失败，方向键与单一 Tab 停留点会静默失效（Toolbar、ToggleGroup、Menu、三个 combobox 与 Splitter 均已按此实现）。
 - 基类参数始终可传入，但 `Disabled` 只有实现了相应语义的组件才会渲染禁用状态，不能据此推断任意容器都支持原生禁用。
-- 公共枚举参数一律在 `OnParametersSet` 用 `Enum.IsDefined` 校验，非法值抛带实际值与原因的 `ArgumentOutOfRangeException`；不再有"非法值静默降级为默认档"的组件。`ToggleGroup.SelectionMode` 例外：它是取值白名单（`SelectionMode.None` 是已定义成员但对动作组无意义，仍需拒绝）。需要无障碍名称的组件（`IconButton`、`IconButtonMenu`、`ToggleGroup`、`Toolbar`、`ToolbarGroup`）在留空时抛 `ArgumentException`，`FlashCardGroup` 改为回退文案表。
+- 公共枚举参数一律在 `OnParametersSet` 用 `Enum.IsDefined` 校验，非法值抛带实际值与原因的 `ArgumentOutOfRangeException`；不再有"非法值静默降级为默认档"的组件。`ToggleGroup.SelectionMode` 例外：它是取值白名单（`SelectionMode.None` 是已定义成员但对动作组无意义，仍需拒绝）。需要无障碍名称的组件（`IconButton`、`IconMenuButton`、`ToggleGroup`、`Toolbar`、`ToolbarGroup`）在留空时抛 `ArgumentException`，`FlashCardGroup` 改为回退文案表。
 - `ListItem.Selected`、通知卡片等内部状态不是公开参数；规划中的能力只记录在 [`component-plan.zh-CN.md`](component-plan.zh-CN.md)，不会写入交付功能。
 - 组合组件的公开边界：`RadioGroup`、`ThemeSwitch` 可独立使用；`ListItem` 只能作为 `List` 子项，`Tab` 只能作为 `Tabs` 子项；`PopupHost` 与 `Popover` 用于自定义浮层组合，通常由 `MenuButton`、`ComboBox`、`Autocomplete`、`MultiSelect` 与日期/时间选择器间接使用（`Tooltip` 自渲染提示内容，只复用共享浮层数学）；`DialogProvider` 与 `ThemeProvider` 分别只应在应用根部注册一次。`DateCalendar` 是 `DatePicker` / `DateRangePicker` 的内部渲染部件，虽保留 Razor 类型以支持内部组合，但已标记为非稳定公共 API，不支持直接使用。
 
@@ -121,7 +121,7 @@
 
 ### 实现边界
 
-`Button` 仍支持通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入图标；独立图标操作使用 `IconButton`，带文字的菜单触发使用 `MenuButton`，只有图标且带菜单时使用 `IconButtonMenu`。
+`Button` 仍支持通过 `Icon`（兼容简写）、`StartIcon` 和 `EndIcon` 传入图标；独立图标操作使用 `IconButton`，带文字的菜单触发使用 `MenuButton`，只有图标且带菜单时使用 `IconMenuButton`。
 ### SplitButton
 
 - `SplitButton` 组合 `Button` 与 `MenuButton`，后者继续拥有 `PopupHost` / `Popover` / `Menu`，不新增 JS 或菜单状态模型。示例：`/components/split-button`。
@@ -732,7 +732,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 - **锚点解耦（`Anchor`，`ElementReference?`，默认 `null`）**：给浮层指定一个锚点元素后，**渲染位置与定位锚点就此分开**——浮层照旧渲染在调用方的 `PopupHost` 里（宿主放哪儿都行），但摆放、翻转与贴边都按这个锚点算，浮层自身改为 `position: fixed` 并在视口坐标里落位（含跨轴 clamp 后写 `--aeterni-popover-shift-x`），因此锚点位于 `position: fixed` 的页头里时，页面滚动不会把浮层带走。锚点元素失效（被移除）时自动回退到宿主；不设 `Anchor` 的行为与不提供该参数时完全一致。用"点击外部"判定时锚点也算作层内，所以点触发器不会被判成外部先关一次、再被后续 click 打开。锚点应由调用方自己拥有（触发器的包裹元素），而不是组件内部 DOM。典型用途：触发元素必须留在会被裁切或会成为 backdrop root 的容器里（例如玻璃卡片：卡内浮层自己的 `backdrop-filter` 只能采样那张卡片，看起来完全没有模糊），而浮层要渲染到容器之外。
 - **关闭**：Escape、非模态下的外部指针、模态下的遮罩点击都会通过 `OpenChanged` 请求关闭（`Open` 始终由使用方持有，与 `@bind-Open` 配套）；`CloseOnEscape`、`CloseOnOutsideClick` 与 `CloseOnScroll` 可分别关掉，滚动关闭会忽略浮层内部滚动。
 - **模态**：`Modal` 除切换到 `dialog` 语义外，还渲染遮罩、输出 `aria-modal`、把 Tab 困在层内（`tabindex="-1"` 作为无交互内容时的回退焦点）、锁定背景滚动（带滚动条宽度补偿）并在关闭后把焦点还给打开前的元素。
-- **宽度**：`MinWidth` / `Width`（CSS 长度或 `var(...)`，默认 null）分别写入根内联样式 `--aeterni-popover-min-width` / `--aeterni-popover-width`，由 surface 消费；未设置时最小宽度仍是共享的 12rem 档、宽度由内容决定，宿主的其他 `Style` 声明不被覆盖。菜单型弹层（`MenuButton` / `IconButtonMenu`）默认使用更窄的 `--aeterni-overlay-min-width-xs`（10rem）。
+- **宽度**：`MinWidth` / `Width`（CSS 长度或 `var(...)`，默认 null）分别写入根内联样式 `--aeterni-popover-min-width` / `--aeterni-popover-width`，由 surface 消费；未设置时最小宽度仍是共享的 12rem 档、宽度由内容决定，宿主的其他 `Style` 声明不被覆盖。菜单型弹层（`MenuButton` / `IconMenuButton`）默认使用更窄的 `--aeterni-overlay-min-width-xs`（10rem）。
 
 ### 行为与无障碍
 
@@ -762,7 +762,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 ### 图标尺寸
 
-- `IconSize`（`MenuIconSize`：`Small` 16px / `Default` 20px（现状）/ `Large` 24px）同时调整分组标题与菜单项的图标槽；字形通过 `--aeterni-icon-render-size: 100%` 跟随槽位，chevron 始终保持自身的 16px 档。
+- `IconSize`（`MenuIconSize`：`Small` 16px / `Default` 20px（现状）/ `Large` 24px）同时调整分组标题与菜单项的图标槽；字形通过 `--aeterni-icon-render-size: var(--aeterni-menu-icon-size)` 以像素跟随槽位（不能用 `100%`：SVG 的非正方形 viewBox 会把百分比高度算成 `auto`），chevron 始终保持自身的 16px 档。
 - 默认档不输出修饰类，`Small` / `Large` 才输出 `aeterni-menu--icon-small|large`；配合 `Flat` 可以做出紧凑的标题栏动作菜单。
 
 ### 扁平模式
@@ -1123,7 +1123,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` 的圆角同源（Button 使用 `--aeterni-radius-button`，即阶梯 `lg` 档 8px）。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
 - `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。形状只重指轨道圆角，`Pill` 额外把滑块与选项的内沿半径交回半高裁切；内缩取圆角档推导来的值、滑块宽度与位移由选项数量推导，所以两档的滑块几何完全一致。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供；原生 radio 组没有 `Home`/`End`，组件补上这一对（跳到首/尾可用项并把真实焦点一起带过去），并且只交出一个最小 JS 模块去阻止这两个键的默认页面滚动——方向键仍完全归浏览器，组件不接管。
-- 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。
+- 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。滑块位移时长由 `--aeterni-segmented-slider-duration` 控制（默认 `--aeterni-duration-slow`，300ms），颜色与阴影仍走 200ms；reduced-motion 下立即跳转。
 - RTL 下选项从内联末端开始排列，滑块方向随之镜像（`:dir(rtl)`，并对不识别 `:dir()` 的引擎保留 `[dir="rtl"]` 回退）。
 - `DisabledSelector` 停用单个选项（原生 `disabled`，跳过方向键循环）；`Disabled` 停用整组并输出 `aria-disabled`。`Value` 不匹配任何项时控件不显示选中态与滑块（`is-empty`）。
 - 位于 `FormField` 中时采用字段的输入 ID，并用 `aria-labelledby` / `aria-describedby` 关联标签与描述；`Required` / `Invalid` 输出 `aria-required` / `aria-invalid`。
@@ -1708,7 +1708,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 
 ### 实现边界
 
-第一版只提供两个面板和一个主分隔条，不提供多栏嵌套管理、折叠按钮、吸附点、百分比/星号尺寸或服务端渲染下的拖拽增强；第一栏是固定像素轨道，容器窄于 `FirstSize` 时第二栏会被压到 0 宽、分隔条可能被裁切，宿主需要保证容器至少容纳最小宽度（或改用其他布局）。没有 JS 时分隔条仍保留可访问名称与值语义，但既不响应拖动也不响应键盘。示例：`/components/splitter`。
+第一版只提供两个面板和一个主分隔条，不提供多栏嵌套管理、折叠按钮、吸附点、百分比/星号尺寸或服务端渲染下的拖拽增强；第一栏是固定像素轨道。实际可拖动上限是 `min(MaxFirstSize, 容器主轴尺寸 - 触控目标)`：容器窄于配置上限时第二栏仍保留一个 `--aeterni-touch-target-min` 的可点区域，分隔条不会被 `overflow: hidden` 裁掉；容器缩小时 `ResizeObserver` 会重新夹取并回写宿主。`aria-valuemax` 仍报告配置值，`aria-valuenow` 反映夹取后的实际值。没有 JS 时分隔条仍保留可访问名称与值语义，但既不响应拖动也不响应键盘。示例：`/components/splitter`。
 
 ### 基础用法
 
@@ -1771,13 +1771,13 @@ private static readonly NavMenuNode[] Items =
 ];
 ```
 
-## 55. IconButtonMenu
+## 55. IconMenuButton
 
 10.42.0
 
 ### 支持能力
 
-`IconButtonMenu` 把图标触发器、浮层与菜单合成一个组件，等价于 `IconButton` + `PopupHost` + `Popover` + `Menu` 的手工组合：
+`IconMenuButton` 把图标触发器、浮层与菜单合成一个组件，等价于 `IconButton` + `PopupHost` + `Popover` + `Menu` 的手工组合：
 
 - `Icon`、`Items`、`AriaLabel` 为必填；`Variant`（默认 `Ghost`）、`Intent`（默认 `Neutral`）、`Size`（默认 `Default`）、`Shape`（`IconButtonShape`：`Circle` 默认 / `Square`）、`Placement`（默认 `BottomEnd`）、`Flat`、`Open` / `OpenChanged`、`OnItemSelected`、`Loading`，并继承 `Disabled`。`Shape` 直接透传给内部 `IconButton`，只改触发器轮廓（默认圆形使用 `--aeterni-radius-full`，`Square` 使用 `--aeterni-radius-button`），菜单、焦点环与键盘行为不变。
 - 触发器输出 `aria-haspopup="menu"`、`aria-expanded` 字符串与指向真实菜单根 id 的 `aria-controls`；`AriaLabel` 同时命名触发器与菜单。
@@ -1789,14 +1789,14 @@ private static readonly NavMenuNode[] Items =
 
 - 触发器没有可见文字，`AriaLabel` 空白在参数设置阶段抛 `ArgumentException`；`Variant` / `Intent` / `Size` / `Placement` 非法值抛带实际值的 `ArgumentOutOfRangeException`。
 - 不提供文字标签、主按钮 + 菜单并列（用 `SplitButton`）或菜单内嵌交互内容；长菜单放进带 `max-height` 的滚动容器。
-- `Loading` 只锁住触发器并拦住打开；图标按钮是圆形动作，因此没有 `FullWidth`。示例：`/components/icon-button-menu`。
+- `Loading` 只锁住触发器并拦住打开；图标按钮是圆形动作，因此没有 `FullWidth`。示例：`/components/icon-menu-button`。
 
 ## 56. 当前边界
 
 - 当前包含不依赖浏览器服务的最小组件渲染契约检查，覆盖关键根属性、ARIA、Tab 停留点、日历网格和公开样式变体；它不是完整业务或端到端测试套件。
 - 组件库目前优先完善基础组件和基础服务；高复杂度数据输入、数据展示和路由集成能力尚未纳入已完成清单。
 - `Drawer` 是固定定位面板，不能嵌在带 `transform` / `filter` / `backdrop-filter` 的容器内；多抽屉堆叠与可拖拽调宽不在当前范围。
-- `Button`、`IconButton`、`IconButtonMenu` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付。
+- `Button`、`IconButton`、`IconMenuButton` 和 `MenuButton` 已提供基础动作、图标动作与菜单触发能力；Toolbar、ToggleGroup、SplitButton、Breadcrumb 与 Stepper 已交付。
 - `Stack` 和 `Flex` 尚未实现。
 - `ComboBox` 的弹层已迁移到共享 `PopupHost` + `Popover`；通过 `CloseOnScroll` 保留“页面滚动即关闭、列表自身滚动不关闭”的原生 select 行为。
 - `Dialog` 的 Tab/Escape 处理仍由 `DialogProvider` 自己持有，因为对话框是一个堆栈（只有最顶层响应）：共享模块只提供了滚动锁与可聚焦元素列表。

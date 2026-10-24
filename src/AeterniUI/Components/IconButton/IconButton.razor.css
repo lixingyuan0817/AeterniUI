@@ -56,7 +56,10 @@
 
 .aeterni-icon-button__icon,
 .aeterni-icon-button__loading {
-    --aeterni-icon-render-size: 100%;
+    /* Pixel slot size, not 100%: Icon sizes both axes from this variable, and a
+       percentage height on an inline SVG can resolve to auto, stretching a
+       non-square viewBox (e.g. an EllipsisVertical) past the square hit box. */
+    --aeterni-icon-render-size: var(--aeterni-icon-button-icon-size);
     display: inline-grid;
     place-items: center;
     width: var(--aeterni-icon-button-icon-size);

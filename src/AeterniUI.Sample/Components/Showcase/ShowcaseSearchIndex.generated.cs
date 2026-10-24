@@ -52,13 +52,13 @@ public static class ShowcaseSearchIndex
                 new("menu-button-states", "禁用、加载与整宽"), new("menu-button-api-title", "参数与事件"),
                 new("menu-button-related-title", "相关组件"), new("menu-button-notes-title", "说明与边界")
             ]),
-        new("icon-button-menu", "IconButtonMenu", "基础组件",
+        new("icon-menu-button", "IconMenuButton", "基础组件",
             [
-                new("icon-button-menu", "IconButtonMenu"), new("icon-button-menu-when-title", "何时使用"),
-                new("icon-button-menu-basic", "基础用法"), new("icon-button-menu-flat", "扁平与分组"),
-                new("icon-button-menu-controlled", "受控打开"), new("icon-button-menu-states", "禁用与加载"),
-                new("icon-button-menu-api-title", "参数与事件"), new("icon-button-menu-related-title", "相关组件"),
-                new("icon-button-menu-notes-title", "说明与边界")
+                new("icon-menu-button", "IconMenuButton"), new("icon-menu-button-when-title", "何时使用"),
+                new("icon-menu-button-basic", "基础用法"), new("icon-menu-button-flat", "扁平与分组"),
+                new("icon-menu-button-controlled", "受控打开"), new("icon-menu-button-states", "禁用与加载"),
+                new("icon-menu-button-api-title", "参数与事件"), new("icon-menu-button-related-title", "相关组件"),
+                new("icon-menu-button-notes-title", "说明与边界")
             ]),
         new("split-button", "SplitButton", "基础组件",
             [

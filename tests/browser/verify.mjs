@@ -2795,6 +2795,79 @@ check('REV-159 /components/date-picker demonstrates host presets',
     !presets.error && presets.count >= 3,
     JSON.stringify(presets));
 
+// Popover 关闭时的位置：JS 翻转后的 placement class 必须保持到退场结束。Blazor 的
+// 关闭重渲染会把根 class 写回 preferred（bottom-*），旧实现因此在退场瞬间把面板从
+// 上方跳到下方再消失。这里把触发器滚到视口底部强制翻到 top-*，再采样关闭帧。
+await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+await sleep(250);
+const popupTrigger = await evaluate(`(async () => {
+    const trigger = document.querySelector('.aeterni-date-picker__trigger');
+    if (!trigger) return { error: 'no date picker trigger' };
+    trigger.scrollIntoView({ block: 'end', behavior: 'instant' });
+    await new Promise(resolve => setTimeout(resolve, 350));
+    const box = trigger.getBoundingClientRect();
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+})()`);
+const popupRead = () => evaluate(`(() => {
+    const layer = [...document.querySelectorAll('.aeterni-date-picker .aeterni-popover, .aeterni-popover')]
+        .find(node => !node.hasAttribute('hidden'));
+    if (!layer) return null;
+    const surface = layer.querySelector('.aeterni-popover__surface');
+    const box = surface.getBoundingClientRect();
+    return { cls: layer.className, top: Math.round(box.top), closing: layer.classList.contains('is-closing') };
+})()`);
+let popupOpened = null;
+for (let attempt = 0; attempt < 6 && !popupOpened; attempt += 1) {
+    await mouse('mousePressed', popupTrigger.x, popupTrigger.y, { buttons: 1, pointerType: 'mouse' });
+    await mouse('mouseReleased', popupTrigger.x, popupTrigger.y, { buttons: 0, pointerType: 'mouse' });
+    await sleep(350);
+    popupOpened = await popupRead();
+}
+await mouse('mousePressed', popupTrigger.x, popupTrigger.y, { buttons: 1, pointerType: 'mouse' });
+await mouse('mouseReleased', popupTrigger.x, popupTrigger.y, { buttons: 0, pointerType: 'mouse' });
+const popupExitFrames = [];
+for (let frame = 0; frame < 5; frame += 1) {
+    popupExitFrames.push(await popupRead());
+    await sleep(20);
+}
+check('Popover 从上方翻转关闭时保持原位置，不跳回下方再退场',
+    popupOpened !== null && popupOpened.cls.includes('aeterni-popover--top-')
+        && popupExitFrames.length > 0
+        && popupExitFrames.every(frame => frame === null
+            || (frame.cls.includes('aeterni-popover--top-') && Math.abs(frame.top - (popupOpened?.top ?? 0)) <= 12)),
+    JSON.stringify({ opened: popupOpened, frames: popupExitFrames }));
+
+
+// Autocomplete 的筛选由宿主负责：示例必须在输入后只把命中项传给 Items。
+await goto(`${BASE}/components/autocomplete`);
+await waitForApp();
+await evaluate(`(() => {
+    const input = document.querySelector('#autocomplete-basic input.aeterni-input');
+    if (!input) return false;
+    input.focus();
+    input.value = '';
+    return true;
+})()`);
+await send('Input.insertText', { text: 'Input' });
+// 输入只更新值；候选列表由方向键/焦点打开，和组件键盘模型一致。
+await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 });
+await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 });
+let autocompleteOptions = [];
+for (let attempt = 0; attempt < 20; attempt += 1) {
+    await sleep(150);
+    autocompleteOptions = await evaluate(`(() => [...document.querySelectorAll('#autocomplete-basic [role="option"]')]
+        .filter(node => node.getClientRects().length > 0)
+        .map(node => node.textContent.replace(/\s+/g, ' ').trim())
+        .filter(text => text.length > 0))()`);
+    if (autocompleteOptions.length > 0) break;
+}
+check('Autocomplete 示例在宿主侧按输入过滤建议项',
+    autocompleteOptions.length >= 2
+        && autocompleteOptions.length <= 4
+        && autocompleteOptions.every(text => text.toLowerCase().includes('input')),
+    JSON.stringify({ options: autocompleteOptions }));
+
 // 连体接缝由 ButtonGroup 与 SplitButton 共用一档，因此两者不会再各自漂移：透明档取
 // 按钮自身强调色的 45%，中性墨色（alpha .78）渲染出来约 0.351。10.34.3 之前这一档
 // 被 SplitButton 单独写死成 20%（实际 0.156），在页面背景上几乎读不出是两段连体。
@@ -3605,7 +3678,8 @@ await evaluate(`(() => {
     handle.scrollIntoView({ block: 'center' });
     return true;
 })()`);
-await sleep(100);
+// 组件页的预览卡有入场动画（transform 会短暂影响 rect 宽度）；等它稳定后再量。
+await sleep(800);
 
 async function splitterRead() {
     return evaluate(`(() => {
@@ -3621,7 +3695,11 @@ async function splitterRead() {
             tabIndex: handle.getAttribute('tabindex'),
             ariaDisabled: handle.getAttribute('aria-disabled'),
             label: handle.getAttribute('aria-label'),
+            rootLeft: rootBox.left,
             rootRight: rootBox.right,
+            rootWidth: rootBox.width,
+            clientWidth: root.clientWidth,
+            clientHeight: root.clientHeight,
             x: handleBox.left + handleBox.width / 2,
             y: handleBox.top + handleBox.height / 2,
             hitWidth: handleBox.width,
@@ -3656,18 +3734,50 @@ check('Splitter 分隔条是带量值语义的 separator，命中区取共享触
     JSON.stringify({ ...splitter, touchTargetMin }));
 
 await evaluate(`document.querySelector('.aeterni-splitter [role="separator"]').focus()`);
+// 配置上限是 600，但示例容器只有约 396px；有效上限必须给第二栏留下触控目标，
+// 否则分隔条会落到 overflow:hidden 的容器外，指针再也抓不回来。
+const splitterEffectiveMax = Math.min(600, Math.floor(splitter.clientWidth - touchTargetMin));
 const splitterAfterRight = await splitterKey('ArrowRight', 39);
 const splitterAfterShift = await splitterKey('ArrowRight', 39, 8);
 const splitterAfterHome = await splitterKey('Home', 36);
 const splitterAfterEnd = await splitterKey('End', 35);
+const splitterAfterEndState = await splitterRead();
 const splitterAfterDown = await splitterKey('ArrowDown', 40);
+const splitterAfterDownState = await splitterRead();
+const effectiveAtEnd = Math.min(600, Math.floor(splitterAfterEndState.clientWidth - touchTargetMin));
+const effectiveAtDown = Math.min(600, Math.floor(splitterAfterDownState.clientWidth - touchTargetMin));
 check('Splitter 键盘按 8px / Shift 32px / Home / End 提交，未处理的键不抢',
     splitterAfterRight === splitter.now + 8
         && splitterAfterShift === splitterAfterRight + 32
         && splitterAfterHome === 200
-        && splitterAfterEnd === 600
-        && splitterAfterDown === 600,
-    JSON.stringify({ start: splitter.now, splitterAfterRight, splitterAfterShift, splitterAfterHome, splitterAfterEnd, splitterAfterDown }));
+        && splitterAfterEnd === effectiveAtEnd
+        && splitterAfterDown === effectiveAtDown,
+    JSON.stringify({ start: splitter.now, splitterEffectiveMax, clientWidth: splitter.clientWidth, rootWidth: splitter.rootWidth, touchTargetMin, effectiveAtEnd, effectiveAtDown, splitterAfterRight, splitterAfterShift, splitterAfterHome, splitterAfterEnd, splitterAfterDown }));
+
+// 拖到最右后必须还能抓回：旧实现会把分隔条推到容器外，第二次按下落在容器外。
+await splitterKey('Home', 36);
+const dragStart = await splitterRead();
+await mouse('mousePressed', dragStart.x, dragStart.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseMoved', dragStart.rootRight + 200, dragStart.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseReleased', dragStart.rootRight + 200, dragStart.y, { buttons: 0, pointerType: 'mouse' });
+await sleep(300);
+const draggedToEdge = await splitterRead();
+await mouse('mousePressed', draggedToEdge.x, draggedToEdge.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseMoved', draggedToEdge.x - 120, draggedToEdge.y, { buttons: 1, pointerType: 'mouse' });
+await sleep(60);
+await mouse('mouseReleased', draggedToEdge.x - 120, draggedToEdge.y, { buttons: 0, pointerType: 'mouse' });
+await sleep(300);
+const draggedBack = await splitterRead();
+const dragEffectiveMax = Math.min(600, Math.floor(draggedToEdge.clientWidth - touchTargetMin));
+check('Splitter 拖到容器边界后分隔条仍可抓回',
+    draggedToEdge.now <= dragEffectiveMax
+        && draggedToEdge.now >= dragEffectiveMax - 2
+        && draggedToEdge.x <= draggedToEdge.rootRight - touchTargetMin / 2 + 1
+        && draggedBack.now < draggedToEdge.now,
+    JSON.stringify({ dragEffectiveMax, draggedToEdge, draggedBack }));
 
 // 指针拖动：先 Home 回到最小宽度，让分隔条落在预览框内；按下、移动 60px、松开，
 // 只有松开后才回调宿主，页面上的读数跟着变。
@@ -3836,14 +3946,14 @@ check('NavMenu RowTemplate 接管整行、Trailing 在按钮之外',
 
 
 // ------------------------------------------------- 10.42.0 checks
-// IconButtonMenu 与 Menu.Flat：真实浏览器里验证触发器关联、选择后关闭与焦点回归，
+// IconMenuButton 与 Menu.Flat：真实浏览器里验证触发器关联、选择后关闭与焦点回归，
 // 以及扁平模式没有分组开关、方向键只在条目间移动。
-await goto(`${BASE}/components/icon-button-menu`);
+await goto(`${BASE}/components/icon-menu-button`);
 await waitForApp();
 
 const iconMenuOpen = await evaluate(`(async () => {
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    const root = document.querySelector('.aeterni-icon-button-menu');
+    const root = document.querySelector('.aeterni-icon-menu-button');
     const trigger = root?.querySelector('.aeterni-icon-button');
     if (!trigger) return { error: 'no icon menu trigger' };
     // A real pointer press focuses the trigger first; a programmatic click does not,
@@ -3861,7 +3971,7 @@ const iconMenuOpen = await evaluate(`(async () => {
         items: nav?.querySelectorAll('.aeterni-menu__item').length ?? -1
     };
 })()`);
-check('IconButtonMenu 触发器 aria-expanded/aria-controls 关联真实菜单',
+check('IconMenuButton 触发器 aria-expanded/aria-controls 关联真实菜单',
     !iconMenuOpen.error && iconMenuOpen.expanded === 'true'
         && iconMenuOpen.haspopup === 'menu'
         && iconMenuOpen.controls === iconMenuOpen.menuId
@@ -3870,7 +3980,7 @@ check('IconButtonMenu 触发器 aria-expanded/aria-controls 关联真实菜单',
 
 const iconMenuSelected = await evaluate(`(async () => {
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    const root = document.querySelector('.aeterni-icon-button-menu');
+    const root = document.querySelector('.aeterni-icon-menu-button');
     const trigger = root?.querySelector('.aeterni-icon-button');
     const item = root?.querySelector('nav.aeterni-menu .aeterni-menu__item');
     if (!trigger || !item) return { error: 'menu item missing' };
@@ -3883,7 +3993,7 @@ const iconMenuSelected = await evaluate(`(async () => {
         feedback: document.querySelector('.preview-feedback')?.textContent?.trim() ?? null
     };
 })()`);
-check('IconButtonMenu 选择菜单项后关闭并把焦点还给触发器',
+check('IconMenuButton 选择菜单项后关闭并把焦点还给触发器',
     !iconMenuSelected.error && iconMenuSelected.expanded === 'false'
         && iconMenuSelected.focusBack
         && (iconMenuSelected.feedback ?? '').includes('已选择'),
@@ -3891,7 +4001,7 @@ check('IconButtonMenu 选择菜单项后关闭并把焦点还给触发器',
 
 // Shape 必须透传到真实触发器：默认圆形不再输出修饰类，行操作按钮在示例里固定为 Square。
 const iconMenuShape = await evaluate(`(() => {
-    const trigger = [...document.querySelectorAll('.aeterni-icon-button-menu .aeterni-icon-button')]
+    const trigger = [...document.querySelectorAll('.aeterni-icon-menu-button .aeterni-icon-button')]
         .find(node => node.getAttribute('aria-label') === '行操作');
     if (!trigger) return { error: 'no row trigger' };
     const box = trigger.getBoundingClientRect();
@@ -3902,14 +4012,40 @@ const iconMenuShape = await evaluate(`(() => {
         radius: parseFloat(getComputedStyle(trigger).borderRadius)
     };
 })()`);
-check('IconButtonMenu Shape=Square 透传到真实触发器',
+check('IconMenuButton Shape=Square 透传到真实触发器',
     !iconMenuShape.error && iconMenuShape.square && iconMenuShape.radius < iconMenuShape.width / 2,
     JSON.stringify(iconMenuShape));
+
+// 非正方形 viewBox（ellipsis-vertical 为 128×512）也必须落进图标槽：百分比尺寸曾让
+// SVG 的 height 变成 auto，三个点撑到 64px 高、溢出 36px 的圆形触发器。
+const iconMenuGlyph = await evaluate(`(() => {
+    const trigger = document.querySelector('.aeterni-icon-menu-button .aeterni-icon-button');
+    const slot = trigger?.querySelector('.aeterni-icon-button__icon');
+    const svg = slot?.querySelector('svg');
+    if (!trigger || !slot || !svg) return { error: 'no glyph' };
+    const slotBox = slot.getBoundingClientRect();
+    const svgBox = svg.getBoundingClientRect();
+    const triggerBox = trigger.getBoundingClientRect();
+    return {
+        viewBox: svg.getAttribute('viewBox'),
+        slot: Math.round(slotBox.height),
+        width: Math.round(svgBox.width),
+        height: Math.round(svgBox.height),
+        trigger: Math.round(triggerBox.height)
+    };
+})()`);
+check('非正方形图标按图标槽等比缩放，不撑破 IconMenuButton 触发器',
+    !iconMenuGlyph.error
+        && iconMenuGlyph.viewBox === '0 0 128 512'
+        && iconMenuGlyph.height <= iconMenuGlyph.slot + 1
+        && iconMenuGlyph.width <= iconMenuGlyph.slot + 1
+        && iconMenuGlyph.height <= iconMenuGlyph.trigger,
+    JSON.stringify(iconMenuGlyph));
 
 // 第二段 demo：Flat 菜单。打开后应没有分组开关，箭头键只在条目间移动。
 const flatMenuOpened = await evaluate(`(async () => {
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    const root = [...document.querySelectorAll('.aeterni-icon-button-menu')]
+    const root = [...document.querySelectorAll('.aeterni-icon-menu-button')]
         .find(node => node.querySelector('.aeterni-icon-button')?.getAttribute('aria-label') === '更多操作（扁平）');
     const trigger = root?.querySelector('.aeterni-icon-button');
     if (!trigger) return { error: 'no flat menu trigger' };
@@ -4454,10 +4590,13 @@ const toastPause = await (async () => {
         const rect = toast.getBoundingClientRect();
         return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     })()`);
-    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: center.x, y: center.y, button: 'none' });
-    await sleep(300);
-    const pausedClass = await evaluate(
-        `!!document.querySelector('.aeterni-dialog-provider__toast.is-paused')`);
+    let pausedClass = false;
+    for (let attempt = 0; attempt < 12 && !pausedClass; attempt += 1) {
+        await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: center.x, y: center.y, button: 'none' });
+        await sleep(200);
+        pausedClass = await evaluate(
+            `!!document.querySelector('.aeterni-dialog-provider__toast.is-paused')`);
+    }
     await sleep(6000);
     const survived = await evaluate(`!!document.querySelector('.aeterni-dialog-provider__toast')`);
 

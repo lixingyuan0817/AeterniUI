@@ -1,18 +1,18 @@
 using System.Text.RegularExpressions;
-using AeterniUI.Components.IconButtonMenu;
+using AeterniUI.Components.IconMenuButton;
 using AeterniUI.Components.Menu;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 /// <summary>
-/// Contract checks for <c>IconButtonMenu</c> and <c>Menu.Flat</c> (10.42.0).
+/// Contract checks for <c>IconMenuButton</c> and <c>Menu.Flat</c> (10.42.0).
 /// Pins the two halves of the delivery: the flattened list must lose the group
 /// toggle / aria-expanded machinery without losing entry semantics, and the
 /// composite must keep the base root contract while wiring its trigger to the
 /// real menu root.
 /// </summary>
-internal static class IconButtonMenuChecks
+internal static class IconMenuButtonChecks
 {
     private static readonly IReadOnlyList<MenuGroup> Groups =
     [
@@ -55,13 +55,13 @@ internal static class IconButtonMenuChecks
         {
             try
             {
-                await RenderAsync<IconButtonMenu>(parameters);
-                Require(false, $"IconButtonMenu must reject {what} instead of rendering.");
+                await RenderAsync<IconMenuButton>(parameters);
+                Require(false, $"IconMenuButton must reject {what} instead of rendering.");
             }
             catch (Exception exception)
             {
                 Require(exception.GetType() == typeof(TException) && ((ArgumentException)exception).ParamName == expectedParameter,
-                    $"IconButtonMenu must reject {what} with {typeof(TException).Name} naming {expectedParameter}.");
+                    $"IconMenuButton must reject {what} with {typeof(TException).Name} naming {expectedParameter}.");
             }
         }
 
@@ -70,17 +70,17 @@ internal static class IconButtonMenuChecks
         {
             try
             {
-                await RenderAsync<IconButtonMenu>(parameters);
-                Require(false, $"IconButtonMenu must reject the undefined {expectedParameter} {invalid}.");
+                await RenderAsync<IconMenuButton>(parameters);
+                Require(false, $"IconMenuButton must reject the undefined {expectedParameter} {invalid}.");
             }
             catch (ArgumentOutOfRangeException exception)
             {
                 Require(exception.ParamName == expectedParameter && Equals(exception.ActualValue, invalid),
-                    $"IconButtonMenu must reject an undefined {expectedParameter} carrying the actual value.");
+                    $"IconMenuButton must reject an undefined {expectedParameter} carrying the actual value.");
             }
             catch (Exception exception)
             {
-                Require(false, $"IconButtonMenu must reject an undefined {expectedParameter} with ArgumentOutOfRangeException, got {exception.GetType().Name}.");
+                Require(false, $"IconMenuButton must reject an undefined {expectedParameter} with ArgumentOutOfRangeException, got {exception.GetType().Name}.");
             }
         }
 
@@ -155,7 +155,7 @@ internal static class IconButtonMenuChecks
         Require(!grouped.Contains("is-flat", StringComparison.Ordinal),
             "Menu without Flat must not emit the flat state class.");
 
-        // --- IconButtonMenu -------------------------------------------------
+        // --- IconMenuButton -------------------------------------------------
         RenderFragment icon = builder =>
         {
             builder.OpenElement(0, "svg");
@@ -163,106 +163,106 @@ internal static class IconButtonMenuChecks
             builder.CloseElement();
         };
 
-        var html = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var html = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Id)] = "contract-icon-menu",
-            [nameof(IconButtonMenu.Class)] = "consumer-icon-menu",
-            [nameof(IconButtonMenu.Style)] = "margin: 0",
-            [nameof(IconButtonMenu.AdditionalAttributes)] = new Dictionary<string, object>
+            [nameof(IconMenuButton.Id)] = "contract-icon-menu",
+            [nameof(IconMenuButton.Class)] = "consumer-icon-menu",
+            [nameof(IconMenuButton.Style)] = "margin: 0",
+            [nameof(IconMenuButton.AdditionalAttributes)] = new Dictionary<string, object>
             {
-                ["data-contract"] = "icon-button-menu"
+                ["data-contract"] = "icon-menu-button"
             },
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "More actions",
-            [nameof(IconButtonMenu.Flat)] = true
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "More actions",
+            [nameof(IconMenuButton.Flat)] = true
         });
 
         var root = Regex.Match(html, "<div\\b[^>]*>").Value;
         Require(root.Contains("id=\"contract-icon-menu\"", StringComparison.Ordinal)
-            && root.Contains("aeterni-icon-button-menu", StringComparison.Ordinal)
+            && root.Contains("aeterni-icon-menu-button", StringComparison.Ordinal)
             && root.Contains("consumer-icon-menu", StringComparison.Ordinal)
             && root.Contains("margin: 0", StringComparison.Ordinal)
-            && root.Contains("data-contract=\"icon-button-menu\"", StringComparison.Ordinal),
-            "IconButtonMenu root must preserve the base DOM contract (id, class, style, unmatched attributes).");
+            && root.Contains("data-contract=\"icon-menu-button\"", StringComparison.Ordinal),
+            "IconMenuButton root must preserve the base DOM contract (id, class, style, unmatched attributes).");
 
         var trigger = Regex.Match(html, "<button\\b[^>]*id=\"contract-icon-menu-trigger\"[^>]*>").Value;
         Require(trigger.Contains("aeterni-icon-button", StringComparison.Ordinal)
             && trigger.Contains("aria-label=\"More actions\"", StringComparison.Ordinal),
-            "IconButtonMenu must delegate the trigger to IconButton with the required accessible name.");
+            "IconMenuButton must delegate the trigger to IconButton with the required accessible name.");
         Require(trigger.Contains("aria-haspopup=\"menu\"", StringComparison.Ordinal)
             && trigger.Contains("aria-expanded=\"false\"", StringComparison.Ordinal),
-            "IconButtonMenu trigger must announce the menu popup and its collapsed state.");
+            "IconMenuButton trigger must announce the menu popup and its collapsed state.");
 
-        var square = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var square = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Id)] = "contract-icon-menu-square",
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "More actions",
-            [nameof(IconButtonMenu.Shape)] = IconButtonShape.Square
+            [nameof(IconMenuButton.Id)] = "contract-icon-menu-square",
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "More actions",
+            [nameof(IconMenuButton.Shape)] = IconButtonShape.Square
         });
         var squareTrigger = Regex.Match(square, "<button\\b[^>]*id=\"contract-icon-menu-square-trigger\"[^>]*>").Value;
         Require(squareTrigger.Contains("aeterni-icon-button--square", StringComparison.Ordinal),
-            "IconButtonMenu must forward Shape=Square to the real trigger button.");
+            "IconMenuButton must forward Shape=Square to the real trigger button.");
 
         var controlledId = Regex.Match(trigger, "aria-controls=\"([^\"]+)\"").Groups[1].Value;
         Require(!string.IsNullOrEmpty(controlledId) && Regex.IsMatch(html, $"<nav[^>]*id=\"{Regex.Escape(controlledId)}\""),
-            "IconButtonMenu aria-controls must resolve to the real menu root.");
+            "IconMenuButton aria-controls must resolve to the real menu root.");
         Require(html.Contains("aeterni-menu is-flat", StringComparison.Ordinal)
             && !html.Contains("aeterni-menu__group", StringComparison.Ordinal)
             && !html.Contains("group-toggle", StringComparison.Ordinal),
-            "IconButtonMenu must forward Flat to its inner Menu.");
+            "IconMenuButton must forward Flat to its inner Menu.");
 
         Require(html.Contains("--aeterni-popover-content-padding: var(--aeterni-spacing-1)", StringComparison.Ordinal)
             && html.Contains("--aeterni-menu-item-padding: var(--aeterni-control-padding-x-sm)", StringComparison.Ordinal),
-            "IconButtonMenu must scope the compact MenuButton surface and row padding.");
+            "IconMenuButton must scope the compact MenuButton surface and row padding.");
         Require(!html.Contains("aeterni-list", StringComparison.Ordinal),
-            "IconButtonMenu renders Menu, not List.");
+            "IconMenuButton renders Menu, not List.");
         Require(Regex.IsMatch(html, "<div[^>]*aeterni-popover[^>]*\\shidden(?:=|\\s|>)"),
-            "A closed IconButtonMenu must keep its popover hidden.");
+            "A closed IconMenuButton must keep its popover hidden.");
 
         // Open is the controlled value, so it only drives the rendered state once
         // the change callback is bound — the same contract as MenuButton.
-        var open = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var open = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Id)] = "contract-icon-menu-open",
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "More actions",
-            [nameof(IconButtonMenu.Open)] = true,
-            [nameof(IconButtonMenu.OpenChanged)] = EventCallback.Factory.Create<bool>(new object(), _ => { })
+            [nameof(IconMenuButton.Id)] = "contract-icon-menu-open",
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "More actions",
+            [nameof(IconMenuButton.Open)] = true,
+            [nameof(IconMenuButton.OpenChanged)] = EventCallback.Factory.Create<bool>(new object(), _ => { })
         });
         var openTrigger = Regex.Match(open, "<button\\b[^>]*id=\"contract-icon-menu-open-trigger\"[^>]*>").Value;
         Require(openTrigger.Contains("aria-expanded=\"true\"", StringComparison.Ordinal),
-            "IconButtonMenu must reflect a controlled open state on aria-expanded.");
+            "IconMenuButton must reflect a controlled open state on aria-expanded.");
         Require(!Regex.IsMatch(open, "<div[^>]*aeterni-popover[^>]*\\shidden(?:=|\\s|>)"),
-            "An open IconButtonMenu must not keep its popover hidden.");
+            "An open IconMenuButton must not keep its popover hidden.");
 
-        var groupedComposite = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var groupedComposite = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "Grouped actions"
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "Grouped actions"
         });
         Require(groupedComposite.Contains("aeterni-menu__group-toggle", StringComparison.Ordinal)
             && !groupedComposite.Contains("is-flat", StringComparison.Ordinal),
-            "IconButtonMenu without Flat must keep the grouped Menu contract.");
+            "IconMenuButton without Flat must keep the grouped Menu contract.");
 
-        var disabledComposite = await RenderAsync<IconButtonMenu>(new Dictionary<string, object?>
+        var disabledComposite = await RenderAsync<IconMenuButton>(new Dictionary<string, object?>
         {
-            [nameof(IconButtonMenu.Icon)] = icon,
-            [nameof(IconButtonMenu.Items)] = Groups,
-            [nameof(IconButtonMenu.AriaLabel)] = "Disabled actions",
-            [nameof(IconButtonMenu.Disabled)] = true
+            [nameof(IconMenuButton.Icon)] = icon,
+            [nameof(IconMenuButton.Items)] = Groups,
+            [nameof(IconMenuButton.AriaLabel)] = "Disabled actions",
+            [nameof(IconMenuButton.Disabled)] = true
         });
         Require(Regex.IsMatch(disabledComposite, "<div\\b[^>]*aria-disabled=\"true\""),
-            "IconButtonMenu must expose its disabled composite state on the root.");
+            "IconMenuButton must expose its disabled composite state on the root.");
         Require(Regex.IsMatch(disabledComposite, "<button\\b[^>]*\\sdisabled(?:=|\\s|>)"),
-            "IconButtonMenu must disable the real trigger when Disabled is set.");
+            "IconMenuButton must disable the real trigger when Disabled is set.");
 
         // Defaults are the documented simplest usage.
-        var defaults = new IconButtonMenu();
+        var defaults = new IconMenuButton();
         Require(defaults.Variant == ButtonVariant.Ghost
             && defaults.Intent == ButtonIntent.Neutral
             && defaults.Size == Size.Default
@@ -271,7 +271,7 @@ internal static class IconButtonMenuChecks
             && !defaults.Flat
             && !defaults.Loading
             && !defaults.Open,
-            "IconButtonMenu defaults must be Ghost + Neutral + Default size + BottomEnd placement, flat off.");
+            "IconMenuButton defaults must be Ghost + Neutral + Default size + BottomEnd placement, flat off.");
 
         // Parameter validation: the accessible name is mandatory, and every
         // public enum rejects undefined values with the actual value attached.
@@ -289,14 +289,14 @@ internal static class IconButtonMenuChecks
 
         foreach (var blank in new[] { "", "   " })
         {
-            await RequireThrowAsync<ArgumentException>(Valid(parameters => parameters[nameof(IconButtonMenu.AriaLabel)] = blank),
-                nameof(IconButtonMenu.AriaLabel), $"the blank AriaLabel \"{blank}\"");
+            await RequireThrowAsync<ArgumentException>(Valid(parameters => parameters[nameof(IconMenuButton.AriaLabel)] = blank),
+                nameof(IconMenuButton.AriaLabel), $"the blank AriaLabel \"{blank}\"");
         }
 
-        await RequireThrowAsync<ArgumentNullException>(Valid(parameters => parameters[nameof(IconButtonMenu.Items)] = null),
-            nameof(IconButtonMenu.Items), "a null Items list");
-        await RequireThrowAsync<ArgumentNullException>(Valid(parameters => parameters[nameof(IconButtonMenu.Icon)] = null),
-            nameof(IconButtonMenu.Icon), "a null Icon");
+        await RequireThrowAsync<ArgumentNullException>(Valid(parameters => parameters[nameof(IconMenuButton.Items)] = null),
+            nameof(IconMenuButton.Items), "a null Items list");
+        await RequireThrowAsync<ArgumentNullException>(Valid(parameters => parameters[nameof(IconMenuButton.Icon)] = null),
+            nameof(IconMenuButton.Icon), "a null Icon");
 
         var invalidVariant = (ButtonVariant)99;
         var invalidIntent = (ButtonIntent)99;
@@ -305,19 +305,19 @@ internal static class IconButtonMenuChecks
         var invalidPlacement = (PopupPlacement)99;
 
         await RequireEnumRejectedAsync(
-            Valid(parameters => parameters[nameof(IconButtonMenu.Variant)] = invalidVariant),
-            nameof(IconButtonMenu.Variant), invalidVariant);
+            Valid(parameters => parameters[nameof(IconMenuButton.Variant)] = invalidVariant),
+            nameof(IconMenuButton.Variant), invalidVariant);
         await RequireEnumRejectedAsync(
-            Valid(parameters => parameters[nameof(IconButtonMenu.Intent)] = invalidIntent),
-            nameof(IconButtonMenu.Intent), invalidIntent);
+            Valid(parameters => parameters[nameof(IconMenuButton.Intent)] = invalidIntent),
+            nameof(IconMenuButton.Intent), invalidIntent);
         await RequireEnumRejectedAsync(
-            Valid(parameters => parameters[nameof(IconButtonMenu.Size)] = invalidSize),
-            nameof(IconButtonMenu.Size), invalidSize);
+            Valid(parameters => parameters[nameof(IconMenuButton.Size)] = invalidSize),
+            nameof(IconMenuButton.Size), invalidSize);
         await RequireEnumRejectedAsync(
-            Valid(parameters => parameters[nameof(IconButtonMenu.Shape)] = invalidShape),
-            nameof(IconButtonMenu.Shape), invalidShape);
+            Valid(parameters => parameters[nameof(IconMenuButton.Shape)] = invalidShape),
+            nameof(IconMenuButton.Shape), invalidShape);
         await RequireEnumRejectedAsync(
-            Valid(parameters => parameters[nameof(IconButtonMenu.Placement)] = invalidPlacement),
-            nameof(IconButtonMenu.Placement), invalidPlacement);
+            Valid(parameters => parameters[nameof(IconMenuButton.Placement)] = invalidPlacement),
+            nameof(IconMenuButton.Placement), invalidPlacement);
     }
 }

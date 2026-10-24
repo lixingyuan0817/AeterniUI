@@ -55,7 +55,7 @@ public static class ShowcaseCatalog
             new("button", "Button", "动作按钮"),
             new("icon-button", "IconButton", "图标按钮"),
             new("menu-button", "MenuButton", "菜单按钮"),
-            new("icon-button-menu", "IconButtonMenu", "图标菜单按钮"),
+            new("icon-menu-button", "IconMenuButton", "图标菜单按钮"),
             new("split-button", "SplitButton", "分裂按钮"),
             new("button-group", "ButtonGroup", "按钮组合"),
             new("toolbar", "Toolbar", "单停留点动作工具栏"),

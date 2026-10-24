@@ -6,7 +6,7 @@
     --aeterni-menu-row-height: var(--aeterni-row-height-compact);
     /* Shared icon slot for group toggles and entries. The modifier classes below
        re-point it, so both the box and the rendered glyph move together (the icon
-       fills its box through --aeterni-icon-render-size: 100%). */
+       takes the same pixel token through --aeterni-icon-render-size). */
     --aeterni-menu-icon-size: var(--aeterni-icon-size-lg);
 
     display: grid;
@@ -139,7 +139,10 @@
     justify-content: center;
     width: var(--aeterni-menu-icon-size);
     height: var(--aeterni-menu-icon-size);
-    --aeterni-icon-render-size: 100%;
+    /* The slot's pixel token, not 100%: Icon sizes both axes from this variable,
+       and a percentage height on an inline SVG can collapse to auto, stretching a
+       non-square viewBox to the slot's width. */
+    --aeterni-icon-render-size: var(--aeterni-menu-icon-size);
 }
 
 .aeterni-menu__item-copy {

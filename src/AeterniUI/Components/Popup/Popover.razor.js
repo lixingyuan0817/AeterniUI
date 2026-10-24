@@ -48,7 +48,17 @@ export function init(reference, key) {
         resizeHandler: null,
         scrollHandler: null,
         cancelExit: null,
-        closingRevision: null
+        closingRevision: null,
+        // The placement `applyPlacement` resolved for the open layer (preferred or
+        // flipped) and the cross-axis shift last written to the layer.
+        resolvedPlacement: null,
+        exitShiftX: '0px',
+        // Final resolved placement of the open layer, captured after `place()`. Blazor
+        // owns the root `class` attribute, so the render that starts the closing state
+        // writes the preferred placement back over the one this module resolved; the
+        // closing path restores this snapshot before the exit animation is measured so
+        // the layer does not jump to the other side for the duration of the fade.
+        exitPlacement: null
     });
 }
 
@@ -106,16 +116,30 @@ export function setOpen(key, open, layer, modal, placement, closeOnEscape, close
     }
 
     if (!open) {
-        if (closing && instance.closingRevision !== revision) {
-            instance.cancelExit?.();
-            instance.closingRevision = revision;
-            instance.cancelExit = waitForExit([
-                instance.layer?.querySelector('.aeterni-popover__surface'),
-                instance.layer?.querySelector('.aeterni-popover__backdrop')], () => {
-                instance.cancelExit = null;
-                deactivate(instance);
-                instance.reference.invokeMethodAsync('FinalizeCloseAsync', revision).catch(() => {});
-            });
+        if (closing) {
+            const started = instance.closingRevision !== revision;
+            if (started) {
+                instance.cancelExit?.();
+                instance.closingRevision = revision;
+            }
+
+            // Blazor just re-rendered the root with its preferred placement class (and
+            // without the module-owned `is-anchored`/inline coordinates). Put the
+            // resolved placement back *before* measuring the exit animation, otherwise
+            // the layer animates out from the other side of the anchor. A parent render
+            // during the exit can reset the root again, so this repeats on every
+            // closing sync, not only when the revision starts.
+            restoreExitPlacement(instance);
+
+            if (started) {
+                instance.cancelExit = waitForExit([
+                    instance.layer?.querySelector('.aeterni-popover__surface'),
+                    instance.layer?.querySelector('.aeterni-popover__backdrop')], () => {
+                    instance.cancelExit = null;
+                    deactivate(instance);
+                    instance.reference.invokeMethodAsync('FinalizeCloseAsync', revision).catch(() => {});
+                });
+            }
         }
         if (!closing && instance.active) deactivate(instance);
         return;
@@ -176,6 +200,7 @@ function deactivate(instance) {
     instance.cancelExit?.();
     instance.cancelExit = null;
     instance.active = false;
+    instance.exitPlacement = null;
 
     if (instance.pointerHandler) {
         document.removeEventListener('pointerdown', instance.pointerHandler, true);
@@ -297,6 +322,7 @@ function place(instance) {
     if (anchor) {
         layer.classList.add('is-anchored');
         placeAgainstAnchor(instance, layer, anchor, side, align);
+        rememberPlacement(instance, true);
         return;
     }
 
@@ -311,9 +337,12 @@ function place(instance) {
     layer.style.setProperty('--aeterni-popover-shift-x', '0px');
 
     const shift = clampAlignedShift(layer.getBoundingClientRect(), 'x');
+    instance.exitShiftX = shift === 0 ? '0px' : `${shift}px`;
     if (shift !== 0) {
-        layer.style.setProperty('--aeterni-popover-shift-x', `${shift}px`);
+        layer.style.setProperty('--aeterni-popover-shift-x', instance.exitShiftX);
     }
+
+    rememberPlacement(instance, false);
 }
 
 // Anchored placement: the layer is `position: fixed`, so it is measured in viewport
@@ -362,9 +391,60 @@ function placeAgainstAnchor(instance, layer, anchor, side, align) {
     layer.style.setProperty('--aeterni-popover-shift-x', '0px');
 
     const shift = clampAlignedShift(layer.getBoundingClientRect(), 'x');
+    instance.exitShiftX = shift === 0 ? '0px' : `${shift}px`;
     if (shift !== 0) {
-        layer.style.setProperty('--aeterni-popover-shift-x', `${shift}px`);
+        layer.style.setProperty('--aeterni-popover-shift-x', instance.exitShiftX);
     }
+}
+
+/**
+ * Snapshots the final placement of the open layer. Blazor writes the root `class`
+ * attribute from its own render state, so the render that starts the closing state
+ * replaces the placement the module resolved; the closing path restores this
+ * snapshot before measuring the exit animation so the layer does not jump sides for
+ * the duration of the fade. Coordinates are captured too because anchored mode owns
+ * inline `left`/`top`/margins that the same render can overwrite.
+ */
+function rememberPlacement(instance, anchored) {
+    const layer = instance.layer;
+    const resolved = instance.resolvedPlacement;
+    if (!layer || !resolved) {
+        return;
+    }
+
+    instance.exitPlacement = {
+        side: resolved.side,
+        align: resolved.align,
+        anchored,
+        left: layer.style.left ?? '',
+        top: layer.style.top ?? '',
+        marginLeft: layer.style.marginLeft ?? '',
+        marginTop: layer.style.marginTop ?? '',
+        shiftX: instance.exitShiftX
+    };
+}
+
+/** Restores the resolved placement over a Blazor re-render that reset the root. */
+function restoreExitPlacement(instance) {
+    const state = instance.exitPlacement;
+    const layer = instance.layer;
+    if (!state || !layer) {
+        return;
+    }
+
+    applyPlacement(instance, state.side, state.align);
+
+    if (state.anchored) {
+        layer.classList.add('is-anchored');
+    } else {
+        layer.classList.remove('is-anchored');
+    }
+
+    layer.style.left = state.left;
+    layer.style.top = state.top;
+    layer.style.marginLeft = state.marginLeft;
+    layer.style.marginTop = state.marginTop;
+    layer.style.setProperty('--aeterni-popover-shift-x', state.shiftX);
 }
 
 /** The anchor element, when the consumer named one that is still in the document. */
@@ -401,6 +481,7 @@ function gapOf(layer) {
 
 function applyPlacement(instance, side, align) {
     const resolved = `${side}-${align}`;
+    instance.resolvedPlacement = { side, align };
     instance.layer.classList.remove(...PLACEMENTS.map(value => `aeterni-popover--${value}`));
     instance.layer.classList.add(`aeterni-popover--${resolved}`);
 }

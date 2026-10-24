@@ -6,6 +6,12 @@
 // the committed width is painted before the Blazor round-trip.
 const instances = new Map();
 
+// The second pane always keeps at least one touch target for the handle, so the
+// seam can never be pushed outside the container and become unreachable.
+// This mirrors --aeterni-touch-target-min; the computed token is preferred when
+// the page provides it, this value only covers environments without CSS.
+const DEFAULT_MIN_SECOND_PANE = 24;
+
 export function init(dotNetRef, instanceId) {
     dispose(instanceId);
     instances.set(instanceId, { dotNetRef, state: null });
@@ -31,10 +37,13 @@ export function attach(instanceId, root, handle, options) {
         rtl: directionOf(root) === 'rtl',
         min,
         max,
+        minSecondPane: DEFAULT_MIN_SECOND_PANE,
         width: 0,
         disabled: Boolean(options?.disabled),
         persistKey,
         dragging: false,
+        detached: false,
+        resizeObserver: null,
         pointerId: 0,
         start: 0,
         startSize: 0,
@@ -48,8 +57,10 @@ export function attach(instanceId, root, handle, options) {
     };
 
     instance.state = state;
+    state.minSecondPane = readMinSecondPane(root);
     const stored = readStored(state);
-    state.width = stored ?? clamp(numeric(options?.firstSize, min), min, max);
+    const requested = stored ?? Math.round(numeric(options?.firstSize, min));
+    state.width = constrain(state, requested);
     apply(state, state.width, false);
     applyDisabled(state);
 
@@ -66,7 +77,14 @@ export function attach(instanceId, root, handle, options) {
     // A restored width is the value the host must adopt, not just a painted width.
     if (stored !== null) {
         state.dotNetRef?.invokeMethodAsync('OnSizeRestoredAsync', state.width).catch(() => {});
+    } else if (state.width !== requested) {
+        // The configured FirstSize may exceed the space this container actually
+        // offers; report the effective value so the host does not keep a width the
+        // handle can never reach.
+        state.dotNetRef?.invokeMethodAsync('OnSizeChangedAsync', state.width).catch(() => {});
     }
+
+    observeContainer(state);
 }
 
 export function sync(instanceId, root, handle, options) {
@@ -87,13 +105,18 @@ export function sync(instanceId, root, handle, options) {
     state.max = Math.max(state.min, numeric(options?.max, state.min));
     state.persistKey = typeof options?.persistKey === 'string' ? options.persistKey : null;
     state.disabled = Boolean(options?.disabled);
+    state.minSecondPane = readMinSecondPane(root);
     applyDisabled(state);
 
     // While a gesture is in flight the live width wins; the host re-renders on
     // commit and would otherwise snap the pane back under the pointer.
     if (!state.dragging) {
-        state.width = clamp(numeric(options?.firstSize, state.width), state.min, state.max);
+        const requested = Math.round(numeric(options?.firstSize, state.width));
+        state.width = constrain(state, requested);
         apply(state, state.width, false);
+        if (state.width !== requested) {
+            state.dotNetRef?.invokeMethodAsync('OnSizeChangedAsync', state.width).catch(() => {});
+        }
     }
 }
 
@@ -113,6 +136,9 @@ function detach(instance) {
         return;
     }
 
+    state.detached = true;
+    state.resizeObserver?.disconnect();
+    state.resizeObserver = null;
     state.handle.removeEventListener('pointerdown', state.onPointerDown);
     state.handle.removeEventListener('keydown', state.onKeyDown);
     state.handle.removeEventListener('dblclick', state.onDoubleClick);
@@ -207,7 +233,7 @@ function handleKey(state, event) {
             next = state.min;
             break;
         case 'End':
-            next = state.max;
+            next = effectiveMax(state);
             break;
         default:
             return;
@@ -227,7 +253,7 @@ function commit(state, value) {
 }
 
 function apply(state, value, persist) {
-    state.width = clamp(value, state.min, state.max);
+    state.width = constrain(state, value);
     state.root.style.setProperty('--aeterni-splitter-first-size', `${state.width}px`);
     state.handle.setAttribute('aria-valuenow', String(state.width));
 
@@ -251,8 +277,97 @@ function numeric(value, fallback) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function clamp(value, min, max) {
-    return Math.round(Math.max(min, Math.min(max, value)));
+// The configured MaxFirstSize is only an upper bound; a splitter that is smaller
+// than that bound (a narrow preview, a resized window) must keep the seam inside
+// the container. The second pane therefore reserves one touch target, otherwise
+// the handle would sit past the clipped edge and could never be grabbed again.
+function effectiveMax(state) {
+    const container = containerSize(state);
+    if (!(container > 0)) {
+        // Unmeasured (or a detached layout): trust the configured maximum.
+        return state.max;
+    }
+
+    const available = Math.round(container - state.minSecondPane);
+    // When even the minimum does not fit, fall back to MinFirstSize: shrinking
+    // below it would break a bound the host explicitly asked for.
+    return Math.max(state.min, Math.min(state.max, available));
+}
+
+function constrain(state, value) {
+    return Math.round(Math.max(state.min, Math.min(effectiveMax(state), value)));
+}
+
+function containerSize(state) {
+    const element = state.root;
+    if (!element) {
+        return 0;
+    }
+
+    const horizontal = state.orientation === 'horizontal';
+    const direct = horizontal ? element.clientWidth : element.clientHeight;
+    if (Number.isFinite(direct) && direct > 0) {
+        return direct;
+    }
+
+    try {
+        const rect = element.getBoundingClientRect?.();
+        const measured = horizontal ? rect?.width : rect?.height;
+        if (Number.isFinite(measured) && measured > 0) {
+            return measured;
+        }
+    } catch {
+        // A detached element cannot be measured; the configured max still applies.
+    }
+
+    return 0;
+}
+
+// The second pane's reservation follows the same token the handle's hit area uses,
+// so a host that themes the touch target keeps both in sync.
+function readMinSecondPane(root) {
+    if (typeof getComputedStyle !== 'function' || !root) {
+        return DEFAULT_MIN_SECOND_PANE;
+    }
+
+    try {
+        const parsed = parseFloat(getComputedStyle(root).getPropertyValue('--aeterni-touch-target-min'));
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MIN_SECOND_PANE;
+    } catch {
+        return DEFAULT_MIN_SECOND_PANE;
+    }
+}
+
+function observeContainer(state) {
+    // ResizeObserver is the only way to notice a shrink that does not come from a
+    // re-render; without it a window resize would leave the same out-of-range width.
+    if (typeof ResizeObserver !== 'function' || state.resizeObserver) {
+        return;
+    }
+
+    const observer = new ResizeObserver(() => reclampToContainer(state));
+    observer.observe(state.root);
+    state.resizeObserver = observer;
+}
+
+function reclampToContainer(state) {
+    if (state.detached) {
+        return;
+    }
+
+    const max = effectiveMax(state);
+    if (state.width <= max) {
+        return;
+    }
+
+    if (state.dragging) {
+        // The pointer is still down; paint the clamped width and let the pointerup
+        // commit it through the normal path.
+        apply(state, max, false);
+        return;
+    }
+
+    commit(state, max);
 }
 
 function directionOf(element) {
@@ -279,7 +394,7 @@ function readStored(state) {
         }
 
         const stored = Number(raw);
-        return Number.isFinite(stored) ? clamp(stored, state.min, state.max) : null;
+        return Number.isFinite(stored) ? constrain(state, stored) : null;
     } catch {
         return null;
     }

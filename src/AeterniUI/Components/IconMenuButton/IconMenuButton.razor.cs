@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace AeterniUI.Components.IconButtonMenu;
+namespace AeterniUI.Components.IconMenuButton;
 
 /// <summary>
 /// An icon-only action button that opens an anchored menu. It composes the
@@ -16,7 +16,7 @@ namespace AeterniUI.Components.IconButtonMenu;
 /// keyboard, Escape, outside-click and focus-restore behaviour.
 /// </summary>
 [JsModule("js/aeterni_menu_trigger.js", Name = "menu-trigger", Interactive = true)]
-public partial class IconButtonMenu : AeterniComponent
+public partial class IconMenuButton : AeterniComponent
 {
     private const string TriggerModule = "menu-trigger";
 
@@ -187,7 +187,7 @@ public partial class IconButtonMenu : AeterniComponent
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
-        .Add("aeterni-icon-button-menu");
+        .Add("aeterni-icon-menu-button");
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {

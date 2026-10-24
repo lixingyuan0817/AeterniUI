@@ -56,8 +56,12 @@ globalThis.document = {
     removeEventListener() {}
 };
 
-function fixture(options = {}) {
+function fixture(options = {}, container = {}) {
     const root = new StubElement('root');
+    // A detached-style measurement: 0 means "not laid out yet", which the module
+    // maps back to the configured maximum.
+    root.clientWidth = container.width ?? 0;
+    root.clientHeight = container.height ?? 0;
     const handle = new StubElement('handle');
     const calls = [];
     const dotNetRef = { invokeMethodAsync: async (name, value) => calls.push([name, value]) };
@@ -231,5 +235,78 @@ test('RTL horizontal splitters mirror drag deltas and arrow keys', () => {
         dispose('splitter-1');
     } finally {
         delete globalThis.getComputedStyle;
+    }
+});
+
+test('the configured max is capped by the container so the seam never leaves it', () => {
+    storage.clear();
+    // 396px container with a 600px configured max: the reachable ceiling becomes
+    // 396 - 24 (touch target) = 372, so the handle stays inside the clipped box.
+    const { root, handle, calls } = fixture({ firstSize: 300 }, { width: 396 });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '300px');
+
+    handle.dispatch('keydown', { key: 'End' });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '372px');
+    assert.equal(handle.getAttribute('aria-valuenow'), '372');
+
+    handle.dispatch('pointerdown', { clientX: 0 });
+    window.listeners.get('pointermove')({ clientX: 500, preventDefault() {} });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '372px',
+        'a pointer drag is clamped by the effective ceiling too');
+    window.listeners.get('pointerup')({ pointerId: 1, preventDefault() {} });
+    assert.deepEqual(calls.at(-1), ['OnSizeChangedAsync', 372]);
+    assert.equal(storage.get('splitter-test'), '372');
+    dispose('splitter-1');
+});
+
+test('an unmeasured container keeps the configured maximum', () => {
+    storage.clear();
+    const { root, handle } = fixture({ firstSize: 300 });
+    handle.dispatch('keydown', { key: 'End' });
+    assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '600px');
+    dispose('splitter-1');
+});
+
+test('the effective ceiling uses the container axis and the touch-target token', () => {
+    storage.clear();
+    const token = '--aeterni-touch-target-min';
+    globalThis.getComputedStyle = () => ({
+        direction: 'ltr',
+        getPropertyValue: name => (name === token ? '32px' : '')
+    });
+    try {
+        const { root, handle } = fixture({ orientation: 'vertical', firstSize: 200 }, { width: 900, height: 300 });
+        handle.dispatch('keydown', { key: 'End' });
+        // Vertical uses clientHeight (300) and the page's 32px touch target: 268.
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '268px');
+        dispose('splitter-1');
+    } finally {
+        delete globalThis.getComputedStyle;
+    }
+});
+
+test('a shrinking container re-clamps the committed width and disconnects on dispose', () => {
+    storage.clear();
+    const observers = [];
+    globalThis.ResizeObserver = class {
+        constructor(callback) { this.callback = callback; this.disconnected = false; observers.push(this); }
+        observe() {}
+        disconnect() { this.disconnected = true; }
+    };
+    try {
+        const { root, handle, calls } = fixture({ firstSize: 300 }, { width: 600 });
+        handle.dispatch('keydown', { key: 'End' });
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '576px');
+
+        root.clientWidth = 400;
+        observers[0].callback([]);
+        assert.equal(root.style.values.get('--aeterni-splitter-first-size'), '376px');
+        assert.deepEqual(calls.at(-1), ['OnSizeChangedAsync', 376]);
+        assert.equal(storage.get('splitter-test'), '376');
+
+        dispose('splitter-1');
+        assert.equal(observers[0].disconnected, true, 'disposing must release the ResizeObserver');
+    } finally {
+        delete globalThis.ResizeObserver;
     }
 });

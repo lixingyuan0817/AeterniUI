@@ -13,6 +13,10 @@
        the same rounded shape as the control it sits in, and every size tier keeps the
        control radius the rest of the library uses. The capsule repoints this below. */
     --aeterni-segmented-inner-radius: var(--aeterni-segmented-radius-rounded);
+    /* The pill's travel is the one deliberate slow step in this control: 300ms
+       makes the swapping block readable. Colour and shadow stay on the normal
+       200ms step, and reduced-motion still drops the transition entirely. */
+    --aeterni-segmented-slider-duration: var(--aeterni-duration-slow);
     /* One padding value feeds the track, the pill and the pill's travel, and it is the
        same on every size tier: the gap between the outline and the tile must not change
        with Size. It is one spacing step minus a hairline, i.e. 3px.
@@ -61,10 +65,11 @@
     background: var(--aeterni-state-background-checked);
     box-shadow: var(--aeterni-shadow-sm);
     transform: translateX(calc(var(--aeterni-segmented-index, 0) * 100%));
-    /* Selected-state travel: 200ms. This is the most frequent micro-interaction in the
-       docs (preview/code, theme, brand), so it uses the normal step instead of the
-       600ms slower+fast compound that read as a slow rail. */
-    transition: transform var(--aeterni-duration-normal) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    /* Selected-state travel uses the component's own slow duration (300ms); the
+       colour and shadow steps stay at the normal 200ms so the fill does not lag the
+       block. This is the most frequent micro-interaction in the docs (preview/code,
+       theme, brand) and user feedback asked for a slower, more readable slide. */
+    transition: transform var(--aeterni-segmented-slider-duration) var(--aeterni-ease-emphasized), background-color var(--aeterni-duration-normal) var(--aeterni-ease-in-out), box-shadow var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
     will-change: transform;
 }
 

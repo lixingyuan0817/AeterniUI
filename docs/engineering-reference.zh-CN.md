@@ -177,7 +177,7 @@ class 从 `base.BuildClass()` 起链式构建，命名规则见 [`AGENTS.md`](..
 - 用 `@if` 给两种模式各写一份相同子树，后续只改一份就会分叉；差异应放进 `BuildClass()`/`BuildAttributes()`。
 - 用 `class="@SomeBuilder()"` 手写根属性，会让 `Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes` 静默失效。
 - 非交互组件注册 DOM 监听器：处理属性可以返回 `default` 的 `EventCallback<T>`（渲染树不产生处理帧），不要把判断全丢进处理器内部。
-- 图标尺寸出现第二个入口（`font-size`、`::deep svg { width/height }`）：统一走祖先元素的 `--aeterni-icon-render-size`，否则 `Icon` 的 `1em` 回落会与宿主设置打架。
+- 图标尺寸出现第二个入口（`font-size`、`::deep svg { width/height }`）：统一走祖先元素的 `--aeterni-icon-render-size`，否则 `Icon` 的 `1em` 回落会与宿主设置打架。该变量必须是**像素值**而不是 `100%`：SVG 的百分比高度在部分布局下回退成 `auto`，非正方形 viewBox（例如 128×512 的 `ellipsis-vertical`）会按宽算出 4 倍高，撑破 24–36px 的图标槽；槽位用 `var(--...-icon-size)` 传像素即可等比缩入正方形。
 
 禁用态用状态 Token 而不是整块 `opacity`；`opacity` 只用于组件局部的光学微调（加载中的标签、弱化字形）并在注释里说明。同一角色的魔数只写一次：已有 Token（如 `--aeterni-opacity-muted`、`--aeterni-radius-badge`）不要在旁边再写一份字面量。
 
@@ -212,10 +212,11 @@ class 从 `base.BuildClass()` 起链式构建，命名规则见 [`AGENTS.md`](..
 动效复用 duration/easing Token（规则见 [`AGENTS.md`](../AGENTS.md) §4.4），以下数值是实测与踩坑结论：
 
 - 折叠面板用 `grid-template-rows: 0fr → 1fr` 是已登记例外：不引入 JS 测量高度时它是不改 DOM 结构的唯一方案，只能用在自有折叠容器上并兼容 `prefers-reduced-motion: reduce`。
-- 状态切换用短档：`Segmented` 选中滑块 200ms（normal 档），不用 `slower + fast` 的 600ms 长轨。
+- 状态切换用短档：`Segmented` 选中滑块默认 300ms（`--aeterni-segmented-slider-duration`，slow 档），颜色/阴影仍 200ms；不用 `slower + fast` 的 600ms 长轨。滑块是最高频的文档微交互，300ms 是“看得出移动、不拖沓”的折中。
 - 主题与品牌切换只过渡颜色承载属性（`color`/`background-color`/`border-color`/`outline-color`/`box-shadow`/`fill`/`stroke`），300ms；把 `transform`/`opacity` 纳入切换会把整页卷进合成层，读起来像「页面在动」。
 - 通知的自动关闭计时与环形进度必须同源暂停：指针悬停或焦点进入卡片时暂停（进度环 `animation-play-state: paused`），离开后从剩余时间继续；只停 CSS 动画而计时器仍走，会让卡片在读者眼前消失，只停计时器而动画继续则进度与关闭时刻对不上。
 - Tooltip 的 hover 显示延迟 250ms（`--aeterni-tooltip-show-delay`，可被宿主覆盖）、键盘 focus 立即；Popover 出入场位移方向跟随 placement 变量（Bottom 侧 -4px、Top 侧 +4px），ComboBox/Cascader 不再复制自己的关键帧。
+- Popover 的 JS 翻转结果是运行时状态，而根 class 归 Blazor 渲染：关闭重渲染会把 `top-*` 写回 preferred `bottom-*`，退场动画因此会先跳到下方。`Popover.razor.js` 在 `place()` 时快照解析后的 side/align 与 anchored 坐标，`setOpen(closing)` 启动退场前恢复快照（退场期间每次同步都恢复），这是“关闭不跳位”的必要条件；不能只依赖初始 placement class。
 - 浮层退场约为进场的 60–75% 并用加速曲线：Popover 80/100ms、Dialog 与 Notice 150/200ms、Drawer 210/300ms。退场等待只认实际运行的动画，并按实测 `delay + duration` 兜底：短动画可能在 Blazor interop 抵达前结束，`Animation.finished` 在部分引擎上不再结算，没有兜底会把浮层永久留在 `is-closing`（10.42.0 修正共享 `waitForExit`）。
 - 进场按体量分三级：小浮层 100ms `ease-out`；通知 200ms `ease-emphasized`；Dialog 200ms `ease-out`、Drawer 300ms `ease-emphasized`。Dialog 面板必须与遮罩同帧进入；Drawer 关闭过程中页面始终处于暗场。遮罩拒绝关闭时的抖动每次点击重新触发，抖完保持 `is-settled`（`animation: none`），不得落回进场关键帧从 `opacity: 0` 重播，否则会被读成页面刷新；reduced-motion 下省略抖动。
 - 滑块与进度条的数值长度只用 `transform: scaleX()/scaleY()`，不用 `width`/`inline-size` 过渡；RTL 下填充起点随方向镜像。`ease-emphasized` 下可感知行程约为时长的 2/3（Segmented 200ms 实测约 130ms），调参以感知时长而非名义时长为锚点。

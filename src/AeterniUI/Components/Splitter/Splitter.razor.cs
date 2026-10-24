@@ -9,6 +9,12 @@ namespace AeterniUI.Components.Splitter;
 /// <summary>
 /// 两个面板之间的可拖动分栏布局。第一栏使用可配置的像素宽度，第二栏占满剩余空间。
 /// </summary>
+/// <remarks>
+/// 第一栏的实际上限同时受容器主轴尺寸约束：JS 取
+/// <c>min(MaxFirstSize, 容器尺寸 - --aeterni-touch-target-min)</c>，保证第二栏至少留下
+/// 一个触控目标的宽度、分隔条始终落在容器内可抓取；容器缩小时会重新夹取并回写宿主。
+/// 容器尚未测量（尺寸为 0）时退回 <see cref="MaxFirstSize" />。
+/// </remarks>
 [JsModule("Components/Splitter/Splitter.razor.js", Name = "splitter", Interactive = true)]
 public partial class Splitter : AeterniComponent
 {
@@ -27,7 +33,12 @@ public partial class Splitter : AeterniComponent
     [Parameter]
     public int MinFirstSize { get; set; } = 200;
 
-    /// <summary>第一栏允许的最大像素宽度。</summary>
+    /// <summary>
+    /// 第一栏允许的最大像素宽度。这是配置上限，不是实际可达上限：容器放不下时，
+    /// 实际值还会被 <c>容器主轴尺寸 - --aeterni-touch-target-min</c> 夹取，避免分隔条
+    /// 被 <c>overflow: hidden</c> 裁到容器外而无法再次拖动。窗口或容器缩小时，
+    /// JS 会按新尺寸重新夹取并通过 <see cref="FirstSizeChanged" /> 回报实际值。
+    /// </summary>
     [Parameter]
     public int MaxFirstSize { get; set; } = 600;
 

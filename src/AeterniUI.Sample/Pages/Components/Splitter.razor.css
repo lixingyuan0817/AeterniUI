@@ -1,4 +1,8 @@
 .preview-splitter-frame {
+    /* 预览画布是 flex 居中容器；不给宽度时框架按内容收缩，而 Splitter 又是 width:100%，
+       第一栏变宽会反过来撑大框架，形成拖动时的宽度反馈。钉住 100% 让拖拽只改第一栏。 */
+    width: 100%;
+    min-width: 0;
     height: 280px;
     overflow: hidden;
     border: var(--aeterni-border-width-thin) solid var(--aeterni-border-subtle);
