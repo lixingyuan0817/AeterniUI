@@ -128,7 +128,10 @@ function scrollActiveIntoView(activeInput) {
     const active = document.getElementById(activeInput?.getAttribute('aria-activedescendant'));
     if (!active) return;
 
-    const viewport = active.parentElement;
+    // 结果是按页面分组的：活动项的直接父元素现在是分组盒，真正的滚动容器要往上找。
+    const viewport = active.closest('.showcase-search-modal__list');
+    if (!viewport) return;
+
     const row = active.getBoundingClientRect();
     const box = viewport.getBoundingClientRect();
     if (row.top < box.top) viewport.scrollTop -= box.top - row.top;

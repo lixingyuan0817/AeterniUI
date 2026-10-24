@@ -136,6 +136,22 @@
     --aeterni-button-intent-danger-foreground: var(--aeterni-color-on-semantic);
     --aeterni-button-intent-danger-soft: var(--aeterni-color-danger-soft);
     --aeterni-button-intent-danger-soft-active: color-mix(in srgb, var(--aeterni-color-danger-default) 18%, transparent);
+
+    --aeterni-button-intent-success-color: var(--aeterni-color-success-text);
+    --aeterni-button-intent-success-background: var(--aeterni-color-success-default);
+    --aeterni-button-intent-success-background-hover: color-mix(in srgb, var(--aeterni-color-success-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-intent-success-background-active: var(--aeterni-color-success-default);
+    --aeterni-button-intent-success-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-intent-success-soft: var(--aeterni-color-success-soft);
+    --aeterni-button-intent-success-soft-active: color-mix(in srgb, var(--aeterni-color-success-default) 18%, transparent);
+
+    --aeterni-button-intent-info-color: var(--aeterni-color-info-text);
+    --aeterni-button-intent-info-background: var(--aeterni-color-info-default);
+    --aeterni-button-intent-info-background-hover: color-mix(in srgb, var(--aeterni-color-info-default) 88%, var(--aeterni-gray-0));
+    --aeterni-button-intent-info-background-active: var(--aeterni-color-info-default);
+    --aeterni-button-intent-info-foreground: var(--aeterni-color-on-semantic);
+    --aeterni-button-intent-info-soft: var(--aeterni-color-info-soft);
+    --aeterni-button-intent-info-soft-active: color-mix(in srgb, var(--aeterni-color-info-default) 18%, transparent);
     --aeterni-duration-fast: 100ms;
     --aeterni-duration-normal: 200ms;
     --aeterni-duration-slow: 300ms;

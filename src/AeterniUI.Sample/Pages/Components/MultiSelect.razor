@@ -1,4 +1,4 @@
-﻿@page "/components/multi-select"
+@page "/components/multi-select"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -82,6 +82,35 @@
                 <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
             </Controls>
         </DemoCard>
+        <DemoCard Id="multi-select-loading"
+                  Title="加载态与弹层方位"
+                  Description="Loading 时浮层显示忙碌状态，但触发器的打开/关闭不受影响；Placement 指定首选方位。清除沿用 AllowClear/OnClear 的批量动作。"
+                  Code="@LoadingCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <MultiSelect TItem="string"
+                                 Items="@_categories"
+                                 SelectedValues="@_loadingSelected"
+                                 SelectedValuesChanged="HandleLoadingSelectedChanged"
+                                 AllowClear
+                                 ReadOnly="@_readOnly"
+                                 Loading="@_loading"
+                                 Placement="@_placement"
+                                 OnClear="HandleCleared"
+                                 Placeholder="选择组件分类…"
+                                 AriaLabel="加载态与方位演示" />
+                    <span class="preview-feedback" role="status">已选：@LoadingSelectedText@ClearNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Placement</span>
+                    <ShowcaseSelect TValue="PopupPlacement" Id="multi-select-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
+            </Controls>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>触发器是 <code>combobox</code>，浮层是 <code>listbox[aria-multiselectable]</code>；活动项通过 <code>aria-activedescendant</code> 表达，输入焦点始终留在触发器上。</span>
@@ -118,6 +147,15 @@
                      FullWidth />
         """;
 
+    private const string LoadingCode = """
+        <MultiSelect TItem="string" Items="Categories" @bind-SelectedValues="Selected"
+                     AllowClear
+                     ReadOnly="@ReadOnly"
+                     Loading="@Loading"
+                     Placement="PopupPlacement.TopStart"
+                     OnClear="HandleCleared" />
+        """;
+
     private static readonly string[] _categories = ["设计", "开发", "产品", "运营", "研究"];
     private static readonly string[] _scopes = ["全员", "本部门", "项目组", "仅自己"];
 
@@ -129,9 +167,19 @@
     private bool _invalid;
     private bool _fullWidth = true;
 
+    private IReadOnlyList<string> _loadingSelected = ["设计"];
+    private bool _readOnly;
+    private bool _loading;
+    private PopupPlacement _placement = PopupPlacement.BottomStart;
+    private string _clearNote = string.Empty;
+
     private string SelectedText => _selected.Count == 0 ? "（空）" : string.Join("、", _selected);
 
     private string ActionSelectedText => _actionSelected.Count == 0 ? "（空）" : string.Join("、", _actionSelected);
+
+    private string LoadingSelectedText => _loadingSelected.Count == 0 ? "（空）" : string.Join("、", _loadingSelected);
+
+    private string ClearNote => string.IsNullOrEmpty(_clearNote) ? string.Empty : $" · {_clearNote}";
 
     private Task HandleSelectedChanged(IReadOnlyList<string> values)
     {
@@ -148,6 +196,18 @@
     private Task HandleScopeChanged(IReadOnlyList<string> values)
     {
         _scopeSelected = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleLoadingSelectedChanged(IReadOnlyList<string> values)
+    {
+        _loadingSelected = values;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleCleared()
+    {
+        _clearNote = "已清除";
         return Task.CompletedTask;
     }
 }

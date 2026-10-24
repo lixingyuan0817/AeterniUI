@@ -67,6 +67,28 @@
             </Controls>
         </DemoCard>
 
+        <DemoCard Id="time-picker-readonly"
+                  Title="只读与外部描述"
+                  Description="ReadOnly 让触发器保持可聚焦、可选中复制，但不会打开时间滚轮或改写绑定值；AriaDescribedBy 与 FormField 的描述 id 去重合并后输出到触发器。同时设置 Disabled 时禁用态优先。"
+                  Code="@ReadOnlyCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <TimePicker @bind-Value="_readOnlyTime"
+                                ReadOnly="@_readOnly"
+                                Disabled="@_readOnlyDisabled"
+                                AriaDescribedBy="time-picker-readonly-hint"
+                                OptionsAriaLabel="时间选项"
+                                AriaLabel="只读提醒时间" />
+                    <p id="time-picker-readonly-hint" class="preview-feedback">只读触发器仍可聚焦并复制文本；滚轮不会打开，值只能由宿主更新。勾选 Disabled 可以看到禁用态优先于只读。</p>
+                    <span class="preview-feedback" role="status">只读时间：@(_readOnlyTime?.ToString(DisplayFormat) ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnlyDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
         <DemoCard Id="time-picker-form"
                   Title="在 FormField 中使用"
                   Description="字段提供标签、描述与状态；Required / Invalid / Disabled 写在 FormField 上，触发器继承后直接作用于时间选择。"
@@ -97,6 +119,7 @@
         <span>弹层是「时 / 分 / 秒」三列滚轮：滚动停稳后平滑吸附到中心值，文字层按实际行高连续缩放、rotateX 与渐隐；列名固定在顶部，中间选择带只有上下分隔线。</span>
         <span>滚轮组只有一个 Tab 停留点：左右键切换列，上下键与 Home/End 切换值，Enter/Space 确认；「取消 / 确定」保持原生 Tab 顺序。</span>
         <span>默认采用 <code>TwentyFourHour</code> 与 <code>HH:mm:ss</code>，<code>TimeFormat.Auto</code> 跟随当前 Culture；<code>Step</code> 支持 1 秒到小于一天的整秒粒度，<code>MinTime</code> / <code>MaxTime</code> / <code>DisabledTime</code> 同时约束候选。</span>
+        <span><code>ReadOnly</code> 只关闭打开弹层与改写值的入口：触发器仍可聚焦、可选中复制并保留焦点环；与 <code>Disabled</code> 同时设置时以 <code>Disabled</code> 为准。<code>AriaDescribedBy</code> 先于 <code>FormField</code> 的描述 id 输出，重复 id 只保留一份。</span>
     </Notes>
 </ComponentPage>
 
@@ -126,6 +149,12 @@
         </FormField>
         """;
 
+    private const string ReadOnlyCode = """
+        <TimePicker @bind-Value="Time"
+                    ReadOnly="@IsReadOnly"
+                    AriaDescribedBy="time-hint" />
+        """;
+
     private const string DisplayFormat = "HH:mm:ss";
 
     private TimeOnly? _time = new(9, 30);
@@ -138,6 +167,10 @@
     private bool _fullWidth;
     private bool _disabled;
     private bool _invalid;
+
+    private TimeOnly? _readOnlyTime = new(9, 30);
+    private bool _readOnly = true;
+    private bool _readOnlyDisabled;
 
     private TimeOnly? _formTime;
     private bool _formRequired;

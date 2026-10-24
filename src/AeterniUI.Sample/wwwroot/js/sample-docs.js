@@ -1,4 +1,4 @@
-// 文档壳里唯一需要 JavaScript 的行为：复制示例代码。
+// 文档壳里需要 JavaScript 的浏览器行为：复制示例代码、复制图标名。
 //
 // 放在应用级脚本而不是组件模块里：一则一个页面上有多段代码，事件委托比给每个
 // 代码块挂模块省事；二则剪贴板写入是浏览器能力，不需要 C# 参与，
@@ -12,19 +12,48 @@ document.addEventListener('click', async event => {
     if (!(target instanceof Element)) return;
 
     const button = target.closest('[data-sample-copy]');
-    if (!button) return;
+    if (button) {
+        const block = document.getElementById(button.dataset.sampleCopy);
+        if (!block) return;
 
-    const block = document.getElementById(button.dataset.sampleCopy);
-    if (!block) return;
+        const copied = await writeClipboard(block.textContent ?? '');
+        const label = button.textContent;
+        button.textContent = copied ? '已复制' : '复制失败';
+        button.dataset.sampleCopyState = copied ? 'copied' : 'failed';
+        window.setTimeout(() => {
+            button.textContent = label;
+            delete button.dataset.sampleCopyState;
+        }, 2000);
+        return;
+    }
 
-    const copied = await writeClipboard(block.textContent ?? '');
-    const label = button.textContent;
-    button.textContent = copied ? '已复制' : '复制失败';
-    button.dataset.sampleCopyState = copied ? 'copied' : 'failed';
-    window.setTimeout(() => {
-        button.textContent = label;
-        delete button.dataset.sampleCopyState;
-    }, 2000);
+    const iconButton = target.closest('[data-icon-copy]');
+    if (iconButton) {
+        const name = iconButton.dataset.iconCopy;
+        if (!name) return;
+
+        const copied = await writeClipboard(name);
+        const label = iconButton.textContent;
+        iconButton.textContent = copied ? '已复制' : '复制失败';
+        iconButton.dataset.copyState = copied ? 'copied' : 'failed';
+
+        // 按钮文字给视觉反馈；图标名按钮的 aria-label 保持不变（读屏名字仍是"复制图标名 X"），
+        // 成功/失败因此另走页面上这条 role=status 播报。
+        const status = document.getElementById('icons-copy-status');
+        const message = copied ? `已复制图标名：${name}` : `复制图标名失败：${name}`;
+        if (status) {
+            status.textContent = message;
+            window.setTimeout(() => {
+                if (status.textContent === message) status.textContent = '';
+            }, 3000);
+        }
+
+        window.setTimeout(() => {
+            iconButton.textContent = label;
+            delete iconButton.dataset.copyState;
+        }, 2000);
+        return;
+    }
 });
 
 async function writeClipboard(text) {

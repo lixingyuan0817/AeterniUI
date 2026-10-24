@@ -1,4 +1,4 @@
-﻿@page "/components/autocomplete"
+@page "/components/autocomplete"
 @layout ComponentsLayout
 @inherits ShowcasePageBase
 @using AeterniUI.Enums
@@ -98,6 +98,33 @@
                 <Checkbox Size="Size.Small" @bind-Value="_fullWidth">FullWidth</Checkbox>
             </Controls>
         </DemoCard>
+        <DemoCard Id="autocomplete-layer"
+                  Title="弹层方位与只读"
+                  Description="Placement 决定建议层的首选方位，空间不足时仍由共享浮层翻转；ReadOnly 时输入可聚焦、文本可复制，但不会展开建议也不会改值。"
+                  Code="@PlacementCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Autocomplete TItem="string"
+                                  Items="@_components"
+                                  Value="@_placementQuery"
+                                  ValueChanged="HandlePlacementQueryChanged"
+                                  TextSelector="@(item => item)"
+                                  Placement="@_placement"
+                                  ReadOnly="@_readOnly"
+                                  Clearable
+                                  Placeholder="输入组件名称…"
+                                  AriaLabel="方位与只读演示" />
+                    <span class="preview-feedback" role="status">当前输入：@(string.IsNullOrEmpty(_placementQuery) ? "（空）" : _placementQuery)</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Placement</span>
+                    <ShowcaseSelect TValue="PopupPlacement" Id="autocomplete-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+            </Controls>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>键盘模型与 <code>ComboBox</code> 一致：方向键移动、Enter 选中、Escape 关闭；输入框保持编辑焦点，活动项通过 <code>aria-activedescendant</code> 表达。</span>
@@ -135,6 +162,13 @@
         </FormField>
         """;
 
+    private const string PlacementCode = """
+        <Autocomplete TItem="string" Items="Components" Value="Query" ValueChanged="OnQueryChanged"
+                      TextSelector="@(item => item)"
+                      Placement="PopupPlacement.TopStart"
+                      ReadOnly="@ReadOnly" />
+        """;
+
     private static readonly string[] _components =
     [
         "Input", "InputNumber", "Textarea", "Search", "Autocomplete",
@@ -154,6 +188,10 @@
     private bool _invalid;
     private bool _fullWidth;
 
+    private string? _placementQuery;
+    private PopupPlacement _placement = PopupPlacement.BottomStart;
+    private bool _readOnly;
+
     private Task HandleQueryChanged(string? value)
     {
         _query = value;
@@ -169,6 +207,12 @@
     private Task HandleStateQueryChanged(string? value)
     {
         _stateQuery = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePlacementQueryChanged(string? value)
+    {
+        _placementQuery = value;
         return Task.CompletedTask;
     }
 }

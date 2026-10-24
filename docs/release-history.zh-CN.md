@@ -6,6 +6,42 @@
 
 历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
 
+## 10.47.0 选择器/列表/日期 API 对齐与示例站可用性
+
+10.46.0 发版后继续执行审阅计划剩余的 P1/P2 项。本批以“对齐与类型安全”为主，新增若干公共参数/成员，按 §4.9 第二位递增；没有删除既有 API，旧选择器/列表接口以兼容层保留。
+
+### 选择器族
+
+- `Autocomplete` 补 `Placement`；`ComboBox`、`Cascader` 补 `ReadOnly`、`Loading`、`AllowClear`、`ClearLabel`、`OnClear`、`Placement`；`MultiSelect` 补 `Loading`、`Placement`。
+- 只读触发器保持可聚焦、可复制，不打开弹层、不改值，`aria-readonly` 落在 `role=combobox` 上；加载态在面板内显示共享 `Spinner` 并输出 `aria-busy`，菜单仍可开关；清除动作只在有值时渲染，顺序为值回调 → `EditContext` 通知 → `OnClear`，Disabled/ReadOnly 下禁用。
+- ComboBox/Cascader 的触发器与字段壳拆开（边框归外壳、触发器无边框），与 Autocomplete/Search 同构；焦点环仍保留在 `role=combobox` 的触发器上，REV-118 浏览器断言不回归。
+
+### 列表选择
+
+- `List<TItem>` / `VirtualList<TItem>` 新增类型化 `SelectedItem` / `SelectedItems` 与对应回调；旧 `SelectedValue` / `SelectedValues` 及回调保留并标 `[Obsolete]`，两套读写同一份内部选中状态，同时提供时以类型化成员为准。不可表示为 `TItem` 的声明式 `ListItem.Value` 会抛带迁移提示的 `InvalidOperationException`，不静默丢失。示例 DataList 去掉 object? 转换。
+
+### 日期族
+
+- `DatePicker`、`DateRangePicker`、`DateTimePicker`、`TimePicker` 补 `AriaDescribedBy`（与 `FormField.DescribedBy` 合并去重）与 `ReadOnly`：触发器可聚焦、可复制，不打开弹层、不改值，`Disabled` 优先；只读切换会关闭已打开弹层并走退场。
+- 日期/时间触发器是 `role=button`，`aria-readonly` 不在该角色的允许属性内，因此只读态用 `is-readonly` + `aria-disabled="true"` 表达“可聚焦但不可操作”，不用无效 ARIA。
+
+### 其它组件
+
+- `ButtonIntent` 新增 `Success`、`Info`，Button/IconButton/MenuButton/SplitButton/IconButtonMenu 共享同一组六档语意色；实心档用 `--aeterni-color-on-semantic` 前景，透明/Soft 档取各族文字色。
+- `Menu` 条目把完整标签写入原生 `title`，长名被省略时仍可悬停查看；选中行改为“填充 + 前导 3px 品牌竖线”，不再用整圈品牌描边，描边只留给 `:focus-visible`。
+
+### 示例站
+
+- 搜索：结果按页面分组（`role=group` + 页面标题行），输入非空时显示命中数与页面数，命中词用 `<mark>` 高亮（不拼 innerHTML）；键盘索引、`aria-activedescendant` 与活动项滚动保持原模型。
+- 侧栏：缩短可见标签（Radio / DatePicker / List / Tabs / PopupHost / Dialog / Theme），摘要保留全名，搜索仍可命中完整组件名。
+- 图标页：343 个图标按分类锚点跳转、图标名可点击复制并带读屏状态反馈，正文行长统一 68ch，窄屏无横向溢出。
+- API 表：生成物新增 `Sections` 分组（多组件页按组件拆表），公共参数支持矩阵从源码结构推导，不生效的参数标“不支持”并说明原因；新增 `scripts/lib/showcase-support.mjs` 与 `scripts/api-groups.json`，`api-descriptions.json` / `api-since.json` 补齐本批新行的中文说明与 10.47.0 首次版本。
+- 示例覆盖：四个选择器各加只读/加载/清除/方位演示；日期族加只读与外部描述卡片；List/VirtualList/DataList 改用类型化绑定；Button 变体网格展示 Success/Info。
+
+### 验证
+
+- `dotnet build aeterni_ui.slnx` 0 错误（仅 NuGet 漏洞数据源 NU1900 环境警告）；契约检查 47 组通过；`node --test tests/*.test.mjs` 135 项通过；`tests/sample-docs.test.mjs` 12 项通过；`check-contrast` 315、`check-css`（85 文件/16 容器）、`check-docs.sh`、`check-doc-drift`、API `--check`（61 页/806 行）、搜索索引 `--check`（553 条/69 页）全部通过；真实浏览器检查 195/195 通过（含选择器新参数、搜索分组、API 表分组与图标复制相关断言）。
+
 ## 10.46.0 第十二轮审阅修复：API 默认值、示例信息架构与交互状态
 
 本批来自一次全库 UI/UX、组件 API、示例站与文档/脚本的独立审核（5 位评审者 + 主审，真实渲染与源码双取证）。修复范围按审核计划的 P0/P1 与高价值 P2 执行，没有删除任何已交付组件；新增 `DateRangePicker.FullWidth`、修正若干公共行为，按 §4.9 第二位递增。

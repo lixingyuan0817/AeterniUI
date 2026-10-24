@@ -4,31 +4,56 @@
 <PopupHost Class="aeterni-combobox__host">
     <ChildContent>
         <div @ref="RootElement" @attributes="BuildAttributes()">
-        <button @ref="_triggerElement" type="button"
-                class="aeterni-combobox__trigger"
-                id="@FormFieldInputId"
-                role="combobox"
-                aria-labelledby="@FormFieldLabelId"
-                aria-describedby="@EffectiveDescribedBy"
-                aria-expanded="@(_open ? "true" : "false")"
-                aria-controls="@ListboxId"
-                aria-haspopup="listbox"
-                aria-label="@(FormFieldLabelId is null ? AriaLabel : null)"
-                aria-required="@(IsRequired ? "true" : null)"
-                aria-invalid="@(IsInvalid ? "true" : null)"
-                aria-activedescendant="@(_open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
-                disabled="@IsDisabled"
-                @onclick="HandleTriggerClickAsync"
-                @onkeydown="HandleTriggerKeyDownAsync">
-            <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
-                @(Value is null ? PlaceholderText : DisplayText(Value))
-            </span>
-            <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-combobox__chevron" />
-        </button>
+        @* The wrapper owns the visible field box; the trigger itself is borderless, so
+           the optional clear action can join the same border instead of floating next
+           to a second control. Same shape as Autocomplete / Search. *@
+        <div class="aeterni-combobox__field">
+            <div class="aeterni-combobox__trigger-wrap">
+                <button @ref="_triggerElement" type="button"
+                        class="aeterni-combobox__trigger"
+                        id="@FormFieldInputId"
+                        role="combobox"
+                        aria-labelledby="@FormFieldLabelId"
+                        aria-describedby="@EffectiveDescribedBy"
+                        aria-expanded="@(_open ? "true" : "false")"
+                        aria-controls="@ListboxId"
+                        aria-haspopup="listbox"
+                        aria-label="@(FormFieldLabelId is null ? AriaLabel : null)"
+                        aria-required="@(IsRequired ? "true" : null)"
+                        aria-invalid="@(IsInvalid ? "true" : null)"
+                        aria-readonly="@(IsReadOnly ? "true" : null)"
+                        aria-activedescendant="@(!Loading && _open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count ? $"{ListboxId}-option-{_activeIndex}" : null)"
+                        disabled="@IsDisabled"
+                        @onclick="HandleTriggerClickAsync"
+                        @onkeydown="HandleTriggerKeyDownAsync">
+                    <span class="aeterni-combobox__value @(Value is null ? "is-placeholder" : string.Empty)">
+                        @(Value is null ? PlaceholderText : DisplayText(Value))
+                    </span>
+                    <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-combobox__chevron" />
+                </button>
+                @if (AllowClear && HasValue)
+                {
+                    <div class="aeterni-combobox__actions">
+                        <ButtonGroup Connected="true"
+                                     Disabled="@IsDisabled"
+                                     AriaLabel="@ListLabel">
+                            <IconButton Class="aeterni-combobox__clear"
+                                        Size="@Size"
+                                        Variant="@ButtonVariant.Ghost"
+                                        Intent="@ButtonIntent.Neutral"
+                                        AriaLabel="@EffectiveClearLabel"
+                                        Disabled="@(IsDisabled || IsReadOnly)"
+                                        Icon="@ClearIcon"
+                                        OnClick="@ClearAsync" />
+                        </ButtonGroup>
+                    </div>
+                }
+            </div>
+        </div>
 
         <Popover Open="@_open"
                  OpenChanged="HandlePopoverOpenChangedAsync"
-                 Placement="@PopupPlacement.BottomStart"
+                 Placement="@Placement"
                  CloseOnScroll="true"
                  Class="aeterni-combobox__popover"
                  AriaLabel="@ListLabel">
@@ -36,7 +61,13 @@
                  id="@ListboxId"
                  role="listbox"
                  aria-label="@ListLabel">
-                @if (_visibleItems.Count == 0)
+                @if (Loading)
+                {
+                    @* Loading only replaces the panel content: opening, closing and the
+                       trigger keep working while the host refreshes Items. *@
+                    <div class="aeterni-combobox__status"><Spinner Size="AeterniUI.Enums.Size.Small" /></div>
+                }
+                else if (_visibleItems.Count == 0)
                 {
                     <div class="aeterni-combobox__empty">
                         @EmptyContent

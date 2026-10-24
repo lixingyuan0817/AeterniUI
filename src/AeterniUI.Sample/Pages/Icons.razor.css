@@ -50,7 +50,7 @@
 }
 
 .doc-icons__lead {
-    max-width: 78ch;
+    max-width: 68ch;
     margin: 0;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-md);
@@ -115,7 +115,7 @@
 }
 
 .doc-icons__section-lead {
-    max-width: 82ch;
+    max-width: 68ch;
     margin: 0;
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
@@ -153,6 +153,7 @@
     margin: 0;
     color: var(--aeterni-text-muted);
     font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
 }
 
 .doc-icons__empty {
@@ -165,12 +166,55 @@
     text-align: center;
 }
 
+/* 分类锚点：未筛选时在搜索框下方给一排短入口；窄屏自动换行、不横向滚动。 */
+.doc-icons__anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aeterni-spacing-2);
+}
+
+.doc-icons__anchors a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aeterni-spacing-1);
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--aeterni-border-subtle);
+    border-radius: var(--aeterni-radius-full);
+    color: var(--aeterni-color-brand-text);
+    font-size: var(--aeterni-font-size-xs);
+    text-decoration: none;
+}
+
+.doc-icons__anchors a:hover {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.doc-icons__anchors a:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: var(--aeterni-focus-offset);
+}
+
+/* 复制反馈：视觉上由按钮文字承担，这一行是给读屏的状态播报；空着时不占位。 */
+.doc-icons__copy-status {
+    margin: 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+.doc-icons__copy-status:empty {
+    display: none;
+}
+
 /* Icon grids --------------------------------------------------------------- */
 
 .doc-icons__group {
     display: grid;
     gap: var(--aeterni-spacing-3);
     margin-top: var(--aeterni-spacing-2);
+    /* 分类锚点落到分组标题上时让开固定页头。 */
+    scroll-margin-top: var(--sample-content-top);
 }
 
 .doc-icons__group h3 {
@@ -209,6 +253,7 @@
     justify-items: center;
     align-content: center;
     gap: var(--aeterni-spacing-2);
+    min-width: 0;
     min-height: 84px;
     padding: var(--aeterni-spacing-3) var(--aeterni-spacing-2);
     box-sizing: border-box;
@@ -225,12 +270,46 @@
     color: var(--aeterni-text-primary);
 }
 
+/* 图标名是按钮：点击复制名称，视觉上仍是一个等宽小字。默认外观全部清掉，只保留
+   与格子一致的排版；hover 与 focus 分别给可点暗示与焦点环。 */
 .doc-icons__name {
+    display: block;
     max-width: 100%;
+    margin: 0;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: var(--aeterni-radius-sm);
+    background: none;
     color: var(--aeterni-text-secondary);
     font-family: var(--aeterni-font-family-mono);
     font-size: var(--aeterni-font-size-xs);
+    line-height: var(--aeterni-line-height-normal);
     overflow-wrap: anywhere;
+    word-break: break-word;
+    cursor: pointer;
+}
+
+.doc-icons__cell:hover .doc-icons__name {
+    color: var(--aeterni-text-primary);
+}
+
+.doc-icons__name:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.doc-icons__name:focus-visible {
+    outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
+    outline-offset: 1px;
+}
+
+/* 复制成功后 JS 给按钮加状态标记，颜色换成成功墨色；文字本身换成“已复制”。 */
+.doc-icons__name[data-copy-state="copied"] {
+    color: var(--aeterni-color-success-text);
+}
+
+.doc-icons__name[data-copy-state="failed"] {
+    color: var(--aeterni-color-danger-text);
 }
 
 .doc-icons__usage {
@@ -268,5 +347,14 @@
 
     .doc-icons__section {
         padding: var(--aeterni-spacing-4);
+    }
+
+    /* 窄屏：分类锚点换成 40px 命中区，图标格子给名称留出换行宽度，页面不横向溢出。 */
+    .doc-icons__anchors a {
+        min-height: 40px;
+    }
+
+    .doc-icons__grid {
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
     }
 }

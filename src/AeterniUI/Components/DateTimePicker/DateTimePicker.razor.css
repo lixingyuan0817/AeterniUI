@@ -30,7 +30,20 @@
     transition: var(--aeterni-transition-control);
 }
 
-.aeterni-date-time-picker__trigger:hover:not(:disabled):not(.is-invalid) { border-color: var(--aeterni-control-border-hover); }
+/* Read-only keeps the field legible and copyable without suggesting it can be
+   edited: it consumes the shared readonly tokens, keeps the keyboard focus ring,
+   and never paints the hover affordance. Disabled is declared after this rule so
+   the disabled paint wins when both states are set. */
+.aeterni-date-time-picker__trigger.is-readonly:not(:disabled) {
+    border-color: var(--aeterni-control-border);
+    background: var(--aeterni-control-background-readonly);
+    color: var(--aeterni-control-foreground-readonly);
+    cursor: default;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.aeterni-date-time-picker__trigger:hover:not(:disabled):not(.is-invalid):not(.is-readonly) { border-color: var(--aeterni-control-border-hover); }
 .aeterni-date-time-picker__trigger:focus-visible { border-color: var(--aeterni-control-border-focus); outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color); outline-offset: var(--aeterni-focus-offset); }
 .aeterni-date-time-picker__trigger.is-invalid { border-color: var(--aeterni-control-border-invalid); }
 .aeterni-date-time-picker__trigger.is-invalid:focus-visible { outline-color: var(--aeterni-focus-color-invalid); }

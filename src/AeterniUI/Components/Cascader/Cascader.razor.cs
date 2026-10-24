@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
+using AeterniUI.Icons;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -69,6 +70,19 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public bool Required { get; set; }
 
+    /// <summary>
+    /// 展示当前叶子路径但不允许改动：触发器保持可聚焦、路径文字可选中复制，
+    /// 但面板不能打开，残留的选项点击也会被拒绝。
+    /// </summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// 宿主正在刷新数据。面板显示忙碌状态；触发器的打开/关闭逻辑保持可用。
+    /// </summary>
+    [Parameter]
+    public bool Loading { get; set; }
+
     /// <summary>控件档位，与 <c>ComboBox</c>／<c>Input</c> 共用同一套高度别名。</summary>
     [Parameter]
     public Size Size { get; set; } = Size.Default;
@@ -86,12 +100,34 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
+    /// <summary>
+    /// 清除动作的无障碍名称；缺省取 <c>UiText.SearchClearLabel</c>（与 Autocomplete 一致）。
+    /// </summary>
+    [Parameter]
+    public string? ClearLabel { get; set; }
+
     [Parameter]
     public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// 有叶子值时在控件盒内渲染清除动作；没有值时不渲染，也不预留空位。
+    /// </summary>
+    [Parameter]
+    public bool AllowClear { get; set; }
+
+    /// <summary>
+    /// 浮层相对触发器的首选方位；翻转与视口钳制仍由共享浮层模块负责。
+    /// </summary>
+    [Parameter]
+    public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
 
     /// <summary>确认一个叶子后触发，晚于 <see cref="ValueChanged" />。</summary>
     [Parameter]
     public EventCallback<TItem?> OnItemSelected { get; set; }
+
+    /// <summary>清除动作把 <see cref="Value" /> 置空后触发。</summary>
+    [Parameter]
+    public EventCallback OnClear { get; set; }
 
     private bool _open;
     private readonly List<TItem> _expanded = [];
@@ -129,8 +165,17 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
 
     private bool IsRequired => Required || (FormField?.Required ?? false);
 
+    // Read-only 是组件状态：FormField 没有 ReadOnly 级联（与 ComboBox / MultiSelect 一致）。
+    private bool IsReadOnly => ReadOnly;
+
+    private bool HasValue => Value is not null;
+
+    private string EffectiveClearLabel => string.IsNullOrWhiteSpace(ClearLabel)
+        ? UiText.SearchClearLabel
+        : ClearLabel.Trim();
+
     /// <summary>活动项的 id，供触发器的 <c>aria-activedescendant</c> 使用。</summary>
-    private string? ActiveOptionId => _open && IsActiveValid
+    private string? ActiveOptionId => !Loading && _open && IsActiveValid
         ? $"{PanelId}-{OptionId(_activeColumn, _activeIndex)}"
         : null;
 
@@ -146,7 +191,7 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
         UpdateEditContextSubscription();
         RefreshColumns();
 
-        if (IsDisabled || !Visible)
+        if (IsDisabled || IsReadOnly || !Visible)
         {
             _open = false;
         }
@@ -164,6 +209,11 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown cascader size.");
         }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown cascader placement.");
+        }
     }
 
     protected override Task OnComponentAfterRenderAsync(bool firstRender) =>
@@ -174,6 +224,8 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
         .Add("is-full-width", FullWidth)
         .Add(SizeClass)
         .Add("is-open", _open)
+        .Add("is-readonly", IsReadOnly)
+        .Add("is-loading", Loading)
         .Add("is-invalid", IsInvalid)
         .Add("is-disabled", IsDisabled);
 
@@ -186,6 +238,11 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
         if (IsDisabled)
         {
             attributes["aria-disabled"] = "true";
+        }
+
+        if (Loading)
+        {
+            attributes["aria-busy"] = "true";
         }
 
         return attributes;
@@ -264,7 +321,7 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleTriggerClickAsync(MouseEventArgs args)
     {
-        if (IsDisabled || !Visible)
+        if (IsDisabled || IsReadOnly || !Visible)
         {
             return;
         }
@@ -283,8 +340,28 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleTriggerKeyDownAsync(KeyboardEventArgs args)
     {
-        if (IsDisabled || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
+        if (IsDisabled || IsReadOnly || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
+            return;
+        }
+
+        if (Loading)
+        {
+            // 面板只显示忙碌状态：打开/关闭保持可用，但没有渲染出来的选项可移动或确认。
+            if (!_open && args.Key is "ArrowDown" or "ArrowUp" or "Enter" or " ")
+            {
+                Open();
+            }
+            else if (_open && args.Key == "Escape")
+            {
+                Close();
+            }
+            else
+            {
+                return;
+            }
+
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
@@ -395,7 +472,7 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
 
     private void Open()
     {
-        if (IsDisabled || !Visible)
+        if (IsDisabled || IsReadOnly || !Visible)
         {
             return;
         }
@@ -507,7 +584,7 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
 
     private async Task ChooseAsync(TItem item)
     {
-        if (IsDisabled)
+        if (IsDisabled || IsReadOnly)
         {
             return;
         }
@@ -519,10 +596,32 @@ public partial class Cascader<TItem> : AeterniComponent where TItem : class
         Close();
     }
 
+    private async Task ClearAsync(MouseEventArgs _)
+    {
+        if (IsDisabled || IsReadOnly || Value is null)
+        {
+            return;
+        }
+
+        Value = null;
+        await ValueChanged.InvokeAsync(null);
+        NotifyFieldChanged();
+        await OnClear.InvokeAsync();
+        Close();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment ClearIcon => builder =>
+    {
+        builder.OpenComponent<AeterniUI.Components.Icon.Icon>(0);
+        builder.AddAttribute(1, nameof(AeterniUI.Components.Icon.Icon.Definition), AeterniIcons.Xmark);
+        builder.CloseComponent();
+    };
+
     /// <summary>鼠标点击：父节点展开下一列，叶子确认并关闭。</summary>
     private async Task HandleOptionClickAsync(int column, int index)
     {
-        if (IsDisabled || column < 0 || column >= _columns.Count ||
+        if (IsDisabled || IsReadOnly || column < 0 || column >= _columns.Count ||
             index < 0 || index >= _columns[column].Count)
         {
             return;

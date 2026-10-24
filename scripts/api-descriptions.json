@@ -30,7 +30,8 @@
       "AriaDescribedBy": "关联描述元素 ID。",
       "ClearLabel": "清除按钮无障碍标签。",
       "OnItemSelected": "建议项被点击或按 Enter 确认后触发。",
-      "OnClear": "清除输入后触发。"
+      "OnClear": "清除输入后触发。",
+      "Placement": "建议浮层的首选方位；空间不足时由共享浮层模块翻转并贴边。"
     },
     "avatar": {
       "Src": "图片地址与替代文本；Alt 为空时使用 AriaLabel 或 Name。",
@@ -118,7 +119,13 @@
       "FullWidth": "是否占满父容器。",
       "AriaLabel": "无障碍名称。",
       "AriaDescribedBy": "关联描述元素 ID，与 FormField 描述合并。",
-      "OnItemSelected": "选项确认后触发；`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除。"
+      "OnItemSelected": "选项确认后触发；`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除。",
+      "ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开选项或改写值。",
+      "Loading": "宿主正在刷新选项；面板显示忙碌态，触发器仍可开关。",
+      "AllowClear": "有值时在字段内显示清除动作；无值时不占位。",
+      "ClearLabel": "清除按钮的无障碍名称，缺省回退到 SearchClearLabel。",
+      "OnClear": "清除动作把 Value 归空后触发。",
+      "Placement": "选项浮层的首选方位，默认 BottomStart。"
     },
     "date-picker": {
       "Value": "当前日期或范围端点。",
@@ -144,7 +151,11 @@
       "StartDateChanged": "范围起点的绑定回调；与 StartDate / StartDateExpression 组成三件套。",
       "StartDateExpression": "EditContext 字段表达式；与 StartDate / StartDateChanged 组成三件套。",
       "EndDateChanged": "范围终点的绑定回调；与 EndDate / EndDateExpression 组成三件套。",
-      "EndDateExpression": "EditContext 字段表达式；与 EndDate / EndDateChanged 组成三件套。"
+      "EndDateExpression": "EditContext 字段表达式；与 EndDate / EndDateChanged 组成三件套。",
+      "DatePicker.AriaDescribedBy": "宿主提供的描述元素 id，与 FormField.DescribedBy 合并去重后写到触发器。",
+      "DatePicker.ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开日历或改写值；Disabled 优先。",
+      "DateRangePicker.AriaDescribedBy": "宿主提供的描述元素 id，与 FormField.DescribedBy 合并去重后写到触发器。",
+      "DateRangePicker.ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开范围弹层或改写任一端点；Disabled 优先。"
     },
     "date-time-picker": {
       "Value": "当前日期时间与标准 Blazor 绑定回调。",
@@ -167,7 +178,9 @@
       "FullWidth": "触发器铺满父容器；默认最小宽度与 TimePicker 一致，长文本可撑开。",
       "ValueExpression": "EditContext 字段表达式。",
       "Required": "必填和无效状态。",
-      "Invalid": "必填和无效状态。"
+      "Invalid": "必填和无效状态。",
+      "AriaDescribedBy": "宿主提供的描述元素 id，与 FormField.DescribedBy 合并去重后写到触发器。",
+      "ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开日历/时间面板或改写值；Disabled 优先。"
     },
     "descriptions": {
       "Items": "按展示顺序提供标签和值。",
@@ -320,16 +333,20 @@
       "MaxHeight": "设置滚动视口的最大高度；超出后由 List 内部滚动。",
       "ChildContent": "选项内容。",
       "SelectionMode": "无选择、单选或多选。",
-      "SelectedValue": "单选当前值。",
-      "SelectedValues": "多选当前值。",
+      "SelectedValue": "（已弃用）object? 兼容选中值，迁移到 SelectedItem。",
+      "SelectedValues": "（已弃用）object? 兼容多选值，迁移到 SelectedItems。",
       "AllowClear": "单选时允许再次点击清除。",
       "AriaLabel": "列表无障碍名称。",
       "Value": "选项值。",
       "LeadingContent": "选项前置内容。",
       "TrailingContent": "选项尾部内容。",
-      "SelectedValueChanged": "单选值发生变化时触发。",
-      "SelectedValuesChanged": "多选值发生变化时触发。",
-      "OnItemSelected": "选项被选中或切换时触发。"
+      "SelectedValueChanged": "（已弃用）兼容回调，迁移到 SelectedItemChanged。",
+      "SelectedValuesChanged": "（已弃用）兼容回调，迁移到 SelectedItemsChanged。",
+      "OnItemSelected": "选项被选中或切换时触发。",
+      "SelectedItem": "类型化单选值；与旧 SelectedValue 共用同一份内部状态，二者同时提供时以本成员为准。",
+      "SelectedItemChanged": "类型化单选值变化回调。",
+      "SelectedItems": "类型化多选值；与旧 SelectedValues 共用同一份内部状态。",
+      "SelectedItemsChanged": "类型化多选值变化回调。"
     },
     "menu": {
       "Items": "分组与菜单项。",
@@ -382,7 +399,9 @@
       "ClearAllLabel": "批量动作与移除动作的无障碍名称。",
       "RemoveLabel": "批量动作与移除动作的无障碍名称。",
       "OnItemSelected": "选项被切换后触发。",
-      "OnClear": "清空全部选项后触发。"
+      "OnClear": "清空全部选项后触发。",
+      "Loading": "宿主正在刷新选项；列表显示忙碌态，触发器仍可开关。",
+      "Placement": "选项浮层的首选方位，默认 BottomStart。"
     },
     "pagination": {
       "CurrentPage": "当前页和标准绑定回调。",
@@ -619,7 +638,9 @@
       "FullWidth": "是否占满父容器；默认按时间文本与图标紧凑显示。",
       "ValueExpression": "EditContext 字段表达式。",
       "Required": "必填和无效状态。",
-      "Invalid": "必填和无效状态。"
+      "Invalid": "必填和无效状态。",
+      "AriaDescribedBy": "宿主提供的描述元素 id，与 FormField.DescribedBy 合并去重后写到触发器。",
+      "ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开时间滚轮或改写值；Disabled 优先。"
     },
     "timeline": {
       "Items": "按展示顺序提供事件。",
@@ -679,15 +700,19 @@
       "LoadMoreThreshold": "距视口底部多少 CSS px 时触发加载。",
       "OnLoadMore": "触底后通知宿主追加项目。",
       "SelectionMode": "无选择、单选或多选。",
-      "SelectedValue": "单选模式下的选中值。",
-      "SelectedValueChanged": "单选绑定回调。",
-      "SelectedValues": "多选模式下的选中值集合。",
-      "SelectedValuesChanged": "多选绑定回调。",
+      "SelectedValue": "（已弃用）object? 兼容选中值，迁移到 SelectedItem。",
+      "SelectedValueChanged": "（已弃用）兼容回调，迁移到 SelectedItemChanged。",
+      "SelectedValues": "（已弃用）object? 兼容多选值，迁移到 SelectedItems。",
+      "SelectedValuesChanged": "（已弃用）兼容回调，迁移到 SelectedItemsChanged。",
       "AllowClear": "允许清空已选项。",
       "DisabledSelector": "按项目决定是否禁用。",
       "EmptyContent": "空集合时的自定义内容。",
       "AriaLabel": "列表的无障碍名称。",
-      "OnItemSelected": "项目被选中后触发。"
+      "OnItemSelected": "项目被选中后触发。",
+      "SelectedItem": "类型化单选值；与旧 SelectedValue 共用同一份内部状态，二者同时提供时以本成员为准。",
+      "SelectedItemChanged": "类型化单选值变化回调。",
+      "SelectedItems": "类型化多选值；与旧 SelectedValues 共用同一份内部状态。",
+      "SelectedItemsChanged": "类型化多选值变化回调。"
     },
     "icon-button-menu": {
       "Icon": "触发器图标；图标按钮没有可见文字，所以必须同时给出 AriaLabel。",
@@ -722,6 +747,14 @@
       "IconSize": "图标槽尺寸档位：Small 14px、Default 16px、Large 20px。",
       "DescriptionSize": "描述文字字号档位：Small 10px、Default 11px、Large 12px。",
       "ChildIndent": "子级缩进档位：Compact 12/4、Default 16/8、Spacious 20/12（引导线外边距 / 内边距）。"
+    },
+    "cascader": {
+      "ReadOnly": "只读展示：触发器可聚焦、可复制，但不能打开层级面板或改写值。",
+      "Loading": "宿主正在刷新层级数据；面板显示忙碌态，触发器仍可开关。",
+      "AllowClear": "有值时在字段内显示清除动作；无值时不占位。",
+      "ClearLabel": "清除按钮的无障碍名称，缺省回退到 SearchClearLabel。",
+      "OnClear": "清除动作把 Value 归空后触发。",
+      "Placement": "层级面板的首选方位，默认 BottomStart。"
     }
   }
 }

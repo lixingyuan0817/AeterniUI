@@ -90,7 +90,7 @@
 
 `Button` 当前支持：
 
-- `Intent`：`Default`（默认，主题色主操作）、`Neutral`、`Warning`、`Danger`。
+- `Intent`：`Default`（默认，主题色主操作）、`Neutral`、`Warning`、`Danger`、`Success`、`Info`。实心档的 Success/Info 与 Warning/Danger 一样取 `--aeterni-color-on-semantic` 前景，透明/Soft 档取各族文字色。
 - `Variant`：`Solid`、`Outline`、`Soft`、`Ghost`、`Link`；默认是 `Solid`。
 - `Size`：`Small`、`Default`（默认）、`Large`。
 - `Type`（原生 HTML button 类型）：`Button`、`Submit`、`Reset`。
@@ -99,7 +99,7 @@
 - `AriaLabel`、`OnClick`。
 - `ContentAlignment`（`ButtonContentAlignment`：`Center` 默认 / `Start`）只调整内容行：`Start` 让图标与文字从左侧起排，常用于 `FullWidth` 的「新会话」式动作；按钮自身宽度/对齐契约不变。
 - `Intent` 表达操作语义，`Variant` 表达视觉形式；二者可组合，例如 `Danger + Outline` 表达低强调危险操作。
-- `IconButton` 提供独立的圆形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Shape`、`Tone`、`Compact`、`Loading`、`Disabled` 和 `OnClick`。`Loading` 期间控件对交互禁用（输出原生 `disabled`、`aria-disabled` 与 `aria-busy`），但加载字形不继承禁用灰：它消费 `--aeterni-icon-button-loading-foreground`（实心档取变体前景色、Outline/Soft/Ghost/Link 取变体本体色），因此忙碌指示在浅色与深色下都保持可读。
+- `IconButton` 提供独立的圆形图标操作，默认使用 `Ghost + Neutral`，要求 `AriaLabel`，支持 `Icon`/`ChildContent`、`Type`、`Size`、`Shape`、`Tone`、`Compact`、`Loading`、`Disabled` 和 `OnClick`；`Intent` 与 Button 共用同一组六档语意色。`Loading` 期间控件对交互禁用（输出原生 `disabled`、`aria-disabled` 与 `aria-busy`），但加载字形不继承禁用灰：它消费 `--aeterni-icon-button-loading-foreground`（实心档取变体前景色、Outline/Soft/Ghost/Link 取变体本体色），因此忙碌指示在浅色与深色下都保持可读。
 - `Shape`（`IconButtonShape`：`Circle` 默认 / `Square`）控制轮廓：默认圆形由基础规则使用 `--aeterni-radius-full`，不输出修饰类；`Square` 输出 `aeterni-icon-button--square` 并回到控件圆角 `--aeterni-radius-button`。`Compact`（默认 false）是 chrome 紧凑档：24px 盒（`calc(control-height-sm - spacing-1)`）与 14px 字形，优先于 `Size`，只改几何，不动形状、焦点环、加载尺寸与 ButtonGroup 分隔变量。
 - `IconButton` 系列悬浮只做原位高亮：表面换档，透明变体（Outline/Soft/Ghost/Link）再把图标墨色向主题主墨混合一档（浅色更深、深色更亮，消费 `--aeterni-icon-button-hover-foreground`），不位移、也不加抬升阴影；中性档本身已是主墨，反馈由表面档位承担。`Button` 的 1px 上浮只保留给带文字的按钮，图标动作不借用这套位移。
 - `Tone`（`IconButtonTone`：`Default` 默认 / `Muted` / `DangerTinted`）是标题栏与行尾动作的 chrome 预设，**覆盖** `Variant`/`Intent` 的配色：`Muted` 透明底 + `--aeterni-text-tertiary` 墨，hover 走 `--aeterni-state-background-hover` + 次级墨、active 走 active 档；`DangerTinted` 用 `--aeterni-color-danger-default` 现算 12%/20%/26% 底与 25%/55% 描边、danger 文字墨，hover 另加 3px 16% 环。两种 preset 沿用系列的原位高亮规则；`Tone=Default` 时仍走原来的 Variant/Intent 配色路径。
@@ -303,6 +303,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 - `OnItemSelected`：鼠标点击或键盘 Enter 确认后回调选中的 `TItem`。
 - `OnClear`：清除当前自由输入后回调。
 - `Size`、`Clearable`、`Loading`、`OpenOnFocus`、`ReadOnly`、`Required`、`Invalid` 和 `FullWidth`；清除按钮随 `Size` 与输入框同步高度。
+- `Placement`（`PopupPlacement`，默认 `BottomStart`）决定建议浮层的首选方位，翻转与贴边仍归共享浮层模块。
 - `Placeholder`、`Name`、`AutoComplete`、`AriaLabel`、`AriaDescribedBy` 和 `ClearLabel`。
 - 自有文案使用 `AeterniUITextOptions.AutocompleteLabel`、`AutocompleteListLabel`、`AutocompleteNoResultsText` 和 `AutocompleteLoadingText` 默认值。
 
@@ -334,7 +335,8 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 - `TextSelector`、`DisabledSelector`、`ItemTemplate`、`SelectedItemTemplate` 和 `EmptyContent`。
 - `OnItemSelected` 在选项切换后回调；`OnClear` 在清空全部选项后回调。
 - `AllowSelectAll`、`AllowClear` 控制浮层内的全选和清空动作，默认关闭。
-- `Size`、`ReadOnly`、`Required`、`Invalid`、`FullWidth` 以及继承的 `Disabled`。
+- `Size`、`ReadOnly`、`Loading`、`Required`、`Invalid`、`FullWidth` 以及继承的 `Disabled`。
+- `Placement`（默认 `BottomStart`）决定选项浮层的首选方位。
 - `Placeholder`、`AriaLabel`、`AriaDescribedBy`、`SelectAllLabel`、`ClearAllLabel` 和 `RemoveLabel`。
 - 自有文案使用 `AeterniUITextOptions.MultiSelectLabel`、`MultiSelectListLabel`、`MultiSelectPlaceholder`、`MultiSelectEmptyText`、`MultiSelectSelectAllLabel`、`MultiSelectClearAllLabel` 和 `MultiSelectRemoveLabel` 默认值。
 
@@ -560,7 +562,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 - `ItemTemplate` 为 `RenderFragment<TItem>?`；默认 context 是当前 item，支持 Context 别名。无模板显示 `item?.ToString()`，null 为空，文本正常 HTML 编码。
 - `CardMode` 为 bool，默认 false（没有 Mode 参数）。true 时每项由库统一渲染现有 Card 外壳；`CardTemplate` 为 `RenderFragment<TItem>?`，只负责内容，无模板显示文本，**不回退 ItemTemplate**。普通模式忽略 CardTemplate。声明式 CardMode 包裹 ListItem.ChildContent，Leading/TrailingContent 只用于普通行。
 - 普通行与 CardMode 共用选中底色、字重、悬停及活动项反馈；内层 Card 通过现有 Style 参数采用透明背景和继承文字色，保留卡片边框与内容留白，选中底色覆盖整张卡片。CardMode 不再添加额外的活动项描边；禁用选中项保留选择底色并使用禁用文字色。
-- `List<TItem>` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、`SelectedValue`/`SelectedValues` 与 `SelectedValueChanged`/`SelectedValuesChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`。
+- `List<TItem>` 提供 `ChildContent`、`SelectionMode`（无选择 / 单选 / 多选）、类型化 `SelectedItem` / `SelectedItems` 与 `SelectedItemChanged` / `SelectedItemsChanged`、`AllowClear`、`AriaLabel` 与 `OnItemSelected`；旧的 `SelectedValue` / `SelectedValues` 及其回调保留为迁移桥并标 `[Obsolete]`，两套共用同一份内部选中状态，同时提供时以类型化成员为准。
 - `MaxHeight` 可设置列表滚动视口的最大高度；设置后超出内容由 List 自身垂直滚动，未设置时保持内容自适应高度。ListItem 保持自身最小/固有行高，不因父级 flex 尺寸协商被压缩。
 - 选择模式下容器输出 `role="listbox"` 与 `aria-multiselectable`；交互式 `ListItem` 渲染非可聚焦的 `role="option"` 元素并同步 `aria-selected`、`aria-disabled`。
 - `ListItem` 支持 `Value`、`ChildContent`、继承的 `Disabled`、`LeadingContent` / `TrailingContent`；`Selected` 是由 `List` 计算的内部状态，不是可设置参数。
@@ -575,7 +577,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 ### 实现边界
 
-Items 改变清除失效活动项；缺失单选/多选值清理后通过 Changed 回传，不触发 OnItemSelected。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
+Items 改变清除失效活动项；缺失单选/多选值清理后通过 Changed 回传，不触发 OnItemSelected。绑定类型化回调后，每个选中值必须能表示为 `TItem`，否则组件在回调前抛 `InvalidOperationException` 并给出迁移提示；旧 object? 路径不受此约束。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
 
 ### 选中态复用配方（10.43.0）
 
@@ -613,7 +615,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 - `Height`（默认 `"320px"`）定义必需的固定滚动视口高度，`ItemSize` 定义固定行高（CSS px，默认 32），`OverscanCount` 定义视口外预渲染行数（默认 5）。
 - `ItemKeySelector` 提供稳定且唯一的 key；未提供时使用当前索引，数据重排时应提供该参数以保持 DOM 复用正确。
 - `DisabledSelector` 标记禁用项目；`EmptyContent` 提供空集合内容。
-- 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、`SelectedValue` / `SelectedValues`、对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`。
+- 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、类型化 `SelectedItem` / `SelectedItems` 与对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`；旧的 `SelectedValue` / `SelectedValues` 同样保留为 `[Obsolete]` 迁移桥。
 - 根元素使用固定高度滚动容器；选择模式输出单一 Tab 停留点、`role="listbox"`、`aria-activedescendant` 和 `aria-multiselectable`，普通模式输出 `role="list"`。
 - 可见项目输出 `role="option"` 或 `role="listitem"`、`aria-posinset` 和 `aria-setsize`；方向键、Home/End、Enter/Space 由根容器统一处理。点击已在视口内的行不会改变滚动位置；键盘目标只有越出视口时才按最近边缘滚入，不再把每个新活动项钉到第一行。
 - 外层表面沿用 `List` 的 padding、边框、圆角和背景；可见行沿用 `ListItem` 的 `spacing-2` 内容间距、行内/块向内边距、圆角、透明默认底与起始文字对齐。选中、悬浮和键盘活动背景绘制在固定行盒内部，两侧各内收半个 `spacing-1`，因此相邻状态表面保留与 List 相同的 4px 可见间隔，同时行盒、点击热区、虚拟 spacer 与 `ItemSize` 仍完全同高。滚动条位于内层视口，单选方向键选中行为与 `List<TItem>` 保持一致。
@@ -663,7 +665,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；选项的指针悬浮与键盘游标同档：普通项悬浮走 `--aeterni-state-background-hover`，已选中项悬浮再深一档（`--aeterni-state-background-active`），因此选中行在指针下也有可见反馈；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `ReadOnly`、`Loading`、`AllowClear`、`ClearLabel`、`OnClear`、`Placement`（默认 `BottomStart`）、`Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；选项的指针悬浮与键盘游标同档：普通项悬浮走 `--aeterni-state-background-hover`，已选中项悬浮再深一档（`--aeterni-state-background-active`），因此选中行在指针下也有可见反馈；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
@@ -686,12 +688,12 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 - `Cascader<TItem>` 的 `TItem` 需要是引用类型。`Items` 是根节点；`ChildrenSelector` 取子节点，返回空序列或 `null` 即叶子（该参数为 `null` 时整棵树按全叶子处理，等价于平铺）；`TextSelector` 取显示文案，缺省回落到 `ToString()`——与 `ComboBox`、`MultiSelect` 同一约定，所以自定义节点类型应重写 `ToString()` 或显式传 `TextSelector`。
 - `Value` 绑定**叶子节点**（与 `ComboBox.Value` 同形），`ValueChanged` / `ValueExpression` / `OnItemSelected` 同名同义。祖先链由组件用 `ChildrenSelector` 反查，触发器展示整条路径、各层按 `Separator` 连接（缺省取文案表 `CascaderPathSeparator`，即 `/`）；反查不到时不显示路径。
-- 触发器是原生 `<button type="button" role="combobox">`，输出 `aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 与活动项的 `aria-activedescendant`（关闭时不输出该属性）；在 `FormField` 内采用字段的输入 ID，让字段标签的 `for` 解析到触发器，`aria-describedby` 合并宿主传入值与该字段的描述 id，与 `ComboBox`、`MultiSelect` 一致。
+- 触发器是原生 `<button type="button" role="combobox">`，输出 `aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 与活动项的 `aria-activedescendant`（关闭时不输出该属性）；在 `FormField` 内采用字段的输入 ID，让字段标签的 `for` 解析到触发器，`aria-describedby` 合并宿主传入值与该字段的描述 id，与 `ComboBox`、`MultiSelect` 一致。只读时触发器保持可聚焦、可复制，输出 `aria-readonly` 与 `is-readonly`，但不打开面板、不改值；加载态在面板内显示 Spinner 并给根 `aria-busy`；`AllowClear` 在有值时渲染清除按钮，清空顺序为值回调 → EditContext 通知 → `OnClear`；触发器与字段壳拆开（边框归外壳、触发器无边框），与 Autocomplete/Search 同构。
 - 面板是**一个** `role="listbox"`，每一列是它的 `role="group"`：`listbox` 内再套 `listbox` 属于非法嵌套，列名改由分组的 `aria-label` 承担——第 1 列取文案表 `CascaderColumnLabel`，其后各列取父节点的文案，读屏进入某一列时能听到「这是谁的下一级」。选项是 `role="option"` + `aria-selected="true"/"false"`。
 - 焦点始终留在触发器，活动项用 `aria-activedescendant` 表达：复合控件只有一个 Tab 停留点，浮层不抢走容器焦点。键盘模型——`↑`/`↓` 在活动列内移动（循环），`→` 在活动项有子节点时展开下一列、否则移入已展开的下一列，`←` 回到上一列并落在刚展开的那个节点上，`Home`/`End` 跳到活动列首/末项，`Enter`/`Space` 在叶子上确认并关闭、在父节点上等同 `→`，`Escape` 关闭。处理后的按键会阻止页面滚动。
 - 鼠标点击父节点展开下一列，点击叶子确认并关闭；已选中项走 `--aeterni-state-background-selected`，键盘或指针落到已选中项时按 §4.4 整块换到 `--aeterni-state-background-active`。
-- 浮层复用 `PopupHost` + `Popover`（定位、翻转、钳制、外部点击与滚动关闭来自 `aeterni_floating.js`），`Placement` 为 `BottomStart`、`CloseOnScroll` 为 `true`，与 `ComboBox` 一致。列多到视口放不下时面板横向滚动，每列纵向滚动；两处滚动容器都按本文件的滚动条条目成对声明。
-- 尺寸档位 `Size`（Small / Default / Large）与 `ComboBox`／`Input` 共用同一套高度别名；`Disabled` / `Required` / `Invalid` 与 `FormField` 取并集，禁用后触发器不可聚焦、也不再接受键盘激活。
+- 浮层复用 `PopupHost` + `Popover`（定位、翻转、钳制、外部点击与滚动关闭来自 `aeterni_floating.js`），`Placement` 默认 `BottomStart`（可由参数覆盖）、`CloseOnScroll` 为 `true`，与 `ComboBox` 一致。列多到视口放不下时面板横向滚动，每列纵向滚动；两处滚动容器都按本文件的滚动条条目成对声明。
+- 尺寸档位 `Size`（Small / Default / Large）与 `ComboBox`／`Input` 共用同一套高度别名；`Disabled` / `Required` / `Invalid` 与 `FormField` 取并集，禁用后触发器不可聚焦、也不再接受键盘激活。`ReadOnly` 保持可聚焦、可复制，输出 `aria-readonly` 与 `is-readonly`，但不打开层级面板、不改值；`Loading` 在面板内显示 Spinner 并给根 `aria-busy`；`AllowClear` 在有值时渲染清除按钮，清空后关闭面板并回写 `null`，随后触发 `OnClear`。
 - 自有文案使用 `AeterniUITextOptions.CascaderLabel`、`CascaderPlaceholder`、`CascaderColumnLabel`、`CascaderEmptyText` 和 `CascaderPathSeparator` 默认值；实例参数 `Placeholder` / `Separator` 优先于全局文案表。
 - 组件不请求远程数据、不做搜索、不虚拟化：宿主应提供当前 `Items` 快照，异步结果在 `ValueChanged` 里替换它。第一版不支持多选路径、自由输入与逐节点禁用。
 - 示例：`/components/cascader`。
@@ -786,6 +788,8 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 
 - **表面归属**：`Menu` 是导航内容控件，自身不提供背景/边框/圆角，底由宿主容器提供（示例侧边栏与示例预览都用 `Surface`/侧栏容器给底）。这与 `List` 相反——`List` 一次交付“选项容器”，所以自带 `bg-surface` + 边框。分类规则见 `engineering-reference.zh-CN.md` §5.3「表面归属」。
 - 不提供多于两层的嵌套、组合式子组件（`ChildContent` + 子组件）、搜索过滤和多选；长菜单不内置滚动容器，把它放进带 `max-height` 的容器即可（示例侧边栏即如此）。
+
+菜单行在文本可能被省略时把完整标签写入原生 `title`，长条目（例如 DatePicker/DateRangePicker 这类）即使被 `text-overflow: ellipsis` 截断也能悬停看到全名。选中行使用填充 + 前导 3px 品牌竖线，边框保持透明，不再用整圈品牌描边——描边只留给 `:focus-visible`，选中与键盘焦点不会互相误认。
 ## 23. Tabs
 
 10.14.3：Visible=false 的 Tab 不渲染标签按钮，面板保持隐藏，不参与键盘导航；选中项隐藏时显示首个可用面板作为视觉回退，不擅自回写 Value。动态显示/注销刷新标签栏；焦点模块按实际可见按钮次序移动焦点。
@@ -1315,7 +1319,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 支持能力
 
-`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`Placement`、`Size`、`Required`、`Invalid`、`ShowLunar`、绑定回调（`ValueChanged` / `StartDateChanged` / `EndDateChanged`）与对应表达式参数（`ValueExpression` / `StartDateExpression` / `EndDateExpression`）。
+`DatePicker` 通过 `Value` / `ValueChanged` 绑定 `DateOnly?`；`DateRangePicker` 通过 `StartDate` / `EndDate` 及对应回调绑定范围。两者支持 `MinDate`、`MaxDate`、`DisabledDate`、`Format`、`Placeholder`、`AriaLabel`、`AriaDescribedBy`、`ReadOnly`、`Placement`、`Size`、`Required`、`Invalid`、`ShowLunar`、绑定回调（`ValueChanged` / `StartDateChanged` / `EndDateChanged`）与对应表达式参数（`ValueExpression` / `StartDateExpression` / `EndDateExpression`）。`AriaDescribedBy` 与 `FormField.DescribedBy` 按空白拆分、Ordinal 去重后合并到触发器；`ReadOnly` 保持触发器可聚焦与文本可复制，但不打开弹层、不改值，`Disabled` 优先。
 
 `DateRangePicker` 额外支持：
 
@@ -1327,7 +1331,7 @@ builder.Services.AddAeterniUI(options =>
 
 ### 行为与无障碍
 
-日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；月份箭头与日格都绘制 `:focus-visible` 品牌焦点环，选中日改用反色环，深色主题与品牌色下不会退化成浏览器默认蓝色环；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
+日历处理月份切换、方向键/Home/End/PageUp/PageDown、Enter/Space 选择，以及日期范围选择时的悬停预览。日期网格使用 `grid` / `row` / `gridcell` 层级与 roving tabindex；月份箭头与日格都绘制 `:focus-visible` 品牌焦点环，选中日改用反色环，深色主题与品牌色下不会退化成浏览器默认蓝色环；方向键跨月后会在新渲染完成时把真实 DOM 焦点移到活动日期，连续操作时视觉焦点与浏览器焦点保持一致。触发按钮输出展开状态、弹层语义、必填和无效状态；只读时触发器是 `role=button`，`aria-readonly` 并非该角色的合法属性，因此只读态用 `is-readonly` 状态类与 `aria-disabled="true"` 表达“可聚焦但不可操作”，不伪造 `aria-readonly`；放在 `EditForm` 中时会通过 `EditContext` 通知字段变化并反映验证状态。嵌套 `FormField` 时会继承标签、描述、错误和禁用语义，弹层关闭后可将焦点回到触发按钮。快捷范围按钮使用 `aria-pressed` 表示当前范围。
 
 ### 组合关系与实现边界
 
@@ -1351,7 +1355,7 @@ builder.Services.AddAeterniUI(options =>
 - `Value` / `ValueChanged` / `ValueExpression` 绑定 `TimeOnly?`，并接入 `EditContext` 字段通知与验证状态。
 - `Step` 定义时间精度，默认 1 秒；支持 1 秒到小于一天的整秒步长。选择面始终显示“时 / 分 / 秒”三列，较大步长只保留实际可用的刻度；`MinTime` / `MaxTime` 定义同一天内的连续边界，`DisabledTime` 由宿主过滤具体候选值。
 - `TimeFormat` 默认 `TwentyFourHour`，默认触发器格式为 `HH:mm:ss`；也支持显式选择 `Auto` 或 `TwelveHour`，显式 `Format` 始终优先。12 小时制的小时列把 AM/PM 与小时一起显示，不额外制造一列停留点。
-- 支持 `Placeholder`、`AriaLabel`、`OptionsAriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`FullWidth`、`Required`、`Invalid` 和继承的 `Disabled`。默认宽度至少使用 `--aeterni-width-input-xs`（160px，受父容器宽度限制），较长文本可继续撑开；`FullWidth=true` 时占满父容器。默认文案来自 `AeterniUITextOptions`。
+- 支持 `Placeholder`、`AriaLabel`、`AriaDescribedBy`、`ReadOnly`、`OptionsAriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`FullWidth`、`Required`、`Invalid` 和继承的 `Disabled`；`ReadOnly` 下触发器可聚焦、可复制，但不能打开滚轮或改写值，`Disabled` 优先；只读态用 `is-readonly` + `aria-disabled` 表达（`role=button` 不支持 `aria-readonly`）。默认宽度至少使用 `--aeterni-width-input-xs`（160px，受父容器宽度限制），较长文本可继续撑开；`FullWidth=true` 时占满父容器。默认文案来自 `AeterniUITextOptions`。
 
 ### 行为与无障碍
 
@@ -1365,14 +1369,14 @@ builder.Services.AddAeterniUI(options =>
 
 组合弹层按日期与时间两栏的实际内容定宽，最大宽度受视口限制；窄屏保持上下排列，极窄视口允许内容横向滚动。时间区底部操作行按按钮自然高度布局，不随日历高度拉伸；无可用时间时保留六行滚轮等高占位并居中提示，取消仍可用、确定禁用。提交行为不变：TimePicker / DateTimePicker 使用确认与取消，DatePicker / DateRangePicker 保持原有选择提交方式。
 
-`DatePicker`、`TimePicker`、`DateTimePicker` 均支持 `FullWidth`（默认 `false`），默认最小宽度统一为 `--aeterni-width-input-xs`（160px，受父容器限制），长文本可撑开；设为 `true` 时触发器铺满父容器，不改变弹层内容布局。`DateRangePicker` 不在此统一范围内。
+`DatePicker`、`DateRangePicker`、`TimePicker`、`DateTimePicker` 均支持 `FullWidth`（默认 `false`），默认最小宽度统一为 `--aeterni-width-input-xs`（160px，受父容器限制），长文本可撑开；设为 `true` 时触发器铺满父容器，不改变弹层内容布局。
 
 ### 支持能力
 
 - `Value` / `ValueChanged` / `ValueExpression` 绑定单一 `DateTime?`，在一个触发器和弹层中组合内部日期网格与时间列表。
 - `MinDateTime` / `MaxDateTime` 定义边界，`DisabledDate` 禁用整天，`DisabledDateTime` 禁用具体候选值；没有任何可用时间的日期自动不可选。
 - `TimeStep`、`TimeFormat` 控制共享时/分/秒滚轮的精度与显示；`TimeStep` 默认 1 秒、`TimeFormat` 默认 24 小时制，完整触发器默认显示到秒，显式 `Format` 始终优先。
-- `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。
+- `Kind` 指定组件新建值的 `DateTimeKind`；支持 `Placeholder`、`AriaLabel`、`AriaDescribedBy`、`ReadOnly`、`CancelText`、`ConfirmText`、`Placement`、`Size`、`Required`、`Invalid`、继承的 `Disabled` 和 `FormField` / `EditContext` 语义。`ReadOnly` 语义与 DatePicker 一致（可聚焦/可复制、不可开、不可改，`Disabled` 优先）。
 - `ShowLunar`（默认 `false`）与 `DatePicker` 同义：只在日期网格内叠加中国农历副行并扩充日格的无障碍名称，不改变时间滚轮、触发器格式或提交值。
 
 ### 行为与无障碍

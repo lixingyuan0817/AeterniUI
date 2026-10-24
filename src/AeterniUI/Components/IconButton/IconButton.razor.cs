@@ -184,6 +184,8 @@ public partial class IconButton : AeterniComponent
         ButtonIntent.Neutral => "aeterni-icon-button--neutral",
         ButtonIntent.Warning => "aeterni-icon-button--warning",
         ButtonIntent.Danger => "aeterni-icon-button--danger",
+        ButtonIntent.Success => "aeterni-icon-button--success",
+        ButtonIntent.Info => "aeterni-icon-button--info",
         _ => "aeterni-icon-button--default"
     };
 

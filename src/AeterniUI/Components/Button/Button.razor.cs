@@ -177,6 +177,8 @@ public partial class Button : AeterniComponent
         ButtonIntent.Neutral => "aeterni-button--neutral",
         ButtonIntent.Warning => "aeterni-button--warning",
         ButtonIntent.Danger => "aeterni-button--danger",
+        ButtonIntent.Success => "aeterni-button--success",
+        ButtonIntent.Info => "aeterni-button--info",
         _ => "aeterni-button--default"
     };
 }

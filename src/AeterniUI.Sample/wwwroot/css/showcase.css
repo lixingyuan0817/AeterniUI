@@ -1477,11 +1477,14 @@
 /* 名称是代码标识符，按词折行会把 AdditionalAttributes 拆成两段；改成 nowrap，
    窄屏交给容器的横向滚动处理（见 ≤900px 的媒体查询）。 */
 .component-preview__api-row > [role="cell"]:first-child {
-    white-space: nowrap;
+    /* 名称可换行，但只允许在渲染时插入的 <wbr>（类型前缀的点号）处换；不做逐字符拆词。 */
+    white-space: normal;
+    min-width: 0;
 }
 
 .component-preview__api-row > [role="cell"]:first-child code {
     overflow-wrap: normal;
+    word-break: normal;
 }
 
 .component-preview__api-row code,
@@ -2255,6 +2258,18 @@
     border-bottom: 1px solid var(--aeterni-border-subtle);
 }
 
+/* 命中数读数：查询非空时才有，作为结果区自己的状态行；`role=status` 已在标记里，
+   每敲一个字它会更新一次，读屏不必再逐条数结果。 */
+.showcase-search-modal__summary {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: var(--aeterni-spacing-2) var(--aeterni-spacing-3);
+    border-bottom: 1px solid var(--aeterni-border-subtle);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-variant-numeric: tabular-nums;
+}
+
 .showcase-search-modal__icon {
     display: grid;
     flex: 0 0 auto;
@@ -2278,6 +2293,56 @@
     scrollbar-gutter: stable;
 }
 
+/* 结果按页面分组：列表外层仍是一个 gap 4px 的 flex 列，组内条目保持同一档间隙；
+   组与组之间多留一档，页面标题行因此读起来像"下一组"而不是"又一条结果"。 */
+.showcase-search-modal__group {
+    display: grid;
+    gap: var(--aeterni-spacing-1);
+    min-width: 0;
+}
+
+.showcase-search-modal__group + .showcase-search-modal__group {
+    margin-top: var(--aeterni-spacing-2);
+}
+
+.showcase-search-modal__group-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--aeterni-spacing-2);
+    margin: var(--aeterni-spacing-1) var(--aeterni-spacing-2) 0;
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-font-size-xs);
+    font-weight: var(--aeterni-font-weight-semibold);
+    letter-spacing: .02em;
+}
+
+.showcase-search-modal__group-page {
+    min-width: 0;
+    color: var(--aeterni-text-primary);
+    overflow-wrap: anywhere;
+}
+
+.showcase-search-modal__group-category {
+    font-weight: var(--aeterni-font-weight-regular);
+}
+
+.showcase-search-modal__group-count {
+    margin-inline-start: auto;
+    font-weight: var(--aeterni-font-weight-regular);
+    font-variant-numeric: tabular-nums;
+}
+
+/* 命中词高亮：只换底色与字重，不接管活动项/悬停的整行底。
+   文字仍由 RenderFragment 逐段输出，不拼 HTML。 */
+.showcase-search-modal__mark {
+    padding: 0 1px;
+    border-radius: var(--aeterni-radius-xs);
+    background: var(--aeterni-color-brand-soft);
+    color: var(--aeterni-text-primary);
+    font-weight: var(--aeterni-font-weight-semibold);
+}
+
 .showcase-search-modal__option {
     display: grid;
     gap: 2px;
@@ -2298,12 +2363,14 @@
 .showcase-search-modal__option-title {
     color: var(--aeterni-text-primary);
     font-size: var(--aeterni-font-size-sm);
+    overflow-wrap: anywhere;
 }
 
 .showcase-search-modal__option-meta {
     /* 结果页码是正文信息（Timeline · 导航组件），用 secondary 而不是 tertiary。 */
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
+    overflow-wrap: anywhere;
 }
 
 /* 查询为空时的引导：这是初始态，不是"没有结果"，所以文案只说明能搜什么。 */

@@ -8,86 +8,118 @@
 <PopupHost Class="aeterni-cascader__host">
     <ChildContent>
         <div @ref="RootElement" @attributes="BuildAttributes()">
-            <button @ref="_triggerElement" type="button"
-                    class="aeterni-cascader__trigger"
-                    id="@FormFieldInputId"
-                    role="combobox"
-                    aria-labelledby="@FormFieldLabelId"
-                    aria-describedby="@EffectiveDescribedBy"
-                    aria-expanded="@(_open ? "true" : "false")"
-                    aria-controls="@PanelId"
-                    aria-haspopup="listbox"
-                    aria-label="@(FormFieldLabelId is null ? EffectiveAriaLabel : null)"
-                    aria-required="@(IsRequired ? "true" : null)"
-                    aria-invalid="@(IsInvalid ? "true" : null)"
-                    aria-activedescendant="@ActiveOptionId"
-                    disabled="@IsDisabled"
-                    @onclick="HandleTriggerClickAsync"
-                    @onkeydown="HandleTriggerKeyDownAsync">
-                <span class="aeterni-cascader__value @(Value is null ? "is-placeholder" : null)">
-                    @(Value is null ? PlaceholderText : PathText)
-                </span>
-                <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-cascader__chevron" />
-            </button>
+            @* 外壳持有可见边框，触发器本体无边框，清除动作才能并入同一个控件盒
+               （与 ComboBox / Autocomplete 同一结构）。 *@
+            <div class="aeterni-cascader__field">
+                <div class="aeterni-cascader__trigger-wrap">
+                    <button @ref="_triggerElement" type="button"
+                            class="aeterni-cascader__trigger"
+                            id="@FormFieldInputId"
+                            role="combobox"
+                            aria-labelledby="@FormFieldLabelId"
+                            aria-describedby="@EffectiveDescribedBy"
+                            aria-expanded="@(_open ? "true" : "false")"
+                            aria-controls="@PanelId"
+                            aria-haspopup="listbox"
+                            aria-label="@(FormFieldLabelId is null ? EffectiveAriaLabel : null)"
+                            aria-required="@(IsRequired ? "true" : null)"
+                            aria-invalid="@(IsInvalid ? "true" : null)"
+                            aria-readonly="@(IsReadOnly ? "true" : null)"
+                            aria-activedescendant="@ActiveOptionId"
+                            disabled="@IsDisabled"
+                            @onclick="HandleTriggerClickAsync"
+                            @onkeydown="HandleTriggerKeyDownAsync">
+                        <span class="aeterni-cascader__value @(Value is null ? "is-placeholder" : null)">
+                            @(Value is null ? PlaceholderText : PathText)
+                        </span>
+                        <Icon Definition="@AeterniIcons.ChevronDown" Class="aeterni-cascader__chevron" />
+                    </button>
+                    @if (AllowClear && HasValue)
+                    {
+                        <div class="aeterni-cascader__actions">
+                            <ButtonGroup Connected="true"
+                                         Disabled="@IsDisabled"
+                                         AriaLabel="@ListLabel">
+                                <IconButton Class="aeterni-cascader__clear"
+                                            Size="@Size"
+                                            Variant="@ButtonVariant.Ghost"
+                                            Intent="@ButtonIntent.Neutral"
+                                            AriaLabel="@EffectiveClearLabel"
+                                            Disabled="@(IsDisabled || IsReadOnly)"
+                                            Icon="@ClearIcon"
+                                            OnClick="@ClearAsync" />
+                            </ButtonGroup>
+                        </div>
+                    }
+                </div>
+            </div>
 
             <Popover Open="@_open"
                      OpenChanged="HandlePopoverOpenChangedAsync"
-                     Placement="PopupPlacement.BottomStart"
+                     Placement="@Placement"
                      CloseOnScroll="true"
                      Class="aeterni-cascader__popover"
                      AriaLabel="@ListLabel">
                 <div class="aeterni-cascader__panel" id="@PanelId" role="listbox" aria-label="@ListLabel">
-                    @for (var column = 0; column < _columns.Count; column++)
+                    @if (Loading)
                     {
-                        @* 局部副本：闭包要按当前列取值，不能捕获循环变量本身。 *@
-                        var columnItems = _columns[column];
-                        var columnIndex = column;
+                        @* Loading 只替换面板内容：打开/关闭与触发器交互保持可用。 *@
+                        <div class="aeterni-cascader__status"><Spinner Size="AeterniUI.Enums.Size.Small" /></div>
+                    }
+                    else
+                    {
+                        @for (var column = 0; column < _columns.Count; column++)
+                        {
+                            @* 局部副本：闭包要按当前列取值，不能捕获循环变量本身。 *@
+                            var columnItems = _columns[column];
+                            var columnIndex = column;
 
-                        <div class="aeterni-cascader__column" role="group" aria-label="@ColumnLabel(columnIndex)">
-                            @if (columnItems.Count == 0)
-                            {
-                                <div class="aeterni-cascader__empty">
-                                    @if (EmptyContent is not null)
-                                    {
-                                        @EmptyContent
-                                    }
-                                    else
-                                    {
-                                        @UiText.CascaderEmptyText
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                @for (var index = 0; index < columnItems.Count; index++)
+                            <div class="aeterni-cascader__column" role="group" aria-label="@ColumnLabel(columnIndex)">
+                                @if (columnItems.Count == 0)
                                 {
-                                    var item = columnItems[index];
-                                    var optionIndex = index;
-                                    var selected = ValuesEqual(item, Value);
-                                    var active = columnIndex == _activeColumn && optionIndex == _activeIndex;
-                                    var expandable = HasChildren(item);
-
-                                    <div id="@($"{PanelId}-{OptionId(columnIndex, optionIndex)}")"
-                                         role="option"
-                                         aria-selected="@(selected ? "true" : "false")"
-                                         class="aeterni-cascader__option @(active ? "is-active" : null) @(selected ? "is-selected" : null)"
-                                         @onclick="@(args => HandleOptionClickAsync(columnIndex, optionIndex))">
-                                        @if (ItemTemplate is not null)
+                                    <div class="aeterni-cascader__empty">
+                                        @if (EmptyContent is not null)
                                         {
-                                            @ItemTemplate(item)
+                                            @EmptyContent
                                         }
                                         else
                                         {
-                                            <span class="aeterni-cascader__option-text">@DisplayText(item)</span>
-                                        }
-                                        @if (expandable)
-                                        {
-                                            <Icon Definition="@AeterniIcons.ChevronRight" Class="aeterni-cascader__option-caret" />
+                                            @UiText.CascaderEmptyText
                                         }
                                     </div>
                                 }
-                            }
-                        </div>
+                                else
+                                {
+                                    @for (var index = 0; index < columnItems.Count; index++)
+                                    {
+                                        var item = columnItems[index];
+                                        var optionIndex = index;
+                                        var selected = ValuesEqual(item, Value);
+                                        var active = columnIndex == _activeColumn && optionIndex == _activeIndex;
+                                        var expandable = HasChildren(item);
+
+                                        <div id="@($"{PanelId}-{OptionId(columnIndex, optionIndex)}")"
+                                             role="option"
+                                             aria-selected="@(selected ? "true" : "false")"
+                                             class="aeterni-cascader__option @(active ? "is-active" : null) @(selected ? "is-selected" : null)"
+                                             @onclick="@(args => HandleOptionClickAsync(columnIndex, optionIndex))">
+                                            @if (ItemTemplate is not null)
+                                            {
+                                                @ItemTemplate(item)
+                                            }
+                                            else
+                                            {
+                                                <span class="aeterni-cascader__option-text">@DisplayText(item)</span>
+                                            }
+                                            @if (expandable)
+                                            {
+                                                <Icon Definition="@AeterniIcons.ChevronRight" Class="aeterni-cascader__option-caret" />
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
                     }
                 </div>
             </Popover>

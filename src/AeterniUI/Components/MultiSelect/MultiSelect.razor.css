@@ -312,6 +312,19 @@
     font-size: var(--aeterni-multi-select-font-size);
 }
 
+/* Loading 只替换面板内容：共享 Spinner 自带 status 角色，根元素同时输出
+   aria-busy；打开/关闭与触发器交互不受影响。 */
+.aeterni-multi-select__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-2);
+    min-height: var(--aeterni-multi-select-height);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
+    font-size: var(--aeterni-multi-select-font-size);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .aeterni-multi-select__trigger,
     .aeterni-multi-select__option,

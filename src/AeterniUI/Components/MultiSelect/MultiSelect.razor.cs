@@ -73,6 +73,13 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public bool ReadOnly { get; set; }
 
+    /// <summary>
+    /// Host is refreshing the options. Shows a busy status inside the panel; the
+    /// trigger keeps opening and closing normally.
+    /// </summary>
+    [Parameter]
+    public bool Loading { get; set; }
+
     [Parameter]
     public bool Required { get; set; }
 
@@ -81,6 +88,13 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
 
     [Parameter]
     public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// Preferred side of the option layer relative to the trigger. Flipping and
+    /// viewport clamping stay owned by the shared floating module.
+    /// </summary>
+    [Parameter]
+    public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
 
     [Parameter]
     public string? Placeholder { get; set; }
@@ -154,7 +168,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         ? UiText.MultiSelectRemoveLabel
         : RemoveLabel.Trim();
 
-    private string? ActiveOptionId => _open && _activeIndex >= 0 && _activeIndex < Items.Count
+    private string? ActiveOptionId => !Loading && _open && _activeIndex >= 0 && _activeIndex < Items.Count
         ? $"{ListboxId}-option-{_activeIndex}"
         : null;
 
@@ -188,6 +202,11 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         {
             _activeIndex = -1;
         }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown multi-select placement.");
+        }
     }
 
     protected override ValueTask OnComponentDisposeAsync()
@@ -209,6 +228,7 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         .Add(SizeClass)
         .Add("is-full-width", FullWidth)
         .Add("is-readonly", ReadOnly)
+        .Add("is-loading", Loading)
         .Add("is-open", _open)
         .Add("is-keyboard-navigation", _keyboardNavigation)
         .Add("is-invalid", IsInvalid)
@@ -220,6 +240,11 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
         if (IsDisabled)
         {
             attributes["aria-disabled"] = "true";
+        }
+
+        if (Loading)
+        {
+            attributes["aria-busy"] = "true";
         }
 
         return attributes;
@@ -251,6 +276,25 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     {
         if (IsDisabled || ReadOnly || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
+            return;
+        }
+
+        if (Loading)
+        {
+            // The panel only shows the busy status: opening and closing stay
+            // available, but there is no rendered option to toggle.
+            if (!_open && args.Key is "ArrowDown" or "ArrowUp" or "Enter" or " ")
+            {
+                _keyboardNavigation = true;
+                Open();
+                await InvokeAsync(StateHasChanged);
+            }
+            else if (_open && args.Key == "Escape")
+            {
+                Close();
+                await InvokeAsync(StateHasChanged);
+            }
+
             return;
         }
 

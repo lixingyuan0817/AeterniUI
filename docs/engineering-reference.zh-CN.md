@@ -227,6 +227,8 @@ class 从 `base.BuildClass()` 起链式构建，命名规则见 [`AGENTS.md`](..
 
 原生支持 `disabled` 的元素用原生属性；不能禁用的元素至少输出 `aria-disabled="true"`。加载态要阻止重复提交、保留稳定尺寸、给读屏可理解的状态，且不能只靠旋转图形表达。
 
+只读（ReadOnly）不是禁用：原生输入用只读属性；`role="combobox"` / `role="textbox"` 的触发器可以用 `aria-readonly`，但 `role="button"` 的弹层触发器（日期/时间族）不支持这个属性，改用 `is-readonly` 状态类 + `aria-disabled="true"` 表达“可聚焦、可复制但不可操作”。不要把 `aria-readonly` 写到 button 角色上——它属于 ARIA 允许属性表之外，读屏不会消费，审计会报 `aria-allowed-attr`。
+
 ### 7.3 ARIA 与表单关联
 
 ARIA 只补充语义，不能替代正确元素；每个 ARIA 属性都必须对应真实交互状态。最典型的失败：Blazor 把 `bool` 属性值渲染成最小化属性（`aria-selected` 而不是 `aria-selected="true"`，为 `false` 时直接省略），两者对读屏都是无效值——统一写 `? "true" : "false"`，原生布尔属性不受影响。
@@ -303,6 +305,8 @@ ARIA 只补充语义，不能替代正确元素；每个 ARIA 属性都必须对
 - 示例样式放在示例项目的全局样式表里：作用域 CSS 无法跨页生效；类名仍用示例自己的前缀，不得覆盖 `.aeterni-*` 组件规则，否则示例会反向成为组件实现依赖。
 
 示例必须展示真实参数和真实状态，不能用静态文本模拟尚未实现的能力；主题切换与浏览器能力不可用时的降级行为也要覆盖。
+
+API 表的公共参数不能机械地贴到每一页：`ShowcaseApiReference.Sections` 按组件分组，`scripts/lib/showcase-support.mjs` 从源码结构推导每个基类参数是否真的落到 DOM（是否消费 `BuildAttributes()`、是否转发 `Class`/`Style`/`Element`、是否 `SupportsDisabled`），推导不出的个别例外在 `scripts/api-groups.json` 显式登记。这样 ThemeProvider、FormDialog 这类无 DOM 的组件不会被列出无效参数，多组件合页（Dialog/Confirm/Alert/Toast、DatePicker/DateRangePicker）也不会混成一张表。
 
 ## 11. 新增组件工作流
 

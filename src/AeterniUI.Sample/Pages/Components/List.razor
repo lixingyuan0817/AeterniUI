@@ -18,14 +18,14 @@
     <Demos>
         <DemoCard Id="list-basic"
                   Title="基础用法"
-                  Description="@("ChildContent 声明选项，ListItem 给出值；单选配合 @bind-SelectedValue，AllowClear 允许再次点击清除。")"
+                  Description="@("ChildContent 声明选项，ListItem 给出值；单选配合 @bind-SelectedItem，AllowClear 允许再次点击清除。")"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-list-wrap">
                     <List TItem="string"
                           SelectionMode="SelectionMode.Single"
                           AllowClear
-                          @bind-SelectedValue="_basicSelected"
+                          @bind-SelectedItem="_basicSelected"
                           AriaLabel="列表单选预览">
                         <ListItem Value="@DesignValue">设计</ListItem>
                         <ListItem Value="@DevelopmentValue">开发</ListItem>
@@ -47,7 +47,7 @@
                           CardMode="@_cardMode"
                           Disabled="@_itemsDisabled"
                           SelectionMode="SelectionMode.Single"
-                          @bind-SelectedValue="_itemSelected"
+                          @bind-SelectedItem="_itemSelected"
                           AriaLabel="字符串列表" />
                     <List Items="@_models" CardMode="@_cardMode">
                         <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
@@ -77,8 +77,8 @@
                         <List TItem="string"
                               SelectionMode="@_selectionMode"
                               CardMode="@_cardMode"
-                              SelectedValues="@_selectedRows"
-                              SelectedValuesChanged="HandleMultipleChanged"
+                              SelectedItems="@_selectedRows"
+                              SelectedItemsChanged="HandleMultipleChanged"
                               MaxHeight="220px"
                               AriaLabel="列表多选预览">
                             @foreach (var row in Rows)
@@ -93,8 +93,8 @@
                               SelectionMode="@_selectionMode"
                               CardMode="@_cardMode"
                               AllowClear="@_allowClear"
-                              SelectedValue="@_selectedRow"
-                              SelectedValueChanged="HandleSingleChanged"
+                              SelectedItem="@_selectedRow"
+                              SelectedItemChanged="HandleSingleChanged"
                               MaxHeight="220px"
                               AriaLabel="列表单选预览">
                             @foreach (var row in Rows)
@@ -125,6 +125,7 @@
         <span>只有 <code>Single</code> / <code>Multiple</code> 才输出 <code>listbox</code> 与选项角色；<code>AllowClear</code> 只在单选下允许再次点击清除。</span>
         <span><code>CardMode</code> 只换外壳：普通行与卡片共用同一套选中底色、字重与悬停反馈。选择列表里不要再嵌可聚焦操作控件，否则行与内部控件的键盘语义会互相打架。</span>
         <span><code>Home</code>/<code>End</code> 按画面顺序移动，<code>Visible</code> 为 false 的选项不可选也不进入移动范围；允许清空时方向键只移动活动项，<code>Enter</code> 与空格才真正切换。<code>MaxHeight</code> 为空时列表按内容自适应，设置后由 List 自己拥有滚动条。</span>
+        <span>类型化选中用 <code>SelectedItem</code>/<code>SelectedItems</code>（<code>@@bind-SelectedItem</code> / <code>@@bind-SelectedItems</code>）；旧的 <code>SelectedValue</code>/<code>SelectedValues</code> 仍可用但已标 <code>Obsolete</code>，只建议留给 <code>ListItem.Value</code> 无法转成 <code>TItem</code> 的声明式场景。<code>ListItem.Value</code> 仍是 <code>object?</code>，声明式列表请让值与 <code>TItem</code> 兼容（如 <code>TItem="string"</code> 时传字符串）：绑定类型化回调后，不可表示的值会直接抛错而不是悄悄变成默认值。</span>
     </Notes>
 </ComponentPage>
 
@@ -138,7 +139,7 @@
     ];
 
     private const string BasicCode = """
-        <List TItem="string" SelectionMode="SelectionMode.Single" AllowClear @bind-SelectedValue="Selected">
+        <List TItem="string" SelectionMode="SelectionMode.Single" AllowClear @bind-SelectedItem="Selected">
             <ListItem Value="设计">设计</ListItem>
             <ListItem Value="开发">开发</ListItem>
             <ListItem Value="运营" Disabled>运营（禁用）</ListItem>
@@ -146,7 +147,7 @@
         """;
 
     private const string ItemsCode = """
-        <List Items="Names" SelectionMode="SelectionMode.Single" @bind-SelectedValue="Selected" />
+        <List Items="Names" SelectionMode="SelectionMode.Single" @bind-SelectedItem="Selected" />
 
         <List Items="Rows" CardMode>
             <ItemTemplate><strong>@context.Name</strong> · @context.Description</ItemTemplate>
@@ -162,7 +163,7 @@
               SelectionMode="SelectionMode.Single"
               CardMode
               AllowClear
-              @bind-SelectedValue="Selected"
+              @bind-SelectedItem="Selected"
               MaxHeight="220px">
             <ListItem Value="设计">设计</ListItem>
             <ListItem Value="开发">开发</ListItem>
@@ -174,8 +175,8 @@
     private const string ProductValue = "产品";
     private const string OperationsValue = "运营";
 
-    private object? _basicSelected = "开发";
-    private object? _itemSelected = "开发";
+    private string? _basicSelected = "开发";
+    private string? _itemSelected = "开发";
     private string[] _names = ["设计", "开发", "产品"];
     private bool _cardMode;
     private bool _itemsDisabled;
@@ -185,8 +186,8 @@
     private bool _allowClear = true;
     private bool _hideDevelopment;
     private bool _reversed;
-    private object? _selectedRow;
-    private IReadOnlyList<object?> _selectedRows = ["设计"];
+    private string? _selectedRow;
+    private IReadOnlyList<string> _selectedRows = ["设计"];
     private string _selectionNote = "在列表里选择或清除，反馈会显示在这里。";
 
     private readonly DemoItem[] _models =
@@ -207,14 +208,14 @@
         _selectionNote = _reversed ? "列表按反转后的画面顺序渲染。" : "列表恢复原始顺序。";
     }
 
-    private Task HandleSingleChanged(object? value)
+    private Task HandleSingleChanged(string? value)
     {
         _selectedRow = value;
         _selectionNote = value is null ? "单选已清除。" : $"单选值：{value}。";
         return Task.CompletedTask;
     }
 
-    private Task HandleMultipleChanged(IReadOnlyList<object?> values)
+    private Task HandleMultipleChanged(IReadOnlyList<string> values)
     {
         _selectedRows = values;
         _selectionNote = values.Count == 0 ? "多选为空。" : $"多选值：{string.Join("、", values)}。";

@@ -8,5 +8,7 @@ public enum ButtonIntent
     Default,
     Neutral,
     Warning,
-    Danger
+    Danger,
+    Success,
+    Info
 }

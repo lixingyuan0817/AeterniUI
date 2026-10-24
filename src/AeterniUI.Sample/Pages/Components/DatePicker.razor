@@ -71,6 +71,34 @@
             </Controls>
         </DemoCard>
 
+        <DemoCard Id="date-picker-readonly"
+                  Title="只读与外部描述"
+                  Description="ReadOnly 让触发器保持可聚焦、可选中复制，但不会打开弹层或改写绑定值；AriaDescribedBy 与 FormField 的描述 id 去重合并后输出到触发器。同时设置 Disabled 时禁用态优先。"
+                  Code="@ReadOnlyCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <DatePicker @bind-Value="_readOnlyDate"
+                                ReadOnly="@_readOnly"
+                                Disabled="@_readOnlyDisabled"
+                                AriaDescribedBy="date-picker-readonly-hint"
+                                AriaLabel="只读预约日期" />
+                    <DateRangePicker @bind-StartDate="_readOnlyStart"
+                                     @bind-EndDate="_readOnlyEnd"
+                                     ReadOnly="@_readOnly"
+                                     Disabled="@_readOnlyDisabled"
+                                     VisibleMonths="2"
+                                     AriaDescribedBy="date-picker-readonly-hint"
+                                     AriaLabel="只读日期范围" />
+                    <p id="date-picker-readonly-hint" class="preview-feedback">只读字段仍可聚焦并复制文本；弹层不会打开，值只能由宿主更新。勾选 Disabled 可以看到禁用态优先于只读。</p>
+                    <span class="preview-feedback" role="status">只读值：@(_readOnlyDate?.ToString(DisplayFormat) ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnlyDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
         <DemoCard Id="date-picker-lunar"
                   Title="农历叠加"
                   Description="ShowLunar 默认 false；开启后只在日历格内叠加一行中国农历副行，绑定值仍是 DateOnly、触发器格式仍由 Format 决定，公历 1901-02-19 至 2101-01-28 之外不显示农历行。"
@@ -125,6 +153,7 @@
         <span><code>Presets</code> 是宿主数据：每个范围必须有序、不含被禁用或越界的日期，否则在参数设置阶段直接抛错。</span>
         <span>日历打开后可用方向键、Home/End、PageUp/PageDown 连续移动真实焦点；边界日期保持完整网格，窄屏下多月份视图改为单列。</span>
         <span><code>ShowLunar</code> 默认关闭，开启后只在日历格内叠加中国农历副行：绑定值、触发器格式与选择行为都不变，公历 1901-02-19 至 2101-01-28 之外不显示农历行；副行的无障碍前缀取文案表的 <code>Text.DatePickerLunarLabel</code>。</span>
+        <span><code>ReadOnly</code> 与 <code>Disabled</code> 的区别：只读触发器仍可聚焦、可选中复制并保留焦点环，只是不打开日历、不改写绑定值；两者同时设置时以 <code>Disabled</code> 为准。<code>AriaDescribedBy</code> 先于 <code>FormField</code> 的描述 id 输出，重复 id 只保留一份。</span>
     </Notes>
 </ComponentPage>
 
@@ -167,6 +196,17 @@
         </FormField>
         """;
 
+    private const string ReadOnlyCode = """
+        <DatePicker @bind-Value="Date"
+                    ReadOnly="@IsReadOnly"
+                    AriaDescribedBy="date-hint" />
+
+        <DateRangePicker @bind-StartDate="Start"
+                         @bind-EndDate="End"
+                         ReadOnly="@IsReadOnly"
+                         AriaDescribedBy="date-hint" />
+        """;
+
     private const string DisplayFormat = "yyyy-MM-dd";
 
     private static readonly IReadOnlyList<DateRangePreset> RangePresets = CreateRangePresets();
@@ -181,6 +221,11 @@
     private bool _rangeFullWidth;
     private bool _disabled;
     private bool _invalid;
+    private DateOnly? _readOnlyDate = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _readOnlyStart;
+    private DateOnly? _readOnlyEnd;
+    private bool _readOnly = true;
+    private bool _readOnlyDisabled;
     private bool _showLunar = true;
     private DateOnly? _lunarDate = DateOnly.FromDateTime(DateTime.Today);
     private DateOnly? _lunarStartDate;

@@ -78,6 +78,13 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public bool FullWidth { get; set; }
 
+    /// <summary>
+    /// Preferred side of the suggestion layer relative to the field. Space-aware
+    /// flipping and viewport clamping stay owned by the shared floating module.
+    /// </summary>
+    [Parameter]
+    public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
+
     [Parameter]
     public string? Placeholder { get; set; }
 
@@ -141,7 +148,9 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private string? InputAriaLabel => FormField?.LabelId is null ? EffectiveAriaLabel : AriaLabel;
 
-    private string? ActiveOptionId => _open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count
+    // While the panel shows the loading status no option is rendered, so the
+    // trigger must not keep pointing aria-activedescendant at a missing id.
+    private string? ActiveOptionId => !Loading && _open && _activeIndex >= 0 && _activeIndex < _visibleItems.Count
         ? $"{ListboxId}-option-{_activeIndex}"
         : null;
 
@@ -174,6 +183,11 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
         if (!Enum.IsDefined(Size))
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown autocomplete size.");
+        }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown autocomplete placement.");
         }
 
         _currentValue = Value;

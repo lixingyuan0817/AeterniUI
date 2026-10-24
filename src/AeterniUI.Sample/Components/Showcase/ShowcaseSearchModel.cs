@@ -24,10 +24,21 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
     private readonly NavigationManager _navigation;
     private readonly IJSRuntime _jsRuntime;
     private readonly List<ShowcaseSearchEntry> _matches = [];
+    private readonly List<ShowcaseSearchGroup> _groups = [];
 
     private IJSObjectReference? _module;
     private string? _pendingAnchor;
     private bool _restoreFocusOnClose = true;
+
+    /// <summary>
+    /// 同一次查询里按页面聚好的一组命中。组按页面首次命中的顺序排列，组内保持排序后的顺序；
+    /// <see cref="Matches" /> 是这些组的顺序拼接，所以活动项下标与渲染顺序一一对应。
+    /// </summary>
+    public sealed record ShowcaseSearchGroup(
+        string PageId,
+        string PageTitle,
+        string Category,
+        IReadOnlyList<ShowcaseSearchEntry> Entries);
 
     public ShowcaseSearchModel(NavigationManager navigation, IJSRuntime jsRuntime)
     {
@@ -50,6 +61,15 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
 
     public IReadOnlyList<ShowcaseSearchEntry> Matches => _matches.Count == 0 ? NoMatches : _matches;
 
+    /// <summary>
+    /// 按页面分组后的命中：渲染端每组插一行页面标题，同页结果因此不会散落在别页之间。
+    /// 组顺序就是 <see cref="Matches" /> 的顺序，键盘下标不需要另一套映射。
+    /// </summary>
+    public IReadOnlyList<ShowcaseSearchGroup> MatchGroups => _groups;
+
+    /// <summary>当前查询的命中总数；面板用它显示结果计数。</summary>
+    public int MatchCount => _matches.Count;
+
     public int ActiveIndex { get; private set; } = -1;
 
     public string? ActiveOptionId => ActiveIndex >= 0 && ActiveIndex < _matches.Count
@@ -62,6 +82,9 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
     public static string ListboxId => "showcase-header-search-listbox";
 
     public static string OptionId(int index) => $"showcase-header-search-option-{index}";
+
+    /// <summary>页面分组行（role=group）的 id，由分组标题的 aria-labelledby 指向它。</summary>
+    public static string GroupId(string pageId) => $"showcase-header-search-group-{pageId}";
 
     /// <summary>把触发器元素交给模型；元素没变时不打扰两个视图。</summary>
     public void SetTrigger(ElementReference trigger)
@@ -201,16 +224,20 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         Query = string.Empty;
         ActiveIndex = -1;
         _matches.Clear();
+        _groups.Clear();
     }
 
     /// <summary>
     /// 命中项：段标题、页标题、页面 id 与分类都参与匹配，大小写不敏感；排序按"命中在哪"分层
     /// （段标题 → 页标题 → 页 id → 分类），同层保持索引顺序，因此同一查询的结果顺序稳定。
+    /// 排序后再按页面聚组（组按首次出现的页面顺序），最后把组按顺序摊平回 <c>_matches</c>：
+    /// 渲染端的活动项下标、<c>aria-activedescendant</c> 与键盘移动因此仍然指向同一序列。
     /// </summary>
     private void RefreshMatches()
     {
         var query = Query.Trim();
         _matches.Clear();
+        _groups.Clear();
 
         if (query.Length == 0)
         {
@@ -218,12 +245,34 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
             return;
         }
 
-        _matches.AddRange(ShowcaseSearchIndex.Entries
+        var ordered = ShowcaseSearchIndex.Entries
             .Select((entry, index) => (entry, index, rank: RankOf(entry, query)))
             .Where(candidate => candidate.rank >= 0)
             .OrderBy(candidate => candidate.rank)
             .ThenBy(candidate => candidate.index)
-            .Select(candidate => candidate.entry));
+            .Select(candidate => candidate.entry);
+
+        var groupIndexByPage = new Dictionary<string, int>(StringComparer.Ordinal);
+        var groupEntries = new List<List<ShowcaseSearchEntry>>();
+
+        foreach (var entry in ordered)
+        {
+            if (!groupIndexByPage.TryGetValue(entry.PageId, out var groupIndex))
+            {
+                groupIndex = groupEntries.Count;
+                groupIndexByPage[entry.PageId] = groupIndex;
+                groupEntries.Add(new List<ShowcaseSearchEntry>());
+            }
+
+            groupEntries[groupIndex].Add(entry);
+        }
+
+        foreach (var entries in groupEntries)
+        {
+            var first = entries[0];
+            _groups.Add(new ShowcaseSearchGroup(first.PageId, first.PageTitle, first.Category, entries));
+            _matches.AddRange(entries);
+        }
 
         ActiveIndex = _matches.Count == 0 ? -1 : 0;
     }

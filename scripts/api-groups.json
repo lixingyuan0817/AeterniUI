@@ -1,0 +1,15 @@
+{
+  "_comment": "多组件合页的二级分组。数组顺序就是页面上的渲染顺序；字符串等价于 { title, owners: [title] }。owners 是成员归属标记：组件类型名，或额外行名字开头的类型（DialogOptions.Title → DialogOptions）。能由组件目录推出的页（DatePicker / DateRangePicker、List / ListItem、Radio / RadioGroup、Toolbar / ToolbarGroup）不在这里重复；这里只登记与文件顺序不一致、或没有组件目录的页。未归属的额外行进「共享约定」组，目录里只有一个组件的页保持单表。baseParameterOverrides 用于推导不出来的个别公共参数：值为说明字符串表示强制登记为不支持，值为 null 表示强制视为支持。",
+  "pages": {
+    "feedback": [
+      { "title": "Dialog", "owners": ["DialogOptions"] },
+      { "title": "Confirm", "owners": ["ConfirmOptions"] },
+      { "title": "Alert", "owners": ["AlertOptions"] },
+      { "title": "Toast", "owners": ["ToastOptions"] }
+    ],
+    "popup": ["PopupHost", "Popover"],
+    "tabs": ["Tabs", "Tab"],
+    "theme": ["ThemeProvider", "ThemeSwitch", "ThemeBrandSwitch"]
+  },
+  "baseParameterOverrides": {}
+}

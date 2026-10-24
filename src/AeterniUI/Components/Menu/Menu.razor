@@ -111,6 +111,7 @@
                    href="@item.Href"
                    target="@item.Target"
                    rel="@LinkRel(item)"
+                   title="@item.Label"
                    aria-current="@(selected ? "page" : null)"
                    @onfocus="() => TrackFocus(groupIndex, itemIndex)"
                    @onclick="() => SelectAsync(group, item)">
@@ -123,6 +124,7 @@
                         id="@ItemId(groupIndex, itemIndex)"
                         class="aeterni-menu__item @(selected ? "is-selected" : "")"
                         disabled="@itemDisabled"
+                        title="@item.Label"
                         aria-current="@(selected ? "page" : null)"
                         @onfocus="() => TrackFocus(groupIndex, itemIndex)"
                         @onclick="() => SelectAsync(group, item)">

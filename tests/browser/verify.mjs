@@ -2830,70 +2830,84 @@ check('批次 7 反馈闭环：点「有用」弹 Toast，issue 与贡献者出�
 await goto(`${BASE}/components/cascader`);
 await waitForApp();
 
-const cascader = await evaluate(`(async () => {
+const cascaderStats = () => evaluate(`(() => {
     const trigger = document.querySelector('.aeterni-cascader__trigger');
     if (!trigger) return { error: 'no cascader trigger' };
-
-    const panel = () => document.getElementById(trigger.getAttribute('aria-controls'));
-    const stats = () => {
-        const root = panel();
-        return {
-            expanded: trigger.getAttribute('aria-expanded'),
-            listbox: root ? root.getAttribute('role') : null,
-            nestedListboxes: root ? root.querySelectorAll('[role="listbox"]').length : -1,
-            groups: root ? root.querySelectorAll('[role="group"]').length : 0,
-            options: root ? root.querySelectorAll('[role="option"]').length : 0,
-            active: trigger.getAttribute('aria-activedescendant')
-        };
-    };
-    const press = async value => {
-        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true }));
-        await new Promise(r => setTimeout(r, 80));
-    };
-
-    const closed = stats();
-    // waitForApp 只证明标记已渲染；WASM 的事件处理器可能还差一拍。点击一次没反应时重试，
-    // 直到 aria-expanded 真的翻成 true，避免把“尚未交互”误判成组件缺陷。
-    let opened = stats();
-    for (let attempt = 0; attempt < 20 && opened.expanded !== 'true'; attempt++) {
-        trigger.click();
-        await new Promise(r => setTimeout(r, 100));
-        opened = stats();
-    }
-
-    await press('ArrowRight');
-    const secondLevel = stats();
-    await press('ArrowRight');
-    const thirdLevel = stats();
-    await press('Enter');
-    await new Promise(r => setTimeout(r, 200));
-
+    const panel = document.getElementById(trigger.getAttribute('aria-controls'));
     return {
-        closed,
-        opened,
-        secondLevel,
-        thirdLevel,
-        after: stats(),
-        text: trigger.textContent.replace(/\\s+/g, ' ').trim()
+        expanded: trigger.getAttribute('aria-expanded'),
+        listbox: panel ? panel.getAttribute('role') : null,
+        nestedListboxes: panel ? panel.querySelectorAll('[role="listbox"]').length : -1,
+        groups: panel ? panel.querySelectorAll('[role="group"]').length : 0,
+        options: panel ? panel.querySelectorAll('[role="option"]').length : 0,
+        active: trigger.getAttribute('aria-activedescendant')
     };
 })()`);
 
+// 用真实指针打开：JS `.click()` 不会把焦点留在触发器上，后面的 ArrowRight 可能落在 body
+// 上触发页面滚动，而 Cascader 的 CloseOnScroll 会把面板关掉——这是合成事件路径特有的假失败。
+// 先滚进视口，再用 CDP 鼠标按下/抬起，并重试到 aria-expanded 真的翻成 true。
+const cascaderClosed = await cascaderStats();
+for (let attempt = 0; attempt < 10; attempt++) {
+    const center = await evaluate(`(() => {
+        const trigger = document.querySelector('.aeterni-cascader__trigger');
+        if (!trigger) return null;
+        trigger.scrollIntoView({ block: 'center', behavior: 'instant' });
+        const rect = trigger.getBoundingClientRect();
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    })()`);
+    if (!center) break;
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: center.x, y: center.y, button: 'left', clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: center.x, y: center.y, button: 'left', clickCount: 1 });
+    await sleep(250);
+    const current = await cascaderStats();
+    if (current.expanded === 'true') break;
+}
+const cascaderOpened = await cascaderStats();
+
 check('Cascader 关闭态不报告活动项，触发器可打开面板',
-    !cascader.error && cascader.closed.expanded === 'false' && cascader.closed.active === null
-        && cascader.opened.expanded === 'true' && cascader.opened.groups === 1 && cascader.opened.options === 3
-        && typeof cascader.opened.active === 'string',
-    JSON.stringify(cascader.opened ?? cascader.error));
+    !cascaderClosed.error && cascaderClosed.expanded === 'false' && cascaderClosed.active === null
+        && cascaderOpened.expanded === 'true' && cascaderOpened.groups === 1 && cascaderOpened.options === 3
+        && typeof cascaderOpened.active === 'string',
+    JSON.stringify(cascaderOpened ?? cascaderClosed.error));
+
+// 用 CDP 真实按键而不是页面内合成 KeyboardEvent：后者的 isTrusted=false，事件委托与
+// 浏览器默认动作的时序都不完全等同真实键盘，曾在 CI 上间歇性丢掉 Expand。
+await key('ArrowRight', 'ArrowRight', 39);
+await sleep(200);
+let secondLevel = await cascaderStats();
+if (secondLevel.groups < 2) {
+    await sleep(200);
+    await key('ArrowRight', 'ArrowRight', 39);
+    await sleep(200);
+    secondLevel = await cascaderStats();
+}
+
+await key('ArrowRight', 'ArrowRight', 39);
+await sleep(200);
+let thirdLevel = await cascaderStats();
+if (thirdLevel.groups < 3) {
+    await sleep(200);
+    await key('ArrowRight', 'ArrowRight', 39);
+    await sleep(200);
+    thirdLevel = await cascaderStats();
+}
+
+await key('Enter', 'Enter', 13);
+await sleep(250);
+const cascaderAfter = await cascaderStats();
+const cascaderText = await evaluate(
+    `document.querySelector('.aeterni-cascader__trigger')?.textContent.replace(/\\s+/g, ' ').trim() ?? ''`);
 
 check('Cascader 每列是 listbox 的 group，ArrowRight 逐级展开',
-    !cascader.error && cascader.opened.listbox === 'listbox' && cascader.opened.nestedListboxes === 0
-        && cascader.secondLevel.groups === 2 && cascader.secondLevel.options === 5
-        && cascader.thirdLevel.groups === 3,
-    JSON.stringify({ panel: cascader.opened?.listbox, nested: cascader.opened?.nestedListboxes, second: cascader.secondLevel, third: cascader.thirdLevel }));
+    !secondLevel.error && secondLevel.listbox === 'listbox' && secondLevel.nestedListboxes === 0
+        && secondLevel.groups === 2 && secondLevel.options === 5 && thirdLevel.groups === 3,
+    JSON.stringify({ panel: secondLevel.listbox, nested: secondLevel.nestedListboxes, second: secondLevel, third: thirdLevel }));
 
 check('Cascader 确认叶子后关闭并展示整条路径',
-    !cascader.error && cascader.after.expanded === 'false'
-        && cascader.text === '浙江省 / 杭州市 / 西湖区',
-    JSON.stringify({ text: cascader.text, expanded: cascader.after?.expanded }));
+    !cascaderAfter.error && cascaderAfter.expanded === 'false'
+        && cascaderText === '浙江省 / 杭州市 / 西湖区',
+    JSON.stringify({ text: cascaderText, expanded: cascaderAfter.expanded }));
 
 // ---------------------------------------------------------------- Transfer 10.37.0
 // 双列表迁移：数据归宿主，目标列的内容与预览里的计数都来自 SelectedValues，因此"目标列出现

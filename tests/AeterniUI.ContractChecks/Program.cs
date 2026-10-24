@@ -1196,6 +1196,24 @@ async Task CheckListAsync()
         Require(Equals(host.Selected, "Alpha"), "End follows actual DOM order after keyed reordering.");
         host.Rows = ["Alpha"]; host.Update(); await Key("Home"); await Key("ArrowDown");
         Require(Equals(host.Selected, "Alpha"), "Wrapping a one-item list must not clear selection.");
+        Require(host.SingleChanges > 0 && host.MultipleChanges > 0,
+            "Typed List selection callbacks must report both single and multiple changes.");
+
+        // The object-typed bridge stays functional for hosts that have not migrated.
+        // A fresh host is used because a Blazor parameter that is no longer supplied
+        // keeps its previous value, so reusing the typed host would leave the typed
+        // callbacks bound and make this assertion prove nothing about the bridge.
+        ListContractHost legacy = null!;
+        var legacyRoot = await renderer.RenderComponentAsync<ListContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<ListContractHost>)(value => legacy = value),
+            ["LegacyApi"] = true
+        }));
+        var legacyIds = Regex.Matches(legacyRoot.ToHtmlString(), "id=\"([^\"]+)\"[^>]*role=\"option\"")
+            .Select(match => match.Groups[1].Value).ToArray();
+        await legacy.List.HandleKeyFromBrowserAsync("End", legacyIds);
+        Require(Equals(legacy.Selected, "Gamma"),
+            "Legacy SelectedValue/SelectedValueChanged must keep working while typed members are not bound.");
     });
 }
 
@@ -1323,6 +1341,23 @@ async Task CheckVirtualListAsync()
         await Call(disposed, "HandleKeyFromBrowserAsync", "Enter");
         Require(disposed.Selected is null && disposed.Picked.Count == 0,
             "VirtualList must ignore a queued browser callback that arrives after disposal.");
+
+        Require(single.SingleChanges > 0 && multiple.MultipleChanges > 0,
+            "Typed VirtualList selection callbacks must report single and multiple changes.");
+
+        // The object-typed bridge stays functional for hosts that have not migrated.
+        // A fresh host is used because a Blazor parameter that is no longer supplied
+        // keeps its previous value, so reusing the typed host would leave the typed
+        // callbacks bound and make this assertion prove nothing about the bridge.
+        VirtualListContractHost legacy = null!;
+        await renderer.RenderComponentAsync<VirtualListContractHost>(ParameterView.FromDictionary(new Dictionary<string, object?>
+        {
+            ["Ready"] = (Action<VirtualListContractHost>)(value => legacy = value),
+            ["LegacyApi"] = true
+        }));
+        await Call(legacy, "HandleKeyFromBrowserAsync", "ArrowDown");
+        Require(Equals(legacy.Selected, "Alpha"),
+            "Legacy SelectedValue/SelectedValueChanged must keep working while typed members are not bound.");
     });
 }
 

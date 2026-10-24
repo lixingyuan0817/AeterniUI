@@ -14,6 +14,10 @@
 //   4. 生成物里的默认值与源码一致（自动属性的初始值曾经整批丢失，页面上就会写错行为）。
 //   5. 示例页里的组件标签只能使用该组件真实的 `[Parameter]` 或 HTML 原生属性；Razor 的
 //      `@on*` / `@bind-*` 等指令语法与泛型类型参数（`TItem`）按语法放行。
+//   6. 多组件合页的 API 按组件类型分组，且分组正好覆盖页面的全部成员（模板与分组来自生成物
+//      的 `Sections`，`ShowcaseApiTable` 按组渲染，不再是一张混表）。
+//   7. 基类参数带支持矩阵：不渲染 DOM 或明确不消费该参数的组件会被标成「不支持 + 原因」，
+//      矩阵从组件源码结构推导（`scripts/lib/showcase-support.mjs`），不是每个页面无条件列出。
 //
 // 有意不做的事：不校验参数说明的文字，也不校验示例的视觉结果——那属于浏览器检查。
 import assert from 'node:assert/strict';
@@ -373,21 +377,117 @@ function filesUnder(root, suffix) {
     return files;
 }
 
-/// 生成物里某页的“成员名 → 默认值”。生成物是 C# 字面量，反斜杠转义的引号要还原后再比较，
-/// 否则 `"320px"` 会写成 `\"320px\"` 而以字符串形式对不上。
+/// 生成物里的字符串是 C# 字面量，反斜杠转义的引号要还原后再比较（`"320px"` 会写成 `\"320px\"`）。
+const unescapeCSharp = text => text.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+
+/// 生成物里某页的“成员名 → 默认值”。
 function generatedDefaultValues(generated) {
-    const unescape = text => text.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
     const byPage = new Map();
 
     for (const block of generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\n\s*\},/g)) {
         const members = new Map();
         for (const row of block[2].matchAll(/new\("((?:[^"\\]|\\.)*)", "(?:[^"\\]|\\.)*", "((?:[^"\\]|\\.)*)"/g)) {
-            members.set(unescape(row[1]), unescape(row[2]));
+            members.set(unescapeCSharp(row[1]), unescapeCSharp(row[2]));
         }
         byPage.set(block[1], members);
     }
 
     return byPage;
+}
+
+/// 生成物里 ByPage（不含后面的 Sections / Contracts）的“页 → 成员名数组”。
+function generatedByPageMemberNames(generated) {
+    const boundary = generated.indexOf('Sections { get; }');
+    const byPageSource = boundary < 0 ? generated : generated.slice(0, boundary);
+    const byPage = new Map();
+
+    for (const block of byPageSource.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\n\s*\},/g)) {
+        const members = [];
+        for (const row of block[2].matchAll(/new\("((?:[^"\\]|\\.)*)",/g)) {
+            members.push(unescapeCSharp(row[1]));
+        }
+        byPage.set(block[1], members);
+    }
+
+    return byPage;
+}
+
+/// 生成物里 `ShowcaseApiReference.Sections` 的结构：页 → [{ title, baseParameters, members }]。
+/// `baseParameters === null` 表示该组不是库组件（模型 / 服务 / 共享约定），不列公共参数；
+/// 空数组表示 8 个公共参数全部生效，非空数组只登记不生效的参数与原因。
+function generatedSections(generated) {
+    const sections = new Map();
+    let page = null;
+    let current = null;
+    let mode = null;
+
+    for (const line of generated.split(/\r?\n/)) {
+        const header = /^\s*\["([a-z0-9-]+)"\] = new ShowcaseApiSection\[\]$/.exec(line);
+        if (header) {
+            page = header[1];
+            sections.set(page, []);
+            current = null;
+            mode = null;
+            continue;
+        }
+
+        if (page === null) continue;
+        if (/^\s{12}\},$/.test(line)) {
+            page = null;
+            current = null;
+            mode = null;
+            continue;
+        }
+
+        const start = /^\s*new\("((?:[^"\\]|\\.)*)",$/.exec(line);
+        if (start) {
+            current = { title: unescapeCSharp(start[1]), baseParameters: null, members: [] };
+            sections.get(page).push(current);
+            mode = 'base';
+            continue;
+        }
+
+        if (!current) continue;
+        const trimmed = line.trim();
+        if (trimmed === 'null,') {
+            current.baseParameters = null;
+            mode = 'members';
+            continue;
+        }
+
+        if (trimmed.startsWith('Array.Empty<ShowcaseApiBaseParameter>()')) {
+            current.baseParameters = [];
+            mode = 'members';
+            continue;
+        }
+
+        if (trimmed === 'new ShowcaseApiBaseParameter[]') {
+            current.baseParameters = [];
+            mode = 'base';
+            continue;
+        }
+
+        if (trimmed === 'new[]') {
+            mode = 'members';
+            continue;
+        }
+
+        if (trimmed.startsWith('Array.Empty<string>()')) continue;
+
+        const baseParameter = /^\s*new\("((?:[^"\\]|\\.)*)", "((?:[^"\\]|\\.)*)"\),$/.exec(line);
+        if (mode === 'base' && baseParameter) {
+            current.baseParameters.push({
+                name: unescapeCSharp(baseParameter[1]),
+                note: unescapeCSharp(baseParameter[2])
+            });
+            continue;
+        }
+
+        const member = /^\s*"((?:[^"\\]|\\.)*)",$/.exec(line);
+        if (mode === 'members' && member) current.members.push(unescapeCSharp(member[1]));
+    }
+
+    return sections;
 }
 
 // 生成器的默认值来自属性体之后的 `= 初始化表达式;`。只抓 `{ get; set; }` 的话，自动属性的
@@ -410,6 +510,125 @@ test('生成的 API 表保留了参数默认值（自动属性的初始化值不
         assert.equal(actual, expected,
             `${page} 页的 ${member} 默认值应为 ${expected}，生成物里是 ${JSON.stringify(actual)}。` +
             '先确认 parseMembers 读到了属性体之后的 `= 初始化表达式;`，再运行 node scripts/generate-api-reference.mjs 重新生成。');
+    }
+});
+
+// 多组件合页（DatePicker / DateRangePicker、Tabs / Tab、List / ListItem、Dialog / Confirm /
+// Alert / Toast……）此前是一张混表：同名成员只能靠 `Type.Member` 前缀区分，读者无法判断某个
+// 参数属于哪个组件。生成物现在给出组件级分组；这里断言分组顺序，以及分组正好覆盖全部成员
+// （漏行或重复行会让 API 表静默丢内容）。
+test('多组件合页的 API 按组件分组，且分组正好覆盖生成物里的每个成员', () => {
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    const sections = generatedSections(generated);
+    const byPage = generatedByPageMemberNames(generated);
+    assert.ok(byPage.size > 50, `生成物里只解析到 ${byPage.size} 个页面，解析逻辑可能已失效`);
+
+    for (const [page, members] of byPage) {
+        const pageSections = sections.get(page);
+        assert.ok(pageSections?.length, `${page} 页没有生成 API 分组（需运行 node scripts/generate-api-reference.mjs）`);
+        const assigned = pageSections.flatMap(section => section.members);
+        assert.deepEqual([...assigned].sort(), [...members].sort(),
+            `${page} 页的 API 分组没有正好覆盖 ByPage 的全部成员`);
+    }
+
+    // 多组件页的组标题与顺序：有组件目录的按目录顺序，顺序有讲究的登记在
+    // scripts/api-groups.json（反馈页没有组件目录，也在那里登记）。
+    const componentGroups = {
+        'date-picker': ['DatePicker', 'DateRangePicker', '共享约定'],
+        'list': ['List', 'ListItem'],
+        'popup': ['PopupHost', 'Popover'],
+        'radio': ['Radio', 'RadioGroup'],
+        'tabs': ['Tabs', 'Tab'],
+        'theme': ['ThemeProvider', 'ThemeSwitch', 'ThemeBrandSwitch', 'ThemeService'],
+        'toolbar': ['Toolbar', 'ToolbarGroup'],
+        'feedback': ['Dialog', 'Confirm', 'Alert', 'Toast']
+    };
+
+    for (const [page, titles] of Object.entries(componentGroups)) {
+        assert.deepEqual((sections.get(page) ?? []).map(section => section.title), titles,
+            `${page} 页的 API 分组标题 / 顺序不对`);
+    }
+
+    for (const [page, pageSections] of sections) {
+        if (componentGroups[page]) continue;
+        assert.equal(pageSections.length, 1, `${page} 页只有一个组件，不应拆成多个分组`);
+    }
+});
+
+// 基类参数（Id / Disabled / Visible / Class / Style / Element / AdditionalAttributes /
+// ElementChanged）不是每个组件都真正消费：ThemeProvider / FormDialog 不渲染 DOM，Badge 不读
+// Disabled，Menu 把根元素绑定成 RenderedRootElement。矩阵从源码结构推导，生成物只登记
+// 「不生效 + 原因」；下面既校验结构，也锁定几条能从源码直接核对的代表性事实。
+test('基类参数支持矩阵：只列真正生效的公共参数，不生效的带原因', () => {
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    const sections = generatedSections(generated);
+    const componentTypes = new Set(filesUnder(join(LIBRARY, 'Components'), '.razor.cs')
+        .map(file => basename(file, '.razor.cs')));
+    const allBaseParameters = [...BASE_PARAMETERS];
+    const domlessComponents = new Set(['ThemeProvider', 'FormDialog']);
+    const sectionByKey = new Map();
+
+    let componentSections = 0;
+    for (const [page, pageSections] of sections) {
+        for (const section of pageSections) {
+            sectionByKey.set(`${page}:${section.title}`, section);
+
+            if (section.baseParameters === null) {
+                assert.ok(!componentTypes.has(section.title),
+                    `${page}.${section.title} 是库组件，却没有基类参数支持矩阵`);
+                continue;
+            }
+
+            componentSections += 1;
+            assert.ok(componentTypes.has(section.title),
+                `${page}.${section.title} 不是库组件，却生成了基类参数支持矩阵`);
+
+            const names = section.baseParameters.map(parameter => parameter.name);
+            assert.equal(new Set(names).size, names.length, `${page}.${section.title} 的基类参数重复`);
+            for (const parameter of section.baseParameters) {
+                assert.ok(BASE_PARAMETERS.has(parameter.name),
+                    `${page}.${section.title} 登记了不存在的基类参数 ${parameter.name}`);
+                assert.ok(parameter.note.trim().length > 0, `${page}.${section.title}.${parameter.name} 缺少不生效的原因`);
+            }
+
+            if (domlessComponents.has(section.title)) {
+                assert.deepEqual([...names].sort(), [...allBaseParameters].sort(),
+                    `${section.title} 不渲染 DOM，8 个基类参数都应标为不生效`);
+                assert.ok(section.baseParameters.every(parameter => parameter.note.includes('不渲染 DOM')),
+                    `${section.title} 的不生效原因应说明不渲染 DOM`);
+            }
+        }
+    }
+
+    assert.ok(componentSections > 50, `只解析到 ${componentSections} 个组件分组，解析逻辑可能已失效`);
+
+    // 源码结构 → 矩阵的抽查。Badge / PopupHost 不读 Disabled；Tabs 的 Disabled 是每个 Tab
+    // 自己的参数；Menu 用 RenderedRootElement 绑定根元素，所以 Element / ElementChanged 生效。
+    const facts = [
+        ['badge', 'Badge', ['Disabled']],
+        ['button', 'Button', []],
+        ['form-dialog', 'FormDialog', allBaseParameters],
+        ['menu', 'Menu', []],
+        ['popup', 'PopupHost', ['Disabled']],
+        ['tabs', 'Tab', []],
+        ['tabs', 'Tabs', ['Disabled']],
+        ['theme', 'ThemeProvider', allBaseParameters],
+        ['theme', 'ThemeSwitch', []],
+        ['theme', 'ThemeBrandSwitch', []]
+    ];
+
+    for (const [page, title, expected] of facts) {
+        const section = sectionByKey.get(`${page}:${title}`);
+        assert.ok(section, `${page} 页缺少 ${title} 分组`);
+        assert.deepEqual(section.baseParameters?.map(parameter => parameter.name).sort() ?? null,
+            [...expected].sort(), `${page}.${title} 的基类参数支持矩阵与源码结构不符`);
+    }
+
+    // 不是库组件的分组（模型、服务、共享约定）不列公共参数：反馈页以前无条件列出 8 个
+    // 基类参数，但它记录的是 IDialogService 与各选项类型，参数根本无处生效。
+    for (const [page, title] of [['feedback', 'Dialog'], ['date-picker', '共享约定'], ['theme', 'ThemeService']]) {
+        assert.equal(sectionByKey.get(`${page}:${title}`)?.baseParameters, null,
+            `${page}.${title} 不是库组件，不应列公共参数`);
     }
 });
 

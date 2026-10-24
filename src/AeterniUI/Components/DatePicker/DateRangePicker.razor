@@ -2,7 +2,7 @@
 
 <div @ref="RootElement" @attributes="BuildAttributes()">
     <PopupHost>
-        <button id="@TriggerId" type="button" class="aeterni-date-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)" aria-label="@EffectiveAriaLabel" aria-labelledby="@FormField?.LabelId" aria-describedby="@FormField?.DescribedBy" aria-invalid="@(IsInvalid ? "true" : null)" aria-required="@(IsRequired ? "true" : null)" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")" disabled="@IsDisabled" @onclick="ToggleAsync">
+        <button id="@TriggerId" type="button" class="aeterni-date-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null) @(IsReadOnly ? "is-readonly" : null)" aria-label="@EffectiveAriaLabel" aria-labelledby="@FormField?.LabelId" aria-describedby="@EffectiveDescribedBy" aria-invalid="@(IsInvalid ? "true" : null)" aria-required="@(IsRequired ? "true" : null)" aria-disabled="@(IsReadOnly ? "true" : null)" aria-haspopup="dialog" aria-expanded="@(_open ? "true" : "false")" disabled="@IsDisabled" @onclick="ToggleAsync">
             <span class="@(StartDate.HasValue ? string.Empty : "is-placeholder")">@(StartDate?.ToString(Format, Culture) ?? EffectivePlaceholder)</span>
             <span aria-hidden="true"> – </span>
             <span class="@(EndDate.HasValue ? string.Empty : "is-placeholder")">@(EndDate?.ToString(Format, Culture) ?? EffectivePlaceholder)</span>
@@ -16,7 +16,7 @@
                         <div class="aeterni-date-range-picker__presets" role="group" aria-label="@EffectivePresetsAriaLabel">
                             @foreach (var preset in PresetItems)
                             {
-                                <button type="button" class="aeterni-date-range-picker__preset @(IsPresetSelected(preset) ? "is-selected" : null)" aria-pressed="@(IsPresetSelected(preset) ? "true" : "false")" disabled="@IsDisabled" @onclick="@(() => SelectPresetAsync(preset))">@preset.Label</button>
+                                <button type="button" class="aeterni-date-range-picker__preset @(IsPresetSelected(preset) ? "is-selected" : null)" aria-pressed="@(IsPresetSelected(preset) ? "true" : "false")" disabled="@(IsDisabled || IsReadOnly)" @onclick="@(() => SelectPresetAsync(preset))">@preset.Label</button>
                             }
                         </div>
                     }

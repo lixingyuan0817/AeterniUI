@@ -35,7 +35,57 @@
     --aeterni-cascader-icon-size: var(--aeterni-icon-size-md);
 }
 
-/* Trigger ------------------------------------------------------------------ */
+/* Field box and trigger ----------------------------------------------------- */
+
+/* 外壳持有可见边框，触发器本体无边框，清除动作才能并入同一个控件盒
+   （与 ComboBox / Autocomplete 同一结构）。 */
+.aeterni-cascader__field {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+}
+
+.aeterni-cascader__trigger-wrap {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-cascader-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+/* Invalid / read-only / disabled keep their own border colour, so pointer
+   feedback is scoped out rather than overwriting those states (§4.4). */
+.aeterni-cascader:not(.is-invalid):not(.is-disabled):not(.is-readonly) .aeterni-cascader__trigger-wrap:hover:not(:focus-within) {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.aeterni-cascader__trigger-wrap:focus-within {
+    border-color: var(--aeterni-control-border-focus);
+}
+
+.aeterni-cascader.is-invalid .aeterni-cascader__trigger-wrap {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-cascader.is-invalid .aeterni-cascader__trigger:focus-visible {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-cascader.is-open .aeterni-cascader__trigger-wrap {
+    border-color: var(--aeterni-control-border-focus);
+}
+
+.aeterni-cascader.is-disabled .aeterni-cascader__trigger-wrap {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-cascader.is-readonly .aeterni-cascader__trigger-wrap {
+    background: var(--aeterni-control-background-readonly);
+}
 
 .aeterni-cascader__trigger {
     display: flex;
@@ -43,13 +93,15 @@
     justify-content: space-between;
     gap: var(--aeterni-spacing-2);
     box-sizing: border-box;
-    width: 100%;
+    /* Flex child: the wrapper owns the outer width; the trigger grows into it. */
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
     min-height: var(--aeterni-cascader-height);
     padding: 0 var(--aeterni-cascader-padding-x);
-    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
-    border-radius: var(--aeterni-cascader-radius);
-    background: var(--aeterni-control-background);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--aeterni-control-foreground);
     font: inherit;
     font-size: var(--aeterni-cascader-font-size);
@@ -59,37 +111,24 @@
     transition: var(--aeterni-transition-control);
 }
 
-.aeterni-cascader__trigger:hover:not(:disabled) {
-    border-color: var(--aeterni-control-border-hover);
-}
-
+/* The trigger owns the focus ring (it is the combobox role element), while the
+   wrapper only answers with its border colour. */
 .aeterni-cascader__trigger:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
 }
 
-.aeterni-cascader.is-invalid .aeterni-cascader__trigger {
-    border-color: var(--aeterni-control-border-invalid);
-}
-
-/* Hover must not paint over the danger border (§4.4 rule 2). */
-.aeterni-cascader.is-invalid .aeterni-cascader__trigger:hover:not(:disabled) {
-    border-color: var(--aeterni-control-border-invalid);
-}
-
-.aeterni-cascader.is-invalid .aeterni-cascader__trigger:focus-visible {
-    outline-color: var(--aeterni-focus-color-invalid);
-}
-
-.aeterni-cascader.is-open .aeterni-cascader__trigger {
-    border-color: var(--aeterni-control-border-focus);
-}
-
 .aeterni-cascader__trigger:disabled {
     cursor: not-allowed;
-    border-color: var(--aeterni-control-border-disabled);
-    background: var(--aeterni-control-background-disabled);
     color: var(--aeterni-control-foreground-disabled);
+}
+
+/* 只读保留触发器可聚焦与路径文本可复制，但不再给出点击提示。 */
+.aeterni-cascader.is-readonly .aeterni-cascader__trigger {
+    cursor: default;
+    color: var(--aeterni-control-foreground-readonly);
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .aeterni-cascader__trigger:disabled .aeterni-cascader__value,
@@ -125,6 +164,35 @@
 
 .aeterni-cascader.is-open .aeterni-cascader__trigger ::deep .aeterni-cascader__chevron {
     transform: rotate(180deg);
+}
+
+/* Clear action -------------------------------------------------------------- */
+
+/* 清除动作并入同一个控件盒：连体按钮组被压平，不额外画第二条边框
+   （与 ComboBox / Autocomplete 一致）。 */
+.aeterni-cascader__actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.aeterni-cascader__actions ::deep .aeterni-button-group {
+    gap: 0;
+    border: 0;
+}
+
+.aeterni-cascader__actions ::deep .aeterni-icon-button,
+.aeterni-cascader__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button,
+.aeterni-cascader__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:first-child,
+.aeterni-cascader__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:last-child {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.aeterni-cascader__actions ::deep .aeterni-icon-button:hover:not(:disabled),
+.aeterni-cascader__actions ::deep .aeterni-icon-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: none;
 }
 
 /* Panel -------------------------------------------------------------------- */
@@ -264,6 +332,21 @@
     min-height: var(--aeterni-cascader-height);
     padding: var(--aeterni-spacing-2);
     color: var(--aeterni-control-foreground-placeholder);
+    font-size: var(--aeterni-cascader-font-size);
+}
+
+/* 忙碌面板：共享 Spinner 自带 status 角色，根元素同时输出 aria-busy；
+   Loading 只替换面板内容，打开/关闭不受影响。 */
+.aeterni-cascader__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-2);
+    /* 与一列同宽：Loading 时不渲染列，面板不能因此塌成只剩转圈的宽度。 */
+    flex: 0 0 var(--aeterni-cascader-column-width);
+    min-height: var(--aeterni-cascader-height);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-cascader-font-size);
 }
 

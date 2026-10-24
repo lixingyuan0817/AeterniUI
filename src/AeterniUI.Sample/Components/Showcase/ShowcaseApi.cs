@@ -5,9 +5,12 @@ namespace AeterniUI.Sample.Components.Showcase;
 /// </summary>
 /// <remarks>
 /// The base parameters (<c>Id</c>, <c>Disabled</c>, …) are documented once in
-/// <c>delivered-features</c> and must appear on every page, but they belong to no component
-/// source file, so the generator cannot produce them. They are merged in at render time
-/// instead of being repeated for all 53 pages in the generated artifact.
+/// <c>delivered-features</c> and belong to no component source file, so the generator cannot
+/// read their descriptions from source. The rows themselves live in
+/// <see cref="CommonParameters"/>; <em>which</em> of them actually reach a component's root
+/// element is generated per component by <c>scripts/generate-api-reference.mjs</c> (from
+/// <c>scripts/lib/showcase-support.mjs</c>) because it depends on whether the component renders
+/// a DOM root, binds <c>@ref</c>, reads <c>Disabled</c>, and so on.
 /// </remarks>
 public static class ShowcaseApi
 {
@@ -23,13 +26,34 @@ public static class ShowcaseApi
         new("ElementChanged", "EventCallback<ElementReference>", "根元素引用发生变化时触发。")
     ];
 
-    public static IReadOnlyList<ShowcaseApiMember> BaseMembers { get; } = CommonParameters
-        .Select(parameter => new ShowcaseApiMember(
-            parameter.Name,
-            parameter.Type,
-            parameter.DefaultValue ?? string.Empty,
-            parameter.Description,
-            "属性",
-            string.Empty))
-        .ToArray();
+    /// <summary>Kind grading for a base parameter row (same words as the generated rows).</summary>
+    public static string KindOf(ShowcaseParameter parameter) =>
+        parameter.Type.Contains("EventCallback", StringComparison.Ordinal) ? "事件回调" : "属性";
 }
+
+/// <summary>
+/// One secondary group of a page's API table. Multi-component pages (DatePicker /
+/// DateRangePicker, Tabs / Tab, PopupHost / Popover, Dialog / Confirm / Alert / Toast, …)
+/// render one group per component type instead of a single mixed table.
+/// </summary>
+/// <param name="Title">Component (or owning type) the group documents.</param>
+/// <param name="UnsupportedBaseParameters">
+/// Base parameters that do not take effect for this component, with the reason. Empty means
+/// all <c>AeterniComponent</c> parameters reach the root element; <c>null</c> means the
+/// group is not a library component (models, services, shared conventions) and must not list
+/// base parameters at all.
+/// </param>
+/// <param name="Members">Member names rendered in this group, in display order.</param>
+public sealed record ShowcaseApiSection(
+    string Title,
+    IReadOnlyList<ShowcaseApiBaseParameter>? UnsupportedBaseParameters,
+    IReadOnlyList<string> Members);
+
+/// <summary>
+/// A base parameter that does not apply to a component, plus the structural reason
+/// (no DOM root, no <c>@ref</c> binding, parameter never read, …).
+/// </summary>
+public sealed record ShowcaseApiBaseParameter(string Name, string Note);
+
+/// <summary>A rendered API row plus whether the public parameter actually takes effect.</summary>
+public sealed record ShowcaseApiRow(ShowcaseApiMember Member, bool Supported, string Note);

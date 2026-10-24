@@ -2,7 +2,11 @@
 
 @* 公共 API 表：行来自生成物（scripts/generate-api-reference.mjs），说明与额外行来自
    scripts/api-*.json。页面不写任何一行——手写的表会漂移，审查实测过 8 页对不上。
-   分组按阅读顺序：属性、事件回调、接口 / 服务；空组不输出，避免出现只有标题的空表。 *@
+
+   分组分两层：生成物给的是「组件级」分组（多组件合页按组件类型拆开，见
+   ShowcaseApiReference.Sections），这里再按阅读顺序拆成 参数 / 事件回调 / 接口 / 服务。
+   基类参数只出现在真的渲染根元素的组件组里：不生效的条目带「不支持」标记与结构化原因，
+   模型 / 服务 / 共享约定组不列公共参数，避免无条件把 8 个参数摊到每一页。 *@
 @if (Groups.Count > 0)
 {
     <div class="component-preview__api-grid">
@@ -21,19 +25,23 @@
                         <div class="component-preview__api-row" role="row">
                             @* data-label 只在 ≤900px 的单列布局里由 CSS 画成微型列标签；桌面表头
                                仍由上面的 columnheader 行承担，不重复读一遍标签。 *@
-                            <code role="cell" data-label="名称">@row.Name</code>
+                            <code role="cell" data-label="名称">@NameFragment(row.Member.Name)</code>
                             <span role="cell" data-label="类型 / 默认值">
-                                <code>@row.Type</code>
-                                @if (!string.IsNullOrWhiteSpace(row.DefaultValue))
+                                <code>@row.Member.Type</code>
+                                @if (!row.Supported)
                                 {
-                                    <small>默认 @row.DefaultValue</small>
+                                    <small>不支持</small>
                                 }
-                                @if (!string.IsNullOrWhiteSpace(row.Since))
+                                else if (!string.IsNullOrWhiteSpace(row.Member.DefaultValue))
                                 {
-                                    <small>自 @row.Since</small>
+                                    <small>默认 @row.Member.DefaultValue</small>
+                                }
+                                @if (row.Supported && !string.IsNullOrWhiteSpace(row.Member.Since))
+                                {
+                                    <small>自 @row.Member.Since</small>
                                 }
                             </span>
-                            <span role="cell" data-label="说明">@row.Description</span>
+                            <span role="cell" data-label="说明">@DescriptionOf(row)</span>
                         </div>
                     }
                 </div>
@@ -43,6 +51,28 @@
 }
 
 @code {
+    /// <summary>
+    /// API 名称按类型前缀拆行：`ToastOptions.ShowCloseButton` 这类长名在点号后允许换行，
+    /// 既不会逐字符拆词，也不会溢出到类型列。`&lt;wbr&gt;` 不产生可见字符。
+    /// </summary>
+    private static RenderFragment NameFragment(string name)
+    {
+        var parts = name.Split('.');
+        return builder =>
+        {
+            for (var index = 0; index < parts.Length; index++)
+            {
+                if (index > 0)
+                {
+                    builder.AddContent(0, ".");
+                    builder.AddMarkupContent(0, "<wbr />");
+                }
+
+                builder.AddContent(0, parts[index]);
+            }
+        };
+    }
+
     /// <summary>Page id; the same key the sidebar and the generated table are keyed by.</summary>
     [Parameter, EditorRequired]
     public string AnchorId { get; set; } = string.Empty;
@@ -53,21 +83,100 @@
     private IReadOnlyList<ShowcaseApiMember> Contracts =>
         ShowcaseApiReference.Contracts.TryGetValue(AnchorId, out var rows) ? rows : [];
 
-    private IReadOnlyList<(string Label, IReadOnlyList<ShowcaseApiMember> Rows)> Groups
+    /// <summary>页面 id → 二级分组；生成物里还没有该页时按旧结构兜底成一组，不至于空白。</summary>
+    private IReadOnlyList<ShowcaseApiSection> Sections
     {
         get
         {
-            if (Members.Count == 0 && Contracts.Count == 0)
+            if (ShowcaseApiReference.Sections.TryGetValue(AnchorId, out var sections))
+            {
+                return sections;
+            }
+
+            return Members.Count == 0
+                ? Array.Empty<ShowcaseApiSection>()
+                : new[] { new ShowcaseApiSection(string.Empty, null, Members.Select(member => member.Name).ToArray()) };
+        }
+    }
+
+    private IReadOnlyList<(string Label, IReadOnlyList<ShowcaseApiRow> Rows)> Groups
+    {
+        get
+        {
+            if (Sections.Count == 0 && Contracts.Count == 0)
             {
                 return [];
             }
 
-            return new (string Label, IReadOnlyList<ShowcaseApiMember> Rows)[]
+            var membersByName = Members.ToDictionary(member => member.Name, StringComparer.Ordinal);
+            var groups = new System.Collections.Generic.List<(string Label, IReadOnlyList<ShowcaseApiRow> Rows)>();
+
+            foreach (var section in Sections)
             {
-                ("参数", [.. ShowcaseApi.BaseMembers, .. Members.Where(row => row.Kind == "属性")]),
-                ("事件回调", [.. Members.Where(row => row.Kind == "事件回调")]),
-                ("接口 / 服务", Contracts)
-            }.Where(group => group.Rows.Count > 0).ToArray();
+                var rows = new System.Collections.Generic.List<ShowcaseApiRow>(BaseRows(section));
+                foreach (var name in section.Members)
+                {
+                    if (membersByName.TryGetValue(name, out var member))
+                    {
+                        rows.Add(new ShowcaseApiRow(member, true, string.Empty));
+                    }
+                }
+
+                // 多组件合页把组件名写进组标题；单组件页保持原来「参数 / 事件回调」的读法。
+                var prefix = Sections.Count > 1 ? $"{section.Title} · " : string.Empty;
+                foreach (var kind in new[] { "属性", "事件回调" })
+                {
+                    var kindRows = rows.Where(row => row.Member.Kind == kind).ToArray();
+                    if (kindRows.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    groups.Add((prefix + (kind == "属性" ? "参数" : "事件回调"), kindRows));
+                }
+            }
+
+            if (Contracts.Count > 0)
+            {
+                groups.Add(("接口 / 服务", Contracts.Select(member => new ShowcaseApiRow(member, true, string.Empty)).ToArray()));
+            }
+
+            return groups;
         }
     }
+
+    /// <summary>
+    /// 基类参数行。生成物只登记不生效的参数；没登记表示落到根元素上。<c>null</c> 表示这一组
+    /// 不是库组件（模型 / 服务 / 共享约定），不列公共参数。
+    /// </summary>
+    private static IReadOnlyList<ShowcaseApiRow> BaseRows(ShowcaseApiSection section)
+    {
+        if (section.UnsupportedBaseParameters is null)
+        {
+            return [];
+        }
+
+        var unsupported = section.UnsupportedBaseParameters
+            .ToDictionary(parameter => parameter.Name, parameter => parameter.Note, StringComparer.Ordinal);
+        var rows = new System.Collections.Generic.List<ShowcaseApiRow>();
+        foreach (var parameter in ShowcaseApi.CommonParameters)
+        {
+            var supported = !unsupported.TryGetValue(parameter.Name, out var note);
+            var member = new ShowcaseApiMember(
+                parameter.Name,
+                parameter.Type,
+                parameter.DefaultValue ?? string.Empty,
+                parameter.Description,
+                ShowcaseApi.KindOf(parameter),
+                string.Empty);
+            rows.Add(new ShowcaseApiRow(member, supported, supported ? string.Empty : note ?? "该组件不支持此参数。"));
+        }
+
+        return rows;
+    }
+
+    private static string DescriptionOf(ShowcaseApiRow row) =>
+        row.Supported || string.IsNullOrWhiteSpace(row.Note)
+            ? row.Member.Description
+            : $"{row.Member.Description}（{row.Note}）";
 }

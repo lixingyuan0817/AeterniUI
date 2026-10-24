@@ -43,6 +43,14 @@
                         StartIcon="@CloseIcon" />
             </div>
 
+            @* 命中数：结果区自己的读数。查询为空（引导态）时不显示，避免"0 条结果"被读成搜索失败。 *@
+            @if (!string.IsNullOrWhiteSpace(Model.Query))
+            {
+                <p class="showcase-search-modal__summary" role="status">
+                    @Model.MatchCount 条结果 · @Model.MatchGroups.Count 个页面
+                </p>
+            }
+
             @* 结果容器始终存在（面板打开期间）：`aria-controls` 指向的 id 不能随结果出现或消失。
                查询为空时给引导而不是"没有匹配"——初始态不是空结果，读者还没开始搜。 *@
             <div id="@ShowcaseSearchModel.ListboxId" class="showcase-search-modal__list" role="listbox" aria-label="搜索结果">
@@ -56,16 +64,35 @@
                 }
                 else
                 {
-                    @for (var index = 0; index < Model.Matches.Count; index++)
+                    var optionIndex = 0;
+
+                    @* 同页结果聚成一组并插一行页面标题：泛化词（“组件”“时间”）的命中原本会
+                       在多个页面间交错，读者分不清哪几条属于同一页。组内条目仍是 role=option，
+                       页面标题行只做分组标签（role=group + aria-labelledby），不进入键盘序列。 *@
+                    @foreach (var group in Model.MatchGroups)
                     {
-                        var match = Model.Matches[index];
-                        <div id="@ShowcaseSearchModel.OptionId(index)"
-                             role="option"
-                             aria-selected="@(index == Model.ActiveIndex ? "true" : "false")"
-                             class="@OptionClass(index)"
-                             @onclick="() => Model.Pick(match)">
-                            <span class="showcase-search-modal__option-title">@match.SectionTitle</span>
-                            <span class="showcase-search-modal__option-meta">@ShowcaseSearchModel.MetaOf(match)</span>
+                        var groupId = ShowcaseSearchModel.GroupId(group.PageId);
+                        <div id="@groupId"
+                             class="showcase-search-modal__group"
+                             role="group"
+                             aria-labelledby="@($"{groupId}-title")">
+                            <p class="showcase-search-modal__group-title" id="@($"{groupId}-title")">
+                                <span class="showcase-search-modal__group-page">@Highlight(group.PageTitle, Model.Query)</span>
+                                <span class="showcase-search-modal__group-category">@group.Category</span>
+                                <span class="showcase-search-modal__group-count">@group.Entries.Count 条</span>
+                            </p>
+                            @foreach (var match in group.Entries)
+                            {
+                                var index = optionIndex++;
+                                <div id="@ShowcaseSearchModel.OptionId(index)"
+                                     role="option"
+                                     aria-selected="@(index == Model.ActiveIndex ? "true" : "false")"
+                                     class="@OptionClass(index)"
+                                     @onclick="() => Model.Pick(match)">
+                                    <span class="showcase-search-modal__option-title">@Highlight(match.SectionTitle, Model.Query)</span>
+                                    <span class="showcase-search-modal__option-meta">@Highlight(ShowcaseSearchModel.MetaOf(match), Model.Query)</span>
+                                </div>
+                            }
                         </div>
                     }
                 }
@@ -78,4 +105,48 @@
 
 @code {
     private static readonly RenderFragment CloseIcon = @<Icon Definition="@FontAwesomeIcons.Solid.Xmark" />;
+
+    /// <summary>
+    /// 命中词高亮。返回 <see cref="RenderFragment" /> 而不是拼接 HTML 字符串：文本经
+    /// <c>AddContent</c> 编码，用户输入只会被当作要匹配的字面量，永远不会进入标记。
+    /// </summary>
+    private static RenderFragment Highlight(string? text, string? query)
+    {
+        var value = text ?? string.Empty;
+        var needle = query?.Trim() ?? string.Empty;
+
+        return builder =>
+        {
+            if (needle.Length == 0 || value.Length == 0)
+            {
+                builder.AddContent(0, value);
+                return;
+            }
+
+            var position = 0;
+            var sequence = 0;
+
+            while (position < value.Length)
+            {
+                var index = value.IndexOf(needle, position, StringComparison.OrdinalIgnoreCase);
+                if (index < 0)
+                {
+                    builder.AddContent(sequence++, value[position..]);
+                    break;
+                }
+
+                if (index > position)
+                {
+                    builder.AddContent(sequence++, value[position..index]);
+                }
+
+                builder.OpenElement(sequence++, "mark");
+                builder.AddAttribute(sequence++, "class", "showcase-search-modal__mark");
+                builder.AddContent(sequence++, value.Substring(index, needle.Length));
+                builder.CloseElement();
+
+                position = index + needle.Length;
+            }
+        };
+    }
 }

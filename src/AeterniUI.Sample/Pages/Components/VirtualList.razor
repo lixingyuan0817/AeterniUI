@@ -18,7 +18,7 @@
     <Demos>
         <DemoCard Id="virtual-list-basic"
                   Title="大数据量与单选"
-                  Description="250 条记录只渲染视口附近的行；SelectionMode 打开后与 List 一样输出 listbox 语义，SelectedValue 拿到的是项目本身。右侧控件改的是视口高度、固定行高与选择模式。"
+                  Description="250 条记录只渲染视口附近的行；SelectionMode 打开后与 List 一样输出 listbox 语义，SelectedItem 拿到的是项目本身而不是 object。右侧控件改的是视口高度、固定行高与选择模式。"
                   Code="@BasicCode">
             <Preview>
                 <div class="preview-list-wrap">
@@ -27,7 +27,7 @@
                                  ItemSize="@_itemSize"
                                  OverscanCount="6"
                                  SelectionMode="@_selectionMode"
-                                 @bind-SelectedValue="_selected"
+                                 @bind-SelectedItem="_selected"
                                  ItemKeySelector="row => row.Id"
                                  AriaLabel="虚拟项目列表">
                         <ItemTemplate Context="row">
@@ -35,7 +35,7 @@
                             <span class="preview-value">@row.Label</span>
                         </ItemTemplate>
                     </VirtualList>
-                    <span class="preview-feedback" role="status">模式 @_selectionMode：当前值 @(_selected?.ToString() ?? "未选择")，共 @_rows.Count 条</span>
+                    <span class="preview-feedback" role="status">模式 @_selectionMode：当前值 @(_selected is null ? "未选择" : _selected.Label)，共 @_rows.Count 条</span>
                 </div>
             </Preview>
             <Controls>
@@ -83,7 +83,7 @@
 
         <DemoCard Id="virtual-list-options"
                   Title="多选、禁用行与空集合"
-                  Description="多选沿用 SelectedValues，DisabledSelector 按项目禁用；集合为空时由 EmptyContent 接管视口，不再渲染行。"
+                  Description="多选沿用 SelectedItems，DisabledSelector 按项目禁用；集合为空时由 EmptyContent 接管视口，不再渲染行。"
                   Code="@OptionsCode">
             <Preview>
                 <div class="preview-list-wrap">
@@ -92,8 +92,7 @@
                                  ItemSize="32"
                                  SelectionMode="SelectionMode.Multiple"
                                  DisabledSelector="IsRowDisabled"
-                                 SelectedValues="@_multiSelected"
-                                 SelectedValuesChanged="HandleMultiChanged"
+                                 @bind-SelectedItems="_multiSelected"
                                  ItemKeySelector="row => row.Id"
                                  AriaLabel="虚拟项目多选">
                         <ItemTemplate Context="row">
@@ -116,7 +115,7 @@
     </Demos>
     <Notes>
         <span>视口只渲染可见区间加上 <code>OverscanCount</code> 条预渲染行；<code>Height</code> 是滚动视口高度，<code>ItemSize</code> 是固定行高。</span>
-        <span>选择语义与 <code>List</code> 一致：<code>Single</code> 用 <code>SelectedValue</code>（配合 <code>AllowClear</code> 可再次点击取消），<code>Multiple</code> 用 <code>SelectedValues</code>；<code>ItemKeySelector</code> 的稳定 key 决定行在追加数据后的身份。</span>
+        <span>选择语义与 <code>List</code> 一致：<code>Single</code> 用 <code>SelectedItem</code>（配合 <code>AllowClear</code> 可再次点击取消），<code>Multiple</code> 用 <code>SelectedItems</code>；<code>ItemKeySelector</code> 的稳定 key 决定行在追加数据后的身份。旧的 <code>SelectedValue</code>/<code>SelectedValues</code> 已标 <code>Obsolete</code>，只在迁移期保留。</span>
         <span>触底加载由宿主驱动：组件只在距底部 <code>LoadMoreThreshold</code> 像素时触发一次 <code>OnLoadMore</code>，请求与分页游标由宿主写回 <code>HasMoreItems</code> 与 <code>LoadingMore</code>。</span>
     </Notes>
 </ComponentPage>
@@ -136,7 +135,7 @@
                      ItemSize="32"
                      ItemKeySelector="row => row.Id"
                      SelectionMode="SelectionMode.Single"
-                     @bind-SelectedValue="Selected">
+                     @bind-SelectedItem="Selected">
             <ItemTemplate Context="row">
                 <span>@row.Id</span>
                 <span>@row.Label</span>
@@ -160,7 +159,7 @@
                      ItemSize="32"
                      SelectionMode="SelectionMode.Multiple"
                      DisabledSelector="IsRowDisabled"
-                     @bind-SelectedValues="Selected" />
+                     @bind-SelectedItems="Selected" />
 
         <VirtualList Items="EmptyRows" Height="120px" ItemSize="32">
             <EmptyContent>没有可显示的记录</EmptyContent>
@@ -177,8 +176,8 @@
 
     private readonly IReadOnlyList<VirtualRow> _emptyRows = [];
 
-    private object? _selected;
-    private IReadOnlyList<object?> _multiSelected = [];
+    private VirtualRow? _selected;
+    private IReadOnlyList<VirtualRow> _multiSelected = [];
     private bool _hasMoreItems = true;
     private bool _loadingMore;
     private string _loadMoreNote = "滚到列表底部会追加 250 条。";
@@ -211,7 +210,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleMultiChanged(IReadOnlyList<object?> values)
+    private Task HandleMultiChanged(IReadOnlyList<VirtualRow> values)
     {
         _multiSelected = values;
         return Task.CompletedTask;

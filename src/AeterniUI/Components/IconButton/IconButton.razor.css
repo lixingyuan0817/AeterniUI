@@ -215,6 +215,30 @@
     --aeterni-button-soft-active: var(--aeterni-button-intent-danger-soft-active);
 }
 
+.aeterni-icon-button--success {
+    --aeterni-button-color: var(--aeterni-button-intent-success-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-success-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-success-color);
+    --aeterni-button-background: var(--aeterni-button-intent-success-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-success-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-success-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-success-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-success-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-success-soft-active);
+}
+
+.aeterni-icon-button--info {
+    --aeterni-button-color: var(--aeterni-button-intent-info-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-info-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-info-color);
+    --aeterni-button-background: var(--aeterni-button-intent-info-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-info-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-info-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-info-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-info-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-info-soft-active);
+}
+
 /* Tone presets ---------------------------------------------------------------
    A tone is the chrome recipe, not an emphasis level: it owns the surface,
    border and ink that Variant/Intent would otherwise paint, so it is declared

@@ -3,13 +3,14 @@
 <div @ref="RootElement" @attributes="BuildAttributes()">
     <PopupHost>
         <button type="button"
-                class="aeterni-date-time-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null)"
+                class="aeterni-date-time-picker__trigger @SizeClass @(IsInvalid ? "is-invalid" : null) @(IsReadOnly ? "is-readonly" : null)"
                 id="@TriggerId"
                 aria-label="@EffectiveAriaLabel"
                 aria-labelledby="@FormField?.LabelId"
-                aria-describedby="@FormField?.DescribedBy"
+                aria-describedby="@EffectiveDescribedBy"
                 aria-invalid="@(IsInvalid ? "true" : null)"
                 aria-required="@(IsRequired ? "true" : null)"
+                aria-disabled="@(IsReadOnly ? "true" : null)"
                 aria-haspopup="dialog"
                 aria-expanded="@(_open ? "true" : "false")"
                 disabled="@IsDisabled"

@@ -32,7 +32,58 @@
     --aeterni-combobox-icon-size: var(--aeterni-icon-size-md);
 }
 
-/* Read-only select-style trigger -------------------------------------------- */
+/* Field box and trigger ----------------------------------------------------- */
+
+/* The wrapper owns the visible border so the optional clear action can sit inside
+   the same control box instead of next to a second, separate control. Same shape
+   as Autocomplete / Search: the inner trigger is borderless. */
+.aeterni-combobox__field {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+}
+
+.aeterni-combobox__trigger-wrap {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
+    border-radius: var(--aeterni-combobox-radius);
+    background: var(--aeterni-control-background);
+    transition: var(--aeterni-transition-control);
+}
+
+/* Invalid and read-only/disabled keep their own border colour, so pointer
+   feedback is scoped out rather than overwriting those states (§4.4). */
+.aeterni-combobox:not(.is-invalid):not(.is-disabled):not(.is-readonly) .aeterni-combobox__trigger-wrap:hover:not(:focus-within) {
+    border-color: var(--aeterni-control-border-hover);
+}
+
+.aeterni-combobox__trigger-wrap:focus-within {
+    border-color: var(--aeterni-control-border-focus);
+}
+
+.aeterni-combobox.is-invalid .aeterni-combobox__trigger-wrap {
+    border-color: var(--aeterni-control-border-invalid);
+}
+
+.aeterni-combobox.is-invalid .aeterni-combobox__trigger:focus-visible {
+    outline-color: var(--aeterni-focus-color-invalid);
+}
+
+.aeterni-combobox.is-open .aeterni-combobox__trigger-wrap {
+    border-color: var(--aeterni-control-border-focus);
+}
+
+.aeterni-combobox.is-disabled .aeterni-combobox__trigger-wrap {
+    border-color: var(--aeterni-control-border-disabled);
+    background: var(--aeterni-control-background-disabled);
+}
+
+.aeterni-combobox.is-readonly .aeterni-combobox__trigger-wrap {
+    background: var(--aeterni-control-background-readonly);
+}
 
 .aeterni-combobox__trigger {
     display: flex;
@@ -40,13 +91,15 @@
     justify-content: space-between;
     gap: var(--aeterni-spacing-2);
     box-sizing: border-box;
-    width: 100%;
+    /* Flex child: the wrapper owns the outer width; the trigger grows into it. */
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
     min-height: var(--aeterni-combobox-height);
     padding: 0 var(--aeterni-combobox-padding-x);
-    border: var(--aeterni-border-width) solid var(--aeterni-control-border);
-    border-radius: var(--aeterni-combobox-radius);
-    background: var(--aeterni-control-background);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--aeterni-control-foreground);
     font: inherit;
     font-size: var(--aeterni-combobox-font-size);
@@ -56,10 +109,9 @@
     transition: var(--aeterni-transition-control);
 }
 
-.aeterni-combobox__trigger:hover:not(:disabled) {
-    border-color: var(--aeterni-control-border-hover);
-}
-
+/* The trigger owns the focus ring (it is the combobox role element), while the
+   wrapper only answers with its border colour; keeping the ring here also keeps
+   `getComputedStyle(trigger)` truthful for focus-ring harnesses. */
 .aeterni-combobox__trigger:focus-visible {
     outline: var(--aeterni-focus-width) solid var(--aeterni-focus-color);
     outline-offset: var(--aeterni-focus-offset);
@@ -67,8 +119,6 @@
 
 .aeterni-combobox__trigger:disabled {
     cursor: not-allowed;
-    border-color: var(--aeterni-control-border-disabled);
-    background: var(--aeterni-control-background-disabled);
     color: var(--aeterni-control-foreground-disabled);
 }
 
@@ -81,16 +131,13 @@
     fill: var(--aeterni-control-foreground-disabled);
 }
 
-.aeterni-combobox.is-invalid .aeterni-combobox__trigger {
-    border-color: var(--aeterni-control-border-invalid);
-}
-
-.aeterni-combobox.is-invalid .aeterni-combobox__trigger:hover:not(:disabled) {
-    border-color: var(--aeterni-control-border-invalid);
-}
-
-.aeterni-combobox.is-open .aeterni-combobox__trigger {
-    border-color: var(--aeterni-control-border-focus);
+/* Read-only keeps the native button focusable and its value text selectable, but
+   the trigger no longer advertises a click affordance. */
+.aeterni-combobox.is-readonly .aeterni-combobox__trigger {
+    cursor: default;
+    color: var(--aeterni-control-foreground-readonly);
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .aeterni-combobox__value {
@@ -118,6 +165,35 @@
 
 .aeterni-combobox.is-open .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
     transform: rotate(180deg);
+}
+
+/* Clear action -------------------------------------------------------------- */
+
+/* The action joins the field box without adding a second visible border; the
+   connected group is flattened to the right edge exactly like Autocomplete. */
+.aeterni-combobox__actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.aeterni-combobox__actions ::deep .aeterni-button-group {
+    gap: 0;
+    border: 0;
+}
+
+.aeterni-combobox__actions ::deep .aeterni-icon-button,
+.aeterni-combobox__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button,
+.aeterni-combobox__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:first-child,
+.aeterni-combobox__actions ::deep .aeterni-button-group.is-connected .aeterni-icon-button:last-child {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.aeterni-combobox__actions ::deep .aeterni-icon-button:hover:not(:disabled),
+.aeterni-combobox__actions ::deep .aeterni-icon-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: none;
 }
 
 /* The shared Popover owns the layer, flip/shift positioning and outside/scroll
@@ -221,6 +297,19 @@
     min-height: var(--aeterni-combobox-height);
     padding: var(--aeterni-spacing-2);
     color: var(--aeterni-control-foreground-placeholder);
+    font-size: var(--aeterni-combobox-font-size);
+}
+
+/* Busy panel: the shared Spinner carries the announced status role, while the
+   root reports aria-busy so the whole field reads as busy. */
+.aeterni-combobox__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--aeterni-spacing-2);
+    min-height: var(--aeterni-combobox-height);
+    padding: var(--aeterni-spacing-2);
+    color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-combobox-font-size);
 }
 

@@ -33,6 +33,14 @@ public partial class DateRangePicker : AeterniComponent
     [Parameter] public string Format { get; set; } = "yyyy-MM-dd";
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>
+    /// Description ids supplied by the host. They are merged with the cascaded
+    /// <c>FormField.DescribedBy</c> before reaching the trigger, and
+    /// duplicate ids are emitted once.
+    /// </summary>
+    [Parameter] public string? AriaDescribedBy { get; set; }
+
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
 
@@ -42,6 +50,14 @@ public partial class DateRangePicker : AeterniComponent
     /// trigger stretches, the popup keeps its content-driven width.
     /// </summary>
     [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// Keeps the trigger focusable and its text selectable, but never opens the
+    /// range popup and never rewrites either bound date. <c>Disabled</c> wins when
+    /// both are set.
+    /// </summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool Invalid { get; set; }
 
@@ -61,8 +77,12 @@ public partial class DateRangePicker : AeterniComponent
     private IReadOnlyList<DateRangePreset> PresetItems => Presets ?? [];
     private string EffectivePlaceholder => string.IsNullOrWhiteSpace(Placeholder) ? UiText.DatePickerPlaceholder : Placeholder.Trim();
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DateRangePickerLabel : AriaLabel.Trim();
+    private string? EffectiveDescribedBy => MergeDescriptionIds(AriaDescribedBy, FormField?.DescribedBy);
     private string EffectivePresetsAriaLabel => string.IsNullOrWhiteSpace(PresetsAriaLabel) ? UiText.DateRangePickerPresetsLabel : PresetsAriaLabel.Trim();
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
+    // Read-only is a component state, not a field state: FormField has no ReadOnly
+    // cascade (same as ComboBox / MultiSelect / Autocomplete).
+    private bool IsReadOnly => ReadOnly;
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || FormField?.Required == true;
     private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifiers &&
@@ -73,6 +93,7 @@ public partial class DateRangePicker : AeterniComponent
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-date-range-picker")
         .Add("is-full-width", FullWidth)
+        .Add("is-readonly", IsReadOnly)
         .Add("is-disabled", IsDisabled)
         .Add("is-invalid", IsInvalid);
 
@@ -94,6 +115,13 @@ public partial class DateRangePicker : AeterniComponent
         ValidatePresets();
         if (!Enum.IsDefined(Placement)) throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown date range picker placement.");
         if (!Enum.IsDefined(Size)) throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown date range picker size.");
+
+        // Read-only and disabled are state changes, not suggestions: an open range
+        // popup closes instead of staying interactive behind the trigger.
+        if (IsDisabled || IsReadOnly)
+        {
+            _open = false;
+        }
     }
 
     private bool IsDateDisabled(DateOnly date) =>
@@ -101,7 +129,7 @@ public partial class DateRangePicker : AeterniComponent
 
     private async Task SelectAsync(DateOnly date)
     {
-        if (IsDisabled || IsDateDisabled(date)) return;
+        if (IsDisabled || IsReadOnly || IsDateDisabled(date)) return;
         if (!StartDate.HasValue || EndDate.HasValue || date < StartDate.Value)
         {
             StartDate = date; EndDate = null;
@@ -119,7 +147,7 @@ public partial class DateRangePicker : AeterniComponent
 
     private async Task SelectPresetAsync(DateRangePreset preset)
     {
-        if (IsDisabled) return;
+        if (IsDisabled || IsReadOnly) return;
         StartDate = preset.StartDate;
         EndDate = preset.EndDate;
         _displayMonth = preset.StartDate.AddDays(1 - preset.StartDate.Day);
@@ -168,8 +196,27 @@ public partial class DateRangePicker : AeterniComponent
 
     private Task SetMonthAsync(DateOnly month) { _displayMonth = month; return InvokeAsync(StateHasChanged); }
     private Task HandleHoverAsync(DateOnly date) { _hoverDate = date; return InvokeAsync(StateHasChanged); }
-    private Task ToggleAsync() { if (IsDisabled) return Task.CompletedTask; _open = !_open; return InvokeAsync(StateHasChanged); }
-    private Task HandleOpenChanged(bool open) { _open = open; return InvokeAsync(StateHasChanged); }
+
+    private Task ToggleAsync()
+    {
+        if (IsDisabled || IsReadOnly) return Task.CompletedTask;
+        _open = !_open;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleOpenChanged(bool open)
+    {
+        // The popover only reports closures today, but the handler also guards a
+        // future programmatic open: read-only must never reach the calendar.
+        if (open && (IsDisabled || IsReadOnly))
+        {
+            _open = false;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        _open = open;
+        return InvokeAsync(StateHasChanged);
+    }
 
     private void UpdateEditContextSubscription()
     {
@@ -186,6 +233,20 @@ public partial class DateRangePicker : AeterniComponent
         if (EndDateExpression is not null) _validation.NotifyFieldChanged(_endFieldIdentifier);
     }
 
+
+    /// <summary>
+    /// Merges the host description ids with the field-provided ones in the order the
+    /// other field controls use (host first, then <c>FormField</c>) and drops ids that
+    /// were already listed by one of the two sources.
+    /// </summary>
+    private static string? MergeDescriptionIds(string? hostDescribedBy, string? fieldDescribedBy)
+    {
+        var merged = string.Join(' ', new[] { hostDescribedBy, fieldDescribedBy }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .SelectMany(value => value!.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .Distinct(StringComparer.Ordinal));
+        return merged.Length == 0 ? null : merged;
+    }
 
     protected override ValueTask OnComponentDisposeAsync()
     {

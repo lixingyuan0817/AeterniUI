@@ -346,6 +346,30 @@
     --aeterni-button-soft-active: var(--aeterni-button-intent-danger-soft-active);
 }
 
+.aeterni-button--success {
+    --aeterni-button-color: var(--aeterni-button-intent-success-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-success-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-success-color);
+    --aeterni-button-background: var(--aeterni-button-intent-success-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-success-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-success-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-success-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-success-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-success-soft-active);
+}
+
+.aeterni-button--info {
+    --aeterni-button-color: var(--aeterni-button-intent-info-color);
+    --aeterni-button-color-hover: var(--aeterni-button-intent-info-color);
+    --aeterni-button-color-active: var(--aeterni-button-intent-info-color);
+    --aeterni-button-background: var(--aeterni-button-intent-info-background);
+    --aeterni-button-background-hover: var(--aeterni-button-intent-info-background-hover);
+    --aeterni-button-background-active: var(--aeterni-button-intent-info-background-active);
+    --aeterni-button-foreground: var(--aeterni-button-intent-info-foreground);
+    --aeterni-button-soft: var(--aeterni-button-intent-info-soft);
+    --aeterni-button-soft-active: var(--aeterni-button-intent-info-soft-active);
+}
+
 /* Disabled buttons keep the visual grammar of their variant. Loading is
    excluded so its semantic color and busy veil remain visible while
    interaction is blocked. */

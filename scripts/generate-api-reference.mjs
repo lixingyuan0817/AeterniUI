@@ -14,11 +14,19 @@
 // （CI 的 Node 步骤、本地 `node scripts/...`），也因为 API 表要的是声明而不是运行时形状
 // ——默认值、XML 文档说明这些只有在源码里才完整。
 //
+// 生成物分三块：
+//   - ByPage / Contracts：页面主组件与模型、服务的成员行（原有结构，搜索索引也读它）；
+//   - Sections：页面的二级分组。多组件合页（DatePicker / DateRangePicker、Tabs / Tab、
+//     Dialog / Confirm / Alert / Toast……）按组件类型拆开，并给出每个组件的基类参数支持
+//     矩阵（不生效的项 + 原因）。分组与矩阵的推导规则见 scripts/lib/showcase-support.mjs
+//     与 scripts/api-groups.json。
+//
 // 用法：node scripts/generate-api-reference.mjs [--check]
 
 import { writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { catalogIds, pascal, read } from './lib/showcase-catalog.mjs';
+import { deriveBaseParameterSupport } from './lib/showcase-support.mjs';
 
 const LIBRARY = 'src/AeterniUI';
 const SAMPLE = 'src/AeterniUI.Sample';
@@ -28,7 +36,8 @@ const OUTPUT = `${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`
 // 为非稳定公共 API，因此不进示例页的公共表。
 const INTERNAL_PARTS = new Set(['DateCalendar', 'TimeOptionList']);
 
-// 基类参数由 ShowcaseApi.CommonParameters 统一登记，页面不逐条重复。
+// 基类参数的说明由 ShowcaseApi.CommonParameters 统一登记，页面不逐条重复；每个组件到底
+// 支持哪几项由 scripts/lib/showcase-support.mjs 从源码结构推导（见生成物的 Sections）。
 const BASE_PARAMETERS = new Set([
     'Id', 'Disabled', 'Visible', 'Class', 'Style', 'Element', 'AdditionalAttributes', 'ElementChanged'
 ]);
@@ -51,6 +60,17 @@ const SINCE_FILE = 'scripts/api-since.json';
 // 一次性抽出来，之后只在这两个文件里维护 —— 页面本身不再手写任何 API 行。
 const DESCRIPTIONS_FILE = 'scripts/api-descriptions.json';
 const EXTRA_ROWS_FILE = 'scripts/api-extra-rows.json';
+
+// 多组件合页的二级分组与公共参数兜底。目录里只有一个组件的页保持单表；多个组件的页
+// 自动按组件类型分组（有组件目录就能推出来），只有“与文件顺序不一致”或“没有组件目录”
+// （反馈页的 Dialog / Confirm / Alert / Toast）才在这里登记。公共参数的支持矩阵优先从
+// 源码结构推导，推不出来的个别情况用这个文件的 baseParameterOverrides 显式兜底。
+const GROUPS_FILE = 'scripts/api-groups.json';
+const groupConfig = existsSync(GROUPS_FILE)
+    ? JSON.parse(read(GROUPS_FILE))
+    : { pages: {}, baseParameterOverrides: {} };
+
+const BASE_PARAMETER_OVERRIDES = groupConfig.baseParameterOverrides ?? {};
 
 // 组件目录名只从一次目录列举里查，不用 existsSync：后者在大小写不敏感的文件系统上会
 // 解析出实际上不存在（大小写不符）的目录，于是同一份源码在 Windows 与 Linux 上生成出
@@ -281,6 +301,139 @@ const extraRows = existsSync(EXTRA_ROWS_FILE)
     ? JSON.parse(read(EXTRA_ROWS_FILE)).rows
     : {};
 
+const compareCodePoints = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
+
+/// 多组件合页的分组配置：字符串条目等价于 `{ title, owners: [title] }`。
+/// 没有配置的页按组件目录自动分组，所以这里只登记顺序有讲究或没有组件目录的页。
+function configuredGroups(pageId) {
+    const configured = groupConfig.pages?.[pageId];
+    if (!configured) return null;
+    if (!Array.isArray(configured) || configured.length === 0) {
+        throw new Error(`api-groups.json 的 ${pageId} 分组必须是数组`);
+    }
+
+    return configured.map(item => {
+        const group = typeof item === 'string' ? { title: item, owners: [item] } : item;
+        if (!group || typeof group.title !== 'string' || group.title.trim() === '') {
+            throw new Error(`api-groups.json 的 ${pageId} 有缺少 title 的分组`);
+        }
+
+        const owners = group.owners ?? [group.title];
+        if (!Array.isArray(owners) || owners.length === 0 || owners.some(owner => typeof owner !== 'string')) {
+            throw new Error(`api-groups.json 的 ${pageId}.${group.title} 的 owners 必须是非空字符串数组`);
+        }
+
+        return { title: group.title, owners };
+    });
+}
+
+/// 额外行（模型、服务与汇总写法）的归属标记：取名字开头的类型。
+/// `DialogOptions.Title` → DialogOptions；`*Changed` 这类跨组件汇总行没有归属。
+function extraRowOwner(name) {
+    const match = /^([A-Z][A-Za-z0-9_]*)/.exec(name);
+    return match ? match[1] : null;
+}
+
+/// 把一个页面的成员拆成二级分组，返回 `{ title, componentType, memberNames }[]`。
+/// - 单组件页：所有成员（含模型 / 服务额外行）保持一张表，不为了分组而分组；
+/// - 多组件页：每个组件类型一组（目录文件顺序，或 api-groups.json 的显式顺序），
+///   其它归属（ThemeService 这类服务）各自成组，无归属的汇总行进「共享约定」，最后兜底；
+/// - 分完必须正好覆盖页面的全部成员：漏行或重复行会让 API 表静默丢内容，直接抛错。
+function buildSections({ pageId, componentTypes, members, emittedExtras }) {
+    const rowsByOwner = new Map();
+    const sharedRows = [];
+    const addRow = (owner, name) => {
+        if (!owner) {
+            sharedRows.push(name);
+            return;
+        }
+
+        rowsByOwner.set(owner, [...(rowsByOwner.get(owner) ?? []), name]);
+    };
+
+    for (const member of members) addRow(member.declaringType, member.name);
+    for (const row of emittedExtras) addRow(extraRowOwner(row.name), row.name);
+
+    const config = configuredGroups(pageId);
+    const singleComponent = componentTypes.length <= 1;
+
+    // 单组件页（以及没有组件的反馈页兜底）保持一张表，成员顺序与原来的渲染一致：
+    // 组件成员按名字排序，额外行按编辑文件顺序排在后面。
+    if (!config && singleComponent) {
+        const sorted = [...members.map(member => member.name), ...emittedExtras.map(row => row.name)];
+        return [{ title: componentTypes[0] ?? '', componentType: componentTypes[0] ?? null, memberNames: sorted }];
+    }
+
+    const sections = [];
+    const claimed = new Set();
+    const titles = new Set();
+    const push = (title, componentType, memberNames) => {
+        if (config && titles.has(title)) {
+            throw new Error(`api-groups.json 的 ${pageId} 有重复的分组标题 ${title}`);
+        }
+
+        titles.add(title);
+        if (memberNames.length === 0 && !componentType) return;
+        sections.push({ title, componentType, memberNames: memberNames.sort(compareCodePoints) });
+    };
+
+    if (config) {
+        for (const group of config) {
+            const memberNames = [];
+            let componentType = null;
+            for (const owner of group.owners) {
+                if (claimed.has(owner)) {
+                    throw new Error(`api-groups.json 的 ${pageId} 把 ${owner} 分到了多个分组`);
+                }
+
+                const owned = rowsByOwner.get(owner) ?? [];
+                if (owned.length === 0 && !componentTypes.includes(owner)) {
+                    throw new Error(`api-groups.json 的 ${pageId}.${group.title} 登记了没有成员的归属 ${owner}`);
+                }
+
+                claimed.add(owner);
+                memberNames.push(...owned);
+                if (componentTypes.includes(owner)) {
+                    if (componentType && componentType !== owner) {
+                        throw new Error(`api-groups.json 的 ${pageId}.${group.title} 不能合并多个组件类型`);
+                    }
+
+                    componentType = owner;
+                }
+            }
+
+            push(group.title, componentType, memberNames);
+        }
+    }
+
+    // 没有配置、或配置漏掉的组件按目录文件顺序各成一组：新增多组件目录不会退回混表。
+    for (const type of componentTypes) {
+        if (claimed.has(type)) continue;
+        claimed.add(type);
+        push(type, type, [...(rowsByOwner.get(type) ?? [])]);
+    }
+
+    // 其余归属（服务与模型）按名字排序各成一组；没有归属的汇总行放最后。
+    for (const owner of [...rowsByOwner.keys()].filter(owner => !claimed.has(owner)).sort(compareCodePoints)) {
+        claimed.add(owner);
+        push(owner, null, [...(rowsByOwner.get(owner) ?? [])]);
+    }
+
+    if (sharedRows.length > 0) push('共享约定', null, [...sharedRows]);
+
+    if (sections.length === 0) {
+        sections.push({ title: '', componentType: null, memberNames: [] });
+    }
+
+    const assigned = sections.flatMap(section => section.memberNames);
+    const expected = [...members.map(member => member.name), ...emittedExtras.map(row => row.name)];
+    if (assigned.length !== expected.length || new Set(assigned).size !== expected.length) {
+        throw new Error(`${pageId} 的 API 分组没有正好覆盖全部成员（分组 ${assigned.length} 行，成员 ${expected.length} 行）`);
+    }
+
+    return sections;
+}
+
 function pageEntries() {
     const entries = [];
     for (const id of catalogIds()) {
@@ -295,7 +448,16 @@ function pageEntries() {
             const extras = extraRows[id] ?? [];
             if (extras.length === 0) continue;
 
-            entries.push({ id, directory: null, members: [], extras });
+            entries.push({
+                id,
+                directory: null,
+                members: [],
+                extras,
+                // 没有组件类型，公共参数支持矩阵无处可推：分组只按额外行的归属标记拆，
+                // 不列基类参数（它们不属于这里记录的服务与选项类型）。
+                sections: buildSections({ pageId: id, componentTypes: [], members: [], emittedExtras: extras.filter(row => row.kind !== '接口') })
+                    .map(section => ({ ...section, unsupportedBaseParameters: null }))
+            });
             continue;
         }
 
@@ -332,16 +494,44 @@ function pageEntries() {
         const extras = extraRows[id] ?? [];
         if (members.length === 0 && extras.length === 0) continue;
 
+        // 排序必须是代码点序，不能用 localeCompare：ICU 的排序规则随 Node 构建变化，
+        // 生成物会因此在 CI 与本地不一致，`--check` 报“过期”却看不出差在哪（本批真的
+        // 被 CI 抓到过一次）。生成物的内容只能取决于源码。
+        const sortedMembers = members.sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0));
+
+        // 额外行排在组件成员之后：它们记录的是同页的模型、服务与汇总写法，读者先看组件本身。
+        // 分组只关心非接口行（接口行由 Contracts 单独渲染），重名行与成员去重后的规则必须
+        // 和 render() 一致，否则分组会引用一行根本不存在的成员。
+        const emitted = new Set(sortedMembers.map(member => member.name));
+        const emittedExtras = extras.filter(row => row.kind !== '接口' && !emitted.has(row.name));
+        const componentTypes = files.map(file => basename(file, '.razor.cs'));
+
+        const sections = buildSections({ pageId: id, componentTypes, members: sortedMembers, emittedExtras }).map(section => ({
+            ...section,
+            // 只有真正的库组件才谈得上基类参数：模型 / 服务 / 汇总行分组不列公共参数。
+            unsupportedBaseParameters: section.componentType
+                ? deriveBaseParameterSupport({
+                    type: section.componentType,
+                    directory: dir,
+                    overrides: BASE_PARAMETER_OVERRIDES
+                })
+                : null
+        }));
+
         entries.push({
             id,
             directory,
-            // 排序必须是代码点序，不能用 localeCompare：ICU 的排序规则随 Node 构建变化，
-            // 生成物会因此在 CI 与本地不一致，`--check` 报“过期”却看不出差在哪（本批真的
-            // 被 CI 抓到过一次）。生成物的内容只能取决于源码。
-            members: members.sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0)),
-            // 额外行排在组件成员之后：它们记录的是同页的模型、服务与汇总写法，读者先看组件本身。
-            extras
+            members: sortedMembers,
+            extras,
+            sections
         });
+    }
+
+    const generatedPages = new Set(entries.map(entry => entry.id));
+    for (const pageId of Object.keys(groupConfig.pages ?? {})) {
+        if (!generatedPages.has(pageId)) {
+            throw new Error(`api-groups.json 登记了没有生成 API 表的页面 ${pageId}`);
+        }
     }
 
     return entries;
@@ -356,6 +546,7 @@ function render(entries) {
     lines.push('// <auto-generated />');
     lines.push('// 由 scripts/generate-api-reference.mjs 生成，请勿手工编辑。');
     lines.push('// 每个组件的公共参数与事件回调都从源码的 [Parameter] 声明与 XML 文档注释提取，');
+    lines.push('// 多组件合页按组件类型分组；基类参数的支持矩阵从组件源码结构推导（scripts/lib/showcase-support.mjs）。');
     lines.push('// CI 用 `node scripts/generate-api-reference.mjs --check` 拒绝过期产物。');
     lines.push('');
     lines.push('using System;');
@@ -388,6 +579,40 @@ function render(entries) {
         lines.push('            },');
     }
 
+    lines.push('        };');
+    lines.push('    /// <summary>页面 id → 该页 API 的二级分组（多组件合页按组件类型分组）。</summary>');
+    lines.push('    /// <remarks>');
+    lines.push('    /// 组的顺序就是页面上的阅读顺序。UnsupportedBaseParameters 为 null 表示该组不是库组件');
+    lines.push('    /// （模型 / 服务 / 共享约定），不列公共参数；为空数组表示 8 个公共参数都落到根元素上；');
+    lines.push('    /// 非空时只登记不生效的参数与原因。');
+    lines.push('    /// </remarks>');
+    lines.push('    public static IReadOnlyDictionary<string, IReadOnlyList<ShowcaseApiSection>> Sections { get; } =');
+    lines.push('        new Dictionary<string, IReadOnlyList<ShowcaseApiSection>>(StringComparer.Ordinal)');
+    lines.push('        {');
+    for (const entry of entries) {
+        lines.push(`            ["${entry.id}"] = new ShowcaseApiSection[]`);
+        lines.push('            {');
+        for (const section of entry.sections) {
+            const unsupported = section.unsupportedBaseParameters;
+            const baseParameters = unsupported === null
+                ? 'null'
+                : unsupported.length === 0
+                    ? 'Array.Empty<ShowcaseApiBaseParameter>()'
+                    : `new ShowcaseApiBaseParameter[]\n                    {\n${unsupported
+                        .map(parameter => `                        new("${escape(parameter.name)}", "${escape(parameter.note)}"),`)
+                        .join('\n')}\n                    }`;
+            const members = section.memberNames.length === 0
+                ? 'Array.Empty<string>()'
+                : `new[]\n                    {\n${section.memberNames
+                    .map(name => `                        "${escape(name)}",`)
+                    .join('\n')}\n                    }`;
+
+            lines.push(`                new("${escape(section.title)}",`);
+            lines.push(`                    ${baseParameters},`);
+            lines.push(`                    ${members}),`);
+        }
+        lines.push('            },');
+    }
     lines.push('        };');
     lines.push('    /// <summary>页面 id → 该页记录的接口 / 服务行（模型与服务方法）。</summary>');
     lines.push('    public static IReadOnlyDictionary<string, IReadOnlyList<ShowcaseApiMember>> Contracts { get; } =');

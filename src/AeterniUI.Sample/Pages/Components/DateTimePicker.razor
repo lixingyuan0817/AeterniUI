@@ -35,6 +35,28 @@
             </Preview>
         </DemoCard>
 
+        <DemoCard Id="date-time-picker-readonly"
+                  Title="只读与外部描述"
+                  Description="ReadOnly 让触发器保持可聚焦、可选中复制，但不会打开日期时间弹层或改写绑定值；AriaDescribedBy 与 FormField 的描述 id 去重合并后输出到触发器。同时设置 Disabled 时禁用态优先。"
+                  Code="@ReadOnlyCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <DateTimePicker @bind-Value="_readOnlyValue"
+                                    ReadOnly="@_readOnly"
+                                    Disabled="@_readOnlyDisabled"
+                                    Kind="DateTimeKind.Local"
+                                    AriaDescribedBy="date-time-picker-readonly-hint"
+                                    AriaLabel="只读上线时间" />
+                    <p id="date-time-picker-readonly-hint" class="preview-feedback">只读触发器仍可聚焦并复制文本；日期与时间面板不会打开，值只能由宿主更新。勾选 Disabled 可以看到禁用态优先于只读。</p>
+                    <span class="preview-feedback" role="status">只读值：@(_readOnlyValue?.ToString("yyyy-MM-dd HH:mm:ss") ?? "未选择")</span>
+                </div>
+            </Preview>
+            <Controls>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnlyDisabled">Disabled</Checkbox>
+            </Controls>
+        </DemoCard>
+
         <DemoCard Id="date-time-picker-form"
                   Title="在 FormField 与表单校验中使用"
                   Description="字段给出输入 id、标签与说明，控件采用字段的 id；进入 EditForm 后校验消息与控件落在同一字段上。"
@@ -101,6 +123,7 @@
         <span>日期与时间在同一个弹层里完成，两步都只改草稿；<code>Value</code> 只在「确定」时变化，取消不会留下半个值。</span>
         <span><code>Kind</code> 只标记构造结果的 <code>DateTimeKind</code>，组件不换算时区。</span>
         <span>日期网格与时间列表共用单一焦点模型，触发器是唯一的 Tab 停留点；无效态由 <code>ValueExpression</code>、<code>Required</code> 与 <code>Invalid</code> 决定，是否阻止提交由宿主决定。</span>
+        <span><code>ReadOnly</code> 只关闭打开弹层与改写值的入口：触发器仍可聚焦、可选中复制并保留焦点环；与 <code>Disabled</code> 同时设置时以 <code>Disabled</code> 为准。<code>AriaDescribedBy</code> 先于 <code>FormField</code> 的描述 id 输出，重复 id 只保留一份。</span>
     </Notes>
 </ComponentPage>
 
@@ -144,6 +167,12 @@
                         DisabledDateTime="IsOutsideBusinessHours" />
         """;
 
+    private const string ReadOnlyCode = """
+        <DateTimePicker @bind-Value="ScheduledAt"
+                        ReadOnly="@IsReadOnly"
+                        AriaDescribedBy="scheduled-at-hint" />
+        """;
+
     private DateTime? _value = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
     private readonly ScheduleModel _model = new();
     private string _formNote = "提交后校验结果会显示在这里。";
@@ -155,6 +184,10 @@
     private bool _stateRequired;
     private bool _stateInvalid;
     private bool _stateDisabled;
+
+    private DateTime? _readOnlyValue = DateTime.SpecifyKind(DateTime.Today.AddDays(1).AddHours(9), DateTimeKind.Local);
+    private bool _readOnly = true;
+    private bool _readOnlyDisabled;
 
     private DateTime MinValue => DateTime.SpecifyKind(DateTime.Today.AddHours(8), DateTimeKind.Local);
 

@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using AeterniUI.Attributes;
 using AeterniUI.Components.FormField;
 using AeterniUI.Enums;
+using AeterniUI.Icons;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -51,6 +52,21 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     public bool Required { get; set; }
 
     /// <summary>
+    /// Presents the selected value without allowing changes: the trigger stays
+    /// focusable and its text selectable, but the list cannot be opened and stale
+    /// option activation is rejected.
+    /// </summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// Host is refreshing the options. Shows a busy status inside the list; the
+    /// trigger keeps opening and closing normally.
+    /// </summary>
+    [Parameter]
+    public bool Loading { get; set; }
+
+    /// <summary>
     /// Control tier. Matches Input/Textarea tiers so a small form row lines up:
     /// <see cref="Size.Small" /> uses the same height as <c>Input Size="Small"</c>.
     /// </summary>
@@ -73,9 +89,31 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public string? AriaDescribedBy { get; set; }
 
+    /// <summary>
+    /// Accessible name of the clear action. Falls back to
+    /// <see cref="AeterniUITextOptions.SearchClearLabel"/> like Autocomplete.
+    /// </summary>
+    [Parameter]
+    public string? ClearLabel { get; set; }
+
     /// <summary>Stretches the control to its container width.</summary>
     [Parameter]
     public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// Renders a clear action inside the field box while <see cref="Value" /> is set.
+    /// The action is omitted entirely when there is nothing to clear, so it never
+    /// reserves empty space.
+    /// </summary>
+    [Parameter]
+    public bool AllowClear { get; set; }
+
+    /// <summary>
+    /// Preferred side of the option layer relative to the trigger. Flipping and
+    /// viewport clamping stay owned by the shared floating module.
+    /// </summary>
+    [Parameter]
+    public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
 
     /// <summary>
     /// Fires with the confirmed item. Named after the equivalent callback on
@@ -83,6 +121,10 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     /// </summary>
     [Parameter]
     public EventCallback<TItem?> OnItemSelected { get; set; }
+
+    /// <summary>Fires after the clear action has reset <see cref="Value" />.</summary>
+    [Parameter]
+    public EventCallback OnClear { get; set; }
 
     private bool _open;
     private int _activeIndex = -1;
@@ -117,17 +159,32 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
     private bool IsRequired => Required || (FormField?.Required ?? false);
 
+    // Read-only is a component state, not a field state: FormField has no ReadOnly
+    // cascade (same as MultiSelect / Autocomplete).
+    private bool IsReadOnly => ReadOnly;
+
+    private bool HasValue => Value is not null;
+
+    private string EffectiveClearLabel => string.IsNullOrWhiteSpace(ClearLabel)
+        ? UiText.SearchClearLabel
+        : ClearLabel.Trim();
+
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
         UpdateEditContextSubscription();
         RebuildVisibleItems();
-        if (IsDisabled || !Visible) _open = false;
+        if (IsDisabled || IsReadOnly || !Visible) _open = false;
         if (_open) _activeIndex = _visibleItems.Count == 0 ? -1 : Math.Clamp(_activeIndex, 0, _visibleItems.Count - 1);
 
         if (!Enum.IsDefined(Size))
         {
             throw new ArgumentOutOfRangeException(nameof(Size), Size, "Unknown combo box size.");
+        }
+
+        if (!Enum.IsDefined(Placement))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Placement), Placement, "Unknown combo box placement.");
         }
     }
 
@@ -141,6 +198,8 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
             .Add("is-full-width", FullWidth)
             .Add(SizeClass)
             .Add("is-open", _open)
+            .Add("is-readonly", IsReadOnly)
+            .Add("is-loading", Loading)
             .Add("is-invalid", IsInvalid)
             .Add("is-disabled", IsDisabled);
     }
@@ -158,12 +217,17 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
             attributes["aria-disabled"] = "true";
         }
 
+        if (Loading)
+        {
+            attributes["aria-busy"] = "true";
+        }
+
         return attributes;
     }
 
     private async Task HandleTriggerClickAsync(MouseEventArgs args)
     {
-        if (IsDisabled)
+        if (IsDisabled || IsReadOnly)
         {
             return;
         }
@@ -180,8 +244,27 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleTriggerKeyDownAsync(KeyboardEventArgs args)
     {
-        if (IsDisabled || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
+        if (IsDisabled || IsReadOnly || !Visible || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
+            return;
+        }
+
+        if (Loading)
+        {
+            // The panel only shows the busy status: opening and closing stay
+            // available, but there is no rendered option to move onto or confirm.
+            // Enter/Space are left to the trigger's native click like the normal
+            // closed-state path, otherwise the keydown open would be toggled shut
+            // again by that click.
+            if (!_open && args.Key is "ArrowDown" or "ArrowUp")
+            {
+                await OpenAsync();
+            }
+            else if (_open && args.Key == "Escape")
+            {
+                await CloseAsync();
+            }
+
             return;
         }
 
@@ -252,7 +335,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private Task OpenAsync()
     {
-        if (IsDisabled || !Visible) return Task.CompletedTask;
+        if (IsDisabled || IsReadOnly || !Visible) return Task.CompletedTask;
         _open = true;
         _activeIndex = _visibleItems.Count == 0 ? -1 : Math.Max(0, _visibleItems.FindIndex(item => ValuesEqual(item, Value)));
         return InvokeAsync(StateHasChanged);
@@ -280,7 +363,7 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
 
     private async Task ChooseAsync(TItem item)
     {
-        if (IsDisabled)
+        if (IsDisabled || IsReadOnly)
         {
             return;
         }
@@ -293,6 +376,29 @@ public partial class ComboBox<TItem> : AeterniComponent where TItem : class
         _activeIndex = -1;
         await InvokeAsync(StateHasChanged);
     }
+
+    private async Task ClearAsync(MouseEventArgs _)
+    {
+        if (IsDisabled || IsReadOnly || Value is null)
+        {
+            return;
+        }
+
+        Value = null;
+        await ValueChanged.InvokeAsync(null);
+        NotifyFieldChanged();
+        await OnClear.InvokeAsync();
+        _open = false;
+        _activeIndex = -1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment ClearIcon => builder =>
+    {
+        builder.OpenComponent<AeterniUI.Components.Icon.Icon>(0);
+        builder.AddAttribute(1, nameof(AeterniUI.Components.Icon.Icon.Definition), AeterniIcons.Xmark);
+        builder.CloseComponent();
+    };
 
     private void RebuildVisibleItems()
     {

@@ -43,7 +43,10 @@
             {
                 <li class="doc-icons__cell">
                     <Icon Definition="definition" Size="@_size" Color="@_color" />
-                    <span class="doc-icons__name">@definition.Name</span>
+                    <button type="button"
+                            class="doc-icons__name"
+                            data-icon-copy="@definition.Name"
+                            aria-label="@($"复制图标名 {definition.Name}")">@definition.Name</button>
                     <span class="doc-icons__usage">@usedBy</span>
                 </li>
             }
@@ -55,7 +58,7 @@
         <p class="doc-icons__section-lead">
             适配包只包含 SVG 定义，不引入 Font Awesome 的 CSS、字体或 JavaScript 运行时。
             可用 <code>FontAwesomeIcons.TryGet("arrow-right", out var icon)</code> 按名称解析，
-            或用 <code>FontAwesomeIcons.Categories</code> 构建选择器。
+            或用 <code>FontAwesomeIcons.Categories</code> 构建选择器。搜索框按图标名过滤，图标名本身可点击复制。
         </p>
 
         <div class="doc-icons__controls">
@@ -76,7 +79,22 @@
             </div>
         </div>
 
-        <p class="doc-icons__status" role="status">@MatchCount 个图标匹配当前条件</p>
+        @if (string.IsNullOrWhiteSpace(_query))
+        {
+            @* 分类锚点只在未筛选时出现：过滤后的分类集合是临时的，锚向被过滤掉的分类会变成死链。 *@
+            <nav class="doc-icons__anchors" aria-label="图标分类">
+                @foreach (var category in Categories)
+                {
+                    <a href="@($"#{CategoryAnchor(category.Name)}")">
+                        <span>@category.Name</span>
+                        <span class="doc-icons__count">@category.Icons.Count</span>
+                    </a>
+                }
+            </nav>
+        }
+
+        <p class="doc-icons__status" role="status">@StatusText</p>
+        <p id="icons-copy-status" class="doc-icons__copy-status" role="status" aria-live="polite"></p>
 
         @if (MatchCount == 0)
         {
@@ -86,8 +104,9 @@
         {
             @foreach (var category in FilteredCategories)
             {
-                <section class="doc-icons__group" aria-label="@category.Name">
-                    <h3>
+                var anchor = CategoryAnchor(category.Name);
+                <section class="doc-icons__group" id="@anchor" aria-labelledby="@($"{anchor}-title")">
+                    <h3 id="@($"{anchor}-title")">
                         <span>@category.Name</span>
                         <span class="doc-icons__count">@category.Icons.Count</span>
                     </h3>
@@ -96,7 +115,10 @@
                         {
                             <li class="doc-icons__cell">
                                 <Icon Definition="definition" Size="@_size" Color="@_color" />
-                                <span class="doc-icons__name">@definition.Name</span>
+                                <button type="button"
+                                        class="doc-icons__name"
+                                        data-icon-copy="@definition.Name"
+                                        aria-label="@($"复制图标名 {definition.Name}")">@definition.Name</button>
                             </li>
                         }
                     </ul>
@@ -118,6 +140,14 @@
 
 @code {
     private static readonly IReadOnlyList<IconCategory> Categories = FontAwesomeIcons.Categories;
+
+    /// <summary>
+    /// 分类锚点按目录顺序生成稳定 id。用序号而不是分类名：中文 id 在地址栏里会被编码，
+    /// 而英文 slug 需要另一份手写映射；序号只随目录顺序变化，筛选时不会漂移。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string> CategoryAnchors = Categories
+        .Select((category, index) => (category.Name, Anchor: $"icons-category-{index}"))
+        .ToDictionary(entry => entry.Name, entry => entry.Anchor, StringComparer.Ordinal);
 
     private static readonly IReadOnlyList<(IconDefinition Definition, string UsedBy)> BuiltInIcons =
     [
@@ -149,6 +179,13 @@
     private Color _color = Color.Default;
 
     private static int TotalFontAwesomeIcons => Categories.Sum(category => category.Icons.Count);
+
+    private static string CategoryAnchor(string categoryName) =>
+        CategoryAnchors.TryGetValue(categoryName, out var anchor) ? anchor : "icons-category-unknown";
+
+    private string StatusText => string.IsNullOrWhiteSpace(_query)
+        ? $"{TotalFontAwesomeIcons} 个图标 · {Categories.Count} 个分类"
+        : $"{MatchCount} 个图标匹配“{_query.Trim()}”";
 
     private int MatchCount => FilteredCategories.Sum(category => category.Icons.Count);
 

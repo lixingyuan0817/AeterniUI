@@ -46,7 +46,7 @@
 
             <Popover Open="@_open"
                      OpenChanged="@HandlePopoverOpenChangedAsync"
-                     Placement="@PopupPlacement.BottomStart"
+                     Placement="@Placement"
                      CloseOnScroll="true"
                      Class="aeterni-autocomplete__popover"
                      AriaLabel="@EffectiveListLabel">
@@ -56,7 +56,12 @@
                      aria-label="@EffectiveListLabel">
                     @if (Loading)
                     {
-                        <div class="aeterni-autocomplete__status" role="status" aria-live="polite">@UiText.AutocompleteLoadingText</div>
+                        @* The root carries aria-busy; the ring itself is decorative so the
+                           status text stays the single announced busy message. *@
+                        <div class="aeterni-autocomplete__status" role="status" aria-live="polite">
+                            <span class="aeterni-autocomplete__status-spinner" aria-hidden="true"><Spinner Size="AeterniUI.Enums.Size.Small" /></span>
+                            @UiText.AutocompleteLoadingText
+                        </div>
                     }
                     else if (_visibleItems.Count == 0)
                     {

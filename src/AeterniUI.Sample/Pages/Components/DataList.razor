@@ -50,7 +50,7 @@
 
         <DemoCard Id="data-list-selection"
                   Title="多选与计数"
-                  Description="SelectedValues 由宿主保存，行在筛选后重建时按 ItemKeySelector 的 key 恢复选中态；下面两段共用同一份选择。"
+                  Description="SelectedItems 由宿主保存，行在筛选后重建时按 ItemKeySelector 的 key 恢复选中态；下面两段共用同一份选择。"
                   Code="@SelectionCode">
             <Preview>
                 <div class="preview-stack">
@@ -60,8 +60,7 @@
                                      ItemSize="30"
                                      OverscanCount="6"
                                      SelectionMode="SelectionMode.Multiple"
-                                     SelectedValues="@_selected"
-                                     SelectedValuesChanged="HandleSelectedChanged"
+                                     @bind-SelectedItems="_selected"
                                      ItemKeySelector="row => row.Id"
                                      AriaLabel="可多选的日志列表">
                             <ItemTemplate Context="row">
@@ -99,7 +98,7 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>选择归宿主：<code>SelectedValues</code> 由页面保存，筛选把行移出列表后选择仍然保留。</span>
+        <span>选择归宿主：<code>SelectedItems</code> 由页面保存，筛选把行移出列表后选择仍然保留。</span>
         <span>行身份靠 <code>ItemKeySelector</code>：筛选会重建 <code>Items</code>，没有稳定 key 时选择会跟着错位。</span>
         <span>批量动作条按有没有选中决定出现与否，而不是禁用一整排按钮。</span>
         <span>600 条以上才值得虚拟化：行数很少时，虚拟滚动换算出的总高度反而让滚动条位置不直观。</span>
@@ -140,7 +139,7 @@
     private const string SelectionCode = """
         <VirtualList Items="Filtered"
                      SelectionMode="SelectionMode.Multiple"
-                     @bind-SelectedValues="Selected"
+                     @bind-SelectedItems="Selected"
                      ItemKeySelector="row => row.Id" />
 
         // Selected 是宿主持有的一份列表：筛选把它下面的行换掉，它自己不受影响
@@ -165,7 +164,7 @@
     private static readonly LogRow[] Rows = BuildRows();
 
     private string? _keyword;
-    private IReadOnlyList<object?> _selected = [];
+    private IReadOnlyList<LogRow> _selected = [];
     private bool _archiving;
     private string _batchNote = "尚未执行批量动作。";
 
@@ -190,7 +189,7 @@
             .ToArray();
     }
 
-    private Task HandleSelectedChanged(IReadOnlyList<object?> values)
+    private Task HandleSelectedChanged(IReadOnlyList<LogRow> values)
     {
         _selected = values;
         return Task.CompletedTask;

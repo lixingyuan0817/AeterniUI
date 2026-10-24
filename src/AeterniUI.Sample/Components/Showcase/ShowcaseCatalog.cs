@@ -80,7 +80,7 @@ public static class ShowcaseCatalog
             new("textarea", "Textarea", "多行输入"),
             new("input-number", "InputNumber", "数值输入"),
             new("slider", "Slider", "单值滑块"),
-            new("radio", "Radio / RadioGroup", "Radio 与 RadioGroup 组合"),
+            new("radio", "Radio", "Radio 与 RadioGroup 组合"),
             new("form-field", "FormField", "字段组合"),
             new("label", "Label", "原生标签"),
             new("checkbox", "Checkbox", "复选框"),
@@ -94,7 +94,7 @@ public static class ShowcaseCatalog
             new("combobox", "ComboBox", "下拉选择"),
             new("cascader", "Cascader", "层级逐级选择"),
             new("transfer", "Transfer", "双列表迁移"),
-            new("date-picker", "DatePicker / DateRangePicker", "日期与日期范围"),
+            new("date-picker", "DatePicker", "日期与 DateRangePicker 范围"),
             new("time-picker", "TimePicker", "时间选择"),
             new("date-time-picker", "DateTimePicker", "日期与时间组合")
         ]),
@@ -102,11 +102,11 @@ public static class ShowcaseCatalog
             new("breadcrumb", "Breadcrumb", "层级导航路径"),
             new("anchor", "Anchor", "页内锚点导航"),
             new("stepper", "Stepper", "线性流程步骤"),
-            new("list", "List / ListItem", "List 与 ListItem 组合选择"),
+            new("list", "List", "List 与 ListItem 组合选择"),
             new("virtual-list", "VirtualList", "大数据量虚拟列表"),
             new("menu", "Menu", "分组菜单"),
             new("nav-menu", "NavMenu", "项目/会话导航菜单"),
-            new("tabs", "Tabs / Tab", "Tabs 与 Tab 组合导航"),
+            new("tabs", "Tabs", "Tabs 与 Tab 组合导航"),
             new("pagination", "Pagination", "分页导航")
         ]),
         new("状态反馈", FontAwesomeIcons.Solid.ChartColumn, [
@@ -115,14 +115,14 @@ public static class ShowcaseCatalog
             new("skeleton", "Skeleton", "内容占位")
         ]),
         new("通知组件", FontAwesomeIcons.Solid.Bell, [
-            new("popup", "PopupHost / Popover", "PopupHost 与 Popover 浮层组合"),
+            new("popup", "PopupHost", "PopupHost 与 Popover 浮层组合"),
             new("tooltip", "Tooltip", "辅助提示"),
-            new("feedback", "Dialog / Confirm / Alert / Toast", "DialogProvider 反馈与通知服务"),
+            new("feedback", "Dialog", "Dialog、Confirm、Alert 与 Toast 服务"),
             new("form-dialog", "FormDialog", "表单弹窗与提交约定"),
             new("drawer", "Drawer", "边缘滑出面板")
         ]),
         new("主题组件", FontAwesomeIcons.Solid.WandMagicSparkles, [
-            new("theme", "ThemeProvider / ThemeSwitch", "主题上下文与切换")
+            new("theme", "Theme", "ThemeProvider 与 ThemeSwitch 切换")
         ]),
         new("组合用法", FontAwesomeIcons.Solid.PuzzlePiece, [
             new("form-validation", "表单校验链", "字段、规则与提交的时序") { IsComponent = false },

@@ -186,7 +186,13 @@
 }
 
 .aeterni-autocomplete__status {
+    gap: var(--aeterni-spacing-2);
     color: var(--aeterni-text-secondary);
+}
+
+.aeterni-autocomplete__status-spinner {
+    display: inline-flex;
+    flex: 0 0 auto;
 }
 
 .aeterni-autocomplete--sm {

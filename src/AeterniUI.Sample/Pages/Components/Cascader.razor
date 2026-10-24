@@ -117,6 +117,39 @@
                 </div>
             </Preview>
         </DemoCard>
+        <DemoCard Id="cascader-alignment"
+                  Title="只读、加载、清除与方位"
+                  Description="ReadOnly 保持触发器可聚焦、路径可复制，但不展开面板也不改值；Loading 只把面板换成忙碌状态；AllowClear 仅在有叶子值时给出清除动作；Placement 指定首选方位。"
+                  Code="@AlignmentCode">
+            <Preview>
+                <div class="preview-form-control preview-form-control--fill">
+                    <Cascader TItem="Region"
+                              Items="@Regions"
+                              ChildrenSelector="@RegionChildren"
+                              @bind-Value="_alignmentRegion"
+                              Placeholder="选择地区…"
+                              ReadOnly="@_readOnly"
+                              Loading="@_loading"
+                              AllowClear="@_allowClear"
+                              Placement="@_placement"
+                              OnClear="HandleCleared"
+                              AriaLabel="对齐能力演示" />
+                    <span class="preview-feedback" role="status">当前选择：@(_alignmentRegion?.Label ?? "（空）")@ClearNote</span>
+                </div>
+            </Preview>
+            <Controls>
+                <div class="control-field">
+                    <span>Placement</span>
+                    <ShowcaseSelect TValue="PopupPlacement" Id="cascader-placement" AriaLabel="Placement" Options="@(Enum.GetValues<PopupPlacement>())" @bind-Value="_placement" />
+                </div>
+                <Checkbox Size="Size.Small" @bind-Value="_readOnly">ReadOnly</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_loading">Loading</Checkbox>
+                <Checkbox Size="Size.Small" @bind-Value="_allowClear">AllowClear</Checkbox>
+                <Button Variant="ButtonVariant.Outline"
+                        Size="Size.Small"
+                        OnClick="@(() => _alignmentRegion = FindByCode("330106"))">设为 330106</Button>
+            </Controls>
+        </DemoCard>
     </Demos>
     <Notes>
         <span>面板是<strong>一个</strong> <code>listbox</code>，每一列是它的 <code>group</code>：每列再套一层 listbox 属于非法嵌套，所以列的区分交给分组标签。</span>
@@ -175,6 +208,16 @@
         </Cascader>
         """;
 
+    private const string AlignmentCode = """
+        <Cascader TItem="Region" Items="Regions" ChildrenSelector="@(region => region.Children)"
+                  @bind-Value="Region"
+                  ReadOnly="@ReadOnly"
+                  Loading="@Loading"
+                  AllowClear
+                  Placement="PopupPlacement.TopStart"
+                  OnClear="HandleCleared" />
+        """;
+
     private static readonly Region[] Regions =
     [
         new("浙江省", "3300", [
@@ -207,6 +250,21 @@
     private bool _formInvalid;
     private bool _formDisabled;
     private bool _formFullWidth = true;
+
+    private Region? _alignmentRegion;
+    private bool _readOnly;
+    private bool _loading;
+    private bool _allowClear = true;
+    private PopupPlacement _placement = PopupPlacement.BottomStart;
+    private string _clearNote = string.Empty;
+
+    private string ClearNote => string.IsNullOrEmpty(_clearNote) ? string.Empty : $" · {_clearNote}";
+
+    private Task HandleCleared()
+    {
+        _clearNote = "已清除";
+        return Task.CompletedTask;
+    }
 
     private static Region? FindByCode(string code)
     {

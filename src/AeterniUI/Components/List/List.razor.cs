@@ -40,17 +40,82 @@ public partial class List<TItem> : AeterniComponent
     [Parameter]
     public SelectionMode SelectionMode { get; set; } = SelectionMode.None;
 
+    /// <summary>
+    /// 类型化单选值：用 <c>@bind-SelectedItem</c> 绑定，回调参数是 <c>TItem?</c> 而不是
+    /// <c>object?</c>，Items 模式下宿主因此保留编译期类型安全。
+    /// </summary>
+    /// <remarks>
+    /// 同时提供旧的 <see cref="SelectedValue" /> 时以类型化成员为准。新代码应使用
+    /// <c>SelectedItem</c>/<c>SelectedItems</c>；旧成员只保留给声明式
+    /// <c>ListItem.Value</c> 中无法转成 <c>TItem</c> 的 object 值。绑定类型化回调后，
+    /// 每个选中值都必须能表示为 <c>TItem</c>，否则组件直接抛错，而不是悄悄返回默认值。
+    /// </remarks>
     [Parameter]
-    public object? SelectedValue { get; set; }
+    public TItem? SelectedItem { get; set; }
 
+    /// <summary>类型化单选值发生变化时触发；配合 <c>@bind-SelectedItem</c> 使用。</summary>
     [Parameter]
-    public EventCallback<object?> SelectedValueChanged { get; set; }
+    public EventCallback<TItem?> SelectedItemChanged { get; set; }
 
+    /// <summary>
+    /// 类型化多选值：用 <c>@bind-SelectedItems</c> 绑定，优先级与取值约束同
+    /// <see cref="SelectedItem" />。
+    /// </summary>
     [Parameter]
-    public IReadOnlyList<object?>? SelectedValues { get; set; }
+    public IReadOnlyList<TItem> SelectedItems { get; set; } = [];
 
+    /// <summary>类型化多选值发生变化时触发；配合 <c>@bind-SelectedItems</c> 使用。</summary>
     [Parameter]
-    public EventCallback<IReadOnlyList<object?>> SelectedValuesChanged { get; set; }
+    public EventCallback<IReadOnlyList<TItem>> SelectedItemsChanged { get; set; }
+
+    // The object-based members stay the compatibility surface: declarative ListItem
+    // values are still object?, so they cannot be typed at the List level without
+    // breaking the declarative mode. Both facades write the same object-typed
+    // selection state below, so they cannot drift apart.
+    private object? _legacySelectedValue;
+    private EventCallback<object?> _legacySelectedValueChanged;
+    private IReadOnlyList<object?>? _legacySelectedValues;
+    private EventCallback<IReadOnlyList<object?>> _legacySelectedValuesChanged;
+
+    /// <summary>
+    /// Compatibility single-selection value (object-typed). Prefer
+    /// <see cref="SelectedItem" /> / <see cref="SelectedItemChanged" />; this pair
+    /// remains for declarative <c>ListItem.Value</c> values and for hosts migrating
+    /// from the object API.
+    /// </summary>
+    [Parameter, Obsolete("Use SelectedItem / SelectedItemChanged for type-safe selection. SelectedValue stays for object-typed declarative ListItem values.")]
+    public object? SelectedValue
+    {
+        get => _legacySelectedValue;
+        set => _legacySelectedValue = value;
+    }
+
+    /// <summary>Compatibility callback for <see cref="SelectedValue" />.</summary>
+    [Parameter, Obsolete("Use SelectedItemChanged; SelectedValueChanged stays for object-typed declarative ListItem values.")]
+    public EventCallback<object?> SelectedValueChanged
+    {
+        get => _legacySelectedValueChanged;
+        set => _legacySelectedValueChanged = value;
+    }
+
+    /// <summary>
+    /// Compatibility multiple-selection value (object-typed). Prefer
+    /// <see cref="SelectedItems" /> / <see cref="SelectedItemsChanged" />.
+    /// </summary>
+    [Parameter, Obsolete("Use SelectedItems / SelectedItemsChanged for type-safe selection. SelectedValues stays for object-typed declarative ListItem values.")]
+    public IReadOnlyList<object?>? SelectedValues
+    {
+        get => _legacySelectedValues;
+        set => _legacySelectedValues = value;
+    }
+
+    /// <summary>Compatibility callback for <see cref="SelectedValues" />.</summary>
+    [Parameter, Obsolete("Use SelectedItemsChanged; SelectedValuesChanged stays for object-typed declarative ListItem values.")]
+    public EventCallback<IReadOnlyList<object?>> SelectedValuesChanged
+    {
+        get => _legacySelectedValuesChanged;
+        set => _legacySelectedValuesChanged = value;
+    }
 
     [Parameter]
     public bool AllowClear { get; set; }
@@ -67,8 +132,8 @@ public partial class List<TItem> : AeterniComponent
 
     internal bool IsSelected(object? value) => SelectionMode switch
     {
-        SelectionMode.Single => ValuesEqual(SelectedValue, value),
-        SelectionMode.Multiple => SelectedValues?.Any(selected => ValuesEqual(selected, value)) == true,
+        SelectionMode.Single => ValuesEqual(_legacySelectedValue, value),
+        SelectionMode.Multiple => _legacySelectedValues?.Any(selected => ValuesEqual(selected, value)) == true,
         _ => false
     };
 
@@ -82,20 +147,14 @@ public partial class List<TItem> : AeterniComponent
         switch (SelectionMode)
         {
             case SelectionMode.Single:
-                if (allowClear && AllowClear && ValuesEqual(SelectedValue, item.Value))
-                {
-                    SelectedValue = null;
-                }
-                else
-                {
-                    SelectedValue = item.Value;
-                }
-
-                await SelectedValueChanged.InvokeAsync(SelectedValue);
+                var single = allowClear && AllowClear && ValuesEqual(_legacySelectedValue, item.Value)
+                    ? null
+                    : item.Value;
+                await CommitSingleSelectionAsync(single);
                 break;
 
             case SelectionMode.Multiple:
-                var next = (SelectedValues ?? []).ToList();
+                var next = (_legacySelectedValues ?? []).ToList();
                 if (next.Any(selected => ValuesEqual(selected, item.Value)))
                 {
                     next.RemoveAll(selected => ValuesEqual(selected, item.Value));
@@ -105,8 +164,7 @@ public partial class List<TItem> : AeterniComponent
                     next.Add(item.Value);
                 }
 
-                SelectedValues = next;
-                await SelectedValuesChanged.InvokeAsync(SelectedValues);
+                await CommitMultipleSelectionAsync(next);
                 break;
         }
 
@@ -169,6 +227,8 @@ public partial class List<TItem> : AeterniComponent
             throw new ArgumentOutOfRangeException(nameof(SelectionMode), SelectionMode, "Unknown list selection mode.");
         }
 
+        ApplyTypedSelectionParameters();
+
         var next = Items?.ToArray() ?? [];
         if (!_dataItems.SequenceEqual(next) || Disabled || !Visible || !IsSelectable)
         {
@@ -177,18 +237,16 @@ public partial class List<TItem> : AeterniComponent
         _dataItems = next;
         if (Items is not null)
         {
-            if (SelectedValue is not null && !next.Any(item => ValuesEqual(item, SelectedValue)))
+            if (_legacySelectedValue is not null && !next.Any(item => ValuesEqual(item, _legacySelectedValue)))
             {
-                SelectedValue = null;
-                await SelectedValueChanged.InvokeAsync(null);
+                await CommitSingleSelectionAsync(null);
             }
-            if (SelectedValues is not null)
+            if (_legacySelectedValues is not null)
             {
-                var retained = SelectedValues.Where(value => next.Any(item => ValuesEqual(item, value))).ToArray();
-                if (retained.Length != SelectedValues.Count)
+                var retained = _legacySelectedValues.Where(value => next.Any(item => ValuesEqual(item, value))).ToArray();
+                if (retained.Length != _legacySelectedValues.Count)
                 {
-                    SelectedValues = retained;
-                    await SelectedValuesChanged.InvokeAsync(retained);
+                    await CommitMultipleSelectionAsync(retained);
                 }
             }
         }
@@ -316,6 +374,110 @@ public partial class List<TItem> : AeterniComponent
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    // ------------------------------------------------------------------ 选中桥接
+
+    // The typed members only take over while they are actually in use. A host that
+    // keeps using the legacy members (or a declarative list that never binds either)
+    // must not have its object-typed selection reset by the typed defaults.
+    private bool UsesTypedSingleSelection => SelectedItemChanged.HasDelegate || SelectedItem is not null;
+
+    private bool UsesTypedMultipleSelection => SelectedItemsChanged.HasDelegate || SelectedItems.Count > 0;
+
+    private void ApplyTypedSelectionParameters()
+    {
+        ArgumentNullException.ThrowIfNull(SelectedItems);
+
+        if (UsesTypedSingleSelection && !ValuesEqual(SelectedItem, _legacySelectedValue))
+        {
+            _legacySelectedValue = SelectedItem;
+        }
+
+        if (!UsesTypedMultipleSelection)
+        {
+            return;
+        }
+
+        var current = _legacySelectedValues;
+        var same = current is not null && current.Count == SelectedItems.Count;
+        if (same)
+        {
+            for (var index = 0; index < SelectedItems.Count; index++)
+            {
+                if (!ValuesEqual(SelectedItems[index], current![index]))
+                {
+                    same = false;
+                    break;
+                }
+            }
+        }
+
+        if (!same)
+        {
+            _legacySelectedValues = SelectedItems.Cast<object?>().ToArray();
+        }
+    }
+
+    private async Task CommitSingleSelectionAsync(object? value)
+    {
+        // Convert before mutating so an object-typed declarative value that cannot be
+        // represented as TItem fails without desynchronising the rendered selection.
+        var notifyTyped = SelectedItemChanged.HasDelegate;
+        var typed = notifyTyped ? ToTypedItem(value) : default(TItem?);
+
+        _legacySelectedValue = value;
+        await _legacySelectedValueChanged.InvokeAsync(value);
+
+        if (notifyTyped)
+        {
+            SelectedItem = typed;
+            await SelectedItemChanged.InvokeAsync(typed);
+        }
+    }
+
+    private async Task CommitMultipleSelectionAsync(IReadOnlyList<object?> values)
+    {
+        IReadOnlyList<TItem>? typed = SelectedItemsChanged.HasDelegate ? ToTypedItems(values) : null;
+
+        _legacySelectedValues = values;
+        await _legacySelectedValuesChanged.InvokeAsync(values);
+
+        if (typed is not null)
+        {
+            SelectedItems = typed;
+            await SelectedItemsChanged.InvokeAsync(typed);
+        }
+    }
+
+    private static TItem? ToTypedItem(object? value)
+    {
+        if (value is null)
+        {
+            return default;
+        }
+
+        var target = Nullable.GetUnderlyingType(typeof(TItem)) ?? typeof(TItem);
+        if (!target.IsInstanceOfType(value))
+        {
+            throw new InvalidOperationException(
+                $"The selected value of type '{value.GetType()}' cannot be represented as '{typeof(TItem)}'. " +
+                "Typed selection requires values assignable to TItem; use SelectedValue/SelectedValues for " +
+                "object-typed ListItem values, or make ListItem.Value assignable to TItem.");
+        }
+
+        return (TItem)value;
+    }
+
+    private static IReadOnlyList<TItem> ToTypedItems(IReadOnlyList<object?> values)
+    {
+        var typed = new TItem[values.Count];
+        for (var index = 0; index < values.Count; index++)
+        {
+            typed[index] = ToTypedItem(values[index])!;
+        }
+
+        return typed;
     }
 
     private static bool ValuesEqual(object? left, object? right) =>

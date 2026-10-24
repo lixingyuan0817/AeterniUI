@@ -35,12 +35,28 @@ public partial class DateTimePicker : AeterniComponent
     [Parameter] public string? Format { get; set; }
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>
+    /// Description ids supplied by the host. They are merged with the cascaded
+    /// <c>FormField.DescribedBy</c> before reaching the trigger, and
+    /// duplicate ids are emitted once.
+    /// </summary>
+    [Parameter] public string? AriaDescribedBy { get; set; }
+
     [Parameter] public string? CancelText { get; set; }
     [Parameter] public string? ConfirmText { get; set; }
     [Parameter] public DateTimeKind Kind { get; set; } = DateTimeKind.Unspecified;
     [Parameter] public PopupPlacement Placement { get; set; } = PopupPlacement.BottomStart;
     [Parameter] public Size Size { get; set; } = Size.Default;
     [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// Keeps the trigger focusable and its text selectable, but never opens the
+    /// calendar/time panel and never rewrites the bound value. <c>Disabled</c> wins
+    /// when both are set.
+    /// </summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool Invalid { get; set; }
 
@@ -83,9 +99,13 @@ public partial class DateTimePicker : AeterniComponent
     private string ResolvedFormat => string.IsNullOrWhiteSpace(Format) ? $"yyyy-MM-dd {ResolvedTimeFormat}" : Format.Trim();
     private string DisplayValue => Value?.ToString(ResolvedFormat, Culture) ?? (string.IsNullOrWhiteSpace(Placeholder) ? UiText.DateTimePickerPlaceholder : Placeholder.Trim());
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? UiText.DateTimePickerLabel : AriaLabel.Trim();
+    private string? EffectiveDescribedBy => MergeDescriptionIds(AriaDescribedBy, FormField?.DescribedBy);
     private string EffectiveCancelText => string.IsNullOrWhiteSpace(CancelText) ? UiText.TimePickerCancelText : CancelText.Trim();
     private string EffectiveConfirmText => string.IsNullOrWhiteSpace(ConfirmText) ? UiText.TimePickerConfirmText : ConfirmText.Trim();
     private string TriggerId => FormField?.InputId ?? $"{ElementId}-trigger";
+    // Read-only is a component state, not a field state: FormField has no ReadOnly
+    // cascade (same as ComboBox / MultiSelect / Autocomplete).
+    private bool IsReadOnly => ReadOnly;
     private bool IsDisabled => Disabled || FormField?.Disabled == true;
     private bool IsRequired => Required || FormField?.Required == true;
     private bool IsInvalid => Invalid || FormField?.Invalid == true || (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
@@ -118,11 +138,19 @@ public partial class DateTimePicker : AeterniComponent
         // feeds it had changed.
         InvalidateDisabledDateCacheIfNeeded();
         UpdateEditContextSubscription();
+
+        // Read-only and disabled are state changes, not suggestions: an open panel
+        // closes instead of staying interactive behind the trigger.
+        if (IsDisabled || IsReadOnly)
+        {
+            _open = false;
+        }
     }
 
     protected override ClassBuilder BuildClass() => base.BuildClass()
         .Add("aeterni-date-time-picker")
         .Add("is-full-width", FullWidth)
+        .Add("is-readonly", IsReadOnly)
         .Add("is-disabled", IsDisabled)
         .Add("is-invalid", IsInvalid);
 
@@ -154,7 +182,7 @@ public partial class DateTimePicker : AeterniComponent
 
     private async Task SelectDateAsync(DateOnly date)
     {
-        if (IsDisabled || IsDateDisabled(date)) return;
+        if (IsDisabled || IsReadOnly || IsDateDisabled(date)) return;
         _displayMonth = FirstOfMonth(date);
         var map = BuildTimeMap(date);
         var time = SelectedTime.HasValue && map.Contains(SelectedTime.Value)
@@ -171,12 +199,13 @@ public partial class DateTimePicker : AeterniComponent
     private async Task SelectTimeAsync(TimeOnly time)
     {
         var date = SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
-        if (IsDisabled || IsDateDisabled(date) || !BuildTimeMap(date).Contains(time)) return;
+        if (IsDisabled || IsReadOnly || IsDateDisabled(date) || !BuildTimeMap(date).Contains(time)) return;
         await SetValueAsync(CreateValue(date, time), close: true);
     }
 
     private Task UpdateDraftTimeAsync(TimeOnly time)
     {
+        if (IsDisabled || IsReadOnly) return Task.CompletedTask;
         var date = SelectedDate ?? DateOnly.FromDateTime(DateTime.Today);
         _draftValue = CreateValue(date, time);
         return Task.CompletedTask;
@@ -184,6 +213,7 @@ public partial class DateTimePicker : AeterniComponent
 
     private async Task SetValueAsync(DateTime value, bool close)
     {
+        if (IsDisabled || IsReadOnly) return;
         Value = value;
         await ValueChanged.InvokeAsync(value);
         NotifyFieldChanged();
@@ -236,7 +266,7 @@ public partial class DateTimePicker : AeterniComponent
 
     private Task ToggleAsync()
     {
-        if (!IsDisabled)
+        if (!IsDisabled && !IsReadOnly)
         {
             if (!_open)
             {
@@ -250,6 +280,14 @@ public partial class DateTimePicker : AeterniComponent
 
     private Task HandleOpenChanged(bool open)
     {
+        if (open && (IsDisabled || IsReadOnly))
+        {
+            // The popover only reports closures today, but the handler also guards a
+            // future programmatic open: read-only must never reach the panel.
+            _open = false;
+            return Task.CompletedTask;
+        }
+
         if (open && !_open)
         {
             _draftValue = Value;
@@ -281,6 +319,20 @@ public partial class DateTimePicker : AeterniComponent
         }
     }
 
+
+    /// <summary>
+    /// Merges the host description ids with the field-provided ones in the order the
+    /// other field controls use (host first, then <c>FormField</c>) and drops ids that
+    /// were already listed by one of the two sources.
+    /// </summary>
+    private static string? MergeDescriptionIds(string? hostDescribedBy, string? fieldDescribedBy)
+    {
+        var merged = string.Join(' ', new[] { hostDescribedBy, fieldDescribedBy }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .SelectMany(value => value!.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .Distinct(StringComparer.Ordinal));
+        return merged.Length == 0 ? null : merged;
+    }
 
     protected override ValueTask OnComponentDisposeAsync()
     {
