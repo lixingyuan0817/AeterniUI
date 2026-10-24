@@ -25,9 +25,13 @@
     transition: var(--aeterni-transition-background), var(--aeterni-transition-border), var(--aeterni-transition-shadow), var(--aeterni-transition-transform);
 }
 
-.aeterni-card.is-interactive:not(.is-disabled):hover {
-    box-shadow: var(--aeterni-shadow-md);
-    transform: translateY(-2px);
+/* Hover lift and edge highlight are pointer affordances; guarding them keeps a
+   tapped card from staying raised on a touch screen. Focus/active stay unguarded. */
+@media (hover: hover) {
+    .aeterni-card.is-interactive:not(.is-disabled):hover {
+        box-shadow: var(--aeterni-shadow-md);
+        transform: translateY(-2px);
+    }
 }
 
 /* The edge is gated on `is-bordered` instead of being set unconditionally: a
@@ -36,8 +40,10 @@
    shadow stay, so hover still reads on every variant. 4 classes here versus the 2
    on the `.is-bordered` rule below, which is why the gate has to live in this
    rule. */
-.aeterni-card.is-interactive.is-bordered:not(.is-disabled):hover {
-    border-color: var(--aeterni-border-strong);
+@media (hover: hover) {
+    .aeterni-card.is-interactive.is-bordered:not(.is-disabled):hover {
+        border-color: var(--aeterni-border-strong);
+    }
 }
 
 .aeterni-card.is-interactive:active:not(.is-disabled) {

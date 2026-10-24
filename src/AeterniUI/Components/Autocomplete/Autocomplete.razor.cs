@@ -60,6 +60,12 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public bool Clearable { get; set; } = true;
 
+    /// <summary>
+    /// Host is refreshing the suggestion snapshot. The suggestion region shows a
+    /// busy status and the root reports <c>aria-busy</c>; the input, the clear
+    /// action and opening/closing the panel stay usable so the host can keep the
+    /// field interactive while it waits for data.
+    /// </summary>
     [Parameter]
     public bool Loading { get; set; }
 
@@ -115,8 +121,6 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private bool IsDisabled => Disabled || (FormField?.Disabled ?? false);
 
-    private bool IsEffectivelyDisabled => IsDisabled || Loading;
-
     private bool IsInvalid => Invalid ||
         (FormField?.Invalid ?? false) ||
         (_hasFieldIdentifier && _validation.HasValidationMessages(_fieldIdentifier));
@@ -127,12 +131,10 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private bool HasItemsSource => Items is not null;
 
-    private bool CanOpen => !IsEffectivelyDisabled && !ReadOnly && (HasItemsSource || EmptyContent is not null);
-
-    // Keep an already-open list visible while its host reports Loading so the
-    // status surface remains available even though the input and clear action
-    // are temporarily disabled.
-    private bool CanDisplay => !IsDisabled && !ReadOnly && (HasItemsSource || Loading || EmptyContent is not null);
+    // Loading never closes the field: it only swaps the suggestion body for the
+    // busy status, so the panel has to be openable while the host refreshes Items
+    // even when the current snapshot is empty.
+    private bool CanOpen => !IsDisabled && !ReadOnly && (HasItemsSource || Loading || EmptyContent is not null);
 
     private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel)
         ? UiText.AutocompleteLabel
@@ -194,7 +196,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
         RebuildItems();
         UpdateEditContextSubscription();
 
-        if (!CanDisplay)
+        if (!CanOpen)
         {
             _open = false;
             _activeIndex = -1;
@@ -230,13 +232,13 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
         .Add("is-readonly", ReadOnly)
         .Add("is-open", _open)
         .Add("is-invalid", IsInvalid)
-        .Add("is-disabled", IsEffectivelyDisabled)
+        .Add("is-disabled", IsDisabled)
         .Add("is-loading", Loading);
 
     protected override IReadOnlyDictionary<string, object> BuildAttributes()
     {
         var attributes = new Dictionary<string, object>(base.BuildAttributes(), StringComparer.OrdinalIgnoreCase);
-        if (IsEffectivelyDisabled)
+        if (IsDisabled)
         {
             attributes["aria-disabled"] = "true";
         }
@@ -251,7 +253,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleValueChangedAsync(string? value)
     {
-        if (IsEffectivelyDisabled || ReadOnly)
+        if (IsDisabled || ReadOnly)
         {
             return;
         }
@@ -283,8 +285,36 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private async Task HandleKeyDownAsync(KeyboardEventArgs args)
     {
-        if (IsEffectivelyDisabled || ReadOnly || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
+        if (IsDisabled || ReadOnly || args.AltKey || args.CtrlKey || args.MetaKey || args.ShiftKey)
         {
+            return;
+        }
+
+        if (Loading)
+        {
+            // The body only shows the busy status: the panel can still open and
+            // close, but there is no rendered option to move onto or confirm.
+            switch (args.Key)
+            {
+                case "ArrowDown":
+                case "ArrowUp":
+                    if (!_open)
+                    {
+                        Open();
+                    }
+
+                    await InvokeAsync(StateHasChanged);
+                    break;
+                case "Escape":
+                    if (_open)
+                    {
+                        Close();
+                        await InvokeAsync(StateHasChanged);
+                    }
+
+                    break;
+            }
+
             return;
         }
 
@@ -369,7 +399,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private async Task SelectAsync(TItem item)
     {
-        if (IsEffectivelyDisabled || ReadOnly)
+        if (IsDisabled || ReadOnly)
         {
             return;
         }
@@ -386,7 +416,7 @@ public partial class Autocomplete<TItem> : AeterniComponent where TItem : class
 
     private async Task ClearAsync(MouseEventArgs _)
     {
-        if (IsEffectivelyDisabled || ReadOnly || !HasValue)
+        if (IsDisabled || ReadOnly || !HasValue)
         {
             return;
         }

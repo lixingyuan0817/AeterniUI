@@ -209,7 +209,6 @@
     max-width: none;
     padding: var(--aeterni-spacing-2);
     border-radius: var(--aeterni-radius-lg);
-    animation: aeterni-cascader-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
 .aeterni-cascader__panel {
@@ -350,16 +349,9 @@
     font-size: var(--aeterni-cascader-font-size);
 }
 
-@keyframes aeterni-cascader-pop {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    ::deep .aeterni-cascader__popover .aeterni-popover__surface,
     .aeterni-cascader__trigger,
     .aeterni-cascader__trigger ::deep .aeterni-cascader__chevron {
         transition: none;
-        animation: none;
     }
 }

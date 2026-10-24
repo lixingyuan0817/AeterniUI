@@ -238,12 +238,26 @@
     </div>
 
     <h2 id="colors-type" class="showcase-colors__subtitle">字体与字号</h2>
-    <p class="showcase-page-note showcase-colors__note">字号阶梯 12px 到 60px，正文默认 16px。字阶、字重与行高同样只在 Token 里维护：字号取 <code>--aeterni-font-size-*</code>，字重取 <code>--aeterni-font-weight-*</code>，行高取 <code>--aeterni-line-height-*</code>；标题与正文的层级由这三组组合出来，不在页面里另写字号字面量。</p>
+    <p class="showcase-page-note showcase-colors__note">正文与标题的字号阶梯是 12px 到 60px，正文默认 16px；页面级展示字（Hero 与字体标本）另设 display 档 80 / 96 / 144px，同样由 Token 提供。字阶、字重与行高只在 Token 里维护：字号取 <code>--aeterni-font-size-*</code>，字重取 <code>--aeterni-font-weight-*</code>，行高取 <code>--aeterni-line-height-*</code>；标题与正文的层级由这三组组合出来，不在页面里另写字号字面量。</p>
     <div class="showcase-colors__typography">
         <div class="showcase-colors__display">
             <span class="showcase-colors__display-eyebrow">Display / Heading</span>
             <span class="showcase-colors__display-sample">Aa</span>
             <code>--aeterni-font-family-display</code>
+            <div class="showcase-colors__display-scale">
+                <div class="showcase-colors__display-scale-row">
+                    <code>--aeterni-font-size-display-sm</code>
+                    <span>页面展示 · 80px</span>
+                </div>
+                <div class="showcase-colors__display-scale-row">
+                    <code>--aeterni-font-size-display-md</code>
+                    <span>更大展示面 · 96px</span>
+                </div>
+                <div class="showcase-colors__display-scale-row">
+                    <code>--aeterni-font-size-display-lg</code>
+                    <span>字体标本 · 144px</span>
+                </div>
+            </div>
         </div>
         <div class="showcase-colors__scale">
             <div class="showcase-colors__scale-row">
@@ -354,7 +368,7 @@
     </div>
 
     <h2 id="colors-radius" class="showcase-colors__subtitle">圆角阶梯</h2>
-    <p class="showcase-page-note showcase-colors__note">控件圆角走 <code>--aeterni-radius-control-*</code>：输入与文本域按尺寸档取 sm / md / lg，按钮则用独立的一档 <code>--aeterni-radius-button</code>——按钮的高度、内边距与圆角一起定义它的形状，不跟随字段的档位。容器、浮层和模态另有 <code>card</code> / <code>dropdown</code> / <code>modal</code> 别名，都指向下面这条阶梯。形状本身是标尺，容器保持无色，避免和语义色互相干扰。</p>
+    <p class="showcase-page-note showcase-colors__note">控件圆角走 <code>--aeterni-radius-control-*</code>：输入与文本域按尺寸档取 sm / md / lg；按钮统一取 <code>--aeterni-radius-button</code>，它指向阶梯上的 lg（8px），所以按钮与同档字段共用同一条阶梯，不再自带一个阶梯外值。容器、浮层和模态另有 <code>card</code> / <code>dropdown</code> / <code>modal</code> 别名，都指向下面这条阶梯。形状本身是标尺，容器保持无色，避免和语义色互相干扰。</p>
     <div class="showcase-colors__radius">
         <div class="showcase-colors__radius-item">
             <span class="showcase-colors__radius-shape showcase-colors__radius-shape--xs"></span>
@@ -378,7 +392,7 @@
         </div>
         <div class="showcase-colors__radius-item">
             <span class="showcase-colors__radius-shape showcase-colors__radius-shape--button"></span>
-            <span class="showcase-colors__radius-name">Button</span>
+            <span class="showcase-colors__radius-name">Button · LG</span>
             <code>--aeterni-radius-button</code>
         </div>
         <div class="showcase-colors__radius-item">

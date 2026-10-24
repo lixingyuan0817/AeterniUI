@@ -15,6 +15,15 @@ public partial class List<TItem> : AeterniComponent
     private TItem[] _dataItems = [];
     private bool _disposed;
 
+    /// <summary>
+    /// Snapshot of the rows to render. Replacing it (for example when the host
+    /// filters the list) never clears the selection: <see cref="SelectedItem" />
+    /// and <see cref="SelectedItems" /> stay exactly as the host supplied them, and
+    /// values without a matching row are simply not rendered as selected. Removing
+    /// an item from the underlying data set is likewise the host's decision — the
+    /// component does not prune the bound value, so the host must remove deleted
+    /// values from its own selection state.
+    /// </summary>
     [Parameter]
     public IEnumerable<TItem>? Items { get; set; }
 
@@ -235,21 +244,10 @@ public partial class List<TItem> : AeterniComponent
             _focusedItem = null;
         }
         _dataItems = next;
-        if (Items is not null)
-        {
-            if (_legacySelectedValue is not null && !next.Any(item => ValuesEqual(item, _legacySelectedValue)))
-            {
-                await CommitSingleSelectionAsync(null);
-            }
-            if (_legacySelectedValues is not null)
-            {
-                var retained = _legacySelectedValues.Where(value => next.Any(item => ValuesEqual(item, value))).ToArray();
-                if (retained.Length != _legacySelectedValues.Count)
-                {
-                    await CommitMultipleSelectionAsync(retained);
-                }
-            }
-        }
+        // Selection is host-owned: rebuilding Items (a filter pass, a page swap) must
+        // not rewrite SelectedItem/SelectedItems behind the host's back. A selected
+        // value that has no row here is simply not shown; the host decides whether a
+        // real deletion should also remove it from the bound value.
     }
 
     protected override ClassBuilder BuildClass()

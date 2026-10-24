@@ -20,13 +20,12 @@ public partial class ShowcaseSearchBox : ComponentBase, IDisposable
     private ElementReference _kbd;
     private DotNetObjectReference<ShowcaseSearchBox>? _reference;
 
-    /// <summary>Ctrl/Cmd+K 打开面板（JS 按当前状态决定调本方法还是下面的关闭入口）。</summary>
+    /// <summary>
+    /// Ctrl/Cmd+K：按当前状态开合。退场动画期间 <see cref="ShowcaseSearchModel.Open" />
+    /// 已经是 false，因此同一个入口会重新打开面板，不需要另传一个「正在关闭」标志。
+    /// </summary>
     [JSInvokable]
-    public void OpenFromShortcut() => Model.OpenPanel();
-
-    /// <summary>Ctrl/Cmd+K 在面板已经打开时收起它。</summary>
-    [JSInvokable]
-    public void CloseFromShortcut() => Model.ClosePanel();
+    public void ToggleFromShortcut() => Model.TogglePanel();
 
     protected override void OnInitialized() => Model.Changed += HandleModelChanged;
 

@@ -210,7 +210,6 @@
     max-width: none;
     padding: var(--aeterni-spacing-2);
     border-radius: var(--aeterni-radius-lg);
-    animation: aeterni-combobox-pop var(--aeterni-duration-fast) var(--aeterni-ease-out);
 }
 
 .aeterni-combobox__options {
@@ -313,15 +312,8 @@
     font-size: var(--aeterni-combobox-font-size);
 }
 
-@keyframes aeterni-combobox-pop {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    ::deep .aeterni-combobox__popover .aeterni-popover__surface,
     .aeterni-combobox__trigger ::deep .aeterni-combobox__chevron {
         transition: none;
-        animation: none;
     }
 }

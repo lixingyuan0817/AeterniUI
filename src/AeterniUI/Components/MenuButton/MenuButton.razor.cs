@@ -1,15 +1,21 @@
+using AeterniUI.Attributes;
+using AeterniUI.Components.Button;
 using AeterniUI.Enums;
 using AeterniUI.Components;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.Popup;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace AeterniUI.Components.MenuButton;
 
 /// <summary>A button that opens an anchored menu.</summary>
+[JsModule("js/aeterni_menu_trigger.js", Name = "menu-trigger", Interactive = true)]
 public partial class MenuButton : AeterniComponent
 {
+    private const string TriggerModule = "menu-trigger";
+
     [Parameter]
     public string Label { get; set; } = string.Empty;
 
@@ -32,6 +38,12 @@ public partial class MenuButton : AeterniComponent
     public EventCallback<bool> OpenChanged { get; set; }
 
     private bool _internalOpen;
+    private AeterniUI.Components.Button.Button? _triggerButton;
+    private AeterniUI.Components.Menu.Menu? _menu;
+
+    /// <summary>0 = nothing pending, 1 = focus the first node, 2 = focus the last.</summary>
+    private int _pendingFocus;
+    private bool _disposed;
 
     private bool EffectiveOpen => OpenChanged.HasDelegate ? Open : _internalOpen;
 
@@ -49,6 +61,50 @@ public partial class MenuButton : AeterniComponent
 
     [Parameter]
     public bool FullWidth { get; set; }
+
+    protected override async Task OnComponentAfterRenderAsync(bool firstRender)
+    {
+        var trigger = _triggerButton is null ? default : _triggerButton.RootElement;
+        await JsModuleManager.InvokeModuleVoidAsync(TriggerModule, "attach", InstanceId, trigger);
+
+        if (_pendingFocus == 0)
+        {
+            return;
+        }
+
+        if (!EffectiveOpen || _menu is null)
+        {
+            _pendingFocus = 0;
+            return;
+        }
+
+        var last = _pendingFocus == 2;
+        _pendingFocus = 0;
+        await _menu.FocusEdgeItemAsync(last);
+    }
+
+    /// <summary>
+    /// ArrowDown/ArrowUp on the trigger opens the menu and places focus on its
+    /// first/last reachable node. Arrow keys that arrive while the menu is already
+    /// open only move focus; the module has already cancelled the page scroll.
+    /// </summary>
+    [JSInvokable]
+    public async Task HandleTriggerArrowKeyAsync(bool arrowDown)
+    {
+        if (_disposed || Disabled || Loading || _menu is null)
+        {
+            return;
+        }
+
+        if (EffectiveOpen)
+        {
+            await _menu.FocusEdgeItemAsync(last: !arrowDown);
+            return;
+        }
+
+        _pendingFocus = arrowDown ? 1 : 2;
+        await SetOpenAsync(true);
+    }
 
     protected override void OnParametersSet()
     {
@@ -140,5 +196,13 @@ public partial class MenuButton : AeterniComponent
             _internalOpen = open;
             StateHasChanged();
         }
+    }
+
+    // The shared trigger module is released by the base class; this flag additionally
+    // rejects a queued interop callback that arrives after the component is gone.
+    protected override ValueTask OnComponentDisposeAsync()
+    {
+        _disposed = true;
+        return ValueTask.CompletedTask;
     }
 }

@@ -66,6 +66,13 @@ jobs:
       - name: Brand palette contrast check
         run: node scripts/check-contrast.mjs
 
+      # The dark theme is declared twice on purpose: an explicit block wins once a
+      # theme attribute is set, and the prefers-color-scheme fallback prevents a
+      # light flash before the theme script runs. This gate fails if the two copies
+      # drift apart (missing token or different value).
+      - name: Dark theme parity check
+        run: node scripts/check-theme-parity.mjs
+
       # The icon adapter is generated, so the committed FontAwesomeIcons.cs must
       # stay in sync with the manifest in scripts/generate-fontawesome-icons.mjs.
       # The upstream package is cached under the script's own temp directory;

@@ -66,6 +66,23 @@ test('ignores modified, composing and unowned events', () => {
     } finally { dispose('test'); }
 });
 
+test('a read-only trigger stays focusable but owns none of the navigation keys', () => {
+    const f = fixture();
+    try {
+        // Read-only now keeps the trigger in the Tab sequence; the JS guard must
+        // then stop swallowing keys the control does not act on.
+        f.trigger.attributes['aria-readonly'] = 'true';
+        sync('test', f.trigger);
+        for (const pressed of ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Escape', 'Backspace']) {
+            assert.equal(f.key(pressed).prevented, false, `${pressed} must scroll natively while read-only`);
+        }
+        assert.equal(f.trigger.listeners.has('keydown'), true, 'the listener stays bound while read-only');
+
+        f.trigger.attributes['aria-readonly'] = 'false';
+        assert.equal(f.key('ArrowDown').prevented, true, 'leaving read-only restores the key guard');
+    } finally { dispose('test'); }
+});
+
 test('the active option is scrolled into its own viewport, never the page', () => {
     const f = fixture();
     try {

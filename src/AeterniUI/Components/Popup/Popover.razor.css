@@ -10,6 +10,12 @@
 .aeterni-popover {
     --aeterni-popover-gap: var(--aeterni-spacing-2);
     --aeterni-popover-shift-x: 0px;
+    /* Entrance/exit travel follows the side the layer is placed on (see the
+       top-placement override below): a layer below its anchor starts above its
+       final position and leaves upwards, while a layer above the anchor mirrors
+       it. One pair of keyframes reads these variables. */
+    --aeterni-popover-enter-shift-y: -4px;
+    --aeterni-popover-exit-shift-y: -4px;
 
     position: absolute;
     box-sizing: border-box;
@@ -47,7 +53,13 @@
     animation: aeterni-popover-fade-out calc(var(--aeterni-duration-fast) * .8) var(--aeterni-ease-in) both;
 }
 
-@keyframes aeterni-popover-exit { to { opacity: 0; transform: translateY(-4px); } }
+.aeterni-popover--top-start,
+.aeterni-popover--top-end {
+    --aeterni-popover-enter-shift-y: 4px;
+    --aeterni-popover-exit-shift-y: 4px;
+}
+
+@keyframes aeterni-popover-exit { to { opacity: 0; transform: translateY(var(--aeterni-popover-exit-shift-y)); } }
 @keyframes aeterni-popover-fade-out { to { opacity: 0; } }
 
 .aeterni-popover--bottom-start,
@@ -138,11 +150,12 @@
     min-width: 0;
 }
 
-/* Keyframe offsets are motion distances, not layout sizes. */
+/* Keyframe offsets are motion distances, not layout sizes. The sign flips for a
+   layer placed above its anchor (see --aeterni-popover-enter-shift-y). */
 @keyframes aeterni-popover-enter {
     from {
         opacity: 0;
-        transform: translateY(-4px);
+        transform: translateY(var(--aeterni-popover-enter-shift-y));
     }
 
     to {

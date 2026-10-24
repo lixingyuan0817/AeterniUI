@@ -2,6 +2,10 @@
     position: relative;
     display: inline-flex;
     max-width: 100%;
+    /* Hover opens after a short quiet period so sweeping across a toolbar does not
+       flash every hint; keyboard focus opens immediately. Hiding stays fast. Hosts
+       can shorten/lengthen the wait through this property on the root. */
+    --aeterni-tooltip-show-delay: 250ms;
 }
 
 .aeterni-tooltip__trigger {
@@ -38,7 +42,11 @@
     visibility: hidden;
     opacity: 0;
     translate: var(--aeterni-tooltip-rise-x) var(--aeterni-tooltip-rise-y);
-    transition: var(--aeterni-transition-opacity), translate var(--aeterni-duration-normal) var(--aeterni-ease-in-out), visibility var(--aeterni-duration-normal) var(--aeterni-ease-in-out);
+    /* Hiding is deliberately quick: the base transition is the one that runs when
+       the pointer/focus leaves, so a hint never lingers over the next control. */
+    transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-out),
+                translate var(--aeterni-duration-fast) var(--aeterni-ease-out),
+                visibility 0s linear var(--aeterni-duration-fast);
 }
 
 /* The frosted fill cannot carry the standard ink ladder: over a light backdrop at
@@ -87,11 +95,30 @@
     transform: translateY(calc(-50% + var(--aeterni-tooltip-shift-y)));
 }
 
-.aeterni-tooltip:hover .aeterni-tooltip__content,
+/* Pointer hover is a hint affordance, not a touch affordance: on a touch device the
+   tap focuses the trigger instead, and a sticky :hover must not pin the tooltip.
+   The quiet-period delay lives on the running transition, so leaving during the
+   wait never shows a stale hint (the base rule above has no delay on the way back). */
+@media (hover: hover) {
+    .aeterni-tooltip:hover .aeterni-tooltip__content {
+        visibility: visible;
+        opacity: 1;
+        translate: 0 0;
+        transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-out) var(--aeterni-tooltip-show-delay),
+                    translate var(--aeterni-duration-fast) var(--aeterni-ease-out) var(--aeterni-tooltip-show-delay),
+                    visibility 0s linear 0s;
+    }
+}
+
+/* Keyboard focus is an explicit request for the hint: no delay, and it wins over
+   a hover that happens to be in progress. */
 .aeterni-tooltip:focus-within .aeterni-tooltip__content {
     visibility: visible;
     opacity: 1;
     translate: 0 0;
+    transition: opacity var(--aeterni-duration-fast) var(--aeterni-ease-out),
+                translate var(--aeterni-duration-fast) var(--aeterni-ease-out),
+                visibility 0s linear 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -50,7 +50,7 @@
 
         <DemoCard Id="data-list-selection"
                   Title="多选与计数"
-                  Description="SelectedItems 由宿主保存，行在筛选后重建时按 ItemKeySelector 的 key 恢复选中态；下面两段共用同一份选择。"
+                  Description="SelectedItems 由宿主保存：行在筛选后重建、甚至被筛出当前快照，选中值也不会被组件清除；ItemKeySelector 的稳定 key 负责让仍在列表里的行恢复选中态。"
                   Code="@SelectionCode">
             <Preview>
                 <div class="preview-stack">
@@ -98,7 +98,7 @@
         </DemoCard>
     </Demos>
     <Notes>
-        <span>选择归宿主：<code>SelectedItems</code> 由页面保存，筛选把行移出列表后选择仍然保留。</span>
+        <span>选择归宿主：<code>SelectedItems</code> 由页面保存，筛选把行移出列表后选择仍然保留——组件不会自动裁剪选中值；只有用户显式清除或宿主自己从选中列表里删除时，选择才会变化。</span>
         <span>行身份靠 <code>ItemKeySelector</code>：筛选会重建 <code>Items</code>，没有稳定 key 时选择会跟着错位。</span>
         <span>批量动作条按有没有选中决定出现与否，而不是禁用一整排按钮。</span>
         <span>600 条以上才值得虚拟化：行数很少时，虚拟滚动换算出的总高度反而让滚动条位置不直观。</span>
@@ -143,6 +143,7 @@
                      ItemKeySelector="row => row.Id" />
 
         // Selected 是宿主持有的一份列表：筛选把它下面的行换掉，它自己不受影响
+        // （组件不会把不在当前 Items 里的选中值删掉；真删除时由宿主自己移除）
         // 行身份靠 ItemKeySelector 的 key —— 没有稳定 key 时选择会按位置错位
         """;
 

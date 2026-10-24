@@ -414,6 +414,23 @@ public partial class Menu : AeterniComponent
         await JsModuleManager.InvokeModuleVoidAsync(ModuleName, "focus", nodeId);
     }
 
+    /// <summary>
+    /// Moves focus to the first or last reachable node. Used by the menu button
+    /// triggers, which own the "ArrowDown/ArrowUp opens the menu" shortcut: the
+    /// trigger lives outside this component, so it asks the menu to place focus
+    /// using the same visible-node model as the menu's own arrow keys.
+    /// </summary>
+    internal async Task FocusEdgeItemAsync(bool last)
+    {
+        var nodes = BuildVisibleNodes();
+        if (nodes.Count == 0)
+        {
+            return;
+        }
+
+        await FocusNodeAsync(nodes, last ? nodes.Count - 1 : 0);
+    }
+
     private async Task ExpandFocusedGroupAsync()
     {
         if (Flat || _focusedItemIndex != NoItem || _focusedGroupIndex < 0 || _focusedGroupIndex >= Items.Count)

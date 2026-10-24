@@ -3,6 +3,7 @@
 <div @ref="RootElement" @attributes="BuildAttributes()">
     <PopupHost>
         <IconButton Id="@($"{ElementId}-trigger")"
+                    @ref="_triggerButton"
                     Variant="@Variant"
                     Intent="@Intent"
                     Size="@Size"
@@ -22,6 +23,7 @@
                  RestoreFocusOnClose="true"
                  AriaLabel="@AriaLabel">
             <Menu Id="@MenuId"
+                  @ref="_menu"
                   Items="@Items"
                   Flat="@Flat"
                   AriaLabel="@AriaLabel"

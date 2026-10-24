@@ -87,9 +87,9 @@
 }
 
 .dash__brand-name {
-    font-size: clamp(15px, 1.05vw, 18px);
+    font-size: clamp(var(--aeterni-font-size-sm), 1.05vw, var(--aeterni-font-size-lg));
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .01em;
+    letter-spacing: var(--aeterni-letter-spacing-wide);
     color: var(--aeterni-text);
     white-space: nowrap;
 }
@@ -116,10 +116,10 @@
 }
 
 .dash__clock {
-    font-size: clamp(15px, 1.05vw, 18px);
+    font-size: clamp(var(--aeterni-font-size-sm), 1.05vw, var(--aeterni-font-size-lg));
     font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
-    letter-spacing: .04em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
     color: var(--aeterni-text);
 }
 
@@ -208,7 +208,7 @@
     margin: 0;
     font-size: var(--aeterni-font-size-md);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .01em;
+    letter-spacing: var(--aeterni-letter-spacing-wide);
     color: var(--aeterni-text);
 }
 
@@ -249,7 +249,7 @@
 }
 
 .dash__metric-value {
-    font-size: clamp(20px, 1.45vw, 26px);
+    font-size: clamp(var(--aeterni-font-size-xl), 1.45vw, var(--aeterni-font-size-3xl));
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -302,7 +302,7 @@
 }
 
 .dash__ring-value {
-    font-size: clamp(22px, 1.7vw, 28px);
+    font-size: clamp(var(--aeterni-font-size-xl), 1.7vw, var(--aeterni-font-size-3xl));
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -495,7 +495,7 @@
 }
 
 .dash__stage-core-value {
-    font-size: clamp(44px, 5vw, 76px);
+    font-size: clamp(var(--aeterni-font-size-5xl), 5vw, var(--aeterni-font-size-display-sm));
     font-weight: var(--aeterni-font-weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -504,7 +504,7 @@
 
 .dash__stage-core-label {
     font-size: var(--aeterni-font-size-xs);
-    letter-spacing: .18em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
     color: var(--aeterni-text-secondary);
 }
 
@@ -518,12 +518,12 @@
 
 .dash__stage-eyebrow {
     font-size: var(--aeterni-font-size-xs);
-    letter-spacing: .06em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
     color: var(--aeterni-text-secondary);
 }
 
 .dash__stage-title {
-    font-size: clamp(16px, 1.3vw, 20px);
+    font-size: clamp(var(--aeterni-font-size-base), 1.3vw, var(--aeterni-font-size-xl));
     font-weight: var(--aeterni-font-weight-semibold);
     color: var(--aeterni-text);
 }
@@ -569,7 +569,7 @@
 }
 
 .dash__gauge-value {
-    font-size: clamp(16px, 1.15vw, 20px);
+    font-size: clamp(var(--aeterni-font-size-base), 1.15vw, var(--aeterni-font-size-xl));
     font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
     color: var(--aeterni-text);
@@ -664,7 +664,7 @@
 .dash__control-label {
     flex: 0 0 auto;
     font-size: var(--aeterni-font-size-xs);
-    letter-spacing: .08em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
     color: var(--aeterni-text-secondary);
     white-space: nowrap;
 }

@@ -84,7 +84,7 @@
         </DemoCard>
         <DemoCard Id="multi-select-loading"
                   Title="加载态与弹层方位"
-                  Description="Loading 时浮层显示忙碌状态，但触发器的打开/关闭不受影响；Placement 指定首选方位。清除沿用 AllowClear/OnClear 的批量动作。"
+                  Description="ReadOnly 时触发器仍在 Tab 序列内、已选文本可选中复制，但不打开列表也不改值（aria-readonly 取代 aria-disabled）；Loading 只把面板换成忙碌状态；Placement 指定首选方位；清除沿用 AllowClear/OnClear 的批量动作。"
                   Code="@LoadingCode">
             <Preview>
                 <div class="preview-form-control preview-form-control--fill">
@@ -115,6 +115,7 @@
     <Notes>
         <span>触发器是 <code>combobox</code>，浮层是 <code>listbox[aria-multiselectable]</code>；活动项通过 <code>aria-activedescendant</code> 表达，输入焦点始终留在触发器上。</span>
         <span>禁用选项不进入方向键移动范围，也不会被「全选」选中。</span>
+        <span>只读（ReadOnly）与禁用不同：触发器保持可聚焦，已选文本可选中复制，但点击、方向键、Enter/空格与批量动作都不会打开面板或改动值。</span>
         <span>组件不请求远程数据、不做搜索历史与虚拟滚动：大数据量场景由宿主自行裁剪 <code>Items</code>。</span>
     </Notes>
 </ComponentPage>

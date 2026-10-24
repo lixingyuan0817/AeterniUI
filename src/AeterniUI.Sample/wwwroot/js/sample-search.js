@@ -14,7 +14,7 @@
 // 跳过来时它只 `history.pushState`，浏览器不会滚动；落地时目标页可能还没渲染出那一段。
 // 其余一切（数据、过滤、活动项、ARIA、路由、开合状态）都在 C# 里。
 
-import { createFocusTrap, lockScroll } from '../_content/AeterniUI/js/aeterni_floating.js';
+import { createFocusTrap, lockScroll, waitForExit } from '../_content/AeterniUI/js/aeterni_floating.js';
 
 const navigationKeys = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End', 'Escape']);
 
@@ -74,6 +74,18 @@ export function unmountPanel(restoreFocus = true) {
     if (restoreFocus && trigger?.isConnected) {
         trigger.focus?.();
     }
+}
+
+/**
+ * 等待面板遮罩与面板自己的退场动画结束。复用库内共享的 waitForExit：它按真实
+ * animation 时长解析，reduced-motion 下 `animation: none` 会立即 resolve，不额外
+ * 引入固定延时；调用方用 revision 防止「退场途中重新打开」的旧任务误卸载。
+ */
+export function waitForPanelExit(panel) {
+    const backdrop = panel?.parentElement?.querySelector('.showcase-search-modal__backdrop') ?? null;
+    return new Promise(resolve => {
+        waitForExit([panel, backdrop], resolve);
+    });
 }
 
 /** 活动项变化后的滚动：面板打开期间由 C# 在每次渲染后调用。 */
@@ -161,7 +173,7 @@ export function attachShortcut(dotNet, kbd) {
         // 浏览器自己也把 Ctrl/Cmd+K 当入口（地址栏搜索），必须拦下来才轮得到面板。
         event.preventDefault();
         // 触发器释放后（组件正在卸载）没有接收方：这次按键不能留下未处理的 rejection。
-        dotNet.invokeMethodAsync(session ? 'CloseFromShortcut' : 'OpenFromShortcut').catch(() => { });
+        dotNet.invokeMethodAsync('ToggleFromShortcut').catch(() => { });
     };
 
     document.addEventListener('keydown', handler, true);

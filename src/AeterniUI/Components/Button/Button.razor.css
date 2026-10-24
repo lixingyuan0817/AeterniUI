@@ -94,8 +94,6 @@
 .aeterni-button:hover:not(:disabled) {
     background: var(--aeterni-button-background-hover);
     color: var(--aeterni-button-foreground);
-    box-shadow: var(--aeterni-shadow-sm);
-    transform: translateY(-1px);
 }
 
 .aeterni-button:active:not(:disabled) {
@@ -403,6 +401,15 @@
     border-color: transparent;
     background: var(--aeterni-button-disabled-background-subtle);
     text-decoration: none;
+}
+
+/* The lift is a pointer affordance: on a touch screen a sticky :hover would leave
+   the button raised and shadowed after the tap. Colour feedback stays above. */
+@media (hover: hover) {
+    .aeterni-button:hover:not(:disabled) {
+        box-shadow: var(--aeterni-shadow-sm);
+        transform: translateY(-1px);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

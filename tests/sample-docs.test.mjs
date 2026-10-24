@@ -18,10 +18,14 @@
 //      的 `Sections`，`ShowcaseApiTable` 按组渲染，不再是一张混表）。
 //   7. 基类参数带支持矩阵：不渲染 DOM 或明确不消费该参数的组件会被标成「不支持 + 原因」，
 //      矩阵从组件源码结构推导（`scripts/lib/showcase-support.mjs`），不是每个页面无条件列出。
+//   8. API 表的编辑内容只有一个维护入口（`scripts/api-content.json` 的页内 descriptions /
+//      extraRows / since）；拆成三个 JSON 的旧布局不再允许出现。
+//   9. 搜索索引生成物按页面分组（页面字段只存一次），消费端摊平后顺序必须与目录一致。
 //
 // 有意不做的事：不校验参数说明的文字，也不校验示例的视觉结果——那属于浏览器检查。
 import assert from 'node:assert/strict';
 import { catalogEntries, pascal, read } from '../scripts/lib/showcase-catalog.mjs';
+import { loadApiContent } from '../scripts/lib/showcase-api-content.mjs';
 import { existsSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { test } from 'node:test';
@@ -200,7 +204,7 @@ test('每个有组件的条目都出现在生成的 API 表里，且页面不再
 
     // 安装、设计基础与实验室页讲的是用法与 Token，没有单一组件，因此没有 API 表。
     // 反馈页记录的是服务与选项类型，没有对应组件目录，它的行全部来自编辑文件的额外行
-    // （`scripts/api-extra-rows.json` → 生成器在成员为空时也为它产出条目）。这里不再把它
+    // （`scripts/api-content.json` → 生成器在成员为空时也为它产出条目）。这里不再把它
     // 当例外：例外曾经让它带着三张没人消费的数组通过门禁，页面上其实没有 API 区。
     const noComponent = NON_COMPONENT_PAGES;
 
@@ -225,7 +229,7 @@ test('卡片化页面：每段代码都声明了，且片段用到了本页记�
 
     // 一页可能记录多个组件（Radio 与 RadioGroup、List 与 ListItem……），因此"片段里出现的
     // 类型"取本页记录过的类型集合：主类型来自 ComponentName，其余来自携带类型前缀的记录行。
-    const extras = JSON.parse(read('scripts/api-extra-rows.json')).rows;
+    const extras = loadApiContent().extraRows;
     const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
     let cards = 0;
 
@@ -629,6 +633,93 @@ test('基类参数支持矩阵：只列真正生效的公共参数，不生效�
     for (const [page, title] of [['feedback', 'Dialog'], ['date-picker', '共享约定'], ['theme', 'ThemeService']]) {
         assert.equal(sectionByKey.get(`${page}:${title}`)?.baseParameters, null,
             `${page}.${title} 不是库组件，不应列公共参数`);
+    }
+});
+
+// API 表的编辑内容（中文说明、生成器推不出来的行、自哪个版本）原先拆在三个 JSON 里：
+// 同一条成员要改两处，某个文件漂移也只会在生成物 --check 时才暴露。现在统一为
+// scripts/api-content.json 的「页 → descriptions / extraRows / since」，读取与校验只有
+// scripts/lib/showcase-api-content.mjs 一个入口。
+test('API 表的编辑内容只有一个维护入口', () => {
+    assert.ok(existsSync('scripts/api-content.json'), '合并后的编辑源 scripts/api-content.json 不存在');
+
+    for (const legacy of ['scripts/api-descriptions.json', 'scripts/api-extra-rows.json', 'scripts/api-since.json']) {
+        assert.ok(!existsSync(legacy), `${legacy} 应已并入 scripts/api-content.json，不能再有第二份编辑源`);
+    }
+
+    const content = loadApiContent();
+    assert.ok(Object.keys(content.descriptions).length >= 50,
+        `合并源只解析到 ${Object.keys(content.descriptions).length} 页说明，读取入口可能已失效`);
+    assert.ok(Object.keys(content.extraRows).length >= 20,
+        `合并源只解析到 ${Object.keys(content.extraRows).length} 页额外行，读取入口可能已失效`);
+    assert.ok(Object.keys(content.since.members).length >= 100,
+        `合并源只解析到 ${Object.keys(content.since.members).length} 条 since，读取入口可能已失效`);
+
+    // 抽样一条中文说明：确认生成器确实消费了合并源，而不是退回到源码里的英文 XML 注释。
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseApiReference.generated.cs`);
+    assert.ok(generated.includes('按钮视觉变体：Solid、Outline、Soft、Ghost、Link。'),
+        '生成物应包含合并编辑源里的中文说明');
+});
+
+// 搜索索引生成物按页面分组：页标题与分类只存一次，段只存 id 与标题。消费端
+// ShowcaseSearchModel 摊平后必须保持旧扁平序列的顺序——页面按目录顺序，页内第一段是页面
+// 本身，其余按阅读顺序；查询排序与键盘下标都依赖这个稳定顺序。
+test('搜索索引生成物按页面分组，扁平化后与目录顺序一致', () => {
+    const generated = read(`${SAMPLE}/Components/Showcase/ShowcaseSearchIndex.generated.cs`);
+    assert.match(generated, /IReadOnlyList<ShowcaseSearchPage> Pages \{ get; \}/, '搜索索引应按页面分组');
+    assert.doesNotMatch(generated, /IReadOnlyList<ShowcaseSearchEntry> Entries/, '旧的扁平 Entries 生成物应已替换');
+
+    const pages = [];
+    let current = null;
+    for (const line of generated.split(/\r?\n/)) {
+        const header = /^\s*new\("((?:[^"\\]|\\.)*)", "((?:[^"\\]|\\.)*)", "((?:[^"\\]|\\.)*)",$/.exec(line);
+        if (header) {
+            current = {
+                pageId: unescapeCSharp(header[1]),
+                pageTitle: unescapeCSharp(header[2]),
+                category: unescapeCSharp(header[3]),
+                sections: []
+            };
+            pages.push(current);
+            continue;
+        }
+
+        if (!current) continue;
+        for (const section of line.matchAll(/new\("((?:[^"\\]|\\.)*)", "((?:[^"\\]|\\.)*)"\)/g)) {
+            current.sections.push({ id: unescapeCSharp(section[1]), title: unescapeCSharp(section[2]) });
+        }
+    }
+
+    assert.equal(pages.length, entries.length,
+        `分组页面数 ${pages.length} 与目录条目数 ${entries.length} 不一致（需运行 node scripts/generate-search-index.mjs）`);
+    assert.deepEqual(pages.map(page => page.pageId), entries.map(entry => entry.id),
+        '页面顺序必须与目录顺序一致');
+
+    let sectionCount = 0;
+    for (const page of pages) {
+        assert.ok(page.sections.length >= 1, `${page.pageId} 至少要有「页面本身」这一段`);
+        assert.deepEqual(page.sections[0], { id: page.pageId, title: page.pageTitle },
+            `${page.pageId} 的第一段应是页面本身`);
+        assert.ok(page.category.length > 0, `${page.pageId} 缺少分类`);
+        const ids = page.sections.map(section => section.id);
+        assert.equal(new Set(ids).size, ids.length, `${page.pageId} 的段锚点重复`);
+        sectionCount += page.sections.length;
+    }
+
+    assert.ok(sectionCount > entries.length, '除页面本身外还应登记页内段');
+
+    // 抽查阅读顺序：按钮页是 何时使用 → demo 卡 → 参数与事件 → 相关组件 → 说明与边界。
+    const button = pages.find(page => page.pageId === 'button');
+    assert.ok(button, '搜索索引缺少 button 页');
+    assert.equal(button.sections[1].title, '何时使用');
+    assert.equal(button.sections.at(-1).title, '说明与边界');
+
+    // 段行只带两个参数；页字段重复出现在段行就说明分组退化回了扁平结构。
+    const twoFieldSection = /new\("(?:[^"\\]|\\.)*", "(?:[^"\\]|\\.)*"\)/g;
+    for (const line of generated.split(/\r?\n/)) {
+        if (!/^\s{16}new\(/.test(line)) continue;
+        const leftover = line.replace(twoFieldSection, '');
+        assert.match(leftover, /^[\s,]*$/, `段行不应重复页字段：${line.trim()}`);
     }
 });
 

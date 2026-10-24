@@ -68,7 +68,7 @@
 
         <DemoCard Id="list-selection"
                   Title="选择模式与长列表"
-                  Description="SelectionMode 在无选择、单选与多选之间切换；MaxHeight 让列表自己拥有滚动条，方向键按画面顺序移动。"
+                  Description="SelectionMode 在无选择、单选与多选之间切换；MaxHeight 让列表自己拥有滚动条，方向键按画面顺序移动。隐藏「开发」不会清空已选值——选中值归宿主，组件不会因为某一行不渲染就改写它。"
                   Code="@SelectionCode">
             <Preview>
                 <div class="preview-list-wrap">
@@ -125,6 +125,7 @@
         <span>只有 <code>Single</code> / <code>Multiple</code> 才输出 <code>listbox</code> 与选项角色；<code>AllowClear</code> 只在单选下允许再次点击清除。</span>
         <span><code>CardMode</code> 只换外壳：普通行与卡片共用同一套选中底色、字重与悬停反馈。选择列表里不要再嵌可聚焦操作控件，否则行与内部控件的键盘语义会互相打架。</span>
         <span><code>Home</code>/<code>End</code> 按画面顺序移动，<code>Visible</code> 为 false 的选项不可选也不进入移动范围；允许清空时方向键只移动活动项，<code>Enter</code> 与空格才真正切换。<code>MaxHeight</code> 为空时列表按内容自适应，设置后由 List 自己拥有滚动条。</span>
+        <span>选中归宿主：<code>Items</code> 变化（筛选、隐藏、换页）不会自动清除 <code>SelectedItem</code>/<code>SelectedItems</code>；被移出快照的已选值只是不再有对应行。确实删除数据时由宿主把该值从自己的选中状态里移除，组件不会代劳。</span>
         <span>类型化选中用 <code>SelectedItem</code>/<code>SelectedItems</code>（<code>@@bind-SelectedItem</code> / <code>@@bind-SelectedItems</code>）；旧的 <code>SelectedValue</code>/<code>SelectedValues</code> 仍可用但已标 <code>Obsolete</code>，只建议留给 <code>ListItem.Value</code> 无法转成 <code>TItem</code> 的声明式场景。<code>ListItem.Value</code> 仍是 <code>object?</code>，声明式列表请让值与 <code>TItem</code> 兼容（如 <code>TItem="string"</code> 时传字符串）：绑定类型化回调后，不可表示的值会直接抛错而不是悄悄变成默认值。</span>
     </Notes>
 </ComponentPage>

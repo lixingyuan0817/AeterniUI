@@ -21,6 +21,20 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
     private const string ModulePath = "./js/sample-search.js";
     private static readonly ShowcaseSearchEntry[] NoMatches = [];
 
+    /// <summary>
+    /// 生成物按页面分组（页字段只存一次），查询与键盘导航仍需要稳定顺序的扁平序列：这里按
+    /// 「目录顺序 → 页内段顺序」摊平一次，结果与旧版扁平生成物逐条等价。放在静态字段里是因为
+    /// 查询每次按键都会重排命中，不应该每次再摊平全量索引。
+    /// </summary>
+    private static readonly ShowcaseSearchEntry[] IndexedEntries = ShowcaseSearchIndex.Pages
+        .SelectMany(page => page.Sections.Select(section => new ShowcaseSearchEntry(
+            page.PageId,
+            page.PageTitle,
+            page.Category,
+            section.SectionId,
+            section.SectionTitle)))
+        .ToArray();
+
     private readonly NavigationManager _navigation;
     private readonly IJSRuntime _jsRuntime;
     private readonly List<ShowcaseSearchEntry> _matches = [];
@@ -245,7 +259,7 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
             return;
         }
 
-        var ordered = ShowcaseSearchIndex.Entries
+        var ordered = IndexedEntries
             .Select((entry, index) => (entry, index, rank: RankOf(entry, query)))
             .Where(candidate => candidate.rank >= 0)
             .OrderBy(candidate => candidate.rank)
@@ -325,6 +339,22 @@ public sealed class ShowcaseSearchModel : IAsyncDisposable
         }
 
         await InvokeVoidAsync(() => module.InvokeVoidAsync("mountPanel", panel, InputId, Trigger));
+    }
+
+    /// <summary>
+    /// 等待面板的退场动画（遮罩与面板）结束。退场期间面板仍在 DOM 里，滚动锁与焦点
+    /// 陷阱保持到本方法返回之后，避免「样式还在动、背景已经能滚」；reduced-motion 下
+    /// CSS 动画被移除，waitForExit 立即 resolve。
+    /// </summary>
+    public async Task WaitForPanelExitAsync(ElementReference panel)
+    {
+        var module = await GetModuleAsync();
+        if (module is null)
+        {
+            return;
+        }
+
+        await InvokeVoidAsync(() => module.InvokeVoidAsync("waitForPanelExit", panel));
     }
 
     /// <summary>面板离开 DOM 后释放滚动锁与焦点陷阱，并按需把焦点还给触发器。</summary>

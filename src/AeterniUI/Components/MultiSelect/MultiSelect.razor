@@ -8,7 +8,7 @@
                  class="aeterni-multi-select__trigger"
                  id="@FormField?.InputId"
                  role="combobox"
-                 tabindex="@(IsDisabled || ReadOnly ? "-1" : "0")"
+                 tabindex="@(IsDisabled ? "-1" : "0")"
                  aria-labelledby="@FormField?.LabelId"
                  aria-describedby="@EffectiveDescribedBy"
                  aria-label="@(FormField?.LabelId is null ? EffectiveAriaLabel : null)"

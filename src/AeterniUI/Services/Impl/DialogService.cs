@@ -92,21 +92,23 @@ public sealed class DialogService : IDialogService, IDisposable
                 throw new ArgumentOutOfRangeException(nameof(value), "The maximum toast count must be greater than zero.");
             }
 
-            List<ToastEntry>? removed = null;
+            List<ToastEntry>? overflow = null;
             lock (_sync)
             {
                 _maxToastCount = value;
-                while (_toasts.Count > _maxToastCount)
-                {
-                    removed ??= [];
-                    removed.Add(_toasts[0]);
-                    _toasts.RemoveAt(0);
-                }
+                // Lowering the limit no longer removes the surplus synchronously: the
+                // oldest entries play their exit animation and are retired by the normal
+                // close path (same callback/cleanup contract, just animated).
+                overflow = SelectOverflowToasts();
             }
 
-            CompleteRemovedToasts(removed);
-            if (removed is not null)
+            if (overflow is not null)
             {
+                foreach (var toast in overflow)
+                {
+                    _ = CloseToastAsync(toast.Id, suppressCallbackErrors: true);
+                }
+
                 NotifyChanged();
             }
         }
@@ -429,21 +431,26 @@ public sealed class DialogService : IDialogService, IDisposable
             duration);
 
         entry.Reference = new ToastReference(entry.Id, () => CloseToastAsync(entry.Id));
-        List<ToastEntry>? removed = null;
+        List<ToastEntry>? overflow = null;
         lock (_sync)
         {
             ThrowIfDisposed();
-            while (_toasts.Count >= MaxToastCount)
-            {
-                removed ??= [];
-                removed.Add(_toasts[0]);
-                _toasts.RemoveAt(0);
-            }
-
+            // The newest toast is always accepted; the surplus is retired through the
+            // measured exit animation below instead of disappearing from one frame to
+            // the next while its neighbours stay animated. Closing entries are skipped
+            // so a burst of toasts cannot evict the same entry twice.
             _toasts.Add(entry);
+            overflow = SelectOverflowToasts();
         }
 
-        CompleteRemovedToasts(removed);
+        if (overflow is not null)
+        {
+            foreach (var toast in overflow)
+            {
+                _ = CloseToastAsync(toast.Id, suppressCallbackErrors: true);
+            }
+        }
+
         NotifyChanged();
 
         if (duration > TimeSpan.Zero)
@@ -452,6 +459,18 @@ public sealed class DialogService : IDialogService, IDisposable
         }
 
         return entry.Reference;
+    }
+
+    /// <summary>
+    /// Oldest non-closing toasts that exceed <see cref="MaxToastCount"/>. Must be
+    /// called under <see cref="_sync"/>; the caller starts their close after leaving
+    /// the lock because <c>CloseToastAsync</c> raises <see cref="Changed"/>.
+    /// </summary>
+    private List<ToastEntry>? SelectOverflowToasts()
+    {
+        var active = _toasts.Where(toast => !toast.IsClosing).ToList();
+        var excess = active.Count - _maxToastCount;
+        return excess > 0 ? active.Take(excess).ToList() : null;
     }
 
     private async Task RunAlertTimerAsync(DialogEntry entry, TimeSpan duration)

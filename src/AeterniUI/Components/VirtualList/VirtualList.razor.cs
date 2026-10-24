@@ -22,6 +22,15 @@ public partial class VirtualList<TItem> : AeterniComponent
     private bool _loadMoreInFlight;
     private bool _disposed;
 
+    /// <summary>
+    /// Snapshot of the rows to virtualize. Replacing it (for example when the host
+    /// filters a larger collection) never clears the selection:
+    /// <see cref="SelectedItem" /> / <see cref="SelectedItems" /> stay exactly as
+    /// the host supplied them, and a selected value without a matching row is
+    /// simply not rendered as selected. Deleting an item from the underlying data
+    /// set is the host's call too — the component does not prune the bound value,
+    /// so the host must remove deleted values from its own selection state.
+    /// </summary>
     [Parameter, EditorRequired]
     public IReadOnlyList<TItem>? Items { get; set; }
 
@@ -208,11 +217,6 @@ public partial class VirtualList<TItem> : AeterniComponent
             _activeIndex = previousActiveKey is null
                 ? (_rows.Count == 0 ? -1 : Math.Clamp(_activeIndex, -1, _rows.Count - 1))
                 : _rows.FindIndex(row => Equals(row.Key, previousActiveKey));
-        }
-
-        if (Items is not null)
-        {
-            await PruneSelectionAsync();
         }
     }
 
@@ -414,24 +418,6 @@ public partial class VirtualList<TItem> : AeterniComponent
         }
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task PruneSelectionAsync()
-    {
-        var values = _rows.Select(row => row.Value).ToArray();
-        if (_legacySelectedValue is not null && !values.Any(value => ValuesEqual(value, _legacySelectedValue)))
-        {
-            await CommitSingleSelectionAsync(null);
-        }
-
-        if (_legacySelectedValues is not null)
-        {
-            var retained = _legacySelectedValues.Where(selected => values.Any(value => ValuesEqual(value, selected))).ToArray();
-            if (retained.Length != _legacySelectedValues.Count)
-            {
-                await CommitMultipleSelectionAsync(retained);
-            }
-        }
     }
 
     protected override async Task OnComponentAfterRenderAsync(bool firstRender)

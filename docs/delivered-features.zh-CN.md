@@ -73,13 +73,15 @@
 - 玻璃表面角色别名：`--aeterni-bg-glass`（浅色 68% / 深色 72%）、`--aeterni-blur-glass`、`--aeterni-blur-scrim`；库内十处磨砂消费者统一引用，配方与墨阶依据见 engineering-reference §5.4。
 - 玻璃降级：`prefers-reduced-transparency: reduce` 与不支持 `backdrop-filter` 时退到不透明（`--aeterni-bg-solid` + 模糊 `none`），两支 on-glass 墨退回标准墨；遮罩只摘模糊、保留压暗。
 - 可发现滚动条 Token：`--aeterni-scrollbar-size`（6px）、`-thumb`（`--aeterni-border-strong`）、`-track`（透明）；库内十二个可滚动容器统一消费，可见滚动条同时写标准属性与 `::-webkit-scrollbar` 两套声明，隐藏型写 `scrollbar-width: none` + `display: none`。
-- 圆角阶梯：`--aeterni-radius-control-sm/md/lg`、`--aeterni-radius-button`（单值 0.625rem）、`--aeterni-radius-input*`（4/6/8px）、`--aeterni-radius-surface`；Button 有意保留独立形状语言。
+- 圆角阶梯：`--aeterni-radius-control-sm/md/lg`、`--aeterni-radius-input*`（4/6/8px）、`--aeterni-radius-surface`；`--aeterni-radius-button` 指向阶梯 `--aeterni-radius-lg`（8px），不再使用阶梯外的 10px/rem 值。
 - `--aeterni-transition-control`（背景 + 边框 + 文字 + 阴影）供 Input、Textarea 与 ComboBox 共用；开关类指示块使用 `--aeterni-state-background-thumb`。
 - 字体栈中的 Inter 与 JetBrains Mono 是可选宿主依赖，库不随包提供 webfont。
+- 正文等级止于 `6xl`（60px）；展示型大字另设角色 Token `--aeterni-font-size-display-sm/md/lg`（80/96/144px），只用于 Hero/大屏读数/字体标本，不进入正文阶梯。
 - 系统主题跟随由 `ThemeService` 管理；`ThemeProvider` 为自闭合组件、不渲染 DOM，基类 `Id` / `Class` / `Style` / `Visible` 对它无效，主题只写到 `<html>` 上。
 - 推荐在样式表之前放置预渲染主题脚本（读取 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写入 `data-theme` 与 `data-aeterni-brand`）；脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 一致。
 - 首屏加载器只能由宿主声明静态标记（此时没有组件树与隔离样式）；示例 `.sample-boot` 是按 `Spinner` 规格的视觉复刻，改一侧必须同步另一侧。
 - 主题通过 `<html data-theme>` 与 `<html data-aeterni-brand>` 输出；持久化键为 `aeterni.theme.mode` 与 `aeterni.theme.brand`，两者互相独立。
+- 显式暗色块与 `prefers-color-scheme` 回退块必须逐 Token 一致（当前 110 个），`node scripts/check-theme-parity.mjs` 是门禁；新增 Token 不能只补一处。
 - `ThemeSwitch` 提供 System / Light / Dark 分段切换；`ThemeBrandSwitch` 提供 Purple / Green / Orange，是 `Segmented` 的专用用法并订阅 `BrandChanged`。
 - 主题切换过渡 300ms，只过渡颜色承载属性，并适配 reduced-motion。
 - `ThemeService.Mode` 的类型是 `ThemeMode`（`System` / `Light` / `Dark`）；`CurrentTheme` 的类型是 `ThemeKind`（`Light` / `Dark`）；`ThemeService.Brand` 的类型是 `ThemeBrand`（`Purple` / `Green` / `Orange`），不属于 `ThemeMode` 的取值空间。
@@ -103,12 +105,12 @@
 - `Shape`（`IconButtonShape`：`Circle` 默认 / `Square`）控制轮廓：默认圆形由基础规则使用 `--aeterni-radius-full`，不输出修饰类；`Square` 输出 `aeterni-icon-button--square` 并回到控件圆角 `--aeterni-radius-button`。`Compact`（默认 false）是 chrome 紧凑档：24px 盒（`calc(control-height-sm - spacing-1)`）与 14px 字形，优先于 `Size`，只改几何，不动形状、焦点环、加载尺寸与 ButtonGroup 分隔变量。
 - `IconButton` 系列悬浮只做原位高亮：表面换档，透明变体（Outline/Soft/Ghost/Link）再把图标墨色向主题主墨混合一档（浅色更深、深色更亮，消费 `--aeterni-icon-button-hover-foreground`），不位移、也不加抬升阴影；中性档本身已是主墨，反馈由表面档位承担。`Button` 的 1px 上浮只保留给带文字的按钮，图标动作不借用这套位移。
 - `Tone`（`IconButtonTone`：`Default` 默认 / `Muted` / `DangerTinted`）是标题栏与行尾动作的 chrome 预设，**覆盖** `Variant`/`Intent` 的配色：`Muted` 透明底 + `--aeterni-text-tertiary` 墨，hover 走 `--aeterni-state-background-hover` + 次级墨、active 走 active 档；`DangerTinted` 用 `--aeterni-color-danger-default` 现算 12%/20%/26% 底与 25%/55% 描边、danger 文字墨，hover 另加 3px 16% 环。两种 preset 沿用系列的原位高亮规则；`Tone=Default` 时仍走原来的 Variant/Intent 配色路径。
-- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Label`、`Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`AriaLabel`、`OnItemSelected`、`Loading` 和 `FullWidth`（默认 `Variant=Outline`、`Intent=Neutral`、`Size=Default`、`Placement=BottomStart`；普通 `Button` 默认值不变）；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。
+- `MenuButton` 组合 `Button`、`PopupHost`、`Popover` 与 `Menu`，支持 `Label`、`Items`、`Open`/`OpenChanged`、`Placement`、`Intent`、`Variant`、`Size`、`AriaLabel`、`OnItemSelected`、`Loading` 和 `FullWidth`（默认 `Variant=Outline`、`Intent=Neutral`、`Size=Default`、`Placement=BottomStart`；普通 `Button` 默认值不变）；触发器输出 `aria-haspopup`、`aria-expanded` 和 `aria-controls`，并与菜单根节点建立稳定 id 关联。触发器聚焦时 `ArrowDown`/`ArrowUp` 会阻止页面滚动并打开菜单、分别聚焦首个/最后一个可达节点；已打开时只移动焦点，点击与 Enter/Space 行为不变（无 JS 时保留原有 click/Tab 路径）。
 - MenuButton 的弹出内容使用 Menu，不使用 List；PopupHost 仅定位、无 padding。仅其 Popover 外围 padding 从 12px 收至 spacing-1（4px），Menu 行内横向 padding 从 12px 收至 control-padding-x-sm（8px），保留 Menu 的 spacing-2（8px）子项缩进表达折叠层级；参照现有 List 的 4px 外围与 8px 行内留白，Menu 根不重复加外围 padding，List 本身不变。折叠或无可见子项的分组不保留标题后的 gap，避免末组产生额外底部留白；Popover 上下各 4px。菜单行高仍为 32px，普通内容 Popover 和独立 Menu 保持原留白。SplitButton 复用此紧凑菜单。菜单型弹层的默认最小宽度为 `--aeterni-overlay-min-width-xs`（10rem），需要更宽/定宽时用 `Popover.MinWidth` / `Width`，不用改 token。
 - `MenuButton` 拥有自己的真实根元素，`Id`、`Class`、`Style`、`Visible`、`AdditionalAttributes`、`Element` 与 `ElementChanged` 均遵循基类契约；打开、禁用和 `FullWidth` 状态同时落在根容器与真实触发按钮的正确层级。
 - 默认、悬浮、按下、聚焦、禁用和加载状态。
 - `Warning` 与 `Danger` 实心按钮使用 `--aeterni-color-on-semantic` 前景；透明与 `Soft` 变体使用对应语意色的文字/柔和 Token。
-- 按钮圆角使用独立的 `--aeterni-radius-button`（单值 `0.625rem`，三档统一），不随字段圆角档位变化；这是动作控件与字段的形状区分。
+- 按钮圆角使用 `--aeterni-radius-button`（指向 `--aeterni-radius-lg`，8px，三档统一），与字段圆角同处一条阶梯；动作控件仍可与 Input 的 6px 档形成可见区分，但不再引入阶梯外的值。
 - 禁用状态统一消费 `--aeterni-state-*` Token，保持所有变体的前景、背景和边框可读；`Link` 禁用时不会显示下划线。
 - 加载状态包含 Spinner、`aria-busy` 和禁用交互；加载时用内联 Spinner 替换起始图标、标签保持完整可读，Spinner 取变体自身的加载墨色（`--aeterni-button-loading-foreground`），实心与透明变体下都清晰可见。
 - `Link` 变体静止态即带下划线（3px 偏移），悬浮只改变颜色、不显示背景色；与 Ghost 的区别不依赖 hover。
@@ -241,7 +243,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 - 默认、悬浮、聚焦、禁用、只读和无效状态，尺寸变化不会改变输入的基本语义。
 - 悬浮与聚焦均使用主题色边框；`:focus-visible` 额外绘制全库统一的焦点环（`--aeterni-focus-width` + `--aeterni-focus-color`，文本输入在鼠标聚焦时同样匹配 `:focus-visible`）。
 - 无效状态在悬浮、聚焦下始终保留危险色边框，焦点环改用 `--aeterni-focus-color-invalid`，错误提示不会被焦点环覆盖。
-- `Small` / `Large` 档位同步切换控件圆角阶梯（4 / 6 / 8px）；Button 使用独立的 `--aeterni-radius-button`，不与字段共用同一档。
+- `Small` / `Large` 档位同步切换控件圆角阶梯（4 / 6 / 8px）；Button 使用 `--aeterni-radius-button`（= `--aeterni-radius-lg`，8px），与字段圆角共用同一阶梯。
 
 ### 行为与无障碍
 
@@ -309,7 +311,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-输入保持唯一焦点并输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"`、`aria-autocomplete="list"` 和活动项 `aria-activedescendant`。建议区域通过共享 `PopupHost` + `Popover` 定位，内容输出 `listbox` / `option` 语义；ArrowUp/ArrowDown、Home/End 移动活动项，Enter 确认，Escape 关闭。活动项滚动只作用于建议视窗，不滚动页面。`Loading` 在建议区域输出 `role="status"`，同时暂时禁用输入和清除操作；组件不由自身发起请求。清除动作只在有值且 `Clearable` 开启时显示，并与输入框组成无间隙的连体 `ButtonGroup`；组件不渲染浏览器原生搜索清除入口。
+输入保持唯一焦点并输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"`、`aria-autocomplete="list"` 和活动项 `aria-activedescendant`。建议区域通过共享 `PopupHost` + `Popover` 定位，内容输出 `listbox` / `option` 语义；ArrowUp/ArrowDown、Home/End 移动活动项，Enter 确认，Escape 关闭。活动项滚动只作用于建议视窗，不滚动页面。`Loading` 只把建议区域换成 Spinner + `role="status"` 并输出根 `aria-busy="true"`/`is-loading`：输入、清除与弹层开合保持可用，忙碌期间键盘只允许开合、不会确认未渲染的选项，`aria-activedescendant` 暂时为空。组件不由自身发起请求。清除动作只在有值且 `Clearable` 开启时显示，并与输入框组成无间隙的连体 `ButtonGroup`；组件不渲染浏览器原生搜索清除入口。
 
 ### 实现边界
 
@@ -342,7 +344,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-触发器的 `aria-describedby` 合并宿主传入值与该组件所处的 `FormField` 描述 id（与 `ComboBox`、`Autocomplete` 同一合并语义，字段不再顶掉宿主值）；触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
+触发器的 `aria-describedby` 合并宿主传入值与该组件所处的 `FormField` 描述 id（与 `ComboBox`、`Autocomplete` 同一合并语义，字段不再顶掉宿主值）；触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。`ReadOnly` 时触发器仍是单一 Tab 停留点（`tabindex=0`），保留 `aria-readonly="true"`、`is-readonly` 与可选中复制的文本，但点击、键盘、批量动作与 Backspace 都不打开面板或改值；Disabled 优先。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
 
 ### 实现边界
 
@@ -577,7 +579,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 ### 实现边界
 
-Items 改变清除失效活动项；缺失单选/多选值清理后通过 Changed 回传，不触发 OnItemSelected。绑定类型化回调后，每个选中值必须能表示为 `TItem`，否则组件在回调前抛 `InvalidOperationException` 并给出迁移提示；旧 object? 路径不受此约束。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
+Items 改变只清除失效活动项，不再自动清理选中值：宿主筛选/换页/裁剪 Items 时，被移出快照的选中值保留在绑定状态中（只是没有对应行可渲染），真正删除数据时由宿主自行从选中状态移除——选中状态归宿主控制。绑定类型化回调后，每个选中值必须能表示为 `TItem`，否则组件在回调前抛 `InvalidOperationException` 并给出迁移提示；旧 object? 路径不受此约束。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
 
 ### 选中态复用配方（10.43.0）
 
@@ -615,7 +617,7 @@ Items 改变清除失效活动项；缺失单选/多选值清理后通过 Change
 - `Height`（默认 `"320px"`）定义必需的固定滚动视口高度，`ItemSize` 定义固定行高（CSS px，默认 32），`OverscanCount` 定义视口外预渲染行数（默认 5）。
 - `ItemKeySelector` 提供稳定且唯一的 key；未提供时使用当前索引，数据重排时应提供该参数以保持 DOM 复用正确。
 - `DisabledSelector` 标记禁用项目；`EmptyContent` 提供空集合内容。
-- 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、类型化 `SelectedItem` / `SelectedItems` 与对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`；旧的 `SelectedValue` / `SelectedValues` 同样保留为 `[Obsolete]` 迁移桥。
+- 选择 API 与 `List<TItem>` 对齐：`SelectionMode`、类型化 `SelectedItem` / `SelectedItems` 与对应 Changed 回调、`AllowClear`、`AriaLabel` 和 `OnItemSelected`；旧的 `SelectedValue` / `SelectedValues` 同样保留为 `[Obsolete]` 迁移桥。与 `List` 一样，`Items` 快照变化不会自动 prune 选中值，删除数据时由宿主同步选中状态。
 - 根元素使用固定高度滚动容器；选择模式输出单一 Tab 停留点、`role="listbox"`、`aria-activedescendant` 和 `aria-multiselectable`，普通模式输出 `role="list"`。
 - 可见项目输出 `role="option"` 或 `role="listitem"`、`aria-posinset` 和 `aria-setsize`；方向键、Home/End、Enter/Space 由根容器统一处理。点击已在视口内的行不会改变滚动位置；键盘目标只有越出视口时才按最近边缘滚入，不再把每个新活动项钉到第一行。
 - 外层表面沿用 `List` 的 padding、边框、圆角和背景；可见行沿用 `ListItem` 的 `spacing-2` 内容间距、行内/块向内边距、圆角、透明默认底与起始文字对齐。选中、悬浮和键盘活动背景绘制在固定行盒内部，两侧各内收半个 `spacing-1`，因此相邻状态表面保留与 List 相同的 4px 可见间隔，同时行盒、点击热区、虚拟 spacer 与 `ItemSize` 仍完全同高。滚动条位于内层视口，单选方向键选中行为与 `List<TItem>` 保持一致。
@@ -734,7 +736,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 
 ### 行为与无障碍
 
-Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-modal="true"`、提升到 `--aeterni-z-modal`；非模态仅在提供 `AriaLabel` 时输出 `role="region"` 地标，否则不输出角色、由内部内容（menu / listbox / 自定义）承载语义。关闭时通过 `hidden` 移除可见内容。
+Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-modal="true"`、提升到 `--aeterni-z-modal`；非模态仅在提供 `AriaLabel` 时输出 `role="region"` 地标，否则不输出角色、由内部内容（menu / listbox / 自定义）承载语义。关闭时通过 `hidden` 移除可见内容。入场/退场位移方向跟随 placement：Bottom 侧从上进、向上退（-4px），Top 侧从下进、向下退（+4px），由共享变量 `--aeterni-popover-enter/exit-shift-y` 驱动；ComboBox/Cascader 不再各自复制关键帧。
 
 ### 实现边界
 
@@ -828,6 +830,8 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 ### 行为与无障碍
 
 提示内容使用 `role="tooltip"`，不阻塞触发元素，也不影响页面布局。`Tooltip.razor.js` 会把提示节点的 id 写入 `ChildContent` 中第一个可聚焦元素的 `aria-describedby`（没有可聚焦元素时回退到触发包装元素），因此读屏可以直接朗读提示文本；提示节点在 `Text` 为空或禁用时完全不渲染，不会留下悬空引用。
+
+hover 显示延迟 250ms（`--aeterni-tooltip-show-delay` 可由宿主覆盖）后淡入 100ms；键盘 `focus-within` 立即显示、隐藏保持 100ms 快速；hover 规则带 `(hover: hover)`，触屏不粘提示；reduced-motion 下即时显示。
 
 方位由 CSS 决定，JS 只在需要时切换方位类并写入偏移变量：优先使用 `Placement` 指定的一侧，空间不足时翻转到对侧，再沿交叉轴偏移以留在视口内（`resize` 时重算）。`prefers-reduced-motion` 下只保留位移过渡的关闭。翻转与贴边的数值计算来自共享浮层模块 `wwwroot/js/aeterni_floating.js`（与 `Popover` 同一套实现）。
 
@@ -990,7 +994,7 @@ DialogService.ShowToast("Completed", new ToastOptions
 - 支持全局默认位置、单条通知位置和最大显示数量。
 - 支持图标、标题、手动关闭和复杂 RenderFragment 内容；未传 `Icon` 时按 `Severity` 自动使用内置严重度图标。
 - `ToastOptions` 支持 `Title`、`Severity`、`Icon`、`Position`、`Duration`、`ShowCloseButton`、`Blur` 和 `OnClosedAsync`。
-- 默认自动关闭，四边环绕进度边框显示剩余时间；悬停或焦点进入时暂停倒计时，进度环与计时器同步，离开后继续剩余时间。
+- 默认自动关闭，四边环绕进度边框显示剩余时间；悬停或焦点进入时暂停倒计时，进度环与计时器同步，离开后继续剩余时间。超过 `MaxToastCount` 时最旧的未关闭条目走上退场动画再移除（不再瞬删）；退场期间同屏会短暂多出这一张，回调仍在动画结束后触发一次。
 - 支持 `Blur = false` 关闭自身背景模糊。
 - 支持关闭后的 `OnClosedAsync` 回调。
 - 根据通知位置向对应屏幕边缘滑出。
@@ -1116,7 +1120,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - `Size` 三档的轨道高度是 28 / 36 / 44px，与同档 Button / Input 对齐：`Default` 与 `Large` 取控件高度档位（`--aeterni-control-height-md/lg`）；`Small` 为 `--aeterni-control-height-sm`（28px = 2×描边 + 2×3px 内缩 + 20px 选项），选项用透明伪元素把垂直热区恢复到 `--aeterni-touch-target-min`（24px），不靠加高轨道换热区。`FullWidth` 占满父容器，否则宽度跟随内容。
 - 轨道外观是一根 1px 的 `--aeterni-border-strong` 描边加 `--aeterni-bg-secondary` 填充：分段控件读起来是控件而不是表面，强描边把它和所在外壳分开，又不引出一层填充。禁用档与无效档照样换描边色。
 - `--aeterni-segmented-padding` 是一个值喂三处的内缩：轨道内边距、滑块内缩与滑块行程，因此滑块始终落在选项列上。它由 `--aeterni-spacing-1` 减一个描边得到（3px），**三档相同**：边框到滑块之间的间距不随 `Size` 变化。热区与高度约束见 [`engineering-reference`](engineering-reference.zh-CN.md)。
-- 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` 的圆角同源（Button 使用独立的 `--aeterni-radius-button`，不同源）。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
+- 滑块与选项共用 `--aeterni-segmented-inner-radius`，取值就是**该档轨道自己的控件圆角**（Small / Default / Large 对应 4 / 6 / 8px），所以选中块与它所在的轨道是同一个圆角形状，也与同档 `Input` 的圆角同源（Button 使用 `--aeterni-radius-button`，即阶梯 `lg` 档 8px）。选项的悬浮底色与焦点环跟随同一半径，因此悬浮项、选中项与焦点环是同一个形状。滑块圆角与轨道一致意味着两者不同心，描边与滑块之间的留白在角上会比四边宽 1.66px（三档同值）；改前用同心公式时角上与四边相等，但默认档的滑块会塌成直角，所以这里明确选"形状一致"。
 - `Shape` 两档：`Rounded`（默认）与 `Pill`。`Rounded` 的轨道圆角跟随尺寸档位使用控件圆角（Small / Default / Large 对应 4 / 6 / 8px），默认档不输出修饰类；`Pill` 是整圆胶囊，输出 `aeterni-segmented--pill`。形状只重指轨道圆角，`Pill` 额外把滑块与选项的内沿半径交回半高裁切；内缩取圆角档推导来的值、滑块宽度与位移由选项数量推导，所以两档的滑块几何完全一致。
 - 选项是原生 `<input type="radio">`，整组共用一个自动生成的 `name`，因此单选语义、`aria-checked`、roving tabindex（整组一个 Tab 停留点）、方向键与 RTL 箭头方向全部由浏览器提供；原生 radio 组没有 `Home`/`End`，组件补上这一对（跳到首/尾可用项并把真实焦点一起带过去），并且只交出一个最小 JS 模块去阻止这两个键的默认页面滚动——方向键仍完全归浏览器，组件不接管。
 - 滑块（选中指示块）的几何与选项数量无关：宽度是「一列」、位移是「index 列」，两者来自组件写入的 `--aeterni-segmented-count` / `--aeterni-segmented-index`，因此 2 项与 5 项共用同一份样式，不再像旧的 `ThemeSwitch` 那样硬编码三列与 `translate3d(200%)`。形状档位只改圆角，这组几何在 `Rounded` 与 `Pill` 下完全一致。

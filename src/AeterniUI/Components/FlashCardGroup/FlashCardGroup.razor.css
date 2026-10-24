@@ -49,15 +49,20 @@
    handled deck instead of a set of perfectly aligned copies. The values stay
    deliberately small so the top card remains the clear entry target. */
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) { z-index: 1; --aeterni-flash-card-group-x: -12px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 0); --aeterni-flash-card-group-rotation: -5deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) { z-index: 2; --aeterni-flash-card-group-x: 8px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 0.5); --aeterni-flash-card-group-rotation: 3.5deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) { z-index: 3; --aeterni-flash-card-group-x: -6px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 1); --aeterni-flash-card-group-rotation: -2deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) { z-index: 4; --aeterni-flash-card-group-x: 14px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 1.5); --aeterni-flash-card-group-rotation: 4deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) { z-index: 5; --aeterni-flash-card-group-x: -2px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 2); --aeterni-flash-card-group-rotation: -1.5deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) { z-index: 6; --aeterni-flash-card-group-x: 10px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 2.5); --aeterni-flash-card-group-rotation: 2deg; }
+
 .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) { z-index: 7; --aeterni-flash-card-group-x: 0px; --aeterni-flash-card-group-y: calc(var(--aeterni-flash-card-group-collapsed-offset) * 3); --aeterni-flash-card-group-rotation: 0deg; }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) {
     --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -2);
     --aeterni-flash-card-group-y: 0px;
@@ -65,7 +70,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) {
     --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -1);
     --aeterni-flash-card-group-y: 0px;
@@ -73,7 +77,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) {
     --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -0.5);
     --aeterni-flash-card-group-y: 0px;
@@ -81,7 +84,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) {
     --aeterni-flash-card-group-x: 0px;
     --aeterni-flash-card-group-y: -2px;
@@ -89,7 +91,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) {
     --aeterni-flash-card-group-x: var(--aeterni-flash-card-group-expanded-spacing);
     --aeterni-flash-card-group-y: 0px;
@@ -97,7 +98,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) {
     --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * 2);
     --aeterni-flash-card-group-y: 0px;
@@ -105,7 +105,6 @@
 }
 
 .aeterni-flash-card-group.is-expanded .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7),
-.aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7),
 .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):focus-within .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) {
     --aeterni-flash-card-group-x: 0px;
     --aeterni-flash-card-group-y: -4px;
@@ -115,7 +114,6 @@
 /* Once the fan is open, the active card rises above its neighbours like a card
    game hand. Raising its stacking order reveals the complete face even though
    the fan deliberately keeps neighbouring cards overlapped. */
-.aeterni-flash-card-group:not(.is-disabled) .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:hover,
 .aeterni-flash-card-group:not(.is-disabled) .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:focus-visible {
     --aeterni-flash-card-group-lift: -56px;
     --aeterni-flash-card-group-scale: 1.08;
@@ -129,5 +127,51 @@
 @media (prefers-reduced-motion: reduce) {
     .aeterni-flash-card-group__cards ::deep .aeterni-flash-card {
         transition: none;
+    }
+}
+
+/* Pointer-only previews: on a touch device a sticky :hover must not pin the fan
+   open or lift a card. Focus-within above keeps the keyboard path intact, so
+   hover is only removed where a real pointer can satisfy it. */
+@media (hover: hover) {
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(1) {
+        --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -2);
+        --aeterni-flash-card-group-y: 0px;
+        --aeterni-flash-card-group-rotation: -12deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(2) {
+        --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -1);
+        --aeterni-flash-card-group-y: 0px;
+        --aeterni-flash-card-group-rotation: -7deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(3) {
+        --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * -0.5);
+        --aeterni-flash-card-group-y: 0px;
+        --aeterni-flash-card-group-rotation: -3deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(4) {
+        --aeterni-flash-card-group-x: 0px;
+        --aeterni-flash-card-group-y: -2px;
+        --aeterni-flash-card-group-rotation: 0deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(5) {
+        --aeterni-flash-card-group-x: var(--aeterni-flash-card-group-expanded-spacing);
+        --aeterni-flash-card-group-y: 0px;
+        --aeterni-flash-card-group-rotation: 7deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(6) {
+        --aeterni-flash-card-group-x: calc(var(--aeterni-flash-card-group-expanded-spacing) * 2);
+        --aeterni-flash-card-group-y: 0px;
+        --aeterni-flash-card-group-rotation: 12deg;
+    }
+    .aeterni-flash-card-group.is-hover-expand:not(.is-disabled):hover .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:nth-child(n + 7) {
+        --aeterni-flash-card-group-x: 0px;
+        --aeterni-flash-card-group-y: -4px;
+        --aeterni-flash-card-group-rotation: 0deg;
+    }
+    .aeterni-flash-card-group:not(.is-disabled) .aeterni-flash-card-group__cards ::deep .aeterni-flash-card:hover {
+        --aeterni-flash-card-group-lift: -56px;
+        --aeterni-flash-card-group-scale: 1.08;
+        z-index: 20;
     }
 }

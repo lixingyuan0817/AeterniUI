@@ -32,7 +32,11 @@ export function sync(key, trigger) {
     if (state.trigger === trigger) return;
     state.trigger = trigger;
     state.handler = event => {
-        if (event.target !== trigger || trigger.getAttribute('aria-disabled') === 'true' || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        // A read-only trigger stays focusable, but it owns none of these keys and
+        // must not swallow the browser's default scrolling.
+        if (event.target !== trigger || trigger.getAttribute('aria-disabled') === 'true' ||
+            trigger.getAttribute('aria-readonly') === 'true' ||
+            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
         if (event.isComposing) { event.stopPropagation(); return; }
         if (navigationKeys.has(event.key) ||
             (trigger.getAttribute('aria-expanded') === 'true' && ['Enter', ' '].includes(event.key))) event.preventDefault();

@@ -164,6 +164,8 @@ class 从 `base.BuildClass()` 起链式构建，命名规则见 [`AGENTS.md`](..
 
 组件样式表不允许未注释的裸像素尺寸：能映射 Token 的直接引用；缺档位先在 Token 层补语义 Token 再引用；结构性机制（无障碍裁剪的 `1px` + `50%`）、动画位移与排版微调可以保留字面量，但必须注释说明它是机制/微调而不是尺寸档位。选项到类名的映射集中在 `Components/ComponentClass.cs`（`ForSize`/`ForColor`/`For`），组件不要各自维护 switch。
 
+
+按钮半径通过 `--aeterni-radius-button` 指向控件阶梯的 `lg` 档（8px），不再保留阶梯外的 10px/rem 值；字段、按钮与容器因此共享同一条 2/4/6/8/12/16/24 阶梯。
 ### 5.6 样式覆盖边界
 
 规则见 [`AGENTS.md`](../AGENTS.md) §4.4。两个失败模式值得记住：跨组件外观归渲染该元素的组件所有——把同一份日历规则复制到 `DatePicker.razor.css` 会在两者之间产生漂移（曾出现 101 行复制、其中 61 行是 `DateCalendar.razor.css` 的子集）；用户传入的 `Class` 只能作为扩展入口，不能改变基类属性合并规则。
@@ -213,6 +215,7 @@ class 从 `base.BuildClass()` 起链式构建，命名规则见 [`AGENTS.md`](..
 - 状态切换用短档：`Segmented` 选中滑块 200ms（normal 档），不用 `slower + fast` 的 600ms 长轨。
 - 主题与品牌切换只过渡颜色承载属性（`color`/`background-color`/`border-color`/`outline-color`/`box-shadow`/`fill`/`stroke`），300ms；把 `transform`/`opacity` 纳入切换会把整页卷进合成层，读起来像「页面在动」。
 - 通知的自动关闭计时与环形进度必须同源暂停：指针悬停或焦点进入卡片时暂停（进度环 `animation-play-state: paused`），离开后从剩余时间继续；只停 CSS 动画而计时器仍走，会让卡片在读者眼前消失，只停计时器而动画继续则进度与关闭时刻对不上。
+- Tooltip 的 hover 显示延迟 250ms（`--aeterni-tooltip-show-delay`，可被宿主覆盖）、键盘 focus 立即；Popover 出入场位移方向跟随 placement 变量（Bottom 侧 -4px、Top 侧 +4px），ComboBox/Cascader 不再复制自己的关键帧。
 - 浮层退场约为进场的 60–75% 并用加速曲线：Popover 80/100ms、Dialog 与 Notice 150/200ms、Drawer 210/300ms。退场等待只认实际运行的动画，并按实测 `delay + duration` 兜底：短动画可能在 Blazor interop 抵达前结束，`Animation.finished` 在部分引擎上不再结算，没有兜底会把浮层永久留在 `is-closing`（10.42.0 修正共享 `waitForExit`）。
 - 进场按体量分三级：小浮层 100ms `ease-out`；通知 200ms `ease-emphasized`；Dialog 200ms `ease-out`、Drawer 300ms `ease-emphasized`。Dialog 面板必须与遮罩同帧进入；Drawer 关闭过程中页面始终处于暗场。遮罩拒绝关闭时的抖动每次点击重新触发，抖完保持 `is-settled`（`animation: none`），不得落回进场关键帧从 `opacity: 0` 重播，否则会被读成页面刷新；reduced-motion 下省略抖动。
 - 滑块与进度条的数值长度只用 `transform: scaleX()/scaleY()`，不用 `width`/`inline-size` 过渡；RTL 下填充起点随方向镜像。`ease-emphasized` 下可感知行程约为时长的 2/3（Segmented 200ms 实测约 130ms），调参以感知时长而非名义时长为锚点。
@@ -287,7 +290,7 @@ ARIA 只补充语义，不能替代正确元素；每个 ARIA 属性都必须对
 
 `ThemeProvider` 是无可见内容的宿主组件，订阅明暗与品牌两个维度、初始化并应用页面属性、监听系统主题变化、释放 JS 监听；它不包裹 Layout，也不承担业务布局。它不渲染 DOM（规则见 [`AGENTS.md`](../AGENTS.md) §4.4）。
 
-首帧闪烁的根因是脚本尚未执行、CSS 已可用：宿主应在样式表之前放预渲染脚本（读 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写 `data-theme` 与 `data-aeterni-brand`）。CSS 侧只有 `prefers-color-scheme: dark` 兜底且仅在无显式属性时生效；品牌没有等价 CSS 兜底（`:root` 默认色板就是回退），脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 一致；存储值非法时属性匹配不到色相层而回落 `:root`，因此非法值不需要在脚本里额外过滤。
+首帧闪烁的根因是脚本尚未执行、CSS 已可用：宿主应在样式表之前放预渲染脚本（读 `aeterni.theme.mode`、`aeterni.theme.brand` 与 `prefers-color-scheme`，写 `data-theme` 与 `data-aeterni-brand`）。CSS 侧只有 `prefers-color-scheme: dark` 兜底且仅在无显式属性时生效；这两份暗色声明（显式属性块与媒体回退块）必须逐 token 一致，`scripts/check-theme-parity.mjs` 会解析并比较两侧的 110 个 token，新增/修改 token 时不能只补一处；品牌没有等价 CSS 兜底（`:root` 默认色板就是回退），脚本的品牌回退字面量必须与 `AeterniUIOptions.DefaultBrand` 一致；存储值非法时属性匹配不到色相层而回落 `:root`，因此非法值不需要在脚本里额外过滤。
 
 ### 9.4 DialogProvider 与表单弹出机制
 

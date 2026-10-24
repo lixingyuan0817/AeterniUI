@@ -210,7 +210,7 @@ code {
     font-family: var(--aeterni-font-family-display);
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: -.01em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .sample-footer__brand span {

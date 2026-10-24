@@ -1,8 +1,11 @@
+using AeterniUI.Attributes;
+using AeterniUI.Components.IconButton;
 using AeterniUI.Components.Menu;
 using AeterniUI.Components.Popup;
 using AeterniUI.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace AeterniUI.Components.IconButtonMenu;
 
@@ -12,8 +15,11 @@ namespace AeterniUI.Components.IconButtonMenu;
 /// the trigger is the only interactive element and the menu reuses the existing
 /// keyboard, Escape, outside-click and focus-restore behaviour.
 /// </summary>
+[JsModule("js/aeterni_menu_trigger.js", Name = "menu-trigger", Interactive = true)]
 public partial class IconButtonMenu : AeterniComponent
 {
+    private const string TriggerModule = "menu-trigger";
+
     /// <summary>The icon glyph of the trigger button.</summary>
     [Parameter, EditorRequired]
     public RenderFragment? Icon { get; set; }
@@ -73,6 +79,12 @@ public partial class IconButtonMenu : AeterniComponent
     public bool Loading { get; set; }
 
     private bool _internalOpen;
+    private AeterniUI.Components.IconButton.IconButton? _triggerButton;
+    private AeterniUI.Components.Menu.Menu? _menu;
+
+    /// <summary>0 = nothing pending, 1 = focus the first node, 2 = focus the last.</summary>
+    private int _pendingFocus;
+    private bool _disposed;
 
     private bool EffectiveOpen => OpenChanged.HasDelegate ? Open : _internalOpen;
 
@@ -89,6 +101,50 @@ public partial class IconButtonMenu : AeterniComponent
         ["aria-expanded"] = EffectiveOpen ? "true" : "false",
         ["aria-controls"] = MenuId
     };
+
+    protected override async Task OnComponentAfterRenderAsync(bool firstRender)
+    {
+        var trigger = _triggerButton is null ? default : _triggerButton.RootElement;
+        await JsModuleManager.InvokeModuleVoidAsync(TriggerModule, "attach", InstanceId, trigger);
+
+        if (_pendingFocus == 0)
+        {
+            return;
+        }
+
+        if (!EffectiveOpen || _menu is null)
+        {
+            _pendingFocus = 0;
+            return;
+        }
+
+        var last = _pendingFocus == 2;
+        _pendingFocus = 0;
+        await _menu.FocusEdgeItemAsync(last);
+    }
+
+    /// <summary>
+    /// ArrowDown/ArrowUp on the trigger opens the menu and places focus on its
+    /// first/last reachable node. Arrow keys that arrive while the menu is already
+    /// open only move focus; the module has already cancelled the page scroll.
+    /// </summary>
+    [JSInvokable]
+    public async Task HandleTriggerArrowKeyAsync(bool arrowDown)
+    {
+        if (_disposed || Disabled || Loading || _menu is null)
+        {
+            return;
+        }
+
+        if (EffectiveOpen)
+        {
+            await _menu.FocusEdgeItemAsync(last: !arrowDown);
+            return;
+        }
+
+        _pendingFocus = arrowDown ? 1 : 2;
+        await SetOpenAsync(true);
+    }
 
     protected override void OnParametersSet()
     {
@@ -181,5 +237,13 @@ public partial class IconButtonMenu : AeterniComponent
             _internalOpen = open;
             StateHasChanged();
         }
+    }
+
+    // The shared trigger module is released by the base class; this flag additionally
+    // rejects a queued interop callback that arrives after the component is gone.
+    protected override ValueTask OnComponentDisposeAsync()
+    {
+        _disposed = true;
+        return ValueTask.CompletedTask;
     }
 }

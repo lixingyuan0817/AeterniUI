@@ -42,7 +42,7 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-medium);
-    letter-spacing: .02em;
+    letter-spacing: var(--aeterni-letter-spacing-wide);
 }
 
 .doc-hero__eyebrow-dot {
@@ -57,10 +57,10 @@
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(52px, 6.4vw, 80px);
+    font-size: clamp(var(--aeterni-font-size-5xl), 6.4vw, var(--aeterni-font-size-display-sm));
     font-weight: var(--aeterni-font-weight-semibold);
     line-height: .98;
-    letter-spacing: -.035em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .doc-hero__lede {
@@ -134,11 +134,11 @@
 .doc-hero__stat-value {
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(26px, 2.4vw, 32px);
+    font-size: clamp(var(--aeterni-font-size-2xl), 2.4vw, var(--aeterni-font-size-3xl));
     font-weight: var(--aeterni-font-weight-semibold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    letter-spacing: -.02em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .doc-hero__stat-label {
@@ -174,7 +174,7 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .08em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
 }
 
 .doc-hero__specimen-body {
@@ -223,9 +223,9 @@
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(26px, 2.6vw, 34px);
+    font-size: clamp(var(--aeterni-font-size-2xl), 2.6vw, var(--aeterni-font-size-4xl));
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: -.02em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .doc-showcase__all {
@@ -258,7 +258,7 @@
     color: var(--aeterni-text-secondary);
     font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .02em;
+    letter-spacing: var(--aeterni-letter-spacing-wide);
 }
 
 .doc-showcase__grid {
@@ -285,8 +285,14 @@
 
 .doc-showcase__card:hover {
     border-color: var(--aeterni-border-strong);
-    box-shadow: var(--aeterni-shadow-md);
-    translate: 0 -2px;
+}
+
+/* Lift is a pointer affordance; on touch a sticky :hover kept the card raised. */
+@media (hover: hover) {
+    .doc-showcase__card:hover {
+        box-shadow: var(--aeterni-shadow-md);
+        translate: 0 -2px;
+    }
 }
 
 .doc-showcase__preview {
@@ -388,17 +394,17 @@
     color: var(--aeterni-color-brand-text);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .08em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
 }
 
 .doc-start h2 {
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(24px, 2.6vw, 32px);
+    font-size: clamp(var(--aeterni-font-size-2xl), 2.6vw, var(--aeterni-font-size-4xl));
     font-weight: var(--aeterni-font-weight-semibold);
     line-height: 1.22;
-    letter-spacing: -.02em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
     text-wrap: balance;
 }
 
@@ -428,7 +434,7 @@
     background: var(--aeterni-bg-tertiary);
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-mono);
-    font-size: 12.5px;
+    font-size: var(--aeterni-font-size-compact);
     line-height: 1.65;
     tab-size: 4;
 }
@@ -461,7 +467,7 @@
 
 @media (max-width: 720px) {
     .doc-hero h1 {
-        font-size: clamp(40px, 13vw, 56px);
+        font-size: clamp(var(--aeterni-font-size-4xl), 13vw, var(--aeterni-font-size-6xl));
     }
 
     .doc-hero__stats {

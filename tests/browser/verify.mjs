@@ -1623,8 +1623,8 @@ const SEARCH_INPUT = '#showcase-header-search';
 const SEARCH_LISTBOX = '#showcase-header-search-listbox';
 const SEARCH_PANEL = '.showcase-search-modal__panel';
 
-// 面板的存在就是开合状态：关着时它整个不在 DOM 里，所以"开"看节点在不在，"关"看它有没有
-// 消失——不存在"打开了但看不见"的中间态。
+// 面板正常打开期间存在，关闭时先挂 100ms 的 `is-closing` 退场类再真正移除；
+// 因此"开"看节点在不在，"关"统一用 waitForSearchState 等到节点消失，不读瞬时帧。
 const searchState = () => evaluate(`(() => {
     const trigger = document.querySelector('${TRIGGER}');
     const panel = document.querySelector('${SEARCH_PANEL}');
@@ -2640,6 +2640,38 @@ const selection = await evaluate(`(() => {
 check('大数据列表：多选计数与行选中态一致，选中后批量动作条才出现',
     (selection.note ?? '').includes('已选 2 项') && selection.selectedRows === 2 && selection.toolbar,
     JSON.stringify(selection));
+
+// 筛选是宿主行为：把已选行移出当前快照不能由组件清空宿主的选择。
+// 用其中一行自己的消息做关键词，筛选后该行仍在、另一行被移出——宿主计数必须仍是 2。
+const retainedSelection = await evaluate(`(() => {
+    const section = document.querySelector('#data-list-selection');
+    const selectedRow = section.querySelector('[role="option"][aria-selected="true"]');
+    const message = selectedRow?.querySelector('.preview-value')?.textContent?.trim() ?? '';
+    const input = document.querySelector('#data-list-search input.aeterni-input');
+    input.focus();
+    input.value = '';
+    return { message };
+})()`);
+// 真实输入事件：直接写 value + dispatchEvent 在部分时序下只改 DOM 不触发 Blazor 绑定，
+// 这里用 CDP insertText 走真实输入路径；随后轮询到快照只剩 1 行再断言。
+await send('Input.insertText', { text: retainedSelection.message });
+let filteredSelection = null;
+for (let attempt = 0; attempt < 25; attempt++) {
+    await sleep(200);
+    filteredSelection = await evaluate(`(() => {
+        const section = document.querySelector('#data-list-selection');
+        return {
+            note: section.querySelector('.preview-feedback')?.textContent?.trim() ?? null,
+            selectedRows: section.querySelectorAll('[role="option"][aria-selected="true"]').length,
+            options: section.querySelectorAll('[role="option"]').length
+        };
+    })()`);
+    if (filteredSelection.options === 1) break;
+}
+check('大数据列表：筛选把已选行移出快照后宿主选择仍保留（组件不自动 prune）',
+    filteredSelection.note?.includes('已选 2 项') && filteredSelection.selectedRows === 1
+    && filteredSelection.options === 1,
+    JSON.stringify({ retainedSelection, filteredSelection }));
 
 // 整站体检：每个页面都要把源码里声明的 demo 段全部渲染出来，且不出现未处理异常。
 // 这一类缺陷编译期完全看不见，症状都是"页面静静地少一段"：属性值里的裸引号会被 Razor 截断

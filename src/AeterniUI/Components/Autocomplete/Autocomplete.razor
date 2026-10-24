@@ -16,7 +16,7 @@
                            ReadOnly="@ReadOnly"
                            Required="@IsRequired"
                            Invalid="@IsInvalid"
-                           Disabled="@IsEffectivelyDisabled"
+                           Disabled="@IsDisabled"
                            FullWidth="true"
                            AriaLabel="@InputAriaLabel"
                            AriaDescribedBy="@AriaDescribedBy"
@@ -28,14 +28,14 @@
                     {
                         <div class="aeterni-autocomplete__actions">
                             <ButtonGroup Connected="true"
-                                         Disabled="@IsEffectivelyDisabled"
+                                         Disabled="@IsDisabled"
                                          AriaLabel="@EffectiveAriaLabel">
                                 <IconButton Class="aeterni-autocomplete__clear"
                                             Size="@Size"
                                             Variant="@ButtonVariant.Ghost"
                                             Intent="@ButtonIntent.Neutral"
                                             AriaLabel="@EffectiveClearLabel"
-                                            Disabled="@(IsEffectivelyDisabled || ReadOnly)"
+                                            Disabled="@(IsDisabled || ReadOnly)"
                                             Icon="@ClearIcon"
                                             OnClick="@ClearAsync" />
                             </ButtonGroup>

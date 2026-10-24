@@ -39,7 +39,7 @@
 
         <DemoCard Id="autocomplete-loading"
                   Title="加载态与交互开关"
-                  Description="Loading 表示宿主正在取数据（不改变输入框可用性）；OpenOnFocus 决定获得焦点即展开候选。"
+                  Description="Loading 只在建议区显示忙碌状态（Spinner + 文案），输入、清除和弹层开合保持可用；OpenOnFocus 决定获得焦点即展开候选。"
                   Code="@LoadingCode">
             <Preview>
                 <div class="preview-form-control preview-form-control--fill">
@@ -128,7 +128,7 @@
     </Demos>
     <Notes>
         <span>键盘模型与 <code>ComboBox</code> 一致：方向键移动、Enter 选中、Escape 关闭；输入框保持编辑焦点，活动项通过 <code>aria-activedescendant</code> 表达。</span>
-        <span>组件不做输入过滤：<code>Items</code> 是宿主给的当前快照；异步建议在 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 表示等待。</span>
+        <span>组件不做输入过滤：<code>Items</code> 是宿主给的当前快照；异步建议在 <code>ValueChanged</code> 里发起请求并替换 <code>Items</code>，<code>Loading</code> 只把建议区换成忙碌状态，输入与清除仍可用。</span>
         <span>选择建议不改变绑定值语义：<code>OnItemSelected</code> 报告被选中项，输入框文本仍由 <code>Value</code> 决定。</span>
     </Notes>
 </ComponentPage>

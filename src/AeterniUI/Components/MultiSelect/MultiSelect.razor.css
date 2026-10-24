@@ -80,9 +80,15 @@
     color: var(--aeterni-control-foreground-disabled);
 }
 
+/* Read-only keeps the trigger in the Tab sequence (unlike disabled) so the value
+   can be focused and its text selected/copied; only opening and changing the
+   selection are blocked. No whole-control opacity is used. */
 .aeterni-multi-select.is-readonly .aeterni-multi-select__trigger {
     cursor: default;
     background: var(--aeterni-control-background-readonly);
+    color: var(--aeterni-control-foreground-readonly);
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .aeterni-multi-select__values {
@@ -99,6 +105,10 @@
     color: var(--aeterni-control-foreground-placeholder);
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.aeterni-multi-select.is-readonly .aeterni-multi-select__chip {
+    color: var(--aeterni-control-foreground-readonly);
 }
 
 .aeterni-multi-select__chip {

@@ -265,6 +265,7 @@ node scripts/check-css.mjs                     # 任意 CSS：注释提前闭合
 grep -E '^\.aeterni-' src/AeterniUI/wwwroot/css/aeterni_ui.css | grep -v '^\.aeterni-dark'
                                                # token 文件不得含组件选择器（无输出即通过）
 node scripts/check-contrast.mjs                # 色阶、品牌或对比度相关 Token
+node scripts/check-theme-parity.mjs            # 深色主题块与 prefers-color-scheme 回退块逐 token 一致
 node scripts/check-doc-drift.mjs               # 交付功能或文案表
 node --check <改动的>.razor.js                 # 组件 JS
 node --test tests/*.test.mjs                   # 浏览器行为

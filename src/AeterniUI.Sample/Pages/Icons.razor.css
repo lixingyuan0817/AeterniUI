@@ -35,7 +35,7 @@
     color: var(--aeterni-color-brand-default);
     font-size: var(--aeterni-font-size-xs);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: .14em;
+    letter-spacing: var(--aeterni-letter-spacing-wider);
     text-transform: uppercase;
 }
 
@@ -43,10 +43,10 @@
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: clamp(30px, 2.6vw, 36px);
+    font-size: clamp(var(--aeterni-font-size-3xl), 2.6vw, var(--aeterni-font-size-4xl));
     font-weight: var(--aeterni-font-weight-semibold);
     line-height: 1.08;
-    letter-spacing: -.015em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .doc-icons__lead {
@@ -109,9 +109,9 @@
     margin: 0;
     color: var(--aeterni-text-primary);
     font-family: var(--aeterni-font-family-display);
-    font-size: 20px;
+    font-size: var(--aeterni-font-size-xl);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: -.01em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .doc-icons__section-lead {

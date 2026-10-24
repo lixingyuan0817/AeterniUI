@@ -5,12 +5,13 @@
    同一档 `--aeterni-bg-surface`），不叠玻璃、不写 `backdrop-filter`，因此不会出现「灰玻璃面板
    里套白输入框」的层级反转。遮罩与面板是兄弟，点遮罩即关闭，面板自己不需要再挡事件。
 
-   面板在打开时才进入 DOM：`role="dialog"` + `aria-modal` 表达模态语义，`tabindex="-1"` 给焦点
-   陷阱一个兜底落点；滚动锁与 Tab 循环由库内 `aeterni_floating.js` 提供（见 `ShowcaseSearchModel`
-   的互操作入口），这里只声明结构。 *@
-@if (Model.Open)
+   面板在打开时才进入 DOM；关闭时先挂 `is-closing` 播放 100ms 退场，退场结束后才真正
+   移除节点、释放滚动锁与焦点陷阱（焦点随后回到触发器）。`role="dialog"` + `aria-modal`
+   表达模态语义，`tabindex="-1"` 给焦点陷阱一个兜底落点；滚动锁与 Tab 循环由库内
+   `aeterni_floating.js` 提供（见 `ShowcaseSearchModel` 的互操作入口），这里只声明结构。 *@
+@if (Model.Open || _exiting)
 {
-    <div class="showcase-search-modal">
+    <div class="showcase-search-modal @(_exiting ? "is-closing" : null)">
         <div class="showcase-search-modal__backdrop" @onclick="() => Model.ClosePanel()"></div>
 
         <section class="showcase-search-modal__panel"

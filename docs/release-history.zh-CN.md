@@ -6,6 +6,41 @@
 
 历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
 
+## 10.47.1 语义收口、动效细节与 Token/排版收敛
+
+10.47.0 发版后继续处理审阅计划剩余的 P2/P3。本批以行为修复与内部收敛为主，没有新增公共参数，按 §4.9 第三位递增。
+
+### 交互语义
+
+- `MultiSelect.ReadOnly` 对齐选择器族：触发器保留在 Tab 序列中（`tabindex=0`），`aria-readonly` + `is-readonly`，文本可选中复制；点击/键盘/批量动作/Backspace 都不打开面板或改值，`Disabled` 优先。
+- `Autocomplete.Loading` 改为“忙碌但可用”：建议区显示 Spinner 与 `aria-busy`，输入、清除、弹层开合保持可用；忙碌时键盘只开合、不确认未渲染的选项，`aria-activedescendant` 暂时为空。
+- `List` / `VirtualList` 删除 Items 变化时的自动 prune：选中状态归宿主控制，筛选/换页不再改写绑定值；真正删除数据时由宿主同步选中状态（XML 注释写明）。DataList 的“筛选后选择保留”因此成立，并补真实浏览器回归。
+
+### 动效与键盘
+
+- 示例站搜索面板补 100ms 退场动画（真实动画结束才移除 DOM、释放滚动锁与焦点），reduced-motion 立即；退场途中可重新打开。
+- Toast 超过 `MaxToastCount` 时最旧条目走完整退场动画再移除（不再瞬删），`OnClosedAsync` 仍在动画结束后触发一次。
+- Popover 出入场位移方向跟随 placement（Bottom 侧 -4px、Top 侧 +4px）；ComboBox/Cascader 删除各自复制的关键帧，统一共享实现。
+- Tooltip hover 显示延迟 250ms（`--aeterni-tooltip-show-delay` 可覆盖），键盘 focus 立即，隐藏保持 100ms；hover 规则带 `(hover: hover)`。
+- MenuButton / IconButtonMenu 支持 ArrowDown/ArrowUp 打开并聚焦首/末节点，已打开时只移动焦点；新增共享 `aeterni_menu_trigger.js`，无 JS 时保留 click/Tab 行为。
+- Button/Card/FlashCard/FlashCardGroup/示例首页卡片的 hover 效果补 `(hover: hover)` 守卫，触屏不再粘滞；键盘路径保留。
+
+### Token 与排版
+
+- 新增 `scripts/check-theme-parity.mjs`：逐 token 比较显式暗色块与 `prefers-color-scheme` 回退块（当前 110 tokens），接入 CI 与 AGENTS §4.8；两份声明仍保留但不再允许漂移。
+- `--aeterni-radius-button` 从 0.625rem 收进阶梯 `--aeterni-radius-lg`（8px），Button 全族/IconButton Square/ButtonGroup/Pagination/ToggleGroup 自动生效。
+- 示例站排版收敛：裸 px 字号 27→0、字距字面值 13 种→0、17 处 clamp 端点全部 Token 化；新增 display 角色 token（80/96/144px）供 Hero、大屏读数与颜色页标本使用，并在颜色页登记。保留 2 处相对字号（`.9em`/`.92em`）作为行内代码随文缩放的例外。
+
+### 脚本
+
+- `api-descriptions.json` / `api-extra-rows.json` / `api-since.json` 合并为 `scripts/api-content.json`（按页组织），新增 `scripts/lib/showcase-api-content.mjs` 做唯一读取入口与校验；生成结果与旧三文件逐字节等价，JSON 体积因嵌套结构约 +8.7%。
+- 搜索索引生成物按页面分组（`ShowcaseSearchIndex.Pages`），`ShowcaseSearchModel` 一次摊平；553 条/69 页内容与顺序不变，文件 53,773→36,129 字节（−32.8%）。
+- 生成脚本过程叙事注释压缩约 55 行，保留“为什么/陷阱/失败案例”。
+
+### 验证
+
+- `dotnet build aeterni_ui.slnx` 0 错误（仅 NU1900 环境警告）；契约检查 47 组通过；`node --test tests/*.test.mjs` 138 项通过；`tests/sample-docs.test.mjs` 14 项通过；`check-theme-parity`（110 tokens）、`check-css`（85 文件/16 容器）、`check-contrast`（315）、`check-docs.sh`、`check-doc-drift`、API `--check`（61 页/806 行）、搜索索引 `--check`（553 条/69 页）全部通过；真实浏览器检查 196/196 通过（含 DataList 筛选保留、搜索退场、Toast 溢出、选择器只读/Loading 相关断言）。
+
 ## 10.47.0 选择器/列表/日期 API 对齐与示例站可用性
 
 10.46.0 发版后继续执行审阅计划剩余的 P1/P2 项。本批以“对齐与类型安全”为主，新增若干公共参数/成员，按 §4.9 第二位递增；没有删除既有 API，旧选择器/列表接口以兼容层保留。

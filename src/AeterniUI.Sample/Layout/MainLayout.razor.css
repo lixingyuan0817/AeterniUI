@@ -133,15 +133,15 @@
     background: var(--aeterni-color-brand-default);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
     color: var(--aeterni-text-inverse);
-    font-size: 14px;
+    font-size: var(--aeterni-font-size-sm);
     font-weight: var(--aeterni-font-weight-bold);
 }
 
 .brand-name {
     font-family: var(--aeterni-font-family-display);
-    font-size: 17px;
+    font-size: var(--aeterni-font-size-lg);
     font-weight: var(--aeterni-font-weight-semibold);
-    letter-spacing: -.01em;
+    letter-spacing: var(--aeterni-letter-spacing-tight);
 }
 
 .brand-name span {
@@ -288,7 +288,7 @@
     }
 
     .brand-name {
-        font-size: 15px;
+        font-size: var(--aeterni-font-size-base);
     }
 }
 

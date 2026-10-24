@@ -1158,16 +1158,19 @@ async Task CheckListAsync()
         await Key("End");
         Require(Equals(host.Selected, "Gamma") && root.ToHtmlString().Contains("aria-activedescendant"), "Keyboard selects last row and reports active option.");
         host.Rows = ["Replacement", "Alpha"]; host.Update();
-        Require(host.Selected is null && !root.ToHtmlString().Contains("aria-activedescendant"), "Removed selection and active descendant must be cleared.");
+        Require(Equals(host.Selected, "Gamma") && !root.ToHtmlString().Contains("aria-activedescendant"),
+            "Rebuilding Items must not prune the host-owned single selection; only the active descendant clears.");
         await Key("Home");
         Require(Equals(host.Selected, "Replacement"), "Reused row handles must select updated values.");
         host.Disabled = true; host.Update(); await Key("End");
         Require(Equals(host.Selected, "Replacement") && root.ToHtmlString().Contains("tabindex=\"-1\""), "Disabled list ignores keys and leaves Tab sequence.");
         host.Disabled = false; host.Mode = SelectionMode.Multiple; host.SelectedMany = ["Replacement", "Alpha"]; host.Update();
         host.Rows = ["Alpha"]; host.Update();
-        Require(host.SelectedMany.SequenceEqual(new object?[] { "Alpha" }), "Dynamic Items prune missing multi-selection values.");
+        Require(host.SelectedMany.SequenceEqual(new object?[] { "Replacement", "Alpha" }),
+            "Rebuilding Items must not prune the host-owned multi selection.");
         await Key("Home"); await Key("Enter");
-        Require(host.SelectedMany.Count == 0, "Multiple keyboard activation toggles current row.");
+        Require(host.SelectedMany.SequenceEqual(new object?[] { "Replacement" }),
+            "Multiple keyboard activation toggles only the active row, even when other selected rows are filtered out.");
         host.Rows = []; host.Update(); await Key("Enter");
         Require(!root.ToHtmlString().Contains("role=\"option\"") && !root.ToHtmlString().Contains("aria-activedescendant"), "Empty Items remove registered rows and active descendant.");
         host.Declarative = true; host.Rows = ["Disabled", "Enabled"]; host.RowDisabled = true; host.Mode = SelectionMode.Single; host.Update();
@@ -1282,6 +1285,13 @@ async Task CheckVirtualListAsync()
         await Call(single, "HandleKeyFromBrowserAsync", "Home");
         Require(Equals(single.Selected, "Alpha"), "VirtualList Home must return to the first row.");
 
+        // Filtering is host-side: a selected row that the new snapshot no longer
+        // contains must stay selected instead of being pruned by the component.
+        single.Items = new[] { "Beta", "Gamma" };
+        single.Update();
+        Require(Equals(single.Selected, "Alpha") && single.SingleChanges == 3,
+            "VirtualList must keep a host-owned selection when a filtered Items snapshot no longer contains it.");
+
         // A row the host disables is skipped rather than activated.
         var skipping = await HostAsync(x => x.DisabledSelector = value => value == "Beta");
         await Call(skipping, "HandleKeyFromBrowserAsync", "ArrowDown");
@@ -1299,6 +1309,17 @@ async Task CheckVirtualListAsync()
         await Call(multiple, "HandleKeyFromBrowserAsync", "ArrowDown");
         await Call(multiple, "HandleKeyFromBrowserAsync", "Enter");
         Require(multiple.SelectedMany.Count == 2, "VirtualList multi-select must accumulate rows toggled with Enter.");
+
+        // The same host-owned rule applies to the multi-selection bridge.
+        var filteringMultiple = await HostAsync(x => x.Mode = SelectionMode.Multiple);
+        await Call(filteringMultiple, "HandleKeyFromBrowserAsync", "ArrowDown");
+        await Call(filteringMultiple, "HandleKeyFromBrowserAsync", "Enter");
+        Require(filteringMultiple.SelectedMany.Count == 1 && Equals(filteringMultiple.SelectedMany[0], "Alpha"),
+            "VirtualList multi-select must accumulate the activated row.");
+        filteringMultiple.Items = new[] { "Beta", "Gamma" };
+        filteringMultiple.Update();
+        Require(filteringMultiple.SelectedMany.SequenceEqual(new object?[] { "Alpha" }) && filteringMultiple.MultipleChanges == 1,
+            "VirtualList must keep a host-owned multi selection when a filtered Items snapshot no longer contains it.");
 
         // The in-flight latch is a concurrency guard: a second request raised while
         // the host is still answering the first must not reach the host again.
@@ -1626,9 +1647,13 @@ async Task CheckAutocompleteAsync()
         ["Value"] = "bu", ["Items"] = new[] { "Button" }, ["Loading"] = true, ["Size"] = Size.Large
     });
     var loadingInput = Regex.Match(loading, "<input[^>]*>").Value;
-    Require(loading.Contains("aria-disabled=\"true\"") && loadingInput.Contains("disabled")
-        && loading.Contains("aeterni-icon-button--lg"),
-        "Autocomplete loading state must disable the whole composite and size the clear action with the input.");
+    var loadingClear = Regex.Match(loading, "<button[^>]*aeterni-autocomplete__clear[^>]*>").Value;
+    // Loading is a busy region, not a disabled control: the host may still be
+    // typing/clearing while it refreshes the suggestion snapshot.
+    Require(!loadingInput.Contains("disabled") && !loading.Contains("aria-disabled=\"true\"")
+        && loading.Contains("aria-busy=\"true\"") && loading.Contains("is-loading")
+        && loading.Contains("aeterni-icon-button--lg") && loadingClear.Length > 0 && !loadingClear.Contains("disabled"),
+        "Autocomplete loading state must keep the input and clear action usable while the panel reports busy.");
 
     var suggestions = await RenderAsync<Autocomplete<string>>(new Dictionary<string, object?>
     {
@@ -1846,6 +1871,37 @@ async Task CheckMultiSelectAsync()
         [nameof(MultiSelect<string>.AriaLabel)] = "Categories"
     });
     Require(empty.Contains("Select options"), "MultiSelect renders its default placeholder.");
+
+    var readOnly = await RenderAsync<MultiSelect<string>>(new Dictionary<string, object?>
+    {
+        [nameof(MultiSelect<string>.Items)] = new[] { "Design", "Development" },
+        [nameof(MultiSelect<string>.SelectedValues)] = new[] { "Design" },
+        [nameof(MultiSelect<string>.ReadOnly)] = true,
+        [nameof(MultiSelect<string>.AriaLabel)] = "Read-only categories"
+    });
+    var readOnlyTrigger = Regex.Match(readOnly, "<div[^>]*role=\"combobox\"[^>]*>").Value;
+    Require(readOnlyTrigger.Contains("aria-readonly=\"true\"") && readOnlyTrigger.Contains("tabindex=\"0\"")
+        && !readOnlyTrigger.Contains("aria-disabled=\"true\""),
+        "A read-only MultiSelect trigger must stay in the Tab sequence and announce aria-readonly, not aria-disabled.");
+    Require(readOnly.Contains("is-readonly"), "A read-only MultiSelect root must expose is-readonly.");
+
+    // Read-only is a component state, not just markup: opening and toggling are rejected.
+    var readOnlyComponent = new MultiSelect<string>
+    {
+        Items = new[] { "Design", "Development" },
+        SelectedValues = new[] { "Design" },
+        ReadOnly = true
+    };
+    var readOnlyChanges = 0;
+    readOnlyComponent.SelectedValuesChanged = EventCallback.Factory.Create<IReadOnlyList<string>>(
+        new object(), _ => { readOnlyChanges += 1; });
+    var toggleItem = typeof(MultiSelect<string>).GetMethod("ToggleItemAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+    await (Task)toggleItem.Invoke(readOnlyComponent, ["Design"])!;
+    var openPanel = typeof(MultiSelect<string>).GetMethod("Open", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+    openPanel.Invoke(readOnlyComponent, [false]);
+    var isOpen = (bool)typeof(MultiSelect<string>).GetField("_open", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(readOnlyComponent)!;
+    Require(readOnlyComponent.SelectedValues.SequenceEqual(new[] { "Design" }) && readOnlyChanges == 0 && !isOpen,
+        "A read-only MultiSelect must reject opening and value changes.");
 
     foreach (var size in Enum.GetValues<Size>())
     {

@@ -72,9 +72,13 @@
 /* The Hover trigger flips from the stylesheet instead of from component state.
    It is a pointer-only preview: the card stays unfocusable and neither face is
    hidden from assistive technology, because the browser owns this state and the
-   component never learns about it. */
-.aeterni-flash-card.is-flip-hover:not(.is-disabled):hover .aeterni-flash-card__inner {
-    transform: rotateY(180deg);
+   component never learns about it. A touch tap must not leave the card stuck on
+   its back face, so the :hover flip only exists where hover is the primary
+   pointer. */
+@media (hover: hover) {
+    .aeterni-flash-card.is-flip-hover:not(.is-disabled):hover .aeterni-flash-card__inner {
+        transform: rotateY(180deg);
+    }
 }
 
 .aeterni-flash-card__face {
@@ -139,13 +143,18 @@
     will-change: opacity, background-position;
 }
 
-.aeterni-flash-card:hover .aeterni-flash-card__sheen,
 .aeterni-flash-card:focus-visible .aeterni-flash-card__sheen,
 .aeterni-flash-card.is-tilting .aeterni-flash-card__sheen,
-.aeterni-flash-card:hover .aeterni-flash-card__sheen-light,
 .aeterni-flash-card:focus-visible .aeterni-flash-card__sheen-light,
 .aeterni-flash-card.is-tilting .aeterni-flash-card__sheen-light {
     opacity: var(--aeterni-flash-card-sheen-opacity);
+}
+
+@media (hover: hover) {
+    .aeterni-flash-card:hover .aeterni-flash-card__sheen,
+    .aeterni-flash-card:hover .aeterni-flash-card__sheen-light {
+        opacity: var(--aeterni-flash-card-sheen-opacity);
+    }
 }
 
 /* The finish covers the whole media area. A foil card throws its reflection
@@ -227,19 +236,29 @@
     transform: translateX(-70%);
 }
 
-.aeterni-flash-card:hover .aeterni-flash-card__glint,
 .aeterni-flash-card:focus-visible .aeterni-flash-card__glint,
 .aeterni-flash-card.is-tilting .aeterni-flash-card__glint {
     opacity: 1;
 }
 
-.aeterni-flash-card:hover .aeterni-flash-card__glint-sweep,
+@media (hover: hover) {
+    .aeterni-flash-card:hover .aeterni-flash-card__glint {
+        opacity: 1;
+    }
+}
+
 .aeterni-flash-card:focus-visible .aeterni-flash-card__glint-sweep,
 .aeterni-flash-card.is-tilting .aeterni-flash-card__glint-sweep {
     /* Scaled from the shared slower step (500ms x 1.8 = 900ms) rather than a
        literal, so the sweep follows the motion scale and the reduced-motion
        block above collapses it with every other duration. */
     animation: aeterni-flash-card-glint calc(var(--aeterni-duration-slower) * 1.8) var(--aeterni-ease-out) both;
+}
+
+@media (hover: hover) {
+    .aeterni-flash-card:hover .aeterni-flash-card__glint-sweep {
+        animation: aeterni-flash-card-glint calc(var(--aeterni-duration-slower) * 1.8) var(--aeterni-ease-out) both;
+    }
 }
 
 @keyframes aeterni-flash-card-glint {

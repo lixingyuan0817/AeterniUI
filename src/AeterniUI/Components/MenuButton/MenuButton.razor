@@ -3,6 +3,7 @@
 <div @ref="RootElement" @attributes="BuildAttributes()">
     <PopupHost>
         <Button Id="@($"{ElementId}-trigger")" Variant="@Variant"
+                @ref="_triggerButton"
                 Intent="@Intent"
                 Size="@Size"
                 Loading="@Loading"
@@ -23,6 +24,7 @@
                  RestoreFocusOnClose="true"
                  AriaLabel="@(AriaLabel ?? Label)">
             <Menu Id="@MenuId" Items="@Items"
+                  @ref="_menu"
                   AriaLabel="@(AriaLabel ?? Label)"
                   OnItemSelected="@HandleItemSelectedAsync" />
         </Popover>

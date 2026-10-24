@@ -70,6 +70,12 @@ public partial class MultiSelect<TItem> : AeterniComponent where TItem : class
     [Parameter]
     public bool AllowClear { get; set; }
 
+    /// <summary>
+    /// Read-only view: the trigger stays in the Tab sequence and its selected text
+    /// can be selected and copied, but clicks, keys and bulk actions cannot open the
+    /// panel or change <see cref="SelectedValues" />. Unlike <c>Disabled</c> this is
+    /// not a dimmed control and does not remove the trigger from the Tab order.
+    /// </summary>
     [Parameter]
     public bool ReadOnly { get; set; }
 

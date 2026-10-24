@@ -24,6 +24,17 @@
     --aeterni-font-size-4xl: 36px;
     --aeterni-font-size-5xl: 48px;
     --aeterni-font-size-6xl: 60px;
+    /* Display role sizes above the 12px-60px text ladder: page-level headlines
+       and the type specimen on the colors page are not body-text tiers, so they
+       are role tokens (like --aeterni-font-size-compact) rather than numbered
+       steps. They still live here so a host can retune the showcase pages from
+       one place, and so the sample never has to write a display size literal.
+       display-sm is the page hero (the largest headline the showcase uses),
+       display-md leaves headroom for a larger marketing surface, display-lg is
+       the font-family specimen on the colors page. */
+    --aeterni-font-size-display-sm: 80px;
+    --aeterni-font-size-display-md: 96px;
+    --aeterni-font-size-display-lg: 144px;
     --aeterni-font-weight-regular: 400;
     --aeterni-font-weight-medium: 500;
     --aeterni-font-weight-semibold: 600;
@@ -63,16 +74,18 @@
     --aeterni-radius-3xl: 24px;
     --aeterni-radius-full: 9999px;
     --aeterni-radius-round: 50%;
-    /* Interactive controls resolve their radius through one size ladder, so a
-       Button and an Input of the same tier line up in a form row. */
+    /* Field-shaped controls resolve their radius through this size ladder, so an
+       Input and a Textarea of the same tier line up in a form row. */
     --aeterni-radius-control-sm: var(--aeterni-radius-sm);
     --aeterni-radius-control-md: var(--aeterni-radius-md);
     --aeterni-radius-control-lg: var(--aeterni-radius-lg);
-    /* Button uses the shadcn-style medium rounding requested by the public API.
-       One token serves every size tier: the three tiers were previously declared
-       with the same value, which made the sm/lg names a ladder that did not
-       exist, and a host overriding it had to know to override three names. */
-    --aeterni-radius-button: 0.625rem;
+    /* Button keeps one role token for every size tier, but it now points at the
+       ladder's lg rung (8px) instead of carrying an off-ladder 0.625rem. The old
+       value was the only rem radius in the system, so a host that changed the
+       root font size silently rounded buttons differently from every other
+       control. The role name stays stable for hosts that override it; IconButton
+       Square, Pagination and ToggleGroup all read this same rung. */
+    --aeterni-radius-button: var(--aeterni-radius-lg);
     --aeterni-radius-input: var(--aeterni-radius-control-md);
     --aeterni-radius-input-sm: var(--aeterni-radius-control-sm);
     --aeterni-radius-input-lg: var(--aeterni-radius-control-lg);
