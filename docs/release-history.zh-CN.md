@@ -6,6 +6,30 @@
 
 历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
 
+## 10.48.1 交互态语义分层：悬浮中性化、选中品牌化与 brand-soft 拆分
+
+用户反馈批次：下拉菜单、`Menu` / `List` 等组件的选中与悬浮都使用品牌色阶，两者只差 4 个 alpha 点。旧实现浅色主题 hover 9% / selected 13% 同取 `brand-500` 淡染，受控渲染的 computed style 分别为 `rgba(121, 90, 217, .09)` / `rgba(121, 90, 217, .13)`，ΔE2000 仅 2.5（深色 4.9–5.8），指针悬停与已选中在视觉上不可分；同时 `--aeterni-state-background-hover` 还兼任 `--aeterni-color-brand-soft` 与 Button 的 default / neutral soft 底，指针反馈与品牌柔和面共用一个值。本批把两条通道拆开，按 §4.9 递增第三位。
+
+### Token
+
+- `--aeterni-surface-hover` / `-active` 改为中性叠色：浅色 `rgba(0, 0, 0, .05)` / `.085`，深色 `rgba(255, 255, 255, .055)` / `.09`；不再从品牌色阶推导。
+- 选中保持品牌淡染（浅色 `brand-500 13%` / 深色 `18%`）；新增 `--aeterni-state-background-selected-hover`（浅色 `brand-500 16%` / 深色 `22%`），供已选中行的指针、按下与键盘游标使用。深色选中链全部留在 500 停靠档，消除旧实现「selected 取 500、active 取更亮的 400」导致按下已选中行反而变浅的问题。
+- 新增 `--aeterni-color-brand-soft` / `-active`（浅色 `brand-500 9% / 15%`、深色 `brand-400 12% / 19%`），Button / IconButton 的 default soft 改读它；neutral soft 改读中性 surface Token，不再被染成品牌色。
+- `--aeterni-state-background-checked*` 保持品牌实心填充；浅色、深色与 `prefers-color-scheme` 回退块逐 token 同步。
+
+### 组件
+
+- `Menu`、`NavMenu`、`List`、`ComboBox`、`Cascader`、`Transfer`、`VirtualList`：选中统一为「品牌淡染 + `--aeterni-state-color-selected` 墨 + medium 字重」，`Menu` / `NavMenu` 保留内嵌品牌选中线；已选中行的 hover / active / `.is-active` 游标改走 `selected-hover`，不再使用中性 `active`。
+- `List` 的 leading / trailing 附属内容在选中行改用 `currentColor`，避免品牌标签配灰图标。
+- `DateCalendar` 的范围预览改回 `--aeterni-color-brand-soft`：预览是选中预览，不是指针反馈。
+- `MultiSelect` 的已选项维持实心 `checked` 填充，属于「已勾选」语义，不受指针中性化影响。
+
+### 门禁
+
+- `node scripts/check-contrast.mjs` 新增「选中墨 × 选中淡染 / 交互加深淡染」与「品牌墨 × `brand-soft` / `brand-soft-active`」各两组（分别叠加 surface 与 page），共 **387 项**通过；最紧仍是绿色 500 承白字 4.52:1（1.004×），新增组最紧为绿色选中墨 × 加深淡染 5.02:1（surface）/ 4.71:1（page）。
+- 契约检查新增 `CheckInteractionStateContractAsync`（48 组）：锁定三套主题块的中性 hover / active 取值、`brand-soft` 不得回指 hover、`selected-hover` 三块声明齐全、七个可选组件的选中墨 / 加深档，以及日期范围预览仍用 `brand-soft`；`REV-146` 的 ComboBox 断言从 `active` 改为 `selected-hover`。
+- 验证：`dotnet build aeterni_ui.slnx` 0 错误、契约 48 组通过、`check-contrast` 387 项通过、`check-theme-parity` 113 token 一致、`check-css` 85 文件通过、`check-docs.sh` 与 `check-doc-drift.mjs` 通过；浏览器套件 202/202 通过（其中新增 2 条真实渲染断言：List 悬浮实测 `rgba(0, 0, 0, .05)`、selected 实测 `brand-500 13%` 且非中性、已选中行 hover 实测 `brand-500 16%`）。
+
 ## 10.48.0 IconMenuButton 改名、弹层退场位置与交互反馈修复
 
 用户反馈批次。本批包含一次破坏性的组件改名，以及弹层、Splitter、Segmented、图标尺寸和示例筛选的修复；按 §4.9 生效第二位递增。

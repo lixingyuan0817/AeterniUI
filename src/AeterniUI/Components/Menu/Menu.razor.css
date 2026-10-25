@@ -110,17 +110,14 @@
     box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
 }
 
-/* The selected row owns its fill and its brand ink: the generic hover would paint
-   the lighter hover wash over the selection and swap the label back to neutral
-   primary. Hover holds the row still and press steps the fill, so the row still
-   answers the pointer without giving up the selection. */
-.aeterni-menu__item.is-selected:hover:not(:disabled) {
-    background: var(--aeterni-state-background-selected);
-    color: var(--aeterni-state-color-selected);
-}
-
+/* A selected row answers the pointer and the press on its own tint ladder:
+   stepping the selected-hover stop keeps the brand fill and the brand ink,
+   while --aeterni-state-background-active is now a neutral scrim that would
+   wash the selection out. */
+.aeterni-menu__item.is-selected:hover:not(:disabled),
 .aeterni-menu__item.is-selected:active:not(:disabled) {
-    background: var(--aeterni-state-background-active);
+    background: var(--aeterni-state-background-selected-hover);
+    color: var(--aeterni-state-color-selected);
 }
 
 .aeterni-menu__item.is-selected .aeterni-menu__icon {

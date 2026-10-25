@@ -57,7 +57,8 @@
 - 提供 Light 和 Dark 两套主题 Token；无显式主题时 `@media (prefers-color-scheme: dark)` 提供系统偏好兜底，存在显式 `data-theme` / `data-aeterni-mode` 时不再生效。
 - 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 等状态别名；具体档位以 `src/AeterniUI/wwwroot/css/aeterni_ui.css` 为准。
 - 品牌色阶是独立色相层：默认紫罗兰声明在 `:root`，显式 `[data-aeterni-brand="purple"]` 与之等价。已交付紫罗兰（浅色 500 档 `#795AD9`、深色 400 档 `#9985ED`）、绿色 `[data-aeterni-brand="green"]`（500 档 `#1F883D`）、焦橙 `[data-aeterni-brand="orange"]`（500 档 `#C2410C`）。宿主可在库样式表之后声明自己的色相层重写 `--aeterni-brand-50..900`；该属性必须与 `data-theme` 同元素（`<html>`）。
-- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`；`selected` 是淡染选中底面，`checked` 是实心勾选块（品牌填充档 + `--aeterni-text-inverse` 墨），并配套 `--aeterni-state-background-checked-hover` / `-active` 两档。
+- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`；`hover` / `active` 是中性叠色（只做指针反馈，不携带值语义），`selected` 是品牌淡染选中底面，`checked` 是实心勾选块（品牌填充档 + `--aeterni-text-inverse` 墨）。已选中行在指针或键盘游标下沿选中淡染加深一档：`--aeterni-state-background-selected-hover`；实心勾选块配套 `--aeterni-state-background-checked-hover` / `-active` 两档。
+- 品牌柔和底 `--aeterni-color-brand-soft` / `-active` 是 Avatar 与 Soft 按钮的静止面，独立于指针反馈 `--aeterni-state-background-hover`，不得互相别名（推导见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.3）。
 - 状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted`、`inverse`；控件组合角色 `--aeterni-control-background` / `-border` / `-foreground` 及 `disabled` / `readonly` / `hover` / `focus` / `invalid` / `placeholder` 分支。
 - 焦点环统一使用 `--aeterni-focus-color`（无效控件 `--aeterni-focus-color-invalid`）与 `--aeterni-focus-width` / `--aeterni-focus-offset`（默认 2px / 1px）；全库统一外扩环与内收环两套画法。
 - 色板推导（OKLCH 阶梯、chroma 剖面、三个色相锚点与对比度余量）见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.4；`node scripts/check-contrast.mjs` 是这些数值的门禁。
@@ -581,14 +582,15 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 Items 改变只清除失效活动项，不再自动清理选中值：宿主筛选/换页/裁剪 Items 时，被移出快照的选中值保留在绑定状态中（只是没有对应行可渲染），真正删除数据时由宿主自行从选中状态移除——选中状态归宿主控制。绑定类型化回调后，每个选中值必须能表示为 `TItem`，否则组件在回调前抛 `InvalidOperationException` 并给出迁移提示；旧 object? 路径不受此约束。相等性沿用 object 默认比较，重复值共享选择状态；null 与单选“未选择”沿用相同表示。动态复用行更新注册 Value/Disabled，释放时注销并清理活动引用。禁用 List 继承到子项、移出 Tab 序列并忽略点击/键盘。选择列表模板不要嵌套按钮/链接等可聚焦控件。
 
-### 选中态复用配方（10.43.0）
+### 选中态复用配方（10.48.1）
 
 自定义导航行、工具栏行或工作台自绘的列表项要读起来与 `List` / `NavMenu` 一致时，直接引用同一组语义 Token，不要另调颜色或字重：
 
-- 选中：`background: var(--aeterni-state-background-selected)`、文字 `var(--aeterni-text-primary)`、`font-weight: var(--aeterni-font-weight-medium)`；不加左侧品牌竖线，淡染底本身已足够表达层级。
-- hover：`background: var(--aeterni-state-background-hover)`，并排除已选中与已禁用；已选中行在 hover 下继续使用选中底，不能退回 hover 洗浅。
-- 按下：`var(--aeterni-state-background-active)`；禁用：`var(--aeterni-state-color-disabled)`，不整行降低透明度。
-- 图标、计数等附属内容用 `currentColor` 继承行墨，选中时才会一起变亮；不要给它们单独写死灰阶。行尾动作应复用 `IconButton`（`Tone="Muted"`）而不是另写一套图标按钮样式。
+- 选中：`background: var(--aeterni-state-background-selected)`、文字 `var(--aeterni-state-color-selected)`、`font-weight: var(--aeterni-font-weight-medium)`。品牌淡染 + 品牌墨 + 字重是三个线索，不要只靠淡染；导航行（`Menu` / `NavMenu`）另加内嵌品牌选中线。
+- hover：`background: var(--aeterni-state-background-hover)`（中性叠色），并排除已选中与已禁用；已选中行不能用普通 hover 洗浅。
+- 已选中行的指针/键盘游标反馈：`background: var(--aeterni-state-background-selected-hover)`，在选中淡染上加深一档；不得回落到中性 hover 或 `active`。
+- 按下：未选中行用 `var(--aeterni-state-background-active)`（中性）；已选中行同样走 `selected-hover`。禁用：`var(--aeterni-state-color-disabled)`，不整行降低透明度。
+- 图标、计数等附属内容用 `currentColor` 继承行墨，选中时才会一起变色；不要给它们单独写死灰阶。行尾动作应复用 `IconButton`（`Tone="Muted"`）而不是另写一套图标按钮样式。
 
 ### 10.14.0 迁移与用法
 
@@ -667,7 +669,7 @@ Rating 使用 radiogroup/radio 语义，支持方向键、Home/End 和当前值�
 
 - 泛型 `ComboBox<TItem>`，默认下拉选择控件（不含自由输入搜索）。
 - `Items`、`Value`/`ValueChanged`、`TextSelector`、`ItemTemplate`、`EmptyContent`。
-- `ReadOnly`、`Loading`、`AllowClear`、`ClearLabel`、`OnClear`、`Placement`（默认 `BottomStart`）、`Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；选项的指针悬浮与键盘游标同档：普通项悬浮走 `--aeterni-state-background-hover`，已选中项悬浮再深一档（`--aeterni-state-background-active`），因此选中行在指针下也有可见反馈；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
+- `ReadOnly`、`Loading`、`AllowClear`、`ClearLabel`、`OnClear`、`Placement`（默认 `BottomStart`）、`Placeholder`、`Required`、`Invalid`、`FullWidth`、`AriaDescribedBy`、继承的 `Disabled`、`Size`、`AriaLabel` 和 `OnItemSelected`（`OnChange` 曾是该通知的旧名字，已于 10.14.3 移除）；选项的指针悬浮与键盘游标同档：普通项走中性 `--aeterni-state-background-hover`，已选中项在指针/游标下沿选中淡染加深一档（`--aeterni-state-background-selected-hover`），因此选中行仍有可见反馈、又不会被中性叠色洗浅；`AriaDescribedBy` 与 `FormField` 级联的描述 id 合并输出，未提供时 `Placeholder` 取 `AeterniUITextOptions.ComboBoxPlaceholder`、选项列表名取 `AeterniUITextOptions.ComboBoxListLabel`；接入 `EditContext` 校验（`ValueExpression`）并在 `FormField` 中级联。
 - `Size` 提供三档并与 `Input` 对齐：`Small` 触发器高度为 `--aeterni-control-height-sm`（28px，与 `Input Size="Small"` 等高）、`Default` 36px、`Large` 44px；触发器与选项列表共用同一套档位 Token（高、水平内边距、字号、圆角、箭头尺寸），选项行高由触发器高度推导。
 - 点击触发按钮弹出选项；打开后支持上下方向键、Home/End、Enter 确认；点击外部、Escape 或页面滚动（弹层内部滚动除外）都会关闭，行为接近原生 select。
 - `role="combobox"`、`aria-expanded`、`aria-controls` 与选项同步；打开时触发器通过 `aria-activedescendant` 指向高亮项，无效时输出 `aria-invalid`。
@@ -693,7 +695,7 @@ ComboBox 的触发器保持 combobox 语义；方向键可打开并导航，打�
 - 触发器是原生 `<button type="button" role="combobox">`，输出 `aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 与活动项的 `aria-activedescendant`（关闭时不输出该属性）；在 `FormField` 内采用字段的输入 ID，让字段标签的 `for` 解析到触发器，`aria-describedby` 合并宿主传入值与该字段的描述 id，与 `ComboBox`、`MultiSelect` 一致。只读时触发器保持可聚焦、可复制，输出 `aria-readonly` 与 `is-readonly`，但不打开面板、不改值；加载态在面板内显示 Spinner 并给根 `aria-busy`；`AllowClear` 在有值时渲染清除按钮，清空顺序为值回调 → EditContext 通知 → `OnClear`；触发器与字段壳拆开（边框归外壳、触发器无边框），与 Autocomplete/Search 同构。
 - 面板是**一个** `role="listbox"`，每一列是它的 `role="group"`：`listbox` 内再套 `listbox` 属于非法嵌套，列名改由分组的 `aria-label` 承担——第 1 列取文案表 `CascaderColumnLabel`，其后各列取父节点的文案，读屏进入某一列时能听到「这是谁的下一级」。选项是 `role="option"` + `aria-selected="true"/"false"`。
 - 焦点始终留在触发器，活动项用 `aria-activedescendant` 表达：复合控件只有一个 Tab 停留点，浮层不抢走容器焦点。键盘模型——`↑`/`↓` 在活动列内移动（循环），`→` 在活动项有子节点时展开下一列、否则移入已展开的下一列，`←` 回到上一列并落在刚展开的那个节点上，`Home`/`End` 跳到活动列首/末项，`Enter`/`Space` 在叶子上确认并关闭、在父节点上等同 `→`，`Escape` 关闭。处理后的按键会阻止页面滚动。
-- 鼠标点击父节点展开下一列，点击叶子确认并关闭；已选中项走 `--aeterni-state-background-selected`，键盘或指针落到已选中项时按 §4.4 整块换到 `--aeterni-state-background-active`。
+- 鼠标点击父节点展开下一列，点击叶子确认并关闭；已选中项走 `--aeterni-state-background-selected`，键盘或指针落到已选中项时加深到 `--aeterni-state-background-selected-hover`（§4.4）。
 - 浮层复用 `PopupHost` + `Popover`（定位、翻转、钳制、外部点击与滚动关闭来自 `aeterni_floating.js`），`Placement` 默认 `BottomStart`（可由参数覆盖）、`CloseOnScroll` 为 `true`，与 `ComboBox` 一致。列多到视口放不下时面板横向滚动，每列纵向滚动；两处滚动容器都按本文件的滚动条条目成对声明。
 - 尺寸档位 `Size`（Small / Default / Large）与 `ComboBox`／`Input` 共用同一套高度别名；`Disabled` / `Required` / `Invalid` 与 `FormField` 取并集，禁用后触发器不可聚焦、也不再接受键盘激活。`ReadOnly` 保持可聚焦、可复制，输出 `aria-readonly` 与 `is-readonly`，但不打开层级面板、不改值；`Loading` 在面板内显示 Spinner 并给根 `aria-busy`；`AllowClear` 在有值时渲染清除按钮，清空后关闭面板并回写 `null`，随后触发 `OnClear`。
 - 自有文案使用 `AeterniUITextOptions.CascaderLabel`、`CascaderPlaceholder`、`CascaderColumnLabel`、`CascaderEmptyText` 和 `CascaderPathSeparator` 默认值；实例参数 `Placeholder` / `Separator` 优先于全局文案表。
@@ -1746,7 +1748,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 
 展开分组在分组行与首个子项之间保留与同级行一致的行距（与 `Menu` 的「分组标题 → 子项」配方一致，`is-open` 时使用 `--aeterni-nav-menu-gap`），因此选中的子项与上方 hover 的分组行不会出现粘连背景。
 
-hover、选中与按下都画在 `.aeterni-nav-menu__row` 上（含 `Trailing` 区域）：行容器持有 `is-selected` / `is-disabled`，按钮透明并只负责焦点环，行墨通过 `currentColor` 传给右侧动作，因此不会出现「名字亮了、图标还灰着」的割裂。选中沿用 Menu/List 的 state Token（淡染底 + primary/selected 墨 + 内嵌选中线），hover 用 `--aeterni-state-background-hover`。
+hover、选中与按下都画在 `.aeterni-nav-menu__row` 上（含 `Trailing` 区域）：行容器持有 `is-selected` / `is-disabled`，按钮透明并只负责焦点环，行墨通过 `currentColor` 传给右侧动作，因此不会出现「名字亮了、图标还灰着」的割裂。选中沿用 Menu/List 的 state Token（品牌淡染底 + selected 墨 + 内嵌选中线），hover 用中性 `--aeterni-state-background-hover`，已选中行在指针/按下时走 `--aeterni-state-background-selected-hover`。
 
 ### 实现边界
 

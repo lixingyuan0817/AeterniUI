@@ -87,6 +87,7 @@ await CheckSharedAbstractionsAsync();
 await CheckEnumValidationAsync();
 await CheckTextTableFallbackAsync();
 await CheckTokenSurfaceAsync();
+await CheckInteractionStateContractAsync();
 await CheckUploadAsync();
 await CheckSegmentedShapeAsync();
 await CheckSegmentedKeyboardAsync();
@@ -109,7 +110,7 @@ if (failures.Count > 0)
     return 1;
 }
 
-Console.WriteLine("Component contract checks passed (47 groups).");
+Console.WriteLine("Component contract checks passed (48 groups).");
 return 0;
 
 // Priority-7 batch: InputNumber composes Input and Button, so the checks pin the
@@ -2890,12 +2891,13 @@ async Task CheckReviewBatch25Async()
     var root = FindRepositoryRoot();
 
     // REV-146 ①: the pointer needs the same feedback the keyboard cursor already
-    // had, so a selected option must step its fill one level deeper on hover.
+    // had, so a selected option must step its selected tint one level deeper on
+    // hover. The neutral active scrim is no longer a selection stop (10.48.1).
     var comboCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/ComboBox/ComboBox.razor.css"));
     Require(Regex.IsMatch(comboCss,
-            @"\.aeterni-combobox__option\.is-selected:hover:not\(\.is-disabled\) \{[^}]*background: var\(--aeterni-state-background-active\)",
+            @"\.aeterni-combobox__option\.is-selected:hover:not\(\.is-disabled\) \{[^}]*background: var\(--aeterni-state-background-selected-hover\)",
             RegexOptions.Singleline),
-        "A hovered selected ComboBox option must step its fill to the active stop.");
+        "A hovered selected ComboBox option must step its selected tint.");
 
     // REV-146 ②: the connected groups own the visible border (the inner Input has
     // its own border flattened), so they need the hover border standalone Input has.
@@ -3847,6 +3849,70 @@ async Task CheckTokenSurfaceAsync()
             $"The --aeterni-{family}-* ramp must declare exactly the committed stops: " +
             $"missing [{string.Join(", ", stops.Except(declared))}], unexpected [{string.Join(", ", declared.Except(stops))}].");
     }
+}
+
+// Interaction-state contract (10.48.1): pointer feedback is a neutral scrim and the
+// brand tint is reserved for selected/checked. That split is what lets a hovered row
+// and a chosen row be told apart, so the values are locked here rather than left to
+// the palette comments a later palette edit could silently invalidate.
+async Task CheckInteractionStateContractAsync()
+{
+    var root = FindRepositoryRoot();
+    var tokenCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/wwwroot/css/aeterni_ui.css"));
+
+    var hoverDeclarations = Regex.Matches(tokenCss, @"--aeterni-surface-hover:\s*([^;]+);")
+        .Select(match => match.Groups[1].Value.Trim())
+        .ToArray();
+    Require(hoverDeclarations.SequenceEqual(new[]
+            {
+                "rgba(0, 0, 0, .05)",
+                "rgba(255, 255, 255, .055)",
+                "rgba(255, 255, 255, .055)",
+            }),
+        "Pointer hover must stay a neutral scrim in the light, dark and system-dark blocks; " +
+        $"found [{string.Join(", ", hoverDeclarations)}].");
+
+    var activeDeclarations = Regex.Matches(tokenCss, @"--aeterni-surface-active:\s*([^;]+);")
+        .Select(match => match.Groups[1].Value.Trim())
+        .ToArray();
+    Require(activeDeclarations.SequenceEqual(new[]
+            {
+                "rgba(0, 0, 0, .085)",
+                "rgba(255, 255, 255, .09)",
+                "rgba(255, 255, 255, .09)",
+            }),
+        "Pointer press must stay a neutral scrim in every theme block.");
+
+    Require(!tokenCss.Contains("--aeterni-color-brand-soft: var(--aeterni-surface-hover)", StringComparison.Ordinal),
+        "The brand soft surface must not alias the pointer-hover token again.");
+    Require(Regex.Matches(tokenCss, @"--aeterni-color-brand-soft:\s*color-mix\(").Count == 3
+        && Regex.Matches(tokenCss, @"--aeterni-color-brand-soft-active:\s*color-mix\(").Count == 3,
+        "The brand soft fill and its pressed rung must be declared in all three theme blocks.");
+    Require(Regex.Matches(tokenCss, @"--aeterni-state-background-selected-hover:\s*var\(--aeterni-surface-selected-hover\)").Count == 3,
+        "The selected interaction step must be declared in all three theme blocks.");
+
+    // Every soft-tint selection surface paints the selected tint, the selected ink
+    // and the selected interaction step. A neutral scrim must never be reused as
+    // selected feedback.
+    foreach (var path in new[]
+             {
+                 "List/ListItem", "VirtualList/VirtualList", "Menu/Menu", "NavMenu/NavMenu",
+                 "ComboBox/ComboBox", "Cascader/Cascader", "Transfer/Transfer",
+             })
+    {
+        var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components", path + ".razor.css"));
+        var name = Path.GetFileName(path);
+        Require(css.Contains("--aeterni-state-background-selected", StringComparison.Ordinal)
+            && css.Contains("--aeterni-state-color-selected", StringComparison.Ordinal)
+            && css.Contains("--aeterni-state-background-selected-hover", StringComparison.Ordinal),
+            $"{name} must paint the selected tint, the selected ink and the selected interaction step.");
+    }
+
+    // The range preview previews selection, so it keeps the brand tint even though
+    // pointer hover is neutral now.
+    var calendar = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/DatePicker/DateCalendar.razor.css"));
+    Require(Regex.IsMatch(calendar, @"is-range-preview\s*\{[^}]*--aeterni-color-brand-soft", RegexOptions.Singleline),
+        "The date-range preview must keep the brand tint when pointer hover is neutral.");
 }
 
 

@@ -101,8 +101,10 @@
     background: var(--aeterni-state-background-checked-active);
 }
 
+/* Range preview is a preview of selection, not pointer feedback: it keeps the
+   brand tint now that --aeterni-state-background-hover is a neutral scrim. */
 .aeterni-date-calendar__day.is-range-preview {
-    background: var(--aeterni-state-background-hover);
+    background: var(--aeterni-color-brand-soft);
 }
 
 .aeterni-date-calendar__day.is-today {

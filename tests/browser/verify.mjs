@@ -801,6 +801,108 @@ check('VirtualList selected and hovered surfaces retain the List row gap',
         && Math.abs(virtualListStateGap.visualGap - parseFloat(listItem.rowGap)) <= 0.5,
     JSON.stringify({ virtualListStateGap, listRowGap: listItem.rowGap }));
 
+// ---------------------------------------------------------------- 10.48.1
+// Pointer feedback and selection are separate colour channels: a hovered row paints
+// the neutral scrim, the selected row keeps its brand tint, and hovering the
+// selected row steps that tint instead of washing it out. The two fills must also
+// differ in hue, which the old shared 9% / 13% brand tints did not (ΔE2000 2.5).
+const stateRowPoints = await evaluate(`(() => {
+    const list = document.querySelector('.aeterni-list');
+    const selected = list?.querySelector('.aeterni-list-item.is-selected');
+    const other = [...(list?.querySelectorAll('.aeterni-list-item.is-interactive') ?? [])]
+        .find(row => row !== selected && !row.classList.contains('is-disabled'));
+    if (!selected || !other) return { error: 'no selectable rows' };
+    const centre = el => {
+        const box = el.getBoundingClientRect();
+        return { x: Math.round(box.left + box.width / 2), y: Math.round(box.top + box.height / 2) };
+    };
+    return { other: centre(other), selected: centre(selected) };
+})()`);
+const readStateSurfaces = () => evaluate(`(() => {
+    const parse = css => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const context = canvas.getContext('2d');
+        context.fillStyle = css;
+        context.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+        return { r, g, b, a };
+    };
+    const token = variable => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(' + variable + ')';
+        document.body.appendChild(probe);
+        const css = getComputedStyle(probe).color;
+        probe.remove();
+        return css;
+    };
+    const list = document.querySelector('.aeterni-list');
+    const hovered = list?.querySelector('.aeterni-list-item.is-interactive:hover');
+    const selected = list?.querySelector('.aeterni-list-item.is-selected');
+    if (!hovered || !selected) return { error: 'no hovered or selected row' };
+    const hoverToken = token('--aeterni-state-background-hover');
+    const selectedToken = token('--aeterni-state-background-selected');
+    return {
+        hovered: getComputedStyle(hovered).backgroundColor,
+        selected: getComputedStyle(selected).backgroundColor,
+        hoverToken,
+        selectedToken,
+        hoverRgb: parse(hoverToken),
+        selectedRgb: parse(selectedToken)
+    };
+})()`);
+if (!stateRowPoints.error) {
+    await mouse('mouseMoved', stateRowPoints.other.x, stateRowPoints.other.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
+    await sleep(300);
+}
+const stateSurfaces = await readStateSurfaces();
+if (!stateRowPoints.error) {
+    await mouse('mouseMoved', stateRowPoints.selected.x, stateRowPoints.selected.y, { button: 'none', buttons: 0, pointerType: 'mouse' });
+    await sleep(300);
+}
+const selectedHoverState = await evaluate(`(() => {
+    const list = document.querySelector('.aeterni-list');
+    const selected = list?.querySelector('.aeterni-list-item.is-selected');
+    if (!selected) return { error: 'no selected row' };
+    const parse = css => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const context = canvas.getContext('2d');
+        context.fillStyle = css;
+        context.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+        return { r, g, b, a };
+    };
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--aeterni-state-background-selected-hover)';
+    document.body.appendChild(probe);
+    const token = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+        hovered: selected.matches(':hover'),
+        background: getComputedStyle(selected).backgroundColor,
+        token,
+        backgroundRgb: parse(getComputedStyle(selected).backgroundColor),
+        tokenRgb: parse(token)
+    };
+})()`);
+await mouse('mouseMoved', 0, 0, { button: 'none', buttons: 0, pointerType: 'mouse' });
+
+const neutralRgb = rgb => rgb.r === rgb.g && rgb.g === rgb.b;
+check('10.48.1 hover paints the neutral scrim and the selected row keeps a brand tint',
+    !stateRowPoints.error && !stateSurfaces.error
+        && stateSurfaces.hovered === stateSurfaces.hoverToken
+        && stateSurfaces.selected === stateSurfaces.selectedToken
+        && neutralRgb(stateSurfaces.hoverRgb)
+        && !neutralRgb(stateSurfaces.selectedRgb)
+        && stateSurfaces.hovered !== stateSurfaces.selected,
+    JSON.stringify({ stateRowPoints, stateSurfaces }));
+check('10.48.1 hovering a selected row steps the selected tint, not the neutral scrim',
+    !stateSurfaces.error && !selectedHoverState.error && selectedHoverState.hovered
+        && JSON.stringify(selectedHoverState.backgroundRgb) === JSON.stringify(selectedHoverState.tokenRgb)
+        && selectedHoverState.background !== stateSurfaces.selected,
+    JSON.stringify(selectedHoverState));
+
 // ---------------------------------------------------------------- REV-140
 // The holo finish is split by blend role: the rainbow has to replace hue and
 // saturation (`color`) while the white reflection has to lighten (`screen`). Both

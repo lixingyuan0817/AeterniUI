@@ -94,13 +94,19 @@
 }
 
 .aeterni-virtual-list__item.is-selected {
-    color: var(--aeterni-text-primary);
+    color: var(--aeterni-state-color-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-.aeterni-virtual-list__item.is-selected::before,
-.aeterni-virtual-list__item.is-selected:hover:not(.is-disabled)::before {
+.aeterni-virtual-list__item.is-selected::before {
     background: var(--aeterni-state-background-selected);
+}
+
+/* Pointer and keyboard cursor step the selected tint; the neutral hover scrim is
+   excluded above so it cannot wash the selection back to "not selected". */
+.aeterni-virtual-list__item.is-selected:hover:not(.is-disabled)::before,
+.aeterni-virtual-list.is-selectable:focus-visible .aeterni-virtual-list__item.is-selected.is-active:not(.is-disabled)::before {
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-virtual-list__item.is-disabled {

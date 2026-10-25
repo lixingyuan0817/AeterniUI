@@ -123,16 +123,18 @@
     --aeterni-button-intent-default-background-hover: var(--aeterni-color-brand-hover);
     --aeterni-button-intent-default-background-active: var(--aeterni-color-brand-active);
     --aeterni-button-intent-default-foreground: var(--aeterni-text-inverse);
-    --aeterni-button-intent-default-soft: var(--aeterni-state-background-hover);
-    --aeterni-button-intent-default-soft-active: var(--aeterni-state-background-active);
+    --aeterni-button-intent-default-soft: var(--aeterni-color-brand-soft);
+    --aeterni-button-intent-default-soft-active: var(--aeterni-color-brand-soft-active);
 
     --aeterni-button-intent-neutral-color: var(--aeterni-text-primary);
     --aeterni-button-intent-neutral-background: var(--aeterni-bg-tertiary);
     --aeterni-button-intent-neutral-background-hover: color-mix(in srgb, var(--aeterni-bg-tertiary) 86%, var(--aeterni-text-primary));
     --aeterni-button-intent-neutral-background-active: color-mix(in srgb, var(--aeterni-bg-tertiary) 76%, var(--aeterni-text-primary));
     --aeterni-button-intent-neutral-foreground: var(--aeterni-text-primary);
-    --aeterni-button-intent-neutral-soft: var(--aeterni-state-background-hover);
-    --aeterni-button-intent-neutral-soft-active: var(--aeterni-state-background-active);
+    /* Neutral soft is a neutral surface, not an accidental brand tint: it reads the
+       same neutral scrim the pointer uses instead of the old hover alias. */
+    --aeterni-button-intent-neutral-soft: var(--aeterni-surface-hover);
+    --aeterni-button-intent-neutral-soft-active: var(--aeterni-surface-active);
 
     --aeterni-button-intent-warning-color: var(--aeterni-color-warning-text);
     --aeterni-button-intent-warning-background: var(--aeterni-color-warning-default);
@@ -518,11 +520,22 @@
     --aeterni-state-background-thumb: var(--aeterni-gray-0);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(0, 0, 0, .045);
-    /* Mixed from the brand scale instead of a literal hue, so replacing the
-       brand palette re-tints every hover/pressed/selected state. */
-    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
-    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
+    /* Pointer feedback is a neutral scrim, not a brand wash. Hover and press used
+       to ride the brand scale one alpha step below `selected` (9% vs 13%), which
+       put two different meanings on the same hue only 2.5 ΔE2000 apart — a hovered
+       row and a chosen row were indistinguishable. Brand colour now belongs to the
+       persistent states (selected / current / checked); the pointer is neutral. */
+    --aeterni-surface-hover: rgba(0, 0, 0, .05);
+    --aeterni-surface-active: rgba(0, 0, 0, .085);
+    /* Selection keeps the brand scale. Because hover is neutral now, the tint
+       reads as a state instead of a second hover wash. */
     --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 13%, transparent);
+    /* A selected row still answers the pointer and the roving cursor: step one
+       tint level deeper on the same brand stop (22% in dark) so "deeper" never
+       becomes "a different hue". Brand ink on this fill stays readable — green is
+       the tightest layer: 5.02:1 on a surface / 4.71:1 on the page (the resting
+       selected tint is 5.22:1 / 4.90:1). */
+    --aeterni-surface-selected-hover: color-mix(in srgb, var(--aeterni-brand-500) 16%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .42);
     /* One ink, stepped by opacity — the Apple label model. A single ink keeps every
        level on the same hue, and because the levels are translucent they also adapt
@@ -588,9 +601,13 @@
     --aeterni-color-danger-text: var(--aeterni-danger-700);
     --aeterni-color-info-text: var(--aeterni-info-700);
     --aeterni-color-neutral-text: var(--aeterni-neutral-700);
-    /* A brand tint in its own right (used by Avatar and the brand soft button).
-       It used to borrow the neutral hover overlay. */
-    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    /* The brand tint in its own right (Avatar, the Soft button family). It used to
+       alias --aeterni-surface-hover, which made "pointer hover" and "brand soft
+       surface" the same value; they are separate roles now, so the pointer wash can
+       be neutral without turning brand-soft surfaces grey. The pressed rung keeps
+       the depth the old soft-active alias had. */
+    --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-brand-500) 9%, transparent);
+    --aeterni-color-brand-soft-active: color-mix(in srgb, var(--aeterni-brand-500) 15%, transparent);
     /* The ring reads as a hint, not a frame: halfway between the brand fill (500)
        and its lighter neighbour (400). Going all the way to 400 drops the green
        layer to 2.72:1 on the page, under the 3:1 non-text floor `check-contrast`
@@ -621,7 +638,11 @@
     --aeterni-state-background-default: var(--aeterni-bg-surface);
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
+    /* selected is now the only brand-tinted background role; hover/press are the
+       neutral scrims above, and a selected row steps one brand tint deeper through
+       `selected-hover` instead of falling back to the neutral scrim. */
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
+    --aeterni-state-background-selected-hover: var(--aeterni-surface-selected-hover);
     /* `checked` is a fill, not a tint: it paints the whole control (checkbox box,
        radio dot, switch track, segmented pill, tab underline, selected day), so it
        takes the solid 500 stop. Its ink stays --aeterni-text-inverse, the same
@@ -700,11 +721,15 @@
     --aeterni-state-background-thumb: var(--aeterni-gray-0);
     --aeterni-bg-disabled: var(--aeterni-bg-secondary);
     --aeterni-surface-soft: rgba(255, 255, 255, .045);
-    /* Same brand-scale derivation as the light theme: the dark states ride the
-       lighter 400 stop, while `selected` keeps the 500 stop in both themes. */
-    --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
-    --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+    /* Neutral pointer scrims, same split as the light theme: hover/press no longer
+       ride the brand scale, because a brand-tinted hover sat only a few alpha points
+       away from the brand-tinted selection. */
+    --aeterni-surface-hover: rgba(255, 255, 255, .055);
+    --aeterni-surface-active: rgba(255, 255, 255, .09);
+    /* Selection keeps the brand 500 stop in both themes; the pointer/cursor step
+       stays on that same stop so "deeper" never turns into "a different hue". */
     --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+    --aeterni-surface-selected-hover: color-mix(in srgb, var(--aeterni-brand-500) 22%, transparent);
     --aeterni-overlay: rgba(0, 0, 0, .64);
     --aeterni-text: rgba(255, 255, 255, .86);
     --aeterni-text-primary: var(--aeterni-text);
@@ -745,9 +770,10 @@
     --aeterni-color-brand-default: var(--aeterni-brand-400);
     --aeterni-color-brand-hover: var(--aeterni-brand-300);
     --aeterni-color-brand-active: var(--aeterni-brand-200);
-    /* A brand tint in its own right (used by Avatar and the brand soft button).
-       It used to borrow the neutral hover overlay. */
-    --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+    /* The brand tint in its own right (Avatar, the Soft button family); mirrored
+       from the light theme now that hover is neutral. */
+    --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+    --aeterni-color-brand-soft-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
     --aeterni-focus-color: var(--aeterni-color-brand-default);
     --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
     --aeterni-color-success-default: var(--aeterni-sem-success);
@@ -771,6 +797,7 @@
     --aeterni-state-background-hover: var(--aeterni-surface-hover);
     --aeterni-state-background-active: var(--aeterni-surface-active);
     --aeterni-state-background-selected: var(--aeterni-surface-selected);
+    --aeterni-state-background-selected-hover: var(--aeterni-surface-selected-hover);
     --aeterni-state-background-checked: var(--aeterni-color-brand-default);
     /* Hover/press step one stop along this theme's accent ramp; see the light
        theme for the full rationale. */
@@ -834,9 +861,10 @@
         --aeterni-state-background-thumb: var(--aeterni-gray-0);
         --aeterni-bg-disabled: var(--aeterni-bg-secondary);
         --aeterni-surface-soft: rgba(255, 255, 255, .045);
-        --aeterni-surface-hover: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
-        --aeterni-surface-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
+        --aeterni-surface-hover: rgba(255, 255, 255, .055);
+        --aeterni-surface-active: rgba(255, 255, 255, .09);
         --aeterni-surface-selected: color-mix(in srgb, var(--aeterni-brand-500) 18%, transparent);
+        --aeterni-surface-selected-hover: color-mix(in srgb, var(--aeterni-brand-500) 22%, transparent);
         --aeterni-overlay: rgba(0, 0, 0, .64);
         --aeterni-text: rgba(255, 255, 255, .86);
         --aeterni-text-primary: var(--aeterni-text);
@@ -877,7 +905,8 @@
         --aeterni-color-brand-default: var(--aeterni-brand-400);
         --aeterni-color-brand-hover: var(--aeterni-brand-300);
         --aeterni-color-brand-active: var(--aeterni-brand-200);
-        --aeterni-color-brand-soft: var(--aeterni-surface-hover);
+        --aeterni-color-brand-soft: color-mix(in srgb, var(--aeterni-brand-400) 12%, transparent);
+        --aeterni-color-brand-soft-active: color-mix(in srgb, var(--aeterni-brand-400) 19%, transparent);
         --aeterni-focus-color: var(--aeterni-color-brand-default);
         --aeterni-focus-color-invalid: var(--aeterni-color-danger-default);
         --aeterni-color-success-default: var(--aeterni-sem-success);
@@ -901,6 +930,7 @@
         --aeterni-state-background-hover: var(--aeterni-surface-hover);
         --aeterni-state-background-active: var(--aeterni-surface-active);
         --aeterni-state-background-selected: var(--aeterni-surface-selected);
+        --aeterni-state-background-selected-hover: var(--aeterni-surface-selected-hover);
         --aeterni-state-background-checked: var(--aeterni-color-brand-default);
         /* Hover/press step one stop along this theme's accent ramp; see the
            light theme for the full rationale. */

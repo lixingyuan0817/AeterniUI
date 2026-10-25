@@ -300,14 +300,15 @@
 
 .aeterni-cascader__option.is-selected {
     background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-/* Keyboard cursor climbing onto the selected option: the selection fill would
-   otherwise hide it, so the cursor steps the fill one level deeper. */
+/* The keyboard cursor and the pointer step the selected tint (the generic hover /
+   .is-active scrim is neutral now and would read as "not selected"). */
 .aeterni-cascader__option.is-selected.is-active,
 .aeterni-cascader__option.is-selected:hover {
-    background: var(--aeterni-state-background-active);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-cascader__option-text {

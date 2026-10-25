@@ -204,14 +204,15 @@
 
 .aeterni-transfer__option.is-selected:not(.is-disabled) {
     background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-/* Mouse cursor climbing onto the checked row: the checked fill would otherwise
-   hide it, so the cursor steps the fill one level deeper. */
+/* The pointer and the keyboard cursor step the selected tint; the generic hover /
+   is-active scrim is neutral now and the old active stop would wash the selection. */
 .aeterni-transfer__option.is-selected.is-active:not(.is-disabled),
 .aeterni-transfer__option.is-selected:hover:not(.is-disabled) {
-    background: var(--aeterni-state-background-active);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-transfer__option.is-disabled {

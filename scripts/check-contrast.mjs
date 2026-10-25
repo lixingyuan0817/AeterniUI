@@ -302,6 +302,25 @@ const PAIRS = [
     ['--aeterni-focus-color-invalid', '--aeterni-bg-surface', GRAPHIC_FLOOR, 'the invalid focus ring, on a surface'],
     ['--aeterni-focus-color-invalid', '--aeterni-bg', GRAPHIC_FLOOR, 'the invalid focus ring, on the page'],
 
+    // Selected rows paint brand ink on a brand tint, and the pointer/cursor step
+    // puts the same ink on a deeper tint. Both fills are translucent, so each is
+    // flattened onto the two surfaces a row can sit on. The pointer scrims are
+    // neutral and carry no brand ink, so they are not part of this contract.
+    ...['--aeterni-bg-surface', '--aeterni-bg'].flatMap(surface => [
+        ['--aeterni-state-color-selected', '--aeterni-state-background-selected', TEXT_FLOOR,
+            'selected ink on the selected tint', surface],
+        ['--aeterni-state-color-selected', '--aeterni-state-background-selected-hover', TEXT_FLOOR,
+            'selected ink on the selected interaction tint', surface],
+    ]),
+    // The brand soft surface is a real resting surface again (Avatar, Soft buttons)
+    // now that it no longer aliases the pointer scrim; its ink is the brand text stop.
+    ...['--aeterni-bg-surface', '--aeterni-bg'].flatMap(surface => [
+        ['--aeterni-color-brand-text', '--aeterni-color-brand-soft', TEXT_FLOOR,
+            'brand ink on the brand soft fill', surface],
+        ['--aeterni-color-brand-text', '--aeterni-color-brand-soft-active', TEXT_FLOOR,
+            'brand ink on the pressed brand soft fill', surface],
+    ]),
+
     // The semantic families carry text and borders the same way the brand hue
     // does, and the light theme's solid semantic fills were a real contrast
     // failure once (the fill stop used as ink). They were fixed by hand and then

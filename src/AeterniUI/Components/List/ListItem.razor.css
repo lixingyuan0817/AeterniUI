@@ -29,15 +29,22 @@
 
 .aeterni-list-item.is-interactive.is-selected {
     background: var(--aeterni-state-background-selected);
-    color: var(--aeterni-text-primary);
+    color: var(--aeterni-state-color-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-/* The selection fill outranks the hover wash. Without this the row lightened the
-   moment the pointer touched it, because in the light theme the hover wash is
-   weaker than the selected one. */
+/* The selected row steps its own tint under the pointer. The neutral hover scrim
+   is excluded above (it would read as "not selected"), and the old hold made the
+   selection look inert once hover stopped carrying a brand tint. */
 .aeterni-list-item.is-interactive.is-selected:hover:not(.is-disabled) {
-    background: var(--aeterni-state-background-selected);
+    background: var(--aeterni-state-background-selected-hover);
+}
+
+/* Leading/trailing content follows the row ink, so the selection cue is not split
+   between a brand label and grey icons. */
+.aeterni-list-item.is-interactive.is-selected .aeterni-list-item__leading,
+.aeterni-list-item.is-interactive.is-selected .aeterni-list-item__trailing {
+    color: currentColor;
 }
 
 /* The container owns focus; `.is-active` mirrors the option reported through
@@ -47,6 +54,12 @@
    option is not cleared when the pointer moves away. */
 .aeterni-list:focus-visible .aeterni-list-item.is-interactive.is-active:not(.is-selected):not(.is-disabled) {
     background: var(--aeterni-state-background-hover);
+}
+
+/* Keyboard cursor on an already selected row: same deeper tint, so the roving
+   cursor stays visible without repainting the selection. */
+.aeterni-list:focus-visible .aeterni-list-item.is-interactive.is-active.is-selected:not(.is-disabled) {
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-list-item.is-disabled,

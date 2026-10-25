@@ -333,7 +333,7 @@
     </div>
 
     <h2 id="colors-surfaces" class="showcase-colors__subtitle">中性容器表面</h2>
-    <p class="showcase-page-note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字与容器同为无彩，层级由不透明度阶梯表达；「冷中性」只是这套墨阶的名称，不是给文字加冷色。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。玻璃填充档（<code>--aeterni-bg-glass</code>，浅 68% / 深 72%）由 §5.4「玻璃配方只有一套」单独规定，不在本组取样。</p>
+    <p class="showcase-page-note showcase-colors__note">大面积容器表面一律无色（R = G = B）：带 +2 以上的彩偏移在侧边栏、卡片和磨砂面板上会被读成品牌色底，磨砂层的 <code>saturate()</code> 还会再放大它。文字与容器同为无彩，层级由不透明度阶梯表达；「冷中性」只是这套墨阶的名称，不是给文字加冷色。六个色块叠在 <code>--aeterni-bg-tertiary</code> 上看，半透明的两档才能看出叠色效果。指针悬停用中性叠色，品牌色只承载持久状态（选中 / 勾选），因此这一组里没有带色底。玻璃填充档（<code>--aeterni-bg-glass</code>，浅 68% / 深 72%）由 §5.4「玻璃配方只有一套」单独规定，不在本组取样。</p>
     <div class="showcase-colors__surfaces">
         <div class="showcase-colors__surface">
             <span class="showcase-colors__surface-chip showcase-colors__surface-chip--page"></span>
@@ -362,7 +362,7 @@
         </div>
         <div class="showcase-colors__surface">
             <span class="showcase-colors__surface-chip showcase-colors__surface-chip--hover"></span>
-            <span class="showcase-colors__surface-name">交互悬停（有意带色）</span>
+            <span class="showcase-colors__surface-name">交互悬停（中性叠色）</span>
             <code>--aeterni-state-background-hover</code>
         </div>
     </div>
@@ -504,7 +504,7 @@
         }
     </div>
     <p class="showcase-page-note showcase-colors__note">
-        <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。语意色族的文字承底在 PAIRS 里逐组实测（surface 覆盖 success / warning / danger / info，页面覆盖五族含 neutral）；实心承字（`--aeterni-color-on-semantic`）与柔和底（`-text` 叠在 `-soft` 上）由 success / warning / danger / info 四族覆盖，neutral 不参与这两组。
+        <code>node scripts/check-contrast.mjs</code> 会在每个品牌色相层上重放浅色、深色与系统深色三种状态，解析 <code>var()</code> 链并实测上表每一组；余量低于 1.1× 的色相层必须把实测对比度写进自己的注释块，否则门禁失败。品牌侧除实心填充、文字、链接、图标与焦点环外，还实测选中墨 × 选中淡染（含交互加深档）以及品牌墨 × <code>brand-soft</code> / <code>-active</code>，两组都叠加在 surface 与 page 上。语意色族的文字承底在 PAIRS 里逐组实测（surface 覆盖 success / warning / danger / info，页面覆盖五族含 neutral）；实心承字（<code>--aeterni-color-on-semantic</code>）与柔和底（<code>-text</code> 叠在 <code>-soft</code> 上）由 success / warning / danger / info 四族覆盖，neutral 不参与这两组。
     </p>
 
     <h2 id="colors-consume" class="showcase-colors__subtitle">在应用里消费</h2>
@@ -515,7 +515,7 @@
         </section>
     </Demos>
     <Notes>
-        <span>容器与页面背景只能是无彩色或统一玻璃配方，彩色只用于品牌、状态与通知内容表面；色卡是这些规则的取样，不是可选配色。</span>
+        <span>容器与页面背景只能是无彩色或统一玻璃配方；彩色只用于品牌/语意元素、持久状态（选中 / 勾选）与通知内容表面，指针反馈用中性叠色。色卡是这些规则的取样，不是可选配色。</span>
         <span>正文门槛 4.5:1、图标与描边 3:1，由 <code>node scripts/check-contrast.mjs</code> 在每个色相层上实测，换色板前先跑它。</span>
     </Notes>
 </ComponentPage>
@@ -527,6 +527,8 @@
         new("实心品牌填充上的标签", "--aeterni-text-inverse", "--aeterni-color-brand-default / -hover / -active", "≥ 4.5:1"),
         new("品牌文字与链接", "--aeterni-color-brand-text / --aeterni-text-link", "--aeterni-bg / --aeterni-bg-surface", "≥ 4.5:1"),
         new("品牌文字在着色表面", "--aeterni-color-brand-text", "--aeterni-bg-tertiary", "≥ 4.5:1"),
+        new("选中墨在选中淡染 / 交互加深淡染上（叠加在 surface / page 上）", "--aeterni-state-color-selected", "--aeterni-state-background-selected / -selected-hover", "≥ 4.5:1"),
+        new("品牌墨在柔和底上（Avatar / Soft 按钮，叠加在 surface / page 上）", "--aeterni-color-brand-text", "--aeterni-color-brand-soft / -active", "≥ 4.5:1"),
         new("品牌描边与图标", "--aeterni-color-brand-default", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
         new("聚焦环", "--aeterni-focus-color", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),
         new("无效态聚焦环", "--aeterni-focus-color-invalid", "--aeterni-bg / --aeterni-bg-surface", "≥ 3:1"),

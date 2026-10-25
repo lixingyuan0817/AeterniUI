@@ -262,20 +262,17 @@
 
 .aeterni-combobox__option.is-selected {
     background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 
-/* Keyboard cursor climbing onto the selected option: the selection fill would
-   otherwise hide it, so the cursor steps the fill one level deeper. */
-.aeterni-combobox__option.is-selected.is-active {
-    background: var(--aeterni-state-background-active);
-}
-
-/* The pointer gets the same feedback: without it a selected row looked identical
-   whether or not the pointer was on it (MultiSelect and DateCalendar step one
-   level deeper on hover as well). */
+/* The keyboard cursor and the pointer both step the selected tint. The generic
+   neutral hover/.is-active scrim above is excluded for selected rows, and
+   --aeterni-state-background-active is now a neutral scrim as well, so the step
+   has to stay on the brand's selected ladder. */
+.aeterni-combobox__option.is-selected.is-active,
 .aeterni-combobox__option.is-selected:hover:not(.is-disabled) {
-    background: var(--aeterni-state-background-active);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 /* Options are non-focusable elements inside a select-only combobox: focus stays
