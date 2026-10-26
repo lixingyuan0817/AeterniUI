@@ -228,7 +228,7 @@ public static class ShowcaseApiReference
             {
                 new("AriaLabel", "string?", "", "可访问名称：数字模式替换裸数字，圆点模式替换默认文案。", "属性", ""),
                 new("ChildContent", "RenderFragment?", "", "被附着的图标、头像或按钮。", "属性", ""),
-                new("Color", "Color", "Color.Default", "指示器语义颜色；Default 是品牌填充。", "属性", ""),
+                new("Color", "Color", "Color.Default", "指示器语义颜色；Default 是中性填充，Primary 是品牌填充。", "属性", ""),
                 new("Count", "int?", "", "要显示的数字；null 时不渲染角标，0 会显示为 0。", "属性", ""),
                 new("Dot", "bool", "", "圆点模式，忽略 Count。", "属性", ""),
                 new("Max", "int", "99", "完整显示的最大值，超过时显示为 {Max}+。", "属性", ""),
@@ -238,7 +238,7 @@ public static class ShowcaseApiReference
                 new("Alt", "string?", "", "图片地址与替代文本；Alt 为空时使用 AriaLabel 或 Name。", "属性", ""),
                 new("AriaLabel", "string?", "", "缩写或自定义内容的图像名称。", "属性", ""),
                 new("ChildContent", "RenderFragment?", "", "替换图片或缩写的自定义内容。", "属性", ""),
-                new("Color", "Color", "Color.Default", "品牌、中性和语意色。", "属性", ""),
+                new("Color", "Color", "Color.Default", "语义色；Default 为中性、Primary 为品牌。", "属性", ""),
                 new("Name", "string?", "", "名称及最多两个字符的缩写来源。", "属性", ""),
                 new("Size", "Size", "Size.Default", "公共尺寸档位。", "属性", ""),
                 new("Src", "string?", "", "图片地址与替代文本；Alt 为空时使用 AriaLabel 或 Name。", "属性", ""),
@@ -253,7 +253,7 @@ public static class ShowcaseApiReference
                 new("TimelineItem.Timestamp", "DateTimeOffset?", "null", "机器可读的事件时间；未提供 TimeText 时也生成可见文案。", "属性", ""),
                 new("TimelineItem.TimeText", "string?", "null", "覆盖 Timestamp 的可见时间文案。", "属性", ""),
                 new("TimelineItem.Icon", "IconDefinition?", "null", "标记图标；未提供时显示圆点。", "属性", ""),
-                new("TimelineItem.Color", "Color", "Default", "标记的品牌色或语义色。", "属性", ""),
+                new("TimelineItem.Color", "Color", "Default", "标记颜色：Default 为中性、Primary 为品牌，其余为语义色。", "属性", ""),
                 new("TimelineItem.Visible", "bool", "true", "是否渲染当前事件。", "属性", ""),
             },
             ["descriptions"] = new ShowcaseApiMember[]

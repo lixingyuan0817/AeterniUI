@@ -273,7 +273,7 @@
     border: var(--aeterni-border-width) solid var(--aeterni-control-border);
     border-radius: var(--aeterni-transfer-radius);
     background: var(--aeterni-bg-surface);
-    color: var(--aeterni-color-brand-text);
+    color: var(--aeterni-text-primary);
     font: inherit;
     font-size: var(--aeterni-transfer-font-size);
     line-height: 1;

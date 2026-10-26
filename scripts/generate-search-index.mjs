@@ -185,7 +185,8 @@ function reportDifference(current, expected) {
 
 if (process.argv.includes('--check')) {
     const current = existsSync(OUTPUT) ? read(OUTPUT) : '';
-    if (current !== generated) {
+    // Checkout may materialize CRLF on Windows; the generator always writes LF.
+    if (current.replace(/\r\n/g, '\n') !== generated) {
         console.error(`${OUTPUT} 已过期：请运行 node scripts/generate-search-index.mjs 后提交生成物。`);
         reportDifference(current, generated);
         process.exit(1);

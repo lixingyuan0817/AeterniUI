@@ -137,11 +137,12 @@
 }
 
 /* Selected leaves use the same state tokens as Menu, so navigation and action
-   menus read as one system. The rail is row-level and therefore spans Trailing. */
+   menus read as one system: neutral fill, brand leading rail. The rail is
+   row-level and therefore spans Trailing. */
 .aeterni-nav-menu__row.is-selected {
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
-    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-indicator-selected);
 }
 
 /* The selected row steps its own tint under the pointer instead of falling back to

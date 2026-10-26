@@ -83,16 +83,15 @@
     color: var(--aeterni-state-color-selected);
 }
 
-/* A selected tab keeps its brand ink under the pointer: the plain hover ink is
-   the neutral primary label, which would drop the selection cue the underline
-   is carrying. */
+/* A selected tab keeps the neutral body ink under the pointer; the brand lives in
+   the underline, so hover never competes with the selection cue. */
 .aeterni-tabs__tab[aria-selected="true"]:hover:not(:disabled) {
     background: var(--aeterni-state-background-hover);
     color: var(--aeterni-state-color-selected);
 }
 
 .aeterni-tabs__tab[aria-selected="true"]::after {
-    background: var(--aeterni-state-background-checked);
+    background: var(--aeterni-state-indicator-selected);
 }
 
 .aeterni-tabs__tab:disabled {

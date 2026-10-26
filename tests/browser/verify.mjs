@@ -801,11 +801,11 @@ check('VirtualList selected and hovered surfaces retain the List row gap',
         && Math.abs(virtualListStateGap.visualGap - parseFloat(listItem.rowGap)) <= 0.5,
     JSON.stringify({ virtualListStateGap, listRowGap: listItem.rowGap }));
 
-// ---------------------------------------------------------------- 10.48.1
-// Pointer feedback and selection are separate colour channels: a hovered row paints
-// the neutral scrim, the selected row keeps its brand tint, and hovering the
-// selected row steps that tint instead of washing it out. The two fills must also
-// differ in hue, which the old shared 9% / 13% brand tints did not (ΔE2000 2.5).
+// ---------------------------------------------------------------- 10.49.0
+// Pointer feedback, selection and the brand mark are three separate channels: a
+// hovered row paints the neutral scrim, the selected row paints the neutral selected
+// tint (no brand wash), and the brand survives as the leading indicator bar. The two
+// fills must still differ so hover and selected are not interchangeable.
 const stateRowPoints = await evaluate(`(() => {
     const list = document.querySelector('.aeterni-list');
     const selected = list?.querySelector('.aeterni-list-item.is-selected');
@@ -842,13 +842,17 @@ const readStateSurfaces = () => evaluate(`(() => {
     if (!hovered || !selected) return { error: 'no hovered or selected row' };
     const hoverToken = token('--aeterni-state-background-hover');
     const selectedToken = token('--aeterni-state-background-selected');
+    const indicatorToken = token('--aeterni-state-indicator-selected');
     return {
         hovered: getComputedStyle(hovered).backgroundColor,
         selected: getComputedStyle(selected).backgroundColor,
+        selectedShadow: getComputedStyle(selected).boxShadow,
         hoverToken,
         selectedToken,
+        indicatorToken,
         hoverRgb: parse(hoverToken),
-        selectedRgb: parse(selectedToken)
+        selectedRgb: parse(selectedToken),
+        indicatorRgb: parse(indicatorToken)
     };
 })()`);
 if (!stateRowPoints.error) {
@@ -889,15 +893,17 @@ const selectedHoverState = await evaluate(`(() => {
 await mouse('mouseMoved', 0, 0, { button: 'none', buttons: 0, pointerType: 'mouse' });
 
 const neutralRgb = rgb => rgb.r === rgb.g && rgb.g === rgb.b;
-check('10.48.1 hover paints the neutral scrim and the selected row keeps a brand tint',
+const brandShadow = stateSurfaces.error ? '' : `rgb(${stateSurfaces.indicatorRgb.r}, ${stateSurfaces.indicatorRgb.g}, ${stateSurfaces.indicatorRgb.b})`;
+check('10.49.0 hover and selection are neutral, and the selected row carries the brand indicator',
     !stateRowPoints.error && !stateSurfaces.error
         && stateSurfaces.hovered === stateSurfaces.hoverToken
         && stateSurfaces.selected === stateSurfaces.selectedToken
         && neutralRgb(stateSurfaces.hoverRgb)
-        && !neutralRgb(stateSurfaces.selectedRgb)
-        && stateSurfaces.hovered !== stateSurfaces.selected,
+        && neutralRgb(stateSurfaces.selectedRgb)
+        && stateSurfaces.hovered !== stateSurfaces.selected
+        && stateSurfaces.selectedShadow.includes(brandShadow),
     JSON.stringify({ stateRowPoints, stateSurfaces }));
-check('10.48.1 hovering a selected row steps the selected tint, not the neutral scrim',
+check('10.49.0 hovering a selected row steps the neutral selected tint, not the hover scrim',
     !stateSurfaces.error && !selectedHoverState.error && selectedHoverState.hovered
         && JSON.stringify(selectedHoverState.backgroundRgb) === JSON.stringify(selectedHoverState.tokenRgb)
         && selectedHoverState.background !== stateSurfaces.selected,

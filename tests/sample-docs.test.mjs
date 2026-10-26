@@ -388,7 +388,7 @@ const unescapeCSharp = text => text.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
 function generatedDefaultValues(generated) {
     const byPage = new Map();
 
-    for (const block of generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\n\s*\},/g)) {
+    for (const block of generated.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\r?\n\s*\},/g)) {
         const members = new Map();
         for (const row of block[2].matchAll(/new\("((?:[^"\\]|\\.)*)", "(?:[^"\\]|\\.)*", "((?:[^"\\]|\\.)*)"/g)) {
             members.set(unescapeCSharp(row[1]), unescapeCSharp(row[2]));
@@ -405,7 +405,7 @@ function generatedByPageMemberNames(generated) {
     const byPageSource = boundary < 0 ? generated : generated.slice(0, boundary);
     const byPage = new Map();
 
-    for (const block of byPageSource.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\n\s*\},/g)) {
+    for (const block of byPageSource.matchAll(/\["([a-z0-9-]+)"\] = new ShowcaseApiMember\[\]((?:.|\n)*?)\r?\n\s*\},/g)) {
         const members = [];
         for (const row of block[2].matchAll(/new\("((?:[^"\\]|\\.)*)",/g)) {
             members.push(unescapeCSharp(row[1]));

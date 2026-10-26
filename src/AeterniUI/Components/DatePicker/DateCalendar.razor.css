@@ -101,14 +101,19 @@
     background: var(--aeterni-state-background-checked-active);
 }
 
-/* Range preview is a preview of selection, not pointer feedback: it keeps the
-   brand tint now that --aeterni-state-background-hover is a neutral scrim. */
+/* Range middle is a neutral selected surface; the two endpoints stay brand-filled
+   (checked), which is the same "neutral row + brand endpoint" split shadcn uses
+   for ranges. The preview is not pointer feedback, so it uses the selected tint
+   rather than the hover scrim. */
 .aeterni-date-calendar__day.is-range-preview {
-    background: var(--aeterni-color-brand-soft);
+    background: var(--aeterni-state-background-selected);
 }
 
+/* Today is a content marker, not the selected day: a neutral inset ring keeps it
+   distinct from the brand-filled selected day without borrowing the selection
+   ink. */
 .aeterni-date-calendar__day.is-today {
-    box-shadow: inset 0 0 0 var(--aeterni-border-width) var(--aeterni-state-color-selected);
+    box-shadow: inset 0 0 0 var(--aeterni-border-width) var(--aeterni-border-strong);
 }
 
 /* Two-line cells only when the host opts in, so the default calendar keeps its

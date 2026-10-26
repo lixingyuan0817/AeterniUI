@@ -111,8 +111,10 @@
     transform-origin: center;
 }
 
+/* Hover is plain body ink; the brand ink is reserved for the selected value so a
+   pointer sweep cannot impersonate a committed choice. */
 .aeterni-time-option-list__option:hover:not(.is-selected) {
-    color: var(--aeterni-color-brand-text);
+    color: var(--aeterni-text-primary);
 }
 
 .aeterni-time-option-list__option.is-selected {

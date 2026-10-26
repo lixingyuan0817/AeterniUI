@@ -27,9 +27,13 @@
     background: var(--aeterni-state-background-hover);
 }
 
+/* A current row is a neutral surface; the brand survives as the leading bar so
+   the state is not carried by colour alone (and every list does not turn into a
+   brand wash). */
 .aeterni-list-item.is-interactive.is-selected {
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-indicator-selected);
     font-weight: var(--aeterni-font-weight-medium);
 }
 

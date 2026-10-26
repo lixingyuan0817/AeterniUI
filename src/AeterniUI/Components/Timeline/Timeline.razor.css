@@ -9,7 +9,7 @@
 }
 
 .aeterni-timeline__item {
-    --aeterni-timeline-accent: var(--aeterni-color-brand-text);
+    --aeterni-timeline-accent: var(--aeterni-color-neutral-text);
 
     position: relative;
     display: grid;

@@ -6,6 +6,41 @@
 
 历史措辞说明：下列早期条目中的「文档版本头」「五份版本头文档」记录的是当时的同步动作；自本轮文档精简起，版本只在 `Directory.Build.props` 维护，文档不再复制版本头，历史记录不改写。
 
+## 10.49.0 品牌色收紧：中性选中底 + 品牌指示标记
+
+用户评审决定采用 shadcn 的角色分工，但保留三套品牌色相与生命力：品牌色只用于主动作、已勾选控件、焦点环、链接，以及选中/当前行的小面积品牌标记；列表/导航/区间/下拉选项的选中底改为中性叠色。按 §4.9 递增第二位。
+
+### Token
+
+- `--aeterni-surface-selected` / `-hover` 改为中性叠色：浅色 `rgba(0, 0, 0, .07)` / `.10`，深色 `rgba(255, 255, 255, .10)` / `.14`；不再从品牌色阶推导。
+- 新增 `--aeterni-state-indicator-selected`（浅色 `brand-500`、深色 `brand-400`），专供选中/当前行的勾、左竖条、下划线与当前页品牌字。
+- `--aeterni-state-color-selected` 改指普通正文墨；`--aeterni-state-color-checked` 保留品牌墨（勾选仍是品牌实心）。
+- `--aeterni-state-border-hover` / `-active` 改指新增的中性 `--aeterni-border-hover` / `-active`（浅色 `.26` / `.34`，深色 `.30` / `.40`），指针态不再使用品牌描边。
+- 浅色、深色与 `prefers-color-scheme` 回退块逐 token 同步；主题 parity 由 `check-theme-parity.mjs` 验证（116 token）。
+
+### 组件
+
+- `List` / `ListItem`、`Menu`、`NavMenu`、`VirtualList` 选中态改为「中性选中底 + 品牌左竖条」；`Tabs` 选中文字改普通墨、下划线保留品牌；`Pagination` 当前页改「中性选中底 + 品牌字」。
+- `MultiSelect` 选项选中由品牌实心块改为「中性选中底 + 品牌勾」，触发器内的已选 chip 同步中性底。
+- `Tag` / `Badge` / `Avatar` / `Timeline` 默认外观改为中性，`Color.Primary` 才使用品牌色；`Badge` 新增 `--primary` 品牌规则，`Avatar` / `Tag` / `Timeline` 的 `--primary` 规则保留。
+- `Splitter` 手柄 hover / focus / drag 由品牌线改为中性线；`TimePicker` 未选中项 hover 文字改正文墨；`Transfer` 搬运按钮文字与描边改中性；日期「今天」标记改中性内圈。
+- 日期范围中段与预览改中性选中底（两端日期保持品牌实心）；`DateRangePicker` 快捷 preset 改「中性选中底 + 品牌字」。
+- 主动作按钮、勾选/开关/滑块/分段、日期格选中值、进度、链接与焦点环保持品牌；`DateTimePicker` 复用 `DateCalendar` + `TimeOptionList` 自动继承。
+
+### 行为与 API
+
+- 内容组件 `Color.Default` 统一为中性（`Icon` / `Spinner` 仍继承 `currentColor`）；`Progress` 默认品牌是活动指示例外。
+- 默认可见变化：Tag/Badge/Avatar/Timeline 不再默认品牌；列表/导航/多选/日期范围的选中底色不再是品牌淡染；指针悬停不再出现品牌描边。焦点、勾选与主动作仍品牌。
+
+### 门禁
+
+- `dotnet build aeterni_ui.slnx` 0 错误；ContractChecks 48 组通过（新增中性选中底 + 品牌指示、hover 中性描边、内容组件默认中性、三主题块 Token、日期范围预览中性、MultiSelect 中性选中 + 品牌勾）。
+- `node scripts/check-contrast.mjs` 387 项通过；`check-theme-parity` 116 token 一致；`check-css`、`check-docs.sh`、`check-doc-drift.mjs` 通过。
+- `node --test tests/*.test.mjs` 142/142 通过；API / 搜索生成物 `--check` 通过（本次同时修正 Windows CRLF 工作区下的行尾误报，生成物内容未变）。
+- 浏览器套件 202/202 通过（含更新后的选中态断言：中性选中底 + 品牌指示、selected-hover 走中性选中加深档）。
+- 图标检查：本机 `generate-fontawesome-icons.mjs --check` 在冷缓存安装 `@fortawesome` 时 `spawnSync npm.cmd EINVAL`（Windows npm 环境问题，未改图标清单）；CI/Linux 不受影响。此项是环境例外，不是图标生成物漂移。
+- 本地审计截图（不进仓库）：`.design-audit/brand-review/after/` 与 `compare/stitch*.png`，覆盖 27 light / 16 dark / 8 品牌换色 / 64 状态。
+
 ## 10.48.1 交互态语义分层：悬浮中性化、选中品牌化与 brand-soft 拆分
 
 用户反馈批次：下拉菜单、`Menu` / `List` 等组件的选中与悬浮都使用品牌色阶，两者只差 4 个 alpha 点。旧实现浅色主题 hover 9% / selected 13% 同取 `brand-500` 淡染，受控渲染的 computed style 分别为 `rgba(121, 90, 217, .09)` / `rgba(121, 90, 217, .13)`，ΔE2000 仅 2.5（深色 4.9–5.8），指针悬停与已选中在视觉上不可分；同时 `--aeterni-state-background-hover` 还兼任 `--aeterni-color-brand-soft` 与 Button 的 default / neutral soft 底，指针反馈与品牌柔和面共用一个值。本批把两条通道拆开，按 §4.9 递增第三位。

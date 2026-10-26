@@ -14,7 +14,7 @@ namespace AeterniUI.Components.Timeline;
 /// formatted with the current culture.
 /// </param>
 /// <param name="Icon">Optional marker glyph; otherwise a dot is rendered.</param>
-/// <param name="Color">Semantic marker colour. The default is the brand colour.</param>
+/// <param name="Color">Semantic marker colour. The default is the neutral marker.</param>
 /// <param name="Visible">Whether the event is rendered.</param>
 public sealed record TimelineItem(
     string Title,

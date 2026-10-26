@@ -207,14 +207,15 @@ dotnet run --project src/AeterniUI.Sample/AeterniUI.Sample.csproj --launch-profi
 - 示例页不得用 `::deep` 或全局 `.aeterni-*` 规则覆盖组件原生样式。
 - 只消费现有 `--aeterni-*` 语义 Token，不建立第二套颜色、尺寸、间距、圆角或动效体系。
 - 组件内部间距使用 `--aeterni-spacing-*`；`padding/gap/margin` 别名留给宿主。
-- 容器与页面背景只能是无彩色（R = G = B，深色允许不超过 +3 冷偏移）或统一玻璃配方；彩色只用于品牌/语意元素、持久交互状态（selected / current / checked）和通知内容表面；指针反馈（hover / active）统一用中性叠色。
+- 容器与页面背景只能是无彩色（R = G = B，深色允许不超过 +3 冷偏移）或统一玻璃配方；彩色只用于品牌/语意元素、已勾选控件、选中/当前行的品牌指示标记（`--aeterni-state-indicator-selected`，勾、竖条、下划线）和通知内容表面；选中/当前行本身的底色是中性叠色，指针反馈（hover / active）统一用中性叠色。
+- 内容型组件（Tag / Badge / Avatar / Timeline）的默认外观为中性；品牌色只在宿主显式传 `Color.Primary` 时出现。Progress 例外：进度是活动指示，默认取品牌色。
 - 主题只能由 `ThemeProvider` / `ThemeService` 驱动；组件不得修改 `data-theme` / `data-aeterni-brand` 或自行读取系统主题。
 - 跨组件外观归渲染该 DOM 元素的组件所有；父组件隔离样式不会自动作用于子组件根元素。
 
 交互状态必须遵守：
 
-1. 指针反馈（hover / active）只使用中性叠色 `--aeterni-state-background-hover` / `-active`；品牌色只用于持久状态（selected / current / checked）。不得把 hover 画成品牌淡染，更不得让 hover 与 selected 共用同一色阶、只靠透明度区分。
-2. 已选中 / 已勾选的表面在指针或键盘游标下沿自己的色阶加深：淡染选中用 `--aeterni-state-background-selected-hover`，实心勾选用 `--aeterni-state-background-checked-hover` / `-active`；不能回落到中性 hover，也不得用中性 active 洗浅。
+1. 指针反馈（hover / active）只使用中性叠色 `--aeterni-state-background-hover` / `-active`；品牌色只用于主动作、已勾选控件、焦点环、链接，以及选中/当前行的小面积指示标记。不得把 hover 画成品牌淡染，更不得让 hover 与 selected 共用同一色阶、只靠透明度区分。
+2. 已选中 / 已勾选的表面在指针或键盘游标下沿自己的色阶加深：中性选中行用 `--aeterni-state-background-selected-hover`，实心勾选用 `--aeterni-state-background-checked-hover` / `-active`；选中行的品牌指示标记不得随指针换成中性色，也不能回落到中性 hover 或中性 active 洗浅。
 3. hover/active 规则必须排除 invalid，不能覆盖危险色。
 4. 普通 hover 规则必须排除 selected、checked、current 等已选中态。
 5. 状态优先级默认是 `disabled > loading > invalid/selected > focus-visible > hover > base`。

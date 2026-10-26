@@ -272,18 +272,25 @@
     background: var(--aeterni-state-background-hover);
 }
 
+/* Selected options are rows, not switches: neutral surface + brand check. The
+   solid brand fill is reserved for binary controls (Checkbox / Radio / Switch),
+   so a list with many selected values does not turn into a wall of brand blocks. */
 .aeterni-multi-select__option.is-selected:not(.is-disabled) {
-    background: var(--aeterni-state-background-checked);
-    color: var(--aeterni-text-inverse);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-state-color-selected);
+}
+
+.aeterni-multi-select__option.is-selected .aeterni-multi-select__option-check {
+    color: var(--aeterni-state-indicator-selected);
 }
 
 .aeterni-multi-select__option.is-selected:hover:not(.is-disabled),
 .aeterni-multi-select.is-keyboard-navigation .aeterni-multi-select__option.is-selected.is-active:not(.is-disabled) {
-    background: var(--aeterni-state-background-checked-hover);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-multi-select.is-keyboard-navigation .aeterni-multi-select__option.is-selected.is-active:not(.is-disabled) {
-    background: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-multi-select__option.is-disabled {

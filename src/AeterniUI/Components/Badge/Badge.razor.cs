@@ -25,7 +25,7 @@ public partial class Badge : AeterniComponent
     [Parameter]
     public bool Dot { get; set; }
 
-    /// <summary>Semantic colour of the indicator. <see cref="Color.Default" /> is the brand fill.</summary>
+    /// <summary>Semantic colour of the indicator. <see cref="Color.Default" /> is the neutral fill; <see cref="Color.Primary" /> is the brand fill.</summary>
     [Parameter]
     public Color Color { get; set; } = Color.Default;
 

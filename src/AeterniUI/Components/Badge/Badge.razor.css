@@ -1,10 +1,11 @@
 /* Two accent roles, like the notification cards: --aeterni-badge-fill is the
    indicator surface and --aeterni-badge-ink its label. Fills decide the ink by
    brightness: the brand fill takes the inverse ink, the bright semantic and
-   neutral fills take the on-semantic ink. */
+   neutral fills take the on-semantic ink. The base fill is neutral because a
+   badge is status content; Color.Primary opts into the brand fill. */
 .aeterni-badge {
-    --aeterni-badge-fill: var(--aeterni-color-brand-default);
-    --aeterni-badge-ink: var(--aeterni-text-inverse);
+    --aeterni-badge-fill: var(--aeterni-color-neutral-default);
+    --aeterni-badge-ink: var(--aeterni-color-on-semantic);
     /* The indicator is at least a medium icon box tall so a single digit still
        reads as a pill; the width cap fits "99+" without stretching into a bar. */
     --aeterni-badge-min-size: var(--aeterni-icon-size-md);
@@ -84,7 +85,12 @@
     white-space: nowrap;
 }
 
-/* Color.Default is the brand fill, so the base rule above already covers it. */
+/* The base rule is the neutral fill; explicit Primary is the brand fill. */
+.aeterni-badge--primary {
+    --aeterni-badge-fill: var(--aeterni-color-brand-default);
+    --aeterni-badge-ink: var(--aeterni-text-inverse);
+}
+
 .aeterni-badge--neutral {
     --aeterni-badge-fill: var(--aeterni-color-neutral-default);
     --aeterni-badge-ink: var(--aeterni-color-on-semantic);

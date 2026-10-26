@@ -100,14 +100,15 @@
     background: var(--aeterni-state-background-active);
 }
 
-/* Selection is a row state, not a focus ring: the fill plus the leading bar carry
-   it, and the border stays transparent so a selected row cannot be mistaken for a
-   keyboard-focused one. The focus ring is drawn by `:focus-visible` alone. */
+/* Selection is a row state, not a focus ring: a neutral fill plus the brand
+   leading bar carry it, and the border stays transparent so a selected row cannot
+   be mistaken for a keyboard-focused one. The focus ring is drawn by
+   `:focus-visible` alone. */
 .aeterni-menu__item.is-selected {
     border-color: transparent;
     background: var(--aeterni-state-background-selected);
     color: var(--aeterni-state-color-selected);
-    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-background-checked);
+    box-shadow: inset var(--aeterni-border-width-thick) 0 0 var(--aeterni-state-indicator-selected);
 }
 
 /* A selected row answers the pointer and the press on its own tint ladder:

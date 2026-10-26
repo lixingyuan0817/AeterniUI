@@ -3908,11 +3908,57 @@ async Task CheckInteractionStateContractAsync()
             $"{name} must paint the selected tint, the selected ink and the selected interaction step.");
     }
 
-    // The range preview previews selection, so it keeps the brand tint even though
-    // pointer hover is neutral now.
+    // The selected/current surface is neutral; the brand survives only as the small
+    // indicator mark, and pointer hover borders are neutral too.
+    Require(Regex.Matches(tokenCss, @"--aeterni-state-indicator-selected:\s*var\(--aeterni-color-brand-default\)").Count == 3,
+        "The selected-row brand indicator must be declared in all three theme blocks.");
+    Require(Regex.Matches(tokenCss, @"--aeterni-state-border-hover:\s*var\(--aeterni-border-hover\)").Count == 3
+        && Regex.Matches(tokenCss, @"--aeterni-state-border-active:\s*var\(--aeterni-border-active\)").Count == 3,
+        "Pointer hover/press borders must resolve to the neutral border steps in every theme block.");
+    Require(!Regex.IsMatch(tokenCss, @"--aeterni-state-background-selected:\s*var\(--aeterni-color-brand"),
+        "The selected surface must stay neutral, not resolve to a brand token.");
+
+    foreach (var path in new[] { "List/ListItem", "Menu/Menu", "NavMenu/NavMenu", "Tabs/Tabs", "VirtualList/VirtualList" })
+    {
+        var css = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components", path + ".razor.css"));
+        var name = Path.GetFileName(path);
+        Require(css.Contains("--aeterni-state-indicator-selected", StringComparison.Ordinal),
+            $"{name} must paint the selected-row brand indicator while using the neutral selected surface.");
+    }
+    var paginationCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Pagination/Pagination.razor.css"));
+    Require(Regex.IsMatch(paginationCss, @"button\.is-current\s*\{[^}]*background:\s*var\(--aeterni-state-background-selected\)", RegexOptions.Singleline)
+        && paginationCss.Contains("color: var(--aeterni-color-brand-text)", StringComparison.Ordinal),
+        "Pagination current page must use the neutral selected surface with brand ink.");
+
+    // Content components default to neutral surfaces; Primary is the brand opt-in.
+    var tagCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Tag/Tag.razor.css"));
+    Require(Regex.IsMatch(tagCss, @"\.aeterni-tag\s*\{[^}]*--aeterni-tag-color:\s*var\(--aeterni-color-neutral-default\)", RegexOptions.Singleline)
+        && Regex.IsMatch(tagCss, @"\.aeterni-tag--primary\s*\{[^}]*--aeterni-tag-color:\s*var\(--aeterni-color-brand-default\)", RegexOptions.Singleline),
+        "Tag must default to the neutral tint and use the brand tint only for Color.Primary.");
+    var badgeCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Badge/Badge.razor.css"));
+    Require(Regex.IsMatch(badgeCss, @"\.aeterni-badge\s*\{[^}]*--aeterni-badge-fill:\s*var\(--aeterni-color-neutral-default\)", RegexOptions.Singleline)
+        && Regex.IsMatch(badgeCss, @"\.aeterni-badge--primary\s*\{[^}]*--aeterni-badge-fill:\s*var\(--aeterni-color-brand-default\)", RegexOptions.Singleline),
+        "Badge must default to the neutral fill and use the brand fill only for Color.Primary.");
+    var avatarCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Avatar/Avatar.razor.css"));
+    Require(avatarCss.Contains("background: var(--aeterni-color-neutral-soft)", StringComparison.Ordinal)
+        && avatarCss.Contains(".aeterni-avatar--primary", StringComparison.Ordinal)
+        && avatarCss.Contains("background: var(--aeterni-color-brand-soft)", StringComparison.Ordinal),
+        "Avatar must default to the neutral soft surface and keep Color.Primary on the brand soft surface.");
+    var timelineCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/Timeline/Timeline.razor.css"));
+    Require(Regex.IsMatch(timelineCss, @"\.aeterni-timeline__item\s*\{[^}]*--aeterni-timeline-accent:\s*var\(--aeterni-color-neutral-text\)", RegexOptions.Singleline)
+        && timelineCss.Contains("--aeterni-timeline-accent: var(--aeterni-color-brand-text)", StringComparison.Ordinal),
+        "Timeline must default to the neutral marker and use the brand marker only for Color.Primary.");
+
+    var multiSelectCss = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/MultiSelect/MultiSelect.razor.css"));
+    Require(Regex.IsMatch(multiSelectCss, @"__option\.is-selected:not\(\.is-disabled\)\s*\{[^}]*background:\s*var\(--aeterni-state-background-selected\)", RegexOptions.Singleline)
+        && Regex.IsMatch(multiSelectCss, @"__option\.is-selected\s+\.aeterni-multi-select__option-check\s*\{[^}]*--aeterni-state-indicator-selected", RegexOptions.Singleline),
+        "MultiSelect selected options must use the neutral row surface with the brand check instead of a solid checked fill.");
+
+    // The range middle previews selection, so it uses the neutral selected surface
+    // while the endpoints stay brand-filled (checked).
     var calendar = await File.ReadAllTextAsync(Path.Combine(root, "src/AeterniUI/Components/DatePicker/DateCalendar.razor.css"));
-    Require(Regex.IsMatch(calendar, @"is-range-preview\s*\{[^}]*--aeterni-color-brand-soft", RegexOptions.Singleline),
-        "The date-range preview must keep the brand tint when pointer hover is neutral.");
+    Require(Regex.IsMatch(calendar, @"is-range-preview\s*\{[^}]*--aeterni-state-background-selected", RegexOptions.Singleline),
+        "The date-range preview must use the neutral selected surface, not a brand tint.");
 }
 
 

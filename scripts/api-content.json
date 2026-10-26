@@ -296,7 +296,7 @@
         "Count": "要显示的数字；null 时不渲染角标，0 会显示为 0。",
         "Max": "完整显示的最大值，超过时显示为 {Max}+。",
         "Dot": "圆点模式，忽略 Count。",
-        "Color": "指示器语义颜色；Default 是品牌填充。",
+        "Color": "指示器语义颜色；Default 是中性填充，Primary 是品牌填充。",
         "AriaLabel": "可访问名称：数字模式替换裸数字，圆点模式替换默认文案。",
         "ChildContent": "被附着的图标、头像或按钮。"
       }
@@ -308,7 +308,7 @@
         "Name": "名称及最多两个字符的缩写来源。",
         "AriaLabel": "缩写或自定义内容的图像名称。",
         "Size": "公共尺寸档位。",
-        "Color": "品牌、中性和语意色。",
+        "Color": "语义色；Default 为中性、Primary 为品牌。",
         "ChildContent": "替换图片或缩写的自定义内容。"
       }
     },
@@ -351,7 +351,7 @@
         {
           "name": "TimelineItem.Color",
           "type": "Color",
-          "description": "标记的品牌色或语义色。",
+          "description": "标记颜色：Default 为中性、Primary 为品牌，其余为语义色。",
           "default": "Default",
           "kind": "属性"
         },

@@ -57,8 +57,9 @@
 - 提供 Light 和 Dark 两套主题 Token；无显式主题时 `@media (prefers-color-scheme: dark)` 提供系统偏好兜底，存在显式 `data-theme` / `data-aeterni-mode` 时不再生效。
 - 品牌色与 `Info`、`Success`、`Warning`、`Danger`、`Neutral` 语意色均提供 `default`、`hover`、`active`、`disabled`、`soft` 等状态别名；具体档位以 `src/AeterniUI/wwwroot/css/aeterni_ui.css` 为准。
 - 品牌色阶是独立色相层：默认紫罗兰声明在 `:root`，显式 `[data-aeterni-brand="purple"]` 与之等价。已交付紫罗兰（浅色 500 档 `#795AD9`、深色 400 档 `#9985ED`）、绿色 `[data-aeterni-brand="green"]`（500 档 `#1F883D`）、焦橙 `[data-aeterni-brand="orange"]`（500 档 `#C2410C`）。宿主可在库样式表之后声明自己的色相层重写 `--aeterni-brand-50..900`；该属性必须与 `data-theme` 同元素（`<html>`）。
-- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*` 和 `--aeterni-state-border-*`；`hover` / `active` 是中性叠色（只做指针反馈，不携带值语义），`selected` 是品牌淡染选中底面，`checked` 是实心勾选块（品牌填充档 + `--aeterni-text-inverse` 墨）。已选中行在指针或键盘游标下沿选中淡染加深一档：`--aeterni-state-background-selected-hover`；实心勾选块配套 `--aeterni-state-background-checked-hover` / `-active` 两档。
-- 品牌柔和底 `--aeterni-color-brand-soft` / `-active` 是 Avatar 与 Soft 按钮的静止面，独立于指针反馈 `--aeterni-state-background-hover`，不得互相别名（推导见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.3）。
+- 提供统一控件状态 Token：`--aeterni-state-background-*`、`--aeterni-state-color-*`、`--aeterni-state-border-*` 与 `--aeterni-state-indicator-*`；`hover` / `active` 是中性叠色（只做指针反馈，不携带值语义），`selected` 是中性选中底面（浅色 7% / 深色 10%），`checked` 是实心勾选块（品牌填充档 + `--aeterni-text-inverse` 墨）。选中/当前行靠 `--aeterni-state-indicator-selected`（品牌勾、左竖条或下划线）保留品牌识别，行底色本身不取品牌色；已选中行在指针或键盘游标下沿中性选中底加深一档：`--aeterni-state-background-selected-hover`；实心勾选块配套 `--aeterni-state-background-checked-hover` / `-active` 两档。
+- 品牌柔和底 `--aeterni-color-brand-soft` / `-active` 只用于显式品牌柔和面（Tag / Badge / Avatar 的 `Color.Primary`、`Button` 的 Soft 变体），独立于指针反馈 `--aeterni-state-background-hover` 与中性选中底，不得互相别名（推导见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.3）。日期范围的中段与预览使用中性选中底，只有两端日期保持品牌实心。
+- 内容型组件 `Tag` / `Badge` / `Avatar` / `Timeline` 的默认外观为中性；`Color.Primary` 才使用品牌色。`Progress` 例外：进度是活动指示，默认品牌色。
 - 状态别名：`pressed`（等同 `active`）、`invalid`、`readonly`、`placeholder`、`muted`、`inverse`；控件组合角色 `--aeterni-control-background` / `-border` / `-foreground` 及 `disabled` / `readonly` / `hover` / `focus` / `invalid` / `placeholder` 分支。
 - 焦点环统一使用 `--aeterni-focus-color`（无效控件 `--aeterni-focus-color-invalid`）与 `--aeterni-focus-width` / `--aeterni-focus-offset`（默认 2px / 1px）；全库统一外扩环与内收环两套画法。
 - 色板推导（OKLCH 阶梯、chroma 剖面、三个色相锚点与对比度余量）见 [`engineering-reference.zh-CN.md`](engineering-reference.zh-CN.md) §5.4；`node scripts/check-contrast.mjs` 是这些数值的门禁。
@@ -345,7 +346,7 @@ ButtonGroup 不提供 Toolbar / ToggleGroup 语义；Toolbar 现为独立组件�
 
 ### 行为与无障碍
 
-触发器的 `aria-describedby` 合并宿主传入值与该组件所处的 `FormField` 描述 id（与 `ComboBox`、`Autocomplete` 同一合并语义，字段不再顶掉宿主值）；触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。`ReadOnly` 时触发器仍是单一 Tab 停留点（`tabindex=0`），保留 `aria-readonly="true"`、`is-readonly` 与可选中复制的文本，但点击、键盘、批量动作与 Backspace 都不打开面板或改值；Disabled 优先。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
+触发器的 `aria-describedby` 合并宿主传入值与该组件所处的 `FormField` 描述 id（与 `ComboBox`、`Autocomplete` 同一合并语义，字段不再顶掉宿主值）；触发器输出 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-haspopup="listbox"` 和活动项 `aria-activedescendant`；在 `FormField` 内触发器采用字段的输入 ID，字段标签的 `for` 因此解析到触发器本身（点击标签即可聚焦），与 `ComboBox`、日期时间触发器一致。`ReadOnly` 时触发器仍是单一 Tab 停留点（`tabindex=0`），保留 `aria-readonly="true"`、`is-readonly` 与可选中复制的文本，但点击、键盘、批量动作与 Backspace 都不打开面板或改值；Disabled 优先。选项区域输出 `listbox`、`aria-multiselectable="true"` 和 `option` 语义。已选选项使用中性 `--aeterni-state-background-selected` 行底 + 品牌勾（`--aeterni-state-indicator-selected`），不用整块品牌填充；触发器中的已选标签同样使用中性选中底，避免多选列表变成大面积品牌色块。方向键与 Home/End 移动活动项，Enter/空格切换选中状态并保持列表打开，Escape 关闭；Backspace 在列表关闭时移除最后一个已选项。已选值在触发器中显示为可独立移除的标签，关闭按钮保持透明底、垂直居中并保留末端内边距，具有独立焦点和无障碍名称；浮层宽度与触发器保持一致。禁用选项不会进入键盘导航或被批量选中。
 
 ### 实现边界
 
@@ -544,6 +545,7 @@ Switch 不提供独立的 `Label` 参数；标签内容使用 `ChildContent`，�
 
 `Tag` 提供分类、状态与筛选的紧凑标签：
 
+- 默认外观是中性标签；`Color.Primary` 才使用品牌色（分类内容不默认占用品牌语义）。
 - `ChildContent`、`StartIcon`、`EndIcon`、`Color`（沿用 Button 语意色）、`Size`、`Variant`（`TagVariant`：`Default` / `Soft` / `Outline`）。
 - 可选 `StartIcon` / `EndIcon` 与 `Dismissible`、`OnDismiss`、`DismissLabel`；关闭按钮复用 `Button` 的图标能力。
 - 可关闭 Tag 的关闭按钮带有可访问名称、只触发一次事件，热区通过透明伪元素扩展到 `--aeterni-touch-target-min`（24×24，满足 WCAG 2.5.8）且不改变 Tag 高度。
@@ -586,9 +588,9 @@ Items 改变只清除失效活动项，不再自动清理选中值：宿主筛�
 
 自定义导航行、工具栏行或工作台自绘的列表项要读起来与 `List` / `NavMenu` 一致时，直接引用同一组语义 Token，不要另调颜色或字重：
 
-- 选中：`background: var(--aeterni-state-background-selected)`、文字 `var(--aeterni-state-color-selected)`、`font-weight: var(--aeterni-font-weight-medium)`。品牌淡染 + 品牌墨 + 字重是三个线索，不要只靠淡染；导航行（`Menu` / `NavMenu`）另加内嵌品牌选中线。
+- 选中：`background: var(--aeterni-state-background-selected)`（中性叠色）、文字 `var(--aeterni-state-color-selected)`（普通正文墨）、`font-weight: var(--aeterni-font-weight-medium)`；品牌识别由 `box-shadow: inset … var(--aeterni-state-indicator-selected)` 的左竖条承担（部分组件为勾或下划线）。中性底 + 品牌标记 + 字重是三个线索，不要只靠底色。
 - hover：`background: var(--aeterni-state-background-hover)`（中性叠色），并排除已选中与已禁用；已选中行不能用普通 hover 洗浅。
-- 已选中行的指针/键盘游标反馈：`background: var(--aeterni-state-background-selected-hover)`，在选中淡染上加深一档；不得回落到中性 hover 或 `active`。
+- 已选中行的指针/键盘游标反馈：`background: var(--aeterni-state-background-selected-hover)`，在中性选中底上加深一档；品牌标记保持品牌色，不得回落成中性。
 - 按下：未选中行用 `var(--aeterni-state-background-active)`（中性）；已选中行同样走 `selected-hover`。禁用：`var(--aeterni-state-color-disabled)`，不整行降低透明度。
 - 图标、计数等附属内容用 `currentColor` 继承行墨，选中时才会一起变色；不要给它们单独写死灰阶。行尾动作应复用 `IconButton`（`Tone="Muted"`）而不是另写一套图标按钮样式。
 
@@ -814,7 +816,7 @@ Popover 按 `Modal` 输出语义：模态输出 `dialog` 并额外带 `aria-moda
 - 自动激活模型：`ArrowLeft`/`ArrowRight`（RTL 下由模块报告书写方向并自动互换）与 `Home`/`End` 在可用标签之间循环，同时改变选中项并把焦点移回标签栏；`Tabs.razor.js` 只做这两件事（移动焦点、报告方向），无 JS 时标签仍可点击与 Tab 进出。
 - `Value` 未匹配任何标签（包括初始 `null`）时，组件把首个可用标签当作选中项渲染，但不会自行改写 `Value`；点击或方向键选中后才会通过 `ValueChanged` 上报。
 - 窄屏横向滚动：标签栏不换行、不压缩，使用细滚动条（`--aeterni-scrollbar-*`）横向滚动，焦点环使用外扩负偏移避免被滚动容器裁切。
-- 键盘焦点环与禁用态沿用全库 Token（`--aeterni-focus-*`、`--aeterni-state-color-disabled`）；选中标签使用品牌色的文字形态与 2px 指示条。
+- 键盘焦点环与禁用态沿用全库 Token（`--aeterni-focus-*`、`--aeterni-state-color-disabled`）；选中标签使用普通正文墨与品牌色 2px 指示条。
 
 ### 实现边界
 
@@ -1102,7 +1104,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 - `Count`（`int?`）、`Max`（默认 99）、`Dot`、`Color`、`AriaLabel` 与 `ChildContent`（被附着的图标、头像或按钮）。
 - 数字上限：`Count > Max` 时显示 `{Max}+`；`Count` 为 `null` 且未开启 `Dot` 时不渲染指示器；显式 0 显示为 0；负数与 `Max < 1` 抛出参数异常。
 - 指示器压在锚点右上角（逻辑 `inset-*`，RTL 下自动镜像；百分比位移是物理量，因此另有 `:dir(rtl)` 的反向位移与之配对），用自身尺寸的百分比位移精确对准角点；最小 16px 胶囊、最大宽度 40px，超长数字做省略处理；`Dot` 模式是 12px 圆点。
-- 颜色分两个角色：`--aeterni-badge-fill`（指示器底）与 `--aeterni-badge-ink`（文字/圆点）。品牌填充配 `--aeterni-text-inverse`，中性与语意填充（亮档）配 `--aeterni-color-on-semantic`。
+- 颜色分两个角色：`--aeterni-badge-fill`（指示器底）与 `--aeterni-badge-ink`（文字/圆点）。默认 `Color.Default` 是中性填充（配 `--aeterni-color-on-semantic` 墨），`Color.Primary` 是品牌填充（配 `--aeterni-text-inverse`），语意色填充按亮档配 `--aeterni-color-on-semantic`。
 
 ### 行为与无障碍
 
@@ -1176,7 +1178,7 @@ Provider 负责遮罩、焦点与滚动锁定；弹层消息按纯文本安全�
 
 ### 支持能力
 
-`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`AriaLabel`、公共 `Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写。默认尺寸不输出修饰类，所有公开颜色（含 `Primary` / `Info`）都有对应样式。
+`Avatar` 支持图片、姓名缩写和自定义内容，提供 `Src`、`Alt`、`Name`、`AriaLabel`、公共 `Size`、`Color` 和 `ChildContent`；缺少图片时从 `Name` 生成最多两个字符的缩写。默认尺寸不输出修饰类；`Color.Default` 为中性柔和面，`Color.Primary` 为品牌柔和面，其余公开颜色（含 `Info`）都有对应样式。
 
 ### 行为与无障碍
 
@@ -1534,7 +1536,7 @@ builder.Services.AddAeterniUI(options =>
 
 - `Timestamp` 存在时输出机器可读的 `<time datetime="…">`；未提供 `TimeText` 时按当前文化生成可见时间。
 - `TimeText` 可以覆盖可见文案；没有 `Timestamp` 时仍可单独显示为普通时间文本，但不伪造 `datetime`。
-- `Icon` 作为装饰标记显示；未提供时回落为圆点。`Color` 使用现有 `Default` / `Primary` / `Neutral` / `Success` / `Warning` / `Danger` / `Info` 语义色，只改变标记，不给内容容器增加彩色背景。
+- `Icon` 作为装饰标记显示；未提供时回落为圆点。`Color` 使用现有 `Default` / `Primary` / `Neutral` / `Success` / `Warning` / `Danger` / `Info` 语义色，只改变标记，不给内容容器增加彩色背景。`Color.Default` 是中性标记，`Color.Primary` 才使用品牌标记。
 - `Visible=false` 的事件不渲染，也不参与首尾连接线判断。
 - `ItemTemplate`（`RenderFragment<TimelineItem>`）只接管默认标题与说明区域，时间、标记和事件轴结构继续由组件维护。
 - 横向布局把标记放在同一水平轴、正文放在下方居中；每项保留可读最小宽度，内容过多时由 Timeline 自身横向滚动，不扩张页面宽度。
@@ -1748,7 +1750,7 @@ JS 只在挂载后读取宿主提供的节点和配置；组件自己的 `attach
 
 展开分组在分组行与首个子项之间保留与同级行一致的行距（与 `Menu` 的「分组标题 → 子项」配方一致，`is-open` 时使用 `--aeterni-nav-menu-gap`），因此选中的子项与上方 hover 的分组行不会出现粘连背景。
 
-hover、选中与按下都画在 `.aeterni-nav-menu__row` 上（含 `Trailing` 区域）：行容器持有 `is-selected` / `is-disabled`，按钮透明并只负责焦点环，行墨通过 `currentColor` 传给右侧动作，因此不会出现「名字亮了、图标还灰着」的割裂。选中沿用 Menu/List 的 state Token（品牌淡染底 + selected 墨 + 内嵌选中线），hover 用中性 `--aeterni-state-background-hover`，已选中行在指针/按下时走 `--aeterni-state-background-selected-hover`。
+hover、选中与按下都画在 `.aeterni-nav-menu__row` 上（含 `Trailing` 区域）：行容器持有 `is-selected` / `is-disabled`，按钮透明并只负责焦点环，行墨通过 `currentColor` 传给右侧动作，因此不会出现「名字亮了、图标还灰着」的割裂。选中沿用 Menu/List 的 state Token（中性选中底 + 普通 selected 墨 + 品牌内嵌选中线），hover 用中性 `--aeterni-state-background-hover`，已选中行在指针/按下时走 `--aeterni-state-background-selected-hover`。
 
 ### 实现边界
 

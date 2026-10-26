@@ -63,17 +63,18 @@
     cursor: not-allowed;
 }
 
+/* Presets are list-like choices: neutral selected surface with brand ink, the
+   same grammar as the current page and selected rows. A solid brand block would
+   make a short preset list the heaviest brand area in the panel. */
 .aeterni-date-range-picker__preset.is-selected {
-    background: var(--aeterni-state-background-checked);
-    color: var(--aeterni-text-inverse);
+    background: var(--aeterni-state-background-selected);
+    color: var(--aeterni-color-brand-text);
+    font-weight: var(--aeterni-font-weight-medium);
 }
 
-.aeterni-date-range-picker__preset.is-selected:hover:not(:disabled) {
-    background: var(--aeterni-state-background-checked-hover);
-}
-
+.aeterni-date-range-picker__preset.is-selected:hover:not(:disabled),
 .aeterni-date-range-picker__preset.is-selected:active:not(:disabled) {
-    background: var(--aeterni-state-background-checked-active);
+    background: var(--aeterni-state-background-selected-hover);
 }
 
 .aeterni-date-picker__trigger {

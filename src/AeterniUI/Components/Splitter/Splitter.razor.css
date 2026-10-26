@@ -62,13 +62,13 @@
     transform: translateY(-50%);
 }
 
-/* The disabled handle keeps its hairline colour and never widens: hover must not
-   override the disabled state (disabled > hover). */
+/* The handle is a tool affordance: pointer and drag use a neutral step, and the
+   keyboard focus ring is the only place brand colour appears here. */
 .aeterni-splitter__handle:not([aria-disabled="true"]):hover::after,
 .aeterni-splitter__handle:not([aria-disabled="true"]):focus-visible::after,
 .aeterni-splitter__handle.is-dragging::after {
     width: calc(var(--aeterni-border-width-thin) * 2);
-    background: var(--aeterni-color-brand-default);
+    background: var(--aeterni-border-hover);
 }
 
 .aeterni-splitter--vertical .aeterni-splitter__handle:not([aria-disabled="true"]):hover::after,

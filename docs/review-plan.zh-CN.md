@@ -25,7 +25,7 @@
 
 | 优先级 | 条目 | 证据位置 | 验收条件 |
 | --- | --- | --- | --- |
-| P2 | `Size.Default`≡`Medium`、`Color.Default`≡`Primary`，控件面板里选不出差别；`Default` 在 Icon/Spinner 上又是 `currentColor`。消除重复档位会改变公开枚举与默认值，需要单独一次破坏性设计 | `Enums/Size.cs`、`ComponentClass.cs`、Tag/Avatar/Badge CSS | 定一套档位语义并给迁移说明；示例/API 表同步 |
+| P2 | `Size.Default`≡`Medium`，控件面板里选不出差别，仍待处理。`Color.Default` 已收口：内容组件默认中性、`Primary` 才出品牌；`Icon` / `Spinner` 的 `Default` 是 `currentColor`；`Progress` 是活动指示、默认品牌（例外）。消除 `Size` 重复档位会改变公开枚举与默认值，需要单独一次破坏性设计 | `Enums/Size.cs`、`ComponentClass.cs`、Tag/Avatar/Badge CSS | 定一套 `Size` 档位语义并给迁移说明；示例/API 表同步 |
 | P3 | API 表支持矩阵在“同页多个组件全部支持”时会重复列出同一组公共参数，可做页级合并减少视觉重复 | `ShowcaseApiTable.razor`、`ShowcaseApiReference.generated.cs` | 一致时合并为页级公共参数，不一致时仍按组件拆分 |
 | P3 | `app.css` 仍有 Blazor/Bootstrap 模板残留（`.valid.modified`/`.invalid`/`.form-floating`/`--bs-*`）与全局 `h1:focus{outline:none}`；断点注释仍引用不存在的 token；`gray`/`neutral` 两套灰阶未收敛 | `src/AeterniUI.Sample/wwwroot/css/app.css`、`DateRangePicker.razor.css`、`aeterni_ui.css` | 清理死规则、统一断点/灰阶；焦点规则只保留 FocusOnNavigate 专用类 |
 

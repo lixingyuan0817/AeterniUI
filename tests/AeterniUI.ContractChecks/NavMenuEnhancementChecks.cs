@@ -223,9 +223,9 @@ internal static class NavMenuEnhancementChecks
         var rowSelected = Rule(css, ".aeterni-nav-menu__row.is-selected");
         Require(rowSelected.Contains("--aeterni-state-background-selected", StringComparison.Ordinal)
             && rowSelected.Contains("--aeterni-state-color-selected", StringComparison.Ordinal)
-            && rowSelected.Contains("--aeterni-state-background-checked", StringComparison.Ordinal)
+            && rowSelected.Contains("--aeterni-state-indicator-selected", StringComparison.Ordinal)
             && rowSelected.Contains("box-shadow", StringComparison.Ordinal),
-            "NavMenu selected rows must paint the shared selected/checked state tokens and the inset rail on the row container.");
+            "NavMenu selected rows must paint the neutral selected token, the selected ink and the brand inset rail on the row container.");
 
         Require(css.Contains(":has(> .aeterni-nav-menu__button:active", StringComparison.Ordinal)
             && css.Contains("--aeterni-state-background-active", StringComparison.Ordinal),

@@ -4,8 +4,11 @@
        label is that deep stop nudged 15% toward the body ink, which keeps the hue
        saturated (5.9-8.4:1) instead of the muddy olive/brown a 50/50 mix of the
        bright fill stop with near-black produced. */
-    --aeterni-tag-color: var(--aeterni-color-brand-default);
-    --aeterni-tag-ink: var(--aeterni-color-brand-text);
+    /* The base rule is the neutral default: a tag is classification content, so it
+       only takes the brand tint when the host asks for Color.Primary. Semantic
+       colours still override through their own variants below. */
+    --aeterni-tag-color: var(--aeterni-color-neutral-default);
+    --aeterni-tag-ink: var(--aeterni-color-neutral-text);
     --aeterni-tag-fg: color-mix(in srgb, var(--aeterni-tag-ink) 85%, var(--aeterni-text-primary));
     /* The default recipe lives in the base rule instead of a modifier class, so the
        default variant emits nothing (REV-150). The fill/border pair used to be
